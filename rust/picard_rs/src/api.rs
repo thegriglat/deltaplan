@@ -60,6 +60,34 @@ pub struct Freeze {
     pub field: Option<FrozenField>,
 }
 
+/// Mechanism columns for the unconverged fallback (W11 v3).
+#[derive(Clone, Debug)]
+pub struct NonConv {
+    /// `ny * nx` columns without halo; non-zero = a column of the H/D mechanism.
+    pub mask: Vec<u8>,
+    /// Values for those columns at the fallback; `None` = the `late_mean` itself.
+    pub field: Option<FrozenField>,
+}
+
+/// Fallback convergence rules (W11 v3; the game's `omega_fallback`, `late_from`, `nonconv_*`
+/// of `air_picard_job.gd`). With `SolveOpts.fallback = None` the call is bit-identical to v2.
+///
+/// - after `omega_after` iterations without convergence (`0` = off) every column is
+///   under-relaxed with `min(1, omega)` (`x <- x_old + w (x - x_old)` for `u, v, w` after the
+///   projection and for `nu, nuh` after the closure) from the next iteration on;
+/// - from iteration `late_from` the state at every residual check is added to `late_mean`
+///   (`0` = not accumulated, unless `nonconv` is given, as in the game);
+/// - at `max_iters` without convergence the field becomes `late_mean`, in the `nonconv.mask`
+///   columns `nonconv.field` (none: `late_mean`), then `finalize`. Frozen columns (`freeze`)
+///   keep their field. `Solved.residuals`/`history` stay those of the last iterate.
+#[derive(Clone, Debug)]
+pub struct Fallback {
+    pub omega_after: usize,
+    pub omega: f32,
+    pub late_from: usize,
+    pub nonconv: Option<NonConv>,
+}
+
 /// Options of one [`solve`] call.
 #[derive(Clone, Debug)]
 pub struct SolveOpts {
@@ -83,6 +111,8 @@ pub struct SolveOpts {
     /// the start. The run ends no later than the end of the current iteration with
     /// [`StopReason::Cancelled`] and delivers the current field (finalized).
     pub cancel: Option<Arc<AtomicBool>>,
+    /// W11 v3: fallback convergence rules; `None` = bit-identical to v2.
+    pub fallback: Option<Fallback>,
 }
 
 impl Default for SolveOpts {
@@ -96,6 +126,7 @@ impl Default for SolveOpts {
             snapshot_at: Vec::new(),
             freeze: None,
             cancel: None,
+            fallback: None,
         }
     }
 }
@@ -121,6 +152,12 @@ pub struct Solved {
     /// Deviation of the finalized fields from the case reference; `None` for a case without
     /// a reference (R6 v3).
     pub dev: Option<Dev>,
+    /// W11 v3: the omega rollback switched on.
+    pub omega_fallback_used: bool,
+    /// W11 v3: the field was replaced by `late_mean` at `max_iters`.
+    pub nonconv_fallback: bool,
+    /// W11 v3: fraction of the `nonconv` mechanism columns (0 without a mask).
+    pub nonconv_frac: f32,
     /// Solver with the final fields (`picard.f`), after `finalize`.
     pub picard: Picard,
     /// The pool of this call (for further work on `picard` with the same threads).
@@ -190,11 +227,16 @@ pub fn solve(case: &Case, opts: &SolveOpts) -> Result<Solved> {
             // Validate before the (long) start; the columns are declared after it.
             Picard::new_check_freeze(&s.k, fr)?;
         }
+        if let Some(fb) = &opts.fallback {
+            s.set_fallback(fb)?;
+        }
         if let Some(st) = &opts.init {
             s.init_warm(st)?;
             // The game counts checks from the start of a warm run (no graph-capture step).
             crit.pre_steps = 0;
-        } else if !cancelled(opts) {
+        } else if !cancelled(opts) || opts.freeze.as_ref().is_some_and(|f| f.field.is_none()) {
+            // Cancelled before the start: still the background when the frozen field is the
+            // start field (an `AllFrozen` answer must not be zeros).
             s.init_background();
         }
         if let Some(fr) = &opts.freeze {
@@ -232,6 +274,9 @@ pub fn solve(case: &Case, opts: &SolveOpts) -> Result<Solved> {
     Ok(Solved {
         iters: o.iters,
         stop: o.stop,
+        omega_fallback_used: o.omega_fallback_used,
+        nonconv_fallback: o.nonconv_fallback,
+        nonconv_frac: o.nonconv_frac,
         residuals: last.res,
         history: o.history.clone(),
         state,

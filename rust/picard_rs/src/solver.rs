@@ -2,7 +2,7 @@
 //! criterion, finalize — reference `Air.outer_step`, `project`, `residuals`, `solve`,
 //! `finalize` (`air.py`) with the second-order advection correction off.
 
-use crate::api::FrozenField;
+use crate::api::{Fallback, FrozenField};
 use crate::case::{Consts, Criterion};
 use crate::kernels::{HeatIn, MomIn, Vel, apply_bc, build_all_mom, build_heat, kloc};
 use crate::lines::{RowBuf, Scratch, resid, sweep};
@@ -126,6 +126,93 @@ pub struct SolveOut {
     pub phase_s: [f64; 5],
     /// Snapshots requested by `snapshot_at` and reached.
     pub snapshots: Vec<RawSnapshot>,
+    /// W11 v3: the omega rollback switched on during the run.
+    pub omega_fallback_used: bool,
+    /// W11 v3: the run hit `max_iters` unconverged and the field was replaced by `late_mean`.
+    pub nonconv_fallback: bool,
+    /// W11 v3: fraction of the `nonconv` mechanism columns (0 without a mask).
+    pub nonconv_frac: f32,
+}
+
+/// Frozen-point maps of a column mask (`ny * nx`, no halo): `u` faces, `v` faces, centres/`w`
+/// faces, each `nyh * nxh` (`air_picard.glsl:frozen_at`).
+fn col_maps(k: &Consts, mask: &[u8]) -> (Vec<u8>, Vec<u8>, Vec<u8>) {
+    let (nxh, nyh, nx, ny) = (k.nxh, k.nyh, k.nx, k.ny);
+    let mut fc = vec![0u8; nxh * nyh];
+    for j in 1..=ny {
+        for i in 1..=nx {
+            fc[j * nxh + i] = u8::from(mask[(j - 1) * nx + i - 1] != 0);
+        }
+    }
+    let (mut fu, mut fv) = (fc.clone(), fc.clone());
+    for j in 0..nyh {
+        for i in 0..nxh {
+            let q = j * nxh + i;
+            if i > 0 {
+                fu[q] |= fc[q - 1];
+            }
+            if j > 0 {
+                fv[q] |= fc[q - nxh];
+            }
+        }
+    }
+    (fu, fv, fc)
+}
+
+/// `x <- a + w (x - a)` (`K_RELAX` with a uniform omega: the face mean of equal values is `w`).
+fn relax_to(x: &mut [f32], a: &[f32], w: f32) {
+    x.par_chunks_mut(4096)
+        .zip(a.par_chunks(4096))
+        .for_each(|(x, a)| {
+            for (x, &a) in x.iter_mut().zip(a) {
+                *x = a + w * (*x - a);
+            }
+        });
+}
+
+/// `dst <- src` or `dst += src` over the whole array.
+fn acc(dst: &mut [f32], src: &[f32], add: bool) {
+    dst.par_chunks_mut(4096)
+        .zip(src.par_chunks(4096))
+        .for_each(|(d, s)| {
+            if add {
+                for (d, &s) in d.iter_mut().zip(s) {
+                    *d += s;
+                }
+            } else {
+                d.copy_from_slice(s);
+            }
+        });
+}
+
+/// `nonconv` mechanism columns of the fallback (maps and the field to put there).
+struct NcCtx {
+    fu: Vec<u8>,
+    fv: Vec<u8>,
+    fc: Vec<u8>,
+    field: Option<FrozenField>,
+    frac: f32,
+}
+
+/// Fallback rules of one run (W11 v3; the game's `omega_fallback`, `late_from`, `nonconv_*`).
+pub struct FbCtx {
+    omega_after: usize,
+    omega: f32,
+    late_from: usize,
+    nc: Option<NcCtx>,
+    /// The omega rollback is on (`omega` is the effective multiplier `min(1, omega)`).
+    omega_on: Option<f32>,
+    /// Values before the step: `u, v, w, nu, nuh` (allocated at the switch).
+    old: Option<[Vec<f32>; 5]>,
+    /// Running sum of the states `u, v, w, th, thd` and their number.
+    late: Option<[Vec<f32>; 5]>,
+    late_n: usize,
+}
+
+impl FbCtx {
+    fn late_on(&self) -> bool {
+        self.late_from > 0 || self.nc.is_some()
+    }
 }
 
 /// Frozen-column data of one run (W11; the game's `K_FREEZE`/`K_RMASK`/`K_FIXROW` state).
@@ -253,6 +340,8 @@ pub struct Picard {
     pub freeze: Option<FreezeCtx>,
     /// Cancel flag (W11), read after every iteration.
     pub cancel: Option<Arc<AtomicBool>>,
+    /// Fallback rules (W11 v3); `None` = the plain iteration.
+    pub fb: Option<FbCtx>,
 }
 
 /// Interior (no halo) copy of a halo array, layout `(nz, ny, nx)`.
@@ -308,6 +397,7 @@ impl Picard {
             phase: [0.0; 4],
             freeze: None,
             cancel: None,
+            fb: None,
             k,
         }
     }
@@ -525,6 +615,25 @@ impl Picard {
         Self::new_check_freeze_parts(k, &fr.mask, fr.field.as_ref())
     }
 
+    fn check_field(what: &str, k: &Consts, fl: &FrozenField) -> Result<()> {
+        for (nm, a) in [
+            ("u", &fl.u),
+            ("v", &fl.v),
+            ("w", &fl.w),
+            ("th", &fl.th),
+            ("thd", &fl.thd),
+        ] {
+            if a.len() != k.n3() {
+                anyhow::bail!(
+                    "{what}.{nm} has {} values, the grid with halo has {}",
+                    a.len(),
+                    k.n3()
+                );
+            }
+        }
+        Ok(())
+    }
+
     fn new_check_freeze_parts(k: &Consts, mask: &[u8], field: Option<&FrozenField>) -> Result<()> {
         let (nx, ny) = (k.nx, k.ny);
         if mask.len() != nx * ny {
@@ -535,21 +644,7 @@ impl Picard {
             );
         }
         if let Some(fl) = field {
-            for (nm, a) in [
-                ("u", &fl.u),
-                ("v", &fl.v),
-                ("w", &fl.w),
-                ("th", &fl.th),
-                ("thd", &fl.thd),
-            ] {
-                if a.len() != k.n3() {
-                    anyhow::bail!(
-                        "freeze.field.{nm} has {} values, the grid with halo has {}",
-                        a.len(),
-                        k.n3()
-                    );
-                }
-            }
+            Self::check_field("freeze.field", k, fl)?;
         }
         Ok(())
     }
@@ -561,29 +656,12 @@ impl Picard {
     pub fn set_freeze(&mut self, mask: &[u8], field: Option<&FrozenField>) -> Result<()> {
         Self::new_check_freeze_parts(&self.k, mask, field)?;
         let k = &self.k;
-        let (nxh, nyh, nx, ny) = (k.nxh, k.nyh, k.nx, k.ny);
+        let (nxh, nyh) = (k.nxh, k.nyh);
         self.freeze = None;
         if mask.iter().all(|&m| m == 0) {
             return Ok(());
         }
-        let mut fc = vec![0u8; nxh * nyh];
-        for j in 1..=ny {
-            for i in 1..=nx {
-                fc[j * nxh + i] = u8::from(mask[(j - 1) * nx + i - 1] != 0);
-            }
-        }
-        let (mut fu, mut fv) = (fc.clone(), fc.clone());
-        for j in 0..nyh {
-            for i in 0..nxh {
-                let q = j * nxh + i;
-                if i > 0 {
-                    fu[q] |= fc[q - 1];
-                }
-                if j > 0 {
-                    fv[q] |= fc[q - nxh];
-                }
-            }
-        }
+        let (fu, fv, fc) = col_maps(k, mask);
         let cur = &self.f;
         let own = |a: &Vec<f32>, g: Option<&Vec<f32>>| g.unwrap_or(a).clone();
         let xf = [
@@ -629,6 +707,128 @@ impl Picard {
             fluid_free,
         });
         Ok(())
+    }
+
+    /// Declares the fallback rules (W11 v3); call once before [`Picard::solve`]. Lengths and
+    /// values are validated (an error, never a panic).
+    pub fn set_fallback(&mut self, fb: &Fallback) -> Result<()> {
+        let k = &self.k;
+        if fb.omega_after > 0 && !(fb.omega.is_finite() && fb.omega > 0.0) {
+            anyhow::bail!("fallback.omega must be finite and > 0, got {}", fb.omega);
+        }
+        let nc = match &fb.nonconv {
+            None => None,
+            Some(nc) => {
+                if nc.mask.len() != k.nx * k.ny {
+                    anyhow::bail!(
+                        "fallback.nonconv.mask has {} columns, the case has ny*nx = {}",
+                        nc.mask.len(),
+                        k.nx * k.ny
+                    );
+                }
+                if let Some(fl) = &nc.field {
+                    Self::check_field("fallback.nonconv.field", k, fl)?;
+                }
+                let cnt = nc.mask.iter().filter(|&&m| m != 0).count();
+                let (fu, fv, fc) = col_maps(k, &nc.mask);
+                Some(NcCtx {
+                    fu,
+                    fv,
+                    fc,
+                    field: nc.field.clone(),
+                    frac: cnt as f32 / (k.nx * k.ny).max(1) as f32,
+                })
+            }
+        };
+        let mut ctx = FbCtx {
+            omega_after: fb.omega_after,
+            omega: fb.omega.min(1.0),
+            late_from: fb.late_from,
+            nc,
+            omega_on: None,
+            old: None,
+            late: None,
+            late_n: 0,
+        };
+        if ctx.late_on() {
+            let z = || vec![0.0f32; k.n3()];
+            ctx.late = Some([z(), z(), z(), z(), z()]);
+        }
+        self.fb = Some(ctx);
+        Ok(())
+    }
+
+    fn relax_on(&self) -> bool {
+        self.fb.as_ref().is_some_and(|b| b.omega_on.is_some())
+    }
+
+    /// After a residual check without a stop: accumulate `late_mean` and switch omega
+    /// (`air_picard_job.gd:_step_program`/`_after_sync`).
+    fn fb_after_check(&mut self, it: usize) {
+        let Some(b) = self.fb.as_mut() else { return };
+        if b.late_on()
+            && it >= b.late_from
+            && it > 0
+            && let Some(sum) = b.late.as_mut()
+        {
+            let f = &self.f;
+            let first = b.late_n == 0;
+            for (s, x) in sum.iter_mut().zip([&f.u, &f.v, &f.w, &f.th, &f.thd]) {
+                acc(s, x, !first);
+            }
+            b.late_n += 1;
+        }
+        if b.omega_after > 0 && b.omega_on.is_none() && it >= b.omega_after {
+            b.omega_on = Some(b.omega);
+            let n = self.k.n3();
+            b.old = Some([
+                vec![0.0; n],
+                vec![0.0; n],
+                vec![0.0; n],
+                vec![0.0; n],
+                vec![0.0; n],
+            ]);
+        }
+    }
+
+    /// Stopped at `max_iters` unconverged: field := `late_mean`, in the `nonconv` columns :=
+    /// `nonconv.field`. Returns whether it was applied. Frozen columns keep their field.
+    fn fb_apply_late(&mut self) -> bool {
+        let Some(b) = self.fb.as_mut() else {
+            return false;
+        };
+        if !b.late_on() || b.late_n == 0 {
+            return false;
+        }
+        let Some(sum) = b.late.as_ref() else {
+            return false;
+        };
+        let inv = (1.0f64 / b.late_n as f64) as f32;
+        let f = &mut self.f;
+        for (x, s) in [&mut f.u, &mut f.v, &mut f.w, &mut f.th, &mut f.thd]
+            .into_iter()
+            .zip(sum)
+        {
+            x.par_chunks_mut(4096)
+                .zip(s.par_chunks(4096))
+                .for_each(|(x, s)| {
+                    for (x, &s) in x.iter_mut().zip(s) {
+                        *x = s * inv;
+                    }
+                });
+        }
+        if let Some(nc) = &b.nc
+            && let Some(fl) = &nc.field
+        {
+            let hd = (self.k.nxh, self.k.nyh);
+            freeze_copy(&mut f.u, &fl.u, &nc.fu, hd);
+            freeze_copy(&mut f.v, &fl.v, &nc.fv, hd);
+            freeze_copy(&mut f.w, &fl.w, &nc.fc, hd);
+            freeze_copy(&mut f.th, &fl.th, &nc.fc, hd);
+            freeze_copy(&mut f.thd, &fl.thd, &nc.fc, hd);
+        }
+        self.freeze_apply();
+        true
     }
 
     /// True once the cancel flag is set.
@@ -688,8 +888,16 @@ impl Picard {
     /// One Picard iteration (reference `outer_step`).
     pub fn outer_step(&mut self) {
         apply_bc(&self.k, &mut self.f.u, &mut self.f.v);
+        let relax = self.relax_on();
         let t = Instant::now();
+        if relax {
+            self.relax_save(&[3, 4]);
+        }
         self.update_k();
+        if relax {
+            self.relax_apply(&[3, 4]);
+            self.relax_save(&[0, 1, 2]);
+        }
         let t_k = t.elapsed().as_secs_f64();
         let t = Instant::now();
         self.build_all_mom();
@@ -699,12 +907,52 @@ impl Picard {
         let t = Instant::now();
         self.project_impl(self.k.vcycles, true, self.freeze.is_some());
         let t_p = t.elapsed().as_secs_f64();
+        if relax {
+            self.relax_apply(&[0, 1, 2]);
+        }
         let t = Instant::now();
         self.heat_step();
         self.freeze_apply();
         let t_h = t.elapsed().as_secs_f64();
         for (a, d) in self.phase.iter_mut().zip([t_m, t_h, t_p, t_k]) {
             *a += d;
+        }
+    }
+
+    fn chan(f: &mut Fields, c: usize) -> &mut Vec<f32> {
+        match c {
+            0 => &mut f.u,
+            1 => &mut f.v,
+            2 => &mut f.w,
+            3 => &mut f.nu,
+            _ => &mut f.nuh,
+        }
+    }
+
+    /// Remember the channels `cs` (`u, v, w, nu, nuh` = 0..5) before the step (omega rollback).
+    fn relax_save(&mut self, cs: &[usize]) {
+        let Some(old) = self.fb.as_mut().and_then(|b| b.old.as_mut()) else {
+            return;
+        };
+        for &c in cs {
+            if c >= 3 && !self.k.local_k {
+                continue;
+            }
+            old[c].copy_from_slice(Self::chan(&mut self.f, c));
+        }
+    }
+
+    /// `x <- old + omega (x - old)` for the channels `cs`.
+    fn relax_apply(&mut self, cs: &[usize]) {
+        let Some(b) = self.fb.as_ref() else { return };
+        let (Some(w), Some(old)) = (b.omega_on, b.old.as_ref()) else {
+            return;
+        };
+        for &c in cs {
+            if c >= 3 && !self.k.local_k {
+                continue;
+            }
+            relax_to(Self::chan(&mut self.f, c), &old[c], w);
         }
     }
 
@@ -946,6 +1194,9 @@ impl Picard {
             if it >= run.max_iters {
                 break;
             }
+            if it > crit.pre_steps && (it - crit.pre_steps).is_multiple_of(crit.check_every) {
+                self.fb_after_check(it);
+            }
             if self.cancelled() {
                 stop = StopReason::Cancelled;
                 break;
@@ -958,6 +1209,9 @@ impl Picard {
         if hist.last().is_none_or(|c| c.it != it) {
             self.check_into(it, t_start, &mut hist, &mut check_s);
         }
+        // W11 v3: unconverged at `max_iters` - the late mean replaces the field (the residuals
+        // above stay those of the last iterate).
+        let nonconv_fallback = stop == StopReason::MaxIters && self.fb_apply_late();
         let mut phase_s = [0.0; 5];
         for i in 0..4 {
             phase_s[i] = self.phase[i] - ph0[i];
@@ -973,6 +1227,13 @@ impl Picard {
             check_s,
             phase_s,
             snapshots: snaps,
+            omega_fallback_used: self.fb.as_ref().is_some_and(|b| b.omega_on.is_some()),
+            nonconv_fallback,
+            nonconv_frac: self
+                .fb
+                .as_ref()
+                .and_then(|b| b.nc.as_ref())
+                .map_or(0.0, |n| n.frac),
         }
     }
 }
