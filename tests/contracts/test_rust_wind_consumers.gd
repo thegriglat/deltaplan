@@ -6,6 +6,7 @@ extends TestCase
 ## godot --headless --path . res://tests/run_tests.tscn -- --filter=rust_wind_consumers
 
 const ID := "ongudai"
+const NET_ZONE := preload("res://scripts/net/net_zone.gd")
 
 
 func _root() -> Node:
@@ -114,8 +115,13 @@ func test_place_from_terrain_and_field_in_facade() -> void:
 
 
 func test_net_does_not_sync_air() -> void:
-	var zs: Dictionary = NetMessages.MESSAGES.get("ZoneState", {})
-	check(not zs.has("thermalSources") and not zs.has("cloudField"), "ZoneState — только часы и очередь")
+	# воздух по сети не ходит (W1): ни NetZone, ни NetFlight не шлют и не читают источники термиков
+	# и снимки облачности (поля ZoneState в схеме остаются до чистки net.proto и docs)
+	var zone: Node = NET_ZONE.new()
+	check(not zone.has_method("set_thermal_sources") and not zone.has_method("set_cloud_field"), "NetZone без API воздуха")
+	check(not zone.has_signal("cloud_field_received") and not zone.has_signal("thermal_sources_changed"), "NetZone без сигналов воздуха")
+	check(not ("thermal_sources" in zone) and not ("cloud_field_wanted" in zone), "NetZone без состояния воздуха")
+	zone.free()
 	var src := FileAccess.get_file_as_string("res://scripts/game/net_flight.gd")
 	for tok in ["air_forced", "set_air_forced", "air_sources_mask", "apply_net_snapshot", "sync_thermal_sources", "sync_cloud_field"]:
 		check(not src.contains(tok), "NetFlight без %s" % tok)

@@ -987,10 +987,21 @@ func test_c5_signature_and_mask() -> void:
 
 
 func test_c5_net_schema() -> void:
-	# воздух по сети не ходит (rust-wind W1): в ZoneState нет источников термиков и снимков облачности
 	var zs: Dictionary = NetMessages.MESSAGES.get("ZoneState", {})
-	check(not zs.has("thermalSources") and not zs.has("cloudField"), "ZoneState без воздуха")
-	check(not NetMessages.MESSAGES.has("ThermalSources"), "сообщения ThermalSources нет")
+	check(String(zs.get("thermalSources", "")) == "msg:ThermalSources", "ZoneState.thermalSources")
+	check(
+		NetMessages.MESSAGES.get("ThermalSources", {}) == {"grid": "string", "mask": "string"},
+		"ThermalSources = {grid, mask (base64)}"
+	)
+	check(NetMessages.NULLABLE.has("ZoneState.thermalSources"), "thermalSources может отсутствовать")
+	var proto := FileAccess.get_file_as_string("res://server/proto/deltaplan/v1/net.proto")
+	check(
+		proto.contains("ThermalSources thermal_sources = 3;"), "proto: ZoneState.thermal_sources = 3"
+	)
+	check(
+		proto.contains("string grid = 1;") and proto.contains("bytes mask = 2;"),
+		"proto: grid = 1, mask = 2"
+	)
 
 
 # ------------------------------------------------------------------ C6

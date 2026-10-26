@@ -128,7 +128,16 @@ const MESSAGES := {
 	{
 		"clock": "double",
 		"queue": "[]string",
+		# Не используются: воздух по сети не синхронизируется (rust-wind W1, RW-3a) — ни NetZone, ни
+		# NetFlight их не шлют и не читают. Поля остаются в схеме, пока их не уберут из net.proto и
+		# docs/guide/net-protocol.md (там примеры, по ним тест test_doc_examples_round_trip).
+		"thermalSources": "msg:ThermalSources",
+		"cloudField": "msg:CloudFieldSnapshot",
 	},
+	# источники термиков из поля (AM-07): mask — bytes proto, в JSON base64 (строка)
+	"ThermalSources": {"grid": "string", "mask": "string"},
+	# снимок поля облачности (CLF-К4): data — bytes proto, в JSON base64 (строка)
+	"CloudFieldSnapshot": {"data": "string"},
 	# не вариант Envelope: UDP-объявление зоны в локальной сети (LanDiscovery), без конверта
 	"LanAnnounce":
 	{
@@ -146,6 +155,8 @@ const MESSAGES := {
 const NULLABLE := {
 	"PilotState.colors": true,
 	"PilotState.pilotRel": true,
+	"ZoneState.thermalSources": true,
+	"ZoneState.cloudField": true,
 }
 
 ## Перечисления: имена по порядку номеров (индекс = номер в .proto).
