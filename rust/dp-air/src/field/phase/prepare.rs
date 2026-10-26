@@ -202,6 +202,8 @@ pub struct Prepared {
     pub ey: f64,
     pub dx: f64,
     pub z0: f64,
+    /// Показатель профиля притока без округления до f32 (`p.alpha` GDScript; `u_prof`).
+    pub alpha: f64,
     pub hmin: f64,
     pub relief: f64,
     /// N над слоем перемешивания (S2), 1/с.
@@ -648,6 +650,7 @@ pub fn prepare(c: &PhaseCase, cfg: &PhaseCfg) -> Result<Prepared, String> {
         ey: c.ey,
         dx: c.dx,
         z0: c.z0,
+        alpha: c.alpha,
         hmin: lo,
         relief,
         n_bv,
