@@ -1,0 +1,541 @@
+{
+	"arrays": {
+		"col_ongudai_medium_h13_clear_heat_k100": {
+			"count": 16184,
+			"dtype": "f32",
+			"offset": 16384
+		},
+		"col_ongudai_medium_h13_clear_heat_k60": {
+			"count": 16184,
+			"dtype": "f32",
+			"offset": 164496
+		},
+		"col_ongudai_medium_h13_clear_mech_k100": {
+			"count": 16184,
+			"dtype": "f32",
+			"offset": 90440
+		},
+		"col_ongudai_medium_h13_clear_mech_k60": {
+			"count": 16184,
+			"dtype": "f32",
+			"offset": 238552
+		},
+		"col_ongudai_strong_h21_partly_heat_k100": {
+			"count": 16184,
+			"dtype": "f32",
+			"offset": 325296
+		},
+		"col_ongudai_strong_h21_partly_heat_k60": {
+			"count": 16184,
+			"dtype": "f32",
+			"offset": 473408
+		},
+		"col_ongudai_strong_h21_partly_mech_k100": {
+			"count": 16184,
+			"dtype": "f32",
+			"offset": 399352
+		},
+		"col_ongudai_strong_h21_partly_mech_k60": {
+			"count": 16184,
+			"dtype": "f32",
+			"offset": 547464
+		},
+		"gam_ongudai_medium_h13_clear": {
+			"count": 50,
+			"dtype": "f64",
+			"offset": 312608
+		},
+		"gam_ongudai_strong_h21_partly": {
+			"count": 50,
+			"dtype": "f64",
+			"offset": 621520
+		},
+		"hc": {
+			"count": 1024,
+			"dtype": "f64",
+			"offset": 0
+		},
+		"heat_ongudai_medium_h13_clear": {
+			"count": 1024,
+			"dtype": "f64",
+			"offset": 317104
+		},
+		"heat_ongudai_strong_h21_partly": {
+			"count": 1024,
+			"dtype": "f64",
+			"offset": 626016
+		},
+		"hused_ongudai_medium_h13_clear_heat_k100": {
+			"count": 1024,
+			"dtype": "f64",
+			"offset": 82248
+		},
+		"hused_ongudai_medium_h13_clear_heat_k60": {
+			"count": 1024,
+			"dtype": "f64",
+			"offset": 230360
+		},
+		"hused_ongudai_medium_h13_clear_mech_k100": {
+			"count": 1024,
+			"dtype": "f64",
+			"offset": 156304
+		},
+		"hused_ongudai_medium_h13_clear_mech_k60": {
+			"count": 1024,
+			"dtype": "f64",
+			"offset": 304416
+		},
+		"hused_ongudai_strong_h21_partly_heat_k100": {
+			"count": 1024,
+			"dtype": "f64",
+			"offset": 391160
+		},
+		"hused_ongudai_strong_h21_partly_heat_k60": {
+			"count": 1024,
+			"dtype": "f64",
+			"offset": 539272
+		},
+		"hused_ongudai_strong_h21_partly_mech_k100": {
+			"count": 1024,
+			"dtype": "f64",
+			"offset": 465216
+		},
+		"hused_ongudai_strong_h21_partly_mech_k60": {
+			"count": 1024,
+			"dtype": "f64",
+			"offset": 613328
+		},
+		"lev_ongudai_medium_h13_clear_heat_k100": {
+			"count": 250,
+			"dtype": "f32",
+			"offset": 81120
+		},
+		"lev_ongudai_medium_h13_clear_heat_k60": {
+			"count": 250,
+			"dtype": "f32",
+			"offset": 229232
+		},
+		"lev_ongudai_medium_h13_clear_mech_k100": {
+			"count": 250,
+			"dtype": "f32",
+			"offset": 155176
+		},
+		"lev_ongudai_medium_h13_clear_mech_k60": {
+			"count": 250,
+			"dtype": "f32",
+			"offset": 303288
+		},
+		"lev_ongudai_strong_h21_partly_heat_k100": {
+			"count": 250,
+			"dtype": "f32",
+			"offset": 390032
+		},
+		"lev_ongudai_strong_h21_partly_heat_k60": {
+			"count": 250,
+			"dtype": "f32",
+			"offset": 538144
+		},
+		"lev_ongudai_strong_h21_partly_mech_k100": {
+			"count": 250,
+			"dtype": "f32",
+			"offset": 464088
+		},
+		"lev_ongudai_strong_h21_partly_mech_k60": {
+			"count": 250,
+			"dtype": "f32",
+			"offset": 612200
+		},
+		"prm_ongudai_medium_h13_clear_heat_k100": {
+			"count": 32,
+			"dtype": "f32",
+			"offset": 82120
+		},
+		"prm_ongudai_medium_h13_clear_heat_k60": {
+			"count": 32,
+			"dtype": "f32",
+			"offset": 230232
+		},
+		"prm_ongudai_medium_h13_clear_mech_k100": {
+			"count": 32,
+			"dtype": "f32",
+			"offset": 156176
+		},
+		"prm_ongudai_medium_h13_clear_mech_k60": {
+			"count": 32,
+			"dtype": "f32",
+			"offset": 304288
+		},
+		"prm_ongudai_strong_h21_partly_heat_k100": {
+			"count": 32,
+			"dtype": "f32",
+			"offset": 391032
+		},
+		"prm_ongudai_strong_h21_partly_heat_k60": {
+			"count": 32,
+			"dtype": "f32",
+			"offset": 539144
+		},
+		"prm_ongudai_strong_h21_partly_mech_k100": {
+			"count": 32,
+			"dtype": "f32",
+			"offset": 465088
+		},
+		"prm_ongudai_strong_h21_partly_mech_k60": {
+			"count": 32,
+			"dtype": "f32",
+			"offset": 613200
+		},
+		"z0_map": {
+			"count": 1024,
+			"dtype": "f64",
+			"offset": 8192
+		},
+		"z_i_col_ongudai_medium_h13_clear": {
+			"count": 1024,
+			"dtype": "f32",
+			"offset": 313008
+		},
+		"z_i_col_ongudai_strong_h21_partly": {
+			"count": 1024,
+			"dtype": "f32",
+			"offset": 621920
+		}
+	},
+	"dx": 1200.0,
+	"dz": 105.0,
+	"ks": [
+		1.0,
+		0.6
+	],
+	"l": 38400.0,
+	"nx": 32,
+	"ny": 32,
+	"nz": 48,
+	"place": "ongudai",
+	"scenarios": [
+		{
+			"alpha": 0.11200000000000002,
+			"climate": [
+				{
+					"day": 15,
+					"dtr_k": 10.87185475699511,
+					"has_hh1": true,
+					"has_hh5": true,
+					"month": 7,
+					"tx_c": 19.445580565357385,
+					"z_cell_m": 1443.1666000000037
+				},
+				{
+					"day": 15,
+					"dtr_k": 11.697016738551296,
+					"has_hh1": true,
+					"has_hh5": true,
+					"month": 6,
+					"tx_c": 18.591807584440694,
+					"z_cell_m": 1443.1666000000037
+				}
+			],
+			"conditions": {
+				"forecast": {
+					"sky": "clear",
+					"temperature_c": 26.0,
+					"wind_from_deg": 151.0,
+					"wind_speed_kmh": 11.000000000000016
+				},
+				"quantum_h": 0.5,
+				"speed": 1.0,
+				"start_hour": 13.0
+			},
+			"hour": 13.0,
+			"max_profile": 1.4339986683613577,
+			"sets": [
+				{
+					"alpha": 0.11200000000000002,
+					"cd": 0.0051875068025909205,
+					"ex": -0.48480962024633717,
+					"ey": 0.8746197071393957,
+					"fixed_scale": 0.9687194313459426,
+					"full": true,
+					"h_max": 2765.9457017130276,
+					"h_mech": 832.9816305879216,
+					"hash_col": "-3471021833311127707",
+					"hash_lev": "1997202067951638545",
+					"hash_prm": "2054014441527528727",
+					"k": 1.0,
+					"key": "ongudai_medium_h13_clear_heat_k100",
+					"max_profile": 1.4339986683613577,
+					"mode": "heat",
+					"n_fluid": 40331,
+					"n_unk": [
+						38496,
+						38524,
+						39307,
+						40331
+					],
+					"u10": 3.05555555555556,
+					"u_a": 4.381662597770822,
+					"ustar": 0.3137564141881171,
+					"wstar_max": 2.563903107018005,
+					"z0": 0.20334235044383675
+				},
+				{
+					"alpha": 0.11200000000000002,
+					"cd": 0.0051875068025909205,
+					"ex": -0.48480962024633717,
+					"ey": 0.8746197071393957,
+					"fixed_scale": 0.9687194313459426,
+					"full": true,
+					"h_max": 1167.9700826984474,
+					"h_mech": 832.9816305879216,
+					"hash_col": "-637956175873587435",
+					"hash_lev": "1997202067951638545",
+					"hash_prm": "2054014441527528727",
+					"k": 1.0,
+					"key": "ongudai_medium_h13_clear_mech_k100",
+					"max_profile": 1.4339986683613577,
+					"mode": "mech",
+					"n_fluid": 40331,
+					"n_unk": [
+						38496,
+						38524,
+						39307,
+						40331
+					],
+					"u10": 3.05555555555556,
+					"u_a": 4.381662597770822,
+					"ustar": 0.3137564141881171,
+					"wstar_max": 0.0,
+					"z0": 0.20334235044383675
+				},
+				{
+					"alpha": 0.11200000000000002,
+					"cd": 0.0051875068025909205,
+					"ex": -0.48480962024633717,
+					"ey": 0.8746197071393957,
+					"fixed_scale": 0.9687194313459426,
+					"full": true,
+					"h_max": 2765.9457017130276,
+					"h_mech": 499.7889783527528,
+					"hash_col": "-1973910084083991923",
+					"hash_lev": "1997202067951638545",
+					"hash_prm": "4107618008290111919",
+					"k": 0.6,
+					"key": "ongudai_medium_h13_clear_heat_k60",
+					"max_profile": 1.4339986683613577,
+					"mode": "heat",
+					"n_fluid": 40331,
+					"n_unk": [
+						38496,
+						38524,
+						39307,
+						40331
+					],
+					"u10": 1.8333333333333357,
+					"u_a": 2.6289975586624923,
+					"ustar": 0.18825384851287022,
+					"wstar_max": 2.563903107018005,
+					"z0": 0.20334235044383675
+				},
+				{
+					"alpha": 0.11200000000000002,
+					"cd": 0.0051875068025909205,
+					"ex": -0.48480962024633717,
+					"ey": 0.8746197071393957,
+					"fixed_scale": 0.9687194313459426,
+					"full": true,
+					"h_max": 700.7820496190683,
+					"h_mech": 499.7889783527528,
+					"hash_col": "1509915122862599696",
+					"hash_lev": "1997202067951638545",
+					"hash_prm": "4107618008290111919",
+					"k": 0.6,
+					"key": "ongudai_medium_h13_clear_mech_k60",
+					"max_profile": 1.4339986683613577,
+					"mode": "mech",
+					"n_fluid": 40331,
+					"n_unk": [
+						38496,
+						38524,
+						39307,
+						40331
+					],
+					"u10": 1.8333333333333357,
+					"u_a": 2.6289975586624923,
+					"ustar": 0.18825384851287022,
+					"wstar_max": 0.0,
+					"z0": 0.20334235044383675
+				}
+			],
+			"sky": "clear",
+			"t_max": 26.0,
+			"tag": "ongudai_medium_h13_clear",
+			"u10": 3.05555555555556,
+			"wdir": 151.0,
+			"z_i": 3490.342203464674
+		},
+		{
+			"alpha": 0.24,
+			"climate": [
+				{
+					"day": 15,
+					"dtr_k": 10.87185475699511,
+					"has_hh1": true,
+					"has_hh5": true,
+					"month": 7,
+					"tx_c": 19.445580565357385,
+					"z_cell_m": 1443.1666000000037
+				},
+				{
+					"day": 15,
+					"dtr_k": 11.697016738551296,
+					"has_hh1": true,
+					"has_hh5": true,
+					"month": 6,
+					"tx_c": 18.591807584440694,
+					"z_cell_m": 1443.1666000000037
+				}
+			],
+			"conditions": {
+				"forecast": {
+					"sky": "partly",
+					"temperature_c": 26.0,
+					"wind_from_deg": 151.0,
+					"wind_speed_kmh": 27.0
+				},
+				"quantum_h": 0.5,
+				"speed": 1.0,
+				"start_hour": 21.0
+			},
+			"hour": 21.0,
+			"max_profile": 2.6856824542425946,
+			"sets": [
+				{
+					"alpha": 0.24,
+					"cd": 0.0051875068025909205,
+					"ex": -0.48480962024633717,
+					"ey": 0.8746197071393957,
+					"fixed_scale": 0.968103970515946,
+					"full": true,
+					"h_max": 2866.835657532548,
+					"h_mech": 2044.5912750794405,
+					"hash_col": "-8912264338400028120",
+					"hash_lev": "-243151647723495631",
+					"hash_prm": "1840427777910726301",
+					"k": 1.0,
+					"key": "ongudai_strong_h21_partly_heat_k100",
+					"max_profile": 2.6856824542425946,
+					"mode": "heat",
+					"n_fluid": 40331,
+					"n_unk": [
+						38496,
+						38524,
+						39307,
+						40331
+					],
+					"u10": 7.5,
+					"u_a": 20.14261840681946,
+					"ustar": 0.7701293802799226,
+					"wstar_max": 0.5485338830920433,
+					"z0": 0.20334235044383675
+				},
+				{
+					"alpha": 0.24,
+					"cd": 0.0051875068025909205,
+					"ex": -0.48480962024633717,
+					"ey": 0.8746197071393957,
+					"fixed_scale": 0.968103970515946,
+					"full": true,
+					"h_max": 2866.835657532548,
+					"h_mech": 2044.5912750794405,
+					"hash_col": "-2985872599655866390",
+					"hash_lev": "-243151647723495631",
+					"hash_prm": "1840427777910726301",
+					"k": 1.0,
+					"key": "ongudai_strong_h21_partly_mech_k100",
+					"max_profile": 2.6856824542425946,
+					"mode": "mech",
+					"n_fluid": 40331,
+					"n_unk": [
+						38496,
+						38524,
+						39307,
+						40331
+					],
+					"u10": 7.5,
+					"u_a": 20.14261840681946,
+					"ustar": 0.7701293802799226,
+					"wstar_max": 0.0,
+					"z0": 0.20334235044383675
+				},
+				{
+					"alpha": 0.24,
+					"cd": 0.0051875068025909205,
+					"ex": -0.48480962024633717,
+					"ey": 0.8746197071393957,
+					"fixed_scale": 0.9681039705159462,
+					"full": true,
+					"h_max": 1901.9036324103913,
+					"h_mech": 1226.7547650476645,
+					"hash_col": "-4166784544359125707",
+					"hash_lev": "-243151647723495631",
+					"hash_prm": "8633029843282487901",
+					"k": 0.6,
+					"key": "ongudai_strong_h21_partly_heat_k60",
+					"max_profile": 2.6856824542425946,
+					"mode": "heat",
+					"n_fluid": 40331,
+					"n_unk": [
+						38496,
+						38524,
+						39307,
+						40331
+					],
+					"u10": 4.5,
+					"u_a": 12.085571044091676,
+					"ustar": 0.4620776281679536,
+					"wstar_max": 0.4959414792303781,
+					"z0": 0.20334235044383675
+				},
+				{
+					"alpha": 0.24,
+					"cd": 0.0051875068025909205,
+					"ex": -0.48480962024633717,
+					"ey": 0.8746197071393957,
+					"fixed_scale": 0.9681039705159462,
+					"full": true,
+					"h_max": 1720.1013945195293,
+					"h_mech": 1226.7547650476645,
+					"hash_col": "4849619997264765151",
+					"hash_lev": "-243151647723495631",
+					"hash_prm": "8633029843282487901",
+					"k": 0.6,
+					"key": "ongudai_strong_h21_partly_mech_k60",
+					"max_profile": 2.6856824542425946,
+					"mode": "mech",
+					"n_fluid": 40331,
+					"n_unk": [
+						38496,
+						38524,
+						39307,
+						40331
+					],
+					"u10": 4.5,
+					"u_a": 12.085571044091676,
+					"ustar": 0.4620776281679536,
+					"wstar_max": 0.0,
+					"z0": 0.20334235044383675
+				}
+			],
+			"sky": "partly",
+			"t_max": 26.0,
+			"tag": "ongudai_strong_h21_partly",
+			"u10": 7.5,
+			"wdir": 151.0,
+			"z_i": 3003.8966198412027
+		}
+	],
+	"version": 1,
+	"x0": -19200.0,
+	"y0": -19200.0,
+	"z_bot": 420.0
+}

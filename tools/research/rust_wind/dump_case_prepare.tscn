@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://tools/research/rust_wind/dump_case_prepare.gd" id="1"]
+
+[node name="DumpCasePrepare" type="Node"]
+script = ExtResource("1")
