@@ -6,16 +6,17 @@ extends Node3D
 ## Контракт — docs/guide/architecture.md, модель — docs/research/thermals.md,
 ## описание — docs/guide/atmosphere.md.
 ##
-## Использование:
-##   atmo.set_weather("weather/medium")          # или словарь пресета
-##   atmo.set_ground(terrain.height_at, terrain.sun_exposure_at)
-##   atmo.focus_node = glider                    # вокруг кого генерировать термики
-##   var v := atmo.air_velocity_at(pos)          # скорость воздуха, м/с (мир)
+## Использование (фасад W2, docs/contracts/rust-wind.md):
+##   atmo.configure(seed)                         # сид мира (< 0 — из configs/atmosphere.json)
+##   atmo.load_place(AirPlaceData.from_terrain(terrain, utc_offset_h, month, day))
+##   atmo.set_conditions({forecast: {…}, start_hour: 12.0, speed: 1.0, …})   # погода и ход дня
+##   atmo.set_focuses(points, weights)            # вокруг кого генерировать термики (0 — игрок)
+##   atmo.start_at(0.0)                           # асинхронно; ждать is_ready(), звать pump(бюджет)
+##   atmo.advance_to(t)                           # раз в тик; sample_many / air_velocity_at — опрос
 ##
 ## Детерминизм (сеть, NET-00): состояние — чистая функция (настройки, погода, day, сид, time_s).
-##   atmo.seed_value = zone_seed                 # до set_weather/configure
-##   atmo.set_weather(w); atmo.set_ground(…); atmo.set_wind(…); atmo.set_day(day)
-##   atmo.start_at(zone_t)                       # сразу в момент t — то же, что прогон от 0
+## Переходные входы (set_ground, set_day, set_wind, set_weather, step, focus_node) — внутри
+## реализации gd, снаружи не зовутся (W10); их держат тесты внутренностей и файлы RW-3b/RW-3c.
 
 signal weather_changed
 ## Погода мягко обновлена (update_weather: ход дня) — термики и облака не пересоздаются.
@@ -125,12 +126,34 @@ var _f_sun := Vector3.ZERO
 var _f_sun_set := false
 var _f_statics := PackedFloat32Array()
 var _f_static_mode := 0
+## set_static_thermals звали — режим термиков задан командой; иначе остаётся режим погоды.
+var _f_statics_set := false
 var _f_focus_pts := PackedVector3Array()
 var _f_focus_w := PackedFloat32Array()
 var _f_focus_manual := false
 var _f_state := STATE_EMPTY
-## Стадия загрузки в pump: 0 — собрать воздух, 1 — начать обновление, 2 — порции обновления.
+## Стадия загрузки в pump: 0 — собрать воздух, 1 — ждать поле Пикара (место из рельефа игры),
+## 2 — начать обновление термиков, 3 — порции обновления, 4 — готово.
 var _f_stage := 0
+## Кеш поля Пикара на диске (FL-К1): включает игра; тесты — нет.
+var air_cache_enabled := false:
+	set(v):
+		air_cache_enabled = v
+		if runtime != null:
+			runtime.cache_enabled = v
+## Среднее поле воздуха (Пикар, AirRuntime): создаётся при load_place, если место — из рельефа игры
+## (AirPlaceData.terrain), условия — прогноз и узел в дереве; иначе воздух — аналитика. Переходное
+## (до RW-6/RW-7: поле уйдёт в крейт).
+var runtime: Node
+## Поле Пикара: 0 — не нужно/не начато, 1 — считается, 2 — готово.
+var _f_rt_state := 0
+var _f_rt_gen := 0
+var _f_rt_pending: Dictionary = {}
+var _f_rt_pending_terrain: Node
+var _f_rt_progress := 0.0
+## Подпись экрана загрузки: "" — нет этапа (поле из запечённого файла/кеша или не нужно), "solver" —
+## считается решателем, "simple" — упрощённый ветер (расчёт недоступен).
+var _f_wind_kind := ""
 var _f_t_req := 0.0
 var _f_progress := 0.0
 var _f_err := ""
@@ -230,6 +253,7 @@ func _ready() -> void:
 	if visuals_enabled and DisplayServer.get_name() != "headless":
 		_create_visuals()
 		refresh_budget_us = 3000
+		_f_rt_ensure()  # RD и ядра решателя — сразу при появлении узла, не на экране загрузки
 
 
 func _physics_process(delta: float) -> void:
@@ -757,7 +781,7 @@ func set_cloudbase_msl(msl: float) -> void:
 
 
 func get_cloudbase_msl() -> float:
-	return field.cloudbase_msl
+	return field.cloudbase_msl if field != null else 0.0
 
 
 func _update_cloudbase() -> void:
@@ -867,6 +891,8 @@ func _update_focus() -> void:
 ## С полем воздуха (доля fw.w > 0) — _air_velocity_field (масштабы 1–3 из поля); без поля и вне
 ## поля — аналитика ниже (побитно прежняя).
 func air_velocity_at(pos: Vector3) -> Vector3:
+	if ground == null or field == null:
+		return Vector3.ZERO  # воздух не собран (EMPTY/ранняя загрузка): нули, W2
 	var gs := ground.sample(pos.x, pos.z)
 	var agl := maxf(pos.y - gs.x, 0.0)
 	var u := wind.speed_at_pos(agl, pos.y)
@@ -1180,6 +1206,8 @@ func _lee_flow(
 ## Интенсивность болтанки в точке — СКО пульсаций скорости воздуха, м/с (для оценки перегрузки,
 ## FR-14c; саму перегрузку flight считает по air_velocity_at на крыле).
 func turbulence_intensity_at(pos: Vector3) -> float:
+	if ground == null or field == null:
+		return 0.0
 	var was := turbulence_enabled
 	turbulence_enabled = true
 	air_velocity_at(pos)
@@ -1189,7 +1217,7 @@ func turbulence_intensity_at(pos: Vector3) -> float:
 
 ## Плотность облака в точке 0..1 (0 — ясно): для «белой мглы» у камеры и оценки «в облаке».
 func cloud_density_at(pos: Vector3) -> float:
-	return cloud_phys.density_at(pos)
+	return cloud_phys.density_at(pos) if cloud_phys != null else 0.0
 
 
 ## Доля солнечного прогрева земли под перистой пеленой 0..1 (1 — ясно). Интегратор может
@@ -1230,6 +1258,8 @@ func _update_wave_wind() -> void:
 ## С полем воздуха — горизонталь и механическая вертикаль поля (тот же вес края, что в
 ## air_velocity_at), без подветренной эвристики.
 func mean_wind_at(pos: Vector3) -> Vector3:
+	if ground == null or wind == null:
+		return Vector3.ZERO
 	var gs := ground.sample(pos.x, pos.z)
 	var s := wind.speed_at_pos(maxf(pos.y - gs.x, 0.0), pos.y)
 	if _air_on:
@@ -1243,6 +1273,8 @@ func mean_wind_at(pos: Vector3) -> Vector3:
 ## Термики рядом (для тестов, птиц и отладки; НЕ показывать пилоту — FR-22).
 func thermals_near(pos: Vector3, radius: float) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
+	if field == null:
+		return out
 	for th in field.near(pos, radius):
 		out.append(th.to_dict())
 	return out
@@ -1250,11 +1282,13 @@ func thermals_near(pos: Vector3, radius: float) -> Array[Dictionary]:
 
 # ================================================================ фасад W2
 # Фасад rust-wind (docs/contracts/rust-wind.md, W2) поверх нынешнего расчёта: физика не меняется,
-# команды переводятся в прежние входы (set_ground, set_day, set_wind, start_at, step).
-# Игра пока зовёт прежние методы; потребителей на фасад переводит RW-3.
-# Переходное: weather() фасада называется get_weather() (имя weather занято полем); configure
-# принимает и сид, и прежние словари; start_at при загруженном месте асинхронен (pump), без места —
-# прежний синхронный.
+# команды переводятся в прежние входы (set_ground, set_day, set_wind, start_at, step). Игра и мир
+# (RW-3a) ходят только через фасад; прежние входы остаются внутри реализации gd и у файлов
+# RW-3b/RW-3c.
+# Переходное (TODO(RW-3c): убрать): weather() фасада называется get_weather() — имя weather занято
+# полем, которое читают облака и превью (atmo.weather); configure принимает и сид, и прежние
+# словари (atmo_cfg, weather_cfg); start_at без места (прежние тесты и инструменты) синхронный,
+# при месте — асинхронный (pump); focus_node/set_focus/get_focus — для птиц и превью.
 
 
 func _f_fail(code: int, msg: String) -> int:
@@ -1330,6 +1364,7 @@ func unload_place() -> void:
 	_f_place = null
 	_f_statics = PackedFloat32Array()
 	_f_static_mode = 0
+	_f_statics_set = false
 	_f_focus_pts = PackedVector3Array()
 	_f_focus_w = PackedFloat32Array()
 	_f_focus_manual = false
@@ -1337,6 +1372,13 @@ func unload_place() -> void:
 	_f_stage = 0
 	_f_t_req = 0.0
 	_f_progress = 0.0
+	_f_rt_gen += 1
+	_f_rt_state = 0
+	_f_rt_progress = 0.0
+	_f_wind_kind = ""
+	if runtime != null:
+		runtime.stop()
+		runtime.recompute_enabled = false
 	_f_set_state(STATE_EMPTY)
 
 
@@ -1346,10 +1388,16 @@ func set_conditions(cond: Dictionary) -> int:
 	if why != "":
 		return _f_fail(BAD_INPUT, "set_conditions: " + why)
 	_f_used = true
+	var prev := _f_cond
 	_f_cond = cond.duplicate(true)
 	_f_cond_set = true
 	if _f_place == null or _f_stage == 0:
 		return OK  # место не загружено или воздух ещё не собран — применится при сборке
+	# Часы пошли иначе (ещё раз, смена скорости времени), остальное то же: только перепривязка
+	# хода дня к текущему моменту — без смены погоды и без пересчёта термиков (как AtmoDay.rebase).
+	if day != null and not bool(cond.get("rebuild", false)) and _f_same_but_clock(prev, _f_cond):
+		day.rebase(time_s, float(cond.get("start_hour", 12.0)), float(cond.get("speed", 1.0)))
+		return OK
 	if bool(cond.get("rebuild", false)):
 		_f_stage = 0
 		_f_t_req = time_s
@@ -1358,6 +1406,17 @@ func set_conditions(cond: Dictionary) -> int:
 		return OK
 	_f_apply_soft(_f_cond)
 	return OK
+
+
+func _f_same_but_clock(a: Dictionary, b: Dictionary) -> bool:
+	if a.is_empty():
+		return false
+	var x := a.duplicate()
+	var y := b.duplicate()
+	for k in ["start_hour", "speed", "blend_s"]:
+		x.erase(k)
+		y.erase(k)
+	return x == y
 
 
 func _f_check_conditions(cond: Dictionary) -> String:
@@ -1475,6 +1534,9 @@ func _f_resolve(cond: Dictionary, t0: float) -> Dictionary:
 			int(loc.get("day", 15)),
 			float(loc.get("utc_offset_h", NAN))
 		)
+		var terr: Node = _f_place.terrain
+		if terr != null and is_instance_valid(terr) and terr.has_method("thermal_source_strength_for"):
+			d.source_fn = _f_source_fn(terr, ctx, fc)
 		out.day = d
 		var wr: Variant = cond.get("wind_ref")
 		if wr is Dictionary:
@@ -1482,6 +1544,44 @@ func _f_resolve(cond: Dictionary, t0: float) -> Dictionary:
 			out.gain = float(wr.gain_per_km)
 	(out.weather as Dictionary).erase("static_thermals")
 	return out
+
+
+## Сила источника термиков (x, z, час) для хода дня: солнце с запаздыванием класса поверхности,
+## вода и ночь (Terrain.thermal_source_strength_water) — как делала игра (Game._make_day). Часть
+## реализации gd: в крейте это «нагрев и surface_flux» (W5).
+func _f_source_fn(terr: Node, ctx: Dictionary, fc: Dictionary) -> Callable:
+	var heating := SurfaceHeating.new()
+	heating.setup(
+		float(ctx.lat), float(ctx.lon), int(ctx.month), int(ctx.day), float(ctx.utc_offset_h)
+	)
+	var sun := AtmoDay.sun_direction.bind(
+		float(ctx.lat), float(ctx.lon), int(ctx.month), int(ctx.day), float(ctx.utc_offset_h)
+	)
+	var cache := {"h": NAN, "dirs": PackedVector3Array(), "sun": Vector3.UP, "water": {}, "night": {}}
+	return func(x: float, z: float, h: float) -> float:
+		if h != float(cache.h):
+			cache.h = h
+			cache.dirs = heating.directions(h)
+			cache.sun = sun.call(h)
+			cache.water = _f_water_heat(h, fc, ctx)
+			cache.night = heating.built_night(h)
+		return terr.thermal_source_strength_water(
+			x, z, cache.dirs, cache.sun, cache.water, cache.night
+		)
+
+
+## Контекст воды для потока тепла (SH-5) в час места hour: T воды, T воздуха суточного хода по
+## прогнозу, ветер прогноза на 10 м (как Game._water_heat_at).
+func _f_water_heat(hour: float, fc: Dictionary, ctx: Dictionary) -> Dictionary:
+	var wcfg: Dictionary = SurfaceHeat.config().water
+	var z := float(ctx.get("valley_msl_m", 0.0))
+	return {
+		"t_water_c": SurfaceHeat.water_temp_c(int(ctx.month), int(ctx.day), z, ctx, wcfg),
+		"t_air_c":
+		SurfaceHeat.air_temp_c(hour, float(fc.get("temperature_c", 20.0)), z, ctx, wcfg),
+		"u_ms": float(fc.get("wind_speed_kmh", 0.0)) / 3.6,
+		"z_m": z,
+	}
 
 
 ## Собрать воздух места по запомненным условиям (стадия 0 загрузки): прежние configure,
@@ -1537,7 +1637,8 @@ func _f_apply_statics() -> void:
 	if field == null:
 		return
 	clear_static_thermals()
-	set_thermal_mode(["dynamic", "static", "both"][clampi(_f_static_mode, 0, 2)])
+	if _f_statics_set:
+		set_thermal_mode(["dynamic", "static", "both"][clampi(_f_static_mode, 0, 2)])
 	for i in range(0, _f_statics.size() - 3, 4):
 		add_static_thermal(_f_statics[i], _f_statics[i + 1], _f_statics[i + 2], _f_statics[i + 3])
 
@@ -1564,6 +1665,7 @@ func set_static_thermals(list: PackedFloat32Array, mode: int) -> int:
 	_f_used = true
 	_f_statics = list
 	_f_static_mode = mode
+	_f_statics_set = true
 	if _f_place != null and _f_stage > 0:
 		_f_apply_statics()
 	return OK
@@ -1618,37 +1720,198 @@ func _f_start_at_place(t: float) -> int:
 	if not _f_time_ok(t):
 		return _f_fail(BAD_INPUT, "start_at: t < 0 или не конечно")
 	_f_t_req = t
-	if _f_state == STATE_LOADING and _f_stage == 0:
-		return NOT_READY  # воздух ещё не собран: момент старта запомнен
-	_f_stage = 1
-	_f_progress = 0.1
+	if _f_state == STATE_LOADING and _f_stage <= 1:
+		return NOT_READY  # воздух ещё не собран или ждёт поле: момент старта запомнен
+	_f_stage = 2
+	_f_progress = 0.7
 	_f_set_state(STATE_LOADING)
 	return OK
 
 
-## Время главного потока реализации: сборка воздуха и порции первого обновления. Звать каждый
-## кадр, пока state = LOADING.
+## Время главного потока реализации: сборка воздуха, поле Пикара (ждёт) и порции первого
+## обновления. Звать каждый кадр, пока state = LOADING.
 func pump(budget_us: int) -> void:
 	if _f_place == null or _f_state != STATE_LOADING:
 		return
 	if _f_stage == 0:
 		_f_build()
-		_f_stage = 1
 		_f_progress = 0.1
+		_f_stage = 1
+		if _f_rt_wanted():
+			_f_rt_start()
 	if _f_stage == 1:
+		if _f_rt_state == 1:
+			_f_progress = 0.1 + 0.6 * _f_rt_progress
+			return
+		_f_stage = 2
+		_f_progress = 0.7
+	if _f_stage == 2:
+		if not air_sources_ready(_f_place.terrain):
+			return  # поля рельефа ещё считаются — источники термиков собирать рано (FL-17)
 		time_s = _f_t_req
 		_target.clear()
 		field.reset_dynamic()
+		if _f_rt_state == 2:
+			prefetch_air_sources()  # поле подано — источники термиков собираются сразу (FL-5)
 		begin_load_refresh()
-		_f_stage = 2
-		_f_progress = 0.3
-	if _f_stage == 2:
+		_f_stage = 3
+		_f_progress = 0.75
+	if _f_stage == 3:
 		if load_refresh_step(maxi(budget_us, 1)):
-			_f_stage = 3
+			_f_stage = 4
 			_f_progress = 1.0
 			if _f_sun_set:
 				field.sun_dir = _f_sun
 			_f_set_state(STATE_READY)
+
+
+## Место из рельефа игры без остановки кадров (FL-9): снимок поверхности считает задача пула, по
+## кадрам ждём готовности. Те же растры, что у AirPlaceData.from_terrain (слой detail 25 м), и
+## снимок запоминается для поля Пикара — второй раз он не считается. null — рельеф без слоя detail
+## или снимка поверхности. Переходное (gd): сборку растров заберёт RW-4/RW-6.
+func place_from_terrain(
+	p_terrain: Node, utc_offset_h: float, month: int, day: int
+) -> AirPlaceData:
+	var rp := AirRuntime.place_of(p_terrain, utc_offset_h, month, day)
+	var detail: HeightLayer = rp.detail
+	var sf: AirPlace.Surface = rp.surface
+	if detail == null or sf == null:
+		return null
+	while not sf.is_ready() and is_inside_tree():
+		await get_tree().process_frame
+	sf.wait()
+	if (
+		sf.width != detail.width
+		or sf.height != detail.height
+		or sf.origin_x != detail.origin_x
+		or sf.origin_z != detail.origin_z
+	):
+		push_error("Atmosphere.place_from_terrain: сетка поверхности не совпала со слоем detail")
+		return null
+	var sites: Array = []
+	for st: Dictionary in rp.start_sites:
+		var sp: Vector3 = st.position
+		sites.append({"id": String(st.id), "x": sp.x, "z": sp.z, "h_msl": sp.y})
+	var loc: Dictionary = (rp.loc as Dictionary).duplicate()
+	loc.month = month
+	loc.day = day
+	var grid := {
+		"origin_x": detail.origin_x,
+		"origin_z": detail.origin_z,
+		"spacing": detail.spacing,
+		"width": detail.width,
+		"height": detail.height,
+	}
+	var place := AirPlaceData.from_arrays(
+		AirPlaceData.make_header(loc, grid, sites),
+		detail.heights,
+		AirPlaceData._water_nodes(rp.water, detail),
+		sf.cls,
+		sf.moist
+	)
+	place.terrain = p_terrain
+	place.fill_climate()
+	_f_rt_pending = rp
+	_f_rt_pending_terrain = p_terrain
+	return place
+
+
+## Снимок места, собранный place_from_terrain для этого рельефа (и только раз).
+func _f_rt_place_of(p_terrain: Node) -> Dictionary:
+	var out: Dictionary = _f_rt_pending
+	if p_terrain != _f_rt_pending_terrain:
+		out = {}
+	_f_rt_pending = {}
+	_f_rt_pending_terrain = null
+	return out
+
+
+## Можно ли собирать источники термиков поля (FL-17): точка источника и его сила (pick_fn →
+## Terrain.thermal_source_strength_at) читают влажность ложбин из полей рельефа, которые считаются
+## в фоне и подменяются на главном потоке. Сборка, начатая до их готовности, видела бы то
+## нейтральную влажность, то настоящую — число и точки источников зависели бы от скорости машины,
+## а ведущий и клиенты сети получали бы разные источники при одном ключе мира.
+static func air_sources_ready(t: Object) -> bool:
+	return t == null or not t.has_method("relief_busy") or not bool(t.call("relief_busy"))
+
+
+## Среднее поле нужно: место из рельефа игры, условия — прогноз, узел в дереве (корутины кадров).
+func _f_rt_wanted() -> bool:
+	var t: Node = _f_place.terrain
+	return (
+		t != null
+		and is_instance_valid(t)
+		and is_inside_tree()
+		and _f_cond_set
+		and _f_cond.has("forecast")
+	)
+
+
+func _f_rt_ensure() -> void:
+	if runtime == null:
+		runtime = AirRuntime.new()
+		runtime.cache_enabled = air_cache_enabled
+		add_child(runtime)
+		runtime.progress_changed.connect(_f_on_rt_progress)
+
+
+func _f_rt_start() -> void:
+	_f_rt_ensure()
+	var loc: Dictionary = _f_place.header.loc
+	var rt_place := _f_rt_place_of(_f_place.terrain)
+	if rt_place.is_empty():
+		rt_place = AirRuntime.place_of(
+			_f_place.terrain, float(loc.get("utc_offset_h", NAN)), int(loc.get("month", 0)),
+			int(loc.get("day", 0))
+		)
+	runtime.setup(self, rt_place, Callable(self, "_f_rt_conditions"))
+	runtime.focus_fn = Callable(self, "get_focus")
+	_f_rt_gen += 1
+	_f_rt_state = 1
+	_f_rt_progress = 0.0
+	_f_wind_kind = ""
+	_f_rt_task(_f_rt_gen)
+
+
+## Поле Пикара на загрузке (корутина кадров): снимок поверхности → запечённое/кеш/расчёт.
+func _f_rt_task(gen: int) -> void:
+	var rt: AirRuntime = runtime
+	rt.recompute_enabled = false
+	await rt.wait_place()
+	if gen != _f_rt_gen:
+		return
+	if rt.baked_ready() or rt.cache_ready():
+		_f_wind_kind = ""  # поле из запечённого файла или кеша: этапа «Рассчитываем ветер» нет
+	elif rt.unavailable_reason() == "":
+		_f_wind_kind = "solver"
+	elif rt.unavailable_reason() != AirRuntime.CMD_FIELD:
+		_f_wind_kind = "simple"
+	await rt.load_field()
+	if gen != _f_rt_gen:
+		return
+	rt.recompute_enabled = true
+	_f_rt_progress = 1.0
+	_f_rt_state = 2
+
+
+func _f_on_rt_progress(f: float) -> void:
+	_f_rt_progress = f
+
+
+## Условия поля для AirRuntime: час (по ходу дня), ветер атмосферы (на 10 м у старта), прогноз.
+func _f_rt_conditions() -> Dictionary:
+	var fc: Dictionary = _f_cond.get("forecast", {})
+	var hour := float(_f_cond.get("start_hour", 12.0))
+	if day != null:
+		hour = day.hour_at(time_s)
+	return {
+		hour = hour,
+		u10 = float(weather.get("wind_speed_kmh", 0.0)) / 3.6,
+		wdir = float(weather.get("wind_from_deg", 0.0)),
+		t_max = float(fc.get("temperature_c", 20.0)),
+		sky = String(fc.get("sky", "clear")),
+		wind_ref = String(_f_cond.get("inflow_mode", "start")),
+	}
 
 
 ## {state, progress 0..1, time_s, reason}.
@@ -1659,6 +1922,9 @@ func status() -> Dictionary:
 		"progress": 1.0 if s == STATE_READY else (_f_progress if s == STATE_LOADING else 0.0),
 		"time_s": time_s,
 		"reason": _f_err if s == STATE_FAILED else "",
+		# Подпись этапа загрузки (gd): "" | "solver" | "simple" — ключ сверх W2, только для экрана загрузки.
+		"wind": _f_wind_kind,
+		"wind_progress": _f_rt_progress,
 	}
 
 
