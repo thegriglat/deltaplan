@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://tools/research/rust_wind/dump_phase_assembly.gd" id="1"]
+
+[node name="DumpPhaseAssembly" type="Node"]
+script = ExtResource("1")

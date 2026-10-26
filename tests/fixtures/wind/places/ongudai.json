@@ -16,6 +16,13 @@
 	"loc": {
 		"center_lat": 50.79,
 		"center_lon": 86.13,
+		"climate": {
+			"dtr_k": 10.8718547569951,
+			"has_hh1": true,
+			"has_hh5": true,
+			"tx_c": 19.4455805653574,
+			"z_cell_m": 1443.1666
+		},
 		"day": 15,
 		"id": "ongudai",
 		"month": 7,
