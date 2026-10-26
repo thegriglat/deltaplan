@@ -1,0 +1,63 @@
+{
+  "id": "RW-6r",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Решатель: C_d стенки по столбцу (как игра) и отсчёт порогов запасных правил — W11 v4",
+  "goal": "picard_rs::Case получает cd_col (C_d по столбцу), импульс у стенки берёт его как air_picard.glsl:393; case_build заполняет cd_col из PreparedPlanes; без cd_col — побитно W11 v3; пороги omega_after/late_from отсчитываются как в игре; замер расхождения поля на Онгудае 400 между одним C_d и картой C_d.",
+  "plan_ref": "План переноса / Этап 2 / RW-6",
+  "contracts": [
+    {
+      "name": "W11",
+      "version": "5",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-6r",
+  "branch": "rust-wind/RW-6r",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/picard_rs/src/",
+    "rust/picard_rs/tests/",
+    "rust/picard_rs/INTEGRATION.md",
+    "rust/dp-air/src/field/case_build.rs",
+    "rust/dp-air/tests/case_build.rs",
+    "rust/dp-air/src/field/phase/assembly.rs",
+    "rust/dp-air/tests/phase_assembly.rs"
+  ],
+  "dont_touch": [
+    "rust/dp-gd/",
+    "rust/dp-stand/",
+    "rust/dp-air/src/formula.rs",
+    "rust/dp-air/src/field/runtime.rs",
+    "scripts/",
+    "configs/",
+    "docs/contracts/",
+    "rust/picard_rs/out/"
+  ],
+  "accept": [
+    {
+      "name": "cd_col_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p picard_rs --test cd_col",
+      "expect": "re:test result: ok\\. [1-9]"
+    },
+    {
+      "name": "tests",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p picard_rs -p dp-air",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml -p picard_rs -p dp-air --all-targets -- -D warnings",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-26T06:33:44",
+  "edited": "2026-10-26T07:25:02"
+}

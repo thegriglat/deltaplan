@@ -8,7 +8,7 @@
   "contracts": [
     {
       "name": "W11",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/rust-wind.md"
     }
   ],
@@ -54,5 +54,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-26T04:47:57"
+  "created": "2026-10-26T04:47:57",
+  "edited": "2026-10-26T05:35:52"
 }

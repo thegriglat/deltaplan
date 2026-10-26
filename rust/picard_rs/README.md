@@ -386,3 +386,9 @@ build_mom u/v/w — один проход по клеткам; `project`, `apply
 `pfull.fill` и перенос с `halo_index` убраны. Путь решения побитно тот же (identical=4/4).
 u3_heat, 8 потоков: 104,2 → 89,1 мс/итерацию (0,855); proj 28,0 → 17,1 мс; mom 33,9 → 31,7 мс; IPC 1,99 → 2,08.
 Подробности — `out/opt/PR-7/README.md`.
+
+
+## Заморозка колонн и отмена (W11, RW-6g)
+
+`SolveOpts.freeze` / `SolveOpts.cancel`, `StopReason::AllFrozen` / `Cancelled`; устройство и соответствие ядрам игры — `INTEGRATION.md`, «Заморозка колонн и отмена (W11)».
+Тесты — `tests/freeze.rs` (`flat_wind`, `heated_slope`; Онгудай 400 м — `#[ignore]`, release). CLI `picard solve` без изменений.

@@ -26,7 +26,7 @@ struct Common {
     /// places/<имя>.json; по умолчанию — ../places/<place>.json от случая
     #[arg(long, global = true)]
     place: Option<PathBuf>,
-    /// Модель: calm
+    /// Модель: calm | formula
     #[arg(long, global = true, default_value = "calm")]
     model: String,
     /// Каталог конфигов; sha1 сверяется с configs_sha1 случая (расхождение — предупреждение)

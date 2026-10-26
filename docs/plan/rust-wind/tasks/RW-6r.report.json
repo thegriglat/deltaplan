@@ -1,0 +1,47 @@
+{
+  "status": "done",
+  "summary": "W11 v5: (1) cd_col nyh*nxh без изменений кода; (2,3) max_iters в счёте игры и останов на ближайшей проверке сверху (limit = pre_steps + ceil(max_iters/ce)*ce, 0 -> 0), тест max_iters_counts_like_the_game (pre 3 и 0, некратные); (4) шапка cd_col.rs поправлена; (5) FrozenField.thd: Option (None - thd из init / late_mean), assembly.rs отдаёт None, тест missing_thd_is_the_start_thd. Слито feature/rust-wind.",
+  "commits": [
+    "picard-rs: W11 v5 - max_iters на ближайшей проверке сверху, FrozenField.thd Option"
+  ],
+  "checks": [
+    {
+      "name": "cd_col_test",
+      "value": "test result: ok. 5",
+      "pass": true
+    },
+    {
+      "name": "tests",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "accept --dry: scope FAIL - rust/dp-air/src/field/phase/assembly.rs в dont_touch карточки, хотя координатор назвал его в scope; правка нужна (иначе dp-air не собирается). Карточку поправить. tests/phase_assembly.rs не менял: thd там не проверяется, компилируется и проходит."
+  ],
+  "questions": [
+    "Поправить scope карточки RW-6r: добавить rust/dp-air/src/field/phase/assembly.rs."
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-6r",
+  "uncertain": [
+    {
+      "where": "rust/picard_rs/tests/api.rs, freeze.rs",
+      "why": "тесты 'отдельный прогон с max_iters=N' больше не могут останавливаться на некратном N: переведены на snapshot_at и только контрольные N.",
+      "checked": "tests picard_rs + dp-air PASS."
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-26T07:24:46",
+  "by": "executor"
+}

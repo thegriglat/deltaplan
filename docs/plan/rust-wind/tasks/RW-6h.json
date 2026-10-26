@@ -1,0 +1,57 @@
+{
+  "id": "RW-6h",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Решатель Пикара в крейте: запасные правила сходимости (ω-откат, late_mean, nonconv) — W11 v3",
+  "goal": "picard_rs::api::solve принимает SolveOpts.fallback по W11 v3 и ведёт себя как игровой путь air_picard_job.gd: ω-откат после omega_after итераций, накопление late_mean с late_from, при упоре в max_iters — поле := late_mean и подмена колонн nonconv; флаги omega_fallback_used, nonconv_fallback, nonconv_frac; fallback = None — побитно W11 v2; AllFrozen при отмене до старта — с фоном.",
+  "plan_ref": "План переноса / Этап 2 / RW-6",
+  "contracts": [
+    {
+      "name": "W11",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-6h",
+  "branch": "rust-wind/RW-6h",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/picard_rs/src/",
+    "rust/picard_rs/tests/",
+    "rust/picard_rs/INTEGRATION.md"
+  ],
+  "dont_touch": [
+    "rust/dp-air/",
+    "rust/dp-gd/",
+    "rust/dp-stand/",
+    "scripts/",
+    "configs/",
+    "docs/contracts/",
+    "rust/picard_rs/out/"
+  ],
+  "accept": [
+    {
+      "name": "fallback_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p picard_rs --test fallback",
+      "expect": "re:test result: ok\\. [1-9]"
+    },
+    {
+      "name": "picard_tests",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p picard_rs",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml -p picard_rs --all-targets -- -D warnings",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-26T05:45:49"
+}

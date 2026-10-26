@@ -1,0 +1,101 @@
+{
+  "id": "RW-6o",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Окна 2: клипмап в крейте — окна 100/50 м при загрузке и пересчёте, сдвиг за фокусом, подача набором, откат на область; подключение в Formula",
+  "goal": "Formula ведёт окна как AirRuntime + AirClipmap: загрузка — область, затем окна 100/50 м (configs/atmosphere.json window_levels_m, родитель — предыдущий уровень) с центром на старте, подача одним набором [50, 100, область]; пересчёт по сроку — область, затем окна на прежних местах с тёплого старта; в покое — сдвиг окон за фокусом (window_shift_frac, кратно клетке; сдвиг 100 м пересчитывает и 50 м); ошибка окна — откат на поле без окон, как _on_windows_failed; пара mech/heat окна — как в игре. window_levels_m = [] — без окон. Расчёт окна — готовый RW-6n (field::window, level::nest/shift_warm, W11 v7).",
+  "plan_ref": "План переноса / Этап 2 / RW-6",
+  "contracts": [
+    {
+      "name": "W1",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W4",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W11",
+      "version": "8",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-6o",
+  "branch": "rust-wind/RW-6o",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/field/clipmap.rs",
+    "rust/dp-air/src/field/window.rs",
+    "rust/dp-air/src/field/runtime.rs",
+    "rust/dp-air/src/formula.rs",
+    "rust/dp-air/src/field/field_set.rs",
+    "rust/dp-air/src/field/mod.rs",
+    "rust/dp-air/src/lib.rs",
+    "rust/dp-air/tests/clipmap.rs",
+    "rust/dp-air/tests/runtime.rs",
+    "rust/dp-air/tests/window.rs",
+    "rust/dp-air/Cargo.toml",
+    "rust/Cargo.lock",
+    "rust/dp-stand/src/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "rust/picard_rs/",
+    "rust/dp-gd/",
+    "rust/dp-air/src/field/phase/",
+    "rust/dp-air/src/field/baked.rs",
+    "rust/dp-air/src/field/field_cache.rs",
+    "rust/dp-air/src/level.rs",
+    "tests/fixtures/",
+    "rust/dp-air/tests/data/",
+    "docs/contracts/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "clipmap_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test clipmap",
+      "expect": "re:test result: ok\\. [1-9]"
+    },
+    {
+      "name": "clipmap_release",
+      "cmd": "cargo test --release --manifest-path rust/Cargo.toml -p dp-air --test clipmap -- --ignored",
+      "expect": "re:test result: ok\\."
+    },
+    {
+      "name": "runtime_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test runtime",
+      "expect": "re:test result: ok\\. [1-9]"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "stand_formula",
+      "cmd": "cargo run -q --release --manifest-path rust/Cargo.toml -p dp-stand -- sample --case tests/fixtures/wind/cases/ongudai_strong.json --model formula 2>&1 | tail -3",
+      "expect": "!re:(?i)error|panic"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-26T08:37:16"
+}

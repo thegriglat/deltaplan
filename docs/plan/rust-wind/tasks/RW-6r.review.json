@@ -1,0 +1,34 @@
+{
+  "verdict": "accept",
+  "summary": "Все пункты W11 v5 и прошлого ревью закрыты. cd_col идёт плоскостью nyh·nxh, контракт под это исправлен. max_iters считается как в игре: limit = pre_steps + ceil(max_iters/ce)·ce, упор проверяется после сходимости и до смены ω и late (как air_picard_job.gd:1008-1016), это проверяет тест max_iters_counts_like_the_game. FrozenField.thd стал Option, assembly отдаёт None. Тесты api/freeze/fallback под новый счёт перестроены честно: пороги не ослаблены, сравнения отдельного прогона перенесены на snapshot_at и на итерации проверки.",
+  "issues": [
+    {
+      "file": "rust/picard_rs/src/solver.rs",
+      "line": 823,
+      "severity": "minor",
+      "what": "Ветку NonConv.field.thd = None (θ′_d остаётся из late_mean) не проверяет ни один тест. missing_thd_is_the_start_thd проверяет только заморозку и только на холодном старте, где θ′_d init = 0, поэтому None и Some(нули) там неразличимы.",
+      "fix": "При случае: в fallback.rs прогнать nonconv с thd = None и сверить thd в маске с late_mean; для заморозки — тёплый старт с ненулевым θ′_d init."
+    },
+    {
+      "file": "rust/picard_rs/src/solver.rs",
+      "line": 1162,
+      "severity": "minor",
+      "what": "max_iters = 0 даёт 0 итераций. Игра при max_outer = 0 остановилась бы на первой проверке. На практике это не важно: игра всегда задаёт 3000.",
+      "fix": "Оставить, но записать в doc-комментарий Fallback.max_iters, что 0 означает «без итераций»."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "cd_col_test (accept --only cd_col_test --dry)",
+      "value": "test result: ok. 5; scope 12 файлов в границах",
+      "pass": true
+    },
+    {
+      "name": "fmt (accept --only fmt --dry)",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-26T07:33:15",
+  "by": "reviewer"
+}

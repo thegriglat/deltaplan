@@ -1,0 +1,230 @@
+{
+	"arrays": {
+		"ongudai_noon_u0.3/mech": {
+			"count": 7830,
+			"dtype": "f64",
+			"offset": 508032
+		},
+		"ongudai_noon_u1.5/mech": {
+			"count": 7830,
+			"dtype": "f64",
+			"offset": 570672
+		},
+		"ongudai_noon_u12.0/mech": {
+			"count": 7830,
+			"dtype": "f64",
+			"offset": 695952
+		},
+		"ongudai_noon_u6.0/mech": {
+			"count": 7830,
+			"dtype": "f64",
+			"offset": 633312
+		},
+		"synthetic_noon_u0.3/lap": {
+			"count": 3888,
+			"dtype": "f64",
+			"offset": 110592
+		},
+		"synthetic_noon_u0.3/mech": {
+			"count": 4320,
+			"dtype": "f64",
+			"offset": 0
+		},
+		"synthetic_noon_u0.3/modes": {
+			"count": 2016,
+			"dtype": "f64",
+			"offset": 34560
+		},
+		"synthetic_noon_u0.3/slab": {
+			"count": 7488,
+			"dtype": "f64",
+			"offset": 50688
+		},
+		"synthetic_noon_u1.5/lap": {
+			"count": 3456,
+			"dtype": "f64",
+			"offset": 252288
+		},
+		"synthetic_noon_u1.5/mech": {
+			"count": 4320,
+			"dtype": "f64",
+			"offset": 141696
+		},
+		"synthetic_noon_u1.5/modes": {
+			"count": 2016,
+			"dtype": "f64",
+			"offset": 176256
+		},
+		"synthetic_noon_u1.5/slab": {
+			"count": 7488,
+			"dtype": "f64",
+			"offset": 192384
+		},
+		"synthetic_noon_u12.0/lap": {
+			"count": 432,
+			"dtype": "f64",
+			"offset": 504576
+		},
+		"synthetic_noon_u12.0/mech": {
+			"count": 4320,
+			"dtype": "f64",
+			"offset": 393984
+		},
+		"synthetic_noon_u12.0/modes": {
+			"count": 2016,
+			"dtype": "f64",
+			"offset": 428544
+		},
+		"synthetic_noon_u12.0/slab": {
+			"count": 7488,
+			"dtype": "f64",
+			"offset": 444672
+		},
+		"synthetic_noon_u6.0/lap": {
+			"count": 432,
+			"dtype": "f64",
+			"offset": 390528
+		},
+		"synthetic_noon_u6.0/mech": {
+			"count": 4320,
+			"dtype": "f64",
+			"offset": 279936
+		},
+		"synthetic_noon_u6.0/modes": {
+			"count": 2016,
+			"dtype": "f64",
+			"offset": 314496
+		},
+		"synthetic_noon_u6.0/slab": {
+			"count": 7488,
+			"dtype": "f64",
+			"offset": 330624
+		},
+		"t_ax_u0.3/mech": {
+			"count": 17280,
+			"dtype": "f64",
+			"offset": 758592
+		},
+		"t_ax_u1.5/mech": {
+			"count": 17280,
+			"dtype": "f64",
+			"offset": 896832
+		},
+		"t_ax_u12/mech": {
+			"count": 17280,
+			"dtype": "f64",
+			"offset": 1035072
+		},
+		"t_contract/lap": {
+			"count": 1728,
+			"dtype": "f64",
+			"offset": 1615680
+		},
+		"t_contract/mech": {
+			"count": 17280,
+			"dtype": "f64",
+			"offset": 1173312
+		},
+		"t_contract/modes": {
+			"count": 8064,
+			"dtype": "f64",
+			"offset": 1311552
+		},
+		"t_contract/slab": {
+			"count": 29952,
+			"dtype": "f64",
+			"offset": 1376064
+		},
+		"t_contract_env/mech": {
+			"count": 27900,
+			"dtype": "f64",
+			"offset": 2182464
+		},
+		"t_det/mech": {
+			"count": 17280,
+			"dtype": "f64",
+			"offset": 2044224
+		},
+		"t_fconv/mech": {
+			"count": 17280,
+			"dtype": "f64",
+			"offset": 1629504
+		},
+		"t_gvalley/mech": {
+			"count": 17280,
+			"dtype": "f64",
+			"offset": 1767744
+		},
+		"t_hstat/mech": {
+			"count": 17280,
+			"dtype": "f64",
+			"offset": 1905984
+		}
+	},
+	"cases": [
+		{
+			"tag": "synthetic_noon_u0.3"
+		},
+		{
+			"tag": "synthetic_noon_u1.5"
+		},
+		{
+			"tag": "synthetic_noon_u6.0"
+		},
+		{
+			"tag": "synthetic_noon_u12.0"
+		},
+		{
+			"tag": "ongudai_noon_u0.3"
+		},
+		{
+			"tag": "ongudai_noon_u1.5"
+		},
+		{
+			"tag": "ongudai_noon_u6.0"
+		},
+		{
+			"tag": "ongudai_noon_u12.0"
+		},
+		{
+			"tag": "t_ax_u0.3"
+		},
+		{
+			"tag": "t_ax_u1.5"
+		},
+		{
+			"tag": "t_ax_u12"
+		},
+		{
+			"tag": "t_contract"
+		},
+		{
+			"tag": "t_fconv"
+		},
+		{
+			"tag": "t_gvalley"
+		},
+		{
+			"tag": "t_hstat"
+		},
+		{
+			"tag": "t_det"
+		},
+		{
+			"tag": "t_contract_env"
+		}
+	],
+	"heights": [
+		0.5,
+		3.0,
+		10.0,
+		30.0,
+		60.0,
+		120.0,
+		400.0,
+		1200.0
+	],
+	"sor_iters": 400,
+	"stride": 3,
+	"version": 1
+}

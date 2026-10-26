@@ -1,0 +1,29 @@
+{
+  "verdict": "accept",
+  "summary": "Скоуп и контракты соблюдены (phase/, baked.rs, field_cache.rs не тронуты; scope 13 файлов в границах). Порядок запечённое -> кеш -> расчёт, freeze/freeze_mech/nonconv, отмена в подготовке и dp-gd W3 v2 соответствуют заданию; отчёт совпал при перезапуске picard_test.",
+  "issues": [
+    {
+      "file": "rust/picard_rs/src/solver.rs",
+      "line": 1238,
+      "severity": "minor",
+      "what": "При отмене до первой итерации запись истории it=0 содержит NaN-невязки; потребители истории (стенд, отчёты) могут не ожидать NaN.",
+      "fix": "Зафиксировать в W11 (solver.md), что при Cancelled до итерации невязки NaN; убедиться, что RW-6q/стенд не сравнивает их."
+    },
+    {
+      "file": "rust/dp-air/src/field/runtime.rs",
+      "line": 606,
+      "severity": "minor",
+      "what": "Выбор запечённого поля по key самого файла (нет id/погоды/data_hash в StartSite) слабее baked_lookup игры; решение принято координатором 10-26 08:32, но фасад (RW-7) обязан подать проверяемые значения.",
+      "fix": "В RW-7 передавать site/weather/data_hash из фасада и сверять."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "picard_test (accept --dry)",
+      "value": "PASS exit 0, 16 с",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-26T08:36:04",
+  "by": "reviewer"
+}

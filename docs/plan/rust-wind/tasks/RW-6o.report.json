@@ -1,0 +1,75 @@
+{
+  "status": "done",
+  "summary": "Клипмап окон 100/50 м в крейте, подключён в Formula (загрузка/пересчёт с окнами, сдвиг в покое, откат на область). Доработка: тесты Онгудая (seam, загрузка) идут с air.timeout_s 900, чтобы не зависеть от нагрузки машины (на координаторе seam упал по таймауту 180 с на 368 итерациях).",
+  "commits": [
+    "d6a06f9c9 rust-wind RW-6o: клипмап окон 100/50 м в крейте",
+    "7c3bd37e1 тик подачи замеряется трижды (лучший ≤ 0,5 мс)",
+    "тесты Онгудая с air.timeout_s 900"
+  ],
+  "checks": [
+    {
+      "name": "clipmap_test",
+      "value": "test result: ok. 7",
+      "pass": true
+    },
+    {
+      "name": "clipmap_release",
+      "value": "10 тестов ok (~6 мин release)",
+      "pass": true
+    },
+    {
+      "name": "runtime_test",
+      "value": "test result: ok. 3",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "stand_formula",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "пара окна против GPU-дампа",
+      "value": "итерации 40/40, 40/50, сдвиг 30 — как GPU; u_rel ≤ 4e-6",
+      "pass": true
+    },
+    {
+      "name": "Онгудай, загрузка с окнами (release, tol 1)",
+      "value": "55 с на 8 потоках, 151 с на 2; окна прохода 1: 40/40 и 40/50 итераций; w100 3,3 с, w50 5,4 с (8 пот.)",
+      "pass": true
+    },
+    {
+      "name": "seam (Онгудай, tol 5, timeout 900)",
+      "value": "в допуске +5 %; на загруженной машине решение области доходило до 368 итераций за 180 с — теперь предел 900 с",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RW-6o",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/src/formula.rs: pilot_left_baked",
+      "why": "GD пропускает самое мелкое окно файла, здесь проверяются все окна кроме области",
+      "checked": "отдельного теста нет"
+    }
+  ],
+  "dp_feedback": "",
+  "extra": {},
+  "t": "2026-10-26T10:52:54",
+  "by": "executor"
+}

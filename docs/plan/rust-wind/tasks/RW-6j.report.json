@@ -1,0 +1,95 @@
+{
+  "status": "done",
+  "summary": "Доработка: (1) уровни для подачи готовятся в фоне (FieldSet::prepare + set_levels), на тике подачи advance_to — 12 мкс на Онгудае release (было 670); (2) loc.climate разбирается в place.rs и подаётся в field_weather (PlaceClimate: ячейка заголовка там, где has_hh5/has_hh1, иначе таблицы); (3) rust/Cargo.toml: profile.dev.package.picard_rs opt-level 2 (+dp-air 1) — тесты считают на области 7,2 км с tol_scale 5, runtime_test ~46 с; (4) air.timeout_s = 180 в atmosphere.json.",
+  "commits": [
+    "837ca673d Formula (первая сдача)",
+    "см. git log ветки: доработка RW-6j"
+  ],
+  "checks": [
+    {
+      "name": "runtime_test",
+      "value": "test result: ok (24 теста за ~46 с на dev; 4 Онгудая #[ignore] прогнаны на release)",
+      "pass": true
+    },
+    {
+      "name": "contract_test",
+      "value": "test result: ok, formula_suite на области 7,2 км, tol_scale 5",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "stand_formula",
+      "value": "exit 0, 77 с",
+      "pass": true
+    },
+    {
+      "name": "advance_to на тике подачи, Онгудай release",
+      "value": "12 мкс (порог теста 0,5 мс); обычный тик 18 мкс",
+      "pass": true
+    },
+    {
+      "name": "Онгудай release, tol_scale 5, climate из заголовка, 8 слотов",
+      "value": "без фокуса 7,3 с (грубый [40,40], тонкая [60,60]); с фокусом 52,6 с: k 1,000 → 0,642, U 6,79 → 5,51 при u10 5,0, проход 2 тёплый [470,250]",
+      "pass": true
+    },
+    {
+      "name": "T4a Онгудай release (итерации тонкой сетки mech+heat)",
+      "value": "medium: с грубого 620 (510+110) против 1210 (790+420) с фона, 47,5 с против 76,3 с; strong: 120 против 230, 12,5 с против 20,8 с; грубая сетка [40,40] / [60,50] ≈ 9–12 тонких",
+      "pass": true
+    },
+    {
+      "name": "T8 Онгудай release: unload / Drop / load_place посреди расчёта",
+      "value": "35–161 мс (<1 с)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Фазы и запечённые поля не подключались (по указанию): phase_hook / baked_hook с TODO."
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-6j; release-тесты Онгудая: cargo test --release --manifest-path rust/Cargo.toml -p dp-air --test runtime -- --ignored --nocapture --test-threads=1",
+  "uncertain": [
+    {
+      "where": "rust/Cargo.toml",
+      "why": "scope-проверка accept помечает rust/Cargo.toml вне скоупа — правка по прямому указанию координатора (исключение из W9, picard_rs opt-level 2, dp-air opt-level 1). Нужно ли dp-air opt-level 1, отдельно не мерил.",
+      "checked": "тесты 46 с на dev."
+    },
+    {
+      "where": "rust/dp-air/src/field/runtime.rs:PlaceClimate",
+      "why": "Без has_hh5 tx_c/dtr_k берутся из таблиц weather_model.json, z_cell_m — только при has_hh1 (как ClimateGrid.place); поле на Онгудае теперь требует больше итераций (medium 620 вместо 70 с запасным климатом).",
+      "checked": "тест place_header_carries_climate…; прогон Онгудая release."
+    },
+    {
+      "where": "tests/runtime.rs:hilltop",
+      "why": "Фокус для 2-го прохода k подобран перебором по сетке синтетики (1000, 1000): U 6,7 против u10 5,0; при смене модели/климата точка может перестать давать U > u10.",
+      "checked": "перебор 25 точек, тест падает явно, если 2-го прохода нет."
+    },
+    {
+      "where": "air.timeout_s",
+      "why": "Ключ в секции air (180); прежний air_model.timeout_s остаётся для GD. Загрузка Онгудая с фокусом на 8 слотах — 52 с (проход 2 — 44 с), на 2 потоках вероятно ~4× — проход может упереться в 180 с.",
+      "checked": "только 8 слотов."
+    }
+  ],
+  "dp_feedback": "scope-проверка accept не учитывает указание координатора в дополнении (rust/Cargo.toml) — придётся править карточку; хорошо бы `task scope add`.",
+  "extra": {
+    "advance_to_delivery_us": 12,
+    "ongudai_two_pass_load_s": 52.6
+  },
+  "t": "2026-10-26T07:26:35",
+  "by": "executor"
+}

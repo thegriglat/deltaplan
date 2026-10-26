@@ -1,0 +1,55 @@
+{
+  "status": "done",
+  "summary": "Версия API = W2 v2 во всех местах (dp-air, dp-gd, bridge.rs, GDScript-тест); жёсткие assert==1 убраны; verify.sh сравнивает configs_sha1 только справочно. Приёмка --dry 5/5 PASS.",
+  "commits": [
+    "078bf2ba1 rust-wind: RW-0f — версия API = W2 v2 (крейт, dp-gd, тест GDScript), verify.sh без configs_sha1 (справка)",
+    "a6122c5b5 rust-wind: RW-0f — тест моста сверяет WIND_API_VERSION с версией W2 (2)"
+  ],
+  "checks": [
+    {
+      "name": "test_dp_air_ext",
+      "value": "4/4 пройдено (после сборки tools/build_rust.sh tune linux)",
+      "pass": true
+    },
+    {
+      "name": "contract_rs",
+      "value": "test result: ok",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "cargo test --workspace: exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fixtures_unchanged",
+      "value": "tools/wind_fixtures/verify.sh: exit 0 (609 с)",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "7 файлов в границах",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-0f --dry",
+  "uncertain": [
+    {
+      "where": "tools/wind_fixtures/verify.sh",
+      "why": "Мой отдельный прогон до сборки дал exit 2 (таймаут расчёта 60 с у ongudai_day_2/3); прогон приёмки после сборки — exit 0",
+      "checked": "приёмка fixtures_unchanged 609 с PASS"
+    }
+  ],
+  "dp_feedback": "test_dp_air_ext в чистой копии падает (FAIL 0/0, пропуск 4), если не собрано расширение tools/build_rust.sh tune linux; check бы подсказывал сборку прямо в выводе или делал её сам. Общий таймаут job start 1500 с обрывает приёмку с кодом 124.",
+  "extra": {},
+  "t": "2026-10-27T03:19:34",
+  "by": "executor"
+}

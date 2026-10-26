@@ -1,0 +1,149 @@
+{
+  "status": "done",
+  "summary": "W11 v7 реализован в picard_rs (Case.nest, SolveOpts.init_cycles); окна решаются: итерации равны GPU во всех наборах (w100 40/40, w50 40/50, сдвиг 30), u_rel ≤ 3,8e-6, θ′ ≤ 5,2e-6 К. nest/init_cycles = None — v6 побитно.",
+  "commits": [
+    "87a8f1479 окна 1",
+    "80053c262 W11 v7 и решение окон",
+    "dcb756618 clippy"
+  ],
+  "checks": [
+    {
+      "name": "accept --dry",
+      "value": "6/6 PASS (window_test 10 тестов, level_test 12, dump_repro, cargo_test, fmt, clippy)",
+      "pass": true
+    },
+    {
+      "name": "A. плоскости prepare окна против AirWindowCase.prepare (6 наборов)",
+      "value": "0 из ~61 000 слов отличаются в каждом наборе (побитно); скаляры ≤ 1e-12",
+      "pass": true
+    },
+    {
+      "name": "B. цепочка W5 → вход окна (рельеф, gam, z0, z_i от поля области, нагрев)",
+      "value": "hc точно; gam, z0, z_i_col точно; нагрев 1,6e-7 отн.; col 1e-10",
+      "pass": true
+    },
+    {
+      "name": "C. типы клеток и граней окна (tcode) против GPU",
+      "value": "0 расхождений (w100, w50, w100s)",
+      "pass": true
+    },
+    {
+      "name": "D. nest + flux + corr против буферов GPU после corr",
+      "value": "граница 2e-7…9e-7 от масштаба массива (допуск 1e-5); corr = GPU до 4 знаков (w100 heat 1,5702e-3, mech 2,2107e-4; w50 heat 9,367e-4, mech 1,965e-4; w100s heat 2,4488e-3 м/с); Σ потока после corr ≤ 2e-8 от потока через грань (допуск 1e-6)",
+      "pass": true
+    },
+    {
+      "name": "E. старт со сдвигом (16 клеток, dk = 1) против состояния GPU после K_BC(init)+K_SHIFT",
+      "value": "u, v, w, θ′, θ′_d ≤ 7,5e-7 от масштаба, p точно",
+      "pass": true
+    },
+    {
+      "name": "итерации GPU игры (дамп)",
+      "value": "w100 40/40 (mech/heat), w50 40/50, w100s после сдвига 30/30; область 200/170",
+      "pass": true
+    },
+    {
+      "name": "оценка стоимости решателем picard_rs с границей только по u, v (release, #[ignore])",
+      "value": "итерации: w100 40/40, w50 50/50, сдвиг 100 м 40; время 8 потоков (под CPUQuota 400% замка, т.е. ≈4 ядра): w100 mech 1,5 с, heat 2,3 с; w50 mech 3,6 с, heat 4,1 с; 2 потока: w100 3,7/3,7 с, w50 7,0/9,1 с (включая подготовку Case и 4 V-цикла)",
+      "pass": true
+    },
+    {
+      "name": "объём tests/data/window",
+      "value": "15,4 МБ (gpu.bin.zst 13,3 МБ, несжатая GPU-часть ≈ 27 МБ; inputs.bin 2,1 МБ)",
+      "pass": true
+    },
+    {
+      "name": "window_test",
+      "value": "PASS (accept --dry 6/6)",
+      "pass": true
+    },
+    {
+      "name": "level_test",
+      "value": "PASS (accept --dry 6/6)",
+      "pass": true
+    },
+    {
+      "name": "dump_repro",
+      "value": "PASS (accept --dry 6/6)",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "PASS (accept --dry 6/6)",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "PASS (accept --dry 6/6)",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "PASS (accept --dry 6/6)",
+      "pass": true
+    },
+    {
+      "name": "solve_matches_gpu (release, #[ignore])",
+      "value": "итерации = GPU; u_rel ≤ 3.8e-6; θ′ ≤ 5.2e-6 К; время 8/2 потока, с: w100 mech 1.39/3.48, heat 1.48/3.98; w50 mech 2.47/6.48, heat 3.62/8.88; сдвиг heat 1.35/2.97",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-6n; cargo test --release -p dp-air --test window -- --ignored --nocapture solve_matches_gpu",
+  "uncertain": [
+    {
+      "where": "solver.rs:init_parent",
+      "why": "heat стартует холодно, игра — от mech",
+      "checked": "наборы сверены с GPU по отдельности"
+    }
+  ],
+  "dp_feedback": "task show по умолчанию обрезает дополнения (полный текст — только --full): в брифе стоит об этом сказать явнее. lock cpu с cgroup-квотой по слотам искажает замеры «N потоков» — в карточке стоит просить замер под lock gpu/без квоты или фиксировать квоту в отчёте автоматически. dpcli plan <м> «План переноса / Этап 2 / RW-6» из брифа — не находит раздел (в оглавлении другая нумерация).",
+  "extra": {
+    "iters_gpu": {
+      "w100": {
+        "mech": 40,
+        "heat": 40
+      },
+      "w50": {
+        "mech": 40,
+        "heat": 50
+      },
+      "w100_shift": {
+        "mech": 30,
+        "heat": 30
+      }
+    },
+    "corr_m_s": {
+      "w100_heat": 0.0015702,
+      "w100_mech": 0.00022107,
+      "w50_heat": 0.00093671,
+      "w50_mech": 0.00019645,
+      "w100s_heat": 0.0024488
+    },
+    "net_over_through_flux": {
+      "w100_heat": 0.00084,
+      "w100_mech": 0.00012,
+      "w50_heat": 0.00041,
+      "w50_mech": 8.1e-05,
+      "w100s_heat": 0.0013
+    },
+    "cpu_estimate_s_8thr_quota4": {
+      "w100_mech": 1.53,
+      "w100_heat": 2.31,
+      "w50_mech": 3.56,
+      "w50_heat": 4.1,
+      "w100s_heat": 1.78
+    },
+    "cpu_estimate_s_2thr": {
+      "w100_mech": 3.66,
+      "w100_heat": 3.71,
+      "w50_mech": 6.99,
+      "w50_heat": 9.13,
+      "w100s_heat": 4.34
+    }
+  },
+  "t": "2026-10-26T08:22:05",
+  "by": "executor"
+}

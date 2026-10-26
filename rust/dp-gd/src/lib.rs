@@ -59,7 +59,7 @@ pub struct DpAir {
 #[godot_api]
 impl DpAir {
     #[constant]
-    pub const WIND_API_VERSION: i64 = 1;
+    pub const WIND_API_VERSION: i64 = 2;
     #[constant]
     pub const STATE_EMPTY: i64 = 0;
     #[constant]
@@ -133,6 +133,18 @@ impl DpAir {
             surface_cls.as_slice(),
             surface_moist.as_slice(),
         )
+    }
+    /// Запечённое поле места (TI-К3 v3): `header_json` и тело `.bin` как есть; сразу после
+    /// `load_place`, до READY. Коды W1.
+    #[func]
+    fn add_baked_field(&mut self, header_json: GString, data: PackedByteArray) -> i64 {
+        self.bridge
+            .add_baked_field(&header_json.to_string(), data.as_slice())
+    }
+    /// Каталог кеша полей (абсолютный путь); пусто — без кеша. Коды W1.
+    #[func]
+    fn set_cache_dir(&mut self, path: GString) -> i64 {
+        self.bridge.set_cache_dir(&path.to_string())
     }
     #[func]
     fn unload_place(&mut self) {

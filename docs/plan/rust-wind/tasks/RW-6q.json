@@ -1,0 +1,106 @@
+{
+  "id": "RW-6q",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Приёмка RW-6 (часть 1): T1 сильный ветер по 8 запечённым полям, T2, T4, T4a, T8, бенч Formula, времена загрузки и итерации против игры",
+  "goal": "Доказать, что Formula отдаёт поле Пикара как игра: T1 сильный ветер — 8 запечённых полей островов (три уровня) пересчитаны крейтом и совпадают в допусках W8 с поправкой на f16; T2, T4, T4a, T8 — собраны одним набором tests/acceptance.rs; бенч Formula по W8 и новая базовая линия; замеры загрузки (2/8 потоков, с окнами и без, tol_scale 1 и 5) и итераций против игры — в docs/research/rust-wind-rw6-acceptance.md. Слабый ветер T1 (фикстуры по слагаемым RW-2b) — не здесь, RW-6u.",
+  "plan_ref": "План переноса / Этап 2 / RW-6",
+  "contracts": [
+    {
+      "name": "W1",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W4",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W5",
+      "version": "6",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W11",
+      "version": "8",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-6q",
+  "branch": "rust-wind/RW-6q",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/tests/acceptance.rs",
+    "rust/dp-air/benches/",
+    "rust/dp-air/Cargo.toml",
+    "rust/Cargo.lock",
+    "rust/dp-stand/src/",
+    "rust/dp-air/src/formula.rs",
+    "tests/fixtures/wind/places/",
+    "tests/fixtures/wind/README.md",
+    "tools/wind_fixtures/gen_fixtures.gd",
+    "tools/wind_fixtures/run.sh",
+    "docs/research/rust-wind-rw6-acceptance.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "rust/picard_rs/",
+    "rust/dp-gd/",
+    "rust/dp-air/src/field/",
+    "tests/fixtures/wind/cases/",
+    "data/",
+    "docs/contracts/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "acceptance_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test acceptance",
+      "expect": "re:test result: ok\\. [1-9]"
+    },
+    {
+      "name": "acceptance_release",
+      "cmd": "cargo test --release --manifest-path rust/Cargo.toml -p dp-air --test acceptance -- --ignored",
+      "expect": "re:test result: ok\\. [1-9]"
+    },
+    {
+      "name": "bench",
+      "cmd": "cargo bench --manifest-path rust/Cargo.toml -p dp-air -- --noplot",
+      "expect": "exit=0"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fixtures_unchanged",
+      "cmd": "tools/wind_fixtures/verify.sh",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": "python3 -c 'import sys' && .dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-26T11:10:33"
+}

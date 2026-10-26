@@ -1,0 +1,27 @@
+{
+  "verdict": "accept",
+  "summary": "W11 v2 выполнен: freeze/cancel, AllFrozen/Cancelled, Err на длинах; построчно сверил с air_picard_job.gd/air_picard.glsl (frozen_at, K_FIXROW, K_RMASK, masked-проекция, _count_free, div-статистика, _rec_freeze с nu/nuh) — соответствует. Скоуп чист, подгонки под тест нет (согласованное замороженное поле обосновано физикой: несолеоидальная граница не даёт сойтись). Одна мелочь в крайнем случае.",
+  "issues": [
+    {
+      "file": "rust/picard_rs/src/api.rs",
+      "line": 197,
+      "severity": "minor",
+      "what": "Отмена взведена до вызова + init=None + freeze.field=None: init_background пропускается, set_freeze снимает нули как поле заморозки. Если при этом все колонны заморожены, solve отдаёт AllFrozen (у него приоритет над pre_cancel) с нулевым state, хотя по W11 при AllFrozen state = поле заморозки (без field — фон).",
+      "fix": "В этом случае отдавать Cancelled (проверять pre_cancel раньше all_frozen) или не пропускать фон при AllFrozen; можно сделать вместе с RW-6h."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "freeze_test (accept --only --dry)",
+      "value": "test result: ok. 7, 102 с",
+      "pass": true
+    },
+    {
+      "name": "freeze --release --ignored (Онгудай)",
+      "value": "1 passed, 21 с",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-26T05:43:26",
+  "by": "reviewer"
+}

@@ -7,6 +7,7 @@ mod conditions;
 mod error;
 pub mod field;
 pub mod fixtures;
+mod formula;
 mod level;
 mod place;
 mod types;
@@ -14,15 +15,19 @@ mod types;
 pub use calm::Calm;
 pub use conditions::{Conditions, Forecast, InflowMode, Source, WindRef};
 pub use error::{Code, Error};
-pub use level::{Level, Stag, prolong, prolong_state};
-pub use place::{Grid, Loc, Place, PlaceHeader, StartSite};
+pub use formula::Formula;
+pub use level::{
+    Level, NestDst, NestSrc, Shift, ShiftDst, ShiftSrc, Stag, nest, prolong, prolong_state,
+    shift_between, shift_warm,
+};
+pub use place::{Grid, Loc, LocClimate, Place, PlaceHeader, StartSite};
 pub use types::{
     Cloud, Configs, Core, Crest, Decomposition, F32Record, Focus, Raster, SampleMode, State,
     Status, as_f32s,
 };
 
 /// Версия границы; равна версии в заголовке W2 `docs/contracts/rust-wind.md`.
-pub const API_VERSION: u32 = 1;
+pub const API_VERSION: u32 = 2;
 
 /// Модель воздуха. Команды (`&mut self`) — из одного потока; опросы (`&self`) — из любого потока
 /// одновременно. Опросы не падают: длины `out` и `pts` обрабатываются по `min`, остальное не
@@ -38,6 +43,16 @@ pub trait AirModel: Send + Sync {
     fn set_focuses(&mut self, f: &[Focus]) -> Result<(), Error>;
     fn advance_to(&mut self, t: f64) -> Result<(), Error>;
     fn start_at(&mut self, t: f64) -> Result<(), Error>;
+    /// W4 v3: запечённое поле места (W5 v4, TI-К3 v3) сразу после `load_place`, до READY. Реализация
+    /// по умолчанию ничего не делает (`Calm`). Неразборчивый заголовок, поле после READY — `BadInput`,
+    /// нет места — `NoPlace`.
+    fn add_baked_field(&mut self, _header_json: &str, _data: &[u8]) -> Result<(), Error> {
+        Ok(())
+    }
+    /// W4 v3: каталог кеша полей реализации (абсолютный путь); пусто — без кеша. По умолчанию — ничего.
+    fn set_cache_dir(&mut self, _path: &str) -> Result<(), Error> {
+        Ok(())
+    }
     fn status(&self) -> Status;
     fn sample_many(&self, pts: &[[f32; 3]], mode: SampleMode, out: &mut [[f32; 4]]);
     fn cloud_density_many(&self, pts: &[[f32; 3]], out: &mut [f32]);

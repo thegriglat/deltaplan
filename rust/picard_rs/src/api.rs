@@ -4,6 +4,10 @@
 //! rayon pool is never configured or used for the solve, so concurrent calls with different
 //! thread counts are independent. The result does not depend on the thread count.
 //!
+//! W11 (`docs/contracts/rust-wind/solver.md`): `SolveOpts.freeze` (frozen columns, as the game's
+//! `K_FREEZE`/`K_RMASK`/`K_FIXROW`) and `SolveOpts.cancel`, stop reasons `AllFrozen` and
+//! `Cancelled`. Without them the call is bit-identical to R6 v3.
+//!
 //! R6 v3: a case without a reference (`sol_*`, `solution`, `history`) is solved as usual,
 //! `Solved.dev` is `None`.
 //!
@@ -25,6 +29,8 @@ use crate::report::{Dev, Timing, deviation};
 use crate::solver::{Check, Picard, Residuals, RunLimits, SolveOut};
 use crate::state::State;
 use anyhow::{Result, bail};
+use std::sync::Arc;
+use std::sync::atomic::AtomicBool;
 use std::time::{Duration, Instant};
 
 pub use crate::solver::StopReason;
@@ -32,12 +38,66 @@ pub use crate::solver::StopReason;
 /// Default iteration limit (as the CLI).
 pub const DEFAULT_MAX_ITERS: usize = 2000;
 
+/// Values of the frozen columns (layout of [`State`], R4 v2: halo arrays `(nzh, nyh, nxh)`).
+#[derive(Clone, Debug)]
+pub struct FrozenField {
+    pub u: Vec<f32>,
+    pub v: Vec<f32>,
+    pub w: Vec<f32>,
+    pub th: Vec<f32>,
+    /// `None` = theta'_d of the start field (frozen) / of `late_mean` (nonconv), as the game,
+    /// which passes no theta'_d channel.
+    pub thd: Option<Vec<f32>>,
+}
+
+/// Frozen columns (W11). The frozen columns hold the values of `field` (none: those of the
+/// start field after `init`/background, as the game's snapshot) and the iterations do not
+/// change them; residuals and the criterion are over the free columns only. `nu`, `nuh` of the
+/// frozen columns stay at the start values.
+#[derive(Clone, Debug)]
+pub struct Freeze {
+    /// `ny * nx` columns without halo, row-major in `y` of the case; non-zero = frozen.
+    pub mask: Vec<u8>,
+    /// Values of the frozen columns; `None` = the start field.
+    pub field: Option<FrozenField>,
+}
+
+/// Mechanism columns for the unconverged fallback (W11 v3).
+#[derive(Clone, Debug)]
+pub struct NonConv {
+    /// `ny * nx` columns without halo; non-zero = a column of the H/D mechanism.
+    pub mask: Vec<u8>,
+    /// Values for those columns at the fallback; `None` = the `late_mean` itself.
+    pub field: Option<FrozenField>,
+}
+
+/// Fallback convergence rules (W11 v3; the game's `omega_fallback`, `late_from`, `nonconv_*`
+/// of `air_picard_job.gd`). With `SolveOpts.fallback = None` the call is bit-identical to v2.
+///
+/// - after `omega_after` iterations without convergence (`0` = off) every column is
+///   under-relaxed with `min(1, omega)` (`x <- x_old + w (x - x_old)` for `u, v, w` after the
+///   projection and for `nu, nuh` after the closure) from the next iteration on;
+/// - from iteration `late_from` the state at every residual check is added to `late_mean`
+///   (`0` = not accumulated, unless `nonconv` is given, as in the game);
+/// - at `max_iters` without convergence the field becomes `late_mean`, in the `nonconv.mask`
+///   columns `nonconv.field` (none: `late_mean`), then `finalize`. Frozen columns (`freeze`)
+///   are not restored (as in the game: the mean of their constant field, maybe 1 ulp off). `Solved.residuals`/`history` stay those of the last iterate.
+#[derive(Clone, Debug)]
+pub struct Fallback {
+    pub omega_after: usize,
+    pub omega: f32,
+    pub late_from: usize,
+    pub nonconv: Option<NonConv>,
+}
+
 /// Options of one [`solve`] call.
 #[derive(Clone, Debug)]
 pub struct SolveOpts {
     /// Pool threads; `0` = all logical cores (`std::thread::available_parallelism`).
     pub threads: usize,
-    /// Iteration limit (the run stops exactly after this iteration).
+    /// Iteration limit in the game's count (without the cold-start `pre_steps`): the run stops
+    /// at the nearest check from above: after iteration `pre_steps + ceil(max_iters / check_every)
+    /// * check_every` (`Solved.iters` is the raw count).
     pub max_iters: usize,
     /// Multiplier of the three tolerances of the case criterion; `1.0` = as the reference.
     pub tol_scale: f64,
@@ -49,6 +109,17 @@ pub struct SolveOpts {
     /// Strictly ascending iteration numbers after which a finalized snapshot is taken
     /// (numbers above the iterations actually done are not taken).
     pub snapshot_at: Vec<usize>,
+    /// W11: frozen columns; `None` (or an all-zero mask) = the plain iteration.
+    pub freeze: Option<Freeze>,
+    /// W11: set to `true` (from any thread) to stop; checked after every iteration and before
+    /// the start. The run ends no later than the end of the current iteration with
+    /// [`StopReason::Cancelled`] and delivers the current field (finalized).
+    pub cancel: Option<Arc<AtomicBool>>,
+    /// W11 v3: fallback convergence rules; `None` = bit-identical to v2.
+    pub fallback: Option<Fallback>,
+    /// W11 v7: only with `init`: `p := 0`, then this many V-cycles (window start from the
+    /// parent: 30); `None` = as v6 (4 V-cycles, `p` from `init`).
+    pub init_cycles: Option<u32>,
 }
 
 impl Default for SolveOpts {
@@ -60,6 +131,10 @@ impl Default for SolveOpts {
             time_budget: None,
             init: None,
             snapshot_at: Vec::new(),
+            freeze: None,
+            cancel: None,
+            fallback: None,
+            init_cycles: None,
         }
     }
 }
@@ -85,10 +160,22 @@ pub struct Solved {
     /// Deviation of the finalized fields from the case reference; `None` for a case without
     /// a reference (R6 v3).
     pub dev: Option<Dev>,
+    /// W11 v3: the omega rollback switched on.
+    pub omega_fallback_used: bool,
+    /// W11 v3: the field was replaced by `late_mean` at `max_iters`.
+    pub nonconv_fallback: bool,
+    /// W11 v3: fraction of the `nonconv` mechanism columns (0 without a mask).
+    pub nonconv_frac: f32,
     /// Solver with the final fields (`picard.f`), after `finalize`.
     pub picard: Picard,
     /// The pool of this call (for further work on `picard` with the same threads).
     pub pool: rayon::ThreadPool,
+}
+
+fn cancelled(opts: &SolveOpts) -> bool {
+    opts.cancel
+        .as_ref()
+        .is_some_and(|c| c.load(std::sync::atomic::Ordering::Relaxed))
 }
 
 /// Resolve the thread count: `0` = all logical cores.
@@ -135,6 +222,9 @@ pub fn solve(case: &Case, opts: &SolveOpts) -> Result<Solved> {
             opts.snapshot_at
         );
     }
+    if opts.init_cycles.is_some() && opts.init.is_none() {
+        bail!("init_cycles needs init");
+    }
     let t0 = Instant::now();
     let pl = pool(opts.threads)?;
     let mut crit = case.criterion.clone();
@@ -142,22 +232,53 @@ pub fn solve(case: &Case, opts: &SolveOpts) -> Result<Solved> {
     crit.tol_th_rms *= opts.tol_scale;
     crit.tol_div_rms *= opts.tol_scale;
     let (mut o, dev, setup_s, s) = pl.install(|| -> Result<_> {
-        let mut s = Picard::new(Consts::from_case(case)?);
+        // W11 v6: the multigrid build, the start projections and `finalize` test the flag.
+        let mut s = Picard::new_cancel(Consts::from_case(case)?, opts.cancel.as_ref());
+        s.prep_cancel = true;
+        if let Some(fr) = &opts.freeze {
+            // Validate before the (long) start; the columns are declared after it.
+            Picard::new_check_freeze(&s.k, fr)?;
+        }
+        if let Some(fb) = &opts.fallback {
+            s.set_fallback(fb)?;
+        }
         if let Some(st) = &opts.init {
-            s.init_warm(st)?;
+            match opts.init_cycles {
+                Some(n) => s.init_parent(st, n as usize)?,
+                None => s.init_warm(st)?,
+            }
             // The game counts checks from the start of a warm run (no graph-capture step).
             crit.pre_steps = 0;
-        } else {
+        } else if !cancelled(opts) || opts.freeze.as_ref().is_some_and(|f| f.field.is_none()) {
+            // Cancelled before the start: still the background when the frozen field is the
+            // start field (an `AllFrozen` answer must not be zeros).
             s.init_background();
         }
+        if let Some(fr) = &opts.freeze {
+            s.set_freeze(&fr.mask, fr.field.as_ref())?;
+        }
         let setup_s = t0.elapsed().as_secs_f64();
+        s.prep_cancel = false;
+        // W11 v6: the start was cut short by the flag - the answer is `Cancelled` also when
+        // nothing is left to iterate (`AllFrozen`).
+        let setup_cut = std::mem::take(&mut s.prep_cut);
         let run = RunLimits {
             max_iters: opts.max_iters,
             time_budget: opts.time_budget,
             snapshot_at: &opts.snapshot_at,
         };
-        let o = s.solve(&crit, &run);
+        let mut o = s.solve(&crit, &run);
+        // After a cancel in the middle of the iterations the delivered field is the finalized
+        // one (bit for bit the field of a run limited to that many iterations); in the other
+        // cases (also a cancel before the first iteration) `finalize` tests the flag.
+        s.prep_cancel = !(o.stop == StopReason::Cancelled && o.iters > 0);
+        s.prep_cut = false;
         s.finalize(10);
+        if s.prep_cut || setup_cut {
+            o.stop = StopReason::Cancelled;
+            o.status = o.stop.status();
+        }
+        s.prep_cancel = false;
         let dev = deviation(case, &s)?;
         Ok((o, dev, setup_s, s))
     })?;
@@ -182,6 +303,9 @@ pub fn solve(case: &Case, opts: &SolveOpts) -> Result<Solved> {
     Ok(Solved {
         iters: o.iters,
         stop: o.stop,
+        omega_fallback_used: o.omega_fallback_used,
+        nonconv_fallback: o.nonconv_fallback,
+        nonconv_frac: o.nonconv_frac,
         residuals: last.res,
         history: o.history.clone(),
         state,

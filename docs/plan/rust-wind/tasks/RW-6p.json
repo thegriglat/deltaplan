@@ -1,0 +1,81 @@
+{
+  "id": "RW-6p",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Запечённые поля и кеш полей в Rust (TI-К3 v3, AirFieldCache)",
+  "goal": "Модуль dp_air::field::baked разбирает запечённое поле TI-К3 v3 из байтов (json-заголовок + f16/zstd) в FieldSet (RW-6i), выбирает подходящее к условиям как AirRuntime.baked_lookup, и ведёт кеш решённых полей в каталоге реализации (формат и ключи — как AirFieldCache); опрос запечённого поля совпадает с GDScript.",
+  "plan_ref": "План переноса / Этап 2 / RW-6",
+  "contracts": [
+    {
+      "name": "W1",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W3",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W5",
+      "version": "4",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-6p",
+  "branch": "rust-wind/RW-6p",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/field/baked.rs",
+    "rust/dp-air/src/field/field_cache.rs",
+    "rust/dp-air/src/field/mod.rs",
+    "rust/dp-air/Cargo.toml",
+    "rust/Cargo.lock",
+    "rust/dp-air/tests/baked.rs",
+    "rust/dp-air/tests/data/baked/",
+    "tools/research/rust_wind/dump_baked.gd",
+    "tools/research/rust_wind/dump_baked.sh",
+    "tools/research/rust_wind/dump_baked.tscn"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "data/",
+    "rust/picard_rs/",
+    "rust/dp-gd/",
+    "rust/dp-air/src/field/phase/",
+    "rust/dp-air/src/field/wind_field.rs",
+    "tests/fixtures/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "baked_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test baked",
+      "expect": "re:test result: ok\\. [1-9]"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml -p dp-air --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dump_repro",
+      "cmd": "tools/research/rust_wind/dump_baked.sh --verify",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-26T06:08:56"
+}

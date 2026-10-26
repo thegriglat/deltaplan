@@ -215,3 +215,362 @@ fn state_six_fields() {
     assert!(prolong_state(&c, sr, &f, dst).is_err());
     assert!(z.iter().all(|v| v.iter().all(|&x| x == 9.0)));
 }
+
+// ---------------------------------------------------------------------------------------------
+// nest и shift (RW-6n): общие операции уровней для окон клипмапа
+// ---------------------------------------------------------------------------------------------
+
+mod window_ops {
+    use dp_air::field::window::{
+        NestDst, NestSrc, Shift, ShiftDst, ShiftSrc, nest, shift_between, shift_warm,
+    };
+    use dp_air::{Code, Level};
+
+    fn level(n: [usize; 3], x0: f64, y0: f64, dx: f64, dz: f64, z_bot: f64) -> Level {
+        Level {
+            nx: n[0],
+            ny: n[1],
+            nz: n[2],
+            x0,
+            y0,
+            dx,
+            dz,
+            z_bot,
+            halo: 1,
+        }
+    }
+
+    /// Поле, линейное по координатам, в точке индекса: грань — в узле своей оси, центр — в середине.
+    fn fill(l: &Level, node: [bool; 3], f: &dyn Fn(f64, f64, f64) -> f64) -> Vec<f32> {
+        let p = |o: f64, d: f64, i: usize, n: bool| o + (i as f64 - if n { 1.0 } else { 0.5 }) * d;
+        let mut v = Vec::with_capacity(l.len());
+        for k in 0..l.nz {
+            for j in 0..l.ny {
+                for i in 0..l.nx {
+                    v.push(f(
+                        p(l.x0, l.dx, i, node[0]),
+                        p(l.y0, l.dx, j, node[1]),
+                        p(l.z_bot, l.dz, k, node[2]),
+                    ) as f32);
+                }
+            }
+        }
+        v
+    }
+
+    fn lin(x: f64, y: f64, z: f64) -> f64 {
+        3.0 + 0.004 * x - 0.003 * y + 0.01 * z
+    }
+
+    fn all_air(l: &Level) -> Vec<u8> {
+        // клетки воздуха, все грани неизвестные
+        vec![1 + 4 + 16 + 64; l.len()]
+    }
+
+    #[derive(Debug)]
+    struct Out {
+        u: Vec<f32>,
+        v: Vec<f32>,
+        w: Vec<f32>,
+        th: Vec<f32>,
+        thd: Vec<f32>,
+    }
+
+    fn run(c: &Level, src: &NestSrc, f: &Level, tc: &[u8]) -> Result<Out, dp_air::Error> {
+        let n = f.len();
+        let mut o = Out {
+            u: vec![9.0; n],
+            v: vec![9.0; n],
+            w: vec![9.0; n],
+            th: vec![9.0; n],
+            thd: vec![9.0; n],
+        };
+        nest(
+            c,
+            src,
+            f,
+            tc,
+            NestDst {
+                u: &mut o.u,
+                v: &mut o.v,
+                w: &mut o.w,
+                th: &mut o.th,
+                thd: &mut o.thd,
+            },
+        )?;
+        Ok(o)
+    }
+
+    #[test]
+    fn nest_linear_field_exact_inside_parent() {
+        // родитель 400 м, дочерний 100 м (r = 4) и 200 м (r = 2); дочерний целиком внутри
+        let c = level([14, 14, 12], 0.0, 0.0, 400.0, 50.0, 100.0);
+        let tcp = vec![1u8; c.len()];
+        let (u, v, w) = (
+            fill(&c, [true, false, false], &lin),
+            fill(&c, [false, true, false], &lin),
+            fill(&c, [false, false, true], &lin),
+        );
+        let (th, thd) = (
+            fill(&c, [false; 3], &lin),
+            fill(&c, [false; 3], &|x, y, z| 0.5 * lin(x, y, z)),
+        );
+        let src = NestSrc {
+            tc: &tcp,
+            u: &u,
+            v: &v,
+            w: &w,
+            th: &th,
+            thd: Some(&thd),
+        };
+        for (r, x0, y0, zb) in [(4usize, 1300.0, 1550.0, 250.0), (2, 1010.0, 990.0, 300.0)] {
+            // dz дочернего ≠ родителя: отношение rz = 25/50
+            let f = level([16, 20, 12], x0, y0, 400.0 / r as f64, 25.0, zb);
+            let tc = all_air(&f);
+            let o = run(&c, &src, &f, &tc).unwrap();
+            let want = |node: [bool; 3], g: &dyn Fn(f64, f64, f64) -> f64| fill(&f, node, g);
+            for (got, node, g) in [
+                (
+                    &o.u,
+                    [true, false, false],
+                    &lin as &dyn Fn(f64, f64, f64) -> f64,
+                ),
+                (&o.v, [false, true, false], &lin),
+                (&o.w, [false, false, true], &lin),
+                (&o.th, [false; 3], &lin),
+            ] {
+                let wnt = want(node, g);
+                let mut n = 0;
+                for (a, b) in got.iter().zip(&wnt) {
+                    assert!(
+                        (a - b).abs() <= 2e-4 * b.abs().max(1.0),
+                        "r={r}: got {a} want {b}"
+                    );
+                    n += 1;
+                }
+                assert!(n > 1000);
+            }
+            let half = want([false; 3], &|x, y, z| 0.5 * lin(x, y, z));
+            assert!(
+                o.thd
+                    .iter()
+                    .zip(&half)
+                    .all(|(a, b)| (a - b).abs() <= 2e-4 * b.abs().max(1.0))
+            );
+        }
+    }
+
+    #[test]
+    fn nest_zero_where_fine_type_is_wall_and_in_ground_cells() {
+        let c = level([10, 10, 8], 0.0, 0.0, 400.0, 50.0, 0.0);
+        let mut tcp = vec![1u8; c.len()];
+        // нижняя плоскость грубого — земля: центры 0
+        tcp[..c.nx * c.ny].fill(0);
+        let ones = vec![1.0f32; c.len()];
+        let src = NestSrc {
+            tc: &tcp,
+            u: &ones,
+            v: &ones,
+            w: &ones,
+            th: &ones,
+            thd: None,
+        };
+        let f = level([8, 8, 6], 1000.0, 1000.0, 200.0, 25.0, 0.0);
+        let mut tc = all_air(&f);
+        // клетка (k=3, j=3, i=3): стенка по u; клетка (2,2,2): земля
+        let q = (3 * f.ny + 3) * f.nx + 3;
+        tc[q] = 1 + 16 + 64;
+        let q2 = (2 * f.ny + 2) * f.nx + 2;
+        tc[q2] = 0;
+        let o = run(&c, &src, &f, &tc).unwrap();
+        assert_eq!(o.u[q], 0.0);
+        assert!(o.v[q] > 0.9, "{}", o.v[q]);
+        assert_eq!(o.th[q2], 0.0);
+        assert_eq!(o.thd[q2], 0.0, "нет thd родителя — нули");
+        assert_eq!(o.u[q2], 0.0);
+        // у дна (низ мелкого = низ родителя): центры нижнего уровня смешивают землю родителя
+        let low = 4 * f.nx + 4;
+        assert!(o.th[low] < 0.95, "{}", o.th[low]);
+        // выше — константа
+        let hi = (5 * f.ny + 4) * f.nx + 4;
+        assert!((o.th[hi] - 1.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn nest_clamps_outside_parent_and_rejects_bad_input() {
+        let c = level([6, 6, 6], 0.0, 0.0, 400.0, 50.0, 0.0);
+        let tcp = vec![1u8; c.len()];
+        let th = fill(&c, [false; 3], &|x, _, _| x);
+        let z = vec![0.0f32; c.len()];
+        let src = NestSrc {
+            tc: &tcp,
+            u: &z,
+            v: &z,
+            w: &z,
+            th: &th,
+            thd: None,
+        };
+        // мелкий уровень шире родителя: за краем — значение края
+        let f = level([40, 8, 6], -3000.0, 800.0, 200.0, 50.0, 0.0);
+        let o = run(&c, &src, &f, &all_air(&f)).unwrap();
+        let q = |i: usize| (2 * f.ny + 3) * f.nx + i;
+        // зажим индекса в [0, n − 1,0001]: до края не хватает 1e-4 индекса (0,04 при наклоне 400/индекс)
+        assert!((o.th[q(0)] - th[(2 * c.ny + 3) * c.nx]).abs() < 0.1);
+        assert!((o.th[q(f.nx - 1)] - th[(2 * c.ny + 3) * c.nx + c.nx - 1]).abs() < 0.1);
+        // длины
+        let e = run(&c, &src, &f, &all_air(&f)[1..]).unwrap_err();
+        assert_eq!(e.code, Code::BadInput);
+        let short = NestSrc {
+            tc: &tcp[1..],
+            ..src
+        };
+        assert_eq!(
+            run(&c, &short, &f, &all_air(&f)).unwrap_err().code,
+            Code::BadInput
+        );
+        let mut bad = f;
+        bad.dx = 0.0;
+        assert!(run(&c, &src, &bad, &all_air(&f)).is_err());
+    }
+
+    #[test]
+    fn shift_between_rules() {
+        let old = level([66, 66, 64], 0.0, 0.0, 100.0, 50.0, 500.0);
+        let at = |dx: f64, dy: f64, dz: f64| level([66, 66, 64], dx, dy, 100.0, 50.0, 500.0 + dz);
+        assert_eq!(
+            shift_between(&old, &at(1600.0, 0.0, 0.0)),
+            Some(Shift { i: 16, j: 0, k: 0 })
+        );
+        assert_eq!(
+            shift_between(&old, &at(-300.0, 800.0, 100.0)),
+            Some(Shift { i: -3, j: 8, k: 2 })
+        );
+        assert_eq!(
+            shift_between(&old, &at(1650.0, 0.0, 0.0)),
+            None,
+            "дробный сдвиг"
+        );
+        assert_eq!(
+            shift_between(&old, &at(0.0, 0.0, 25.0)),
+            None,
+            "дробный сдвиг по z"
+        );
+        assert_eq!(
+            shift_between(&old, &at(6400.0, 0.0, 0.0)),
+            None,
+            "нет пересечения"
+        );
+        assert!(shift_between(&old, &at(6300.0, 0.0, 0.0)).is_some());
+        let mut other = at(0.0, 0.0, 0.0);
+        other.dx = 50.0;
+        assert_eq!(shift_between(&old, &other), None, "другая клетка");
+    }
+
+    #[test]
+    fn shift_warm_moves_unknowns_and_keeps_boundary() {
+        let old = level([10, 9, 8], 0.0, 0.0, 100.0, 50.0, 0.0);
+        let new = level([10, 9, 8], 200.0, 100.0, 100.0, 50.0, 50.0);
+        let sh = shift_between(&old, &new).unwrap();
+        assert_eq!(sh, Shift { i: 2, j: 1, k: 1 });
+        let n = old.len();
+        let mk = |a: f32| -> Vec<f32> { (0..n).map(|q| a + q as f32).collect() };
+        let (ou, ov, ow, oth, othd, op) = (mk(0.0), mk(1e4), mk(2e4), mk(3e4), mk(4e4), mk(5e4));
+        let mut tc = vec![0u8; n];
+        // внутренность — воздух с неизвестными гранями, ореол — тип 2/3
+        for k in 0..new.nz {
+            for j in 0..new.ny {
+                for i in 0..new.nx {
+                    let inner = (1..new.nx - 1).contains(&i)
+                        && (1..new.ny - 1).contains(&j)
+                        && (1..new.nz - 1).contains(&k);
+                    tc[(k * new.ny + j) * new.nx + i] = if inner {
+                        1 + 4 + 16 + 64
+                    } else {
+                        2 + 8 + 32 + 128
+                    };
+                }
+            }
+        }
+        let fill9 = || vec![-9.0f32; n];
+        let (mut du, mut dv, mut dw, mut dth, mut dthd, mut dp) =
+            (fill9(), fill9(), fill9(), fill9(), fill9(), fill9());
+        shift_warm(
+            &old,
+            &ShiftSrc {
+                u: &ou,
+                v: &ov,
+                w: &ow,
+                th: &oth,
+                thd: &othd,
+                p: &op,
+            },
+            &new,
+            &tc,
+            sh,
+            ShiftDst {
+                u: &mut du,
+                v: &mut dv,
+                w: &mut dw,
+                th: &mut dth,
+                thd: &mut dthd,
+                p: &mut dp,
+            },
+        )
+        .unwrap();
+        let ix = |l: &Level, i: usize, j: usize, k: usize| (k * l.ny + j) * l.nx + i;
+        for k in 1..new.nz - 1 {
+            for j in 1..new.ny - 1 {
+                for i in 1..new.nx - 1 {
+                    let (io, jo, ko) = (i + 2, j + 1, k + 1);
+                    let q = ix(&new, i, j, k);
+                    if io < old.nx && jo < old.ny && ko < old.nz {
+                        let o = ix(&old, io, jo, ko);
+                        assert_eq!((du[q], dv[q], dw[q]), (ou[o], ov[o], ow[o]));
+                        assert_eq!((dth[q], dthd[q]), (oth[o], othd[o]));
+                        if io <= old.nx - 2 && jo <= old.ny - 2 && ko <= old.nz - 2 {
+                            assert_eq!(dp[q], op[o]);
+                        }
+                    } else {
+                        // вне старого окна: граничное состояние осталось, p — ближайшее внутреннее
+                        assert_eq!((du[q], dth[q]), (-9.0, -9.0));
+                        let o = ix(
+                            &old,
+                            io.clamp(1, old.nx - 2),
+                            jo.clamp(1, old.ny - 2),
+                            ko.clamp(1, old.nz - 2),
+                        );
+                        assert_eq!(dp[q], op[o]);
+                    }
+                }
+            }
+        }
+        // ореол нового окна не тронут
+        let h = ix(&new, 0, 4, 4);
+        assert_eq!((du[h], dth[h], dp[h]), (-9.0, -9.0, -9.0));
+        // длины
+        let e = shift_warm(
+            &old,
+            &ShiftSrc {
+                u: &ou[1..],
+                v: &ov,
+                w: &ow,
+                th: &oth,
+                thd: &othd,
+                p: &op,
+            },
+            &new,
+            &tc,
+            sh,
+            ShiftDst {
+                u: &mut du,
+                v: &mut dv,
+                w: &mut dw,
+                th: &mut dth,
+                thd: &mut dthd,
+                p: &mut dp,
+            },
+        )
+        .unwrap_err();
+        assert_eq!(e.code, Code::BadInput);
+    }
+}

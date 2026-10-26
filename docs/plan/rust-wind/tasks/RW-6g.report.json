@@ -1,0 +1,78 @@
+{
+  "status": "done",
+  "summary": "SolveOpts.freeze (Freeze{mask, field}) и cancel, StopReason::AllFrozen/Cancelled по W11; соответствие ядрам игры (K_FREEZE/K_RMASK/K_FIXROW, masked-проекция, div-статистика) в INTEGRATION.md. Без маски (None или нули) побитно R6 v3.",
+  "commits": [
+    "6b31c69c3 picard_rs: заморозка колонн и отмена в решателе (W11, RW-6g)"
+  ],
+  "checks": [
+    {
+      "name": "freeze_test",
+      "value": "7 passed, 1 ignored (Онгудай release ok 25 с)",
+      "pass": true
+    },
+    {
+      "name": "picard_tests",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "None/нулевая маска побитно R6 v3",
+      "value": "flat_wind, heated_slope, Онгудай 30 итераций",
+      "pass": true
+    },
+    {
+      "name": "1 и 4 потока побитно",
+      "value": "flat_wind, heated_slope, Онгудай",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Сверки с GPU-игрой нет: соответствие ядрам по чтению кода.",
+    "CLI picard solve без ключей заморозки.",
+    "Онгудай — #[ignore]: cargo test --release -p picard_rs --test freeze -- --ignored (25 с); freeze.rs в dev ~2 мин."
+  ],
+  "questions": [
+    "Замороженные u,v,w побитно равны field только ДО finalize: игровой final (и W11 state после finalize) проецирует без маски. th и thd равны и в state. То же для AllFrozen. Если нужно побитно и в state - это контракт."
+  ],
+  "how_to_check": ".dpcli/dpcli accept RW-6g",
+  "uncertain": [
+    {
+      "where": "solver.rs set_freeze (n_unk, n_free)",
+      "why": "Игра считает неизвестные по col_kf, Rust - суммой mu/fluid по незамороженным; с GPU не сверено.",
+      "checked": "при нулевой маске побитно R6 v3."
+    },
+    {
+      "where": "solver.rs residuals(): div при заморозке",
+      "why": "Среднее в f64->f32, на GPU f32-редукция (~1e-7 отн.).",
+      "checked": "независимый пересчёт в тесте совпал в 1e-3."
+    },
+    {
+      "where": "api.rs: cancel до старта",
+      "why": "Холодный старт пропускается, отдаётся нулевое конечное поле; внутри итерации/finalize прервать нельзя.",
+      "checked": "тест: 0 итераций; отмена из потока - поле побитно равно прогону с max_iters=iters."
+    },
+    {
+      "where": "tests/freeze.rs",
+      "why": "Несолеоидальное замороженное поле не даёт сойтись свободным колоннам (div_rms ~1.6e-3); сходимость тестирую на согласованном поле.",
+      "checked": "отладочный прогон same/scaled."
+    },
+    {
+      "where": "tests/freeze.rs check_frozen",
+      "why": "Грани b_u/b_v переписывает apply_bc при каждой проверке, исключены из сравнения (как в игре _bc(0)).",
+      "checked": "остальные точки побитно."
+    }
+  ],
+  "dp_feedback": "Фоновый cargo test | grep молчит до конца; хорошо бы лог в файл по умолчанию у job start. task show без --full обрезает дополнения.",
+  "t": "2026-10-26T05:35:29",
+  "by": "executor"
+}

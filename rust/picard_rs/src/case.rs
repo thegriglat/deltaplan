@@ -85,6 +85,43 @@ struct Meta {
     arrays: HashMap<String, [usize; 2]>,
 }
 
+/// Everything [`Case::from_parts`] needs: the metadata of an R1 file and its arrays.
+pub struct CaseParts {
+    pub name: String,
+    pub path: String,
+    /// Dimensions with halo (NX, NY, NZ).
+    pub dims: [usize; 3],
+    pub nx: usize,
+    pub ny: usize,
+    pub nz: usize,
+    pub dx: f64,
+    pub dz: f64,
+    pub z_bot: f64,
+    pub params: Params,
+    pub case_params: CaseParams,
+    pub criterion: Criterion,
+    pub solution: Option<SolutionRef>,
+    pub history: Option<serde_json::Value>,
+    pub crop: Option<Crop>,
+    /// Drag coefficient of the first face; `None` = from `z0` and `dz` (as the file reader).
+    pub cd: Option<f32>,
+    /// Drag coefficient per column, plane `NYX = nyh*nxh` with halo (the game's column plane 12);
+    /// `None` = the one `cd` everywhere (W11 v3). The wall momentum term takes it by column.
+    pub cd_col: Option<Vec<f32>>,
+    pub arrays: HashMap<String, Vec<f32>>,
+}
+
+/// W11 v7: boundary of a clipmap window from its parent (same halo layout as `ubg`/`vbg`).
+/// With it the type-2 faces of `w` are fixed to `ubw` (like `u`, `v`), `theta'` / `theta'_d` of
+/// the halo cells are `thb` / `thbd`, and they are also the target of the sponge (momentum `w`:
+/// `ubw`). `thbd = None`: no `theta'_d` channel (zeros).
+#[derive(Debug, Clone)]
+pub struct NestBc {
+    pub ubw: Vec<f32>,
+    pub thb: Vec<f32>,
+    pub thbd: Option<Vec<f32>>,
+}
+
 /// A loaded case: metadata, all arrays of the `.bin` and derived constants.
 pub struct Case {
     pub name: String,
@@ -113,6 +150,10 @@ pub struct Case {
     pub dtau_u: f32,
     /// Drag coefficient of the first face above ground.
     pub cd: f32,
+    /// Drag coefficient per column (`nyh*nxh`), `None` = `cd` everywhere.
+    pub cd_col: Option<Vec<f32>>,
+    /// Window boundary from the parent (W11 v7); `None` = a domain (v6 bit for bit).
+    pub nest: Option<NestBc>,
     pub arrays: HashMap<String, Vec<f32>>,
 }
 
@@ -135,6 +176,31 @@ impl Case {
                 .collect();
             arrays.insert(name.clone(), v);
         }
+        Self::from_parts(CaseParts {
+            name: m.case,
+            path: path.to_string_lossy().into_owned(),
+            dims: m.dims,
+            nx: m.nx,
+            ny: m.ny,
+            nz: m.nz,
+            dx: m.dx,
+            dz: m.dz,
+            z_bot: m.z_bot,
+            params: m.params,
+            case_params: m.case_params,
+            criterion: m.criterion,
+            solution: m.solution,
+            history: m.history,
+            crop: m.crop,
+            cd: None,
+            cd_col: None,
+            arrays,
+        })
+    }
+
+    /// Builds a case from arrays in memory (no files): the same checks and derived constants as
+    /// [`Case::load`]. A case without `solution`/`history`/`sol_*` is solved without a deviation.
+    pub fn from_parts(m: CaseParts) -> Result<Self> {
         let p = &m.params;
         let dtau_u = p.dtau_u.unwrap_or(p.dtau_per_m * m.dx);
         let kappa = 0.4_f64;
@@ -144,8 +210,8 @@ impl Case {
             bail!("dims {:?} do not match nx/ny/nz with halo 1", m.dims);
         }
         let case = Self {
-            name: m.case,
-            path: path.to_string_lossy().into_owned(),
+            name: m.name,
+            path: m.path,
             nxh,
             nyh,
             nzh,
@@ -172,9 +238,16 @@ impl Case {
             history_ref: m.history,
             crop: m.crop,
             dtau_u: dtau_u as f32,
-            cd: cd as f32,
-            arrays,
+            cd: m.cd.unwrap_or(cd as f32),
+            cd_col: m.cd_col,
+            nest: None,
+            arrays: m.arrays,
         };
+        if let Some(c) = &case.cd_col
+            && c.len() != nxh * nyh
+        {
+            bail!("cd_col: length {} != NY*NX {}", c.len(), nxh * nyh);
+        }
         let n3 = case.n3();
         for a in [
             "cell", "tu", "tv", "tw", "nu_bg", "Q", "sp_u", "sp_w", "spc", "ubg", "vbg",
@@ -214,6 +287,18 @@ impl Case {
     }
 }
 
+/// Window boundary in the solver: values and the indices where the boundary condition acts.
+pub struct NestConsts {
+    pub ubw: Vec<f32>,
+    pub thb: Vec<f32>,
+    /// Zeros without a `theta'_d` channel.
+    pub thbd: Vec<f32>,
+    /// `w` faces of type 2 (fixed to `ubw`), ascending.
+    pub b_w: Vec<usize>,
+    /// Halo cells (type 2): `theta'`, `theta'_d` fixed to `thb`, `thbd`, ascending.
+    pub b_cell: Vec<usize>,
+}
+
 /// Constant input of the iteration (the "permanent input" of R1).
 pub struct Consts {
     pub nxh: usize,
@@ -230,6 +315,10 @@ pub struct Consts {
     pub inv_tau: f32,
     pub inv_prt: f32,
     pub cd: f32,
+    /// Drag coefficient per column (`nyh*nxh`); `None` = `cd`.
+    pub cd_col: Option<Vec<f32>>,
+    /// Window boundary (W11 v7).
+    pub nest: Option<NestConsts>,
     pub u10_positive: bool,
     pub cell: Vec<u8>,
     pub tu: Vec<u8>,
@@ -288,6 +377,31 @@ impl Consts {
             }
         }
         let q = c.arr("Q")?.clone();
+        let nest = match &c.nest {
+            None => None,
+            Some(nb) => {
+                let n3 = c.n3();
+                if nb.ubw.len() != n3
+                    || nb.thb.len() != n3
+                    || nb.thbd.as_ref().is_some_and(|t| t.len() != n3)
+                {
+                    bail!("nest: array length != NX*NY*NZ");
+                }
+                let tw = c.bytes("tw")?;
+                let b_w = (0..n3).filter(|&i| tw[i] == 2).collect();
+                let b_cell = (0..n3).filter(|&i| cell[i] == 2).collect();
+                Some(NestConsts {
+                    ubw: nb.ubw.clone(),
+                    thb: nb.thb.clone(),
+                    thbd: nb.thbd.clone().unwrap_or_else(|| vec![0.0; n3]),
+                    b_w,
+                    b_cell,
+                })
+            }
+        };
+        let no_thd_nest = nest
+            .as_ref()
+            .is_none_or(|n| n.thbd.iter().all(|&x| x == 0.0));
         let p = &c.params;
         Ok(Self {
             nxh,
@@ -304,6 +418,8 @@ impl Consts {
             inv_tau: (1.0 / p.tau_cool) as f32,
             inv_prt: (1.0 / p.pr_t) as f32,
             cd: c.cd,
+            cd_col: c.cd_col.clone(),
+            nest,
             u10_positive: c.case_params.u10 > 0.0,
             n_fluid: fluid.iter().map(|&x| f64::from(x)).sum(),
             mu: [mask(&tu), mask(&tv), mask(&tw)],
@@ -317,7 +433,7 @@ impl Consts {
             spc: c.arr("spc")?.clone(),
             ubg: c.arr("ubg")?.clone(),
             vbg: c.arr("vbg")?.clone(),
-            no_thd: q.iter().all(|&x| x == 0.0),
+            no_thd: q.iter().all(|&x| x == 0.0) && no_thd_nest,
             q,
             gam: c.arr("gam")?.clone(),
             cplz: c.arr("cplz")?.clone(),

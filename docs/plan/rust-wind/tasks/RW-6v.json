@@ -1,0 +1,98 @@
+{
+  "id": "RW-6v",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "W11 v9 + W5 v7: стенки при тёплом старте как K_BC, climate_lag для воды, поле без таймаута",
+  "goal": "Крейт по W11 v9 (тёплые старты и граничное условие обнуляют грани-стенки и θ′/θ′_d в клетках земли, как K_BC) и W5 v7 (фасад кладёт loc.climate_lag, крейт берёт его для температуры воды; air.timeout_s удалён — расчёт поля без предела по времени, остановка только отменой и ошибками). Физика GDScript не меняется: эталоны .bin/.desc.json побитно прежние.",
+  "plan_ref": "План переноса",
+  "contracts": [
+    {
+      "name": "W11",
+      "version": "9",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W5",
+      "version": "7",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-6v",
+  "branch": "rust-wind/RW-6v",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/picard_rs/src/",
+    "rust/picard_rs/tests/",
+    "rust/dp-air/src/",
+    "rust/dp-air/tests/w11v9_w5v7.rs",
+    "rust/dp-air/tests/clipmap.rs",
+    "rust/dp-air/tests/runtime.rs",
+    "rust/dp-stand/src/",
+    "scripts/atmosphere/air_place_data.gd",
+    "tests/contracts/test_air_place_climate_lag.gd",
+    "tests/contracts/test_air_place_climate_lag.gd.uid",
+    "configs/atmosphere.json",
+    "tests/fixtures/wind/places/",
+    "tools/wind_fixtures/gen_fixtures.gd",
+    "docs/research/rust-wind-field-path.md"
+  ],
+  "dont_touch": [
+    "docs/contracts/",
+    "tests/fixtures/wind/cases/",
+    "rust/dp-air/tests/contract.rs",
+    "rust/dp-air/tests/acceptance.rs",
+    "tests/contracts/test_rust_wind_contracts.gd",
+    "scripts/atmosphere/air_model/",
+    "configs/surface_heat.json",
+    "rust/dp-gd/"
+  ],
+  "accept": [
+    {
+      "name": "test_air_place_climate_lag",
+      "tests": "test_air_place_climate_lag"
+    },
+    {
+      "name": "test_rust_wind_contracts",
+      "tests": "test_rust_wind_contracts"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "w11v9_w5v7",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test w11v9_w5v7",
+      "expect": "re:test result: ok\\. [1-9]"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fixtures_unchanged",
+      "cmd": "tools/wind_fixtures/verify.sh",
+      "expect": "exit=0"
+    },
+    {
+      "name": "no_timeout",
+      "cmd": "python3 -c \"import json,sys,pathlib; d=json.load(open('configs/atmosphere.json')); n=sum('timeout_s' in p.read_text() for p in pathlib.Path('rust/dp-air/src').rglob('*.rs')); print('air.timeout_s:', 'timeout_s' in d['air'], 'rs-файлов с timeout_s:', n); sys.exit(int('timeout_s' in d['air'] or n > 0))\"",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-27T01:23:46",
+  "edited": "2026-10-27T03:31:45"
+}

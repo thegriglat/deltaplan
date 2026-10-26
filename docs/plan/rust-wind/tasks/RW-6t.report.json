@@ -1,0 +1,161 @@
+{
+  "status": "done",
+  "summary": "Formula ведёт поле целиком кроме окон: фазы (freeze/freeze_mech/nonconv, all_mech пропускает грубый шаг), запечённые поля и кеш (запечённое -> кеш -> расчёт, запись в кеш после подачи), отмена в подготовке picard_rs (W11 v6, <= 100 мс) и в оркестровке, JOIN_LIMIT 0,5 с; DpAir.add_baked_field/set_cache_dir и PlaceHeader.model_hash дошли до трейта.",
+  "commits": [
+    "ed52303b0 rust-wind RW-6t: фазы, запечённые поля и кеш в оркестровке поля; отмена в подготовке Пикара"
+  ],
+  "checks": [
+    {
+      "name": "runtime_test",
+      "value": "PASS (dp-air --test runtime, 34 теста, 78-87 с dev)",
+      "pass": true
+    },
+    {
+      "name": "picard_test",
+      "value": "PASS (picard_rs, +5 тестов cancel_prep)",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "PASS (workspace)",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "win_build",
+      "value": "PASS (x86_64-pc-windows-gnu dp-gd)",
+      "pass": true
+    },
+    {
+      "name": "stand_formula",
+      "value": "PASS (dp-stand sample --model formula, ongudai_strong)",
+      "pass": true
+    },
+    {
+      "name": "T(1) штиль U10 0,3 / 1,5 (полдень), 0,3 (ночь), синтетика",
+      "value": "заморожено 100 %, stop AllFrozen, итераций [0,0], грубого шага нет, theta' побитно = полю заморозки",
+      "pass": true
+    },
+    {
+      "name": "T(2) нагрев, итерации с фазами / без",
+      "value": "синтетика medium 80/80, strong 60/60 (frozen 0, nonconv-колонны есть); Онгудай medium (release, 96x96x50): 610/610 (mech 500 + heat 110, грубый 60+50), phase 0,14 с, wall 31 / 37 с",
+      "pass": true
+    },
+    {
+      "name": "T(3) nonconv, thd=None, тёплый старт",
+      "value": "проход 2 (Warm) и проход 1: MaxIters, nonconv_fallback=true, поле конечно, без паники",
+      "pass": true
+    },
+    {
+      "name": "T(4) training_island запечённое",
+      "value": "Ready за 84 мс release (570 мс dev), source Baked, без проходов Пикара, sample побитно = FieldSet из parse_baked; чужой/пустой model_hash, чужие условия, нет площадки, чужое место - промах с причиной в notes и расчёт",
+      "pass": true
+    },
+    {
+      "name": "T(5) кеш во временном каталоге",
+      "value": "1-я загрузка считает и кладёт, 2-я из кеша (89 мс release), побитно равна; другое условие/модель - промах; порча файла - расчёт и пересоздание; без model_hash ничего не пишется",
+      "pass": true
+    },
+    {
+      "name": "picard_rs отмена в подготовке (96x96x50, threads 2)",
+      "value": "release: до вызова 39 мс, по ходу подготовки <= 30 мс; dev (picard_rs O2): 65 мс / <= 61 мс; предел 100 мс (release), 250 мс (dev)",
+      "pass": true
+    },
+    {
+      "name": "unload_place/Drop/load_place посреди подготовки и решения, Онгудай-размер, threads 2",
+      "value": "release: худшее 358 мс (фазы), dev без opt-level 1: худшее 500 мс (JOIN_LIMIT); решение: 15-28 мс; требование < 1 с",
+      "pass": true
+    },
+    {
+      "name": "profile.dev.package.dp-air opt-level 1",
+      "value": "tests/runtime.rs 34 теста: со строкой 78,0 с, без 86,9 с = выигрыш 10 % < 20 % - строка убрана (picard_rs opt-level 2 оставлен)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Карта ω (air_phase.omega.use_map) не подаётся - в игре она выключена (сравнение AP-20: вред); PhaseResult.warm/warm_mech как старт не используются - GD их стартом не берёт (только внутри nonconv_field), поведение GD повторено.",
+    "Окна 100/50 м в расчёте по-прежнему нет (RW-6n/6o); запечённое поле их несёт и FieldSet их принимает."
+  ],
+  "questions": [
+    "W11 v3 говорил: AllFrozen при отмене до старта - с фоном. По v6 старт прерывается, и при взведённом до вызова флаге ответ теперь Cancelled (конечное поле), а не AllFrozen. Тест fallback.rs переписан, прошу подтвердить как следствие v6.",
+    "W5: у StartSite нет id и набора погоды, хеша данных места тоже нет. Выбор запечённого сделан по key самого файла: площадка = start_sites в 1 м от первого фокуса, файл = key.start в 1 м от неё, weather и data_hash берутся из key файла. Хеш модели (header.model_hash) сравнивается честно. Если нужна проверка data_hash/погоды снаружи - нужен контракт (W5 v6)."
+  ],
+  "how_to_check": ".dpcli/dpcli accept RW-6t; release: cargo test --release -p dp-air --test runtime -- ongudai_cancel ongudai_size picard_cancel baked_field_is cache_stores --include-ignored --nocapture --test-threads=1; cargo test --release -p dp-air --test runtime -- ongudai_medium_phases --ignored --nocapture",
+  "uncertain": [
+    {
+      "where": "rust/picard_rs/src/solver.rs: Picard::solve (pre_cancel) и api.rs: solve",
+      "why": "W11 v6: при отмене до первой итерации запись истории it=0 содержит NaN-невязки (проход невязок стоит около итерации и не укладывался в 100 мс); finalize при отмене на итерации > 0 доводится полностью, чтобы поле побитно совпадало с прогоном на столько же итераций (старый тест freeze.rs), а при отмене в подготовке/после сходимости обрезается и stop становится Cancelled.",
+      "checked": "tests/cancel_prep.rs (5), freeze.rs, fallback.rs, api.rs, state.rs зелёные; невязки NaN нигде не читаются (dp-air на Cancelled их выбрасывает)."
+    },
+    {
+      "where": "rust/dp-air/src/formula.rs: JOIN_LIMIT, add_baked_field",
+      "why": "Сборка фаз (assemble, phase/ не трогать) не проверяет отмену: ~0,15 с на release, ~0,7 с на -O0. Поэтому JOIN_LIMIT = 0,5 с (а не 1 с): позже задача отпускается сменой поколения и доходит до ближайшей проверки сама. add_baked_field во время загрузки перезапускает задачу без ожидания старой (флаг + смена поколения), 4 файла подряд = 4 дешёвых перезапуска.",
+      "checked": "ongudai_size_cancel_in_every_stage (0..3000 мс, unload/drop/reload) в dev и release; changing_the_place_mid_solve; добавление после Ready - BadInput."
+    },
+    {
+      "where": "rust/dp-air/src/field/runtime.rs: solve_pass (z0 поля)",
+      "why": "z0 поля округлён до f32 (как хранит файл): без этого поле из кеша отличалось от посчитанного на 1 ulp в отдельных точках sample (encode_baked пишет z0 карту f32). Влияние ~6e-8 относительно z0, ниже допусков RW-6q, но сверка с GD по слагаемым в RW-6q это увидит.",
+      "checked": "кеш побитно (cache_stores_after_the_field...), прежние тесты runtime зелёные."
+    },
+    {
+      "where": "rust/dp-air/src/field/runtime.rs: cache_key",
+      "why": "Ключ кеша мой: место (sha256 растров и заголовка, считается задачей один раз), хеш всех конфигов, условия, фокус, срок, utc, step_min; не BakedQuery GD. Запись и чтение только при непустом header.model_hash. Статусы previous_pass/not_converged кладутся в кеш как в GD.",
+      "checked": "промахи по условиям/модели, порча файла, выключенный кеш."
+    },
+    {
+      "where": "rust/dp-air/src/field/runtime.rs: pick_baked",
+      "why": "Имя площадки/набор погоды берутся из key файла (см. вопрос про W5), поэтому условие 'условия как в наборе погоды' проверяется по самому файлу; файл выбирается только если start_sites места содержит площадку в 1 м от фокуса.",
+      "checked": "T(4) промахи по хешу, условиям, фокусу, месту."
+    }
+  ],
+  "dp_feedback": "Фильтр rtk на grep/ls укорачивает вывод ('N matches in 1 files', +M more) - списки тестов приходилось добывать python. report требует в checks имена проверок карточки (runtime_test, ...), а не просто accept PASS - сообщение 'нет результатов проверок' не говорит этого, стоило бы подсказать. job wait в фоне отдаёт вывод только по завершению - для долгих release-прогонов не хватило потоковой выдачи (пришлось Monitor с until-loop).",
+  "extra": {
+    "latency_ms": {
+      "picard_rs_setup_release": {
+        "before_call": 39,
+        "during_setup_max": 30,
+        "first_iteration_cancel": 313
+      },
+      "picard_rs_setup_dev": {
+        "before_call": 65,
+        "during_setup_max": 61
+      },
+      "formula_ongudai_size_threads2_release_worst": 358,
+      "formula_ongudai_size_threads2_dev_worst": 500,
+      "formula_mid_solve_unload_drop": "15-28 ms (dev и release)"
+    },
+    "stage_times_dev_O1_ongudai": {
+      "level_cases": "0,10 с",
+      "phases": "0,72 с",
+      "picard_setup_30_vcycles": "0,82 с",
+      "finalize_10": "0,35 с"
+    },
+    "phase_release_ongudai_medium": {
+      "phase_s": 0.14,
+      "frozen_frac": [
+        0.0,
+        0.0
+      ],
+      "nonconv_cols": true,
+      "iters_with": 610,
+      "iters_without": 610
+    },
+    "runtime_tests_profile": {
+      "with_dp-air_opt1_s": 78.0,
+      "without_s": 86.9,
+      "gain_pct": 10,
+      "tests": 34
+    }
+  },
+  "t": "2026-10-26T08:30:29",
+  "by": "executor"
+}

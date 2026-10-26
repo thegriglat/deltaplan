@@ -1,0 +1,54 @@
+{
+  "status": "partial",
+  "summary": "После влития RW-0f и расширения скоупа accept --dry: 7/8. Красен только test_rust_wind_contracts::test_versions_match_docs: словарь версий в тесте (W1=1, W2=1, W3=1, W4=2, W5=3, W11=1) отстаёт от документа (2, 2, 2, 3, 7, 9); файл в dont_touch.",
+  "commits": [
+    "937b26828",
+    "161d7e89d"
+  ],
+  "checks": [
+    {
+      "name": "cargo_test",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "w11v9_w5v7",
+      "value": "6 passed",
+      "pass": true
+    },
+    {
+      "name": "test_air_place_climate_lag",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "clippy / fmt / no_timeout / fixtures_unchanged / scope",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_rust_wind_contracts",
+      "value": "22/23, красный test_versions_match_docs",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "Обновить словарь версий в tests/contracts/test_rust_wind_contracts.gd:13 до W1=2, W2=2, W3=2, W4=3, W5=7, W11=9 (файл в dont_touch) — нужна правка владельцем/расширением скоупа."
+  ],
+  "questions": [
+    "Разрешить правку tests/contracts/test_rust_wind_contracts.gd:13 (строка версий)?"
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-6v --dry",
+  "uncertain": [
+    {
+      "where": "tests/contracts/test_rust_wind_contracts.gd:13",
+      "why": "Красный тест не от моих изменений, версии W1-W4 отставали и до задачи; W5 и W11 тоже поднимаются этой задачей.",
+      "checked": "лог build/dpcli/RW-6v/02-test_rust_wind_contracts.log: 6 расхождений версий, остальные 22 теста зелёные"
+    }
+  ],
+  "dp_feedback": "",
+  "extra": {},
+  "t": "2026-10-27T03:53:33",
+  "by": "executor"
+}

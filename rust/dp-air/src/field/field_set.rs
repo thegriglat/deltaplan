@@ -78,17 +78,28 @@ impl FieldSet {
         &self.levels
     }
 
+    /// Подготовка уровней к подаче (ограничители, ширина края) — тяжёлая часть `set_field`; её
+    /// делают в фоне, а на главном потоке остаётся [`FieldSet::set_levels`] (только подмена `Arc`).
+    pub fn prepare(levels: Vec<Field>, limits: Limits, edge_cells: f64) -> Vec<Arc<Field>> {
+        levels
+            .into_iter()
+            .map(|mut f| {
+                f.clamp_values(limits);
+                f.edge_cells = edge_cells;
+                Arc::new(f)
+            })
+            .collect()
+    }
+
     /// Задать уровни (пусто — без поля) и смешивать со старым `blend_s` секунд (≤ 0 — сразу).
     /// Каждому уровню ставятся ограничители и ширина края набора.
     pub fn set_field(&mut self, levels: Vec<Field>, blend_s: f64) {
-        let lv: Levels = levels
-            .into_iter()
-            .map(|mut f| {
-                f.clamp_values(self.limits);
-                f.edge_cells = self.edge_cells;
-                Arc::new(f)
-            })
-            .collect();
+        let lv = Self::prepare(levels, self.limits, self.edge_cells);
+        self.set_levels(lv, blend_s);
+    }
+
+    /// То же для уровней, подготовленных [`FieldSet::prepare`]: без обхода массивов.
+    pub fn set_levels(&mut self, lv: Vec<Arc<Field>>, blend_s: f64) {
         if blend_s > 0.0 && (!self.levels.is_empty() || !lv.is_empty() || self.blend_total > 0.0) {
             self.old = self.snapshot();
             self.blend_total = blend_s;

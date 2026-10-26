@@ -7,7 +7,7 @@ use dp_air::{
 };
 use std::sync::{Arc, OnceLock};
 
-pub const WIND_API_VERSION: i64 = 1;
+pub const WIND_API_VERSION: i64 = 2;
 pub const OK: i64 = 0;
 pub const BAD_INPUT: i64 = 1;
 pub const NO_PLACE: i64 = 2;
@@ -137,6 +137,18 @@ impl Bridge {
             )
         });
         let r = place.and_then(|p| self.model.load_place(p));
+        self.done(r)
+    }
+
+    /// W3 v2: запечённое поле места сразу после `load_place`.
+    pub fn add_baked_field(&mut self, header_json: &str, data: &[u8]) -> i64 {
+        let r = self.model.add_baked_field(header_json, data);
+        self.done(r)
+    }
+
+    /// W3 v2: каталог кеша полей; пусто — без кеша.
+    pub fn set_cache_dir(&mut self, path: &str) -> i64 {
+        let r = self.model.set_cache_dir(path);
         self.done(r)
     }
 
@@ -352,4 +364,54 @@ fn layer(r: Option<Arc<dp_air::Raster>>, name: &str) -> Vec<f32> {
             .map(|(_, d)| d.clone())
     })
     .unwrap_or_default()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use dp_air::Formula;
+
+    const HEADER: &str = r#"{"version":1,"loc":{"id":"training_island","center_lat":43.2,
+"center_lon":34.0,"utc_offset_h":2.0,"month":7,"day":15},"grid":{"origin_x":-100,"origin_z":-100,
+"spacing":50,"width":4,"height":4},"surface_classes":{"grass":1},"start_sites":[],
+"model_hash":"50e249bed5ee6b3c"}"#;
+
+    fn island(name: &str) -> (String, Vec<u8>) {
+        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../data/locations/training_island/air");
+        (
+            std::fs::read_to_string(dir.join(format!("{name}.json"))).unwrap(),
+            std::fs::read(dir.join(format!("{name}.bin"))).unwrap(),
+        )
+    }
+
+    /// W3 v2: коды `add_baked_field` / `set_cache_dir` и `header.model_hash` через `load_place`
+    /// до трейта (`Formula`); `Calm` принимает и то и другое молча.
+    #[test]
+    fn baked_field_and_cache_dir_reach_the_model() {
+        let (h, d) = island("landing_hill");
+        let mut b = Bridge::new(Box::new(Formula::new()));
+        assert_eq!(b.add_baked_field(&h, &d), NO_PLACE);
+        assert_eq!(b.set_cache_dir("/tmp/dp-air-cache"), OK);
+        assert_eq!(b.set_cache_dir(""), OK);
+        assert_eq!(b.configure(&["wind".into(), "{}".into()], 1), OK);
+        let n = 16;
+        assert_eq!(
+            b.load_place(
+                HEADER,
+                &vec![10.0; n],
+                &vec![0; n],
+                &vec![1; n],
+                &vec![0.5; n]
+            ),
+            OK
+        );
+        assert_eq!(b.add_baked_field("не json", &d), BAD_INPUT);
+        assert!(!b.last_error().is_empty());
+        assert_eq!(b.add_baked_field(&h, &d), OK);
+        assert_eq!(b.last_error(), "");
+        let mut calm = Bridge::default();
+        assert_eq!(calm.add_baked_field("мусор", &[]), OK);
+        assert_eq!(calm.set_cache_dir("/x"), OK);
+    }
 }
