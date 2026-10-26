@@ -1,0 +1,521 @@
+{
+	"arrays": {
+		"ongudai_400_heat/Kx": {
+			"count": 4945,
+			"dtype": "f32",
+			"offset": 158240
+		},
+		"ongudai_400_heat/Ky": {
+			"count": 4945,
+			"dtype": "f32",
+			"offset": 178020
+		},
+		"ongudai_400_heat/Kz": {
+			"count": 4945,
+			"dtype": "f32",
+			"offset": 197800
+		},
+		"ongudai_400_heat/Q": {
+			"count": 4945,
+			"dtype": "f32",
+			"offset": 138460
+		},
+		"ongudai_400_heat/col": {
+			"count": 134456,
+			"dtype": "f32",
+			"offset": 217580
+		},
+		"ongudai_400_heat/kbg": {
+			"count": 4945,
+			"dtype": "f32",
+			"offset": 118680
+		},
+		"ongudai_400_heat/lev": {
+			"count": 260,
+			"dtype": "f32",
+			"offset": 755404
+		},
+		"ongudai_400_heat/prm": {
+			"count": 32,
+			"dtype": "f32",
+			"offset": 756444
+		},
+		"ongudai_400_heat/spc": {
+			"count": 4945,
+			"dtype": "f32",
+			"offset": 98900
+		},
+		"ongudai_400_heat/spu": {
+			"count": 4945,
+			"dtype": "f32",
+			"offset": 59340
+		},
+		"ongudai_400_heat/spw": {
+			"count": 4945,
+			"dtype": "f32",
+			"offset": 79120
+		},
+		"ongudai_400_heat/tcode": {
+			"count": 4945,
+			"dtype": "f32",
+			"offset": 0
+		},
+		"ongudai_400_heat/ubu": {
+			"count": 4945,
+			"dtype": "f32",
+			"offset": 19780
+		},
+		"ongudai_400_heat/ubv": {
+			"count": 4945,
+			"dtype": "f32",
+			"offset": 39560
+		},
+		"ongudai_400_mech/Kx": {
+			"count": 4945,
+			"dtype": "f32",
+			"offset": 914812
+		},
+		"ongudai_400_mech/Ky": {
+			"count": 4945,
+			"dtype": "f32",
+			"offset": 934592
+		},
+		"ongudai_400_mech/Kz": {
+			"count": 4945,
+			"dtype": "f32",
+			"offset": 954372
+		},
+		"ongudai_400_mech/Q": {
+			"count": 4945,
+			"dtype": "f32",
+			"offset": 895032
+		},
+		"ongudai_400_mech/col": {
+			"count": 134456,
+			"dtype": "f32",
+			"offset": 974152
+		},
+		"ongudai_400_mech/kbg": {
+			"count": 4945,
+			"dtype": "f32",
+			"offset": 875252
+		},
+		"ongudai_400_mech/lev": {
+			"count": 260,
+			"dtype": "f32",
+			"offset": 1511976
+		},
+		"ongudai_400_mech/prm": {
+			"count": 32,
+			"dtype": "f32",
+			"offset": 1513016
+		},
+		"ongudai_400_mech/spc": {
+			"count": 4945,
+			"dtype": "f32",
+			"offset": 855472
+		},
+		"ongudai_400_mech/spu": {
+			"count": 4945,
+			"dtype": "f32",
+			"offset": 815912
+		},
+		"ongudai_400_mech/spw": {
+			"count": 4945,
+			"dtype": "f32",
+			"offset": 835692
+		},
+		"ongudai_400_mech/tcode": {
+			"count": 4945,
+			"dtype": "f32",
+			"offset": 756572
+		},
+		"ongudai_400_mech/ubu": {
+			"count": 4945,
+			"dtype": "f32",
+			"offset": 776352
+		},
+		"ongudai_400_mech/ubv": {
+			"count": 4945,
+			"dtype": "f32",
+			"offset": 796132
+		},
+		"synthetic_1200_heat/Kx": {
+			"count": 8232,
+			"dtype": "f32",
+			"offset": 1776568
+		},
+		"synthetic_1200_heat/Ky": {
+			"count": 8232,
+			"dtype": "f32",
+			"offset": 1809496
+		},
+		"synthetic_1200_heat/Kz": {
+			"count": 8232,
+			"dtype": "f32",
+			"offset": 1842424
+		},
+		"synthetic_1200_heat/Q": {
+			"count": 8232,
+			"dtype": "f32",
+			"offset": 1743640
+		},
+		"synthetic_1200_heat/col": {
+			"count": 2744,
+			"dtype": "f32",
+			"offset": 1875352
+		},
+		"synthetic_1200_heat/kbg": {
+			"count": 8232,
+			"dtype": "f32",
+			"offset": 1710712
+		},
+		"synthetic_1200_heat/lev": {
+			"count": 210,
+			"dtype": "f32",
+			"offset": 1886328
+		},
+		"synthetic_1200_heat/prm": {
+			"count": 32,
+			"dtype": "f32",
+			"offset": 1887168
+		},
+		"synthetic_1200_heat/spc": {
+			"count": 8232,
+			"dtype": "f32",
+			"offset": 1677784
+		},
+		"synthetic_1200_heat/spu": {
+			"count": 8232,
+			"dtype": "f32",
+			"offset": 1611928
+		},
+		"synthetic_1200_heat/spw": {
+			"count": 8232,
+			"dtype": "f32",
+			"offset": 1644856
+		},
+		"synthetic_1200_heat/tcode": {
+			"count": 8232,
+			"dtype": "f32",
+			"offset": 1513144
+		},
+		"synthetic_1200_heat/ubu": {
+			"count": 8232,
+			"dtype": "f32",
+			"offset": 1546072
+		},
+		"synthetic_1200_heat/ubv": {
+			"count": 8232,
+			"dtype": "f32",
+			"offset": 1579000
+		},
+		"synthetic_1200_heat_calm/Kx": {
+			"count": 8232,
+			"dtype": "f32",
+			"offset": 2524872
+		},
+		"synthetic_1200_heat_calm/Ky": {
+			"count": 8232,
+			"dtype": "f32",
+			"offset": 2557800
+		},
+		"synthetic_1200_heat_calm/Kz": {
+			"count": 8232,
+			"dtype": "f32",
+			"offset": 2590728
+		},
+		"synthetic_1200_heat_calm/Q": {
+			"count": 8232,
+			"dtype": "f32",
+			"offset": 2491944
+		},
+		"synthetic_1200_heat_calm/col": {
+			"count": 2744,
+			"dtype": "f32",
+			"offset": 2623656
+		},
+		"synthetic_1200_heat_calm/kbg": {
+			"count": 8232,
+			"dtype": "f32",
+			"offset": 2459016
+		},
+		"synthetic_1200_heat_calm/lev": {
+			"count": 210,
+			"dtype": "f32",
+			"offset": 2634632
+		},
+		"synthetic_1200_heat_calm/prm": {
+			"count": 32,
+			"dtype": "f32",
+			"offset": 2635472
+		},
+		"synthetic_1200_heat_calm/spc": {
+			"count": 8232,
+			"dtype": "f32",
+			"offset": 2426088
+		},
+		"synthetic_1200_heat_calm/spu": {
+			"count": 8232,
+			"dtype": "f32",
+			"offset": 2360232
+		},
+		"synthetic_1200_heat_calm/spw": {
+			"count": 8232,
+			"dtype": "f32",
+			"offset": 2393160
+		},
+		"synthetic_1200_heat_calm/tcode": {
+			"count": 8232,
+			"dtype": "f32",
+			"offset": 2261448
+		},
+		"synthetic_1200_heat_calm/ubu": {
+			"count": 8232,
+			"dtype": "f32",
+			"offset": 2294376
+		},
+		"synthetic_1200_heat_calm/ubv": {
+			"count": 8232,
+			"dtype": "f32",
+			"offset": 2327304
+		},
+		"synthetic_1200_mech/Kx": {
+			"count": 8232,
+			"dtype": "f32",
+			"offset": 2150720
+		},
+		"synthetic_1200_mech/Ky": {
+			"count": 8232,
+			"dtype": "f32",
+			"offset": 2183648
+		},
+		"synthetic_1200_mech/Kz": {
+			"count": 8232,
+			"dtype": "f32",
+			"offset": 2216576
+		},
+		"synthetic_1200_mech/Q": {
+			"count": 8232,
+			"dtype": "f32",
+			"offset": 2117792
+		},
+		"synthetic_1200_mech/col": {
+			"count": 2744,
+			"dtype": "f32",
+			"offset": 2249504
+		},
+		"synthetic_1200_mech/kbg": {
+			"count": 8232,
+			"dtype": "f32",
+			"offset": 2084864
+		},
+		"synthetic_1200_mech/lev": {
+			"count": 210,
+			"dtype": "f32",
+			"offset": 2260480
+		},
+		"synthetic_1200_mech/prm": {
+			"count": 32,
+			"dtype": "f32",
+			"offset": 2261320
+		},
+		"synthetic_1200_mech/spc": {
+			"count": 8232,
+			"dtype": "f32",
+			"offset": 2051936
+		},
+		"synthetic_1200_mech/spu": {
+			"count": 8232,
+			"dtype": "f32",
+			"offset": 1986080
+		},
+		"synthetic_1200_mech/spw": {
+			"count": 8232,
+			"dtype": "f32",
+			"offset": 2019008
+		},
+		"synthetic_1200_mech/tcode": {
+			"count": 8232,
+			"dtype": "f32",
+			"offset": 1887296
+		},
+		"synthetic_1200_mech/ubu": {
+			"count": 8232,
+			"dtype": "f32",
+			"offset": 1920224
+		},
+		"synthetic_1200_mech/ubv": {
+			"count": 8232,
+			"dtype": "f32",
+			"offset": 1953152
+		}
+	},
+	"cases": [
+		{
+			"cd": 0.005187506802783136,
+			"dx": 400.0,
+			"dz": 105.0,
+			"full": false,
+			"hashes": {
+				"Kx": "-1556741813799751778",
+				"Ky": "-6667835357768726854",
+				"Kz": "-7906661811401506610",
+				"Q": "8443984851568387446",
+				"kbg": "4203088380631431708",
+				"spc": "-8118240871922823339",
+				"spu": "-4486266639759447747",
+				"spw": "-7051780569820368787",
+				"tcode": "-4487098005927351451",
+				"ubu": "7858716053403317580",
+				"ubv": "3634243275746697629"
+			},
+			"nx": 96,
+			"ny": 96,
+			"nz": 50,
+			"place": "ongudai",
+			"tag": "ongudai_400_heat",
+			"u10": 3.05555555555556,
+			"u_a": 4.381662597783784,
+			"x0": -19200.0,
+			"y0": -19200.0,
+			"z0": 0.20334235046475876,
+			"z_bot": 420.0
+		},
+		{
+			"cd": 0.005187506802783136,
+			"dx": 400.0,
+			"dz": 105.0,
+			"full": false,
+			"hashes": {
+				"Kx": "-1556741813799751778",
+				"Ky": "-6667835357768726854",
+				"Kz": "-7906661811401506610",
+				"Q": "5043289578330794853",
+				"kbg": "6424963166150753138",
+				"spc": "-8118240871922823339",
+				"spu": "-4486266639759447747",
+				"spw": "-7051780569820368787",
+				"tcode": "-4487098005927351451",
+				"ubu": "7858716053403317580",
+				"ubv": "3634243275746697629"
+			},
+			"nx": 96,
+			"ny": 96,
+			"nz": 50,
+			"place": "ongudai",
+			"tag": "ongudai_400_mech",
+			"u10": 3.05555555555556,
+			"u_a": 4.381662597783784,
+			"x0": -19200.0,
+			"y0": -19200.0,
+			"z0": 0.20334235046475876,
+			"z_bot": 420.0
+		},
+		{
+			"cd": 0.002869356547359561,
+			"dx": 1200.0,
+			"dz": 105.0,
+			"full": true,
+			"hashes": {
+				"Kx": "-8973815133213232943",
+				"Ky": "7136126105860194387",
+				"Kz": "-3370941287482325595",
+				"Q": "-455498512231853800",
+				"kbg": "8607774540212866903",
+				"spc": "970582989887399490",
+				"spu": "-4354535041590026687",
+				"spw": "6533868072697385801",
+				"tcode": "-7595809674838483899",
+				"ubu": "-3241315983871409788",
+				"ubv": "2006620983403714030"
+			},
+			"nx": 12,
+			"ny": 12,
+			"nz": 40,
+			"place": "synthetic",
+			"tag": "synthetic_1200_heat",
+			"u10": 3.88888888888889,
+			"u_a": 6.345349369926318,
+			"x0": -7200.0,
+			"y0": -7200.0,
+			"z0": 0.029999999999999995,
+			"z_bot": 315.0
+		},
+		{
+			"cd": 0.002869356547359561,
+			"dx": 1200.0,
+			"dz": 105.0,
+			"full": true,
+			"hashes": {
+				"Kx": "-8973815133213232943",
+				"Ky": "7136126105860194387",
+				"Kz": "-3370941287482325595",
+				"Q": "-1180756295008330683",
+				"kbg": "-4849725978334871750",
+				"spc": "970582989887399490",
+				"spu": "-4354535041590026687",
+				"spw": "6533868072697385801",
+				"tcode": "-7595809674838483899",
+				"ubu": "-3241315983871409788",
+				"ubv": "2006620983403714030"
+			},
+			"nx": 12,
+			"ny": 12,
+			"nz": 40,
+			"place": "synthetic",
+			"tag": "synthetic_1200_mech",
+			"u10": 3.88888888888889,
+			"u_a": 6.345349369926318,
+			"x0": -7200.0,
+			"y0": -7200.0,
+			"z0": 0.029999999999999995,
+			"z_bot": 315.0
+		},
+		{
+			"cd": 0.002869356547359561,
+			"dx": 1200.0,
+			"dz": 105.0,
+			"full": true,
+			"hashes": {
+				"Kx": "4222960924824084773",
+				"Ky": "-2556971934940524507",
+				"Kz": "8675462938246923573",
+				"Q": "-455498512231853800",
+				"kbg": "-3303497254913677484",
+				"spc": "1263148020472324013",
+				"spu": "1263148020472324013",
+				"spw": "2974132341839041893",
+				"tcode": "-7595809674838483899",
+				"ubu": "-1180756295008330683",
+				"ubv": "-1180756295008330683"
+			},
+			"nx": 12,
+			"ny": 12,
+			"nz": 40,
+			"place": "synthetic",
+			"tag": "synthetic_1200_heat_calm",
+			"u10": 0.0,
+			"u_a": 0.0,
+			"x0": -7200.0,
+			"y0": -7200.0,
+			"z0": 0.029999999999999995,
+			"z_bot": 315.0
+		}
+	],
+	"out_bufs": [
+		"tcode",
+		"ubu",
+		"ubv",
+		"spu",
+		"spw",
+		"spc",
+		"kbg",
+		"Q",
+		"Kx",
+		"Ky",
+		"Kz"
+	],
+	"stride": 101,
+	"version": 1
+}

@@ -85,6 +85,29 @@ struct Meta {
     arrays: HashMap<String, [usize; 2]>,
 }
 
+/// Everything [`Case::from_parts`] needs: the metadata of an R1 file and its arrays.
+pub struct CaseParts {
+    pub name: String,
+    pub path: String,
+    /// Dimensions with halo (NX, NY, NZ).
+    pub dims: [usize; 3],
+    pub nx: usize,
+    pub ny: usize,
+    pub nz: usize,
+    pub dx: f64,
+    pub dz: f64,
+    pub z_bot: f64,
+    pub params: Params,
+    pub case_params: CaseParams,
+    pub criterion: Criterion,
+    pub solution: Option<SolutionRef>,
+    pub history: Option<serde_json::Value>,
+    pub crop: Option<Crop>,
+    /// Drag coefficient of the first face; `None` = from `z0` and `dz` (as the file reader).
+    pub cd: Option<f32>,
+    pub arrays: HashMap<String, Vec<f32>>,
+}
+
 /// A loaded case: metadata, all arrays of the `.bin` and derived constants.
 pub struct Case {
     pub name: String,
@@ -135,6 +158,30 @@ impl Case {
                 .collect();
             arrays.insert(name.clone(), v);
         }
+        Self::from_parts(CaseParts {
+            name: m.case,
+            path: path.to_string_lossy().into_owned(),
+            dims: m.dims,
+            nx: m.nx,
+            ny: m.ny,
+            nz: m.nz,
+            dx: m.dx,
+            dz: m.dz,
+            z_bot: m.z_bot,
+            params: m.params,
+            case_params: m.case_params,
+            criterion: m.criterion,
+            solution: m.solution,
+            history: m.history,
+            crop: m.crop,
+            cd: None,
+            arrays,
+        })
+    }
+
+    /// Builds a case from arrays in memory (no files): the same checks and derived constants as
+    /// [`Case::load`]. A case without `solution`/`history`/`sol_*` is solved without a deviation.
+    pub fn from_parts(m: CaseParts) -> Result<Self> {
         let p = &m.params;
         let dtau_u = p.dtau_u.unwrap_or(p.dtau_per_m * m.dx);
         let kappa = 0.4_f64;
@@ -144,8 +191,8 @@ impl Case {
             bail!("dims {:?} do not match nx/ny/nz with halo 1", m.dims);
         }
         let case = Self {
-            name: m.case,
-            path: path.to_string_lossy().into_owned(),
+            name: m.name,
+            path: m.path,
             nxh,
             nyh,
             nzh,
@@ -172,8 +219,8 @@ impl Case {
             history_ref: m.history,
             crop: m.crop,
             dtau_u: dtau_u as f32,
-            cd: cd as f32,
-            arrays,
+            cd: m.cd.unwrap_or(cd as f32),
+            arrays: m.arrays,
         };
         let n3 = case.n3();
         for a in [
