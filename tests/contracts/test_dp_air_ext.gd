@@ -35,7 +35,7 @@ func _load(a: Object) -> int:
 
 func test_api_version_and_constants() -> void:
 	var a := _new()
-	check(a.api_version() == 1, "api_version")
+	check(a.api_version() == 2, "api_version")
 	check(a.get_class() == "DpAir", "class")
 	check(a.state() == 0, "EMPTY")
 	var c := 0

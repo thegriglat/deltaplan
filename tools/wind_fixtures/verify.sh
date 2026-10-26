@@ -58,6 +58,10 @@ for f in $(cd "$ref" && find places cases -type f | sort); do
 import json, sys
 a, b = (json.load(open(p)) for p in sys.argv[1:3])
 a.pop("generator", None); b.pop("generator", None)
+sa, sb = a.pop("configs_sha1", {}), b.pop("configs_sha1", {})
+for k in sorted(set(sa) | set(sb)):
+    if sa.get(k) != sb.get(k):
+        print(f"verify: справка: изменён конфиг {k}")
 sys.exit(0 if a == b else 1)
 P
 			;;
