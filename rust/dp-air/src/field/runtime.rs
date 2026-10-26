@@ -30,13 +30,14 @@
 //! - Время решения ограничено `timeout_s` на проход (остановка по бюджету — отказ прохода).
 use super::case_build::{SolverCfg, build_solver_case};
 use super::case_prepare::{AirCaseRs, CaseOpts, PreparedPlanes, build_case};
+use super::field_set::FieldSet;
 use super::place_input::{ZiCfg, build_domain_input};
 use super::weather_core::{
     Climate, ClimateCell, Domain, WeatherConfigs, WeatherInputs, field_weather, monthly,
 };
 use super::wind_field::{Field, FieldGrid, FieldMeta, Limits, Z0};
 use crate::level::{Level, prolong_state};
-use crate::{Conditions, Configs, Error, InflowMode, Place};
+use crate::{Conditions, Configs, Error, InflowMode, LocClimate, Place};
 use picard_rs::api::{Fallback, SolveOpts, Solved, StopReason, solve};
 use picard_rs::case::Case;
 use picard_rs::state::State;
@@ -90,6 +91,29 @@ impl Climate for TableClimate {
             z_cell_m: 0.0,
             has_hh1: false,
             has_hh5: false,
+        }
+    }
+}
+
+/// Климат места: ячейка из заголовка (`loc.climate`, W5 v3), где есть сетка HH5 / HH1; иначе
+/// запасные таблицы (`ClimateGrid.place`: без HH5 `tx_c`/`dtr_k` — из `weather_model.json`).
+struct PlaceClimate<'a> {
+    table: &'a TableClimate,
+    loc: Option<LocClimate>,
+}
+
+impl Climate for PlaceClimate<'_> {
+    fn cell(&self, lat: f64, lon: f64, month: i64, day: i64) -> ClimateCell {
+        let t = self.table.cell(lat, lon, month, day);
+        match self.loc {
+            None => t,
+            Some(c) => ClimateCell {
+                tx_c: if c.has_hh5 { c.tx_c } else { t.tx_c },
+                dtr_k: if c.has_hh5 { c.dtr_k } else { t.dtr_k },
+                z_cell_m: if c.has_hh1 { c.z_cell_m } else { 0.0 },
+                has_hh1: c.has_hh1,
+                has_hh5: c.has_hh5,
+            },
         }
     }
 }
@@ -215,7 +239,7 @@ impl RtCfg {
                 max_speed: am("max_speed_ms", 40.0),
                 max_w: am("max_w_ms", 10.0),
             },
-            timeout_s: am("timeout_s", 60.0),
+            timeout_s: num(&atm, "/air/timeout_s", 180.0),
             max_iters: MAX_OUTER,
             omega_after: num(&atm, "/air_phase/omega/fallback_iters", 300.0).max(0.0) as usize,
             omega: num(&atm, "/air_phase/omega/fallback_omega", 0.5) as f32,
@@ -525,7 +549,7 @@ pub struct JobIn {
 #[derive(Debug)]
 pub struct JobOut {
     /// Уровни от мелкого к грубому (сейчас один).
-    pub levels: Vec<Field>,
+    pub levels: Vec<Arc<Field>>,
     /// `k` поданного поля.
     pub k: f64,
     pub rec: CondRec,
@@ -572,12 +596,16 @@ struct LevelCase {
 
 fn build_level(job: &JobIn, dom: &Domain, k: f64) -> Result<LevelCase, JobErr> {
     let cfg = &job.cfg;
+    let climate = PlaceClimate {
+        table: &cfg.climate,
+        loc: job.place.header().loc.climate,
+    };
     let fw = field_weather(
         &job.cond,
         &job.place,
         &cfg.wc,
         &job.configs,
-        &cfg.climate,
+        &climate,
         job.rec.hour,
         dom,
     )?;
@@ -967,7 +995,7 @@ fn finish(job: JobIn, p: PassOut, mut report: JobReport, t0: Instant) -> JobOut 
     job.progress.store(1.0f32.to_bits(), Ordering::Relaxed);
     let k = p.report.k;
     JobOut {
-        levels: vec![p.field],
+        levels: FieldSet::prepare(vec![p.field], job.cfg.limits, job.cfg.edge_blend_cells),
         k,
         rec: job.rec,
         pair: p.pair,

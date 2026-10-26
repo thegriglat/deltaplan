@@ -268,7 +268,7 @@ fn job_main(sh: Arc<Shared>, kind: Kind, epoch: u64, job: JobIn, slot: Arc<Slot>
                 let levels = std::mem::take(&mut out.levels);
                 sh.modify_epoch(epoch, |p| {
                     apply_limits(p, &cfg);
-                    p.fs.set_field(levels, 0.0);
+                    p.fs.set_levels(levels, 0.0);
                     *lock(&sh.report) = Some(out.report.clone());
                     sh.set_state(State::Ready, 1.0, "");
                 });
@@ -474,7 +474,7 @@ impl Formula {
                     apply_limits(p, c);
                 }
                 p.fs.advance(tdel - *cursor);
-                p.fs.set_field(levels, blend);
+                p.fs.set_levels(levels, blend);
             });
             *cursor = tdel;
         } else if job.kind == Kind::Load && out.report.planned > 1 {

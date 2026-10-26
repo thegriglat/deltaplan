@@ -392,7 +392,7 @@ fn collect_configs(dir: &std::path::Path, prefix: &str, out: &mut Vec<(String, S
     }
 }
 
-/// Конфиги игры; `air`: детерминизм, малая область (4,8 км), грубый критерий — на -O0.
+/// Конфиги игры; `air`: детерминизм, область 7,2 км, tol_scale 5 (критерий игры).
 fn formula_configs() -> Configs {
     let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../configs");
     let mut files = Vec::new();
@@ -401,10 +401,10 @@ fn formula_configs() -> Configs {
         if n == "atmosphere.json" {
             let mut v: serde_json::Value = serde_json::from_str(t).unwrap();
             v["air"]["deterministic"] = true.into();
-            v["air"]["domain_l_m"] = 4800.0.into();
-            v["air"]["tol_scale"] = 200.0.into();
+            v["air"]["domain_l_m"] = 7200.0.into();
+            v["air"]["tol_scale"] = 5.0.into();
             v["air"]["threads"] = 4.into();
-            v["air_model"]["timeout_s"] = 600.0.into();
+            v["air"]["timeout_s"] = 600.0.into();
             *t = serde_json::to_string(&v).unwrap();
         }
     }

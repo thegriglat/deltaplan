@@ -1,9 +1,9 @@
 //! RW-6j: оркестровка поля (`Formula`, `field::runtime`) — загрузка, грубый старт (T4a), проходы
 //! `k`, срок пересчёта и подмена (T2), отмена (T8), детерминизм по потокам, константы против GD.
 //!
-//! Тесты идут на -O0 (профиль `dev`), поэтому на малой области (`domain_l_m` 4,8 км, 12 клеток),
-//! с грубым критерием (`air.tol_scale` 200: 10 итераций на решение) — проверяется оркестровка, не
-//! точность. Точность и числа итераций AP-20 — на `release`, тесты `#[ignore]`:
+//! Тесты идут в профиле `dev` (picard_rs с opt-level 2, см. rust/Cargo.toml) на уменьшенной
+//! области (`domain_l_m` 7,2 км, 18 клеток) с критерием игры (`tol_scale` 5). Онгудай (полная
+//! область 38,4 км) и точные числа AP-20 — `#[ignore]`, на release:
 //! `cargo test --release -p dp-air --test runtime -- --ignored --nocapture --test-threads=1`.
 use dp_air::field::runtime::*;
 use dp_air::field::weather_core::{WeatherInputs, hour_at};
@@ -53,10 +53,10 @@ fn configs_with(patch: impl Fn(&mut Value)) -> Configs {
 /// Малая область, грубый критерий, детерминированный режим — проверки оркестровки на -O0.
 fn cheap(v: &mut Value) {
     v["air"]["deterministic"] = json!(true);
-    v["air"]["domain_l_m"] = json!(4800.0);
+    v["air"]["domain_l_m"] = json!(7200.0);
     v["air"]["threads"] = json!(4);
-    v["air"]["tol_scale"] = json!(200.0);
-    v["air_model"]["timeout_s"] = json!(600.0);
+    v["air"]["tol_scale"] = json!(5.0);
+    v["air"]["timeout_s"] = json!(600.0);
     v["air_model"]["edge_blend_cells"] = json!(1.0);
 }
 
@@ -75,25 +75,11 @@ fn cond(preset: &str) -> Conditions {
     cond_json(preset, "")
 }
 
-/// Вершина холма в центре синтетики: фокус для проходов `k`.
-fn hilltop(pl: &Place, half: f64) -> Focus {
-    let g = &pl.header().grid;
-    let w = g.width as usize;
-    let mut best = (f32::MIN, 0.0, 0.0);
-    for j in (0..g.height as usize).step_by(4) {
-        for i in (0..w).step_by(4) {
-            let (x, z) = (
-                g.origin_x + i as f64 * g.spacing,
-                g.origin_z + j as f64 * g.spacing,
-            );
-            let h = pl.heights()[j * w + i];
-            if x.abs() <= half && z.abs() <= half && h > best.0 {
-                best = (h, x, z);
-            }
-        }
-    }
+/// Фокус на склоне синтетики, где ветер над стартом при k = 1 быстрее ветра меню (strong, область
+/// 7,2 км, tol_scale 5: U 6,7 м/с при u10 5,0): нужен второй проход подбора k.
+fn hilltop(pl: &Place, _half: f64) -> Focus {
     Focus {
-        pos: [best.1 as f32, best.0 + 10.0, best.2 as f32],
+        pos: [1000.0, ground_height(pl, 1000.0, 1000.0) + 10.0, 1000.0],
         weight: 1.0,
     }
 }
@@ -373,6 +359,10 @@ fn ongudai_advance_to_latency_release() {
         std::thread::sleep(Duration::from_millis(16));
     }
     assert!(delivered);
+    assert!(
+        worst_deliver < Duration::from_micros(500),
+        "advance_to at delivery took {worst_deliver:?} (W3: <= 0.5 ms)"
+    );
     eprintln!("worst advance_to {worst:?}, at delivery {worst_deliver:?}, last t {t:.1}");
     let _ = sample(&m, &pts);
 }
@@ -520,7 +510,7 @@ fn gd_next_k(k: f64, u: f64, u10: f64, table: &[[f64; 2]]) -> f64 {
 fn k_pass_follows_next_k_formula_and_stops_by_pass_tol() {
     let cfg = configs_with(cheap);
     let pl = place("synthetic");
-    let focus = hilltop(&pl, 600.0);
+    let focus = hilltop(&pl, 0.0);
     let c = cond("strong");
     let u10 = WeatherInputs::from_conditions(&c, &cfg).unwrap().u10;
     let table = [[3.0, 0.57], [6.0, 0.75], [10.0, 0.90]];
@@ -550,7 +540,7 @@ fn k_pass_follows_next_k_formula_and_stops_by_pass_tol() {
         place("synthetic"),
         &c,
         true,
-        Some(hilltop(&place("synthetic"), 600.0)),
+        Some(hilltop(&place("synthetic"), 0.0)),
         None,
     )
     .unwrap();
@@ -576,7 +566,7 @@ fn k_pass_follows_next_k_formula_and_stops_by_pass_tol() {
 fn inflow_mode_is_a_single_pass_with_k_one() {
     let cfg = configs_with(cheap);
     let pl = place("synthetic");
-    let focus = hilltop(&pl, 600.0);
+    let focus = hilltop(&pl, 0.0);
     let c = cond_json("strong", r#","inflow_mode":"inflow""#);
     assert_eq!(c.inflow_mode, InflowMode::Inflow);
     let o = job(&cfg, |_| {}, pl, &c, true, Some(focus), None).unwrap();
@@ -601,7 +591,7 @@ fn inflow_mode_is_a_single_pass_with_k_one() {
 fn failed_second_pass_serves_the_first_pass_field() {
     let cfg = configs_with(cheap);
     let pl = place("synthetic");
-    let focus = hilltop(&pl, 600.0);
+    let focus = hilltop(&pl, 0.0);
     let o = job(
         &cfg,
         |c| c.faults.fail_pass = Some(2),
@@ -1078,7 +1068,8 @@ fn constants_match_gdscript_and_configs() {
     assert_eq!(cfg.step_min, n("/air_model/recompute_game_min"));
     assert_eq!(cfg.blend_s, n("/air_model/blend_s"));
     assert_eq!(cfg.edge_blend_cells, n("/air_model/edge_blend_cells"));
-    assert_eq!(cfg.timeout_s, n("/air_model/timeout_s"));
+    assert_eq!(cfg.timeout_s, n("/air/timeout_s"));
+    assert_eq!(cfg.timeout_s, 180.0);
     assert_eq!(cfg.limits.max_speed, n("/air_model/max_speed_ms"));
     assert_eq!(cfg.limits.max_w, n("/air_model/max_w_ms"));
     assert_eq!(cfg.omega_after as f64, n("/air_phase/omega/fallback_iters"));
@@ -1149,4 +1140,20 @@ fn queries_never_block_on_the_solve_and_survive_garbage() {
 fn formula_is_send_sync() {
     fn is<T: Send + Sync>() {}
     is::<Formula>();
+}
+
+#[test]
+fn place_header_carries_climate_and_its_absence_is_allowed() {
+    let pl = place("synthetic");
+    let c = pl.header().loc.climate.expect("W5 v3: loc.climate");
+    assert!(c.has_hh1 && c.has_hh5);
+    assert!((c.tx_c - 20.19).abs() < 0.01 && (c.dtr_k - 10.37).abs() < 0.01);
+    assert_eq!(c.z_cell_m, 1136.0);
+    let h = dp_air::PlaceHeader::from_json(
+        r#"{"version":1,"loc":{"id":"t","center_lat":50.0,"center_lon":86.0,"utc_offset_h":7.0,
+"month":7,"day":1},"grid":{"origin_x":0,"origin_z":0,"spacing":25,"width":2,"height":2},
+"surface_classes":{},"start_sites":[]}"#,
+    )
+    .unwrap();
+    assert!(h.loc.climate.is_none());
 }

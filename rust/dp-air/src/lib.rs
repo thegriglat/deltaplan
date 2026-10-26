@@ -17,7 +17,7 @@ pub use conditions::{Conditions, Forecast, InflowMode, Source, WindRef};
 pub use error::{Code, Error};
 pub use formula::Formula;
 pub use level::{Level, Stag, prolong, prolong_state};
-pub use place::{Grid, Loc, Place, PlaceHeader, StartSite};
+pub use place::{Grid, Loc, LocClimate, Place, PlaceHeader, StartSite};
 pub use types::{
     Cloud, Configs, Core, Crest, Decomposition, F32Record, Focus, Raster, SampleMode, State,
     Status, as_f32s,
