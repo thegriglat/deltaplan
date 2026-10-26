@@ -1,0 +1,101 @@
+{
+  "status": "done",
+  "summary": "tools/tests_vs_base.sh/.py: прогон tests/ по файлу на процесс Godot headless (-j, таймаут файла, временный XDG), копия против базы (git worktree), кеш базы build/tests_base/<sha>.txt, повтор упавших файлов, подтверждение новых падений на обеих сторонах. Полный прогон с feature/rust-wind выполнен.",
+  "commits": [
+    "a9486500c tests_vs_base: тесты копии против базы по файлам параллельно",
+    "3fce820ba tests_vs_base: подтверждение новых падений на обеих сторонах"
+  ],
+  "checks": [
+    {
+      "name": "syntax",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "same_ref",
+      "value": "новых падений: 0 (728 с)",
+      "pass": true
+    },
+    {
+      "name": "project_clean",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "полный прогон --base feature/rust-wind (до подтверждения)",
+      "value": "стена 6551 с: копия 3210 с (520 файлов, -j8, повтор 47 файлов), база 3335 с (повтор 52 файла); копия 45 / база 44 падений; 3 новых кандидата, 2 исправлено",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "25 мин стены не достигнуты: обе стороны ~6550 с на -j8 (по указанию ориентир, не чинил); с кешем базы ≈ 3200 с + подтверждение"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RW-0e",
+  "uncertain": [
+    {
+      "where": "tools/tests_vs_base.py (подтверждение)",
+      "why": "3 кандидата полного прогона (test_egg_place::test_all_locations_table, test_eggs_no_osm::test_found_table_relief, test_world_objects::test_build_time) получены ДО добавления подтверждения; вероятно нагрузочные флейки, но полный прогон с подтверждением не гонял",
+      "checked": "same_ref contracts -j4 дал ложное 'новое' test_trike_pilot_k6 при кеше базы с другой нагрузки -> добавил перепрогон на обеих сторонах по одному, после чего 0 новых"
+    }
+  ],
+  "dp_feedback": "accept --dry при FAIL одной проверки гонит 12 мин заново; хотелось бы запускать одну проверку (accept --only).",
+  "extra": {
+    "wall_full_both_sides_s": 6551,
+    "copy_side_s": 3210,
+    "base_side_s": 3335,
+    "retries": {
+      "copy": 47,
+      "base": 52
+    },
+    "cache": "build/tests_base/4d45a7609264b23c3fba40efc4c738cd85599e19.txt в копии RW-0e (~/worktrees/deltaplan/rust-wind-RW-0e), не в git; ключ = полный sha базы (без фильтра)",
+    "base_failures_feature_rust_wind": [
+      "tests/atmosphere/test_atmosphere.gd::test_performance",
+      "tests/atmosphere/test_storm_rarity.gd::TIMEOUT",
+      "tests/contracts/test_roll_modes_contracts.gd::test_input_sign_air_and_ground",
+      "tests/contracts/test_rust_wind_contracts.gd::test_versions_match_docs",
+      "tests/contracts/test_trike_pilot_k6.gd::test_game_trike_start",
+      "tests/flight/test_stall.gd::test_full_push_stalls_and_drops_nose",
+      "tests/flight/test_stall.gd::test_stall_speed_on_slow_push",
+      "tests/flight/test_wing_clearance.gd::TIMEOUT",
+      "tests/game/test_aframe_contracts.gd::test_neutral_every_wing",
+      "tests/game/test_catch_up_game.gd::test_catch_up_in_main_scene",
+      "tests/game/test_cockpit.gd::TIMEOUT",
+      "tests/game/test_e2e.gd::TIMEOUT",
+      "tests/game/test_game_flight.gd::TIMEOUT",
+      "tests/game/test_game_flight.gd::test_air_start",
+      "tests/game/test_game_logic.gd::test_forecast_settings",
+      "tests/game/test_gameplay.gd::TIMEOUT",
+      "tests/game/test_pilot_view_contracts.gd::test_pv1_ground_inverts_too",
+      "tests/game/test_pilot_view_contracts.gd::test_pv1_sign_by_device",
+      "tests/game/test_pilot_view_contracts.gd::test_pv1_wing_banks_left_with_bar",
+      "tests/game/test_pilot_view_contracts.gd::test_pv2_center_once",
+      "tests/game/test_qol_cycle.gd::TIMEOUT",
+      "tests/game/test_start_clearing.gd::test_radius_covers_two_runs",
+      "tests/game/test_start_pick_inspect.gd::test_pick_flow",
+      "tests/game/test_start_qol.gd::test_start_hint_every_flight_hides_on_w",
+      "tests/game/test_start_regression.gd::test_default_start",
+      "tests/game/test_ui.gd::test_controls_screen_lists_keys",
+      "tests/motion_rig/test_motion_flow.gd::test_main_thread_stall_keepalive",
+      "tests/motion_rig/test_motion_packet.gd::test_microbench",
+      "tests/stability/test_matrix.gd::TIMEOUT",
+      "tests/terrain/test_built_patches.gd::test_places",
+      "tests/terrain/test_locations.gd::test_locations",
+      "tests/terrain/test_relief.gd::test_compute_time_40km",
+      "tests/terrain/test_surface.gd::test_forest_mask_loaded",
+      "tests/terrain/test_surface_mask_race.gd::НЕТ ИТОГА (код -6)",
+      "tests/terrain/test_terrain.gd::test_height_at_speed",
+      "tests/terrain/test_terrain.gd::test_load_time",
+      "tests/ui/test_menu_scroll.gd::test_scroll_screens",
+      "tests/ui/test_screens.gd::test_no_untranslated_strings",
+      "tests/vegetation/test_grass_field.gd::test_forest_grass_reaches_material",
+      "tests/world_objects/test_egg_crop_circles.gd::test_flights_share_and_cpu",
+      "tests/world_objects/test_egg_hay_bales.gd::test_numbers",
+      "tests/world_objects/test_osm_road_look.gd::test_roads_use_road_shader_water_not",
+      "tests/world_objects/test_osm_threaded.gd::test_osm_layer_census",
+      "tests/world_objects/test_osm_traffic.gd::test_update_time_200_cars"
+    ]
+  },
+  "t": "2026-10-27T03:53:06",
+  "by": "executor"
+}

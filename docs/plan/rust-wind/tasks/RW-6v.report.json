@@ -1,107 +1,54 @@
 {
   "status": "partial",
-  "summary": "W11 v9 (стенки и земля как K_BC в apply_bc_all, т.е. при тёплых стартах и finalize), W5 v7 (loc.climate_lag: фасад + генератор эталонов + крейт, Climate::water_cell; места пересняты), air.timeout_s и deadline удалены. Сверх контракта: тёплые старты фиксируют дальние грани типа 3 (u,v=фон, w=0) — без этого грубый старт сильного ветра не сходится. Остаются красными три проверки, зависящие от RW-0f, и scope (3 файла вне скоупа, правка неизбежна).",
+  "summary": "После влития RW-0f и расширения скоупа accept --dry: 7/8. Красен только test_rust_wind_contracts::test_versions_match_docs: словарь версий в тесте (W1=1, W2=1, W3=1, W4=2, W5=3, W11=1) отстаёт от документа (2, 2, 2, 3, 7, 9); файл в dont_touch.",
   "commits": [
-    "937b26828 W11 v9, W5 v7: стенки, climate_lag, без таймаута",
-    "дальние грани типа 3 при тёплых стартах (второй коммит ветки)"
+    "937b26828",
+    "161d7e89d"
   ],
   "checks": [
+    {
+      "name": "cargo_test",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "w11v9_w5v7",
+      "value": "6 passed",
+      "pass": true
+    },
     {
       "name": "test_air_place_climate_lag",
       "value": "3/3",
       "pass": true
     },
     {
-      "name": "w11v9_w5v7",
-      "value": "6 passed (+ picard_rs walls_v9: 2 passed)",
+      "name": "clippy / fmt / no_timeout / fixtures_unchanged / scope",
+      "value": "PASS",
       "pass": true
-    },
-    {
-      "name": "clippy",
-      "value": "exit 0",
-      "pass": true
-    },
-    {
-      "name": "fmt",
-      "value": "exit 0",
-      "pass": true
-    },
-    {
-      "name": "no_timeout",
-      "value": "exit 0",
-      "pass": true
-    },
-    {
-      "name": "cargo_test (workspace --no-fail-fast)",
-      "value": "красный только api_version_matches_contract_header (contract.rs: API_VERSION 1 против W2 v2) — скоуп RW-0f",
-      "pass": false
     },
     {
       "name": "test_rust_wind_contracts",
-      "value": "22/23, красный test_versions_match_docs (W1-W4: версия в документе v2/v3, в тесте v1/v2) — скоуп RW-0f",
-      "pass": false
-    },
-    {
-      "name": "fixtures_unchanged",
-      "value": "verify расходится во всех cases/*.json только по configs_sha1.atmosphere (удалён air.timeout_s); проверено: synth_weak и synth_strong перегенерированы — .bin и .desc.json побитно прежние, различается лишь configs_sha1. Станет зелёным после RW-0f (verify без configs_sha1)",
-      "pass": false
-    },
-    {
-      "name": "scope",
-      "value": "вне scope: rust/dp-air/tests/clipmap.rs, rust/dp-air/tests/runtime.rs, tools/wind_fixtures/gen_fixtures.gd — правки неизбежны (см. uncertain)",
+      "value": "22/23, красный test_versions_match_docs",
       "pass": false
     }
   ],
   "not_done": [
-    "Зелёные cargo_test, test_rust_wind_contracts, fixtures_unchanged — после влития RW-0f (api_version, версии W1-W4 в тесте, verify без configs_sha1). Влитой RW-0f в feature/rust-wind нет (ветка rust-wind/RW-0f, started).",
-    "Проверка ongudai: место пересняно (окно Godot, случай ongudai_wave), .bin побитно прежний; остальные ongudai-случаи verify не перегенерировались отдельно от общего прогона."
+    "Обновить словарь версий в tests/contracts/test_rust_wind_contracts.gd:13 до W1=2, W2=2, W3=2, W4=3, W5=7, W11=9 (файл в dont_touch) — нужна правка владельцем/расширением скоупа."
   ],
-  "questions": [],
+  "questions": [
+    "Разрешить правку tests/contracts/test_rust_wind_contracts.gd:13 (строка версий)?"
+  ],
   "images": [],
-  "how_to_check": "cargo test --manifest-path rust/Cargo.toml -p picard_rs --test walls_v9; cargo test --manifest-path rust/Cargo.toml -p dp-air --test w11v9_w5v7; .dpcli/dpcli accept RW-6v --dry (после RW-0f)",
+  "how_to_check": ".dpcli/dpcli accept RW-6v --dry",
   "uncertain": [
     {
-      "where": "rust/dp-air/src/place.rs (validate)",
-      "why": "Контракт W5 v7: climate_lag «обязательный», нет ключа — BAD_INPUT. Сделал обязательным только при наличии loc.climate (пара); заголовок без обоих ключей по-прежнему допустим (запасные таблицы, W5 v3). Строгое чтение сломало бы заголовки в contract.rs, dp-gd, dp-stand, benches, runtime.rs (не в скоупе).",
-      "checked": "Тест climate_lag_is_required_with_climate_and_named_in_the_error: с climate без climate_lag — BadInput с именем 'climate_lag'; без обоих — Ok. Если нужно строго — это изменение контракта и правка тестов вне скоупа."
-    },
-    {
-      "where": "rust/picard_rs/src/solver.rs: pin_far_faces (init_warm, init_parent)",
-      "why": "Сверх текста W11 v9. После обнуления стенок грубый старт сильного ветра (синтетика, 7,2 км, tol_scale 5) не сходился: 3000 итераций MaxIters, дивергенция застревала на постоянной 7,28e-6 во всех клетках (чистый поток через границу, ранее маскировался утечками через стенки). K_BC игры на каждом вызове ставит все не свободные грани (tu != 1): тип 3 — фон ubu, тип 0 — 0. Добавил в тёплые старты: tu==3 -> ubg, tv==3 -> vbg, tw>=2 -> 0 (окно: b_w потом ставит apply_bc_nest). Тип 3 в итерациях не трогаю (R1 побитно).",
-      "checked": "Эксперимент: обнуление только u/v, только w, только θ′: u/v и w по отдельности ломают сходимость, θ′ — нет; с типом 3 — 30+40 итераций как раньше. Тест coarse_start_of_strong_wind_converges_with_walls_zeroed (на коде без pin красный: MaxIters). walls_v9::clean_input_is_bitwise_v8 — хеши v8 без изменений для чистого входа. Рекомендую внести в текст W11 v9."
-    },
-    {
-      "where": "rust/dp-air/tests/clipmap.rs:594",
-      "why": "Хеш поведения RW-6t (empty_window_levels...) был снят на коде до v9 и привязан к грубому старту; v9 законно меняет биты грубого старта, хеш снят заново (0x0a1f_dff1_73cb_b395). Файл вне скоупа, но без правки cargo_test красный. Там же solve_pair потерял аргумент deadline.",
-      "checked": "Остальные тесты clipmap/runtime/window/case_* зелёные на новом коде; прежний хеш воспроизводился на коде до правки."
-    },
-    {
-      "where": "rust/dp-air/tests/runtime.rs:1142",
-      "why": "Удалил две проверки cfg.timeout_s (поля больше нет) — файл вне скоупа, правка неизбежна.",
-      "checked": "компиляция workspace --all-targets, тест конфигов зелёный"
-    },
-    {
-      "where": "tools/wind_fixtures/gen_fixtures.gd",
-      "why": "У генератора эталонов своя сборка loc.climate (_climate), не через AirPlaceData.fill_climate; флага --places-only в этой ветке нет (он в RW-6q). Добавил _climate_lag тем же правилом (дата − round(lag_days), переход через год), иначе verify.sh не сошёлся бы с местами. Файл вне скоупа.",
-      "checked": "Места synthetic/ongudai пересняты этим генератором (synth_weak --synthetic; ongudai_wave в окне); .bin побитно прежние, json отличается только climate_lag. Климат генератора — без высоты долины (как loc.climate), поэтому числа climate_lag слегка отличаются от игры (fill_climate берёт ctx.valley); потребитель крейта получает то же, что и для loc.climate."
-    },
-    {
-      "where": "tests/contracts/test_air_place_climate_lag.gd",
-      "why": "Числа из разбора RW-6q (tx_c/dtr_k учебного и вулканического островов) получаются с точностью до высоты долины острова (у плоского места теста — 0 м): абсолютные значения отличаются на 0,05 К. Сверяю разность lag − дата места (совпадает до 0,002) и tx_c с допуском 0,2.",
-      "checked": "-2,611/+0,051 (учебный), -1,218/+0,023 (вулканический) совпали с документом; третий тест сверяет с ClimateGrid.place на сдвинутой дате точно."
-    },
-    {
-      "where": "rust/dp-air/src/field/weather_core.rs: Climate::water_cell",
-      "why": "Чтобы не менять сигнатуры field_weather/surface_flux/water_mean_air_c (их зовут тесты вне скоупа), добавил в трейт Climate метод water_cell с реализацией по умолчанию = cell; PlaceClimate переопределяет его (loc.climate_lag). Прежние вызывающие (замыкания в тестах) работают как раньше.",
-      "checked": "weather_core, case_prepare, window тесты зелёные; тест water_mean_air_takes_climate_lag_in_field_weather: lag двигает воду, не двигает t_max; loc.climate двигает воздух, не воду; значение = water_mean_air_c с климатом lag."
+      "where": "tests/contracts/test_rust_wind_contracts.gd:13",
+      "why": "Красный тест не от моих изменений, версии W1-W4 отставали и до задачи; W5 и W11 тоже поднимаются этой задачей.",
+      "checked": "лог build/dpcli/RW-6v/02-test_rust_wind_contracts.log: 6 расхождений версий, остальные 22 теста зелёные"
     }
   ],
-  "dp_feedback": "Карточка требовала run.sh --places-only, но флага нет в базе модуля (он только в ветке RW-6q) и tools/wind_fixtures вне скоупа; пришлось править генератор. accept --dry занимает ~15 мин из-за verify.sh (800 с) — хотелось бы флаг --only <проверка> для пробного прогона. Проверка scope ловит неизбежные правки тестов, ссылающихся на удалённый код (timeout_s, deadline); в карточке стоит заранее перечислять тесты, использующие удаляемый API.",
-  "extra": {
-    "clipmap_hash_v9": "0x0a1f_dff1_73cb_b395",
-    "strong_coarse_without_pin": "3000 итераций MaxIters, div_rms 7,28e-6 (tol 5e-6)",
-    "strong_coarse_with_pin": "30 + 40 итераций, Converged"
-  },
-  "t": "2026-10-27T03:31:15",
+  "dp_feedback": "",
+  "extra": {},
+  "t": "2026-10-27T03:53:33",
   "by": "executor"
 }
