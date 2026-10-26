@@ -1000,6 +1000,7 @@ fn ongudai_load_with_windows_matches_gpu_iterations() {
             v["air"]["deterministic"] = json!(true);
             v["air"]["tol_scale"] = json!(1.0);
             v["air"]["threads"] = json!(threads);
+            v["air"]["timeout_s"] = json!(900.0);
         });
         let pl = place("ongudai");
         let f = focus_at(&pl, cx, -cy);
@@ -1054,6 +1055,7 @@ fn seam_between_levels_has_no_jump() {
     let cfg = configs_with(|v| {
         v["air"]["deterministic"] = json!(true);
         v["air"]["tol_scale"] = json!(5.0);
+        v["air"]["timeout_s"] = json!(900.0);
     });
     let pl = place("ongudai");
     let st = pl.header().start_sites[0].clone();
