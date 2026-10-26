@@ -1,6 +1,7 @@
 //! W11 v7: граница окна от родителя (`Case.nest`) и старт `SolveOpts.init_cycles`.
 //! Область (`nest = None`) — v6 побитно: это держат остальные тесты крейта; здесь — нулевая
 //! граница окна, ненулевая граница и опция старта. Сверка окна с GPU игры — `rust/dp-air/tests/window.rs`.
+#![allow(clippy::needless_range_loop)]
 
 use picard_rs::api::{self, SolveOpts, Solved, StopReason};
 use picard_rs::case::{Case, NestBc};
