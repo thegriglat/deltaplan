@@ -47,6 +47,7 @@ related: ["rust/picard_rs/README.md", "docs/contracts/picard-rs.md", "docs/contr
 | `snapshot_at` | `Vec<usize>` (пусто) | строго возрастающие номера итераций, после которых брать `finalize`-снимок в `Solved.snapshots` (номера больше сделанных итераций не берутся). Не строго возрастающий список — ошибка. Для игры не нужно |
 | `freeze` | `Option<Freeze>` (None) | W11: заморозка колонн, см. «Заморозка колонн и отмена (W11)». `None` и маска из нулей — побитно R6 v3 |
 | `cancel` | `Option<Arc<AtomicBool>>` (None) | W11: флаг отмены, см. там же |
+| `fallback` | `Option<Fallback>` (None) | W11 v3: запасные правила сходимости, см. «Запасные правила (W11 v3)». `None` — побитно v2 |
 
 ### Solved (результат)
 
@@ -180,7 +181,26 @@ fixed_u, fixed_v, b_u, b_v`; рельеф `hc` — `nx·ny` без ореола.
 `SolveOpts.cancel`: `Arc<AtomicBool>`, читается (Relaxed) после каждой итерации и в `Picard::solve` до первой; `true` → остановка не позже конца текущей итерации,
 `stop = Cancelled` (`status = "max"`), выдаётся текущее поле с `finalize`, `history.last()` на `iters`. Взведён до вызова: холодный старт (30 V-циклов) пропускается,
 итераций 0, поле — начальное (нули, конечное); тёплый старт делается (дёшев). Прерывать внутри итерации и `finalize` нельзя. Приоритет при совпадении на одной итерации:
-Diverged, Converged, MaxIters, Cancelled, TimeBudget. Запасные правила (ω-откат, `late_mean`, `nonconv`) — W11 v2 (RW-6h), здесь нет.
+Diverged, Converged, MaxIters, Cancelled, TimeBudget. Взведён до вызова при `freeze` без `field`
+(или с `field = None`): фон всё же строится, чтобы `AllFrozen` отдал фон, а не нули (замечание ревью RW-6g).
+
+## Запасные правила (W11 v3)
+
+`SolveOpts.fallback = Some(Fallback { omega_after, omega, late_from, nonconv })` — те же правила, что у `air_picard_job.gd` (`omega_fallback`, `late_from`, `nonconv_mask/field`).
+`Solved` + `omega_fallback_used`, `nonconv_fallback`, `nonconv_frac` (доля колонн `nonconv.mask`, как `_setup_nonconv`, считается всегда). `None` — побитно v2.
+
+| Игра | Rust |
+|---|---|
+| проверка не сошлась, итерации ≥ `omega_fallback.x` → `ω := min(ω, y)` во всех колоннах со следующей итерации (`_switch_omega`); `x = 0` — выкл. | `Fallback.omega_after`, `omega`; `Picard::fb_after_check`; `ω_eff = min(1, omega)` одно на все колонны (карта ω в API нет) |
+| `K_RELAX`: `x ← x_old + ω(x − x_old)` — `u, v, w` после проекции, `nu, nuh` после замыкания K (только `local_k`); `x_old` — после `apply_bc` | `relax_save`/`relax_apply` в `outer_step`; буферы `x_old` заводятся при переключении |
+| `late_copy/late_add`: с итерации `late_from` (>0) состояние `u,v,w,th,thd` в начале пачки копится | сумма f32 по порядку проверок: состояние на проверке `it ≥ late_from`, не на последней (стоп) |
+| упёрлись в `max_outer`: поле := `late_mean` (сумма · `1/n`), в `nonconv_mask` := `nonconv_field` (нет канала — `late_mean`), затем `finalize` | `Picard::fb_apply_late` перед `finalize` в `api::solve`; `nonconv.field = None` — `late_mean` |
+| `nonconv_fallback = (status == max and late_on and late_n > 0)` | то же; `late_on = late_from > 0 или есть nonconv` (с `nonconv` и `late_from = 0` копится с первой проверки — как в игре) |
+
+Порядок как в игре: замороженные колонны после подмены на `late_mean` **не** возвращаются к своему полю (среднее константы, возможна разница в последний разряд; тест). Отличия от игры: (1) ω — одно число, не карта по колоннам; (2) проверки в `history` остаются невязками **последней итерации**, не подменённого поля (как `hist` игры);
+(3) счёт проверок — по `check_every`/`pre_steps` случая (холодный старт: проверки на `pre_steps + k·check_every`), игра считает пачками по `check_every`. `omega ≤ 0`,
+конечность и длины `nonconv.mask`/`field` — `Err`. Тесты: `tests/fallback.rs` (ω-откат: до переключения побитно как без правила, малое ω почти останавливает поле;
+`late_mean` и `nonconv` — побитно с независимым подсчётом в тесте; 1 и 4 потока; `#[ignore]` — Онгудай штиль 12:00 и `None` побитно на 400 м).
 
 ## Нити и вызов в фоне
 
