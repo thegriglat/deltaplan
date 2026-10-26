@@ -224,9 +224,9 @@ func _climate(lat: float, lon: float, month: int = MONTH, day: int = DAY) -> Dic
 
 ## Климат воды (W5 v7, loc.climate_lag): та же ячейка на дату MONTH/DAY − round(water.lag_days) с
 ## переходом через год, как SurfaceHeat.water_temp_c (и AirPlaceData.fill_climate).
-func _climate_lag(lat: float, lon: float) -> Dictionary:
+func _climate_lag(lat: float, lon: float, month: int = MONTH, day: int = DAY) -> Dictionary:
 	var lag := int(round(float(SurfaceHeat.config().get("water", {}).get("lag_days", 30.0))))
-	var doy := SunClock.day_of_year(MONTH, DAY) - lag
+	var doy := SunClock.day_of_year(month, day) - lag
 	if doy < 1:
 		doy += 365
 	var md := SurfaceHeat._month_day(doy)
@@ -364,6 +364,7 @@ func _island_place_data(id: String) -> Dictionary:
 	loc.month = month
 	loc.day = day
 	loc.climate = _climate(float(loc.center_lat), float(loc.center_lon), month, day)
+	loc.climate_lag = _climate_lag(float(loc.center_lat), float(loc.center_lon), month, day)
 	var pd := {
 		loc = loc,
 		grid = {origin_x = detail.origin_x, origin_z = detail.origin_z, spacing = detail.spacing, width = detail.width, height = detail.height},

@@ -23,6 +23,13 @@
 			"tx_c": 24.8389994448051,
 			"z_cell_m": 7.35000000000028
 		},
+		"climate_lag": {
+			"dtr_k": 1.43649996789173,
+			"has_hh1": true,
+			"has_hh5": true,
+			"tx_c": 22.2279995031655,
+			"z_cell_m": 7.35000000000028
+		},
 		"day": 15,
 		"id": "training_island",
 		"month": 7,

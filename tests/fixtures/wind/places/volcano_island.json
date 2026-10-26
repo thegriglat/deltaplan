@@ -23,6 +23,13 @@
 			"tx_c": 23.5794993470721,
 			"z_cell_m": 1.18999835014238
 		},
+		"climate_lag": {
+			"dtr_k": 0.968216085813289,
+			"has_hh1": true,
+			"has_hh5": true,
+			"tx_c": 22.3612089786279,
+			"z_cell_m": 1.18999835014238
+		},
 		"day": 15,
 		"id": "volcano_island",
 		"month": 1,
