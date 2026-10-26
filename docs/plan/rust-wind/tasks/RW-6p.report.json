@@ -1,0 +1,86 @@
+{
+  "status": "done",
+  "summary": "dp_air::field::baked: parse_baked (TI-К3 v3, zstd, f16/f32, уровни параллельно), baked_lookup (порядок проверок и тексты причин как AirRuntime.baked_lookup), encode_baked; field_cache::FieldCache {dir,max_bytes} get/put по ключу (один файл, временный+переименование, порча/чужая модель = промах, LRU по mtime). GD-дампер dump_baked.sh: 8 полей двух островов, настоящий AirRuntime.baked_lookup.",
+  "commits": [
+    "496dc1462 rust-wind RW-6p: запечённые поля TI-К3 v3 (разбор, baked_lookup) и кеш полей в dp-air, дампер GD"
+  ],
+  "checks": [
+    {
+      "name": "baked_test",
+      "value": "10 тестов ok; 16800 точек опроса <=1e-4, срезы сырых массивов побитно; 128 сценариев baked_lookup текст в текст",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "dump_repro",
+      "value": "--verify побитно",
+      "pass": true
+    },
+    {
+      "name": "windows-gnu",
+      "value": "cargo build --target x86_64-pc-windows-gnu -p dp-air собирается с zstd 0.13; ruzstd не нужен",
+      "pass": true
+    },
+    {
+      "name": "кеш",
+      "value": "put->get побитно, 6 видов порчи = промах, 4 потока на один ключ без порчи, LRU, выключенный кеш",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "dp-gd/фасад (AirPlaceData.baked, add_baked_field, set_cache_dir) — RW-6j/RW-7 по карточке.",
+    "Сборка zstd-sys под macOS не проверена (нет цели)."
+  ],
+  "questions": [
+    "model_hash: крейт лишь сравнивает строки; хеш кода GDScript-модели считает только GD. После переноса модели в Rust хеш в заголовках станет не про код — нужна схема и перепечь (RW-7). data_hash и model_hash в W5 v4 не передаются — фасад должен дать их в BakedQuery."
+  ],
+  "how_to_check": ".dpcli/dpcli accept RW-6p",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/src/field/baked.rs: BakedQuery",
+      "why": "Состав запроса выбран мной (место, центр, старт, набор погоды, дата, window_dx, data_hash, model_hash, условия); фасад должен собрать его из AirPlaceData/конфига.",
+      "checked": "Все поля соответствуют входам GD baked_lookup/make_key; сценарии дампа гоняют настоящий AirRuntime.baked_lookup."
+    },
+    {
+      "where": "rust/dp-air/src/field/baked.rs: gd_num",
+      "why": "Числа в текстах причин: str(float) Godot повторён по памяти алгоритма String::num.",
+      "checked": "128 сценариев совпадают дословно (-6749.65, 43.201); экзотические значения не проверялись, на выбор поля не влияют."
+    },
+    {
+      "where": "rust/dp-air/src/field/baked.rs: encode_baked (z0)",
+      "why": "Field не отдаёт карту z0 (wind_field.rs в dont_touch): восстанавливается через z0_at в центрах столбцов; Z0::Uniform станет картой (z0() может отличаться на ulp).",
+      "checked": "для карт из файлов put->get побитно, z0() тоже."
+    },
+    {
+      "where": "rust/dp-air/src/field/field_cache.rs",
+      "why": "Формат кеша свой (один файл .dpac, без index.json, вытеснение по mtime); max_bytes по умолчанию 200 МБ, set_cache_dir его не задаёт. Если set_modified не работает, вытеснение идёт по времени записи.",
+      "checked": "тест вытеснения: прочитанная запись переживает непрочитанную более новую."
+    },
+    {
+      "where": "tools/research/rust_wind/dump_baked.gd",
+      "why": "Дамп зависит от текущего model_hash и самих запечённых файлов: перепечь или правка air_model/ требуют пересъёмки. dump_baked.tscn не заводил: .sh делает временную сцену; .uid у tools/research нет (как у соседних дамперов).",
+      "checked": "--verify побитно."
+    }
+  ],
+  "dp_feedback": "Ничего критичного. Если файл есть в скоупе карточки, но не нужен (dump_baked.tscn), было бы полезно помечать это явно.",
+  "extra": {
+    "dump": "baked.bin 1,3 МБ + baked.json 135 КБ",
+    "test_time_s_debug": 13
+  },
+  "t": "2026-10-26T06:23:11",
+  "by": "executor"
+}

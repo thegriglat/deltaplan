@@ -15,7 +15,10 @@ pg_backup="$profile/project.godot.bak"
 cp project.godot "$pg_backup"
 trap 'cmp -s project.godot "$pg_backup" || cp "$pg_backup" project.godot; rm -rf "$profile"' EXIT
 
-XDG_DATA_HOME="$profile" godot --headless --path . --import >/dev/null 2>&1 || true
+# WIND_FIXTURES_NO_IMPORT=1 — импорт уже сделан (verify.sh запускает несколько прогонов параллельно)
+if [ -z "${WIND_FIXTURES_NO_IMPORT:-}" ]; then
+	XDG_DATA_HOME="$profile" godot --headless --path . --import >/dev/null 2>&1 || true
+fi
 if [ "$synthetic" = 1 ]; then
 	XDG_DATA_HOME="$profile" godot --headless --path . res://tools/wind_fixtures/gen_fixtures.tscn -- "$@"
 else

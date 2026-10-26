@@ -94,6 +94,32 @@ pub struct MechCfg {
     pub g_member_frac: f64,
 }
 
+/// `air_phase.f` (подобие слоя перемешивания [LWP80], для статистики F).
+#[derive(Clone, Debug, PartialEq)]
+pub struct FCfg {
+    pub sigw_a: f64,
+    pub sigw_b: f64,
+    pub w3_a: f64,
+}
+
+/// `air_phase.g` (вечерний сток: Прандтль, D8, гидравлический слой).
+#[derive(Clone, Debug, PartialEq)]
+pub struct GCfg {
+    pub mean_heat_max_wm2: f64,
+    pub n_min: f64,
+    pub k_m2s: f64,
+    pub sin_min: f64,
+    pub dth_max_k: f64,
+    pub u_max_ms: f64,
+    pub c_d: f64,
+    pub sin_floor: f64,
+    pub d_max_m: f64,
+    pub relief_r_m: f64,
+    pub w_dec: f64,
+    pub smooth_cells: f64,
+    pub zg_min_m: f64,
+}
+
 /// Блок `air_phase` целиком (то, что нужно фазам 1–3).
 #[derive(Clone, Debug, PartialEq)]
 pub struct PhaseCfg {
@@ -103,6 +129,12 @@ pub struct PhaseCfg {
     pub d: DCfg,
     pub a: ACfg,
     pub mech: MechCfg,
+    pub f: FCfg,
+    pub g: GCfg,
+    /// `h.spread_frac`: разброс штиля в долях `U_sat` (статистика).
+    pub h_spread_frac: f64,
+    /// `nonconv.mech_w`: порог веса H + D колонны запасного пути.
+    pub nonconv_mech_w: f64,
 }
 
 struct Get<'a>(&'a Value);
@@ -238,12 +270,37 @@ impl PhaseCfg {
             g_top_l: g.f("/g/top_l")?,
             g_member_frac: g.f("/g/member_frac")?,
         };
+        let f = FCfg {
+            sigw_a: g.f("/f/sigw_a")?,
+            sigw_b: g.f("/f/sigw_b")?,
+            w3_a: g.f("/f/w3_a")?,
+        };
+        let gg = |k: &str| g.f(&format!("/g/{k}"));
+        let gc = GCfg {
+            mean_heat_max_wm2: gg("mean_heat_max_wm2")?,
+            n_min: gg("n_min")?,
+            k_m2s: gg("k_m2s")?,
+            sin_min: gg("sin_min")?,
+            dth_max_k: gg("dth_max_k")?,
+            u_max_ms: gg("u_max_ms")?,
+            c_d: gg("c_d")?,
+            sin_floor: gg("sin_floor")?,
+            d_max_m: gg("d_max_m")?,
+            relief_r_m: gg("relief_r_m")?,
+            w_dec: gg("w_dec")?,
+            smooth_cells: gg("smooth_cells")?,
+            zg_min_m: gg("zg_min_m")?,
+        };
         Ok(PhaseCfg {
             agl_levels_m,
             classifier,
             d,
             a,
             mech,
+            f,
+            g: gc,
+            h_spread_frac: g.f("/h/spread_frac")?,
+            nonconv_mech_w: g.f("/nonconv/mech_w")?,
         })
     }
 }

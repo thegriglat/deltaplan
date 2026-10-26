@@ -1,0 +1,85 @@
+{
+  "status": "done",
+  "summary": "Модули phase::{convection (F: подобие LWP80, uml, баланс θ′), drainage (G: Прандтль, D8, гидравлический слой, apply), assembly (assemble -> PhaseResult { freeze, freeze_mech, nonconv, warm, warm_mech, stats, ... })} совпадают с GDScript на всех 24 случаях дампа (G 9, нагрев 20): ошибка 0 (побитно в f64/f32), маски и маска запасного пути побитно, 1 и 4 потока побитно. Конфиг PhaseCfg дополнен f, g, h.spread_frac, nonconv.mech_w.",
+  "commits": [
+    "e68f50476 RW-6m: фазы 3 в Rust — F, G, сборка warm/mech_field/nonconv_field, статистика; дампер dump_phase_assembly"
+  ],
+  "checks": [
+    {
+      "name": "phase_assembly_test",
+      "value": "12 тестов ok",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "dump_repro",
+      "value": "дамп воспроизводится побитно (2,5 МБ)",
+      "pass": true
+    },
+    {
+      "name": "числа test_air_phase.gd",
+      "value": "σ_w max 0,683 w* на 0,31 z_i, a_up(0,25)=0,410, Прандтль l 24,5 м / Δθ 2,03 К / u_max 2,14 м/с, w* и z_i_agl t_fconv в Allen, сток вниз по склону и холодное озеро t_gvalley",
+      "pass": true
+    },
+    {
+      "name": "штиль U10 0,3",
+      "value": "все 6 случаев: область заморожена целиком, оба решения",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RW-6m",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/src/field/phase/assembly.rs: frozen(), nonconv()",
+      "why": "Игра не передаёт канал thd в freeze_field/nonconv_field (там берётся thd старта / late_mean), а FrozenField требует thd. Отдаю нули: у замороженных колонн thd будет 0, а не thd init; в NonConv.field колонн запасного пути thd = 0 вместо late_mean. На тёплом старте от прошлого поля это расходится с игрой в канале thd.",
+      "checked": "Только прочитано (air_picard_job.gd 240-300, solver.rs check_field). Предложение координатору: сделать каналы FrozenField необязательными (Option<Vec<f32>>) в W11 — нужно для RW-6j/6r."
+    },
+    {
+      "where": "rust/dp-air/src/field/phase/drainage.rs apply(), classifier.rs",
+      "why": "Подключение G в классификатор не потребовало правки classifier.rs: drainage::apply пишет вес G в p.cols.gw и prm.gact/gdthc ровно так же, как prepare при PhaseCase.g = Some. assemble() игнорирует PhaseCase.g и считает сток сам по c.heat (prepare без G, затем apply).",
+      "checked": "Плоскости CI_G* и числа стока совпадают с дампом GD, вес G — с gw из дампа RW-6k, маски — побитно."
+    },
+    {
+      "where": "rust/dp-air/src/field/phase/assembly.rs: PhaseResult.nonconv",
+      "why": "Option<NonConv>: None, если колонн механизма H/D нет (в игре тогда маска пуста и запасной путь выключен); сейчас ненулевая маска у 2 из 24 случаев дампа.",
+      "checked": "Маска побитно против AirRuntime.nonconv_mask на всех 24 случаях (веса H и D в f32, как в игре)."
+    },
+    {
+      "where": "tests/phase_assembly.rs: допуск",
+      "why": "Ошибка против дампа нулевая, а не ≤ 1e-6: порядок операций и libm совпали. На другой платформе/libm возможны расхождения в последнем знаке — допуск 1e-6 это покрывает, но не проверено.",
+      "checked": "Только Linux x86_64."
+    },
+    {
+      "where": "производительность",
+      "why": "Не мерил на 96×96×50 (по плану — замер в RW-6q). Сборка по клеткам: на каждую клетку mech_at целиком (A, B, D); F/G дёшевы.",
+      "checked": "Тесты на сетках до 26×26×34 идут секунды в debug."
+    }
+  ],
+  "dp_feedback": "dpcli lock cpu с 1 слотом (CPUQuota=100%) для godot-дампера: --verify ~160 с, запись ~15 мин при очереди; хотелось бы видеть в lock status, что поставлено в очередь и ожидаемое время. Опечатка в сцене/скрипте дампера (parse error) оставляет godot висеть до timeout 600 — стоило бы, чтобы sh образца ловил 'SCRIPT ERROR' через log раньше.",
+  "extra": {
+    "dump_bytes": 2553116,
+    "cases": 24,
+    "g_cases": 9,
+    "heated_cases": 20,
+    "nonconv_cases": 2,
+    "worst_rel_error_vs_dump": 0
+  },
+  "t": "2026-10-26T07:06:09",
+  "by": "executor"
+}
