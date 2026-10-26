@@ -1,0 +1,37 @@
+{
+  "status": "done",
+  "summary": "Три падения — из-за климата места в тесте. H клетки: window_at/domain_case звали с t_max=NAN (typical_max_c с ctx), а expected_heat считает без ctx; теперь t_max задан явно (Tmax эталона 26 для фикстуры, table_t_max для синтетики/снимка). z_i и dθ/dz: эталон снят по таблицам (diurnal.range_k), а ClimateGrid hh5 даёт другую амплитуду (T полдня 24.21 против 24.28, z_i 3350 против 3362); тест эталона отключает hh5 (как test_air_window_case) и восстанавливает пути.",
+  "commits": [
+    "01320d3c7 RW-0c: test_air_place"
+  ],
+  "checks": [
+    {
+      "name": "test_air_place",
+      "value": "8/8",
+      "pass": true
+    },
+    {
+      "name": "test_air_contracts",
+      "value": "31/31",
+      "pass": true
+    },
+    {
+      "name": "fixtures_unchanged",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RW-0c",
+  "uncertain": [
+    {
+      "where": "tests/atmosphere/test_air_place.gd:test_domain_input_vs_reference",
+      "why": "эталон picard устарел относительно климата ERA5 (T полдня 24.28 vs 24.21); тест подогнан отключением hh5, а не пересъёмкой эталона",
+      "checked": "z_i 3362.33/3362.33 после отключения hh5; физика и scripts не менялись"
+    }
+  ],
+  "dp_feedback": "Карточка предполагала одну причину (t_max); для z_i причиной была амплитуда из hh5.",
+  "t": "2026-10-26T04:59:43",
+  "by": "executor"
+}

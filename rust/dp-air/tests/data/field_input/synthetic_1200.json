@@ -1,0 +1,114 @@
+{
+	"arrays": {
+		"cell_fr": {
+			"count": 1296,
+			"dtype": "f32",
+			"offset": 2304
+		},
+		"cell_m": {
+			"count": 144,
+			"dtype": "f32",
+			"offset": 7488
+		},
+		"gam_13.0_clear": {
+			"count": 42,
+			"dtype": "f64",
+			"offset": 9216
+		},
+		"gam_8.0_overcast": {
+			"count": 42,
+			"dtype": "f64",
+			"offset": 10128
+		},
+		"hc": {
+			"count": 144,
+			"dtype": "f64",
+			"offset": 0
+		},
+		"scal": {
+			"count": 26,
+			"dtype": "f64",
+			"offset": 11040
+		},
+		"water_fraction": {
+			"count": 144,
+			"dtype": "f64",
+			"offset": 8064
+		},
+		"z0_map": {
+			"count": 144,
+			"dtype": "f64",
+			"offset": 1152
+		},
+		"z_i_col_13.0_clear": {
+			"count": 144,
+			"dtype": "f32",
+			"offset": 9552
+		},
+		"z_i_col_8.0_overcast": {
+			"count": 144,
+			"dtype": "f32",
+			"offset": 10464
+		}
+	},
+	"cfg": {
+		"m_norm": 0.47,
+		"z0_m": [
+			0.03,
+			1.0,
+			0.03,
+			0.1,
+			0.3,
+			0.01,
+			0.0002,
+			1.0,
+			0.001
+		],
+		"zi_alpha": 0.33,
+		"zi_min": 300.0,
+		"zi_smooth_m": 5000.0
+	},
+	"class_count": 9,
+	"dx": 1200.0,
+	"dz": 105.0,
+	"l": 14400.0,
+	"nx": 12,
+	"ny": 12,
+	"nz": 40,
+	"place": "synthetic",
+	"scal_fields": [
+		"t",
+		"cap",
+		"valley_msl_m",
+		"t_u",
+		"z_u_km",
+		"gam_u",
+		"t_min",
+		"t_res",
+		"t_full",
+		"dep_km",
+		"parcel_excess_k",
+		"theta_s",
+		"z_i"
+	],
+	"variants": [
+		{
+			"cap_inf": true,
+			"hour": 13.0,
+			"scal": 0,
+			"sky": "clear",
+			"tag": "13.0_clear"
+		},
+		{
+			"cap_inf": false,
+			"hour": 8.0,
+			"scal": 13,
+			"sky": "overcast",
+			"tag": "8.0_overcast"
+		}
+	],
+	"version": 1,
+	"x0": -7200.0,
+	"y0": -7200.0,
+	"z_bot": 315.0
+}
