@@ -6,10 +6,10 @@ area: "air"
 updated: "2026-10-26"
 summary: "W11 rust-wind: решатель Пикара в крейте — R6 v3 + заморозка колонн, отмена, новые причины остановки; пустая маска — побитно R6 v3."
 related: ["docs/contracts/rust-wind.md", "docs/contracts/picard-rs.md", "docs/research/rust-wind-field-path.md"]
-contracts: [{"id": "W11", "version": 5}]
+contracts: [{"id": "W11", "version": 6}]
 ---
 
-# W11. Решатель Пикара в крейте (v5)
+# W11. Решатель Пикара в крейте (v6)
 
 Часть `docs/contracts/rust-wind.md` (версия — там, заголовок W11). Менять — только координатор. Расширяет `picard_rs::api` (R6 v3, `docs/contracts/picard-rs.md`; тот контракт закрыт и не правится — всё новое здесь). Владелец — RW-6g (заморозка, отмена), RW-6h (запасные правила). Потребители — RW-6j (оркестровка), RW-6n (окна), фазы RW-6k–6m (дают маски).
 Эталон поведения — игровой GPU-путь: `scripts/atmosphere/air_model/air_picard_job.gd` (`_freeze`, `freeze_mask`/`freeze_mask_mech`, `freeze_field`/`freeze_field_mech`, `_use_freeze_mask`, `_pad_cols`, `all_frozen`, счёт неизвестных) и ядра `air_picard.glsl` (`K_FREEZE`, `K_RMASK`, `K_FIXROW`). Разбор — `docs/research/rust-wind-field-path.md`, «Карта фаз и заморозка колонн».
@@ -28,3 +28,4 @@ contracts: [{"id": "W11", "version": 5}]
   - `cd_col` — плоскость `nyh·nxh` **с ореолом** (как в игре: `cd_col[idx % (nxh·nyh)]`, `air_picard.glsl:393`), не `ny·nx` — исправление текста v4.
   - Счёт итераций — как в игре для всех вызовов: `max_iters`, `omega_after`, `late_from` отсчитываются без `pre_steps` холодного старта; останов по `max_iters` — на ближайшей проверке сходимости сверху (`air_picard_job.gd:1013`), не посреди пачки. Побитное совпадение с R6 v3 сохраняется при `pre_steps = 0` и когда упора в `max_iters` нет.
   - `FrozenField.thd: Option<Vec<f32>>` (и тот же тип в `NonConv.field`): игра не передаёт канал θ′_d в поле заморозки и `nonconv` — `None` значит «θ′_d из `init`» (заморозка) и «θ′_d из `late_mean`» (`nonconv`), как в игре; `Some` — как раньше.
+- **v6 (ревью RW-6j):** `cancel` проверяется и в подготовке решения (V-циклы фона холодного старта, сборка многосеточных уровней, `finalize`) — между шагами не дольше ~50 мс работы; отмена в подготовке — `Cancelled`, поле конечно (фон или нули). Нужно, чтобы `unload_place`/`Drop` (W3) укладывались в 1 с и на 2 потоках.
