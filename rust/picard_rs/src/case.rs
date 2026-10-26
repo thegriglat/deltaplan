@@ -111,6 +111,17 @@ pub struct CaseParts {
     pub arrays: HashMap<String, Vec<f32>>,
 }
 
+/// W11 v7: boundary of a clipmap window from its parent (same halo layout as `ubg`/`vbg`).
+/// With it the type-2 faces of `w` are fixed to `ubw` (like `u`, `v`), `theta'` / `theta'_d` of
+/// the halo cells are `thb` / `thbd`, and they are also the target of the sponge (momentum `w`:
+/// `ubw`). `thbd = None`: no `theta'_d` channel (zeros).
+#[derive(Debug, Clone)]
+pub struct NestBc {
+    pub ubw: Vec<f32>,
+    pub thb: Vec<f32>,
+    pub thbd: Option<Vec<f32>>,
+}
+
 /// A loaded case: metadata, all arrays of the `.bin` and derived constants.
 pub struct Case {
     pub name: String,
@@ -141,6 +152,8 @@ pub struct Case {
     pub cd: f32,
     /// Drag coefficient per column (`nyh*nxh`), `None` = `cd` everywhere.
     pub cd_col: Option<Vec<f32>>,
+    /// Window boundary from the parent (W11 v7); `None` = a domain (v6 bit for bit).
+    pub nest: Option<NestBc>,
     pub arrays: HashMap<String, Vec<f32>>,
 }
 
@@ -227,6 +240,7 @@ impl Case {
             dtau_u: dtau_u as f32,
             cd: m.cd.unwrap_or(cd as f32),
             cd_col: m.cd_col,
+            nest: None,
             arrays: m.arrays,
         };
         if let Some(c) = &case.cd_col
@@ -273,6 +287,18 @@ impl Case {
     }
 }
 
+/// Window boundary in the solver: values and the indices where the boundary condition acts.
+pub struct NestConsts {
+    pub ubw: Vec<f32>,
+    pub thb: Vec<f32>,
+    /// Zeros without a `theta'_d` channel.
+    pub thbd: Vec<f32>,
+    /// `w` faces of type 2 (fixed to `ubw`), ascending.
+    pub b_w: Vec<usize>,
+    /// Halo cells (type 2): `theta'`, `theta'_d` fixed to `thb`, `thbd`, ascending.
+    pub b_cell: Vec<usize>,
+}
+
 /// Constant input of the iteration (the "permanent input" of R1).
 pub struct Consts {
     pub nxh: usize,
@@ -291,6 +317,8 @@ pub struct Consts {
     pub cd: f32,
     /// Drag coefficient per column (`nyh*nxh`); `None` = `cd`.
     pub cd_col: Option<Vec<f32>>,
+    /// Window boundary (W11 v7).
+    pub nest: Option<NestConsts>,
     pub u10_positive: bool,
     pub cell: Vec<u8>,
     pub tu: Vec<u8>,
@@ -349,6 +377,31 @@ impl Consts {
             }
         }
         let q = c.arr("Q")?.clone();
+        let nest = match &c.nest {
+            None => None,
+            Some(nb) => {
+                let n3 = c.n3();
+                if nb.ubw.len() != n3
+                    || nb.thb.len() != n3
+                    || nb.thbd.as_ref().is_some_and(|t| t.len() != n3)
+                {
+                    bail!("nest: array length != NX*NY*NZ");
+                }
+                let tw = c.bytes("tw")?;
+                let b_w = (0..n3).filter(|&i| tw[i] == 2).collect();
+                let b_cell = (0..n3).filter(|&i| cell[i] == 2).collect();
+                Some(NestConsts {
+                    ubw: nb.ubw.clone(),
+                    thb: nb.thb.clone(),
+                    thbd: nb.thbd.clone().unwrap_or_else(|| vec![0.0; n3]),
+                    b_w,
+                    b_cell,
+                })
+            }
+        };
+        let no_thd_nest = nest
+            .as_ref()
+            .is_none_or(|n| n.thbd.iter().all(|&x| x == 0.0));
         let p = &c.params;
         Ok(Self {
             nxh,
@@ -366,6 +419,7 @@ impl Consts {
             inv_prt: (1.0 / p.pr_t) as f32,
             cd: c.cd,
             cd_col: c.cd_col.clone(),
+            nest,
             u10_positive: c.case_params.u10 > 0.0,
             n_fluid: fluid.iter().map(|&x| f64::from(x)).sum(),
             mu: [mask(&tu), mask(&tv), mask(&tw)],
@@ -379,7 +433,7 @@ impl Consts {
             spc: c.arr("spc")?.clone(),
             ubg: c.arr("ubg")?.clone(),
             vbg: c.arr("vbg")?.clone(),
-            no_thd: q.iter().all(|&x| x == 0.0),
+            no_thd: q.iter().all(|&x| x == 0.0) && no_thd_nest,
             q,
             gam: c.arr("gam")?.clone(),
             cplz: c.arr("cplz")?.clone(),

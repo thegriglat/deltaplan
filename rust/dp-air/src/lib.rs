@@ -16,7 +16,10 @@ pub use calm::Calm;
 pub use conditions::{Conditions, Forecast, InflowMode, Source, WindRef};
 pub use error::{Code, Error};
 pub use formula::Formula;
-pub use level::{Level, Stag, prolong, prolong_state};
+pub use level::{
+    Level, NestDst, NestSrc, Shift, ShiftDst, ShiftSrc, Stag, nest, prolong, prolong_state,
+    shift_between, shift_warm,
+};
 pub use place::{Grid, Loc, LocClimate, Place, PlaceHeader, StartSite};
 pub use types::{
     Cloud, Configs, Core, Crest, Decomposition, F32Record, Focus, Raster, SampleMode, State,
