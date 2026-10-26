@@ -1,0 +1,117 @@
+{
+  "status": "partial",
+  "summary": "Игра, боты, пасхалки, ачивки и CalmAir переведены на фасад W2 (load_place/set_conditions/set_static_thermals/set_focuses/start_at+pump/advance_to); поле Пикара, ход дня с источниками и первое обновление термиков переехали внутрь Atmosphere; синхронизация воздуха по сети удалена; храповик W10 сужен до узла воздуха, база для game/flight/glider/world_objects/terrain/instruments/net пуста. Физика побитно та же (числа test_air_start до/после совпали, fixtures_unchanged PASS). Не сделано: переименование weather()/удаление переходного (конфликт имени, см. questions) и чистка net.proto/docs.",
+  "commits": [
+    "0547c803b фасад W2: поле Пикара внутри Atmosphere, ход дня и источники, place_from_terrain",
+    "b5c30ee28 игра, боты, пасхалки, ачивки — на фасад W2",
+    "ea6977aa6 синхронизация воздуха по сети удалена",
+    "1a325ca42 тесты: потребители на фасаде, храповик W10 сужен",
+    "cdc69e882 поля ZoneState для воздуха остаются в схеме"
+  ],
+  "checks": [
+    {
+      "name": "test_rust_wind_contracts",
+      "value": "23/23",
+      "pass": true
+    },
+    {
+      "name": "test_rust_wind_purity",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "fixtures_unchanged",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "baseline_scope_empty",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "tests/ целиком",
+      "value": "accept: таймаут 900 с (набор идёт >1 ч); по каталогам: падения те же, что на базе 661a0ac1d (список в extra)",
+      "pass": false
+    },
+    {
+      "name": "новые тесты test_rust_wind_consumers",
+      "value": "3/3",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "weather() W2 не введён: поле weather читают облака/превью (RW-3b/3c, cloud_layer и atmosphere_preview в dont_touch, пишут в atmo.weather) — метод и поле с одним именем в GDScript невозможны. Оставлено get_weather() + поле weather, пометка TODO(RW-3c) в atmosphere.gd; потребители в моём скоупе зовут get_weather().",
+    "start_at без места (прежние тесты/инструменты/atmo_fingerprint_cli) остаётся синхронным — переходное; с местом (игра) асинхронно.",
+    "focus_node/set_focus/get_focus оставлены внутри (bird_flock, превью, ~40 тестов); игра их не зовёт. configure(Variant, Variant) оставлен для test_air_model_atmo и др.",
+    "net.proto и docs/guide/net-protocol.md (вне скоупа) всё ещё описывают thermalSources/cloudField; схема NetMessages их оставляет, потому что по примерам из документа идёт test_doc_examples_round_trip. Код сети их не шлёт и не читает.",
+    "scenes/main.gd:1282 ставит air.focus_node для --net-hide-remote — больше не действует; нужно game.air_focus_node = focus (свойство добавлено в Game). То же в tools/terrain/*/air_check_run.gd; tools/research/* читают game.air_runtime/air.weather (работают через совместимость).",
+    "В фокусы ушёл только игрок; боты и игроки сети в set_focuses не передаются (gd использует индекс 0)."
+  ],
+  "questions": [
+    "Конфликт имени weather: разрешить RW-3b/3c править atmo.weather -> atmo.get_weather()/weather() сейчас, или переименование поля и метода — последним шагом RW-3c?",
+    "Пробелы W2 для потребителей (обход во внутренности не делал): refresh_scale (ожидание ×60 в Game.start_wait), is_air_field_on() (Game._align_start_heading, world_link/terrain_wind), status() сверх W2 получил ключи wind и wind_progress (подпись экрана загрузки), Atmosphere.place_from_terrain(...) (корутина без остановки кадров; AirPlaceData.from_terrain блокирует на снимке поверхности и считает его второй раз для поля Пикара), mean_wind_at(pos) в gd не равен sample(pos, SAMPLE_MEAN).xyz (без вертикали). Нужна версия W2 v2 или оставить как переходное до RW-6/RW-7?"
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-3a --dry; godot --headless --path . res://tests/run_tests.tscn -- --filter=rust_wind; --filter=tests/game/ (сверять с базой)",
+  "uncertain": [
+    {
+      "where": "scripts/game/game.gd:_air_field_job / scripts/atmosphere/atmosphere.gd:pump",
+      "why": "термики первого обновления теперь считаются порциями по 40 мс параллельно с постройкой объектов, а не после; на GPU с реальным Пикаром (поле, запечённое/кеш, подпись «Рассчитываем ветер») не гонял: headless даёт только 'simple'; запечённое поле volcano_island подхватилось в e2e",
+      "checked": "e2e по всем локациям (отдельно) зелёный; test_air_start: скорость, воздух и векторы совпали с базой до последнего знака"
+    },
+    {
+      "where": "tests/ в наборе целиком",
+      "why": "в одном процессе test_e2e (volcano_island, wilotree_park) и test_forecast_game (SCRIPT ERROR Array[SurfaceLayer], устаревший кэш) падали, отдельно проходят; load_order и sky_shade_cockpit в полном прогоне падали, отдельно проходят; на базе полный прогон не делал; краш signal 11 в rock_scatter (поток) после net/test_zone в полном прогоне",
+      "checked": "каждый файл отдельно на моей ветке и на базе 661a0ac1d"
+    },
+    {
+      "where": "scripts/world_objects/easter_eggs/eagle.gd:find_thermal",
+      "why": "снос термика теперь = средний ветер середины столба (раньше drift_vel), выбор по w ядра, не по номинальной силе; только картинка",
+      "checked": "test_egg_eagle 6/6 на подмене cores"
+    },
+    {
+      "where": "scripts/game/calm_air.gd",
+      "why": "запасной воздух получил реальные пробы (ветер/термики), а не нули W4; тесты W2 проходят, в игре не запускал",
+      "checked": "test_rust_wind_contracts calm"
+    }
+  ],
+  "dp_feedback": "accept: лимит 900 с на tests/ не вмещает набор (>1 ч), а на базе есть ~25 падений — нужен режим сравнения с базой по списку падений. job --lock cpu: код 124 без итога. Нет способа получить список известных падений базы одной командой.",
+  "extra": {
+    "ложные срабатывания W10 (файл: было -> почему не воздух)": {
+      "flight_model/flight_telemetry/pendulum_model/trike_engine/glider_visual/ground_run/telltale/telltale_model/glider": "step( и time_s = — собственные модели и телеметрия; .ground — словарь конфига колёс; set_ground — подстрока set_ground_fn",
+      "bot_agent/catch_up_tow/tow_session/tow_tug/flight_stats/vario/instrument_preview": "step( и time_s = — собственные шаги и время; tow_tug .ground — конфиг",
+      "wing_catalog/world_key/launch_options": ".wind — поле крыла/параметр ссылки/опция запуска; time_s — опция; WindField — слово в комментарии (поправлен)",
+      "instruments/*": "d.field(...) — отрисовка поля прибора, .wind — данные ветра прибора, не узел воздуха",
+      "world_link/terrain/world_objects/wind_indicator": "set_wind — подстрока set_wind_sources/reset_wind; step( — шаги своих моделей; time_s — свои поля",
+      "world_objects/osm/*, osm_pilot, osm_wind_turbines, easter_eggs, field_plots, osm_layer, wind_cloth_model, osm_data, place_data, world_clearings, an2": "step( и time_s = свои; .wind — ключ цвета/радиуса в конфиге",
+      "terrain/shrub_scatter": ".wind — ветер, который терейн получил в set_wind_sources",
+      "calm_air": "реализация фасада, свои методы",
+      "net_zone": "CloudField — комментарий о снимке, удалён вместе с синхронизацией"
+    },
+    "падения на базе 661a0ac1d (те же без моих правок)": [
+      "roll_modes input_sign",
+      "stall x2",
+      "aframe neutral_every_wing",
+      "catch_up_game",
+      "game_flight test_air_start",
+      "game_logic forecast_settings",
+      "pilot_view x4",
+      "start_clearing",
+      "start_pick_inspect",
+      "start_qol",
+      "start_regression",
+      "ui controls_screen",
+      "stability matrix",
+      "steam pilot_name",
+      "ui menu_scroll, no_untranslated",
+      "vegetation forest_grass",
+      "world_objects osm_road_look, osm_threaded"
+    ],
+    "переходные места под TODO(RW-3c)": [
+      "atmosphere.gd: поле weather + get_weather, configure(Variant), focus_node/set_focus/get_focus, синхронный start_at без места, переходные set_*/step"
+    ]
+  },
+  "t": "2026-10-26T10:19:03",
+  "by": "executor"
+}

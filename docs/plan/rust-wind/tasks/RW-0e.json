@@ -1,0 +1,49 @@
+{
+  "id": "RW-0e",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "tools/tests_vs_base.sh — GDScript-тесты копии против базы: параллельно по файлам, новые падения → exit 1",
+  "goal": "Инструмент приёмки задач фасада (RW-3a/3b/3c/7): прогон tests/ по файлам в N параллельных процессах Godot headless (свой временный XDG_DATA_HOME на процесс, таймаут на файл) в копии и в базе (git-ссылка; результат базы кешируется по sha), сравнение списков падений file::test; печать новых падений и исправленных; exit 1, если есть новые падения или таймауты, которых нет в базе. Весь прогон обеих сторон ≤ 25 мин стены на 8 процессах.",
+  "plan_ref": "План переноса / Этап 1 / RW-3",
+  "contracts": [
+    {
+      "name": "W1",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-0e",
+  "branch": "rust-wind/RW-0e",
+  "base": "feature/rust-wind",
+  "scope": [
+    "tools/tests_vs_base.sh",
+    "tools/tests_vs_base.py"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "tests/",
+    "rust/",
+    "project.godot",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "syntax",
+      "cmd": "bash -n tools/tests_vs_base.sh",
+      "expect": "exit=0"
+    },
+    {
+      "name": "same_ref",
+      "cmd": "tools/tests_vs_base.sh --base HEAD --filter=tests/contracts/ -j 4",
+      "expect": "re:новых падений: 0"
+    },
+    {
+      "name": "project_clean",
+      "cmd": "git diff --quiet -- project.godot",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-26T10:21:11"
+}

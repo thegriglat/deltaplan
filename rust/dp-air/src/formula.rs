@@ -19,6 +19,16 @@
 //!   подачи (начало срока `recompute_game_min` или момент смены условий) ждёт фон и подаёт поле
 //!   с началом подмены в этот момент; иначе не ждёт и подаёт готовое при следующем `advance_to`.
 //!
+//! ## Окна клипмапа (RW-6o, `field::clipmap`)
+//! `window_levels_m` не пуст и есть фокус — загрузка и пересчёт считают область, затем окна
+//! (100 и 50 м) и подают набор `[50, 100, область]` одной подачей. Пересчёт — окна на прежних
+//! местах с тёплого старта. В покое (нет задачи и пересчёт не нужен) `advance_to` сдвигает
+//! окна, когда первый фокус ушёл от центра окна дальше `window_shift_frac` стороны (фоном,
+//! подмена за `blend_s`; в детерминированном режиме — в этом же `advance_to`). Ошибка окон — подаётся
+//! область без окон, причина в `Status.reason`, новая попытка — при следующем сдвиге не раньше
+//! чем через `SHIFT_RETRY_S` времени атмосферы. Запечённое поле и кеш несут окна в файле:
+//! пересчёт окон — когда фокус ушёл из окон файла.
+//!
 //! ## Границы модели
 //! - Слагаемое одно — `field` (FULL = MEAN, σ = 0); вне области поля — нули (аналитика — RW-9).
 //! - Статические термики, солнце, погода, облака, волны — не реализованы (RW-8…12): команды
@@ -33,10 +43,11 @@
 //! перезапускается (подбор поля — первое, что делает задача), после готового поля — `BadInput`.
 //! `set_cache_dir` — до `load_place` (или до первой загрузки): каталог читает и пишет задача
 //! загрузки (`field::runtime`); пусто — без кеша. Нужен `header.model_hash` места.
+use crate::field::clipmap::{ClipMap, WinReport, run_shift};
 use crate::field::field_cache::FieldCache;
 use crate::field::field_set::FieldSet;
 use crate::field::runtime::{
-    BakedEntry, CondRec, JobErr, JobIn, JobOut, JobReport, Pair, RtCfg, Source, dir_key,
+    BakedEntry, CondRec, Faults, JobErr, JobIn, JobOut, JobReport, Pair, RtCfg, Source, dir_key,
     ground_height, needs_recompute, run_job, slot, slot_hour,
 };
 use crate::field::weather_core::{WeatherInputs, hour_at};
@@ -49,7 +60,7 @@ use rayon::prelude::*;
 use std::collections::HashMap;
 use std::panic::AssertUnwindSafe;
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicBool, AtomicU8, AtomicU32, AtomicU64, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU8, AtomicU32, AtomicU64, AtomicUsize, Ordering};
 use std::sync::{Arc, Condvar, Mutex, MutexGuard, OnceLock, PoisonError, RwLock};
 use std::time::{Duration, Instant};
 
@@ -172,6 +183,8 @@ enum Kind {
     Start,
     /// Пересчёт в полёте: подаёт главный поток с подменой.
     Flight,
+    /// Сдвиг окон клипмапа за фокусом в покое: подаёт главный поток с подменой.
+    Shift,
 }
 
 /// Итог задачи; пусто — идёт.
@@ -233,6 +246,23 @@ struct Job {
     deliver_t: f64,
     rec: CondRec,
     blend_s: f64,
+    /// Момент запуска (время атмосферы).
+    started_t: f64,
+    /// Сдвиг: с какого уровня (от грубого).
+    shift_level: usize,
+}
+
+/// Сдвиг окон, поданный в атмосферу (журнал для тестов и стенда).
+#[derive(Clone, Debug)]
+pub struct ShiftRec {
+    /// Время атмосферы, когда сдвиг запущен, и когда подан.
+    pub started_t: f64,
+    pub delivered_t: f64,
+    /// С какого уровня (от грубого) окна пересчитаны.
+    pub from_level: usize,
+    /// Углы окон после сдвига (от грубого к мелкому).
+    pub corners: Vec<[f64; 2]>,
+    pub windows: Vec<WinReport>,
 }
 
 /// Пул фона на процесс по размеру.
@@ -270,22 +300,33 @@ fn apply_limits(p: &mut Published, cfg: &RtCfg) {
     p.fs.edge_cells = cfg.edge_blend_cells;
 }
 
-/// Тело фоновой задачи.
-fn job_main(sh: Arc<Shared>, kind: Kind, epoch: u64, job: JobIn, slot: Arc<Slot>) {
+/// Тело фоновой задачи; `shift` — сдвиг окон `(уровень, фокус)`.
+fn job_main(
+    sh: Arc<Shared>,
+    kind: Kind,
+    epoch: u64,
+    job: JobIn,
+    shift: Option<(usize, [f64; 2])>,
+    slot: Arc<Slot>,
+) {
     let cfg = job.cfg.clone();
-    let res = std::panic::catch_unwind(AssertUnwindSafe(|| run_job(job)))
-        .unwrap_or_else(|_| Err(JobErr::Failed("internal error in the field task".into())));
+    let res = std::panic::catch_unwind(AssertUnwindSafe(|| match shift {
+        Some((q, pilot)) => run_shift(job, q, pilot),
+        None => run_job(job),
+    }))
+    .unwrap_or_else(|_| Err(JobErr::Failed("internal error in the field task".into())));
     let mut put = None;
     let res = match res {
         Ok(mut out) => {
             put = out.cache_put.take();
-            if kind != Kind::Flight {
+            if matches!(kind, Kind::Load | Kind::Start) {
                 let levels = std::mem::take(&mut out.levels);
+                let why = out.report.windows_error.clone().unwrap_or_default();
                 sh.modify_epoch(epoch, |p| {
                     apply_limits(p, &cfg);
                     p.fs.set_levels(levels, 0.0);
                     *lock(&sh.report) = Some(out.report.clone());
-                    sh.set_state(State::Ready, 1.0, "");
+                    sh.set_state(State::Ready, 1.0, &why);
                 });
             }
             Ok(out)
@@ -298,7 +339,7 @@ fn job_main(sh: Arc<Shared>, kind: Kind, epoch: u64, job: JobIn, slot: Arc<Slot>
                 Kind::Start => {
                     sh.modify_epoch(epoch, |_| sh.set_state(State::Ready, 1.0, &m));
                 }
-                Kind::Flight => {}
+                Kind::Flight | Kind::Shift => {}
             }
             Err(JobErr::Failed(m))
         }
@@ -317,6 +358,7 @@ fn job_main(sh: Arc<Shared>, kind: Kind, epoch: u64, job: JobIn, slot: Arc<Slot>
 pub struct Formula {
     sh: Arc<Shared>,
     force_det: Option<bool>,
+    force_faults: Option<Faults>,
     configs: Arc<Configs>,
     cfg: Option<Result<Arc<RtCfg>, String>>,
     seed: u64,
@@ -345,6 +387,20 @@ pub struct Formula {
     cache_dir: Option<PathBuf>,
     /// Хеш места для ключа кеша (считается задачей при первой надобности).
     place_hash: Arc<OnceLock<String>>,
+    /// Окна клипмапа и область поля в атмосфере (`None` — окон нет: выключены, нет фокуса, поле
+    /// из файла).
+    clip: Option<Arc<ClipMap>>,
+    /// Поле из файла (запечённое, кеш) с окнами: окна пересчитываются, когда фокус вышел из них.
+    baked_pending: bool,
+    /// Отказ окон: новая попытка не раньше этого времени атмосферы.
+    retry_at: f64,
+    /// `Status.reason` занят отказом окон (сбросится, когда окна посчитаются).
+    win_failed: bool,
+    /// Запрошенный сдвиг: (уровень от грубого, фокус в осях решателя).
+    shift_req: Option<(usize, [f64; 2])>,
+    shifts: Vec<ShiftRec>,
+    /// Подставные отказы окон (тесты).
+    win_fail: Arc<AtomicUsize>,
 }
 
 impl Default for Formula {
@@ -358,6 +414,7 @@ impl Formula {
         Formula {
             sh: Arc::new(Shared::new()),
             force_det: None,
+            force_faults: None,
             configs: Arc::new(Configs::default()),
             cfg: None,
             seed: 0,
@@ -380,7 +437,41 @@ impl Formula {
             baked: Arc::new(Vec::new()),
             cache_dir: None,
             place_hash: Arc::new(OnceLock::new()),
+            clip: None,
+            baked_pending: false,
+            retry_at: 0.0,
+            win_failed: false,
+            shift_req: None,
+            shifts: Vec::new(),
+            win_fail: Arc::new(AtomicUsize::new(0)),
         }
+    }
+
+    /// Принять готовую задачу без продвижения времени (то же делают команды): после неё
+    /// `clip()`, `current()` и `shifts()` отражают поданное поле.
+    pub fn poll(&mut self) {
+        self.reap();
+    }
+
+    /// Уровней в поданном наборе (окна и область).
+    pub fn level_count(&self) -> usize {
+        self.sh.snapshot().fs.levels().len()
+    }
+
+    /// Окна клипмапа и область поля в атмосферу (`None` — окон нет).
+    pub fn clip(&self) -> Option<&Arc<ClipMap>> {
+        self.clip.as_ref()
+    }
+
+    /// Сдвиги окон, поданные в атмосферу, по порядку.
+    pub fn shifts(&self) -> &[ShiftRec] {
+        &self.shifts
+    }
+
+    /// Подставной отказ: ближайшие `n` расчётов окон (загрузка, пересчёт, сдвиг) не удаются
+    /// (тесты, T4a).
+    pub fn inject_window_failures(&self, n: usize) {
+        self.win_fail.store(n, Ordering::SeqCst);
     }
 
     /// Ошибка последней записи в кеш; пусто — записи удались (или их не было).
@@ -391,6 +482,12 @@ impl Formula {
     /// Задать `air.deterministic` в обход конфига (тесты, стенд, фикстуры — `true`).
     pub fn with_deterministic(mut self, on: bool) -> Self {
         self.force_det = Some(on);
+        self
+    }
+
+    /// Подставные отказы и отключения для тестов (`Faults`) в обход конфига.
+    pub fn with_faults(mut self, f: Faults) -> Self {
+        self.force_faults = Some(f);
         self
     }
 
@@ -470,7 +567,13 @@ impl Formula {
     /// Ошибка задачи: первое поле — `Failed`, пересчёт — прежнее поле, условия считаются
     /// учтёнными (следующая попытка — на следующем сроке или смене условий).
     fn job_failed(&mut self, kind: Kind, rec: CondRec, msg: String) {
-        if kind == Kind::Load {
+        if kind == Kind::Shift {
+            // прежние уровни остаются; новая попытка — не раньше паузы
+            let wait = self.cfg_ok().map_or(10.0, |c| c.shift_retry_s);
+            self.retry_at = self.time_s + wait;
+            self.win_failed = true;
+            *lock(&self.sh.reason) = msg;
+        } else if kind == Kind::Load {
             self.failed = true;
             self.sh.set_state(State::Failed, 0.0, &msg);
         } else {
@@ -493,7 +596,7 @@ impl Formula {
             Err(JobErr::Failed(m)) => return self.job_failed(job.kind, job.rec, m),
             Ok(o) => o,
         };
-        if job.kind == Kind::Flight {
+        if matches!(job.kind, Kind::Flight | Kind::Shift) {
             let det = self.det();
             let tdel = if det {
                 job.deliver_t.clamp(*cursor, t.max(*cursor))
@@ -510,6 +613,24 @@ impl Formula {
                 p.fs.set_levels(levels, blend);
             });
             *cursor = tdel;
+            if job.kind == Kind::Shift {
+                // сдвиг: область, условия и состояние прежние, меняются только окна
+                if let Some(c) = out.clip {
+                    self.shifts.push(ShiftRec {
+                        started_t: job.started_t,
+                        delivered_t: tdel,
+                        from_level: job.shift_level,
+                        corners: c.corners.clone(),
+                        windows: out.report.windows,
+                    });
+                    self.clip = Some(c);
+                }
+                if self.win_failed {
+                    self.win_failed = false;
+                    lock(&self.sh.reason).clear();
+                }
+                return;
+            }
         } else if job.kind == Kind::Load
             && (out.report.planned > 1 || out.report.source != Source::Computed)
         {
@@ -518,7 +639,29 @@ impl Formula {
         self.cur = Some(out.rec);
         self.warm = out.pair;
         self.inflow_k = out.k;
+        // окна: новый набор (или область с местами для новой попытки); поле из файла окон не знает
+        match (&out.report.windows_error, out.clip.as_ref()) {
+            (Some(_), _) => {
+                self.win_failed = true;
+                self.retry_at = self.time_s + self.cfg_ok().map_or(10.0, |c| c.shift_retry_s);
+            }
+            (None, Some(c)) if c.ready() && self.win_failed => {
+                self.win_failed = false;
+                lock(&self.sh.reason).clear();
+            }
+            _ => {}
+        }
+        if job.kind == Kind::Load {
+            self.baked_pending =
+                out.report.source != Source::Computed && self.sh.snapshot().fs.levels().len() >= 2;
+        } else {
+            self.baked_pending = false;
+        }
+        self.clip = out.clip;
         if job.kind == Kind::Flight {
+            if let Some(m) = &out.report.windows_error {
+                *lock(&self.sh.reason) = m.clone();
+            }
             *lock(&self.sh.report) = Some(out.report);
         }
     }
@@ -535,24 +678,39 @@ impl Formula {
         let epoch = self.sh.epoch.load(Ordering::SeqCst);
         let cancel = Arc::new(AtomicBool::new(false));
         let slot = Slot::new();
-        let progress = if kind == Kind::Flight {
+        let progress = if matches!(kind, Kind::Flight | Kind::Shift) {
             Arc::new(AtomicU32::new(0f32.to_bits()))
         } else {
             self.sh.set_state(State::Loading, 0.0, "");
             self.sh.progress.clone()
         };
         let loading = kind == Kind::Load;
+        let blend_s = cond.blend_s.unwrap_or(cfg.blend_s);
+        let shift = if kind == Kind::Shift {
+            self.shift_req.take()
+        } else {
+            None
+        };
+        // сдвиг считает окна по условиям, по которым посчитано поле
+        let (cond, rec) = match (&shift, &self.clip) {
+            (Some(_), Some(c)) => (c.cond.clone(), c.rec.clone()),
+            _ => (cond, rec),
+        };
         let job_in = JobIn {
             cfg: cfg.clone(),
             configs: self.configs.clone(),
             place,
-            cond: cond.clone(),
+            cond,
             rec: rec.clone(),
             loading,
             k_mem: self.k_mem.get(&dir_key(rec.wdir)).copied(),
             inflow_k: self.inflow_k,
             focus: self.focuses.first().map(|f| [f.pos[0], f.pos[2]]),
-            warm: if loading { None } else { self.warm.clone() },
+            warm: if loading || shift.is_some() {
+                None
+            } else {
+                self.warm.clone()
+            },
             cancel: cancel.clone(),
             progress,
             baked: self.baked.clone(),
@@ -561,17 +719,24 @@ impl Formula {
                 max_bytes: cfg.cache_max_bytes,
             }),
             place_hash: self.place_hash.clone(),
+            clip: if loading { None } else { self.clip.clone() },
+            win_fail: self.win_fail.clone(),
         };
         let sh = self.sh.clone();
         let sl = slot.clone();
-        spawn_bg(cfg.threads, move || job_main(sh, kind, epoch, job_in, sl));
+        let shift_level = shift.map_or(0, |s| s.0);
+        spawn_bg(cfg.threads, move || {
+            job_main(sh, kind, epoch, job_in, shift, sl)
+        });
         self.job = Some(Job {
             kind,
             cancel,
             slot,
             deliver_t,
             rec,
-            blend_s: cond.blend_s.unwrap_or(cfg.blend_s),
+            blend_s,
+            started_t: self.time_s,
+            shift_level,
         });
     }
 
@@ -618,18 +783,18 @@ impl Formula {
                 && c.sky == inputs.sky
                 && c.inflow == cond.inflow_mode
         });
-        // дёшево: те же условия и тот же срок — пересчёта нет
+        // дёшево: те же условия и тот же срок — пересчёта нет (в покое — сдвиг окон)
         if same
             && !self.force_recompute
             && cur.is_some_and(|c| slot(hour, cfg.step_min) == slot(c.hour, cfg.step_min))
         {
-            return Ok(None);
+            return Ok(self.plan_windows(&cfg, t, cursor));
         }
         let want = CondRec::new(inputs, cond, hour);
         let reason = needs_recompute(cur, &want, cfg.step_min)
             .or_else(|| self.force_recompute.then_some("перестройка"));
         if reason.is_none() {
-            return Ok(None);
+            return Ok(self.plan_windows(&cfg, t, cursor));
         }
         let sh = slot_hour(hour, cfg.step_min);
         let mut ev = self.cond_t;
@@ -645,6 +810,49 @@ impl Formula {
             CondRec { hour: sh, ..want },
             deliver_t,
         )))
+    }
+
+    /// Окна в покое (пересчёта поля нет): сдвиг за первым фокусом или, для поля из файла с окнами,
+    /// пересчёт, когда фокус вышел из окон файла (`_pilot_left_baked_windows`).
+    fn plan_windows(&mut self, cfg: &RtCfg, t: f64, cursor: f64) -> Option<(Kind, CondRec, f64)> {
+        if !cfg.windows_wanted || cfg.faults.no_windows {
+            return None;
+        }
+        let f = self.focuses.first()?;
+        let pilot = [f64::from(f.pos[0]), -f64::from(f.pos[2])];
+        if self.baked_pending {
+            if !self.pilot_left_baked(cfg, pilot) {
+                return None;
+            }
+            let (cond, inputs) = (self.cond.as_ref()?, self.inputs.as_ref()?.as_ref().ok()?);
+            let hour = hour_at(cond, t);
+            let rec = CondRec {
+                hour: slot_hour(hour, cfg.step_min),
+                ..CondRec::new(inputs, cond, hour)
+            };
+            return Some((Kind::Flight, rec, t.max(cursor)));
+        }
+        let clip = self.clip.as_ref()?;
+        if t < self.retry_at {
+            return None;
+        }
+        let q = clip.shift_target(pilot, cfg.shift_frac)?;
+        let rec = clip.rec.clone();
+        self.shift_req = Some((q, pilot));
+        Some((Kind::Shift, rec, t.max(cursor)))
+    }
+
+    /// Фокус вышел из окон поля из файла: дальше `window_shift_frac` стороны от центра окна.
+    fn pilot_left_baked(&self, cfg: &RtCfg, pilot: [f64; 2]) -> bool {
+        let pb = self.sh.snapshot();
+        let lv = pb.fs.levels();
+        // окна — все уровни, кроме последнего (область)
+        lv[..lv.len().saturating_sub(1)].iter().any(|f| {
+            let g = f.grid();
+            let side = g.nx as f64 * g.dx;
+            let (cx, cy) = (g.x0 + 0.5 * side, g.y0 + 0.5 * g.ny as f64 * g.dx);
+            (pilot[0] - cx).abs().max((pilot[1] - cy).abs()) > cfg.shift_frac * side
+        })
     }
 
     /// Ход фона до момента `t`: подача готового, запуск пересчёта, продвижение подмены.
@@ -679,6 +887,15 @@ impl Formula {
             let t = self.time_s;
             self.adopt(job, res, t, &mut cursor);
         }
+    }
+
+    fn reset_clip(&mut self) {
+        self.clip = None;
+        self.baked_pending = false;
+        self.retry_at = 0.0;
+        self.win_failed = false;
+        self.shift_req = None;
+        self.shifts.clear();
     }
 
     fn reset_published(&self, place: Option<Arc<Place>>) {
@@ -728,10 +945,13 @@ impl AirModel for Formula {
         cfg.parse()?;
         self.configs = Arc::new(cfg.clone());
         self.seed = seed;
-        let det = self.force_det;
+        let (det, faults) = (self.force_det, self.force_faults);
         self.cfg = Some(RtCfg::from_configs(cfg).map_err(|e| e.msg).map(|mut c| {
             if let Some(d) = det {
                 c.deterministic = d;
+            }
+            if let Some(f) = faults {
+                c.faults = f;
             }
             Arc::new(c)
         }));
@@ -751,6 +971,7 @@ impl AirModel for Formula {
         self.inflow_k = 1.0;
         self.k_mem.clear();
         self.failed = false;
+        self.reset_clip();
         self.baked = Arc::new(Vec::new());
         self.place_hash = Arc::new(OnceLock::new());
         *lock(&self.sh.report) = None;
@@ -783,6 +1004,7 @@ impl AirModel for Formula {
         self.inflow_k = 1.0;
         self.k_mem.clear();
         self.failed = false;
+        self.reset_clip();
         self.baked = Arc::new(Vec::new());
         self.place_hash = Arc::new(OnceLock::new());
         *lock(&self.sh.report) = None;
