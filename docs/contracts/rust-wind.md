@@ -3,10 +3,10 @@ type: "contract"
 status: "active"
 module: "rust-wind"
 area: "air"
-updated: "2026-10-26"
+updated: "2026-10-27"
 summary: "Граница ветра в Rust: фасад Atmosphere, DpAir (gdext), трейт dp-air, место, описания, разложение, допуски, сборка, чистота."
 related: ["docs/plan/rust-wind.md", "docs/contracts/picard-rs.md", "docs/plan/rust-air-integration.md", "docs/plan/rust-ext.md", "docs/plan/air-cascade.md", "tools/research/rust_ext/gdext_probe/README.md", "docs/contracts/rust-wind/fixtures-tolerances.md", "docs/contracts/rust-wind/descriptions.md", "docs/contracts/rust-wind/solver.md", "docs/contracts/rust-wind/trait.md"]
-contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 2}, {"id": "W3", "version": 2}, {"id": "W4", "version": 3}, {"id": "W5", "version": 6}, {"id": "W6", "version": 3}, {"id": "W7", "version": 1}, {"id": "W8", "version": 1}, {"id": "W9", "version": 1}, {"id": "W10", "version": 1}, {"id": "W11", "version": 8}]
+contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 2}, {"id": "W3", "version": 2}, {"id": "W4", "version": 3}, {"id": "W5", "version": 7}, {"id": "W6", "version": 3}, {"id": "W7", "version": 1}, {"id": "W8", "version": 1}, {"id": "W9", "version": 1}, {"id": "W10", "version": 1}, {"id": "W11", "version": 9}]
 ---
 
 # Контракты модуля rust-wind
@@ -101,8 +101,8 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 2}, {"id": "W3",
 ## W4. Трейт `AirModel` (крейт `dp-air`, без Godot) (v3)
 Владелец — RW-4 (трейт, `Calm`), RW-6…12 (`Formula`), живой воздух (`Live`). Потребители — `dp-gd`, стенд RW-5, `cargo test`, `cargo bench`. Трейт, типы, порядок команд, структуры описаний — `docs/contracts/rust-wind/trait.md`.
 
-## W5. Вход: место, конфиги, условия (v6)
-Владелец — RW-2 (сборка `AirPlaceData`), RW-4 (разбор в крейте). Потребители — W2–W4, фикстуры W8. `AirPlaceData`, конфиги, условия и история версий v2–v6 — `docs/contracts/rust-wind/input.md`.
+## W5. Вход: место, конфиги, условия (v7)
+Владелец — RW-2 (сборка `AirPlaceData`), RW-4 (разбор в крейте). Потребители — W2–W4, фикстуры W8. `AirPlaceData`, конфиги, условия и история версий v2–v7 — `docs/contracts/rust-wind/input.md`.
 
 ## W6. Описания — найденное, а не заданное (v3)
 Владелец — RW-2 (из текущего кода), RW-10/RW-11 (из крейта). Поля, шаги `CORE_STRIDE`/`CLOUD_STRIDE`/`CREST_STRIDE`, растр облаков, гребни и инвариант найденного ядра — `docs/contracts/rust-wind/descriptions.md`.
@@ -137,7 +137,7 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 2}, {"id": "W3",
 - Список файлов реализации тест держит явным (RW-2 фиксирует); новый файл реализации — правка теста и W10 через координатора.
 - Тесты в `tests/` под запрет не подпадают, но тесты поведения через `Atmosphere` после RW-3 пользуются фасадом (T7).
 
-## W11. Решатель Пикара в крейте (v8)
+## W11. Решатель Пикара в крейте (v9)
 Владелец — RW-6g, RW-6h. Потребители — RW-6j, RW-6n, фазы RW-6k–6m. R6 v3 + заморозка колонн, отмена, `AllFrozen`/`Cancelled` — `docs/contracts/rust-wind/solver.md`.
 
 ## История
@@ -159,3 +159,4 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 2}, {"id": "W3",
 - W11 v7 (2026-10-26, RW-6n) — граница от родителя (`Case.nest`) и старт окна (`SolveOpts.init_cycles`). Потребители: RW-6n, RW-6o.
 - W5 v6 (2026-10-26, ревью RW-6t) — `start_sites[].id/weather`, `header.data_hash`; выбор запечённого как `baked_lookup`; W5 вынесен в `rust-wind/input.md`. W11 v8 — отмена до вызова всегда `Cancelled`. Потребители: RW-7 (фасад и разбор в крейте).
 - W2 v2 (2026-10-26, итог RW-3a) — `status().stage/field_on`, `place_from_terrain`, порядок переименования `weather`, переходные входы. Потребители: RW-3b, RW-3c, RW-7.
+- W11 v9, W5 v7 (2026-10-27, итог RW-6q, решение пользователя о таймауте) — стенки и клетки земли обнуляются при тёплом старте как `K_BC`; `loc.climate_lag` (климат на дату сдвига воды); `air.timeout_s` удалён — поле в крейте без предела по времени. Потребители: RW-6v (крейт, фасад, места фикстур), RW-6q (T1), RW-7.
