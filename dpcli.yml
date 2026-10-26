@@ -69,7 +69,7 @@ jobs:
   cpu_weights:
     # Любой запуск Godot (тесты, кадры, автопилот, --import, приёмка, сборка) — 6 слотов (решение пользователя 2026-10-23, три Godot параллельно в 18): Godot сам
     # распараллеливается на ~8–10 ядер (замер 2026-10-23: --import ≈ 900 % CPU) — решение пользователя.
-    - match: "dpcli accept|tools/build\\.sh|godot|run_tests|xvfb-run|tools/shots/|gpu_tests\\.sh|gpu_validate\\.sh"
+    - match: "dpcli accept|tools/build\\.sh|tests_vs_base\\.sh|godot|run_tests|xvfb-run|tools/shots/|gpu_tests\\.sh|gpu_validate\\.sh"
       slots: 6
     # Замер Rust-Пикара на 1/4/8/16 потоках (air-cascade) — вся машина, чтобы время не шумело.
     - match: "picard_rs/target/release/picard (bench|solve)"
