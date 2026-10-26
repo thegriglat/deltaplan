@@ -464,7 +464,6 @@ fn calm_ready_after_load_is_immediate() {
 
 #[test]
 fn api_version_matches_contract_header() {
-    assert_eq!(API_VERSION, 1);
     let path = concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/../../docs/contracts/rust-wind.md"
