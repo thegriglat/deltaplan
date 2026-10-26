@@ -6,10 +6,10 @@ area: "air"
 updated: "2026-10-26"
 summary: "W11 rust-wind: решатель Пикара в крейте — R6 v3 + заморозка колонн, отмена, новые причины остановки; пустая маска — побитно R6 v3."
 related: ["docs/contracts/rust-wind.md", "docs/contracts/picard-rs.md", "docs/research/rust-wind-field-path.md"]
-contracts: [{"id": "W11", "version": 7}]
+contracts: [{"id": "W11", "version": 8}]
 ---
 
-# W11. Решатель Пикара в крейте (v7)
+# W11. Решатель Пикара в крейте (v8)
 
 Часть `docs/contracts/rust-wind.md` (версия — там, заголовок W11). Менять — только координатор. Расширяет `picard_rs::api` (R6 v3, `docs/contracts/picard-rs.md`; тот контракт закрыт и не правится — всё новое здесь). Владелец — RW-6g (заморозка, отмена), RW-6h (запасные правила). Потребители — RW-6j (оркестровка), RW-6n (окна), фазы RW-6k–6m (дают маски).
 Эталон поведения — игровой GPU-путь: `scripts/atmosphere/air_model/air_picard_job.gd` (`_freeze`, `freeze_mask`/`freeze_mask_mech`, `freeze_field`/`freeze_field_mech`, `_use_freeze_mask`, `_pad_cols`, `all_frozen`, счёт неизвестных) и ядра `air_picard.glsl` (`K_FREEZE`, `K_RMASK`, `K_FIXROW`). Разбор — `docs/research/rust-wind-field-path.md`, «Карта фаз и заморозка колонн».
@@ -32,3 +32,4 @@ contracts: [{"id": "W11", "version": 7}]
 - **v7 (RW-6n, окна; эталон — `air_window_job.gd`, `air_window.glsl`, ядро `K_BC` `air_picard.glsl`):**
   - `picard_rs::Case.nest: Option<NestBc>`; `pub struct NestBc { pub ubw: Vec<f32>, pub thb: Vec<f32>, pub thbd: Option<Vec<f32>> }` — w на гранях и θ′/θ′_d в клетках от родителя, раскладка — как у `ubu`/`ubv` случая (с ореолом). С `nest`: грани w типа 2 закреплены значениями `ubw` (как u, v); θ′ и θ′_d в ореоле и в неизвестных-не-клетках — из `thb`/`thbd`, они же — цель зоны релаксации; граничное условие решателя ставит u, v, w, θ′, θ′_d на всех не-неизвестных гранях и клетках, как `K_BC`. `thbd = None` — канала θ′_d нет (`_no_thd`). `nest = None` — поведение v6 побитно (область).
   - `SolveOpts.init_cycles: Option<u32>` — только вместе с `init`: перед стартом p := 0, затем столько V-циклов (старт окна от родителя — `Some(30)`, `_rec_warm_init`); `None` — как v6 (4 V-цикла, p из `init`; тёплый сдвиг окна — так). Без `init` — `BadInput`/ошибка разбора опций.
+- **v8 (ревью RW-6t):** `cancel`, взведённый до вызова или в подготовке, — всегда `Cancelled` с конечным полем (фон/нули), в том числе когда всё заморожено; правило v3 «`AllFrozen` с фоном при отмене до старта» отменено.

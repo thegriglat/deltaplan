@@ -50,6 +50,9 @@ generated: true
 - **rust-wind** — Весь ветер — в Rust-крейте за одной границей под живой воздух: фасад, контракт, перенос по слагаемым, тесты по TDD [idea 2026-10-25] — [план](plan/rust-wind.md) · [контракты](contracts/rust-wind.md)
   - [docs/contracts/rust-wind/descriptions.md](contracts/rust-wind/descriptions.md) — W6 rust-wind: описания — ядра подъёма, облака, растр облаков, гребни волн; поля, шаги, инвариант найденного ядра.
   - [docs/contracts/rust-wind/fixtures-tolerances.md](contracts/rust-wind/fixtures-tolerances.md) — W8 rust-wind: формат фикстур T1 (json + f32), допуски сверки Rust против GDScript, пороги скорости.
+  - [docs/contracts/rust-wind/input.md](contracts/rust-wind/input.md) — W5 rust-wind: вход реализации — AirPlaceData (место, растры, климат, запечённые поля, хеши), конфиги, условия
+  - [docs/contracts/rust-wind/solver.md](contracts/rust-wind/solver.md) — W11 rust-wind: решатель Пикара в крейте — R6 v3 + заморозка колонн, отмена, новые причины остановки; пустая маска — побитно R6 v3.
+  - [docs/contracts/rust-wind/trait.md](contracts/rust-wind/trait.md) — W4 rust-wind: трейт AirModel крейта dp-air (без Godot) — типы, методы, порядок команд, структуры описаний, реализации Calm/Formula/Live.
   - [docs/research/rust-wind-field-path.md](research/rust-wind-field-path.md) — RW-6a: путь поля Пикара в игре от места до опроса точки, что есть в picard_rs, разбиение RW-6 на задачи, окна 100/50 м на CPU
   - [tools/research/rust_wind/README.md](../tools/research/rust_wind/README.md) — RW-6a: расчёт размера окон 100/50 м и времени picard_rs на CPU, приложение с таблицами шагов и задач RW-6
   - [tools/research/rust_wind/summary.md](../tools/research/rust_wind/summary.md) — RW-6a вывод: в крейте нет сборщика случая, грубого старта, заморозки и фаз; окна переносить последним отключаемым хвостом

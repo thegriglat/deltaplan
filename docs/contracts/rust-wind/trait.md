@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-10-26"
 summary: "W4 rust-wind: трейт AirModel крейта dp-air (без Godot) — типы, методы, порядок команд, структуры описаний, реализации Calm/Formula/Live."
 related: ["docs/contracts/rust-wind.md", "docs/plan/rust-wind.md"]
-contracts: [{"id": "W4", "version": 2}]
+contracts: [{"id": "W4", "version": 3}]
 ---
 
 # W4. Трейт `AirModel` (крейт `dp-air`, без Godot) (v3)

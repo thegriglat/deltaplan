@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-10-26"
 summary: "Граница ветра в Rust: фасад Atmosphere, DpAir (gdext), трейт dp-air, место, описания, разложение, допуски, сборка, чистота."
 related: ["docs/plan/rust-wind.md", "docs/contracts/picard-rs.md", "docs/plan/rust-air-integration.md", "docs/plan/rust-ext.md", "docs/plan/air-cascade.md", "tools/research/rust_ext/gdext_probe/README.md", "docs/contracts/rust-wind/fixtures-tolerances.md", "docs/contracts/rust-wind/descriptions.md", "docs/contracts/rust-wind/solver.md", "docs/contracts/rust-wind/trait.md"]
-contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 1}, {"id": "W3", "version": 2}, {"id": "W4", "version": 3}, {"id": "W5", "version": 5}, {"id": "W6", "version": 3}, {"id": "W7", "version": 1}, {"id": "W8", "version": 1}, {"id": "W9", "version": 1}, {"id": "W10", "version": 1}, {"id": "W11", "version": 7}]
+contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 1}, {"id": "W3", "version": 2}, {"id": "W4", "version": 3}, {"id": "W5", "version": 6}, {"id": "W6", "version": 3}, {"id": "W7", "version": 1}, {"id": "W8", "version": 1}, {"id": "W9", "version": 1}, {"id": "W10", "version": 1}, {"id": "W11", "version": 8}]
 ---
 
 # Контракты модуля rust-wind
@@ -93,31 +93,8 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 1}, {"id": "W3",
 ## W4. Трейт `AirModel` (крейт `dp-air`, без Godot) (v3)
 Владелец — RW-4 (трейт, `Calm`), RW-6…12 (`Formula`), живой воздух (`Live`). Потребители — `dp-gd`, стенд RW-5, `cargo test`, `cargo bench`. Трейт, типы, порядок команд, структуры описаний — `docs/contracts/rust-wind/trait.md`.
 
-## W5. Вход: место, конфиги, условия (v5)
-Владелец — RW-2 (сборка `AirPlaceData` из `AirRuntime.place_of`, `air_runtime.gd:270`), RW-4 (разбор в крейте). Потребители — W2–W4, фикстуры W8.
-
-**`AirPlaceData`** (`RefCounted`, `scripts/atmosphere/air_place_data.gd`, создаёт RW-2) — то, что крейт получает один раз при загрузке:
-- `header` (json в W3):
-  - `version: 1`; `loc: {id: String, center_lat, center_lon: float (град), utc_offset_h: float, month: int, day: int, climate: {tx_c: float (°C, дневной максимум HH5), dtr_k: float (К, суточная амплитуда), z_cell_m: float (м, средняя высота ячейки HH1, 0 — нет), has_hh1: bool, has_hh5: bool}}` (v3: климат места — `ClimateGrid.place` у центра места на `month/day`, считает фасад при сборке `AirPlaceData`; нет сетки — `has_* = false` и запасные значения, как сейчас; крейт файлы климата не читает);
-  - `grid: {origin_x, origin_z, spacing, width, height}` — сетка W1 (сейчас слой `detail` 25 м `HeightLayer`); покрывает область поля (квадрат 38,4 км у центра) и ≥ 2 км запаса вокруг для аналитики (`GroundField`, просмотр с наветра до 1600 м);
-  - `surface_classes: {имя: код}` — коды `cls` как в `AirPlace.Surface` (`air_place.gd`); список фиксирует RW-2 в тесте;
-  - `start_sites: [{x, z, h_msl}]` — старты места (для отладки и фокуса по умолчанию).
-- `heights: PackedFloat32Array` — `width × height`, м MSL, узлы сетки; NaN недопустим (BAD_INPUT).
-- `water: PackedByteArray` — та же сетка, 0/1.
-- `surface_cls: PackedByteArray`, `surface_moist: PackedFloat32Array` (0..1) — та же сетка.
-- v4: `baked: Array` — запечённые поля места (TI-К3 v3, `docs/contracts/training-island.md`: `data/locations/<id>/air/*.json` + `.bin`, f16, zstd) как есть: `[{header_json: String, data: PackedByteArray}]`; фасад читает файлы места при сборке `AirPlaceData`, реализация выбирает подходящее по условиям (как `AirRuntime.baked_lookup`) — без файлового доступа к данным игры; нет — пусто.
-- v5: `header.model_hash: String` (необязательный, по умолчанию `""`) — хеш модели воздуха, как его сейчас считает `AirRuntime` для запечённых полей и кеша (до RW-13 — хеш GD-модели, считает фасад); реализация сравнивает его с `model_hash` заголовков запечённых полей и кладёт в ключ кеша; пусто — запечённые поля и кеш не используются (расчёт всегда).
-- Производные поля (уклоны, линия тени, рельеф гребня, `valley_msl_m`, `mean_msl_m`, сила источников термиков `thermal_source_strength`, нагрев и `surface_flux`, `domain_case`, грубая задача 1200 м) — считает реализация из этих растров (решение пользователя 2026-10-26: «всё тяжёлое считает Rust»). Не хватает данных для производного (например, для `thermal_source_strength_water`) — `contract:` координатору, W5 v2, а не колбэк.
-- Высота у реализации — билинейно по `heights`; это заменяет `terrain.height_at` во всех слагаемых ветра. Разница с нынешней высотой — в допусках W8.
-
-**Конфиги** — тексты json как есть (W2 `configure`); схему ключей задаёт сам конфиг, крейт читает нужные секции (`wind`, `turbulence`, `ground`, `lee`, `ridge`, `thermal`, `clouds`, `storm`, `wave`, `air_model`, `air_phase`, `cloud_field`, `seed`, …). Неизвестный ключ — не ошибка; отсутствие обязательного — BAD_INPUT с именем ключа.
-
-**Условия** (`set_conditions`, Dictionary в W2 / json в W3) — ровно один из двух видов:
-- Прогноз: `{forecast: {temperature_c, wind_speed_kmh, wind_from_deg, sky: String}, start_hour: float, speed: float (игровых с на с времени t; 1 — реальное), quantum_h: float, wind_ref: {ref_msl: float, gain_per_km: float} | null, overrides: {ключ пресета: значение}, blend_s: float | null, rebuild: bool}` — реализация сама выводит погоду по часу (`WeatherModel.derive`, `AtmoDay`; в `gd` — как сейчас, в крейте — RW-12). `overrides` — то, что игра правит поверх (сейчас `thermal_spacing_m` пикового часа, `game.gd:612`; ветер из настроек вместо `set_wind`).
-- Эталон: `{preset: String ("weather/medium") | Dictionary (ключи пресета), start_hour, speed, blend_s, rebuild}` — без вывода по часу (превью, тесты, фикстуры).
-- **v2:** в обоих видах — необязательный ключ `inflow_mode: "start" | "inflow"` (по умолчанию `"start"`; сейчас `StartWeather.wind_ref_of`, `air_runtime.gd:957`): `"start"` — ветер условий — у старта, приток подбирается проходами `k`; `"inflow"` — ветер условий — набегающий поток, `k = 1`. Другое значение — BAD_INPUT. Не путать с `wind_ref` прогноза (опорная высота и прирост).
-- Посторонний ключ, оба вида сразу или ни одного — BAD_INPUT.
-- Сид — только `configure`; статические термики — `set_static_thermals`; солнце — `set_sun_direction`.
+## W5. Вход: место, конфиги, условия (v6)
+Владелец — RW-2 (сборка `AirPlaceData`), RW-4 (разбор в крейте). Потребители — W2–W4, фикстуры W8. `AirPlaceData`, конфиги, условия и история версий v2–v6 — `docs/contracts/rust-wind/input.md`.
 
 ## W6. Описания — найденное, а не заданное (v3)
 Владелец — RW-2 (из текущего кода), RW-10/RW-11 (из крейта). Поля, шаги `CORE_STRIDE`/`CLOUD_STRIDE`/`CREST_STRIDE`, растр облаков, гребни и инвариант найденного ядра — `docs/contracts/rust-wind/descriptions.md`.
@@ -152,7 +129,7 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 1}, {"id": "W3",
 - Список файлов реализации тест держит явным (RW-2 фиксирует); новый файл реализации — правка теста и W10 через координатора.
 - Тесты в `tests/` под запрет не подпадают, но тесты поведения через `Atmosphere` после RW-3 пользуются фасадом (T7).
 
-## W11. Решатель Пикара в крейте (v7)
+## W11. Решатель Пикара в крейте (v8)
 Владелец — RW-6g, RW-6h. Потребители — RW-6j, RW-6n, фазы RW-6k–6m. R6 v3 + заморозка колонн, отмена, `AllFrozen`/`Cancelled` — `docs/contracts/rust-wind/solver.md`.
 
 ## История
@@ -172,3 +149,4 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 1}, {"id": "W3",
 - W11 v6 (2026-10-26, ревью RW-6j) — отмена и в подготовке решения.
 - W4 v3, W5 v5 (2026-10-26, постановка RW-6t) — `AirModel::add_baked_field`/`set_cache_dir` (как W3 v2), `header.model_hash`. Потребители: RW-6t (Formula, dp-gd), RW-7 (фасад).
 - W11 v7 (2026-10-26, RW-6n) — граница от родителя (`Case.nest`) и старт окна (`SolveOpts.init_cycles`). Потребители: RW-6n, RW-6o.
+- W5 v6 (2026-10-26, ревью RW-6t) — `start_sites[].id/weather`, `header.data_hash`; выбор запечённого как `baked_lookup`; W5 вынесен в `rust-wind/input.md`. W11 v8 — отмена до вызова всегда `Cancelled`. Потребители: RW-7 (фасад и разбор в крейте).
