@@ -3,13 +3,13 @@ type: "contract"
 status: "active"
 module: "rust-wind"
 area: "air"
-updated: "2026-10-26"
+updated: "2026-10-27"
 summary: "W5 rust-wind: вход реализации — AirPlaceData (место, растры, климат, запечённые поля, хеши), конфиги, условия"
 related: ["docs/contracts/rust-wind.md", "docs/plan/rust-wind.md"]
-contracts: [{"id": "W5", "version": 6}]
+contracts: [{"id": "W5", "version": 7}]
 ---
 Часть `docs/contracts/rust-wind.md` (версия — там, заголовок W5). Менять — только координатор.
-# W5. Вход: место, конфиги, условия (v6)
+# W5. Вход: место, конфиги, условия (v7)
 Владелец — RW-2 (сборка `AirPlaceData` из `AirRuntime.place_of`, `air_runtime.gd:270`), RW-4 (разбор в крейте). Потребители — W2–W4, фикстуры W8.
 
 **`AirPlaceData`** (`RefCounted`, `scripts/atmosphere/air_place_data.gd`, создаёт RW-2) — то, что крейт получает один раз при загрузке:
@@ -38,3 +38,6 @@ contracts: [{"id": "W5", "version": 6}]
   - `start_sites[i]` += `id: String` и `weather: Dictionary` — набор погоды старта (TI-К2), как `_baked_site`: из места, пусто — из `Locations.config(<id места>).start_sites`; нет — `{}`; считает фасад.
   - `header.data_hash: String` (необязательный, по умолчанию `""`) — `AirBakedField.place_hash(Locations.data_dir(<id места>))`, считает фасад.
   - Выбор запечённого — как `baked_lookup`: старт в 1 м от фокуса → его `id`, `weather` и ключ `make_key(loc, center, site.id, site.weather, site.position, data_hash, window_levels_m)`; сравнение — `key_diff` с ключом файла. Пустой `data_hash` или `weather` — запечённое не берётся (причина в `Status.reason`/журнале), расчёт.
+- **v7 (2026-10-27, итог RW-6q; эталон — `SurfaceHeat.water_temp_c`, `surface_heat.gd:93`):**
+  - `header.loc.climate_lag` — обязательный, те же поля, что `loc.climate` (`tx_c`, `dtr_k`, `z_cell_m`, `has_hh1`, `has_hh5`): климат той же ячейки (`ClimateGrid.place` у центра) на дату `month/day − round(water.lag_days)` (`configs/surface_heat.json`, сейчас 30) с переходом через границу года — как `surface_heat.gd:98`; считает фасад при сборке `AirPlaceData`. Крейт берёт его для температуры воды (среднее суточное на дату сдвига), `loc.climate` — для всего остального. Есть `loc.climate`, нет `loc.climate_lag` — BAD_INPUT с именем `climate_lag`; нет обоих (синтетические заголовки тестов) — запасные значения, как для `climate` (уточнение по итогу RW-6v).
+  - Конфиг `air.timeout_s` удалён (решение пользователя 2026-10-27: «в CPU-версии таймаут убрать совсем: считает — значит досчитает»): расчёт поля в крейте (подготовка, грубый старт, решения, окна) не ограничен по времени; остановка — только отмена (W11 `cancel`: `unload_place`, смена места/условий, `Drop`) и ошибки. Ключ в конфиге — неизвестный, не ошибка. `air_model.timeout_s` (GPU-путь игры) не трогается до RW-13.

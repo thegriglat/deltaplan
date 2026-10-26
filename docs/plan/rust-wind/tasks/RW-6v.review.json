@@ -1,0 +1,27 @@
+{
+  "verdict": "accept",
+  "summary": "W11 v9 и W5 v7 выполнены по тексту контрактов: обнуление стенок и земли совпадает с K_BC (air_picard.glsl:234), pin_far_faces вызывается только в init_warm и init_parent, w типа 2 в окнах затем восстанавливает apply_bc_nest (b_w = все tw==2). climate_lag идёт только в water_mean_air_c через WaterClimate, BAD_INPUT срабатывает при climate без climate_lag, deadline и TimeBudget удалены, air_model.timeout_s не тронут. Правок вне скоупа нет. Перепроверено: w11v9_w5v7 6/6, walls_v9 2/2 (побитно v8).",
+  "issues": [
+    {
+      "file": "rust/dp-air/tests/w11v9_w5v7.rs",
+      "line": 224,
+      "severity": "minor",
+      "what": "field_has_no_time_limit проверяет себя через secs > 1.0: на быстрой машине подготовка синтетики может уложиться в 1 с, и тест упадёт без регрессии. Ложного прохода он не даёт, только риск ложного падения.",
+      "fix": "Задать timeout_s заметно меньше реального времени (например, 1e-6) и проверять только READY без Failed, либо брать порог от измеренного времени."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "accept --only w11v9_w5v7 --dry",
+      "value": "test result: ok. 6; scope 16 файлов",
+      "pass": true
+    },
+    {
+      "name": "cargo test -p picard_rs --test walls_v9",
+      "value": "2 passed (clean_input_is_bitwise_v8, walls_are_zero_after_warm_parent_and_finalize)",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-27T04:16:34",
+  "by": "reviewer"
+}

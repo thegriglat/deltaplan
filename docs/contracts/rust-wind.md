@@ -3,22 +3,22 @@ type: "contract"
 status: "active"
 module: "rust-wind"
 area: "air"
-updated: "2026-10-26"
+updated: "2026-10-27"
 summary: "Граница ветра в Rust: фасад Atmosphere, DpAir (gdext), трейт dp-air, место, описания, разложение, допуски, сборка, чистота."
 related: ["docs/plan/rust-wind.md", "docs/contracts/picard-rs.md", "docs/plan/rust-air-integration.md", "docs/plan/rust-ext.md", "docs/plan/air-cascade.md", "tools/research/rust_ext/gdext_probe/README.md", "docs/contracts/rust-wind/fixtures-tolerances.md", "docs/contracts/rust-wind/descriptions.md", "docs/contracts/rust-wind/solver.md", "docs/contracts/rust-wind/trait.md"]
-contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 2}, {"id": "W3", "version": 2}, {"id": "W4", "version": 3}, {"id": "W5", "version": 6}, {"id": "W6", "version": 3}, {"id": "W7", "version": 1}, {"id": "W8", "version": 1}, {"id": "W9", "version": 1}, {"id": "W10", "version": 1}, {"id": "W11", "version": 8}]
+contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 2}, {"id": "W3", "version": 2}, {"id": "W4", "version": 3}, {"id": "W5", "version": 7}, {"id": "W6", "version": 3}, {"id": "W7", "version": 1}, {"id": "W8", "version": 1}, {"id": "W9", "version": 2}, {"id": "W10", "version": 1}, {"id": "W11", "version": 9}]
 ---
 
 # Контракты модуля rust-wind
 
 План — `docs/plan/rust-wind.md`. Менять — только координатор: версия +1, запись в «Историю», `task note` потребителям, их правка в том же шаге. Исполнитель, которому контракт мешает, пишет `<ID> contract: <что поменять>`, сам не меняет.
 
-Слои границы (сверху вниз): игра → **фасад `Atmosphere`** (W2, GDScript) → реализация `air.backend = gd` (текущий код) или `rust` → **класс `DpAir`** (W3, крейт `dp-gd`, gdext) → **трейт `AirModel`** (W4, крейт `dp-air`, без Godot). Игра видит только W2. W3 и W4 — одна и та же семантика, W3 — её отображение в типы Godot. Формульная модель (`Formula`) и будущий живой воздух (`Live`) — две реализации W4; смена реализации не меняет W2–W3.
+Слои границы (сверху вниз): игра → **фасад `Atmosphere`** (W2, GDScript) → реализация (до этапа 3 — смешанная: поле Пикара из крейта, прочие слагаемые на GDScript; переключателя `gd | rust` нет, решение пользователя 2026-10-27) → **класс `DpAir`** (W3, крейт `dp-gd`, gdext) → **трейт `AirModel`** (W4, крейт `dp-air`, без Godot). Игра видит только W2. W3 и W4 — одна и та же семантика, W3 — её отображение в типы Godot. Формульная модель (`Formula`) и будущий живой воздух (`Live`) — две реализации W4; смена реализации не меняет W2–W3.
 
 Контрактные тесты (пишутся первыми, красные до кода):
-- GDScript — `tests/contracts/test_rust_wind_contracts.gd` (T5, T6 уровня фасада; T7 — чистота W10) — первым шагом RW-2; при `air.backend = rust` тот же файл гоняется второй раз (RW-7).
+- GDScript — `tests/contracts/test_rust_wind_contracts.gd` (T5, T6 уровня фасада; T7 — чистота W10) — первым шагом RW-2; с RW-7 он идёт на реализации с полем из крейта (второго прогона нет).
 - Rust — `rust/dp-air/tests/contract.rs` (T5, T6 на трейте, на заглушке и на `Formula`) и `rust/dp-gd/tests/` (версия, разбор массивов) — первым шагом RW-4.
-- Версия: константа `Atmosphere.WIND_API_VERSION`, `DpAir.api_version()` и `dp_air::API_VERSION` равны 1 и равны версии W2 здесь; тест сверяет с заголовками этого файла (как `test_air_contracts.gd`: `CONTRACTS` против заголовков `## Wn … (vK)`).
+- Версия: константа `Atmosphere.WIND_API_VERSION`, `DpAir.api_version()` и `dp_air::API_VERSION` равны версии W2 здесь (сейчас 2); тест сверяет с заголовками этого файла (как `test_air_contracts.gd`: `CONTRACTS` против заголовков `## Wn … (vK)`).
 
 ## W1. Соглашения (v2)
 Владелец — координатор. Потребители — все слои.
@@ -85,7 +85,7 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 2}, {"id": "W3",
 ## W3. Класс `DpAir` (gdext, крейт `dp-gd`) (v2)
 Владелец — RW-4 (каркас, заглушка `Calm`), RW-6…12 (наполнение). Потребитель — фасад (реализация `rust`), контрактные тесты.
 - `class DpAir extends RefCounted` (один объект на игру; создаёт фасад). Методы — как W2 с теми же именами, кодами и семантикой, только типы Godot без `Dictionary`/`Object` в горячем пути:
-  - `api_version() -> int` (= 1); `last_error() -> String`; `state() -> int`; `progress() -> float`; `time_s() -> float`;
+  - `api_version() -> int` (= версии W2, сейчас 2); `last_error() -> String`; `state() -> int`; `progress() -> float`; `time_s() -> float`;
   - `configure(configs_json: PackedStringArray /* пары имя, текст */, seed: int) -> int` — имена: `atmosphere`, `weather_model`, `surface_heat`, `weather/<имя>`;
   - `load_place(header_json: String, heights: PackedFloat32Array, water: PackedByteArray, surface_cls: PackedByteArray, surface_moist: PackedFloat32Array) -> int` (W5), `unload_place()`;
   - v2: `add_baked_field(header_json: String, data: PackedByteArray) -> int` — запечённое поле места (W5 v4, формат TI-К3 v3) сразу после `load_place`, до READY (позже — BAD_INPUT); `set_cache_dir(path: String) -> int` — каталог кеша полей реализации (абсолютный путь; фасад даёт `ProjectSettings.globalize_path("user://air_cache")`), крейт сам читает и пишет туда свои файлы (запись — временный файл и переименование); пусто — без кеша;
@@ -101,8 +101,8 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 2}, {"id": "W3",
 ## W4. Трейт `AirModel` (крейт `dp-air`, без Godot) (v3)
 Владелец — RW-4 (трейт, `Calm`), RW-6…12 (`Formula`), живой воздух (`Live`). Потребители — `dp-gd`, стенд RW-5, `cargo test`, `cargo bench`. Трейт, типы, порядок команд, структуры описаний — `docs/contracts/rust-wind/trait.md`.
 
-## W5. Вход: место, конфиги, условия (v6)
-Владелец — RW-2 (сборка `AirPlaceData`), RW-4 (разбор в крейте). Потребители — W2–W4, фикстуры W8. `AirPlaceData`, конфиги, условия и история версий v2–v6 — `docs/contracts/rust-wind/input.md`.
+## W5. Вход: место, конфиги, условия (v7)
+Владелец — RW-2 (сборка `AirPlaceData`), RW-4 (разбор в крейте). Потребители — W2–W4, фикстуры W8. `AirPlaceData`, конфиги, условия и история версий v2–v7 — `docs/contracts/rust-wind/input.md`.
 
 ## W6. Описания — найденное, а не заданное (v3)
 Владелец — RW-2 (из текущего кода), RW-10/RW-11 (из крейта). Поля, шаги `CORE_STRIDE`/`CLOUD_STRIDE`/`CREST_STRIDE`, растр облаков, гребни и инвариант найденного ядра — `docs/contracts/rust-wind/descriptions.md`.
@@ -117,7 +117,7 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 2}, {"id": "W3",
 ## W8. Фикстуры T1 и допуски (v1)
 Владелец — RW-1 (снимает на текущем коде до правок атмосферы), RW-2 (второй набор — по слагаемым W7). Потребители — `cargo test` (RW-6…12), GDScript-тесты T7. Формат фикстур `tests/fixtures/wind/`, допуски T1 по величинам (решение вопроса 3 плана) и пороги скорости — `docs/contracts/rust-wind/fixtures-tolerances.md`.
 
-## W9. Workspace, сборка, поставка (v1)
+## W9. Workspace, сборка, поставка (v2)
 Владелец — RW-4. Потребители — все задачи крейта, `tools/build.sh`, главная сессия (сборка). Опора — только проба `tools/research/rust_ext/gdext_probe/` (README, `run.sh`, крейт, минимальный проект; уточнение пользователя 2026-10-26); правила крейта — R3 v4 picard-rs (без asm/интринсиков, `multiversion`, f32 в расчёте и f64 в редукциях, `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`).
 - `rust/Cargo.toml` — workspace: `dp-air` (lib, без Godot), `dp-gd` (`cdylib`, `godot = "0.5.5"`, фича `api-4-7`), Пикар из `tools/research/air_cascade/picard_rs/` (переносится, история — `git mv`; исследовательские CLI и тесты сохраняются). В `rust/` — `.gdignore`.
 - **Профили** (решение пользователя 2026-10-26):
@@ -126,9 +126,9 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 2}, {"id": "W3",
   - `release` — только выпуск: `opt-level = 3`, `lto = "fat"`, `codegen-units = 1`, `panic = "abort"`.
 - `.gdextension` — `res://addons/dp_air/dp_air.gdextension`, `compatibility_minimum = "4.7"`, ключи: `linux.debug.x86_64` → библиотека `tune`, `linux.release.x86_64` → `release`; Windows и macOS — так же (`windows.*.x86_64`, `macos.*` универсальный). Бинарники — `res://addons/dp_air/bin/` (в `.gitignore`), кладёт `tools/build.sh` (или `tools/build_rust.sh tune|release`), в git не идут. Редакторный бинарь Godot берёт ключ `debug` (грабли пробы).
 - `tools/build.sh <ОС>` для выпуска собирает `release` под ОС до экспорта; игра в разработке и тесты — `tune`. Windows с Linux — `cargo-xwin` или `cargo-zigbuild` (выбор и проверка — RW-4); macOS — сборка с Linux, если выйдет, иначе вопрос пользователю (шлюз); запуск на Mac — у друга.
-- Нет бинарника под ОС → фасад берёт `air.backend = gd` и пишет в журнал «dp_air: нет расширения, ветер на GDScript» (до RW-13); после RW-13 — экран ошибки, не вылет.
+- Нет бинарника под ОС → поле Пикара не считается (как отказ поля: ветер без поля — аналитика и прочие слагаемые), журнал «dp_air: нет расширения, ветер без поля» (до RW-13, v2: прежний запасной `air.backend = gd` убран вместе с переключателем); после RW-13 — экран ошибки, не вылет.
 - Первый `--import` проекта с расширением падает (грабли пробы) — скрипты и тесты импортируют дважды.
-- Дымовой тест поставки: экспортированная сборка Linux, headless, временный профиль: расширение загрузилось, `DpAir.api_version() == 1`, на месте после READY ветер ≠ 0.
+- Дымовой тест поставки: экспортированная сборка Linux, headless, временный профиль: расширение загрузилось, `DpAir.api_version()` = версии W2, на месте после READY ветер ≠ 0.
 
 ## W10. Чистота границы (v1)
 Владелец — RW-2 (тест), RW-3 (перевод потребителей). Тест T7 в `tests/contracts/test_rust_wind_contracts.gd`.
@@ -137,7 +137,7 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 2}, {"id": "W3",
 - Список файлов реализации тест держит явным (RW-2 фиксирует); новый файл реализации — правка теста и W10 через координатора.
 - Тесты в `tests/` под запрет не подпадают, но тесты поведения через `Atmosphere` после RW-3 пользуются фасадом (T7).
 
-## W11. Решатель Пикара в крейте (v8)
+## W11. Решатель Пикара в крейте (v9)
 Владелец — RW-6g, RW-6h. Потребители — RW-6j, RW-6n, фазы RW-6k–6m. R6 v3 + заморозка колонн, отмена, `AllFrozen`/`Cancelled` — `docs/contracts/rust-wind/solver.md`.
 
 ## История
@@ -159,3 +159,6 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 2}, {"id": "W3",
 - W11 v7 (2026-10-26, RW-6n) — граница от родителя (`Case.nest`) и старт окна (`SolveOpts.init_cycles`). Потребители: RW-6n, RW-6o.
 - W5 v6 (2026-10-26, ревью RW-6t) — `start_sites[].id/weather`, `header.data_hash`; выбор запечённого как `baked_lookup`; W5 вынесен в `rust-wind/input.md`. W11 v8 — отмена до вызова всегда `Cancelled`. Потребители: RW-7 (фасад и разбор в крейте).
 - W2 v2 (2026-10-26, итог RW-3a) — `status().stage/field_on`, `place_from_terrain`, порядок переименования `weather`, переходные входы. Потребители: RW-3b, RW-3c, RW-7.
+- W11 v9, W5 v7 (2026-10-27, итог RW-6q, решение пользователя о таймауте) — стенки и клетки земли обнуляются при тёплом старте как `K_BC`; `loc.climate_lag` (климат на дату сдвига воды); `air.timeout_s` удалён — поле в крейте без предела по времени. Потребители: RW-6v (крейт, фасад, места фикстур), RW-6q (T1), RW-7.
+- Уточнение W1/W3 без смены версии (2026-10-27, RW-0f): `WIND_API_VERSION`, `api_version()`, `API_VERSION` = версии W2 (2 с W2 v2), не 1 — так требовало и правило W1 «равны версии W2». Потребители: RW-0f (крейт, dp-gd), RW-3a (константы фасада и `CalmAir`).
+- W9 v2, уточнение W1 (2026-10-27, решение пользователя: переключатель `gd | rust` убран) — поле в игре только из крейта (RW-7); нет расширения — ветер без поля, не запасной GD-расчёт. Потребители: RW-7, RW-3a/3c (тесты фасада).

@@ -1,0 +1,43 @@
+{
+  "verdict": "accept",
+  "summary": "Потребители переведены на фасад W2, сеть воздуха удалена, скоуп чист, W10 сужен без ослабления (шаблоны привязаны к получателю air/atmo). Остаточные отклонения от W2 согласованы координатором и отражены в отчёте.",
+  "issues": [
+    {
+      "file": "scenes/main.gd",
+      "line": 1282,
+      "severity": "major",
+      "what": "--net-hide-remote ставит air.focus_node, игра его больше не читает: флаг молча не действует (вне скоупа, в отчёте указано).",
+      "fix": "Передать координатору: game.air_focus_node = focus в scenes/main.gd и tools/terrain/*/air_check_run.gd (RW-3c или отдельная задача)."
+    },
+    {
+      "file": "scripts/game/game.gd",
+      "line": 601,
+      "severity": "minor",
+      "what": "В set_focuses уходит только игрок; боты и игроки сети не передаются (W2 требует их дальше индекса 0).",
+      "fix": "Добавить в RW-3b/3c или отдельным шагом до удаления переходных focus_node/set_focus."
+    },
+    {
+      "file": "scripts/net/net_messages.gd",
+      "line": 128,
+      "severity": "minor",
+      "what": "Поля thermalSources/cloudField остаются в схеме и net.proto/net-protocol.md (вне скоупа), мёртвый протокол.",
+      "fix": "Убрать вместе с документом и test_doc_examples_round_trip отдельной задачей."
+    },
+    {
+      "file": "scripts/game/calm_air.gd",
+      "line": 1,
+      "severity": "minor",
+      "what": "Запасной воздух получил реальные пробы (ветер/термики) вместо нулей W4; в игре не запускался.",
+      "fix": "Один ручной прогон game.json air.script=CalmAir."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "test_rust_wind_purity (accept --dry)",
+      "value": "2/2, scope 23 файла",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-26T11:55:36",
+  "by": "reviewer"
+}

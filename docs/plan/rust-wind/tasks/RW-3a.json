@@ -75,10 +75,6 @@
       "tests": "test_rust_wind_purity"
     },
     {
-      "name": "tests/",
-      "tests": "tests/"
-    },
-    {
       "name": "fixtures_unchanged",
       "cmd": "tools/wind_fixtures/verify.sh",
       "expect": "exit=0"
@@ -87,9 +83,15 @@
       "name": "baseline_scope_empty",
       "cmd": "grep -E '^scripts/(game|flight|glider|world_objects|terrain|instruments|net)/' tests/contracts/rust_wind_purity_baseline.txt | grep -vE 'debug_overlays|terrain_wind|terrain_preview|world_objects_preview' | wc -l",
       "expect": "num:(\\d+) <=0"
+    },
+    {
+      "name": "tests_vs_base",
+      "cmd": "tools/tests_vs_base.sh --base feature/rust-wind -j 8",
+      "expect": "re:новых падений: 0"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-26T05:29:48"
+  "created": "2026-10-26T05:29:48",
+  "edited": "2026-10-27T03:53:36"
 }

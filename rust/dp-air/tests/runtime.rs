@@ -1139,8 +1139,6 @@ fn constants_match_gdscript_and_configs() {
     assert_eq!(cfg.step_min, n("/air_model/recompute_game_min"));
     assert_eq!(cfg.blend_s, n("/air_model/blend_s"));
     assert_eq!(cfg.edge_blend_cells, n("/air_model/edge_blend_cells"));
-    assert_eq!(cfg.timeout_s, n("/air/timeout_s"));
-    assert_eq!(cfg.timeout_s, 180.0);
     assert_eq!(cfg.limits.max_speed, n("/air_model/max_speed_ms"));
     assert_eq!(cfg.limits.max_w, n("/air_model/max_w_ms"));
     assert_eq!(cfg.omega_after as f64, n("/air_phase/omega/fallback_iters"));

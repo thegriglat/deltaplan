@@ -23,6 +23,13 @@
 			"tx_c": 19.4455805653574,
 			"z_cell_m": 1443.1666
 		},
+		"climate_lag": {
+			"dtr_k": 11.6970167385513,
+			"has_hh1": true,
+			"has_hh5": true,
+			"tx_c": 18.5918075844407,
+			"z_cell_m": 1443.1666
+		},
 		"day": 15,
 		"id": "ongudai",
 		"month": 7,

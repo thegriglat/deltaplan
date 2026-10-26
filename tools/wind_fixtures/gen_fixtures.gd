@@ -181,7 +181,8 @@ func _synthetic_ctx() -> Dictionary:
 	var pd := {
 		loc = {
 			id = "synthetic", center_lat = 51.5, center_lon = 86.5, utc_offset_h = 6.0,
-			month = MONTH, day = DAY, climate = _climate(51.5, 86.5),
+			month = MONTH, day = DAY, climate = _climate(51.5, 86.5, MONTH, DAY),
+			climate_lag = _climate_lag(51.5, 86.5),
 		},
 		grid = {origin_x = SYN_ORIGIN_X, origin_z = SYN_ORIGIN_Z, spacing = 25.0, width = SYN_N, height = SYN_N},
 		start_sites = [{x = centre.x, z = centre.z, h_msl = AtmoFingerprint.height(centre.x, centre.z)}],
@@ -219,6 +220,17 @@ func _climate(lat: float, lon: float, month: int = MONTH, day: int = DAY) -> Dic
 		has_hh1 = String(src.hh1) != "none",
 		has_hh5 = String(src.hh5) != "none",
 	}
+
+
+## Климат воды (W5 v7, loc.climate_lag): та же ячейка на дату MONTH/DAY − round(water.lag_days) с
+## переходом через год, как SurfaceHeat.water_temp_c (и AirPlaceData.fill_climate).
+func _climate_lag(lat: float, lon: float) -> Dictionary:
+	var lag := int(round(float(SurfaceHeat.config().get("water", {}).get("lag_days", 30.0))))
+	var doy := SunClock.day_of_year(MONTH, DAY) - lag
+	if doy < 1:
+		doy += 365
+	var md := SurfaceHeat._month_day(doy)
+	return _climate(lat, lon, md.x, md.y)
 
 
 func _ongudai_ctx() -> Dictionary:
@@ -259,7 +271,8 @@ func _ongudai_ctx() -> Dictionary:
 	var loc: Dictionary = (place.loc as Dictionary).duplicate()
 	loc.month = MONTH
 	loc.day = DAY
-	loc.climate = _climate(float(loc.center_lat), float(loc.center_lon))
+	loc.climate = _climate(float(loc.center_lat), float(loc.center_lon), MONTH, DAY)
+	loc.climate_lag = _climate_lag(float(loc.center_lat), float(loc.center_lon))
 	var pd := {
 		loc = loc,
 		grid = {origin_x = detail.origin_x, origin_z = detail.origin_z, spacing = detail.spacing, width = detail.width, height = detail.height},
