@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-10-26"
 summary: "Граница ветра в Rust: фасад Atmosphere, DpAir (gdext), трейт dp-air, место, описания, разложение, допуски, сборка, чистота."
 related: ["docs/plan/rust-wind.md", "docs/contracts/picard-rs.md", "docs/plan/rust-air-integration.md", "docs/plan/rust-ext.md", "docs/plan/air-cascade.md", "tools/research/rust_ext/gdext_probe/README.md", "docs/contracts/rust-wind/fixtures-tolerances.md", "docs/contracts/rust-wind/descriptions.md", "docs/contracts/rust-wind/solver.md", "docs/contracts/rust-wind/trait.md"]
-contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 1}, {"id": "W3", "version": 2}, {"id": "W4", "version": 2}, {"id": "W5", "version": 4}, {"id": "W6", "version": 3}, {"id": "W7", "version": 1}, {"id": "W8", "version": 1}, {"id": "W9", "version": 1}, {"id": "W10", "version": 1}, {"id": "W11", "version": 3}]
+contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 1}, {"id": "W3", "version": 2}, {"id": "W4", "version": 2}, {"id": "W5", "version": 4}, {"id": "W6", "version": 3}, {"id": "W7", "version": 1}, {"id": "W8", "version": 1}, {"id": "W9", "version": 1}, {"id": "W10", "version": 1}, {"id": "W11", "version": 4}]
 ---
 
 # Контракты модуля rust-wind
@@ -151,7 +151,7 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 1}, {"id": "W3",
 - Список файлов реализации тест держит явным (RW-2 фиксирует); новый файл реализации — правка теста и W10 через координатора.
 - Тесты в `tests/` под запрет не подпадают, но тесты поведения через `Atmosphere` после RW-3 пользуются фасадом (T7).
 
-## W11. Решатель Пикара в крейте (v3)
+## W11. Решатель Пикара в крейте (v4)
 Владелец — RW-6g, RW-6h. Потребители — RW-6j, RW-6n, фазы RW-6k–6m. R6 v3 + заморозка колонн, отмена, `AllFrozen`/`Cancelled` — `docs/contracts/rust-wind/solver.md`.
 
 ## История
@@ -166,3 +166,4 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 1}, {"id": "W3",
 - W11 v2 (2026-10-26, итог RW-6g) — равенство замороженных колонн полю заморозки — до `finalize`; `finalize` — как в игре, без маски.
 - W11 v3 (2026-10-26, постановка RW-6h) — запасные правила сходимости (`Fallback`, `NonConv`), флаги в `Solved`; `AllFrozen` при отмене до старта — с фоном.
 - W1 v2 (2026-10-26, постановка RW-6j) — детерминированный режим `air.deterministic`.
+- W11 v4 (2026-10-26, постановка RW-6r) — C_d стенки по столбцу (`Case.cd_col`); отсчёт порогов запасных правил как в игре.
