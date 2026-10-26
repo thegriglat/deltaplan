@@ -39,11 +39,8 @@ extends Node
 ## в воздухе — буксир к нему от старта (ждём его состояния до AUTO_CATCH_UP_WAIT_S после
 ## world_joined); на земле — ничего (стоим в очереди на старт).
 ##
-## Термики из поля воздуха (AM-07, docs/guide/air-model.md → «Масштаб 2: термики из поля»): поле у
-## каждого своё и чуть разное, а термики должны совпадать — раз в секунду (sync_thermal_sources)
-## ведущий отдаёт NetZone свои источники (столбцы поля, уходят с ZoneState), остальные ставят
-## их своей атмосфере (ThermalField.set_air_forced); сила, потолок и снос — по своему полю.
-## Новый ведущий переходит на свой выбор.
+## Воздух по сети не синхронизируется (решение пользователя 2026-10-25, W1): у каждого клиента
+## свой воздух от общей погоды, места и сида; общее — только время (world_dt → advance_to).
 ##
 ## zone/pilots — NetZone/NetPilots или объекты с теми же полями и методами (тесты).
 
@@ -71,10 +68,6 @@ const MAX_STEP_S := 2.0
 const CLOCK_WAIT_S := 5.0
 ## Сколько ждать состояний ведущего после входа, чтобы решить «догнать» его или нет, с.
 const AUTO_CATCH_UP_WAIT_S := 4.0
-## Как часто сверять источники термиков из поля с ведущим, с.
-const THERMAL_SYNC_S := 1.0
-## Шаг подтяжки поля облачности к снимку ведущего, с (CLF-К4): доля шага = шаг / оставшееся.
-const CLOUD_BLEND_STEP_S := 1.0
 
 ## Автоматический «догнать» ведущего при входе в зону (тесты могут выключить).
 var auto_catch_up := true
@@ -98,15 +91,6 @@ var _airborne := false
 var _joined := false  ## мир на часах зоны, боты поставлены — очередь ведём
 var _queue_k := -1  ## место в очереди, к которому шли в последний раз (−1 — не на старте)
 var _my_status := ""
-var _thermal_sync_t := 0.0
-var _was_leader := false
-var _cloud_send_t := 0.0  ## ведущий: до следующего снимка поля, с
-var _cloud_was_leader := false
-var _cloud_leader := ""  ## чей снимок уже принимали: смена ведущего — снимок целиком
-var _cloud_snap := PackedByteArray()  ## ждущий применения снимок
-var _cloud_left := 0.0  ## осталось подтягивать к нему, с
-var _cloud_step_t := 0.0
-var _cloud_hooked := false
 
 
 ## p_zone/p_pilots — null: автозагрузки NetZone/NetPilots.
@@ -228,97 +212,10 @@ func _process(_dt: float) -> void:
 		send_local()
 	feed_remote()
 	update_queue()
-	_thermal_sync_t -= _dt
-	if _thermal_sync_t <= 0.0:
-		_thermal_sync_t = THERMAL_SYNC_S
-		sync_thermal_sources()
-	sync_cloud_field(_dt)
 	var any := friends_airborne()
 	if any != _airborne:
 		_airborne = any
 		airborne_changed.emit(any)
-
-
-## Источники термиков из поля: ведущий — свои в NetZone, остальные — от ведущего в атмосферу.
-func sync_thermal_sources() -> void:
-	var air: Atmosphere = game.air as Atmosphere if game != null and is_instance_valid(game) else null
-	if air == null or air.field == null or not zone.has_method("set_thermal_sources"):
-		return
-	var tf: ThermalField = air.field
-	if zone.is_leader():
-		if not _was_leader and tf.air_forced_sig != "":
-			tf.set_air_forced("", PackedByteArray())  # стал ведущим — свой выбор
-		_was_leader = true
-		var m := tf.air_sources_mask()
-		zone.call("set_thermal_sources", String(m.get("sig", "")), m.get("mask", PackedByteArray()))
-		return
-	_was_leader = false
-	var ts: Dictionary = zone.get("thermal_sources")
-	var sig := String(ts.get("grid", ""))
-	var mask := Marshalls.base64_to_raw(String(ts.get("mask", ""))) if sig != "" else PackedByteArray()
-	if sig != tf.air_forced_sig or mask != tf.air_forced:
-		tf.set_air_forced(sig, mask)
-
-
-## Поле облачности (CLF-К4): ведущий шлёт снимок раз в net_interval_s, при входе пилота и при
-## вступлении в должность; остальные тянут своё поле к снимку за net_blend_s, шагами по
-## CLOUD_BLEND_STEP_S (первый снимок от этого ведущего — целиком).
-func sync_cloud_field(dt: float) -> void:
-	var air: Atmosphere = game.air as Atmosphere if game != null and is_instance_valid(game) else null
-	if air == null or air.field == null or air.field.cloud_phys == null:
-		return
-	var cp: CloudPhysics = air.field.cloud_phys
-	if cp.field == null or not zone.has_method("set_cloud_field"):
-		return
-	if not _cloud_hooked and zone.has_signal("cloud_field_received"):
-		_cloud_hooked = true
-		zone.connect("cloud_field_received", _on_cloud_field)
-	var cfg: Dictionary = Config.get_config("atmosphere").get("cloud_field", {})
-	if zone.is_leader():
-		_cloud_snap = PackedByteArray()
-		_cloud_send_t -= dt
-		var wanted: bool = bool(zone.get("cloud_field_wanted"))
-		if cp.field.nx > 0 and (_cloud_send_t <= 0.0 or wanted or not _cloud_was_leader):
-			_cloud_send_t = maxf(float(cfg.get("net_interval_s", 30.0)), 1.0)
-			zone.set("cloud_field_wanted", false)
-			zone.call("set_cloud_field", cp.field.snapshot())
-		_cloud_was_leader = true
-		return
-	_cloud_was_leader = false
-	if _cloud_snap.is_empty():
-		return
-	_cloud_step_t -= dt
-	if _cloud_step_t > 0.0:
-		return
-	var step := CLOUD_BLEND_STEP_S
-	var k := 1.0 if _cloud_left <= step else step / _cloud_left
-	if cp.take_net_rejected():
-		_cloud_snap = PackedByteArray()  # задача отвергла: чужая сетка/версия — поле своё
-		_cloud_leader = ""
-		return
-	var r := cp.apply_net_snapshot(_cloud_snap, k)
-	if r == CloudPhysics.Net.BUSY:
-		return  # прежний шаг подтяжки ещё не взят задачей — на следующем кадре
-	if r == CloudPhysics.Net.REJECTED:
-		_cloud_snap = PackedByteArray()  # поле ещё без сетки
-		_cloud_leader = ""  # ведущего «не принимали»: следующий снимок — целиком
-		return
-	_cloud_step_t = step
-	_cloud_left -= step
-	if _cloud_left <= 0.0:
-		_cloud_snap = PackedByteArray()
-
-
-func _on_cloud_field(data: PackedByteArray) -> void:
-	var cfg: Dictionary = Config.get_config("atmosphere").get("cloud_field", {})
-	var lid := String(zone.get("leader_id"))
-	_cloud_snap = data
-	_cloud_step_t = 0.0
-	if lid != _cloud_leader:  # первый снимок от этого ведущего (поздний вход, смена) — целиком
-		_cloud_leader = lid
-		_cloud_left = 0.0
-	else:
-		_cloud_left = maxf(float(cfg.get("net_blend_s", 10.0)), CLOUD_BLEND_STEP_S)
 
 
 ## Своё состояние — в NetPilots (уходит 10 Гц).
@@ -551,30 +448,28 @@ static func colors_for(pilot_name: String) -> Variant:
 	}
 
 
-## Сводка мира для сверки двух машин (отладка, кадры): время зоны и мира, час, термики с
-## облаками в radius_m от точки (id, место, сила, стадия облака), по id.
+## Сводка мира для сверки двух машин (отладка, кадры): время зоны и мира, час, ядра подъёма
+## (cores, W6) в radius_m от точки: место и сила, по id. Воздух у клиентов свой — расхождение
+## ядер между машинами ожидаемо.
 func world_summary(at: Vector3, radius_m: float = 6000.0) -> String:
 	var air := game.air
 	var out := "zone_t=%.2f world_t=%.2f hour=%.4f" % [
 		float(zone.zone_time()), game.world_time(), game.sky.clock.hour
 	]
-	if not ("field" in air) or air.get("field") == null:
+	if air == null or not air.has_method("cores"):
 		return out
-	var t := game.world_time()
-	var ths: Dictionary = air.field.thermals
-	var ids: Array = ths.keys()
-	ids.sort()
+	var d: PackedFloat32Array = air.call("cores", at, radius_m)
+	var stride := Atmosphere.CORE_STRIDE
 	var rows: PackedStringArray = []
-	for id: int in ids:
-		var th: AtmoThermal = ths[id]
-		th.update_time(t)
-		var g := Vector2(th.src.x + th.drift.x, th.src.z + th.drift.y)
-		if g.distance_to(Vector2(at.x, at.z)) > radius_m:
-			continue
-		var st: Vector3 = air.cloud_phys.model.stage(th, t)
-		var cb := "Cb" if th.is_cb else ""
-		rows.append("%d@%.0f,%.0f s%.2f c%.2f%s" % [id, g.x, g.y, th.strength, st.x, cb])
-	return "%s thermals=%d [%s]" % [out, rows.size(), "; ".join(rows)]
+	for k in range(0, d.size() - stride + 1, stride):
+		var cb := "Cb" if (int(d[k + Atmosphere.CORE_FLAGS]) & 4) != 0 else ""
+		rows.append(
+			"%d@%.0f,%.0f w%.2f%s" % [
+				int(d[k + Atmosphere.CORE_ID]), d[k + Atmosphere.CORE_X], d[k + Atmosphere.CORE_Z],
+				d[k + Atmosphere.CORE_W], cb,
+			]
+		)
+	return "%s cores=%d [%s]" % [out, rows.size(), "; ".join(rows)]
 
 
 func _my_name() -> String:

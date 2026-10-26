@@ -197,9 +197,12 @@ func _same(a: Variant, b: Variant) -> bool:
 	return ok
 
 
-func test_zone_state_cloud_field() -> void:
-	var data := {"clock": 5.0, "queue": ["a"], "cloudField": {"data": Marshalls.raw_to_base64(PackedByteArray([1, 2, 3, 255]))}}
-	var m := NetMessages.decode(NetMessages.encode("zoneState", data))
-	check(m.data.cloudField.data == data.cloudField.data, "снимок поля облачности туда-обратно")
-	var plain := NetMessages.decode(NetMessages.encode("zoneState", {"clock": 1.0, "queue": []}))
-	check(plain.data.get("cloudField") == null, "без снимка — null, не пустая заглушка")
+func test_zone_state_has_no_air() -> void:
+	# воздух по сети не ходит (W1): ZoneState — часы и очередь; чужие ключи пропускаются молча
+	var zs: Dictionary = NetMessages.MESSAGES.get("ZoneState", {})
+	check(zs.keys() == ["clock", "queue"], "ZoneState: clock, queue (%s)" % [zs.keys()])
+	var wire := '{"zoneState": {"clock": 5.0, "queue": ["a"], "cloudField": {"data": "AQID/w=="}}}'
+	var m := NetMessages.decode(wire)
+	check(m.type == "zoneState" and m.data.clock == 5.0 and m.data.queue == ["a"], "ZoneState разобран")
+	check(not m.data.has("cloudField"), "старый ключ cloudField пропущен")
+
