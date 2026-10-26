@@ -53,6 +53,10 @@ pub struct PlaceHeader {
     pub grid: Grid,
     pub surface_classes: BTreeMap<String, u8>,
     pub start_sites: Vec<StartSite>,
+    /// Хеш кода модели воздуха игры (W5 v5): запечённые поля и кеш берутся, только если он
+    /// совпал со своим в файле; пусто (нет ключа) — ни запечённые, ни кеш не используются.
+    #[serde(default)]
+    pub model_hash: String,
 }
 
 impl PlaceHeader {

@@ -19,18 +19,46 @@
 //! Проход 1 упёрся в `MAX_OUTER` итераций или `k` не изменился — прохода 2 нет. Проход ≥ 2 не
 //! удался — подаётся поле прошлого прохода. Режим `Inflow` и пересчёт в полёте — один проход.
 //!
+//! ## Фазы (RW-6t, `_after_phases`/`_start_picard`)
+//! После сборки уровня на каждом проходе — [`assemble`] (фазы 1–3): маски и поля заморозки колонн
+//! (`freeze` для решения с нагревом, `freeze_mech` для без нагрева), `nonconv` в запасных правилах
+//! обоих решений. Старт решений — как в игре: прошлое поле пары, грубый шаг, иначе фон; `warm` фаз
+//! в игре Пикару стартом не служит (только внутри `nonconv`) и здесь не используется. Карта ω
+//! (`omega.use_map`, в игре выключена) не подаётся. Все колонны заморожены в обоих вариантах —
+//! грубый шаг пропускается (`all_mech`), Пикар возвращает поле заморозки без итераций. Отказ фаз —
+//! заметка и Пикар без них.
+//!
+//! ## Запечённые поля и кеш (RW-6t, `load_field`)
+//! Только загрузка (`loading`), порядок как в игре: запечённое (`add_baked_field`) → кеш
+//! (`set_cache_dir`) → расчёт; запись в кеш — после готового поля, в пуле, после подачи. Нужен
+//! `header.model_hash` места (пусто — ни то ни другое). Площадка старта — из `start_sites` в
+//! пределах 1 м от первого фокуса; набор погоды и хеш данных места берутся из `key` самого файла
+//! (в W5 у `StartSite` нет id и погоды, хеш данных — дело фасада). Попадание — уровни из файла,
+//! `Ready` без Пикара; промах — причина в `JobReport.notes`.
+//!
+//! ## Отмена (W11 v6, W1 «≤ 1 с»)
+//! Флаг отмены проверяется между стадиями подготовки ([`build_level`]: погода, вход области, случай,
+//! `prepare`, случай решателя), после фаз, перед каждым решением и внутри `picard_rs` (сборка
+//! уровней многосетки, V-циклы старта, каждая итерация, финальная проекция). Не прерываются:
+//! сборка фаз (до ~0,15 с на release, ~0,7 с на `-O0`) и сами шаги стадий; `Formula` ждёт задачу
+//! не дольше `JOIN_LIMIT` (0,5 с) и отпускает её сменой поколения места.
+//!
 //! ## Границы модели
-//! - Окон 100/50 м нет (RW-6n/6o): `U` над стартом берётся с уровня 400 м (в игре — с окон).
-//! - Фаз нет (RW-6k–6m): заморозки колонн и `nonconv` нет; место — [`phase_hook`] (TODO(RW-6m)).
-//! - Запечённые поля и кеш — [`baked_hook`] (TODO(RW-6p)).
+//! - Окон 100/50 м в расчёте нет (RW-6n/6o): `U` над стартом берётся с уровня 400 м (в игре — с
+//!   окон); запечённое поле их несёт.
 //! - Область — квадрат вокруг (0, 0), `domain_l_m` (по умолчанию 38,4 км); место меньше —
 //!   область сжимается до помещающейся (кратно `dx·coarse_factor`), меньше 12 клеток — отказ.
 //! - Климат места — из `weather_model.json` (`typical_max_c`, `diurnal.range_k`), как GD без
 //!   сеток ERA5: `Loc.climate` (W5 v3) в заголовке пока не разбирается (`place.rs`).
 //! - Время решения ограничено `timeout_s` на проход (остановка по бюджету — отказ прохода).
+use super::baked::{BakedField, BakedQuery, Cond, FORMAT, VERSION, baked_lookup, parse_baked};
 use super::case_build::{SolverCfg, build_solver_case};
 use super::case_prepare::{AirCaseRs, CaseOpts, PreparedPlanes, build_case};
+use super::field_cache::{FieldCache, Miss};
 use super::field_set::FieldSet;
+use super::phase::assembly::{PhaseResult, assemble};
+use super::phase::config::PhaseCfg;
+use super::phase::prepare::PhaseCase;
 use super::place_input::{ZiCfg, build_domain_input};
 use super::weather_core::{
     Climate, ClimateCell, Domain, WeatherConfigs, WeatherInputs, field_weather, monthly,
@@ -38,12 +66,13 @@ use super::weather_core::{
 use super::wind_field::{Field, FieldGrid, FieldMeta, Limits, Z0};
 use crate::level::{Level, prolong_state};
 use crate::{Conditions, Configs, Error, InflowMode, LocClimate, Place};
-use picard_rs::api::{Fallback, SolveOpts, Solved, StopReason, solve};
+use picard_rs::api::{Fallback, Freeze, NonConv, SolveOpts, Solved, StopReason, solve};
 use picard_rs::case::Case;
 use picard_rs::state::State;
-use serde_json::Value;
-use std::sync::Arc;
+use serde_json::{Map, Value, json};
+use sha2::{Digest, Sha256};
 use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
+use std::sync::{Arc, OnceLock};
 use std::time::{Duration, Instant};
 
 pub use picard_rs::api::StopReason as Stop;
@@ -125,6 +154,8 @@ pub struct Faults {
     pub coarse: bool,
     /// Решение прохода с этим номером (с 1) не удаётся (откат на прошлый проход).
     pub fail_pass: Option<usize>,
+    /// Фазы не считаются: Пикар без заморозки и `nonconv` (сравнение итераций в тестах).
+    pub no_phase: bool,
 }
 
 /// Всё, что оркестровке нужно из конфигов.
@@ -154,6 +185,14 @@ pub struct RtCfg {
     pub wc: WeatherConfigs,
     pub climate: TableClimate,
     pub faults: Faults,
+    /// Блок `air_phase` (фазы поля).
+    pub phase: PhaseCfg,
+    /// Шаги окон `window_levels_m` (ключ запечённого поля).
+    pub window_dx: Vec<f64>,
+    /// Предел кеша, байт (`air_cache.max_mb`; 0 — кеш выключен).
+    pub cache_max_bytes: u64,
+    /// Хеш текстов конфигов (ключ кеша).
+    pub configs_hash: String,
 }
 
 fn find<'a>(c: &'a Configs, name: &str) -> Option<&'a str> {
@@ -181,6 +220,26 @@ fn nums(v: &Value, ptr: &str) -> Vec<f64> {
         .and_then(Value::as_array)
         .map(|a| a.iter().filter_map(Value::as_f64).collect())
         .unwrap_or_default()
+}
+
+/// Хеш всех конфигов: имена и тексты (16 hex sha256).
+fn configs_hash(c: &Configs) -> String {
+    let mut h = Sha256::new();
+    for (n, t) in &c.files {
+        h.update((n.len() as u64).to_le_bytes());
+        h.update(n.as_bytes());
+        h.update((t.len() as u64).to_le_bytes());
+        h.update(t.as_bytes());
+    }
+    hex16(h)
+}
+
+fn hex16(h: Sha256) -> String {
+    h.finalize()
+        .iter()
+        .take(8)
+        .map(|b| format!("{b:02x}"))
+        .collect()
 }
 
 /// Число потоков: `0` — все ядра минус одно, не меньше одного.
@@ -251,6 +310,10 @@ impl RtCfg {
                 dtr_k: dtr,
             },
             faults: Faults::default(),
+            phase: PhaseCfg::from_configs(c)?,
+            window_dx: nums(&atm, "/air_model/window_levels_m"),
+            cache_max_bytes: (num(&atm, "/air_cache/max_mb", 200.0).max(0.0) * 1048576.0) as u64,
+            configs_hash: configs_hash(c),
         })
     }
 
@@ -457,17 +520,227 @@ pub fn coarse_domain(fine: &Domain, factor: usize) -> Domain {
     }
 }
 
-// ---------------------------------------------------------------- ловушки для следующих задач
+// ---------------------------------------------------------------- запечённые поля
 
-/// TODO(RW-6m): фазы дают маски заморозки колонн, поле механизма и `nonconv`; пока их нет —
-/// `freeze = None`, запасные правила без `nonconv`.
-fn phase_hook(_fine: &AirCaseRs) -> Option<picard_rs::api::Freeze> {
-    None
+/// Запечённое поле места, принятое `add_baked_field`: данные как есть, из заголовка прочитано
+/// только то, по чему выбирают файл (полный разбор — когда поле подошло).
+#[derive(Clone, Debug)]
+pub struct BakedEntry {
+    pub location: String,
+    pub site: String,
+    pub model_hash: String,
+    pub key: Value,
+    pub header: String,
+    pub data: Arc<Vec<u8>>,
 }
 
-/// TODO(RW-6p): запечённое поле места и кеш диска — подавать вместо расчёта.
-fn baked_hook(_place: &Place, _rec: &CondRec) -> Option<Vec<Field>> {
-    None
+impl BakedEntry {
+    /// Заголовок TI-К3 v3 и тело `.bin`; неразборчивый заголовок, чужой формат — `BadInput`.
+    pub fn new(header_json: &str, data: &[u8]) -> Result<Self, Error> {
+        let bad = |m: String| Error::bad_input(format!("baked field: {m}"));
+        let v: Value = serde_json::from_str(header_json).map_err(|e| bad(e.to_string()))?;
+        if v.get("format").and_then(Value::as_str) != Some(FORMAT)
+            || v.get("version").and_then(Value::as_f64) != Some(VERSION as f64)
+        {
+            return Err(bad("not a dp-air-baked v1 header".into()));
+        }
+        let text = |k: &str| {
+            v.get(k)
+                .and_then(Value::as_str)
+                .unwrap_or_default()
+                .to_string()
+        };
+        if data.is_empty() {
+            return Err(bad("empty data".into()));
+        }
+        Ok(BakedEntry {
+            location: text("location"),
+            site: text("site"),
+            model_hash: text("model_hash"),
+            key: v.get("key").cloned().unwrap_or(Value::Null),
+            header: header_json.to_string(),
+            data: Arc::new(data.to_vec()),
+        })
+    }
+
+    /// Начало старта из `key.start` (x, z).
+    fn start(&self) -> Option<[f64; 2]> {
+        let a = self.key.get("start")?.as_array()?;
+        Some([a.first()?.as_f64()?, a.get(1)?.as_f64()?])
+    }
+}
+
+/// Запись для кеша: делается в пуле после подачи поля.
+#[derive(Debug)]
+pub struct CachePut {
+    pub cache: FieldCache,
+    pub key: Value,
+    pub model_hash: String,
+    pub field: BakedField,
+    pub extra: Map<String, Value>,
+}
+
+impl CachePut {
+    /// Записывает; ошибка диска — не ошибка поля, текст возвращается.
+    pub fn run(self) -> Option<String> {
+        self.cache
+            .put(&self.key, &self.model_hash, &self.field, &self.extra)
+            .err()
+            .map(|e| e.msg)
+    }
+}
+
+/// Откуда поле.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Source {
+    Computed,
+    Baked,
+    Cache,
+}
+
+fn hypot2(a: [f64; 2], b: [f64; 2]) -> f64 {
+    (a[0] - b[0]).hypot(a[1] - b[1])
+}
+
+/// Выбор запечённого поля под условия (`baked_lookup` GDScript): `Ok(Some)` — подошло, `Err` — причина.
+fn pick_baked(job: &JobIn) -> Result<BakedField, String> {
+    let h = job.place.header();
+    if job.baked.is_empty() {
+        return Err(String::new());
+    }
+    if h.model_hash.is_empty() {
+        return Err("у места нет model_hash".into());
+    }
+    let Some(f) = job.focus else {
+        return Err("нет точки старта".into());
+    };
+    let f = [f[0] as f64, f[1] as f64];
+    let Some(site) = h
+        .start_sites
+        .iter()
+        .find(|s| hypot2([s.x, s.z], f) <= 1.0)
+        .map(|s| [s.x, s.z])
+    else {
+        return Err("у точки старта нет площадки".into());
+    };
+    let cands: Vec<&BakedEntry> = job
+        .baked
+        .iter()
+        .filter(|e| e.location == h.loc.id && e.start().is_some_and(|p| hypot2(p, site) <= 1.0))
+        .collect();
+    if cands.is_empty() {
+        return Err(format!("нет файла запечённого поля места {}", h.loc.id));
+    }
+    let mut why = Vec::new();
+    for e in cands {
+        let no_weather = Value::Null;
+        let weather = e.key.get("weather").unwrap_or(&no_weather);
+        let rec = &job.rec;
+        let wind_ref = match rec.inflow {
+            InflowMode::Start => "start",
+            InflowMode::Inflow => "inflow",
+        };
+        let q = BakedQuery {
+            location: &h.loc.id,
+            center_lat: h.loc.center_lat,
+            center_lon: h.loc.center_lon,
+            site: &e.site,
+            start: site,
+            weather,
+            month: i64::from(h.loc.month),
+            day: i64::from(h.loc.day),
+            window_dx: &job.cfg.window_dx,
+            data_hash: e.key.get("data_hash").and_then(Value::as_str).unwrap_or(""),
+            model_hash: &h.model_hash,
+            cond: Cond {
+                hour: rec.hour,
+                u10: rec.u10,
+                wdir: rec.wdir,
+                t_max: rec.t_max.unwrap_or(f64::NAN),
+                sky: &rec.sky,
+                wind_ref,
+            },
+        };
+        let stub = BakedField {
+            location: e.location.clone(),
+            site: e.site.clone(),
+            model_hash: e.model_hash.clone(),
+            key: e.key.clone(),
+            levels: Vec::new(),
+            names: Vec::new(),
+            level_meta: Vec::new(),
+            inflow_k: 1.0,
+        };
+        match baked_lookup(std::slice::from_ref(&stub), &q) {
+            Err(r) => why.push(format!("{}: {}", e.site, r.reason)),
+            Ok(_) => {
+                return match parse_baked(&e.header, &e.data) {
+                    Ok(b) if !b.levels.is_empty() => Ok(b),
+                    Ok(_) => Err(format!("{}: нет уровней", e.site)),
+                    Err(er) => Err(format!("{}: {}", e.site, er.msg)),
+                };
+            }
+        }
+    }
+    Err(why.join("; "))
+}
+
+/// Ключ кеша: всё, от чего зависит посчитанное поле и что видно крейту (место целиком по хешу,
+/// конфиги по хешу, условия, точка старта, срок). Ключ словаря в `json!` — по алфавиту.
+fn cache_key(job: &JobIn) -> Value {
+    let h = job.place.header();
+    let hash = job.place_hash.get_or_init(|| place_hash(&job.place));
+    let rec = &job.rec;
+    json!({
+        "kind": "formula-field",
+        "format": 1,
+        "location": h.loc.id,
+        "center": [h.loc.center_lat, h.loc.center_lon],
+        "month": h.loc.month,
+        "day": h.loc.day,
+        "utc": h.loc.utc_offset_h,
+        "place": hash,
+        "configs": job.cfg.configs_hash,
+        "domain_dx": DX,
+        "step_min": job.cfg.step_min,
+        "start": job.focus.map(|f| [f[0], f[1]]),
+        "hour": rec.hour,
+        "u10": rec.u10,
+        "wdir": rec.wdir,
+        "t_max": rec.t_max,
+        "sky": rec.sky,
+        "inflow": match rec.inflow { InflowMode::Start => "start", InflowMode::Inflow => "inflow" },
+    })
+}
+
+/// Хеш содержимого места: заголовок и растры (16 hex sha256).
+pub fn place_hash(p: &Place) -> String {
+    let h = p.header();
+    let mut d = Sha256::new();
+    d.update(
+        serde_json::to_string(&json!({
+            "loc": [h.loc.id, h.loc.center_lat, h.loc.center_lon, h.loc.utc_offset_h, h.loc.month, h.loc.day],
+            "grid": [h.grid.origin_x, h.grid.origin_z, h.grid.spacing, h.grid.width, h.grid.height],
+            "classes": h.surface_classes.iter().collect::<Vec<_>>(),
+        }))
+        .unwrap_or_default(),
+    );
+    feed_f32(&mut d, p.heights());
+    d.update(p.water());
+    d.update(p.cls());
+    feed_f32(&mut d, p.moist());
+    hex16(d)
+}
+
+/// Числа в хеш кусками через небольшой буфер (без копии всего растра).
+fn feed_f32(d: &mut Sha256, v: &[f32]) {
+    let mut buf = [0u8; 16384];
+    for ch in v.chunks(4096) {
+        for (o, x) in buf.chunks_exact_mut(4).zip(ch) {
+            o.copy_from_slice(&x.to_le_bytes());
+        }
+        d.update(&buf[..ch.len() * 4]);
+    }
 }
 
 // ---------------------------------------------------------------- проход
@@ -503,6 +776,14 @@ pub struct PassReport {
     pub nonconv_fallback: bool,
     /// Секунды: подготовка (вход, случаи), грубый шаг, решения, сборка поля.
     pub secs: [f64; 4],
+    /// Фазы поля посчитаны (иначе — Пикар без фаз).
+    pub phases: bool,
+    /// Секунды сборки фаз.
+    pub phase_s: f64,
+    /// Доля замороженных колонн `[heat, mech]`.
+    pub frozen_frac: [f64; 2],
+    /// Колонны запасного пути переданы решениям.
+    pub nonconv_cols: bool,
 }
 
 struct PassOut {
@@ -543,6 +824,12 @@ pub struct JobIn {
     pub cancel: Arc<AtomicBool>,
     /// Доля готовности 0..1 (биты `f32`).
     pub progress: Arc<AtomicU32>,
+    /// Запечённые поля места (`add_baked_field`).
+    pub baked: Arc<Vec<BakedEntry>>,
+    /// Кеш полей (`set_cache_dir`); `None` — выключен.
+    pub cache: Option<FieldCache>,
+    /// Хеш места — считается при первой надобности и живёт с местом.
+    pub place_hash: Arc<OnceLock<String>>,
 }
 
 /// Итог задачи.
@@ -553,9 +840,11 @@ pub struct JobOut {
     /// `k` поданного поля.
     pub k: f64,
     pub rec: CondRec,
-    /// Состояния для тёплого старта следующего пересчёта.
-    pub pair: Arc<Pair>,
+    /// Состояния для тёплого старта следующего пересчёта (`None` — поле из файла или кеша).
+    pub pair: Option<Arc<Pair>>,
     pub report: JobReport,
+    /// Запись в кеш после подачи (забирает вызывающий).
+    pub cache_put: Option<CachePut>,
 }
 
 /// Журнал задачи.
@@ -570,6 +859,10 @@ pub struct JobReport {
     /// Проход 1 упёрся в предел итераций: без подстройки.
     pub not_converged: bool,
     pub wall_s: f64,
+    /// Откуда поле.
+    pub source: Source,
+    /// Заметки: почему запечённое и кеш не взяты, ошибки записи кеша.
+    pub notes: Vec<String>,
 }
 
 fn set_progress(job: &JobIn, pass: usize, passes: usize, x: f32) {
@@ -600,6 +893,7 @@ fn build_level(job: &JobIn, dom: &Domain, k: f64) -> Result<LevelCase, JobErr> {
         table: &cfg.climate,
         loc: job.place.header().loc.climate,
     };
+    check_cancel(job)?;
     let fw = field_weather(
         &job.cond,
         &job.place,
@@ -609,7 +903,9 @@ fn build_level(job: &JobIn, dom: &Domain, k: f64) -> Result<LevelCase, JobErr> {
         job.rec.hour,
         dom,
     )?;
+    check_cancel(job)?;
     let inp = build_domain_input(&job.place, &cfg.wc.sh, &cfg.zi, dom, &fw.day)?;
+    check_cancel(job)?;
     let heat = build_case(
         &inp,
         &fw,
@@ -619,9 +915,11 @@ fn build_level(job: &JobIn, dom: &Domain, k: f64) -> Result<LevelCase, JobErr> {
             heat: true,
         },
     )?;
+    check_cancel(job)?;
     let mech = heat.without_heat();
     let (ph, pm) = rayon::join(|| heat.prepare(), || mech.prepare());
     let (ph, pm) = (ph?, pm?);
+    check_cancel(job)?;
     let sc = cfg.solver(heat.u10);
     let (ch, cm) = rayon::join(
         || build_solver_case(&ph, &heat.p, &sc),
@@ -633,6 +931,63 @@ fn build_level(job: &JobIn, dom: &Domain, k: f64) -> Result<LevelCase, JobErr> {
         case_h: ch?,
         case_m: cm?,
     })
+}
+
+/// Случаи решателя `[mech, heat]` тонкой области для `k` (для тестов и стенда: то, что решает
+/// проход, без решения).
+pub fn level_cases(job: &JobIn, k: f64) -> Result<[Case; 2], JobErr> {
+    let dom = domain_for(&job.place, &job.cfg)?;
+    let lc = build_level(job, &dom, k)?;
+    Ok([lc.case_m, lc.case_h])
+}
+
+/// Фазы поля тонкой области для `k` (для тестов и стенда).
+pub fn phase_result(job: &JobIn, k: f64) -> Result<PhaseResult, JobErr> {
+    let dom = domain_for(&job.place, &job.cfg)?;
+    let lc = build_level(job, &dom, k)?;
+    phases_of(&job.cfg.phase, &lc).map_err(JobErr::Failed)
+}
+
+/// Фазы поля (`AirPhase.result`): вход из случая с нагревом и его плоскостей.
+fn phases_of(cfg: &PhaseCfg, lc: &LevelCase) -> Result<PhaseResult, String> {
+    let (h, pl) = (&lc.heat, &lc.planes_h);
+    let (nx, n) = (h.dom.nx, h.dom.nx * h.dom.ny);
+    let inner = |plane: &[f32]| -> Vec<f64> {
+        (0..n)
+            .map(|c| f64::from(plane[(c / nx + 1) * pl.nx_h + c % nx + 1]))
+            .collect()
+    };
+    let (h_bl, wst) = (inner(pl.col_plane(2)), inner(pl.col_plane(3)));
+    let zic: Vec<f64> = h.z_i_col.iter().map(|&v| f64::from(v)).collect();
+    assemble(
+        &PhaseCase {
+            nx,
+            ny: h.dom.ny,
+            nz: h.nz,
+            dx: h.dom.dx,
+            dz: h.dz,
+            z_bot: h.z_bot,
+            ex: pl.ex,
+            ey: pl.ey,
+            u_a: pl.u_a,
+            z_sat: f64::from(pl.prm[12]),
+            alpha: pl.alpha,
+            z0: pl.z0,
+            ustar: pl.ustar,
+            tau_cool: h.p.tau_cool,
+            u10: h.u10,
+            z_i: h.z_i,
+            hc: &h.hc,
+            gam: &h.gam,
+            heat: &h.heat,
+            heat_used: &pl.heat_used,
+            h_bl: &h_bl,
+            wst: &wst,
+            z_i_col: &zic,
+            g: None,
+        },
+        cfg,
+    )
 }
 
 fn level_of(p: &PreparedPlanes, dom: &Domain) -> Level {
@@ -689,11 +1044,19 @@ fn prolong_to(coarse: &Level, src: &State, fine: &Level) -> Result<State, JobErr
     Ok(dst)
 }
 
+/// Что решению сверх случая и старта: запасные правила, заморозка колонн, `nonconv`.
+#[derive(Default)]
+struct Spec {
+    fallback: bool,
+    freeze: Option<Freeze>,
+    nonconv: Option<NonConv>,
+}
+
 fn solve_one(
     job: &JobIn,
     case: &Case,
     init: Option<State>,
-    fallback: bool,
+    spec: Spec,
     deadline: Instant,
 ) -> Result<Solved, JobErr> {
     check_cancel(job)?;
@@ -707,13 +1070,13 @@ fn solve_one(
         tol_scale: cfg.tol_scale,
         time_budget: Some(left),
         init,
-        freeze: None,
+        freeze: spec.freeze,
         cancel: Some(job.cancel.clone()),
-        fallback: fallback.then(|| Fallback {
+        fallback: spec.fallback.then(|| Fallback {
             omega_after: cfg.omega_after,
             omega: cfg.omega,
             late_from: cfg.late_from,
-            nonconv: None,
+            nonconv: spec.nonconv,
         }),
         ..SolveOpts::default()
     };
@@ -741,8 +1104,8 @@ fn coarse_start(
     coarse_dom: &Domain,
     deadline: Instant,
 ) -> Result<(Pair, [usize; 2]), JobErr> {
-    let sm = solve_one(job, &coarse.case_m, None, false, deadline)?;
-    let sh = solve_one(job, &coarse.case_h, None, false, deadline)?;
+    let sm = solve_one(job, &coarse.case_m, None, Spec::default(), deadline)?;
+    let sh = solve_one(job, &coarse.case_h, None, Spec::default(), deadline)?;
     let (cl, fl) = (
         level_of(&coarse.planes_h, coarse_dom),
         level_of(&lc.planes_h, fine_dom),
@@ -790,7 +1153,37 @@ fn solve_pass(
     let t_prep = t0.elapsed().as_secs_f64();
     set_progress(job, pass, passes, 0.15);
     check_cancel(job)?;
-    let _freeze = phase_hook(&fine.heat); // TODO(RW-6m): маски заморозки и nonconv
+    let t_ph = Instant::now();
+    let phase = if cfg.faults.no_phase {
+        None
+    } else {
+        match phases_of(&cfg.phase, &fine) {
+            Ok(r) => Some(r),
+            Err(m) => {
+                notes.push(format!("phases failed ({m}): Picard without them"));
+                None
+            }
+        }
+    };
+    let phase_s = t_ph.elapsed().as_secs_f64();
+    check_cancel(job)?;
+    // все колонны обоих вариантов — механизмам: грубый шаг не нужен (`all_mech`)
+    let all_mech = phase.as_ref().is_some_and(|r| {
+        [&r.freeze.mask, &r.freeze_mech.mask]
+            .iter()
+            .all(|m| !m.is_empty() && m.iter().all(|&x| x != 0))
+    });
+    let (frozen_frac, nonconv_cols) = phase.as_ref().map_or(([0.0; 2], false), |r| {
+        (
+            [r.stats.frozen_frac, r.stats.frozen_frac_mech],
+            r.nonconv.is_some(),
+        )
+    });
+    let fr_some = phase.is_some();
+    let (fr_h, fr_m, nonconv) = match phase {
+        Some(r) => (Some(r.freeze), Some(r.freeze_mech), r.nonconv),
+        None => (None, None, None),
+    };
     let fine_n = [fine.case_h.nxh, fine.case_h.nyh, fine.case_h.nzh];
     let (mut init_m, mut init_h) = (None, None);
     let mut start = Start::Cold;
@@ -806,6 +1199,7 @@ fn solve_pass(
     }
     let t1 = Instant::now();
     if start == Start::Cold
+        && !all_mech
         && let Some(c) = &coarse
     {
         if cfg.faults.coarse {
@@ -834,9 +1228,20 @@ fn solve_pass(
     if cfg.faults.fail_pass == Some(pass) {
         return Err(JobErr::Failed(format!("pass {pass} failed (injected)")));
     }
-    let sm = solve_one(job, &fine.case_m, init_m, true, deadline)?;
+    let spec = |freeze, nonconv| Spec {
+        fallback: true,
+        freeze,
+        nonconv,
+    };
+    let sm = solve_one(
+        job,
+        &fine.case_m,
+        init_m,
+        spec(fr_m, nonconv.clone()),
+        deadline,
+    )?;
     set_progress(job, pass, passes, 0.6);
-    let sh = solve_one(job, &fine.case_h, init_h, true, deadline)?;
+    let sh = solve_one(job, &fine.case_h, init_h, spec(fr_h, nonconv), deadline)?;
     set_progress(job, pass, passes, 0.9);
     let t_solve = t2.elapsed().as_secs_f64();
     let t3 = Instant::now();
@@ -852,10 +1257,17 @@ fn solve_pass(
         nz,
     };
     let meta = FieldMeta {
+        // z0 — как его хранит файл поля (f32): поле из кеша побитно равно посчитанному
         z0: if fine.heat.z0_map.is_empty() {
-            Z0::Uniform(fine.heat.p.z0)
+            Z0::Uniform(f64::from(fine.heat.p.z0 as f32))
         } else {
-            Z0::Map(fine.heat.z0_map.clone())
+            Z0::Map(
+                fine.heat
+                    .z0_map
+                    .iter()
+                    .map(|&z| f64::from(z as f32))
+                    .collect(),
+            )
         },
         gam: fine.heat.gam[1..=nz].iter().map(|&g| g as f32).collect(),
         heat: fine.planes_h.heat_used.iter().map(|&h| h as f32).collect(),
@@ -880,6 +1292,10 @@ fn solve_pass(
         omega_fallback: sm.omega_fallback_used || sh.omega_fallback_used,
         nonconv_fallback: sm.nonconv_fallback || sh.nonconv_fallback,
         secs: [t_prep, t_coarse, t_solve, t3.elapsed().as_secs_f64()],
+        phases: fr_some,
+        phase_s,
+        frozen_frac,
+        nonconv_cols,
     };
     set_progress(job, pass, passes, 1.0);
     Ok(PassOut {
@@ -913,13 +1329,53 @@ fn hit_iter_limit(r: &PassReport) -> bool {
     r.iters.iter().any(|&n| n >= MAX_OUTER)
 }
 
-/// Одно поле: загрузка (проходы `k`) или пересчёт (один проход, тёплый старт).
+/// Поле из файла (запечённое или кеш): Ready без Пикара.
+fn from_file(job: JobIn, b: BakedField, source: Source, t0: Instant, notes: Vec<String>) -> JobOut {
+    job.progress.store(1.0f32.to_bits(), Ordering::Relaxed);
+    JobOut {
+        levels: FieldSet::prepare(b.levels, job.cfg.limits, job.cfg.edge_blend_cells),
+        k: b.inflow_k,
+        rec: job.rec,
+        pair: None,
+        report: JobReport {
+            passes: Vec::new(),
+            planned: 0,
+            log: Vec::new(),
+            pass_failed: None,
+            not_converged: false,
+            wall_s: t0.elapsed().as_secs_f64(),
+            source,
+            notes,
+        },
+        cache_put: None,
+    }
+}
+
+/// Одно поле: загрузка (запечённое → кеш → проходы `k`) или пересчёт (один проход, тёплый старт).
 pub fn run_job(job: JobIn) -> Result<JobOut, JobErr> {
     let t0 = Instant::now();
     let cfg = job.cfg.clone();
-    if let Some(levels) = baked_hook(&job.place, &job.rec) {
-        // TODO(RW-6p): запечённое поле вместо расчёта
-        let _ = levels;
+    let mut notes = Vec::new();
+    let mut ckey = None;
+    if job.loading {
+        match pick_baked(&job) {
+            Ok(b) => return Ok(from_file(job, b, Source::Baked, t0, notes)),
+            Err(m) if !m.is_empty() => notes.push(format!("baked: {m}")),
+            Err(_) => {}
+        }
+        check_cancel(&job)?;
+        let mh = job.place.header().model_hash.clone();
+        if let Some(cache) = job.cache.clone().filter(|c| c.enabled() && !mh.is_empty()) {
+            let key = cache_key(&job);
+            check_cancel(&job)?;
+            match cache.get(&key, &mh) {
+                Ok(b) => return Ok(from_file(job, b, Source::Cache, t0, notes)),
+                Err(Miss::Absent) => {}
+                Err(Miss::Rejected(w)) => notes.push(format!("cache: {w}")),
+            }
+            ckey = Some(key);
+        }
+        check_cancel(&job)?;
     }
     let inflow = job.rec.inflow == InflowMode::Inflow;
     let u10 = job.rec.u10;
@@ -944,6 +1400,8 @@ pub fn run_job(job: JobIn) -> Result<JobOut, JobErr> {
         pass_failed: None,
         not_converged: false,
         wall_s: 0.0,
+        source: Source::Computed,
+        notes,
     };
     let mut pass = 1usize;
     let mut warm: Option<Arc<Pair>> = job.warm.clone();
@@ -957,7 +1415,7 @@ pub fn run_job(job: JobIn) -> Result<JobOut, JobErr> {
                 // загрузка: проход ≥ 2 не удался — поле прошлого прохода (`_use_previous_pass`)
                 if let (true, Some(p)) = (job.loading && pass > 1, prev_ok.take()) {
                     report.pass_failed = Some(format!("pass {pass}: {m}"));
-                    return Ok(finish(job, p, report, t0));
+                    return Ok(finish(job, p, report, t0, ckey));
                 }
                 return Err(JobErr::Failed(m));
             }
@@ -981,7 +1439,7 @@ pub fn run_job(job: JobIn) -> Result<JobOut, JobErr> {
             more = false;
         }
         if !more {
-            return Ok(finish(job, out, report, t0));
+            return Ok(finish(job, out, report, t0, ckey));
         }
         warm = Some(out.pair.clone());
         prev_ok = Some(out);
@@ -990,15 +1448,60 @@ pub fn run_job(job: JobIn) -> Result<JobOut, JobErr> {
     }
 }
 
-fn finish(job: JobIn, p: PassOut, mut report: JobReport, t0: Instant) -> JobOut {
+fn finish(
+    job: JobIn,
+    p: PassOut,
+    mut report: JobReport,
+    t0: Instant,
+    ckey: Option<Value>,
+) -> JobOut {
     report.wall_s = t0.elapsed().as_secs_f64();
     job.progress.store(1.0f32.to_bits(), Ordering::Relaxed);
     let k = p.report.k;
+    let levels = FieldSet::prepare(vec![p.field], job.cfg.limits, job.cfg.edge_blend_cells);
+    let cache_put = match (ckey, job.cache.clone()) {
+        (Some(key), Some(cache)) => {
+            let status = if report.pass_failed.is_some() {
+                "previous_pass"
+            } else if report.not_converged {
+                "not_converged"
+            } else {
+                "ok"
+            };
+            let mut extra = Map::new();
+            extra.insert("status".into(), json!(status));
+            extra.insert("inflow_k".into(), json!(k));
+            extra.insert("wall_s".into(), json!(report.wall_s));
+            let mut meta = Map::new();
+            meta.insert("inflow_k".into(), json!(k));
+            Some(CachePut {
+                cache: FieldCache {
+                    max_bytes: job.cfg.cache_max_bytes,
+                    ..cache
+                },
+                key,
+                model_hash: job.place.header().model_hash.clone(),
+                field: BakedField {
+                    location: job.place.header().loc.id.clone(),
+                    site: String::new(),
+                    model_hash: job.place.header().model_hash.clone(),
+                    key: Value::Null,
+                    levels: levels.iter().map(|l| (**l).clone()).collect(),
+                    names: Vec::new(),
+                    level_meta: vec![meta],
+                    inflow_k: k,
+                },
+                extra,
+            })
+        }
+        _ => None,
+    };
     JobOut {
-        levels: FieldSet::prepare(vec![p.field], job.cfg.limits, job.cfg.edge_blend_cells),
+        levels,
         k,
         rec: job.rec,
-        pair: p.pair,
+        pair: Some(p.pair),
         report,
+        cache_put,
     }
 }

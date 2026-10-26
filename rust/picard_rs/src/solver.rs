@@ -340,6 +340,11 @@ pub struct Picard {
     pub freeze: Option<FreezeCtx>,
     /// Cancel flag (W11), read after every iteration.
     pub cancel: Option<Arc<AtomicBool>>,
+    /// W11 v6: the projection V-cycles also test `cancel` (setup: cold/warm start, `finalize`);
+    /// off while iterating, where the flag is read after every iteration.
+    pub prep_cancel: bool,
+    /// A projection was cut short by `prep_cancel` (set by `project`, cleared by the caller).
+    pub prep_cut: bool,
     /// Fallback rules (W11 v3); `None` = the plain iteration.
     pub fb: Option<FbCtx>,
 }
@@ -359,8 +364,16 @@ fn interior(k: &Consts, a: &[f32]) -> Vec<f32> {
 impl Picard {
     /// Allocates the iteration for the constants `k` (fields at the cold start state of K).
     pub fn new(k: Consts) -> Self {
+        Self::new_cancel(k, None)
+    }
+
+    /// [`Self::new`] that stops building the multigrid levels once `cancel` is set (W11 v6):
+    /// the solver is then weaker and must not be iterated (`api::solve` does not). The flag
+    /// is also stored in `cancel`.
+    pub fn new_cancel(k: Consts, cancel: Option<&Arc<AtomicBool>>) -> Self {
         let n = k.n3();
-        let mg = Mg::new(
+        let stop = || cancel.is_some_and(|c| c.load(Ordering::Relaxed));
+        let mg = Mg::new_until(
             &k.kx,
             &k.ky,
             &k.kz,
@@ -368,6 +381,7 @@ impl Picard {
             (k.nzh, k.nyh, k.nxh),
             k.dx,
             k.dz,
+            &stop,
         );
         let z = || vec![0.0f32; n];
         let zr = || RowBuf::zeros(n);
@@ -396,7 +410,9 @@ impl Picard {
             sc: Scratch::new(n),
             phase: [0.0; 4],
             freeze: None,
-            cancel: None,
+            cancel: cancel.cloned(),
+            prep_cancel: false,
+            prep_cut: false,
             fb: None,
             k,
         }
@@ -464,8 +480,13 @@ impl Picard {
         // and phi is zeroed in the same pass (masked: the weights are zero in the frozen
         // columns, so is the right-hand side there).
         self.mg.set_rhs_shifted_zero(&self.div, mean, wr);
+        let (armed, cancel) = (self.prep_cancel, self.cancel.clone());
+        let stop = || armed && cancel.as_ref().is_some_and(|c| c.load(Ordering::Relaxed));
         for _ in 0..cycles {
-            self.mg.vcycle();
+            if !self.mg.vcycle_until(&stop) {
+                self.prep_cut = true;
+                break;
+            }
         }
         let phi = self.mg.phi();
         let pm = (det_sum(phi.len(), |q| f64::from(phi[q] * fi[q])) / k.n_fluid) as f32;
@@ -1214,7 +1235,25 @@ impl Picard {
             }
         }
         if hist.last().is_none_or(|c| c.it != it) {
-            self.check_into(it, t_start, &mut hist, &mut check_s);
+            if pre_cancel {
+                // W11 v6: cancelled before the first iteration - no residual pass (it costs about
+                // an iteration); the record at `it = 0` is NaN: not computed.
+                let nan = f64::NAN;
+                hist.push(Check {
+                    it,
+                    res: Residuals {
+                        mom_max: nan,
+                        mom_rms: nan,
+                        th_max: nan,
+                        th_rms: nan,
+                        thd_rms: nan,
+                        div_rms: nan,
+                    },
+                    t_s: t_start.elapsed().as_secs_f64(),
+                });
+            } else {
+                self.check_into(it, t_start, &mut hist, &mut check_s);
+            }
         }
         // W11 v3: unconverged at `max_iters` - the late mean replaces the field (the residuals
         // above stay those of the last iterate).

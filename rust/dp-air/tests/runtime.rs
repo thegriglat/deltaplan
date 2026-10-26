@@ -11,9 +11,11 @@ use dp_air::fixtures::read_place;
 use dp_air::{
     AirModel, Code, Conditions, Configs, Focus, Formula, InflowMode, Place, SampleMode, State,
 };
+use picard_rs::api::StopReason as Stop;
 use serde_json::{Value, json};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
+use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, AtomicU32};
 use std::time::{Duration, Instant};
 
@@ -142,8 +144,8 @@ fn maxdiff(a: &[[f32; 4]], b: &[[f32; 4]]) -> f32 {
         .fold(0.0, f32::max)
 }
 
-/// Задача напрямую (без `Formula`): `mutate` правит `RtCfg`.
-fn job(
+/// Вход задачи напрямую (без `Formula`): `mutate` правит `RtCfg`.
+fn job_in(
     cfgs: &Configs,
     mutate: impl Fn(&mut RtCfg),
     pl: Place,
@@ -151,12 +153,12 @@ fn job(
     loading: bool,
     focus: Option<Focus>,
     warm: Option<Arc<Pair>>,
-) -> Result<JobOut, JobErr> {
+) -> JobIn {
     let mut cfg = RtCfg::from_configs(cfgs).unwrap();
     mutate(&mut cfg);
     let inputs = WeatherInputs::from_conditions(c, cfgs).unwrap();
     let rec = CondRec::new(&inputs, c, hour_at(c, 0.0));
-    run_job(JobIn {
+    JobIn {
         cfg: Arc::new(cfg),
         configs: Arc::new(cfgs.clone()),
         place: Arc::new(pl),
@@ -169,7 +171,23 @@ fn job(
         warm,
         cancel: Arc::new(AtomicBool::new(false)),
         progress: Arc::new(AtomicU32::new(0)),
-    })
+        baked: Arc::new(Vec::new()),
+        cache: None,
+        place_hash: Arc::new(std::sync::OnceLock::new()),
+    }
+}
+
+/// Задача напрямую: вход [`job_in`] и `run_job`.
+fn job(
+    cfgs: &Configs,
+    mutate: impl Fn(&mut RtCfg),
+    pl: Place,
+    c: &Conditions,
+    loading: bool,
+    focus: Option<Focus>,
+    warm: Option<Arc<Pair>>,
+) -> Result<JobOut, JobErr> {
+    run_job(job_in(cfgs, mutate, pl, c, loading, focus, warm))
 }
 
 fn total_iters(r: &PassReport) -> usize {
@@ -428,7 +446,7 @@ fn t4a_warm_pair_skips_coarse_step() {
         &c,
         false,
         None,
-        Some(a.pair.clone()),
+        a.pair.clone(),
     )
     .unwrap();
     let p = &b.report.passes[0];
@@ -863,23 +881,18 @@ fn nondeterministic_advance_does_not_wait_for_the_background() {
 
 // ---------------------------------------------------------------- (5) T8: отмена
 
-/// Предел возврата отмены: ≤ 1 с на release (проверяют тесты Онгудая `#[ignore]`). На -O0
-/// подготовка решения (30 V-циклов фона до первой итерации) в десятки раз медленнее и идёт под
-/// нагрузкой параллельных тестов; отмена её не прерывает, а `unload_place`/`Drop` ждут задачу не
-/// дольше `JOIN_LIMIT` (5 с) — здесь проверяется только возврат в этот предел и то, что отпущенная
-/// задача ничего не подаёт.
+/// Предел возврата отмены: меньше 1 с в обоих профилях (W1; `JOIN_LIMIT` = 1 с — если бы задача
+/// не отвечала, возврат был бы ровно им). Подготовка (случай, фазы, V-циклы старта, финальная
+/// проекция) проверяет отмену сама, итерации — после каждой.
 fn cancel_limit() -> Duration {
-    if cfg!(debug_assertions) {
-        Duration::from_secs(8)
-    } else {
-        Duration::from_secs(1)
-    }
+    Duration::from_secs(1)
 }
 
 /// Модель посреди длинного решения (критерий строже: сотни итераций).
 fn busy() -> Formula {
     let cfg = configs_with(|v| {
         cheap(v);
+        v["air"]["threads"] = json!(2);
         v["air"]["tol_scale"] = json!(0.05);
     });
     let m = formula(&cfg, place("synthetic"), &cond("strong"), None);
@@ -910,6 +923,52 @@ fn drop_in_the_middle_of_a_solve_returns_within_a_second() {
     let d = t.elapsed();
     eprintln!("drop mid-solve: {d:?}");
     assert!(d < cancel_limit(), "{d:?}");
+}
+
+/// Модель на области размера Онгудая (96 × 96 × 50 клеток), `air.threads = 2`.
+fn ongudai_model(focus: bool) -> Formula {
+    let cfg = configs_with(|v| {
+        v["air"]["threads"] = json!(2);
+        v["air"]["deterministic"] = json!(true);
+        v["air"]["tol_scale"] = json!(0.05);
+    });
+    let pl = place("ongudai");
+    let st = pl.header().start_sites[0].clone();
+    let f = focus.then_some(Focus {
+        pos: [st.x as f32, st.h_msl as f32 + 10.0, st.z as f32],
+        weight: 1.0,
+    });
+    formula(&cfg, pl, &cond("strong"), f)
+}
+
+#[test]
+fn ongudai_size_cancel_in_every_stage_returns_within_a_second() {
+    // подготовка (случай, фазы, сборка многосетки, V-циклы фона), грубый шаг, решение тонкой сетки
+    let mut worst = Duration::ZERO;
+    for ms in [0u64, 40, 150, 400, 800, 1500, 3000] {
+        for how in ["unload", "drop", "reload"] {
+            if how == "reload" && ms > 400 {
+                continue;
+            }
+            let mut m = ongudai_model(ms % 2 == 0);
+            std::thread::sleep(Duration::from_millis(ms));
+            let was = m.status().state;
+            let t = Instant::now();
+            match how {
+                "unload" => m.unload_place(),
+                "drop" => drop(m),
+                // смена места: возврат load_place; новая задача (синтетика) — тут же снимается
+                _ => {
+                    m.load_place(place("synthetic")).unwrap();
+                }
+            }
+            let d = t.elapsed();
+            eprintln!("ongudai-size {how} after {ms} ms (state {was:?}): {d:?}");
+            worst = worst.max(d);
+            assert!(d < cancel_limit(), "{how}@{ms}: {d:?}");
+        }
+    }
+    eprintln!("worst return: {worst:?}");
 }
 
 #[test]
@@ -1156,4 +1215,757 @@ fn place_header_carries_climate_and_its_absence_is_allowed() {
     )
     .unwrap();
     assert!(h.loc.climate.is_none());
+}
+
+// ---------------------------------------------------------------- (7) RW-6t: отмена в подготовке
+
+/// Случаи области размера Онгудая (96 × 96 × 50, 400 м) с `air.threads = 2`.
+fn ongudai_cases() -> [picard_rs::case::Case; 2] {
+    let cfg = configs_with(|v| {
+        v["air"]["threads"] = json!(2);
+        v["air"]["deterministic"] = json!(true);
+    });
+    let j = job_in(
+        &cfg,
+        |_| {},
+        place("ongudai"),
+        &cond("strong"),
+        true,
+        None,
+        None,
+    );
+    level_cases(&j, 1.0).unwrap()
+}
+
+/// Предел отмены в подготовке `picard_rs::api::solve`: 100 мс на release (W11 v6); профиль dev
+/// собирает `picard_rs` с `opt-level 2`, но под нагрузкой параллельных тестов — вдвое щедрее.
+fn picard_cancel_limit() -> Duration {
+    Duration::from_millis(if cfg!(debug_assertions) { 250 } else { 100 })
+}
+
+#[test]
+fn picard_cancel_during_the_setup_returns_within_the_limit() {
+    use picard_rs::api::{SolveOpts, StopReason, solve};
+    let [_, case_h] = ongudai_cases();
+    assert_eq!((case_h.nx, case_h.ny, case_h.nz), (96, 96, 50));
+    // До вызова: сразу.
+    let flag = Arc::new(AtomicBool::new(true));
+    let t = Instant::now();
+    let r = solve(
+        &case_h,
+        &SolveOpts {
+            threads: 2,
+            cancel: Some(flag),
+            ..SolveOpts::default()
+        },
+    )
+    .unwrap();
+    let d = t.elapsed();
+    eprintln!("cancel before the call: {d:?}");
+    assert_eq!((r.stop, r.iters), (StopReason::Cancelled, 0));
+    assert!(r.state.u.iter().chain(&r.state.th).all(|x| x.is_finite()));
+    assert!(d < picard_cancel_limit(), "{d:?}");
+    // Во время подготовки: задержка от взведения флага до возврата.
+    let mut worst = Duration::ZERO;
+    for ms in [5u64, 20, 50, 100, 200, 350, 500, 700] {
+        let flag = Arc::new(AtomicBool::new(false));
+        let when = Arc::new(Mutex::new(None::<Instant>));
+        let (f2, w2) = (flag.clone(), when.clone());
+        let h = std::thread::spawn(move || {
+            std::thread::sleep(Duration::from_millis(ms));
+            *w2.lock().unwrap() = Some(Instant::now());
+            f2.store(true, std::sync::atomic::Ordering::SeqCst);
+        });
+        let r = solve(
+            &case_h,
+            &SolveOpts {
+                threads: 2,
+                cancel: Some(flag),
+                ..SolveOpts::default()
+            },
+        )
+        .unwrap();
+        let end = Instant::now();
+        h.join().unwrap();
+        let at = when.lock().unwrap().unwrap();
+        let lat = end.saturating_duration_since(at);
+        eprintln!("flag at {ms} ms: {:?} iters {} -> {lat:?}", r.stop, r.iters);
+        assert!(r.state.u.iter().chain(&r.state.th).all(|x| x.is_finite()));
+        if r.stop == StopReason::Cancelled && r.iters == 0 {
+            worst = worst.max(lat);
+        }
+    }
+    eprintln!("worst latency in the setup: {worst:?}");
+    assert!(worst < picard_cancel_limit(), "{worst:?}");
+}
+
+// ---------------------------------------------------------------- (8) RW-6t: фазы
+
+/// Эталонные условия с ветром меню `u10` м/с в полдень (пресет-словарь).
+fn cond_u10(u10: f64, hour: f64) -> Conditions {
+    Conditions::from_json(&format!(
+        r#"{{"preset":{{"wind_speed_kmh":{},"wind_from_deg":270,"sky":"clear","temperature_c":24}},
+"start_hour":{hour},"speed":1,"blend_s":null,"rebuild":false}}"#,
+        u10 * 3.6
+    ))
+    .unwrap()
+}
+
+/// Воздушные клетки случая (`cell == 1`): по ним сравнивают поля решателя.
+fn air_max_diff(case: &picard_rs::case::Case, a: &[f32], b: &[f32]) -> f32 {
+    let cell = case.bytes("cell").unwrap();
+    a.iter()
+        .zip(b)
+        .zip(&cell)
+        .filter(|(_, c)| **c == 1)
+        .map(|((x, y), _)| (x - y).abs())
+        .fold(0.0, f32::max)
+}
+
+#[test]
+fn calm_is_frozen_whole_and_ready_without_iterations() {
+    let cfg = configs_with(cheap);
+    // штиль 0,3 и 1,5 м/с в полдень, 0,3 м/с ночью: заморожено всё, итераций нет, грубого шага нет
+    for (u10, hour) in [(0.3, 12.0), (1.5, 12.0), (0.3, 3.0)] {
+        let pl = place("synthetic");
+        let pts = probes(&pl);
+        let m = formula(&cfg, pl, &cond_u10(u10, hour), None);
+        wait_ready(&m, 120.0);
+        let r = m.report().unwrap();
+        let p = &r.passes[0];
+        eprintln!(
+            "u10 {u10} h {hour}: stop {:?} iters {:?} frozen {:?} start {:?} phase {:.2}s",
+            p.stop, p.iters, p.frozen_frac, p.start, p.phase_s
+        );
+        assert!(p.phases);
+        assert_eq!(p.stop, [Stop::AllFrozen; 2]);
+        assert_eq!(p.iters, [0, 0]);
+        assert!(
+            p.frozen_frac.iter().all(|&f| f > 1.0 - 1e-9),
+            "{:?}",
+            p.frozen_frac
+        );
+        assert!(
+            p.coarse_iters.is_none(),
+            "all-mechanism area skips the coarse step"
+        );
+        let out = sample(&m, &pts);
+        assert!(out.iter().flatten().all(|v| v.is_finite()));
+        assert!(
+            out.iter().flatten().any(|v| *v != 0.0),
+            "the mechanism field is not zero"
+        );
+    }
+    // поле — поле заморозки: θ′ побитно в воздушных клетках; скорости — после финальной
+    // проекции (`finalize`), как в игре (механизм не бездивергентен)
+    let c = cond_u10(0.3, 12.0);
+    let j = job_in(&cfg, |_| {}, place("synthetic"), &c, true, None, None);
+    let ph = phase_result(&j, 1.0).unwrap();
+    let cases = level_cases(&j, 1.0).unwrap();
+    let r = run_job(j).unwrap();
+    let pair = r.pair.unwrap();
+    for (name, st, fr, case) in [
+        ("heat", &pair.heat, &ph.freeze, &cases[1]),
+        ("mech", &pair.mech, &ph.freeze_mech, &cases[0]),
+    ] {
+        let f = fr.field.as_ref().unwrap();
+        assert_eq!(air_max_diff(case, &st.th, &f.th), 0.0, "{name}: theta");
+        eprintln!(
+            "{name}: max |u - frozen u| {} (finalize), frozen u max {}",
+            air_max_diff(case, &st.u, &f.u),
+            f.u.iter().fold(0.0f32, |m, x| m.max(x.abs()))
+        );
+    }
+}
+
+#[test]
+fn heating_with_phases_is_finite_and_iterations_are_reported() {
+    let cfg = configs_with(cheap);
+    for name in ["medium", "strong"] {
+        let mut its = [0usize; 2];
+        for (i, off) in [false, true].into_iter().enumerate() {
+            let pl = place("synthetic");
+            let pts = probes(&pl);
+            let c = cond(name);
+            let r = job(
+                &cfg,
+                |c| c.faults.no_phase = off,
+                pl.clone(),
+                &c,
+                true,
+                None,
+                None,
+            )
+            .unwrap();
+            let p = &r.report.passes[0];
+            its[i] = total_iters(p);
+            eprintln!(
+                "synthetic {name} phases {}: iters {:?} stop {:?} frozen {:?} nonconv {}",
+                !off, p.iters, p.stop, p.frozen_frac, p.nonconv_cols
+            );
+            assert_eq!(p.phases, !off);
+            assert!(matches!(p.stop[0], Stop::Converged | Stop::AllFrozen));
+            let f = &r.levels[0];
+            let out: Vec<_> = pts
+                .iter()
+                .map(|q| f.sample(*q, ground_height(&pl, q[0], q[2])))
+                .collect();
+            assert!(out.iter().flatten().all(|v| v.is_finite()));
+            assert!(out.iter().flatten().any(|v| *v != 0.0));
+        }
+        eprintln!(
+            "synthetic {name}: iterations with phases {} / without {}",
+            its[0], its[1]
+        );
+    }
+}
+
+#[test]
+fn nonconv_without_thd_on_a_warm_start_is_finite() {
+    // слабый ветер в полдень: колонны механизма H/D есть, не заморожены (`nonconv` непуст);
+    // проход 2 / пересчёт стартуют с прошлого поля и упираются в предел итераций — запасной
+    // путь берёт θ′_d из `late_mean` (FrozenField.thd = None, W11 v5)
+    let cfg = configs_with(cheap);
+    let c = cond_u10(3.0, 12.0);
+    let first = job(&cfg, |_| {}, place("synthetic"), &c, true, None, None).unwrap();
+    assert!(
+        first.report.passes[0].nonconv_cols,
+        "synthetic 3 m/s noon has H/D columns"
+    );
+    let warm = first.pair.clone();
+    let hard = |c: &mut RtCfg| {
+        c.tol_scale = 1e-9;
+        c.max_iters = 40;
+        c.late_from = 10;
+    };
+    let r = job(
+        &cfg,
+        hard,
+        place("synthetic"),
+        &c,
+        false,
+        None,
+        warm.clone(),
+    )
+    .unwrap();
+    let p = &r.report.passes[0];
+    eprintln!(
+        "warm nonconv: start {:?} iters {:?} stop {:?} nonconv fallback {} omega {}",
+        p.start, p.iters, p.stop, p.nonconv_fallback, p.omega_fallback
+    );
+    assert_eq!(p.start, Start::Warm);
+    assert!(p.nonconv_cols);
+    assert_eq!(p.stop, [Stop::MaxIters; 2]);
+    assert!(
+        p.nonconv_fallback,
+        "the late-mean fallback must have been applied"
+    );
+    let pair = r.pair.unwrap();
+    for st in [&pair.mech, &pair.heat] {
+        for a in [&st.u, &st.v, &st.w, &st.th, &st.thd, &st.p] {
+            assert!(a.iter().all(|x| x.is_finite()));
+        }
+    }
+    let f = &r.levels[0];
+    assert!(
+        f.sample([0.0, 1200.0, 0.0], 1000.0)
+            .iter()
+            .all(|v| v.is_finite())
+    );
+    // и тот же случай на старте с фона (проход 1): без паники
+    let r1 = job(&cfg, hard, place("synthetic"), &c, true, None, None).unwrap();
+    assert!(r1.report.passes[0].nonconv_fallback);
+}
+
+// ---------------------------------------------------------------- (9) RW-6t: запечённые поля и кеш
+
+/// Файлы запечённых полей острова: `(заголовок, тело)`.
+fn island_files() -> Vec<(String, Vec<u8>)> {
+    let dir = repo().join("data/locations/training_island/air");
+    let mut names: Vec<_> = std::fs::read_dir(&dir)
+        .unwrap()
+        .map(|e| e.unwrap().path())
+        .filter(|p| p.extension().is_some_and(|x| x == "json"))
+        .collect();
+    names.sort();
+    names
+        .into_iter()
+        .map(|p| {
+            (
+                std::fs::read_to_string(&p).unwrap(),
+                std::fs::read(p.with_extension("bin")).unwrap(),
+            )
+        })
+        .collect()
+}
+
+/// Плоское место «training_island» с площадками старта из заголовков файлов.
+fn island_place(model_hash: &str) -> Place {
+    let sites: Vec<String> = island_files()
+        .iter()
+        .map(|(h, _)| {
+            let v: Value = serde_json::from_str(h).unwrap();
+            let st = &v["key"]["start"];
+            format!(r#"{{"x":{},"z":{},"h_msl":100.0}}"#, st[0], st[1])
+        })
+        .collect();
+    let header = format!(
+        r#"{{"version":1,"loc":{{"id":"training_island","center_lat":43.2,"center_lon":34.0,
+"utc_offset_h":2.0,"month":7,"day":15}},"grid":{{"origin_x":-10000,"origin_z":-10000,"spacing":25,
+"width":801,"height":801}},"surface_classes":{{"grass":1}},"start_sites":[{}],
+"model_hash":"{model_hash}"}}"#,
+        sites.join(",")
+    );
+    let h = dp_air::PlaceHeader::from_json(&header).unwrap();
+    let n = h.cells();
+    Place::new(h, vec![100.0; n], vec![0; n], vec![1; n], vec![0.5; n]).unwrap()
+}
+
+fn file_model_hash() -> String {
+    let v: Value = serde_json::from_str(&island_files()[0].0).unwrap();
+    v["model_hash"].as_str().unwrap().to_string()
+}
+
+/// Условия набора погоды площадки `landing_hill` (9 ч, 1 м/с с 270°, 22 °C, ясно).
+fn landing_cond() -> Conditions {
+    Conditions::from_json(
+        r#"{"forecast":{"temperature_c":22,"wind_speed_kmh":3.6,"wind_from_deg":270,"sky":"clear"},
+"quantum_h":1,"start_hour":9,"speed":1,"blend_s":null,"rebuild":false}"#,
+    )
+    .unwrap()
+}
+
+fn landing_focus() -> Focus {
+    Focus {
+        pos: [3510.0, 110.0, -1510.0],
+        weight: 1.0,
+    }
+}
+
+fn island_probes(pl: &Place) -> Vec<[f32; 3]> {
+    let mut v = Vec::new();
+    for i in -2..=2 {
+        for j in -2..=2 {
+            let (x, z) = (3510.0 + 150.0 * i as f32, -1510.0 + 150.0 * j as f32);
+            let g = ground_height(pl, x, z);
+            for a in [30.0, 150.0, 400.0] {
+                v.push([x, g + a, z]);
+            }
+        }
+    }
+    v
+}
+
+fn add_island(m: &mut Formula) {
+    for (h, b) in island_files() {
+        m.add_baked_field(&h, &b).unwrap();
+    }
+}
+
+#[test]
+fn baked_field_is_taken_without_picard() {
+    use dp_air::field::baked::parse_baked;
+    use dp_air::field::field_set::FieldSet;
+    let cfg = configs_with(cheap);
+    let rt = RtCfg::from_configs(&cfg).unwrap();
+    let hash = file_model_hash();
+    let pl = island_place(&hash);
+    let pts = island_probes(&pl);
+    // ожидание: уровни файла в наборе так же, как их подаёт Formula
+    let (h, b) = island_files().into_iter().next().unwrap();
+    let want = parse_baked(&h, &b).unwrap();
+    let n_levels = want.levels.len();
+    let mut fs = FieldSet::new(rt.limits, rt.edge_blend_cells);
+    fs.set_field(want.levels, 0.0);
+    let expect: Vec<[f32; 4]> = pts
+        .iter()
+        .map(|p| {
+            let v = fs.sample(*p, ground_height(&pl, p[0], p[2]));
+            [v.v[0] as f32, v.v[1] as f32, v.v[2] as f32, 0.0]
+        })
+        .collect();
+    assert!(expect.iter().flatten().any(|v| *v != 0.0));
+
+    // порядок игры: условия, фокус, место, затем поля (load_place уже запустил загрузку)
+    let t0 = Instant::now();
+    let mut m = Formula::new();
+    m.configure(&cfg, 1).unwrap();
+    m.set_conditions(&landing_cond()).unwrap();
+    m.set_focuses(&[landing_focus()]).unwrap();
+    m.load_place(pl.clone()).unwrap();
+    add_island(&mut m);
+    wait_ready(&m, 60.0);
+    let d = t0.elapsed();
+    let r = m.report().unwrap();
+    eprintln!(
+        "baked: Ready in {d:?}, source {:?}, notes {:?}",
+        r.source, r.notes
+    );
+    assert_eq!(r.source, Source::Baked);
+    assert!(r.passes.is_empty(), "no Picard pass");
+    assert_eq!(r.planned, 0);
+    if !cfg!(debug_assertions) {
+        assert!(d < Duration::from_secs(2), "{d:?}");
+    }
+    assert_eq!(m.status().state, State::Ready);
+    m.set_conditions(&landing_cond()).unwrap(); // принимает готовую задачу
+    assert!(
+        (m.inflow_k() - 0.3).abs() < 1e-9,
+        "inflow_k of the file: {}",
+        m.inflow_k()
+    );
+    assert_eq!(
+        bits(&sample(&m, &pts)),
+        bits(&expect),
+        "sample = parse_baked"
+    );
+    assert_eq!(n_levels, 3, "windows 50/100 m and the 400 m area");
+
+    // порядок до условий: файлы, потом условия и фокус — тот же результат
+    let mut m2 = Formula::new();
+    m2.configure(&cfg, 1).unwrap();
+    m2.load_place(pl.clone()).unwrap();
+    add_island(&mut m2);
+    m2.set_focuses(&[landing_focus()]).unwrap();
+    m2.set_conditions(&landing_cond()).unwrap();
+    m2.advance_to(1.0).unwrap();
+    wait_ready(&m2, 60.0);
+    assert_eq!(m2.report().unwrap().source, Source::Baked);
+    assert_eq!(bits(&sample(&m2, &pts)), bits(&expect));
+
+    // поле принято — в игре оно же остаётся на сроке: пересчёта нет
+    m.advance_to(60.0).unwrap();
+    assert_eq!(m.report().unwrap().source, Source::Baked);
+}
+
+#[test]
+fn baked_misses_compute_and_say_why() {
+    let cfg = configs_with(cheap);
+    let hash = file_model_hash();
+    let run = |pl: Place, c: &Conditions, focus: Option<Focus>| {
+        let mut m = Formula::new();
+        m.configure(&cfg, 1).unwrap();
+        m.set_conditions(c).unwrap();
+        if let Some(f) = focus {
+            m.set_focuses(&[f]).unwrap();
+        }
+        m.load_place(pl).unwrap();
+        add_island(&mut m);
+        wait_ready(&m, 300.0);
+        m.report().unwrap()
+    };
+    // чужой хеш модели, пустой, без площадки, чужие условия, чужое место
+    let foreign = run(
+        island_place("0123456789abcdef"),
+        &landing_cond(),
+        Some(landing_focus()),
+    );
+    assert_eq!(foreign.source, Source::Computed);
+    assert!(
+        foreign
+            .notes
+            .iter()
+            .any(|n| n.contains("модель воздуха другой версии")),
+        "{:?}",
+        foreign.notes
+    );
+    assert!(!foreign.passes.is_empty());
+    let empty = run(island_place(""), &landing_cond(), Some(landing_focus()));
+    assert_eq!(empty.source, Source::Computed);
+    assert!(
+        empty.notes.iter().any(|n| n.contains("model_hash")),
+        "{:?}",
+        empty.notes
+    );
+    let far = Focus {
+        pos: [900.0, 110.0, 900.0],
+        weight: 1.0,
+    };
+    let no_site = run(island_place(&hash), &landing_cond(), Some(far));
+    assert_eq!(no_site.source, Source::Computed);
+    assert!(
+        no_site.notes.iter().any(|n| n.contains("нет площадки")),
+        "{:?}",
+        no_site.notes
+    );
+    let windier = Conditions::from_json(
+        r#"{"forecast":{"temperature_c":22,"wind_speed_kmh":7.2,"wind_from_deg":270,"sky":"clear"},
+"quantum_h":1,"start_hour":9,"speed":1,"blend_s":null,"rebuild":false}"#,
+    )
+    .unwrap();
+    let other = run(island_place(&hash), &windier, Some(landing_focus()));
+    assert_eq!(other.source, Source::Computed);
+    assert!(
+        other
+            .notes
+            .iter()
+            .any(|n| n.contains("условия не как в наборе погоды")),
+        "{:?}",
+        other.notes
+    );
+    let mut elsewhere = island_place(&hash);
+    let mut h = elsewhere.header().clone();
+    h.loc.id = "somewhere".into();
+    elsewhere = Place::new(
+        h,
+        elsewhere.heights().to_vec(),
+        elsewhere.water().to_vec(),
+        elsewhere.cls().to_vec(),
+        elsewhere.moist().to_vec(),
+    )
+    .unwrap();
+    let other_place = run(elsewhere, &landing_cond(), Some(landing_focus()));
+    assert_eq!(other_place.source, Source::Computed);
+    assert!(
+        other_place.notes.iter().any(|n| n.contains("нет файла")),
+        "{:?}",
+        other_place.notes
+    );
+}
+
+#[test]
+fn add_baked_field_follows_the_command_order() {
+    let cfg = configs_with(cheap);
+    let (h, b) = island_files().into_iter().next().unwrap();
+    // без места
+    let mut m = Formula::new();
+    m.configure(&cfg, 1).unwrap();
+    assert_eq!(m.add_baked_field(&h, &b).unwrap_err().code, Code::NoPlace);
+    m.set_cache_dir("").unwrap();
+    // неразборчивое
+    m.load_place(island_place(&file_model_hash())).unwrap();
+    assert_eq!(
+        m.add_baked_field("не json", &b).unwrap_err().code,
+        Code::BadInput
+    );
+    assert_eq!(
+        m.add_baked_field("{}", &b).unwrap_err().code,
+        Code::BadInput
+    );
+    assert_eq!(m.add_baked_field(&h, &[]).unwrap_err().code, Code::BadInput);
+    // нормальное: до условий — принимается и ждёт
+    m.add_baked_field(&h, &b).unwrap();
+    // после готового поля — BadInput
+    m.set_conditions(&landing_cond()).unwrap();
+    m.set_focuses(&[landing_focus()]).unwrap();
+    m.advance_to(1.0).unwrap();
+    wait_ready(&m, 120.0);
+    assert!(m.report().is_some());
+    assert_eq!(m.add_baked_field(&h, &b).unwrap_err().code, Code::BadInput);
+    // Calm по умолчанию ничего не делает
+    let mut c = dp_air::Calm::new();
+    c.add_baked_field("мусор", &[]).unwrap();
+    c.set_cache_dir("/nonexistent").unwrap();
+}
+
+fn temp_dir(tag: &str) -> PathBuf {
+    let d = std::env::temp_dir().join(format!(
+        "dp-air-{tag}-{}-{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    std::fs::create_dir_all(&d).unwrap();
+    d
+}
+
+fn with_hash(pl: Place, hash: &str) -> Place {
+    let mut h = pl.header().clone();
+    h.model_hash = hash.into();
+    Place::new(
+        h,
+        pl.heights().to_vec(),
+        pl.water().to_vec(),
+        pl.cls().to_vec(),
+        pl.moist().to_vec(),
+    )
+    .unwrap()
+}
+
+fn cache_files(dir: &Path) -> Vec<PathBuf> {
+    std::fs::read_dir(dir)
+        .map(|rd| {
+            rd.flatten()
+                .map(|e| e.path())
+                .filter(|p| p.extension().is_some_and(|x| x == "dpac"))
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+fn wait_cache_file(dir: &Path) -> PathBuf {
+    let t = Instant::now();
+    loop {
+        let f = cache_files(dir);
+        if let Some(p) = f.first() {
+            return p.clone();
+        }
+        assert!(t.elapsed().as_secs() < 30, "no cache file in {dir:?}");
+        std::thread::sleep(Duration::from_millis(10));
+    }
+}
+
+fn load_with_cache(cfg: &Configs, dir: &Path, pl: Place, c: &Conditions) -> (Formula, JobReport) {
+    let mut m = Formula::new();
+    m.configure(cfg, 1).unwrap();
+    m.set_cache_dir(dir.to_str().unwrap()).unwrap();
+    m.set_conditions(c).unwrap();
+    m.load_place(pl).unwrap();
+    wait_ready(&m, 300.0);
+    let r = m.report().unwrap();
+    (m, r)
+}
+
+#[test]
+fn cache_stores_after_the_field_and_serves_the_second_load() {
+    let cfg = configs_with(cheap);
+    let dir = temp_dir("cache");
+    let pl = with_hash(place("synthetic"), "model-1");
+    let pts = probes(&pl);
+    let c = cond("medium");
+
+    // 1-я загрузка: расчёт, затем запись
+    let (m1, r1) = load_with_cache(&cfg, &dir, pl.clone(), &c);
+    assert_eq!(r1.source, Source::Computed);
+    assert!(!r1.passes.is_empty());
+    let file = wait_cache_file(&dir);
+    let want = sample(&m1, &pts);
+    assert!(want.iter().flatten().any(|v| *v != 0.0));
+    assert_eq!(m1.cache_error(), "");
+
+    // 2-я на тех же условиях: из кеша, без Пикара, побитно то же
+    let t = Instant::now();
+    let (m2, r2) = load_with_cache(&cfg, &dir, pl.clone(), &c);
+    let d = t.elapsed();
+    eprintln!("cache hit: Ready in {d:?}, notes {:?}", r2.notes);
+    assert_eq!(r2.source, Source::Cache);
+    assert!(r2.passes.is_empty(), "no Picard pass");
+    assert_eq!(
+        bits(&sample(&m2, &pts)),
+        bits(&want),
+        "cache = the computed field"
+    );
+    assert!((m2.inflow_k() - m1.inflow_k()).abs() < 1e-12);
+
+    // другие условия, другое место, другая модель, кеш выключен — промах
+    let (_, r3) = load_with_cache(&cfg, &dir, pl.clone(), &cond("strong"));
+    assert_eq!(r3.source, Source::Computed);
+    let (_, r4) = load_with_cache(&cfg, &dir, with_hash(place("synthetic"), "model-2"), &c);
+    assert_eq!(r4.source, Source::Computed);
+    assert!(
+        r4.notes.iter().any(|n| n.starts_with("cache:")),
+        "{:?}",
+        r4.notes
+    );
+    let (_, r5) = load_with_cache(&cfg, &dir, pl.clone(), &c);
+    assert_eq!(
+        r5.source,
+        Source::Computed,
+        "the foreign-model record was removed"
+    );
+    let none = temp_dir("nocache");
+    let (_, r6) = load_with_cache(&cfg, &none, with_hash(place("synthetic"), ""), &c);
+    assert_eq!(r6.source, Source::Computed);
+    std::thread::sleep(Duration::from_millis(300));
+    assert!(
+        cache_files(&none).is_empty(),
+        "no model_hash: nothing is stored"
+    );
+
+    // порча файла — промах, запись пересоздана
+    wait_cache_file(&dir);
+    for f in cache_files(&dir) {
+        let bytes = std::fs::read(&f).unwrap();
+        std::fs::write(&f, &bytes[..bytes.len() / 2]).unwrap();
+    }
+    let (_, r7) = load_with_cache(&cfg, &dir, pl.clone(), &c);
+    assert_eq!(r7.source, Source::Computed);
+    assert!(
+        r7.notes.iter().any(|n| n.starts_with("cache:")),
+        "{:?}",
+        r7.notes
+    );
+    let t = Instant::now();
+    loop {
+        let fixed = std::fs::read(&file)
+            .map(|b| b.len() > 1000)
+            .unwrap_or(false);
+        if fixed {
+            break;
+        }
+        assert!(t.elapsed().as_secs() < 30, "record not rewritten");
+        std::thread::sleep(Duration::from_millis(10));
+    }
+    let (m8, r8) = load_with_cache(&cfg, &dir, pl, &c);
+    assert_eq!(r8.source, Source::Cache);
+    assert_eq!(bits(&sample(&m8, &pts)), bits(&want));
+    let _ = std::fs::remove_dir_all(&dir);
+    let _ = std::fs::remove_dir_all(&none);
+}
+
+#[test]
+fn place_header_carries_model_hash_and_its_absence_is_allowed() {
+    let h = |extra: &str| {
+        format!(
+            r#"{{"version":1,"loc":{{"id":"t","center_lat":50.0,"center_lon":86.0,
+"utc_offset_h":7.0,"month":7,"day":1}},"grid":{{"origin_x":-100,"origin_z":-100,"spacing":50,
+"width":4,"height":4}},"surface_classes":{{"grass":1}},"start_sites":[]{extra}}}"#
+        )
+    };
+    let with = dp_air::PlaceHeader::from_json(&h(r#","model_hash":"abc123""#)).unwrap();
+    assert_eq!(with.model_hash, "abc123");
+    let without = dp_air::PlaceHeader::from_json(&h("")).unwrap();
+    assert_eq!(without.model_hash, "");
+}
+
+#[test]
+#[ignore = "Онгудай, release: cargo test --release -p dp-air --test runtime -- --ignored --nocapture"]
+fn ongudai_medium_phases_iterations_release() {
+    // нагрев на полной области Онгудая: поле конечно, итерации с фазами и без
+    let cfg = configs_with(|v| {
+        v["air"]["deterministic"] = json!(true);
+        v["air"]["tol_scale"] = json!(5.0);
+    });
+    let mut iters = [0usize; 2];
+    for (i, off) in [false, true].into_iter().enumerate() {
+        let pl = place("ongudai");
+        let pts = probes(&pl);
+        let t = Instant::now();
+        let r = job(
+            &cfg,
+            |c| c.faults.no_phase = off,
+            pl.clone(),
+            &cond("medium"),
+            true,
+            None,
+            None,
+        )
+        .unwrap();
+        let p = &r.report.passes[0];
+        iters[i] = total_iters(p);
+        eprintln!(
+            "ongudai medium phases {}: iters {:?} coarse {:?} stop {:?} frozen {:?} nonconv cols {} nonconv fallback {} phase {:.2}s total {:.1}s",
+            !off,
+            p.iters,
+            p.coarse_iters,
+            p.stop,
+            p.frozen_frac,
+            p.nonconv_cols,
+            p.nonconv_fallback,
+            p.phase_s,
+            t.elapsed().as_secs_f64()
+        );
+        let out: Vec<_> = pts
+            .iter()
+            .map(|q| r.levels[0].sample(*q, ground_height(&pl, q[0], q[2])))
+            .collect();
+        assert!(out.iter().flatten().all(|v| v.is_finite()));
+        assert!(out.iter().flatten().any(|v| *v != 0.0));
+    }
+    eprintln!(
+        "ongudai medium: iterations with phases {} / without {}",
+        iters[0], iters[1]
+    );
 }

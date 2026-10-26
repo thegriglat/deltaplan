@@ -40,6 +40,16 @@ pub trait AirModel: Send + Sync {
     fn set_focuses(&mut self, f: &[Focus]) -> Result<(), Error>;
     fn advance_to(&mut self, t: f64) -> Result<(), Error>;
     fn start_at(&mut self, t: f64) -> Result<(), Error>;
+    /// W4 v3: запечённое поле места (W5 v4, TI-К3 v3) сразу после `load_place`, до READY. Реализация
+    /// по умолчанию ничего не делает (`Calm`). Неразборчивый заголовок, поле после READY — `BadInput`,
+    /// нет места — `NoPlace`.
+    fn add_baked_field(&mut self, _header_json: &str, _data: &[u8]) -> Result<(), Error> {
+        Ok(())
+    }
+    /// W4 v3: каталог кеша полей реализации (абсолютный путь); пусто — без кеша. По умолчанию — ничего.
+    fn set_cache_dir(&mut self, _path: &str) -> Result<(), Error> {
+        Ok(())
+    }
     fn status(&self) -> Status;
     fn sample_many(&self, pts: &[[f32; 3]], mode: SampleMode, out: &mut [[f32; 4]]);
     fn cloud_density_many(&self, pts: &[[f32; 3]], out: &mut [f32]);
