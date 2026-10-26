@@ -1,0 +1,97 @@
+{
+  "status": "done",
+  "summary": "dp_air::field::case_build::build_solver_case(&PreparedPlanes, &CaseParams, &SolverCfg) -> picard_rs::Case (без эталона, dev=None): K_SETUP и загрузка AirPicardJob в f32 на rayon; в picard_rs добавлены Case::from_parts/CaseParts (load на нём же, файлы не сломаны). Против буферов игры (GPU-дампер): типы, губки sp_u/sp_w/spc, Q — побитно; ubu/ubv ≤1.1e-7, kbg ≤4.1e-7, Kx/Ky ≤8.5e-8, Kz ≤2.7e-9 отн. к max.",
+  "commits": [
+    "368ec2bfa rust-wind RW-6e: сборка случая решателя в Rust (K_SETUP → picard_rs::Case в памяти), дампер буферов игры"
+  ],
+  "checks": [
+    {
+      "name": "K_SETUP против GPU: tcode/sp*/Q",
+      "value": "побитно (хеш всего буфера совпал, в т.ч. Онгудай 400 heat/mech)",
+      "pass": true
+    },
+    {
+      "name": "K_SETUP против GPU: ubu/ubv/kbg/Kx/Ky/Kz",
+      "value": "max отн.к max|ref| 1.1e-7/1.1e-7/4.1e-7/8.5e-8/8.5e-8/2.7e-9 (допуск 1e-6); расхождение — GPU pow/cbrt/деление",
+      "pass": true
+    },
+    {
+      "name": "solve синтетика 1200 heat/calm tol5 (обычный тест)",
+      "value": "20 и 30 итераций, Converged, поле конечно, dev=None",
+      "pass": true
+    },
+    {
+      "name": "solve Онгудай 400 tol_scale 5 (release, #[ignore])",
+      "value": "heat 90 итераций, mech 120, Converged, max|u,v| 5.7 м/с (ориентир AP-20 u3_heat 111; сценарий другой: ongudai_medium 13 ч)",
+      "pass": true
+    },
+    {
+      "name": "case_build_test",
+      "value": "8 passed, 2 ignored",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "dump_repro",
+      "value": "exit 0, побитно",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-6e; Онгудай 400: cargo test --release --manifest-path rust/Cargo.toml -p dp-air --test case_build -- --ignored --nocapture",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/src/field/case_build.rs (cd)",
+      "why": "picard_rs знает одно C_d на область (PreparedPlanes::cd); C_d по столбцу (col 12, SH-6) решатель не использует, u* по столбцу учтён только в nu_bg. Граница модели, не паритет с GPU при неоднородном z0.",
+      "checked": "сценарии дампа с картой z0 (Онгудай, синтетика) сходятся; влияние на поле не меряно"
+    },
+    {
+      "where": "rust/dp-air/src/field/case_build.rs (b_u/b_v)",
+      "why": "индексы граней хранятся в f32 (R1): область ≥2^24 клеток с ореолом даёт ошибку, а не молчаливую потерю",
+      "checked": "Онгудай 400 — 0,5 млн клеток"
+    },
+    {
+      "where": "SolverCfg",
+      "why": "числа проходов (2/4/1), local_k и допуски — константы игры, в CaseParams Rust их нет; RW-6j должен подтвердить, что AirCase.p не меняют их",
+      "checked": "сверено с air_case.gd p и air_picard_job.gd tol_*"
+    },
+    {
+      "where": "dump_case_build.gd",
+      "why": "дамп: Онгудай 400 только выборка шагом 101 + хеш всего буфера (полный 24 МБ не влез в 3 МБ); окно клипмапа (P_NEST=1) не собирается — RW-6n",
+      "checked": "dump_repro --verify побитно воспроизводит на GPU"
+    }
+  ],
+  "dp_feedback": "lock cpu: флаг --no-tmux идёт после имени, перед `--` (в задании порядок другой, первый вызов ушёл в tmux); `dpcli lock -h` не показывает синтаксис.",
+  "extra": {
+    "gpu_vs_rust_max_rel": {
+      "ubu": 1.12e-07,
+      "ubv": 1.11e-07,
+      "kbg": 4.08e-07,
+      "Kx": 8.48e-08,
+      "Ky": 8.48e-08,
+      "Kz": 2.65e-09
+    },
+    "ongudai400_iters": {
+      "heat": 90,
+      "mech": 120
+    }
+  },
+  "t": "2026-10-26T05:33:46",
+  "by": "executor"
+}

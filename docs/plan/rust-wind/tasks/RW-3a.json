@@ -1,0 +1,95 @@
+{
+  "id": "RW-3a",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Потребители игры и мира — на фасад W2; фасад — окончательные имена W2; синхронизация воздуха по сети — удалить",
+  "goal": "Все потребители воздуха вне scripts/atmosphere/ (игра, полёт, мир, рельеф, приборы, сеть, боты; кроме отладочных — RW-3c) обращаются только к фасаду W2; фасад Atmosphere и CalmAir получают окончательные имена и семантику W2 (weather(), configure(seed), start_at асинхронен всегда, set_focuses вместо focus_node); сетевая синхронизация термиков и CloudField удалена (W1); храповик W10 по этим файлам — пуст, ложные срабатывания шаблонов сужены до узла воздуха.",
+  "plan_ref": "План переноса / Этап 1 / RW-3",
+  "contracts": [
+    {
+      "name": "W1",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W2",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W5",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W6",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W7",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W10",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-3a",
+  "branch": "rust-wind/RW-3a",
+  "base": "feature/rust-wind",
+  "scope": [
+    "scripts/game/",
+    "scripts/flight/",
+    "scripts/glider/",
+    "scripts/world_objects/",
+    "scripts/terrain/",
+    "scripts/instruments/",
+    "scripts/net/",
+    "scripts/atmosphere/atmosphere.gd",
+    "tests/"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/air_model/",
+    "scripts/atmosphere/cloud_layer.gd",
+    "scripts/atmosphere/atmo_fingerprint.gd",
+    "scripts/atmosphere/atmosphere_preview.gd",
+    "scripts/game/debug_overlays.gd",
+    "scripts/terrain/terrain_wind.gd",
+    "configs/",
+    "rust/",
+    "tests/fixtures/",
+    "tools/wind_fixtures/",
+    "docs/contracts/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "test_rust_wind_contracts",
+      "tests": "test_rust_wind_contracts"
+    },
+    {
+      "name": "test_rust_wind_purity",
+      "tests": "test_rust_wind_purity"
+    },
+    {
+      "name": "tests/",
+      "tests": "tests/"
+    },
+    {
+      "name": "fixtures_unchanged",
+      "cmd": "tools/wind_fixtures/verify.sh",
+      "expect": "exit=0"
+    },
+    {
+      "name": "baseline_scope_empty",
+      "cmd": "grep -E '^scripts/(game|flight|glider|world_objects|terrain|instruments|net)/' tests/contracts/rust_wind_purity_baseline.txt | grep -vE 'debug_overlays|terrain_wind|terrain_preview|world_objects_preview' | wc -l",
+      "expect": "num:(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-26T05:29:48"
+}
