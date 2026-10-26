@@ -1,0 +1,73 @@
+{
+  "id": "RW-6k",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Фазы 1 в Rust: AirPhase.prepare, классификатор, веса, маски заморозки, ω",
+  "goal": "Модуль dp_air::field::phase (prepare, classifier) по CPU-двойнику air_phase_cpu.gd и air_phase.gd: подготовка входа фаз, классификатор механизмов (веса A, B, D, F, G, H; Σ = 1), маски заморозки freeze/freeze_mech (вес ≥ freeze_w), карта ω; совпадает с GDScript (числа test_air_phase.gd и дамп на тех же входах).",
+  "plan_ref": "План переноса / Этап 2 / RW-6",
+  "contracts": [
+    {
+      "name": "W1",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W11",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-6k",
+  "branch": "rust-wind/RW-6k",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/field/phase/",
+    "rust/dp-air/src/field/mod.rs",
+    "rust/dp-air/tests/phase_classifier.rs",
+    "rust/dp-air/tests/data/phase/",
+    "tools/research/rust_wind/dump_phase.gd",
+    "tools/research/rust_wind/dump_phase.sh",
+    "tools/research/rust_wind/dump_phase.tscn"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "rust/picard_rs/",
+    "rust/dp-gd/",
+    "rust/dp-air/src/field/case_prepare.rs",
+    "rust/dp-air/src/calm.rs",
+    "rust/dp-air/tests/contract.rs",
+    "tests/fixtures/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "phase_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test phase_classifier",
+      "expect": "re:test result: ok\\. [1-9]"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml -p dp-air --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dump_repro",
+      "cmd": "tools/research/rust_wind/dump_phase.sh --verify",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-26T05:06:29"
+}
