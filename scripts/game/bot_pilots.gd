@@ -11,6 +11,9 @@ extends Node3D
 ## Интегратор (Game): setup(...) на новый полёт, reset() на «Ещё раз», tick(dt, телеметрия
 ## игрока) каждый шаг физики. visuals_enabled = false — без узлов (тесты).
 
+## Радиус выборки облаков фасада вокруг (0, 0), м: весь охват поля (дальше облаков нет).
+const VISIBLE_CLOUDS_RADIUS_M := 1.0e7
+
 ## Показывать ботов (BotGlider). false — только физика (headless-тесты).
 var visuals_enabled := true
 ## Время ботов с начала полёта, с.
@@ -193,8 +196,8 @@ func setup_in_world(
 		"heading_deg": heading_deg,
 		"count": count,
 	}
-	if air.has_method("get_cloudbase_msl"):
-		opts.cloudbase_msl = float(air.call("get_cloudbase_msl"))
+	if air.has_method("cloudbase_msl"):
+		opts.cloudbase_msl = float(air.call("cloudbase_msl"))
 	if air is Atmosphere:
 		opts.clouds_fn = _visible_clouds.bind(air)
 	opts.obstacles = start_obstacles(terrain, objects, start, _pre_obstacles)
@@ -226,8 +229,8 @@ func setup_in_world_async(
 	}
 	if not tow_air.is_empty():
 		opts.tow_air = tow_air
-	if air.has_method("get_cloudbase_msl"):
-		opts.cloudbase_msl = float(air.call("get_cloudbase_msl"))
+	if air.has_method("cloudbase_msl"):
+		opts.cloudbase_msl = float(air.call("cloudbase_msl"))
 	if air is Atmosphere:
 		opts.clouds_fn = _visible_clouds.bind(air)
 	opts.obstacles = start_obstacles(terrain, objects, start, _pre_obstacles)
@@ -320,9 +323,23 @@ static func _obstacles_tile(job: Array, c: Vector2, r: float, out: Array[Vector3
 
 
 ## Облака, которые видит пилот (как tests/atmosphere/xc/xc_run.gd): центр, радиус, рост, распад —
-## кучевые из поля облачности над термиками (CloudPhysics.visible_clouds).
+## кучевые облака фасада (clouds, W6: без грозовых Cb, флаг 4), в радиусе поля вокруг фокуса.
 static func _visible_clouds(atmo: Atmosphere) -> Array:
-	return atmo.cloud_phys.visible_clouds(atmo.field.thermals, atmo.time_s, atmo.get_focus())
+	var out: Array = []
+	var d := atmo.clouds(Vector3.ZERO, VISIBLE_CLOUDS_RADIUS_M)
+	var stride := Atmosphere.CLOUD_STRIDE
+	for k in range(0, d.size() - stride + 1, stride):
+		if (int(d[k + Atmosphere.CLOUD_FLAGS]) & 4) != 0:
+			continue
+		out.append(
+			{
+				"center": Vector2(d[k + Atmosphere.CLOUD_X], d[k + Atmosphere.CLOUD_Z]),
+				"radius": d[k + Atmosphere.CLOUD_RADIUS],
+				"growth": d[k + Atmosphere.CLOUD_GROWTH],
+				"decay": d[k + Atmosphere.CLOUD_DECAY],
+			}
+		)
+	return out
 
 
 ## Имена ботам из пула текущего языка (на новый полёт и при смене языка).
