@@ -6,10 +6,10 @@ area: "air"
 updated: "2026-10-26"
 summary: "W11 rust-wind: решатель Пикара в крейте — R6 v3 + заморозка колонн, отмена, новые причины остановки; пустая маска — побитно R6 v3."
 related: ["docs/contracts/rust-wind.md", "docs/contracts/picard-rs.md", "docs/research/rust-wind-field-path.md"]
-contracts: [{"id": "W11", "version": 2}]
+contracts: [{"id": "W11", "version": 3}]
 ---
 
-# W11. Решатель Пикара в крейте (v2)
+# W11. Решатель Пикара в крейте (v3)
 
 Часть `docs/contracts/rust-wind.md` (версия — там, заголовок W11). Менять — только координатор. Расширяет `picard_rs::api` (R6 v3, `docs/contracts/picard-rs.md`; тот контракт закрыт и не правится — всё новое здесь). Владелец — RW-6g (заморозка, отмена), RW-6h (запасные правила). Потребители — RW-6j (оркестровка), RW-6n (окна), фазы RW-6k–6m (дают маски).
 Эталон поведения — игровой GPU-путь: `scripts/atmosphere/air_model/air_picard_job.gd` (`_freeze`, `freeze_mask`/`freeze_mask_mech`, `freeze_field`/`freeze_field_mech`, `_use_freeze_mask`, `_pad_cols`, `all_frozen`, счёт неизвестных) и ядра `air_picard.glsl` (`K_FREEZE`, `K_RMASK`, `K_FIXROW`). Разбор — `docs/research/rust-wind-field-path.md`, «Карта фаз и заморозка колонн».
@@ -21,4 +21,5 @@ contracts: [{"id": "W11", "version": 2}]
 - `StopReason` + `AllFrozen` (все колонны заморожены: решение не идёт, `iters = 0`, `state` = замороженное поле) и `Cancelled`.
 - Неверная длина `mask`/`field` — `Err` с текстом, без паники.
 - Инварианты (тест RW-6g): `freeze = None` и маска из нулей дают побитно R6 v3; T4 — дивергенция и невязка по незамороженным в критерии; замороженные колонны побитно равны `field` до `finalize` (v2: `finalize` проецирует всё поле без маски, как игра, — в отдаваемом `state` u, v, w замороженных колонн после проекции, th и thd — побитно `field`); отмена — не позже 1 итерации; результат не зависит от числа потоков (побитно).
-- Запасные правила RW-6h (ω-откат, `late_mean`, `nonconv`, `max_outer`) — поля `SolveOpts` добавит W11 v2 при постановке RW-6h.
+- **v3 — запасные правила (RW-6h; эталон — `air_picard_job.gd`: `omega_fallback`, `late_from`, `nonconv_mask/field`, `_setup_nonconv`, `max_outer = 3000`, P12 v2 в комментариях там же):** `SolveOpts.fallback: Option<Fallback>`; `pub struct Fallback { pub omega_after: usize, pub omega: f32, pub late_from: usize, pub nonconv: Option<NonConv> }`, `pub struct NonConv { pub mask: Vec<u8> /* ny·nx, 1 — колонна механизма H/D */, pub field: Option<FrozenField> /* нет — late_mean */ }`. Семантика — как в игре: после `omega_after` итераций без сходимости — ω := `omega` (`omega_fallback`, игра 300 / 0,5); с итерации `late_from` (игра 500; 0 — не копится) состояния копятся в среднее `late_mean`; упёрлись в `max_iters` (игра `max_outer` 3000) без сходимости — поле := `late_mean`, в колоннах `nonconv.mask` := `nonconv.field` (нет — `late_mean`), затем `finalize`. `Solved` + `omega_fallback_used: bool`, `nonconv_fallback: bool`, `nonconv_frac: f32`. `fallback = None` — побитно v2.
+- v3: `cancel` взведён до старта при `AllFrozen` без `init` и `field` — отдаётся `AllFrozen` с фоном (поле заморозки по умолчанию), не нули (ревью RW-6g).
