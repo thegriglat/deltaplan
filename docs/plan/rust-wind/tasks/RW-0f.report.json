@@ -1,54 +1,55 @@
 {
-  "status": "partial",
-  "summary": "Версия API выставлена в 2 (dp-air API_VERSION, dp-gd WIND_API_VERSION, GDScript-тест test_dp_air_ext.gd); жёсткий assert==1 в contract.rs убран; verify.sh сравнивает configs_sha1 только справочно. Не PASS: остался красный тест вне скоупа и verify.sh падает на генераторе.",
+  "status": "done",
+  "summary": "Версия API = W2 v2 во всех местах (dp-air, dp-gd, bridge.rs, GDScript-тест); жёсткие assert==1 убраны; verify.sh сравнивает configs_sha1 только справочно. Приёмка --dry 5/5 PASS.",
   "commits": [
-    "078bf2ba1 rust-wind: RW-0f — версия API = W2 v2, verify.sh без configs_sha1 (справка)"
+    "078bf2ba1 rust-wind: RW-0f — версия API = W2 v2 (крейт, dp-gd, тест GDScript), verify.sh без configs_sha1 (справка)",
+    "a6122c5b5 rust-wind: RW-0f — тест моста сверяет WIND_API_VERSION с версией W2 (2)"
   ],
   "checks": [
     {
       "name": "test_dp_air_ext",
-      "value": "0 упало, 4 пропущено (тест пропускается: нет addons/dp_air/bin/libdp_air_tune.so, класс DpAir не создаётся)",
+      "value": "4/4 пройдено (после сборки tools/build_rust.sh tune linux)",
       "pass": true
     },
     {
       "name": "contract_rs",
-      "value": "cargo test -p dp-air --test contract: test result ok",
+      "value": "test result: ok",
       "pass": true
     },
     {
       "name": "cargo_test",
-      "value": "cargo test --workspace: exit != 0; падает dp-gd/tests/bridge.rs:26 api_version_is_1 (assert_eq!(WIND_API_VERSION, 1)); остальные крейты ok",
-      "pass": false
+      "value": "cargo test --workspace: exit 0",
+      "pass": true
     },
     {
       "name": "fmt",
-      "value": "cargo fmt --check: exit 0",
+      "value": "exit 0",
       "pass": true
     },
     {
       "name": "fixtures_unchanged",
-      "value": "tools/wind_fixtures/verify.sh: exit 2 — генератор упал: ongudai_day_2 и ongudai_day_3, таймаут расчёта поля 60 с, air_model analytic (нет поля); библиотека dp_air не собрана",
-      "pass": false
+      "value": "tools/wind_fixtures/verify.sh: exit 0 (609 с)",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "7 файлов в границах",
+      "pass": true
     }
   ],
-  "not_done": [
-    "rust/dp-gd/tests/bridge.rs:26 — тест держит 1; вне скоупа, нужно поменять на 2 (contract)",
-    "fixtures_unchanged не прошёл по окружению: нет собранной dp_air-библиотеки, генератор не укладывается в 60 с расчёта; нужна сборка tools/build.sh и GPU-прогон, либо проверка на машине с билдом",
-    "test_dp_air_ext: первый прогон с пустым профилем упал по таймауту 900 с (до импорта); после импорта — 4 пропущено, не выполнен ни один тест"
-  ],
-  "questions": [
-    "Добавить rust/dp-gd/tests/bridge.rs в скоуп RW-0f (одна строка: WIND_API_VERSION == 2)?",
-    "docs/contracts/rust-wind.md строки 88 и 131 (W3 api_version() = 1, дымовой тест api_version() == 1) и строка 21 противоречат версии 2; правка контракта — за координатором"
-  ],
+  "not_done": [],
+  "questions": [],
   "images": [],
-  "how_to_check": "cd ~/worktrees/deltaplan/rust-wind-RW-0f && XDG_DATA_HOME=$(mktemp -d) tools/check.sh --filter=test_dp_air_ext; cargo test --manifest-path rust/Cargo.toml --workspace (ожидается красный bridge.rs:26 до правки скоупа)",
-  "dp_feedback": "job start: прогон всей приёмки ушёл в 1500 с общий таймаут и вышел с кодом 124 без итога по fixtures_unchanged; у verify.sh длина > 15 мин при занятом замке — полезно показывать, что таймаут общий. Первый Godot в копии без импорта валит test_dp_air_ext по таймауту 900 с — хорошо бы импорт делать самим acceptance.",
-  "extra": {
-    "verify_gen_failed_groups": [
-      "ongudai_day_2",
-      "ongudai_day_3"
-    ]
-  },
-  "t": "2026-10-27T02:38:20",
+  "how_to_check": ".dpcli/dpcli accept RW-0f --dry",
+  "uncertain": [
+    {
+      "where": "tools/wind_fixtures/verify.sh",
+      "why": "Мой отдельный прогон до сборки дал exit 2 (таймаут расчёта 60 с у ongudai_day_2/3); прогон приёмки после сборки — exit 0",
+      "checked": "приёмка fixtures_unchanged 609 с PASS"
+    }
+  ],
+  "dp_feedback": "test_dp_air_ext в чистой копии падает (FAIL 0/0, пропуск 4), если не собрано расширение tools/build_rust.sh tune linux; check бы подсказывал сборку прямо в выводе или делал её сам. Общий таймаут job start 1500 с обрывает приёмку с кодом 124.",
+  "extra": {},
+  "t": "2026-10-27T03:19:34",
   "by": "executor"
 }
