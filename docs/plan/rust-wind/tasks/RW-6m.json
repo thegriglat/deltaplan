@@ -1,0 +1,73 @@
+{
+  "id": "RW-6m",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Фазы 3 в Rust: F (баланс θ′), G (сток Прандтля + D8), сборка warm/mech_field/mech_field_mech/nonconv_field, статистика",
+  "goal": "Модули dp_air::field::phase::{convection, drainage, assembly} считают механизмы F и G и вес G для классификатора, собирают тёплый старт warm, поля заморозки mech_field/mech_field_mech (FrozenField по W11) и nonconv_field (NonConv W11 v3) и статистику фаз — по air_phase_cpu.gd/air_phase.gd; совпадают с GDScript на тех же входах.",
+  "plan_ref": "План переноса / Этап 2 / RW-6",
+  "contracts": [
+    {
+      "name": "W1",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W11",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-6m",
+  "branch": "rust-wind/RW-6m",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/field/phase/",
+    "rust/dp-air/tests/phase_assembly.rs",
+    "rust/dp-air/tests/data/phase_assembly/",
+    "tools/research/rust_wind/dump_phase_assembly.gd",
+    "tools/research/rust_wind/dump_phase_assembly.sh",
+    "tools/research/rust_wind/dump_phase_assembly.tscn"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "rust/picard_rs/",
+    "rust/dp-gd/",
+    "rust/dp-air/src/formula.rs",
+    "rust/dp-air/src/field/runtime.rs",
+    "rust/dp-air/tests/phase_classifier.rs",
+    "rust/dp-air/tests/phase_mech.rs",
+    "tests/fixtures/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "phase_assembly_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test phase_assembly",
+      "expect": "re:test result: ok\\. [1-9]"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml -p dp-air --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dump_repro",
+      "cmd": "tools/research/rust_wind/dump_phase_assembly.sh --verify",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-26T06:25:37"
+}
