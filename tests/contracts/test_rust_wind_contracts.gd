@@ -10,7 +10,7 @@ extends TestCase
 
 ## Версии разделов — те же, что в заголовках docs/contracts/rust-wind.md и rust-wind/*.md.
 const CONTRACTS := {
-	W1 = 1, W2 = 1, W3 = 1, W4 = 2, W5 = 3, W6 = 3, W7 = 1, W8 = 1, W9 = 1, W10 = 1, W11 = 1
+	W1 = 2, W2 = 2, W3 = 2, W4 = 3, W5 = 7, W6 = 3, W7 = 1, W8 = 1, W9 = 1, W10 = 1, W11 = 9
 }
 const DOCS: Array[String] = [
 	"res://docs/contracts/rust-wind.md",
