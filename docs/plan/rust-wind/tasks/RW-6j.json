@@ -48,7 +48,8 @@
     "configs/atmosphere.json",
     "rust/dp-air/src/place.rs",
     "rust/dp-air/src/field/field_set.rs",
-    "rust/dp-air/src/field/weather_core.rs"
+    "rust/dp-air/src/field/weather_core.rs",
+    "rust/Cargo.toml"
   ],
   "dont_touch": [
     "scripts/",
@@ -95,5 +96,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-10-26T06:17:48",
-  "edited": "2026-10-26T07:10:46"
+  "edited": "2026-10-26T07:29:29"
 }

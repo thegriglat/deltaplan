@@ -1,8 +1,8 @@
 {
   "status": "done",
-  "summary": "Дополнение к W11 v4: max_iters считается как у игры (останов после max_iters + pre_steps сырых итераций; Solved.iters и history.it сырые). Тест max_iters_counts_like_the_game (pre_steps=3). Остальное как в предыдущем отчёте (cd_col, пороги).",
+  "summary": "W11 v5: (1) cd_col nyh*nxh без изменений кода; (2,3) max_iters в счёте игры и останов на ближайшей проверке сверху (limit = pre_steps + ceil(max_iters/ce)*ce, 0 -> 0), тест max_iters_counts_like_the_game (pre 3 и 0, некратные); (4) шапка cd_col.rs поправлена; (5) FrozenField.thd: Option (None - thd из init / late_mean), assembly.rs отдаёт None, тест missing_thd_is_the_start_thd. Слито feature/rust-wind.",
   "commits": [
-    "picard-rs: max_iters в счёте игры - W11 v4"
+    "picard-rs: W11 v5 - max_iters на ближайшей проверке сверху, FrozenField.thd Option"
   ],
   "checks": [
     {
@@ -24,25 +24,24 @@
       "name": "clippy",
       "value": "exit 0",
       "pass": true
-    },
-    {
-      "name": "замер Онгудай 400 heat ts5 (прежний отчёт)",
-      "value": "итераций 90/90; у земли |du| max 0.110 ср 0.0118, |dv| max 0.133 ср 0.0142; вся область |du| ср 0.0029, |dv| ср 0.0037 м/с",
-      "pass": true
     }
   ],
-  "not_done": [],
-  "questions": [],
+  "not_done": [
+    "accept --dry: scope FAIL - rust/dp-air/src/field/phase/assembly.rs в dont_touch карточки, хотя координатор назвал его в scope; правка нужна (иначе dp-air не собирается). Карточку поправить. tests/phase_assembly.rs не менял: thd там не проверяется, компилируется и проходит."
+  ],
+  "questions": [
+    "Поправить scope карточки RW-6r: добавить rust/dp-air/src/field/phase/assembly.rs."
+  ],
   "images": [],
   "how_to_check": ".dpcli/dpcli accept RW-6r",
   "uncertain": [
     {
-      "where": "rust/picard_rs/src/solver.rs:1162",
-      "why": "max_iters + pre_steps меняет смысл max_iters для вызовов с pre_steps>0 (R1-файлы с историей); case_build даёт pre_steps=0, тёплый старт 0.",
-      "checked": "тесты fallback/api/freeze целиком PASS; snapshot_at остался в сырых итерациях."
+      "where": "rust/picard_rs/tests/api.rs, freeze.rs",
+      "why": "тесты 'отдельный прогон с max_iters=N' больше не могут останавливаться на некратном N: переведены на snapshot_at и только контрольные N.",
+      "checked": "tests picard_rs + dp-air PASS."
     }
   ],
   "dp_feedback": "",
-  "t": "2026-10-26T06:56:41",
+  "t": "2026-10-26T07:24:46",
   "by": "executor"
 }

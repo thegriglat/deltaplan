@@ -1,18 +1,19 @@
 {
   "status": "done",
-  "summary": "Formula: AirModel, который сам ведёт поле Пикара — загрузка в фоне (вход области 6b/6c/6d → грубый старт 1200 м → пара mech/heat 6e/6f → Field 6i), проходы k как AirRuntime, пересчёт на сроке и по смене условий с тёплого старта, подмена за blend_s, отмена, детерминированный режим; field/runtime.rs — одна задача run_job, formula.rs — состояния, опросы по снимку Arc, advance_to. Общий suite contract.rs идёт и на Formula, dp-stand --model formula.",
+  "summary": "Доработка: (1) уровни для подачи готовятся в фоне (FieldSet::prepare + set_levels), на тике подачи advance_to — 12 мкс на Онгудае release (было 670); (2) loc.climate разбирается в place.rs и подаётся в field_weather (PlaceClimate: ячейка заголовка там, где has_hh5/has_hh1, иначе таблицы); (3) rust/Cargo.toml: profile.dev.package.picard_rs opt-level 2 (+dp-air 1) — тесты считают на области 7,2 км с tol_scale 5, runtime_test ~46 с; (4) air.timeout_s = 180 в atmosphere.json.",
   "commits": [
-    "837ca673d rust-wind RW-6j: Formula — оркестровка поля в крейте"
+    "837ca673d Formula (первая сдача)",
+    "см. git log ветки: доработка RW-6j"
   ],
   "checks": [
     {
       "name": "runtime_test",
-      "value": "test result: ok (23 теста на -O0 за ~45 с: малая область 4,8 км, tol_scale 200; 4 теста Онгудая #[ignore], прогнаны отдельно на release)",
+      "value": "test result: ok (24 теста за ~46 с на dev; 4 Онгудая #[ignore] прогнаны на release)",
       "pass": true
     },
     {
       "name": "contract_test",
-      "value": "test result: ok; formula_suite ~11 с",
+      "value": "test result: ok, formula_suite на области 7,2 км, tol_scale 5",
       "pass": true
     },
     {
@@ -32,146 +33,63 @@
     },
     {
       "name": "stand_formula",
-      "value": "exit 0, Онгудай strong, 3 момента, 42–77 с, ошибок нет",
+      "value": "exit 0, 77 с",
       "pass": true
     },
     {
-      "name": "Онгудай release: загрузка strong, tol_scale 5, 8 слотов",
-      "value": "без фокуса 13–17 с: грубый [40,40], тонкая [50,50]; с фокусом (kayancha_south) 2 прохода 40 с: k 1,000 → 0,655, U над стартом 6,69 → 5,48 при u10 5,0; проход 2 тёплый [160,130]",
+      "name": "advance_to на тике подачи, Онгудай release",
+      "value": "12 мкс (порог теста 0,5 мс); обычный тик 18 мкс",
+      "pass": true
+    },
+    {
+      "name": "Онгудай release, tol_scale 5, climate из заголовка, 8 слотов",
+      "value": "без фокуса 7,3 с (грубый [40,40], тонкая [60,60]); с фокусом 52,6 с: k 1,000 → 0,642, U 6,79 → 5,51 при u10 5,0, проход 2 тёплый [470,250]",
       "pass": true
     },
     {
       "name": "T4a Онгудай release (итерации тонкой сетки mech+heat)",
-      "value": "medium: с грубого 70 (40+30) против 430 (290+140) с фона; strong: 100 (50+50) против 170 (90+80); грубая сетка [40,40] ≈ 9 тонких; время 11,3 с против 41,6 с и 15,3 с против 26,3 с",
+      "value": "medium: с грубого 620 (510+110) против 1210 (790+420) с фона, 47,5 с против 76,3 с; strong: 120 против 230, 12,5 с против 20,8 с; грубая сетка [40,40] / [60,50] ≈ 9–12 тонких",
       "pass": true
     },
     {
       "name": "T8 Онгудай release: unload / Drop / load_place посреди расчёта",
-      "value": "возврат 49–549 мс на 150, 1500 и 6000 мс после старта (<1 с)",
-      "pass": true
-    },
-    {
-      "name": "advance_to главного потока, Онгудай release, не детерминированный режим",
-      "value": "обычный тик 31 мкс; тик с подачей поля 0,67 мс (цель ≤ 0,5 мс — превышена, см. uncertain)",
-      "pass": false
-    },
-    {
-      "name": "детерминизм: sample_many побитно при 2/4/20 потоках",
-      "value": "одинаково (синтетика, -O0, цепочка advance_to с пересчётом)",
+      "value": "35–161 мс (<1 с)",
       "pass": true
     }
   ],
   "not_done": [
-    "Фазы (RW-6k–6m): заморозки колонн и nonconv нет — точка подключения phase_hook (TODO(RW-6m)) в runtime.rs; запасные правила ω и late_mean включены без nonconv.",
-    "Запечённые поля и кеш (RW-6p): точка baked_hook (TODO(RW-6p)), не реализовано.",
-    "Окна 100/50 м (RW-6n/6o): U над стартом для проходов k берётся с уровня 400 м, не с окон, как в игре.",
-    "Статические термики, солнце, погода, облака, волны, болтанка (RW-8…12): команды принимаются и проверяются, опросы дают нули; sample_many = слагаемое field (FULL = MEAN, σ = 0), вне области нули."
+    "Фазы и запечённые поля не подключались (по указанию): phase_hook / baked_hook с TODO."
   ],
-  "questions": [
-    "Профиль dev (-O0) делает Пикар в ~100 раз медленнее: тесты оркестровки пришлось гнать на области 4,8 км с tol_scale 200 (10 итераций). Можно ли добавить в rust/Cargo.toml `[profile.dev.package.picard_rs] opt-level = 3` (W9, корень workspace — вне моего скоупа)? Тогда тесты считали бы с настоящим критерием.",
-    "Loc.climate (W5 v3) в place.rs не разбирается (вне скоупа): климат берётся из запасных таблиц weather_model.json (typical_max_c, diurnal.range_k), как GD без сеток ERA5. Нужна отдельная задача на разбор климата заголовка и подстановку в field_weather.",
-    "Загрузка Онгудая на 2 потоках может не уложиться в timeout_s = 60 с на проход (8 слотов: проход 1 ≈ 12 с, проход 2 ≈ 29 с): тогда Failed «timeout». Решение по таймауту/числу потоков — координатору/пользователю."
-  ],
+  "questions": [],
   "images": [],
-  "how_to_check": ".dpcli/dpcli accept RW-6j; Онгудай и T4a/T8 на release: cargo test --release --manifest-path rust/Cargo.toml -p dp-air --test runtime -- --ignored --nocapture --test-threads=1 (под .dpcli/dpcli lock cpu)",
+  "how_to_check": ".dpcli/dpcli accept RW-6j; release-тесты Онгудая: cargo test --release --manifest-path rust/Cargo.toml -p dp-air --test runtime -- --ignored --nocapture --test-threads=1",
   "uncertain": [
     {
-      "where": "rust/dp-air/src/field/runtime.rs:domain_for",
-      "why": "Область сжимается до помещающейся в растр места (синтетика W8 — 20 км, влезает 36 клеток = 14,4 км вместо 96); в GD место меньше области — отказ. Это моё решение ради «загрузка синтетики → Ready» из карточки; стенд/сверка T1 на синтетике идут на меньшей области, чем у GD-эталона (в фикстуре синтетики поля Пикара нет).",
-      "checked": "тесты domain_shrinks_to_the_place_and_refuses_tiny_places (Онгудай — ровно 96×96, x0 = −19200), failed_load (место меньше 12 клеток → Failed «too small»)."
+      "where": "rust/Cargo.toml",
+      "why": "scope-проверка accept помечает rust/Cargo.toml вне скоупа — правка по прямому указанию координатора (исключение из W9, picard_rs opt-level 2, dp-air opt-level 1). Нужно ли dp-air opt-level 1, отдельно не мерил.",
+      "checked": "тесты 46 с на dev."
     },
     {
-      "where": "configs/atmosphere.json: air.{threads, deterministic, tol_scale, domain_l_m}",
-      "why": "Добавлены ключи air; domain_l_m и tol_scale — сверх карточки (первый нужен тестам и слабым машинам, второй — решение 2026-10-24 про tol_scale 5 нужно было где-то хранить). sha1 atmosphere.json изменился: стенд печатает предупреждение «config atmosphere.json: sha1 …» для всех случаев W8 (configs_sha1 в фикстурах старые), verify.sh фикстур RW-1b сравнит иначе.",
-      "checked": "constants_match_gdscript_and_configs (ключи и значения по умолчанию); GD-тестов на состав atmosphere.json не нашёл."
+      "where": "rust/dp-air/src/field/runtime.rs:PlaceClimate",
+      "why": "Без has_hh5 tx_c/dtr_k берутся из таблиц weather_model.json, z_cell_m — только при has_hh1 (как ClimateGrid.place); поле на Онгудае теперь требует больше итераций (medium 620 вместо 70 с запасным климатом).",
+      "checked": "тест place_header_carries_climate…; прогон Онгудая release."
     },
     {
-      "where": "rust/dp-air/src/formula.rs:adopt / field_set.rs:set_field",
-      "why": "Подача пересчёта в advance_to — 0,67 мс на Онгудае (release): FieldSet::set_field заново ограничивает значения (clamp) по ~2,5 млн f32 на главном потоке. Цель W3 ≤ 0,5 мс не выдержана; убрать можно только правкой field_set.rs (вне скоупа, не стал).",
-      "checked": "тест ongudai_advance_to_latency_release: обычный тик 31 мкс, тик подачи 0,67 мс."
+      "where": "tests/runtime.rs:hilltop",
+      "why": "Фокус для 2-го прохода k подобран перебором по сетке синтетики (1000, 1000): U 6,7 против u10 5,0; при смене модели/климата точка может перестать давать U > u10.",
+      "checked": "перебор 25 точек, тест падает явно, если 2-го прохода нет."
     },
     {
-      "where": "rust/dp-air/src/field/runtime.rs:run_job",
-      "why": "Проходы k без окон: U над стартом берётся с 400 м, у игры — с набора уровней с окнами (там у земли иначе). На Онгудае после 2 проходов остаток |U/u10 − 1| = 9,5 % (как в GD: сверх второго прохода только если max_passes > 2). Число k может отличаться от GD, когда появятся окна.",
-      "checked": "формула k₁ сверена с _next_k по тексту GD (константы читаются из .gd), останов по pass_tol и max_passes = 4 на синтетике; сверки с GD-числами k на Онгудае нет."
-    },
-    {
-      "where": "rust/dp-air/tests/runtime.rs (тесты отмены на -O0)",
-      "why": "Предел возврата на -O0 — 8 с, а не 1 с: подготовка решения (30 V-циклов фона до первой итерации) в picard_rs отмену не проверяет и на -O0 под параллельными тестами длится секунды; unload/Drop/load_place ждут задачу не дольше JOIN_LIMIT = 5 с и дальше отпускают её (поколение места лишает права подавать).",
-      "checked": "на release (Онгудай) возврат ≤ 549 мс во всех стадиях; тест проверяет также, что отпущенная задача ничего не подаёт."
-    },
-    {
-      "where": "rust/dp-air/src/formula.rs:pool_for",
-      "why": "Фон — rayon-пул на процесс (по размеру air.threads), но каждый picard_rs::solve строит свой пул того же размера (так устроен API R6): фоновая задача в пуле только ждёт. Потоков в сумме 2N, одновременно считают N. Раздельной политики «загрузка — все ядра, полёт — часть» нет: один air.threads на всё.",
-      "checked": "детерминизм по 2/4/20 потокам побитно на синтетике (-O0); нагрузку на кадр в gdext не мерил."
-    },
-    {
-      "where": "rust/dp-air/src/formula.rs:start_at, load_place",
-      "why": "Решения по семантике: load_place без set_conditions — Ready без поля (поле считается с первым advance_to/start_at после условий, state Loading); start_at в том же сроке — без пересчёта, в другом — Loading до подачи поля (час = начало срока, без подмены); start_at посреди первой загрузки перезапускает загрузку на новый час.",
-      "checked": "тесты start_at_jumps_to_the_state_of_that_time, load_without_conditions_…; стенд go_to опрашивает status."
+      "where": "air.timeout_s",
+      "why": "Ключ в секции air (180); прежний air_model.timeout_s остаётся для GD. Загрузка Онгудая с фокусом на 8 слотах — 52 с (проход 2 — 44 с), на 2 потоках вероятно ~4× — проход может упереться в 180 с.",
+      "checked": "только 8 слотов."
     }
   ],
-  "dp_feedback": "1) `.dpcli/dpcli plan rust-wind \"План переноса / Этап 2 / RW-6\"` из шапки задачи отвечает «раздел не найден» (в шапке путь через «/», команде нужен номер или текст одного заголовка) — читал разбор по docs/research напрямую. 2) `job start` + вложенный `lock cpu` + `job wait` работают хорошо; `accept --dry` целиком идёт ~6 мин (stand_formula release + cargo test workspace), удобно было бы запускать выбранные проверки (`accept --dry --only runtime_test`). 3) lock cpu выдаёт то 4, то 8 слотов (release → 8) — для замеров итераций/времени это разное железо, в отчёт пришлось писать «8 слотов».",
+  "dp_feedback": "scope-проверка accept не учитывает указание координатора в дополнении (rust/Cargo.toml) — придётся править карточку; хорошо бы `task scope add`.",
   "extra": {
-    "tol_scale": 5,
-    "ongudai_release_8_slots": {
-      "load_no_focus_s": [
-        13.1,
-        17.4
-      ],
-      "load_two_passes_s": 40.3,
-      "pass_secs_prep_coarse_solve_build": [
-        [
-          0.09,
-          2.6,
-          14.7,
-          0.02
-        ]
-      ],
-      "t4a_fine_iters_coarse_vs_cold": {
-        "medium": [
-          70,
-          430
-        ],
-        "strong": [
-          100,
-          170
-        ]
-      },
-      "cancel_ms_range": [
-        49,
-        549
-      ],
-      "advance_to_tick_us": 31,
-      "advance_to_delivery_us": 670
-    },
-    "constants_from_gd": {
-      "INFLOW_P": [
-        [
-          3,
-          0.57
-        ],
-        [
-          6,
-          0.75
-        ],
-        [
-          10,
-          0.9
-        ]
-      ],
-      "k_range": [
-        0.3,
-        1.0
-      ],
-      "pass_tol": 0.03,
-      "max_passes": 2,
-      "max_outer": 3000,
-      "recompute_game_min": 15,
-      "blend_s": 60,
-      "timeout_s": 60
-    }
+    "advance_to_delivery_us": 12,
+    "ongudai_two_pass_load_s": 52.6
   },
-  "t": "2026-10-26T07:09:41",
+  "t": "2026-10-26T07:26:35",
   "by": "executor"
 }
