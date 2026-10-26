@@ -257,3 +257,7 @@
 {"t": "2026-10-26T05:52:24", "by": "coordinator", "task": "RW-6k", "ev": "merged"}
 {"t": "2026-10-26T05:52:25", "by": "coordinator", "task": "RW-6e", "ev": "merged"}
 {"t": "2026-10-26T05:52:26", "by": "coordinator", "task": "RW-6g", "ev": "merged"}
+{"t": "2026-10-26T05:57:28", "by": "executor", "task": "RW-6h", "ev": "reported", "commits": ["71dcc9c93"], "note": "done: SolveOpts.fallback (W11 v3): ω-откат, late_mean, nonconv в picard_rs; Solved + omega_fallback_used/nonconv_fallback/non…", "dp_feedback": "plan rust-wind не находит раздел 'План переноса / Этап 2 / RW-6' из карточки; отчёт требует fmt и clippy отдельными checks (шаблон этого не говорит)."}
+{"t": "2026-10-26T05:57:51", "by": "coordinator", "task": "RW-6h", "ev": "note", "note": "Доработка (координатор): эталон — игра. После подмены на late_mean замороженные колонны НЕ возвращать к своему полю, если игра этого не делает (твой uncertain по fb_apply_late/fb_after_check) — порядок операций как в air_picard_job.gd, даже если отличие в последнем разряде; тест — на это поведение. Остальное принято. Затем accept --dry и report.", "addendum": true}
+{"t": "2026-10-26T06:02:44", "by": "executor", "task": "RW-6h", "ev": "reported", "commits": ["d15595a03"], "note": "done: Доработка: после подмены на late_mean замороженные колонны не возвращаются к полю (как игра); тест проверяет побитно ср…"}
+{"t": "2026-10-26T06:07:17", "by": "coordinator", "task": "RW-6h", "ev": "checked", "note": "4/4 fallback_test=ok:test result: ok. 6; picard_tests=ok:exit 0; fmt=ok:exit 0; clippy=ok:exit 0"}

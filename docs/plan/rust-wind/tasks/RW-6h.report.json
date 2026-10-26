@@ -1,0 +1,42 @@
+{
+  "status": "done",
+  "summary": "Доработка: после подмены на late_mean замороженные колонны не возвращаются к полю (как игра); тест проверяет побитно среднее константы (x+x+x)*(1/3).",
+  "commits": [
+    "d15595a03 после late_mean замороженные не возвращаются к полю"
+  ],
+  "checks": [
+    {
+      "name": "fallback_test",
+      "value": "6 passed",
+      "pass": true
+    },
+    {
+      "name": "picard_tests",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RW-6h",
+  "uncertain": [
+    {
+      "where": "solver.rs fb_apply_late",
+      "why": "ω одно число, не карта; проверки по check_every/pre_steps",
+      "checked": "тесты fallback.rs, 1/4 потока побитно"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-26T06:02:44",
+  "by": "executor"
+}

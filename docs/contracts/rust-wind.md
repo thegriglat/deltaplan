@@ -5,8 +5,8 @@ module: "rust-wind"
 area: "air"
 updated: "2026-10-26"
 summary: "Граница ветра в Rust: фасад Atmosphere, DpAir (gdext), трейт dp-air, место, описания, разложение, допуски, сборка, чистота."
-related: ["docs/plan/rust-wind.md", "docs/contracts/picard-rs.md", "docs/plan/rust-air-integration.md", "docs/plan/rust-ext.md", "docs/plan/air-cascade.md", "tools/research/rust_ext/gdext_probe/README.md", "docs/contracts/rust-wind/fixtures-tolerances.md", "docs/contracts/rust-wind/descriptions.md", "docs/contracts/rust-wind/solver.md"]
-contracts: [{"id": "W1", "version": 1}, {"id": "W2", "version": 1}, {"id": "W3", "version": 1}, {"id": "W4", "version": 2}, {"id": "W5", "version": 3}, {"id": "W6", "version": 3}, {"id": "W7", "version": 1}, {"id": "W8", "version": 1}, {"id": "W9", "version": 1}, {"id": "W10", "version": 1}, {"id": "W11", "version": 3}]
+related: ["docs/plan/rust-wind.md", "docs/contracts/picard-rs.md", "docs/plan/rust-air-integration.md", "docs/plan/rust-ext.md", "docs/plan/air-cascade.md", "tools/research/rust_ext/gdext_probe/README.md", "docs/contracts/rust-wind/fixtures-tolerances.md", "docs/contracts/rust-wind/descriptions.md", "docs/contracts/rust-wind/solver.md", "docs/contracts/rust-wind/trait.md"]
+contracts: [{"id": "W1", "version": 1}, {"id": "W2", "version": 1}, {"id": "W3", "version": 2}, {"id": "W4", "version": 2}, {"id": "W5", "version": 4}, {"id": "W6", "version": 3}, {"id": "W7", "version": 1}, {"id": "W8", "version": 1}, {"id": "W9", "version": 1}, {"id": "W10", "version": 1}, {"id": "W11", "version": 3}]
 ---
 
 # Контракты модуля rust-wind
@@ -73,12 +73,13 @@ contracts: [{"id": "W1", "version": 1}, {"id": "W2", "version": 1}, {"id": "W3",
 
 **Переходное (только RW-2…RW-12, удаляется в RW-13; в W3/W4 нет):** реализация `gd` может держать прежние входы — `set_ground(height_fn, sun_fn, surface_fn)`, `set_day(AtmoDay)`, `set_wind(...)`, `set_weather(...)` — фасад сам выводит их из `load_place`/`set_conditions` (игра их больше не зовёт после RW-3). `air.backend` (RW-7) — ключ `configs/atmosphere.json` `air.backend: "gd" | "rust"`; нет бинарника расширения → `gd` и строка в журнале (W9).
 
-## W3. Класс `DpAir` (gdext, крейт `dp-gd`) (v1)
+## W3. Класс `DpAir` (gdext, крейт `dp-gd`) (v2)
 Владелец — RW-4 (каркас, заглушка `Calm`), RW-6…12 (наполнение). Потребитель — фасад (реализация `rust`), контрактные тесты.
 - `class DpAir extends RefCounted` (один объект на игру; создаёт фасад). Методы — как W2 с теми же именами, кодами и семантикой, только типы Godot без `Dictionary`/`Object` в горячем пути:
   - `api_version() -> int` (= 1); `last_error() -> String`; `state() -> int`; `progress() -> float`; `time_s() -> float`;
   - `configure(configs_json: PackedStringArray /* пары имя, текст */, seed: int) -> int` — имена: `atmosphere`, `weather_model`, `surface_heat`, `weather/<имя>`;
   - `load_place(header_json: String, heights: PackedFloat32Array, water: PackedByteArray, surface_cls: PackedByteArray, surface_moist: PackedFloat32Array) -> int` (W5), `unload_place()`;
+  - v2: `add_baked_field(header_json: String, data: PackedByteArray) -> int` — запечённое поле места (W5 v4, формат TI-К3 v3) сразу после `load_place`, до READY (позже — BAD_INPUT); `set_cache_dir(path: String) -> int` — каталог кеша полей реализации (абсолютный путь; фасад даёт `ProjectSettings.globalize_path("user://air_cache")`), крейт сам читает и пишет туда свои файлы (запись — временный файл и переименование); пусто — без кеша;
   - `set_conditions(json: String) -> int` (W5); `set_sun_direction(to_sun: Vector3)`; `set_static_thermals(list: PackedFloat32Array, mode: int) -> int`;
   - `advance_to(t: float) -> int`; `start_at(t: float) -> int`;
   - `set_focuses(points: PackedVector3Array, weights: PackedFloat32Array) -> int`;
@@ -89,52 +90,9 @@ contracts: [{"id": "W1", "version": 1}, {"id": "W2", "version": 1}, {"id": "W3",
 - Жизненный цикл: выход из игры посреди фоновой работы — работа прерывается при `Drop`/`unload_place`, без зависания больше 1 с.
 
 ## W4. Трейт `AirModel` (крейт `dp-air`, без Godot) (v2)
-Владелец — RW-4 (трейт, заглушка `Calm`), RW-6…12 (`Formula`), будущий живой воздух (`Live`). Потребители — `dp-gd`, стенд RW-5, `cargo test`, `cargo bench`.
-```rust
-pub const API_VERSION: u32 = 1;
-pub enum State { Empty, Loading, Ready, Failed }
-pub enum Code { Ok, BadInput, NoPlace, NotReady }          // W1; Result<(), Error{code, msg}>
-pub enum SampleMode { Full, Mean }
-pub struct Configs { pub files: Vec<(String, String)> }    // имя, текст json (W5)
-pub struct Place { header: PlaceHeader, heights: Vec<f32>, water: Vec<u8>, cls: Vec<u8>, moist: Vec<f32> }  // W5
-pub struct Conditions { .. }                                // W5, serde из json
-pub struct Focus { pub pos: [f32; 3], pub weight: f32 }
-pub struct Status { pub state: State, pub progress: f32, pub time_s: f64, pub reason: String }
+Владелец — RW-4 (трейт, `Calm`), RW-6…12 (`Formula`), живой воздух (`Live`). Потребители — `dp-gd`, стенд RW-5, `cargo test`, `cargo bench`. Трейт, типы, порядок команд, структуры описаний — `docs/contracts/rust-wind/trait.md`.
 
-pub trait AirModel: Send + Sync {
-    fn configure(&mut self, cfg: &Configs, seed: u64) -> Result<(), Error>;
-    fn load_place(&mut self, place: Place) -> Result<(), Error>;   // возвращает сразу; подготовка — фон
-    fn unload_place(&mut self);
-    fn set_conditions(&mut self, c: &Conditions) -> Result<(), Error>;
-    fn set_sun_direction(&mut self, to_sun: Option<[f32; 3]>);
-    fn set_static_thermals(&mut self, list: &[[f32; 4]], mode: u8) -> Result<(), Error>;
-    fn set_focuses(&mut self, f: &[Focus]) -> Result<(), Error>;
-    fn advance_to(&mut self, t: f64) -> Result<(), Error>;
-    fn start_at(&mut self, t: f64) -> Result<(), Error>;
-    fn status(&self) -> Status;
-    fn sample_many(&self, pts: &[[f32; 3]], mode: SampleMode, out: &mut [[f32; 4]]);   // out.len() == pts.len()
-    fn cloud_density_many(&self, pts: &[[f32; 3]], out: &mut [f32]);
-    fn cloudbase_msl(&self) -> f32;
-    fn background_wind(&self, heights: &[f32], out: &mut [[f32; 2]]);
-    fn weather_json(&self) -> String;  fn weather_version(&self) -> (u64, u64);  // (мягкая, перестройка)
-    fn sun_state(&self) -> [f32; 4];
-    fn cores(&self, center: [f32; 3], radius: f32, out: &mut Vec<Core>);           // W6
-    fn clouds(&self, center: [f32; 3], radius: f32, out: &mut Vec<Cloud>);
-    fn cloud_raster(&self) -> Option<std::sync::Arc<Raster>>;
-    fn wave_crests(&self, center: [f32; 2], radius: f32, min_eta: f32, spacing: f32, out: &mut Vec<Crest>);
-    fn decompose(&self, p: [f32; 3]) -> Decomposition;                              // W7
-    fn debug_raster(&self, name: &str) -> Option<std::sync::Arc<Raster>>;
-    fn debug_raster_names(&self) -> Vec<String>;
-}
-```
-- Опросы (`&self`) — из любого потока одновременно; несовпадение длин `out`/`pts` — паники нет: обрабатывается `min` длин, остальное не трогается.
-- **v2 (RW-4, ревью):** выходные `Vec` (`cores`, `clouds`, `wave_crests`) **заменяются** — реализация сначала очищает `out` (`clear()`, ёмкость сохраняется), потом пишет.
-- **Порядок команд (v2; та же семантика в W2/W3):** `set_conditions`, `set_sun_direction`, `set_static_thermals`, `set_focuses` до `load_place` — `Ok`, вход запоминается и применяется при загрузке; `advance_to`, `start_at` без места — `NoPlace`. `unload_place` сбрасывает место, время, статические термики и фокусы; конфиги, сид, условия и солнце остаются. После `load_place` `time_s = 0`. `t < 0` или не конечно в `advance_to`/`start_at` — `BadInput`.
-- **Структуры описаний (v2)** — поля в порядке смещений W6, все `f32`: `Core` — `id, flags, x, z, y_src, top, w, radius, lean_x, lean_z, age_s, life_s, stage, vis_seed, storm` (15); `Cloud` — `id, core_id, x, z, base_msl, top_msl, radius, growth, decay, flags` (10); `Crest` — `x, z, eta, crest` (4); `#[repr(C)]`, чтобы `dp-gd` отдавал их в `PackedFloat32Array` одним копированием. `Raster` — `version: u64, nx, ny: u32, dx, x0, z0: f32` (оси W1), `base_msl, time_s` (для облаков; у отладочных — NaN), `layers: Vec<(String, Vec<f32>)>` (`nx·ny`, строка — к +Z): у растра облаков — `cover, depth, stage, activity, bg_cover, bg_depth` (W6), у отладочного — один слой `data` (W7).
-- `dp-air` не зависит от `godot`; `picard_rs` переносится в workspace как крейт (или модуль `dp-air::picard`) с сохранением R6 v3 (`docs/contracts/picard-rs.md`) — расчёт Пикара берётся готовый, не пишется заново (решение пользователя 2026-10-26).
-- Реализации: `Calm` (RW-4: всё по W1, ветер 0, сразу Ready — для контрактных тестов и пустого запуска), `Formula` (RW-6…12), `Live` (вне модуля).
-
-## W5. Вход: место, конфиги, условия (v3)
+## W5. Вход: место, конфиги, условия (v4)
 Владелец — RW-2 (сборка `AirPlaceData` из `AirRuntime.place_of`, `air_runtime.gd:270`), RW-4 (разбор в крейте). Потребители — W2–W4, фикстуры W8.
 
 **`AirPlaceData`** (`RefCounted`, `scripts/atmosphere/air_place_data.gd`, создаёт RW-2) — то, что крейт получает один раз при загрузке:
@@ -146,6 +104,7 @@ pub trait AirModel: Send + Sync {
 - `heights: PackedFloat32Array` — `width × height`, м MSL, узлы сетки; NaN недопустим (BAD_INPUT).
 - `water: PackedByteArray` — та же сетка, 0/1.
 - `surface_cls: PackedByteArray`, `surface_moist: PackedFloat32Array` (0..1) — та же сетка.
+- v4: `baked: Array` — запечённые поля места (TI-К3 v3, `docs/contracts/training-island.md`: `data/locations/<id>/air/*.json` + `.bin`, f16, zstd) как есть: `[{header_json: String, data: PackedByteArray}]`; фасад читает файлы места при сборке `AirPlaceData`, реализация выбирает подходящее по условиям (как `AirRuntime.baked_lookup`) — без файлового доступа к данным игры; нет — пусто.
 - Производные поля (уклоны, линия тени, рельеф гребня, `valley_msl_m`, `mean_msl_m`, сила источников термиков `thermal_source_strength`, нагрев и `surface_flux`, `domain_case`, грубая задача 1200 м) — считает реализация из этих растров (решение пользователя 2026-10-26: «всё тяжёлое считает Rust»). Не хватает данных для производного (например, для `thermal_source_strength_water`) — `contract:` координатору, W5 v2, а не колбэк.
 - Высота у реализации — билинейно по `heights`; это заменяет `terrain.height_at` во всех слагаемых ветра. Разница с нынешней высотой — в допусках W8.
 
@@ -200,6 +159,7 @@ pub trait AirModel: Send + Sync {
 - W6 v2 (2026-10-26, итог RW-1) — `id` в `[0, 2²⁴)`; инвариант ядра — местный избыток подъёма против кольца 2–3·radius, ядра Cb исключены. Потребители: RW-2 (фасад `gd`), RW-4b (общий suite contract.rs), RW-5 (compare — по ближайшему). Уточнение W2 без смены версии (норматив прежний — «без неразрешённой болтанки и порывов»): `SAMPLE_MEAN` — весь ветер, как `SAMPLE_FULL` при выключенной болтанке и порывах (поле, аналитика, термики, гроза, волна, облака), не «`mean_wind_at` + вертикаль поля»; так сняты фикстуры RW-1.
 - W5 v2 (2026-10-26, разбор RW-6a) — ключ условий `inflow_mode`. Потребители: RW-4b/dp-air (разбор `Conditions`), RW-2 (фасад), RW-6j.
 - W5 v3 (2026-10-26, итог RW-6c) — `loc.climate` в заголовке места (ячейка климата у центра). Потребители: RW-2 (`AirPlaceData`), RW-1b (фикстуры мест), dp-air (`PlaceHeader`, `field_weather` — климат из заголовка вместо трейта `Climate`).
+- W5 v4, W3 v2 (2026-10-26, постановка RW-6p) — запечённые поля места данными (`AirPlaceData.baked`, `DpAir.add_baked_field`), кеш полей — каталог реализации (`DpAir.set_cache_dir`). Потребители: RW-6p (разбор, выбор, кеш в dp-air), RW-6j/RW-7 (dp-gd и фасад), RW-2-фасад (`AirPlaceData.baked` — в RW-7).
 - W11 v1 (2026-10-26, постановка RW-6g) — решатель в крейте: заморозка колонн и отмена поверх R6 v3 (picard-rs закрыт, расширение — здесь).
 - W6 v3 (2026-10-26, ревью RW-2) — инвариант найденного ядра только для `w ≥ 1,5 м/с`; охват описаний — вокруг фокусов. Потребители: RW-2, RW-3, RW-10.
 - W11 v2 (2026-10-26, итог RW-6g) — равенство замороженных колонн полю заморозки — до `finalize`; `finalize` — как в игре, без маски.
