@@ -145,10 +145,7 @@ def main():
     print(f"копия: {copy}  база: {base_ref} ({base_sha[:10]})  файлов: {len(files)}", flush=True)
     copy_fails = run_side("копия", copy, files, a.j, a.timeout_file, logroot)
 
-    if cache.exists():
-        print(f"[база] из кеша {cache.relative_to(copy)}", flush=True)
-        base_fails = {l for l in cache.read_text().splitlines() if l}
-    else:
+    def with_base_wt(fn):
         wt = copy.parent / f".tests-base-{base_sha[:10]}"
         if wt.exists():
             git(copy, "worktree", "remove", "--force", str(wt), check=False)
@@ -161,13 +158,38 @@ def main():
             # кеш импорта копии (.godot) — база переимпортирует только отличающееся
             if (copy / ".godot").is_dir() and not (wt / ".godot").exists():
                 subprocess.run(["cp", "-a", "--reflink=auto", str(copy / ".godot"), str(wt / ".godot")])
-            base_files = [f for f in files if (wt / f).exists()]
-            base_fails = run_side("база", wt, base_files, a.j, a.timeout_file, logroot)
+            return fn(wt)
         finally:
             git(copy, "worktree", "remove", "--force", str(wt), check=False)
             shutil.rmtree(wt, ignore_errors=True)
             git(copy, "worktree", "prune", check=False)
+
+    if cache.exists():
+        print(f"[база] из кеша {cache.relative_to(copy)}", flush=True)
+        base_fails = {l for l in cache.read_text().splitlines() if l}
+    else:
+        def full(wt):
+            base_files = [f for f in files if (wt / f).exists()]
+            return run_side("база", wt, base_files, a.j, a.timeout_file, logroot)
+        base_fails = with_base_wt(full)
         cache.write_text("".join(f"{x}\n" for x in sorted(base_fails)))
+
+    # подтверждение: кеш базы мог считаться при другой нагрузке — файлы с новыми падениями
+    # перепрогоняются на обеих сторонах в тех же условиях (по одному), новым остаётся то,
+    # что падает на копии и не падает на базе
+    cand = sorted(copy_fails - base_fails)
+    if cand:
+        cfiles = sorted({x.split("::")[0] for x in cand})
+        print(f"подтверждение {len(cfiles)} файлов с новыми падениями на обеих сторонах…", flush=True)
+        c2 = run_side("копия-подтв", copy, cfiles, 1, a.timeout_file, logroot)
+        b2 = with_base_wt(lambda wt: run_side("база-подтв", wt, [f for f in cfiles if (wt / f).exists()],
+                                              1, a.timeout_file, logroot))
+        for x in cand:
+            if x not in c2:
+                print(f"флейк копии (при подтверждении прошёл): {x}")
+            elif x in b2:
+                print(f"флейк базы (на базе при подтверждении тоже падает): {x}")
+        copy_fails = (copy_fails - set(cand)) | {x for x in cand if x in c2 and x not in b2}
 
     new = sorted(copy_fails - base_fails)
     fixed = sorted(base_fails - copy_fails)
