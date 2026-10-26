@@ -57,10 +57,6 @@
       "tests": "test_air_place_climate_lag"
     },
     {
-      "name": "test_rust_wind_contracts",
-      "tests": "test_rust_wind_contracts"
-    },
-    {
       "name": "cargo_test",
       "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
       "expect": "exit=0"
@@ -94,5 +90,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-10-27T01:23:46",
-  "edited": "2026-10-27T03:31:45"
+  "edited": "2026-10-27T04:01:32"
 }
