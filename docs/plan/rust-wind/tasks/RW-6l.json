@@ -1,0 +1,73 @@
+{
+  "id": "RW-6l",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Фазы 2 в Rust: механизмы A (линейная теория, DCT-II), B (пузырь срыва), D (слои Лапласа, SOR), H",
+  "goal": "Модули dp_air::field::phase::{linear, bubble, layers, calm} считают поля механизмов A, B, D, H по CPU-двойнику air_phase_cpu.gd на входе Prepared из RW-6k и совпадают с GDScript (числа CPU-тестов P10 из phases.md, сверка с AirPhaseCpu на синтетике 24×24 и на фикстурах).",
+  "plan_ref": "План переноса / Этап 2 / RW-6",
+  "contracts": [
+    {
+      "name": "W1",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W11",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-6l",
+  "branch": "rust-wind/RW-6l",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/field/phase/",
+    "rust/dp-air/Cargo.toml",
+    "rust/Cargo.lock",
+    "rust/dp-air/tests/phase_mech.rs",
+    "rust/dp-air/tests/data/phase_mech/",
+    "tools/research/rust_wind/dump_phase_mech.gd",
+    "tools/research/rust_wind/dump_phase_mech.sh",
+    "tools/research/rust_wind/dump_phase_mech.tscn"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "rust/picard_rs/",
+    "rust/dp-gd/",
+    "rust/dp-air/src/field/phase/classifier.rs",
+    "rust/dp-air/tests/phase_classifier.rs",
+    "tests/fixtures/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "phase_mech_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test phase_mech",
+      "expect": "re:test result: ok\\. [1-9]"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml -p dp-air --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dump_repro",
+      "cmd": "tools/research/rust_wind/dump_phase_mech.sh --verify",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-26T05:46:22"
+}
