@@ -1,43 +1,34 @@
 {
-  "verdict": "rework",
-  "summary": "Решатель и тесты сделаны верно: член стенки берёт cd_col[idx % (nxh·nyh)] так же, как air_picard.glsl:393, в case_build кладётся плоскость 12, пороги считаются в счёте игры. Расхождение с контрактом в формате cd_col: в W11 v4 «ny·nx без ореола», в коде «nyh·nxh с ореолом». Смена max_iters в контракт не внесена.",
+  "verdict": "accept",
+  "summary": "Все пункты W11 v5 и прошлого ревью закрыты. cd_col идёт плоскостью nyh·nxh, контракт под это исправлен. max_iters считается как в игре: limit = pre_steps + ceil(max_iters/ce)·ce, упор проверяется после сходимости и до смены ω и late (как air_picard_job.gd:1008-1016), это проверяет тест max_iters_counts_like_the_game. FrozenField.thd стал Option, assembly отдаёт None. Тесты api/freeze/fallback под новый счёт перестроены честно: пороги не ослаблены, сравнения отдельного прогона перенесены на snapshot_at и на итерации проверки.",
   "issues": [
     {
-      "file": "rust/picard_rs/src/case.rs",
-      "line": 232,
-      "severity": "blocker",
-      "what": "Формат cd_col расходится с контрактом. W11 v4 (docs/contracts/rust-wind/solver.md:26) требует «столбцы ny·nx без ореола, строка — по y сетки случая». Код проверяет длину nxh·nyh и индексирует с ореолом, case_build отдаёт плоскость PreparedPlanes с ореолом. Поведение совпадает с игрой (в GLSL NYX = NX·NY с ореолом), но интерфейс поменян без координатора, вопроса в отчёте нет. Потребитель по контракту дал бы ny·nx и получил бы Err.",
-      "fix": "Координатор правит W11 v4 под фактический формат (nyh·nxh с ореолом, как плоскость col 12 игры). Альтернатива: исполнитель принимает ny·nx и сам строит ореол. Затем INTEGRATION.md и контракт приводятся к одному формату."
+      "file": "rust/picard_rs/src/solver.rs",
+      "line": 823,
+      "severity": "minor",
+      "what": "Ветку NonConv.field.thd = None (θ′_d остаётся из late_mean) не проверяет ни один тест. missing_thd_is_the_start_thd проверяет только заморозку и только на холодном старте, где θ′_d init = 0, поэтому None и Some(нули) там неразличимы.",
+      "fix": "При случае: в fallback.rs прогнать nonconv с thd = None и сверить thd в маске с late_mean; для заморозки — тёплый старт с ненулевым θ′_d init."
     },
     {
       "file": "rust/picard_rs/src/solver.rs",
       "line": 1162,
-      "severity": "major",
-      "what": "max_iters теперь считается без pre_steps для всех вызовов, и с fallback = None тоже. Это меняет поведение R6 v3 по умолчанию: при pre_steps > 0 случай с тем же max_iters делает на pre_steps итераций больше. Контракт W11 v4 об этом молчит, там упомянуты только omega_after и late_from. Доработку сделали по дополнению координатора, но формально в контракте её нет.",
-      "fix": "Координатор вносит в W11 v4 пункт о счёте max_iters (Solved.iters и history.it остаются сырыми) и отмену побитности R6 v3 при pre_steps > 0."
-    },
-    {
-      "file": "rust/picard_rs/src/solver.rs",
-      "line": 1196,
-      "severity": "major",
-      "what": "Если max_iters не кратен check_every, останов идёт не на той итерации, что в игре. Игра проверяет _iters >= max_outer только на проверке, то есть останавливается на ближайшей проверке сверху (air_picard_job.gd:1013). Rust останавливается ровно после max_iters + pre_steps, посреди пачки, и добавляет внеочередную проверку. Тест max_iters_counts_like_the_game берёт только кратное 2·ce, поэтому этот случай не проверен. В дополнении стоит «на той же итерации, что формула игры», а для порогов требовалось «при любых порогах».",
-      "fix": "Либо округлять предел до проверки (limit = pre_steps + ceil(max_iters/ce)·ce) и добавить тест на некратный max_iters, либо координатор явно фиксирует, что max_iters останавливает ровно после итерации (ради snapshot_at и бюджета), и вписывает это в W11."
-    },
-    {
-      "file": "rust/picard_rs/tests/cd_col.rs",
-      "line": 5,
       "severity": "minor",
-      "what": "В шапке описан #[ignore]-тест Онгудая в cd_col.rs с командой запуска, но такого теста в файле нет. Замер сделан в dp-air/tests/case_build.rs (cd_col_vs_one_cd_ongudai). Пункт (1) дополнения («None — побитно v3 на flat_wind, heated_slope и Онгудае») отдельным тестом не оформлен: опора только на то, что старые тесты проходят. По коду ветвь None — тот же k.cd, так что риск низкий.",
-      "fix": "Исправить шапку: дать ссылку на тест в dp-air и его команду."
+      "what": "max_iters = 0 даёт 0 итераций. Игра при max_outer = 0 остановилась бы на первой проверке. На практике это не важно: игра всегда задаёт 3000.",
+      "fix": "Оставить, но записать в doc-комментарий Fallback.max_iters, что 0 означает «без итераций»."
     }
   ],
   "rerun": [
     {
       "name": "cd_col_test (accept --only cd_col_test --dry)",
-      "value": "test result: ok. 5; scope: 9 файлов в границах",
+      "value": "test result: ok. 5; scope 12 файлов в границах",
+      "pass": true
+    },
+    {
+      "name": "fmt (accept --only fmt --dry)",
+      "value": "exit 0",
       "pass": true
     }
   ],
-  "t": "2026-10-26T07:06:41",
+  "t": "2026-10-26T07:33:15",
   "by": "reviewer"
 }

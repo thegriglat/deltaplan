@@ -1,0 +1,53 @@
+{
+  "verdict": "accept",
+  "summary": "Оркестровка совпадает с GD-эталоном: next_k, inflow_p, needs_recompute и константы (INFLOW_P, PASS_TOL 0,03, допуски 0,05/1°/0,25) сверены построчно с air_runtime.gd. Подача в фоне через FieldSet::prepare/set_levels, rayon-пул на процесс, отмена через AtomicBool + epoch. Скоуп чистый, project.godot не тронут, dont_touch не задет. Замечания не блокирующие: предел ожидания отмены и запас в тестах.",
+  "issues": [
+    {
+      "file": "rust/dp-air/src/formula.rs",
+      "line": 48,
+      "severity": "major",
+      "what": "JOIN_LIMIT = 5 с, а W1 (docs/contracts/rust-wind.md:91) требует, чтобы Drop/unload_place не висели дольше 1 с. Отмена не прерывает подготовку решения (30 V-циклов фона до первой итерации, picard_rs), поэтому 1 с держится только на быстрой машине в release (35–161 мс на 8 слотах). На 2 потоках не мерили. Тест на dev ослаблен до 8 с (cancel_limit), это объяснено, но в контракт не укладывается.",
+      "fix": "Вопрос координатору: либо JOIN_LIMIT ≤ 1 с (дальше задачу отпускать через epoch, как уже сделано), либо проверять cancel в подготовке picard_rs (W11, через координатора). Замер T8 на 2 потоках в release."
+    },
+    {
+      "file": "rust/dp-air/tests/runtime.rs",
+      "line": 79,
+      "severity": "minor",
+      "what": "Фокус hilltop для второго прохода k подобран перебором (U 6,7 против u10 5,0). При смене климата или модели тест может перестать доходить до второго прохода. Падение будет явным, так что формулу это не маскирует.",
+      "fix": "Оставить; при падении выбирать точку заново, а не трогать pass_tol."
+    },
+    {
+      "file": "rust/dp-air/src/field/runtime.rs",
+      "line": 0,
+      "severity": "minor",
+      "what": "После перехода на loc.climate итераций на Онгудае medium стало 620 вместо 70 с запасными таблицами. По физике это объяснимо (другой нагрев), но в журнале это не зафиксировано как находка: время загрузки на слабых машинах выросло примерно в 9 раз.",
+      "fix": "Записать в журнал или находки rust-wind, чтобы учитывать при выборе air.timeout_s и domain_l_m."
+    },
+    {
+      "file": "rust/Cargo.toml",
+      "line": 9,
+      "severity": "minor",
+      "what": "Для dp-air поставлен opt-level 1 «если помогает», но выигрыш не мерили (это признано в отчёте). Исключение из W9 нужно только для picard_rs.",
+      "fix": "Замерить или убрать строку для dp-air."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "contract_test",
+      "value": "test result: ok, 6 с",
+      "pass": true
+    },
+    {
+      "name": "runtime_test",
+      "value": "test result: ok, 17 с (сборка из кеша)",
+      "pass": true
+    },
+    {
+      "name": "сверка next_k/inflow_p/needs_recompute с air_runtime.gd",
+      "value": "совпадает построчно",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-26T07:33:24",
+  "by": "reviewer"
+}
