@@ -1,0 +1,72 @@
+{
+  "status": "done",
+  "summary": "dp_air::field::case_prepare: AirCaseRs + build_case/build_case_with (domain_case) и AirCaseRs::prepare -> PreparedPlanes (kf, n_unk, фон, губки, closure, col 14 / lev 5 / prm 32, fixed_scale). На дампе GDScript (synthetic, ongudai; dx 400/1200; heat/mech; k 1 и 0,6; 5 сценариев погоды) плоскости совпали побитно из тех же входов.",
+  "commits": [
+    "34a9b0a64 rust-wind RW-6d: случай области и плоскости prepare в Rust (case_prepare), дампер GD, тест"
+  ],
+  "checks": [
+    {
+      "name": "case_prepare_test",
+      "value": "6 passed; режим A (входы из дампа) побитно: 0 слов расходится в col/lev/prm; n_unk точно; скаляры <=1e-12",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "dump_repro",
+      "value": "exit 0, дамп воспроизводится побитно",
+      "pass": true
+    },
+    {
+      "name": "режим B (цепочка field_weather + build_domain_input)",
+      "value": "mech побитно; heat до 7.7e-4 отн. (ongudai strong h21), на 13 ч 1.2e-7; n_unk совпал",
+      "pass": true
+    },
+    {
+      "name": "T2 свойства",
+      "value": "конечность, kf по рельефу, счёт неизвестных по типам клеток, непротекание фона у земли, баланс потоков типа 2",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RW-6d",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/tests/case_prepare.rs, режим B",
+      "why": "Допуск 1e-6 выдержан побитно только в режиме A (входы случая из дампа). В цепочке Rust-входов (RW-6b/6c) плоскости нагрева отличаются до 7.7e-4 отн. из-за потока тепла H (допуск RW-6c 1 Вт/м2), не из-за case_prepare; assert в B стоит на 1e-2.",
+      "checked": "Режим A побитный, mech в цепочке побитный; разница только в heat-наборах."
+    },
+    {
+      "where": "tests/data/case_prepare (2.9 МБ из 3)",
+      "why": "Для ongudai 400 целиком хранится один набор (сценарий 0, heat, k=1); остальные — хеш FNV-1a слов f32 (побитная проверка только в режиме A, без диагностики расхождения).",
+      "checked": "Хеши совпали; этот набор в GD сверен с самим AirPlace.domain_case (col/lev/prm равны) на ongudai 400 и 1200."
+    },
+    {
+      "where": "case_prepare.rs: deg_to_rad, powf(2.0), sin/cos/ln/exp",
+      "why": "Побитность зависит от libm (glibc в Godot и Rust на Linux); на macOS/Windows возможны единицы ulp, не гонялось.",
+      "checked": "Linux x86_64 побитно."
+    }
+  ],
+  "dp_feedback": "Отчёт отклоняется без проверок с именами из карточки — в report --template стоит подсказать это. Первый запуск dump под lock cpu при квоте 100% шёл 12 мин.",
+  "extra": {
+    "interface": "build_case(&DomainInput, &FieldWeather, &CaseOpts{k, inflow_mode, heat}) -> AirCaseRs; without_heat(); prepare() -> PreparedPlanes {col Vec<f32> 14 плоскостей подряд, lev, prm [f32;32], kf, n_unk, dims, x0,y0,dx,dz,z_bot, скаляры}; PreparedPlanes::{col_plane, lev_plane, cell_type, prof, bg_u, bg_v} (bg_* повторяют фон K_SETUP для сверки в RW-6e)",
+    "inflow_mode": "Inflow => k = 1 (CaseOpts::effective_k); подбор k — RW-6j",
+    "pub_changes_in_other_files": "нет"
+  },
+  "t": "2026-10-26T05:20:19",
+  "by": "executor"
+}
