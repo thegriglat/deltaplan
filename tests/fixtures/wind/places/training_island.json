@@ -1,0 +1,71 @@
+{
+	"bin": {
+		"bytes": 12816005,
+		"h_max_err_m": 0.0,
+		"layout": "heights int16 LE, water u8, cls u8, moist u8 (x 1/255); подряд, width*height узлов, строка j к +Z (W1)"
+	},
+	"grid": {
+		"height": 1601,
+		"origin_x": -20000.0,
+		"origin_z": -20000.0,
+		"spacing": 25.0,
+		"width": 1601
+	},
+	"h_offset": 251.75,
+	"h_scale": 0.03125,
+	"loc": {
+		"center_lat": 43.2,
+		"center_lon": 34.0,
+		"climate": {
+			"dtr_k": 1.38549996903167,
+			"has_hh1": true,
+			"has_hh5": true,
+			"tx_c": 24.8389994448051,
+			"z_cell_m": 7.35000000000028
+		},
+		"day": 15,
+		"id": "training_island",
+		"month": 7,
+		"utc_offset_h": 3.0
+	},
+	"name": "training_island",
+	"note": "training_island (data/locations/training_island): слой detail 25 м, AirRuntime.place_of; water — узел по ближайшему пикселю маски (> 127), cls/moist — снимок поверхности AirPlace.Surface; для T1 «сильный ветер» RW-6q",
+	"start_sites": [
+		{
+			"h_msl": 455.112731933594,
+			"id": "ridge_west",
+			"x": -5029.99658203125,
+			"z": -669.994812011719
+		},
+		{
+			"h_msl": 187.67008972168,
+			"id": "thermal_plain",
+			"x": -3619.99755859375,
+			"z": 3509.9951171875
+		},
+		{
+			"h_msl": 126.587745666504,
+			"id": "landing_hill",
+			"x": 3510.00219726562,
+			"z": -1509.99584960938
+		},
+		{
+			"h_msl": 146.860366821289,
+			"id": "lee_bowl",
+			"x": -3180.0,
+			"z": -740.003234863281
+		}
+	],
+	"surface_classes": {
+		"bare": 5,
+		"built": 7,
+		"crop": 3,
+		"forest": 1,
+		"grass": 2,
+		"none": 0,
+		"shrub": 4,
+		"snow": 8,
+		"water": 6
+	},
+	"version": 1
+}
