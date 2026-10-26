@@ -1,0 +1,85 @@
+{
+  "status": "done",
+  "summary": "Модуль dp_air::field::phase (config, prepare, classifier): prepare без мод линейной теории и стока G, классификатор весов A/B/C/D/F/G/H со сглаживанием и Σ=1, маски заморозки W11 для mech и heat, карта ω. Веса и маски совпадают с GDScript побитно (расхождение 0), тест переносит числа test_air_phase.gd, детерминизм 1 и 4 потока побитно.",
+  "commits": [
+    "423b94df7 RW-6k: фазы 1 в Rust — prepare, классификатор весов, маски заморозки, ω; дампер dump_phase"
+  ],
+  "checks": [
+    {
+      "name": "phase_test",
+      "value": "10 тестов ok",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "dump_repro",
+      "value": "verify побитно, 1,6 МБ",
+      "pass": true
+    },
+    {
+      "name": "веса против дампа GD",
+      "value": "max расхождение 0e0 (порог 1e-6), маски побитно, 24 случая",
+      "pass": true
+    },
+    {
+      "name": "оси U10 0,3/1,5/12",
+      "value": "H 0,98 / D 0,76 ω 0,51 / A 0,95; заморожено 1/1/0",
+      "pass": true
+    },
+    {
+      "name": "детерминизм 1 и 4 потока",
+      "value": "побитно",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Вес G (drainage, Прандтль + D8) не считается: классификатор берёт PhaseCase.g: Option<GInput{dth_c, weight}> — считать в RW-6m.",
+    "Моды линейной теории (modes) — RW-6l; плоскость cols.t для них готова."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RW-6k",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/src/field/phase/prepare.rs: PhaseCase",
+      "why": "Вход prepare — срезы из AirCase.prepare (u_a, z_sat, ustar, h_bl, wst, heat_used, z_i_col, ex/ey); их должен дать case_prepare.rs (RW-6d) / RW-6j. z_sat должен быть как prm[12] (f32).",
+      "checked": "в дампе значения из AirCase.prepare GD, Rust читает те же числа; склейку с RW-6d не проверял (файл не трогал)."
+    },
+    {
+      "where": "prepare.rs: Prm, r32",
+      "why": "Классификатор GD читает слоты prm в float32; Rust округляет так же. RW-6l/6m должны брать числа из Prepared.prm, не из cfg.",
+      "checked": "расхождение весов 0 на 24 случаях, включая G и F."
+    },
+    {
+      "where": "tests/data/phase",
+      "why": "Онгудай снят на dx 2400 м (16x16), не 1200: дамп ≤ 3 МБ. Частичной заморозки в дампе почти нет: области либо заморожены целиком, либо нет.",
+      "checked": "маски побитно на всех 24 случаях."
+    },
+    {
+      "where": "prepare.rs: envelope",
+      "why": "Гаусс–Зейдель последователен, не распараллелен; на окнах 50 м может стать заметным.",
+      "checked": "не мерил."
+    }
+  ],
+  "dp_feedback": "accept --dry при падении clippy не показывает текст ошибки — пришлось искать в build/dpcli/*/04-clippy.log; две-три строки ошибки в выводе помогли бы.",
+  "extra": {
+    "cases": 24,
+    "dump_bytes": 1597160,
+    "weights_max_diff": 0
+  },
+  "t": "2026-10-26T05:27:29",
+  "by": "executor"
+}
