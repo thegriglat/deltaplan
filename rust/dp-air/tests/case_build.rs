@@ -10,7 +10,7 @@
 //! Решение: синтетика 1200 м — сходится (обычный прогон); Онгудай 400 м, tol_scale 5 — `#[ignore]`,
 //! только release: `cargo test --release -p dp-air --test case_build -- --ignored --nocapture`.
 use dp_air::field::case_build::{SolverCfg, build_solver_case};
-use dp_air::field::case_prepare::{CaseParams, NCOL, NLEV, NPRM, PreparedPlanes};
+use dp_air::field::case_prepare::{COL_CD, CaseParams, NCOL, NLEV, NPRM, PreparedPlanes};
 use picard_rs::api::{SolveOpts, StopReason, solve};
 use picard_rs::case::Case;
 use serde_json::Value;
@@ -324,4 +324,86 @@ fn solve_ongudai_400_heat() {
 fn solve_ongudai_400_mech() {
     let (_, stop, _) = run_solve("ongudai_400_mech", 5.0);
     assert_eq!(stop, StopReason::Converged);
+}
+
+/// W11 v4: `Case.cd_col` - плоскость 12 (`C_d` столбца, с ореолом) из дампа игры, побитно; без
+/// карты решатель брал бы одно `cd`.
+#[test]
+fn cd_col_is_the_game_plane_12() {
+    let d = Dump::load();
+    for tag in [
+        "synthetic_1200_heat",
+        "synthetic_1200_mech",
+        "ongudai_400_heat",
+    ] {
+        let (pl, case) = build(&d, tag);
+        let m = case.cd_col.as_ref().expect("cd_col");
+        let n = pl.nx_h * pl.ny_h;
+        assert_eq!(m.len(), n, "{tag}");
+        let dump = &d.f32s(&format!("{tag}/col"))[COL_CD * n..(COL_CD + 1) * n];
+        assert!(
+            m.iter().zip(dump).all(|(a, b)| a.to_bits() == b.to_bits()),
+            "{tag}: cd_col != плоскость 12 дампа"
+        );
+        assert!(m.iter().all(|&x| x.is_finite() && x > 0.0), "{tag}");
+    }
+}
+
+/// W11 v4, замер: Онгудай 400 м, нагрев, tol_scale 5 - поле с картой `C_d` и с одним `C_d`
+/// (`cd_col = None`). Release: `cargo test --release -p dp-air --test case_build cd_col_vs_one -- --ignored --nocapture`.
+#[test]
+#[ignore = "долго в dev-профиле: cargo test --release -p dp-air --test case_build cd_col_vs_one -- --ignored --nocapture"]
+fn cd_col_vs_one_cd_ongudai() {
+    let d = Dump::load();
+    let (pl, mut case) = build(&d, "ongudai_400_heat");
+    let opts = SolveOpts {
+        threads: 0,
+        tol_scale: 5.0,
+        max_iters: 400,
+        ..SolveOpts::default()
+    };
+    let map = solve(&case, &opts).unwrap();
+    let m = case.cd_col.take().unwrap();
+    let (mn, mx) = m
+        .iter()
+        .fold((f32::MAX, 0.0f32), |(a, b), &x| (a.min(x), b.max(x)));
+    println!("cd: одно {:.5}, карта min {mn:.5} max {mx:.5}", case.cd);
+    let one = solve(&case, &opts).unwrap();
+    println!(
+        "итерации: карта {} ({:?}), одно {} ({:?})",
+        map.iters, map.stop, one.iters, one.stop
+    );
+    let (nxh, nyh) = (pl.nx_h, pl.ny_h);
+    let plane = nxh * nyh;
+    // Первые 3 уровня воздуха каждого столбца (от первой клетки воздуха, плоскость 1) и вся область.
+    let kfp = pl.col_plane(1).to_vec();
+    let stat = |name: &str, a: &[f32], b: &[f32], ground: bool| {
+        let (mut mx, mut sum, mut n) = (0.0f64, 0.0f64, 0usize);
+        for j in 1..nyh - 1 {
+            for i in 1..nxh - 1 {
+                let kf = kfp[j * nxh + i] as usize;
+                let (k0, k1) = if ground { (kf, kf + 3) } else { (0, pl.nz_h) };
+                for k in k0..k1.min(pl.nz_h) {
+                    let q = k * plane + j * nxh + i;
+                    let e = f64::from((a[q] - b[q]).abs());
+                    mx = mx.max(e);
+                    sum += e;
+                    n += 1;
+                }
+            }
+        }
+        println!(
+            "  {name} {}: max {mx:.4}, среднее {:.5} м/с",
+            if ground {
+                "у земли (3 уровня)"
+            } else {
+                "вся область"
+            },
+            sum / n as f64
+        );
+    };
+    for ground in [true, false] {
+        stat("|du|", &map.state.u, &one.state.u, ground);
+        stat("|dv|", &map.state.v, &one.state.v, ground);
+    }
 }

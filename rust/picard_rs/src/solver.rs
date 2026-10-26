@@ -1195,7 +1195,8 @@ impl Picard {
                 break;
             }
             if it > crit.pre_steps && (it - crit.pre_steps).is_multiple_of(crit.check_every) {
-                self.fb_after_check(it);
+                // The game counts `_iters` in whole checks, without the cold-start `pre_steps`.
+                self.fb_after_check(it - crit.pre_steps);
             }
             if self.cancelled() {
                 stop = StopReason::Cancelled;

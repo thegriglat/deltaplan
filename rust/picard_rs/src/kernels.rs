@@ -271,7 +271,8 @@ fn mom_cell<const COMP: usize>(
     if comp < 2 {
         if tt[idx - st[2]] == 0 {
             let sp2 = a3[0] * a3[0] + a3[1] * a3[1];
-            diag += k.cd * sp2.sqrt() / k.dz;
+            let cd = k.cd_col.as_ref().map_or(k.cd, |c| c[idx % (nx * ny)]);
+            diag += cd * sp2.sqrt() / k.dz;
         }
     } else {
         rhs += G_OVER_T0 * 0.5 * (m.th[c0] + m.th[c1]);

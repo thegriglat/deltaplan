@@ -152,7 +152,9 @@ fn none_and_inert_fallback_are_bitwise_v2() {
 fn omega_rollback_switches_after_omega_after() {
     for name in ["flat_wind", "heated_slope"] {
         let c = load(name);
-        let sw = max_at_check(&c, 2);
+        // The game's iteration count (without `pre_steps`) and the raw one of the same check.
+        let sw = 2 * c.criterion.check_every;
+        let sw_raw = max_at_check(&c, 2);
         let end = max_at_check(&c, 6);
         let hard = |max_iters, fallback| SolveOpts {
             max_iters,
@@ -167,7 +169,7 @@ fn omega_rollback_switches_after_omega_after() {
         assert!(!rolled.nonconv_fallback && rolled.nonconv_frac == 0.0);
         // Before the switch (checks up to iteration `sw`, the iterations before it) the two
         // runs are the same bit for bit; after it they differ.
-        let n_same = plain.history.iter().take_while(|h| h.it <= sw).count();
+        let n_same = plain.history.iter().take_while(|h| h.it <= sw_raw).count();
         assert!(n_same >= 2, "{name}");
         for (x, y) in plain.history.iter().zip(&rolled.history).take(n_same) {
             assert_eq!(x.res.mom_rms.to_bits(), y.res.mom_rms.to_bits(), "{name}");
@@ -180,7 +182,7 @@ fn omega_rollback_switches_after_omega_after() {
         assert_ne!(last.0.mom_rms.to_bits(), last.1.mom_rms.to_bits(), "{name}");
         // A tiny omega nearly stops the iteration after the switch: the movement of the field
         // is a small part of the unrelaxed one (x <- x_old + w (x - x_old) with w = 1e-4).
-        let at_sw = api::solve(&c, &hard(sw, None)).unwrap();
+        let at_sw = api::solve(&c, &hard(sw_raw, None)).unwrap();
         let slow = api::solve(&c, &hard(end, Some(fb(sw, 1e-4, 0, None)))).unwrap();
         let mv = |a: &Solved| {
             a.state
@@ -209,7 +211,7 @@ fn late_mean_and_nonconv_at_max_iters() {
     let c = load("heated_slope");
     let ce = c.criterion.check_every;
     let end = max_at_check(&c, 6);
-    let late_from = max_at_check(&c, 3);
+    let late_from = 3 * ce; // the game's count, without `pre_steps`
     let plain = api::solve(&c, &base(2)).unwrap();
     let mask = stripe(&c, c.nx / 3, c.nx / 2);
     let n_mask = mask.iter().filter(|&&m| m != 0).count();
@@ -246,7 +248,7 @@ fn late_mean_and_nonconv_at_max_iters() {
                     it > c.criterion.pre_steps && (it - c.criterion.pre_steps).is_multiple_of(ce);
                 if check {
                     s.residuals(); // the check's boundary condition pass
-                    if it >= late_from && it < end {
+                    if it - c.criterion.pre_steps >= late_from && it < end {
                         let f = &s.f;
                         let cur = [&f.u, &f.v, &f.w, &f.th, &f.thd];
                         match sum.as_mut() {
@@ -390,9 +392,9 @@ fn rollback_late_mean_and_freeze_threads() {
                 tol_scale: 1e-9,
                 freeze: Some(fz.clone()),
                 fallback: Some(fb(
-                    max_at_check(&c, 2),
+                    2 * c.criterion.check_every,
                     0.5,
-                    max_at_check(&c, 3),
+                    3 * c.criterion.check_every,
                     Some(nc.clone()),
                 )),
                 ..base(t)
