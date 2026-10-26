@@ -1082,6 +1082,28 @@ impl Picard {
         self.apply_bc_nest();
     }
 
+    /// Far boundary of a warm start (`K_BC` of the game sets every face that is not free): the
+    /// type-3 faces of `u`, `v` take the background `ubg`, `vbg`, the non-free faces of `w` are 0
+    /// (type 2 of a window: `apply_bc_nest`). A state interpolated from a coarser grid carries
+    /// other values there; kept, they leave a net mass flux through the boundary that the
+    /// projection cannot remove (the divergence stays at a constant) - with the wall zeroing
+    /// (W11 v9) this stopped the iteration of a coarse start.
+    fn pin_far_faces(&mut self) {
+        let k = &self.k;
+        let f = &mut self.f;
+        for i in 0..k.n3() {
+            if k.tu[i] == 3 {
+                f.u[i] = k.ubg[i];
+            }
+            if k.tv[i] == 3 {
+                f.v[i] = k.vbg[i];
+            }
+            if k.tw[i] >= 2 {
+                f.w[i] = 0.0;
+            }
+        }
+    }
+
     fn apply_bc_nest(&mut self) {
         if let Some(n) = &self.k.nest {
             for &i in &n.b_w {
@@ -1143,6 +1165,7 @@ impl Picard {
         f.th.copy_from_slice(&st.th);
         f.thd.copy_from_slice(&st.thd);
         f.p.copy_from_slice(&st.p);
+        self.pin_far_faces();
         self.apply_bc_all();
         self.project(4, false);
         Ok(())
@@ -1159,6 +1182,7 @@ impl Picard {
         f.th.copy_from_slice(&st.th);
         f.thd.copy_from_slice(&st.thd);
         f.p.fill(0.0);
+        self.pin_far_faces();
         self.apply_bc_all();
         self.project(cycles, false);
         Ok(())

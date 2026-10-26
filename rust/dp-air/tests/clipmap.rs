@@ -583,14 +583,15 @@ fn empty_window_levels_means_no_windows_and_the_area_only_path() {
         bits(&sample(&m2, &pts)),
         "same field with or without a focus"
     );
-    // побитно как до RW-6o (RW-6t): хеш FNV-1a от выборки, снятый на коммите 90fe2ff
+    // побитно как до RW-6o (RW-6t): хеш FNV-1a от выборки, снятый на коммите 90fe2ff; с RW-6v
+    // (W11 v9: грубый старт обнуляет стенки и землю, как K_BC) — снят заново на коде v9
     let h = a
         .iter()
         .flat_map(|b| b.to_le_bytes())
         .fold(0xcbf2_9ce4_8422_2325u64, |h, b| {
             (h ^ u64::from(b)).wrapping_mul(0x0100_0000_01b3)
         });
-    assert_eq!(h, 0xf512_1272_827c_1d0f, "behaviour of RW-6t: {h:016x}");
+    assert_eq!(h, 0x0a1f_dff1_73cb_b395, "behaviour of RW-6t: {h:016x}");
 }
 
 // ---------------------------------------------------------------- (7) детерминизм

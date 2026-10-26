@@ -1,12 +1,13 @@
 //! W5 v7 и W11 v9 на стороне `dp-air`: `loc.climate_lag` (вода берёт климат даты `месяц/день −
 //! lag_days`, остальное — `loc.climate`) и поле без предела по времени (`air.timeout_s` удалён).
 //! Стенки и земля после стартов решателя (W11 v9) — `rust/picard_rs/tests/walls_v9.rs`.
-use dp_air::field::runtime::{PlaceClimate, RtCfg};
+use dp_air::field::runtime::{Faults, PlaceClimate, RtCfg, Start};
 use dp_air::field::weather_core::{
     Climate, ClimateCell, Domain, WeatherConfigs, context, field_weather, hour_at, water_mean_air_c,
 };
 use dp_air::fixtures::read_place;
 use dp_air::{AirModel, Code, Conditions, Configs, Formula, LocClimate, Place, PlaceHeader, State};
+use picard_rs::api::StopReason as Stop;
 use serde_json::{Value, json};
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
@@ -144,7 +145,13 @@ fn water_mean_air_takes_climate_lag_in_field_weather() {
     )
     .unwrap();
     let hour = hour_at(&cond, 0.0);
-    let dom = Domain::standard(400.0);
+    let dom = Domain {
+        x0: -4000.0,
+        y0: -4000.0,
+        nx: 20,
+        ny: 20,
+        dx: 400.0,
+    };
     let run = |c: LocClimate, lag: LocClimate| {
         let p = with_climate(&base, Some(c), Some(lag));
         let clim = PlaceClimate {
@@ -175,25 +182,23 @@ fn water_mean_air_takes_climate_lag_in_field_weather() {
     assert_eq!(ctx.month, context(&base).month);
 }
 
-// ---------------------------------------------------------------- W5 v7: без таймаута
+// ---------------------------------------------------------------- без таймаута, грубый старт
 
-#[test]
-fn field_has_no_time_limit() {
-    // Ключ в конфиге — неизвестный, не ошибка и ничего не ограничивает: при прежних правилах
-    // (max(1, timeout_s) на проход) подготовка синтетики не укладывалась бы в 1 с.
-    let cfg = configs_with(|v| {
-        v["air"]["deterministic"] = json!(true);
-        v["air"]["domain_l_m"] = json!(7200.0);
-        v["air"]["threads"] = json!(4);
-        v["air"]["tol_scale"] = json!(5.0);
-        v["air"]["timeout_s"] = json!(0.001);
-        v["air_model"]["edge_blend_cells"] = json!(1.0);
-    });
-    let mut m = Formula::new().with_faults(dp_air::field::runtime::Faults {
+fn cheap(v: &mut Value) {
+    v["air"]["deterministic"] = json!(true);
+    v["air"]["domain_l_m"] = json!(7200.0);
+    v["air"]["threads"] = json!(4);
+    v["air"]["tol_scale"] = json!(5.0);
+    v["air_model"]["edge_blend_cells"] = json!(1.0);
+}
+
+/// Синтетика, ветер `strong`, без окон: ждём READY, отдаём модель.
+fn ready(cfg: &Configs) -> (Formula, f64) {
+    let mut m = Formula::new().with_faults(Faults {
         no_windows: true,
         ..Default::default()
     });
-    m.configure(&cfg, 1).unwrap();
+    m.configure(cfg, 1).unwrap();
     m.set_conditions(
         &Conditions::from_json(
             r#"{"preset":"strong","start_hour":12,"speed":1,"blend_s":null,"rebuild":false}"#,
@@ -212,8 +217,41 @@ fn field_has_no_time_limit() {
         assert!(t0.elapsed().as_secs() < 900, "no Ready");
         std::thread::sleep(Duration::from_millis(2));
     }
+    (m, t0.elapsed().as_secs_f64())
+}
+
+#[test]
+fn field_has_no_time_limit() {
+    // Ключ в конфиге — неизвестный, не ошибка и ничего не ограничивает: при прежних правилах
+    // (max(1, timeout_s) на проход) подготовка синтетики не укладывалась бы в 1 с.
+    let cfg = configs_with(|v| {
+        cheap(v);
+        v["air"]["timeout_s"] = json!(0.001);
+    });
+    let (_, secs) = ready(&cfg);
     assert!(
-        t0.elapsed().as_secs_f64() > 1.0,
-        "тест не проверяет предел: слишком быстро"
+        secs > 1.0,
+        "тест не проверяет предел: слишком быстро ({secs} с)"
     );
+}
+
+/// W11 v9: после грубого старта (стенки и земля обнулены, дальние грани типа 3 — фон, как
+/// `K_BC`) расчёт сходится; без дальних граней остаётся постоянная дивергенция (чистый поток
+/// через границу, который проекция снять не может) и 3000 итераций MaxIters.
+#[test]
+fn coarse_start_of_strong_wind_converges_with_walls_zeroed() {
+    let cfg = configs_with(cheap);
+    let (m, _) = ready(&cfg);
+    let r = m.report().unwrap();
+    let p = &r.passes[0];
+    assert_eq!(p.start, Start::Coarse);
+    assert!(
+        p.stop
+            .iter()
+            .all(|s| matches!(s, Stop::Converged | Stop::AllFrozen)),
+        "stop {:?}, iters {:?}",
+        p.stop,
+        p.iters
+    );
+    assert!(p.iters.iter().all(|&n| n < 600), "iters {:?}", p.iters);
 }
