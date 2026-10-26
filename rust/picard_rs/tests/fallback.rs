@@ -474,7 +474,9 @@ fn bad_fallback_is_an_error() {
 }
 
 #[test]
-fn cancel_before_the_start_with_everything_frozen_is_the_background() {
+fn cancel_before_the_start_with_everything_frozen_is_cancelled_and_finite() {
+    // W11 v6 (replaces the v3 "AllFrozen with the background"): the start projections test the
+    // flag, so a flag set before the call cuts them; the answer is `Cancelled`, finite.
     for name in ["flat_wind", "heated_slope"] {
         let c = load(name);
         let flag = Arc::new(AtomicBool::new(true));
@@ -497,15 +499,21 @@ fn cancel_before_the_start_with_everything_frozen_is_the_background() {
         let free = run(None);
         assert_eq!(
             (cancelled.stop, cancelled.iters),
-            (StopReason::AllFrozen, 0)
+            (StopReason::Cancelled, 0)
         );
-        assert_eq!(free.stop, StopReason::AllFrozen);
-        // The background (not zeros): the same field as without the flag, bit for bit.
-        same_state(name, &cancelled, &free);
-        if name == "flat_wind" {
-            // (the heated case starts calm: its background is zero by itself)
-            assert!(cancelled.state.u.iter().any(|&x| x != 0.0), "{name}: zeros");
-        }
+        assert_eq!(cancelled.out.status, "max");
+        let s = &cancelled.state;
+        assert!(
+            [&s.u, &s.v, &s.w, &s.th, &s.thd, &s.p]
+                .iter()
+                .all(|a| a.iter().all(|x| x.is_finite())),
+            "{name}: finite"
+        );
+        // Without the flag: the frozen field, as before.
+        assert_eq!((free.stop, free.iters), (StopReason::AllFrozen, 0));
+        // A flag that is never set changes nothing.
+        let quiet = run(Some(Arc::new(AtomicBool::new(false))));
+        same_state(name, &quiet, &free);
     }
 }
 

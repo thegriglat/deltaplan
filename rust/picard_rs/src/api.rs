@@ -232,8 +232,9 @@ pub fn solve(case: &Case, opts: &SolveOpts) -> Result<Solved> {
     crit.tol_th_rms *= opts.tol_scale;
     crit.tol_div_rms *= opts.tol_scale;
     let (mut o, dev, setup_s, s) = pl.install(|| -> Result<_> {
-        let mut s = Picard::new(Consts::from_case(case)?);
-        s.cancel.clone_from(&opts.cancel);
+        // W11 v6: the multigrid build, the start projections and `finalize` test the flag.
+        let mut s = Picard::new_cancel(Consts::from_case(case)?, opts.cancel.as_ref());
+        s.prep_cancel = true;
         if let Some(fr) = &opts.freeze {
             // Validate before the (long) start; the columns are declared after it.
             Picard::new_check_freeze(&s.k, fr)?;
@@ -257,13 +258,27 @@ pub fn solve(case: &Case, opts: &SolveOpts) -> Result<Solved> {
             s.set_freeze(&fr.mask, fr.field.as_ref())?;
         }
         let setup_s = t0.elapsed().as_secs_f64();
+        s.prep_cancel = false;
+        // W11 v6: the start was cut short by the flag - the answer is `Cancelled` also when
+        // nothing is left to iterate (`AllFrozen`).
+        let setup_cut = std::mem::take(&mut s.prep_cut);
         let run = RunLimits {
             max_iters: opts.max_iters,
             time_budget: opts.time_budget,
             snapshot_at: &opts.snapshot_at,
         };
-        let o = s.solve(&crit, &run);
+        let mut o = s.solve(&crit, &run);
+        // After a cancel in the middle of the iterations the delivered field is the finalized
+        // one (bit for bit the field of a run limited to that many iterations); in the other
+        // cases (also a cancel before the first iteration) `finalize` tests the flag.
+        s.prep_cancel = !(o.stop == StopReason::Cancelled && o.iters > 0);
+        s.prep_cut = false;
         s.finalize(10);
+        if s.prep_cut || setup_cut {
+            o.stop = StopReason::Cancelled;
+            o.status = o.stop.status();
+        }
+        s.prep_cancel = false;
         let dev = deviation(case, &s)?;
         Ok((o, dev, setup_s, s))
     })?;

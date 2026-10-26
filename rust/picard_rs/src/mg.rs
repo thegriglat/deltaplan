@@ -194,6 +194,24 @@ impl Mg {
         dx: f32,
         dz: f32,
     ) -> Self {
+        Self::new_until(kx, ky, kz, fluid, dims, dx, dz, &|| false)
+    }
+
+    /// [`Self::new`] with a stop test (W11 v6): `stop` is asked before every level; once it
+    /// answers `true` the hierarchy is cut after the levels built so far (the finest level is
+    /// always built). The result is a valid but weaker solver; the caller that stopped it does
+    /// not iterate.
+    #[allow(clippy::too_many_arguments)]
+    pub fn new_until(
+        kx: &[f32],
+        ky: &[f32],
+        kz: &[f32],
+        fluid: &[f32],
+        dims: Shape,
+        dx: f32,
+        dz: f32,
+        stop: &dyn Fn() -> bool,
+    ) -> Self {
         let (nzh, nyh, nxh) = dims;
         let (nz, ny, nx) = (nzh - 2, nyh - 2, nxh - 2);
         let h = |k: usize, j: usize, i: usize| (k * nyh + j) * nxh + i;
@@ -249,7 +267,8 @@ impl Mg {
                 x: vec![0.0; n],
                 sc: Scratch::new(n),
             });
-            if !f.nx.is_multiple_of(2) || !f.ny.is_multiple_of(2) || f.nx < 6 || f.ny < 6 {
+            if !f.nx.is_multiple_of(2) || !f.ny.is_multiple_of(2) || f.nx < 6 || f.ny < 6 || stop()
+            {
                 break;
             }
             f = f.coarsen();
@@ -311,7 +330,13 @@ impl Mg {
     /// One V-cycle on the finest level (2 pre, 2 post smoothing sweeps in z, 20 sweeps of
     /// (z, x, y) on the coarsest level), updating `phi` in place.
     pub fn vcycle(&mut self) {
-        vcycle_rec(&mut self.levels);
+        vcycle_rec(&mut self.levels, &|| false);
+    }
+
+    /// [`Self::vcycle`] with a stop test (W11 v6), asked on entry to every level (between
+    /// sweep groups: a few ms of work). `false` — stopped, `phi` holds a partial correction.
+    pub fn vcycle_until(&mut self, stop: &dyn Fn() -> bool) -> bool {
+        vcycle_rec(&mut self.levels, stop)
     }
 }
 
@@ -340,14 +365,21 @@ fn prolong_add(cx: &[f32], act: &[f32], dims: (usize, usize), x: &mut [f32]) {
         .for_each(|(n, xc)| prolong_chunk(cx, act, dims, n * CHUNK, xc));
 }
 
-fn vcycle_rec(levels: &mut [Level]) {
+/// `true` — the cycle ran to the end, `false` — `stop` fired.
+fn vcycle_rec(levels: &mut [Level], stop: &dyn Fn() -> bool) -> bool {
     let (cur, rest) = levels.split_at_mut(1);
     let l = &mut cur[0];
+    if stop() {
+        return false;
+    }
     if rest.is_empty() {
-        for _ in 0..20 {
+        for s in 0..20 {
+            if s % 4 == 3 && stop() {
+                return false;
+            }
             sweep(&l.rows, &mut l.x, &mut l.sc, l.shape, &[2, 0, 1]);
         }
-        return;
+        return true;
     }
     for _ in 0..2 {
         sweep(&l.rows, &mut l.x, &mut l.sc, l.shape, &[2]);
@@ -355,9 +387,12 @@ fn vcycle_rec(levels: &mut [Level]) {
     let (_, ny, nx) = l.shape;
     let c = &mut rest[0];
     restrict_resid((&l.rows, &l.x, l.shape), &c.act, (&mut c.rows, &mut c.x));
-    vcycle_rec(rest);
+    if !vcycle_rec(rest, stop) {
+        return false;
+    }
     prolong_add(&rest[0].x, &l.act, (ny, nx), &mut l.x);
     for _ in 0..2 {
         sweep(&l.rows, &mut l.x, &mut l.sc, l.shape, &[2]);
     }
+    true
 }

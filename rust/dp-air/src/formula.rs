@@ -10,9 +10,10 @@
 //!   не на время расчёта).
 //! - Фон — задача в `rayon`-пуле на процесс (по размеру `air.threads`; `0` — все ядра минус
 //!   одно); внутри — `picard_rs::api::solve` с тем же числом потоков. Отмена — `AtomicBool`
-//!   (W11): `unload_place`, `load_place`, `start_at`, `Drop` ждут конца задачи (≤ 1 итерация
-//!   решения или конец стадии подготовки; не дольше 5 с — дальше задача отпускается и её поле
-//!   не подаётся).
+//!   (W11 v6): `unload_place`, `load_place`, `start_at`, `Drop` ждут конца задачи (≤ 1 итерация
+//!   решения или между стадиями подготовки — см. `field::runtime`; не дольше `JOIN_LIMIT` = 0,5 с —
+//!   дальше задача отпускается сменой поколения, её поле не подаётся, она сама доходит до
+//!   ближайшей проверки отмены).
 //! - Загрузка и `start_at` подаются сами фоном (без подмены), пересчёт в полёте — главным
 //!   потоком в `advance_to`: при `air.deterministic = true` `advance_to` на игровом моменте
 //!   подачи (начало срока `recompute_game_min` или момент смены условий) ждёт фон и подаёт поле
@@ -26,10 +27,17 @@
 //! - Загрузка без условий — `Ready` без поля; поле считается с первым `advance_to` после
 //!   `set_conditions` (режим «нет поля»: `Loading`).
 //! - Проходы `k` — без окон 100/50 м (см. `field::runtime`).
+//!
+//! ## Запечённые поля и кеш (W3 v2/W4 v3)
+//! `add_baked_field` — сразу после `load_place`, пока поле не готово: идущая загрузка
+//! перезапускается (подбор поля — первое, что делает задача), после готового поля — `BadInput`.
+//! `set_cache_dir` — до `load_place` (или до первой загрузки): каталог читает и пишет задача
+//! загрузки (`field::runtime`); пусто — без кеша. Нужен `header.model_hash` места.
+use crate::field::field_cache::FieldCache;
 use crate::field::field_set::FieldSet;
 use crate::field::runtime::{
-    CondRec, JobErr, JobIn, JobOut, JobReport, Pair, RtCfg, dir_key, ground_height,
-    needs_recompute, run_job, slot, slot_hour,
+    BakedEntry, CondRec, JobErr, JobIn, JobOut, JobReport, Pair, RtCfg, Source, dir_key,
+    ground_height, needs_recompute, run_job, slot, slot_hour,
 };
 use crate::field::weather_core::{WeatherInputs, hour_at};
 use crate::field::wind_field::Limits;
@@ -40,12 +48,14 @@ use crate::{
 use rayon::prelude::*;
 use std::collections::HashMap;
 use std::panic::AssertUnwindSafe;
+use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, AtomicU8, AtomicU32, AtomicU64, Ordering};
-use std::sync::{Arc, Condvar, Mutex, MutexGuard, PoisonError, RwLock};
+use std::sync::{Arc, Condvar, Mutex, MutexGuard, OnceLock, PoisonError, RwLock};
 use std::time::{Duration, Instant};
 
-/// Дольше этого `unload_place`/`Drop`/`load_place` не ждут конца задачи.
-const JOIN_LIMIT: Duration = Duration::from_secs(5);
+/// Дольше этого `unload_place`/`Drop`/`load_place` не ждут конца задачи: возврат ≤ 1 с (W1) с
+/// запасом на то, что шаг без проверок отмены (фазы, до ~0,7 с на -O1) не прервать.
+const JOIN_LIMIT: Duration = Duration::from_millis(500);
 
 fn lock<T>(m: &Mutex<T>) -> MutexGuard<'_, T> {
     m.lock().unwrap_or_else(PoisonError::into_inner)
@@ -70,6 +80,8 @@ struct Shared {
     report: Mutex<Option<JobReport>>,
     /// Поколение места: задача прежнего места ничего не подаёт.
     epoch: AtomicU64,
+    /// Ошибка последней записи в кеш (пусто — нет).
+    cache_error: Mutex<String>,
 }
 
 impl Shared {
@@ -85,6 +97,7 @@ impl Shared {
             reason: Mutex::new(String::new()),
             report: Mutex::new(None),
             epoch: AtomicU64::new(0),
+            cache_error: Mutex::new(String::new()),
         }
     }
 
@@ -262,8 +275,10 @@ fn job_main(sh: Arc<Shared>, kind: Kind, epoch: u64, job: JobIn, slot: Arc<Slot>
     let cfg = job.cfg.clone();
     let res = std::panic::catch_unwind(AssertUnwindSafe(|| run_job(job)))
         .unwrap_or_else(|_| Err(JobErr::Failed("internal error in the field task".into())));
+    let mut put = None;
     let res = match res {
         Ok(mut out) => {
+            put = out.cache_put.take();
             if kind != Kind::Flight {
                 let levels = std::mem::take(&mut out.levels);
                 sh.modify_epoch(epoch, |p| {
@@ -290,6 +305,10 @@ fn job_main(sh: Arc<Shared>, kind: Kind, epoch: u64, job: JobIn, slot: Arc<Slot>
         Err(JobErr::Cancelled) => Err(JobErr::Cancelled),
     };
     slot.put(res);
+    // запись в кеш — после подачи, поле от неё не зависит
+    if let Some(p) = put {
+        *lock(&sh.cache_error) = p.run().unwrap_or_default();
+    }
 }
 
 // ---------------------------------------------------------------- Formula
@@ -320,6 +339,12 @@ pub struct Formula {
     force_recompute: bool,
     /// Первое поле не посчиталось: новых попыток нет до `load_place`.
     failed: bool,
+    /// Запечённые поля места (`add_baked_field`).
+    baked: Arc<Vec<BakedEntry>>,
+    /// Каталог кеша полей (`set_cache_dir`).
+    cache_dir: Option<PathBuf>,
+    /// Хеш места для ключа кеша (считается задачей при первой надобности).
+    place_hash: Arc<OnceLock<String>>,
 }
 
 impl Default for Formula {
@@ -352,7 +377,15 @@ impl Formula {
             cond_t: 0.0,
             force_recompute: false,
             failed: false,
+            baked: Arc::new(Vec::new()),
+            cache_dir: None,
+            place_hash: Arc::new(OnceLock::new()),
         }
+    }
+
+    /// Ошибка последней записи в кеш; пусто — записи удались (или их не было).
+    pub fn cache_error(&self) -> String {
+        lock(&self.sh.cache_error).clone()
     }
 
     /// Задать `air.deterministic` в обход конфига (тесты, стенд, фикстуры — `true`).
@@ -477,11 +510,13 @@ impl Formula {
                 p.fs.set_levels(levels, blend);
             });
             *cursor = tdel;
-        } else if job.kind == Kind::Load && out.report.planned > 1 {
+        } else if job.kind == Kind::Load
+            && (out.report.planned > 1 || out.report.source != Source::Computed)
+        {
             self.k_mem.insert(dir_key(out.rec.wdir), out.k);
         }
         self.cur = Some(out.rec);
-        self.warm = Some(out.pair);
+        self.warm = out.pair;
         self.inflow_k = out.k;
         if job.kind == Kind::Flight {
             *lock(&self.sh.report) = Some(out.report);
@@ -520,6 +555,12 @@ impl Formula {
             warm: if loading { None } else { self.warm.clone() },
             cancel: cancel.clone(),
             progress,
+            baked: self.baked.clone(),
+            cache: self.cache_dir.as_ref().map(|d| FieldCache {
+                dir: d.clone(),
+                max_bytes: cfg.cache_max_bytes,
+            }),
+            place_hash: self.place_hash.clone(),
         };
         let sh = self.sh.clone();
         let sl = slot.clone();
@@ -710,6 +751,8 @@ impl AirModel for Formula {
         self.inflow_k = 1.0;
         self.k_mem.clear();
         self.failed = false;
+        self.baked = Arc::new(Vec::new());
+        self.place_hash = Arc::new(OnceLock::new());
         *lock(&self.sh.report) = None;
         self.cond_t = 0.0;
         self.reset_published(Some(place));
@@ -740,6 +783,8 @@ impl AirModel for Formula {
         self.inflow_k = 1.0;
         self.k_mem.clear();
         self.failed = false;
+        self.baked = Arc::new(Vec::new());
+        self.place_hash = Arc::new(OnceLock::new());
         *lock(&self.sh.report) = None;
         self.thermals.clear();
         self.focuses.clear();
@@ -829,6 +874,40 @@ impl AirModel for Formula {
             };
             self.launch(Kind::Start, rec, t);
         }
+        Ok(())
+    }
+
+    fn add_baked_field(&mut self, header_json: &str, data: &[u8]) -> Result<(), Error> {
+        self.need_place()?;
+        self.reap();
+        let e = BakedEntry::new(header_json, data)?;
+        if self.cur.is_some()
+            || self.failed
+            || self.job.as_ref().is_some_and(|j| j.kind != Kind::Load)
+        {
+            return Err(Error::bad_input(
+                "add_baked_field: the field is already loaded (call it right after load_place)",
+            ));
+        }
+        let mut list: Vec<BakedEntry> = self.baked.as_ref().clone();
+        list.retain(|x| !(x.location == e.location && x.site == e.site));
+        list.push(e);
+        self.baked = Arc::new(list);
+        // идущая загрузка о новом файле не знает: перезапуск (подбор поля — её первый шаг);
+        // прежняя доходит до ближайшей проверки отмены сама, подать ей нечего (поколение)
+        if let Some(job) = self.job.take() {
+            job.cancel.store(true, Ordering::SeqCst);
+            self.sh.epoch.fetch_add(1, Ordering::SeqCst);
+            self.launch(Kind::Load, job.rec, job.deliver_t);
+        }
+        Ok(())
+    }
+
+    fn set_cache_dir(&mut self, path: &str) -> Result<(), Error> {
+        if path.contains('\0') {
+            return Err(Error::bad_input("set_cache_dir: NUL in the path"));
+        }
+        self.cache_dir = (!path.is_empty()).then(|| PathBuf::from(path));
         Ok(())
     }
 
