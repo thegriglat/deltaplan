@@ -1,0 +1,87 @@
+{
+  "status": "done",
+  "summary": "Case/CaseParts/Consts получили cd_col (C_d по столбцу, плоскость nyh*nxh с ореолом); импульс у стенки берёт cd_col[idx % NYX] как air_picard.glsl:393, None - одно cd (побитно v3). case_build кладёт плоскость 12 PreparedPlanes. Пороги omega_after/late_from считаются по it - pre_steps (счёт игры).",
+  "commits": [
+    "picard-rs: C_d стенки по столбцу (cd_col), отсчёт порогов запасных правил как в игре - W11 v4"
+  ],
+  "checks": [
+    {
+      "name": "cd_col_test",
+      "value": "test result: ok. 4",
+      "pass": true
+    },
+    {
+      "name": "tests",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "константная карта = None побитно (flat_wind, heated_slope)",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "два покрова (flat_wind), 1-й уровень воздуха, против одного cd",
+      "value": "малый C_d +0.130 м/с, большой C_d -0.840 м/с",
+      "pass": true
+    },
+    {
+      "name": "пороги некратные check_every при pre_steps=3",
+      "value": "omega_after/late_from: ce+1 = 2ce, 2ce+1 = 3ce побитно; первое расхождение на 3-й проверке",
+      "pass": true
+    },
+    {
+      "name": "case_build: cd_col == col 12 дампа RW-6e побитно",
+      "value": "3 случая (synthetic heat/mech, ongudai heat)",
+      "pass": true
+    },
+    {
+      "name": "замер Онгудай 400 heat, tol_scale 5, release: карта против одного C_d",
+      "value": "итераций 90/90 (оба Converged); cd одно 0.00519, карта 0.00153..0.01020; у земли (3 уровня от первой клетки воздуха) |du| max 0.110 среднее 0.0118, |dv| max 0.133 среднее 0.0142 м/с; вся область |du| max 0.110 среднее 0.0029, |dv| max 0.133 среднее 0.0037 м/с",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-6r; замер: cargo test --release -p dp-air --test case_build cd_col_vs_one -- --ignored --nocapture (под lock cpu)",
+  "uncertain": [
+    {
+      "where": "rust/picard_rs/src/solver.rs:~1197 (fb_after_check(it - pre_steps))",
+      "why": "max_iters по-прежнему считает сырые итерации (с pre_steps); у игры max_outer сравнивается со счётом _iters без pre_steps - расхождение на pre_steps итераций в точке остановки.",
+      "checked": "не менял; на тёплом старте и у case_build pre_steps=0 - расхождения нет."
+    },
+    {
+      "where": "rust/picard_rs/tests/fallback.rs",
+      "why": "существующие тесты запасных правил считали пороги по сырому it; переведены на счёт игры.",
+      "checked": "fallback.rs проходит целиком; Онгудай-тесты #[ignore] в fallback/freeze не гонял."
+    },
+    {
+      "where": "rust/picard_rs/tests/cd_col.rs, п.1 (None побитно v3)",
+      "why": "прямого сравнения с бинарём v3 нет: None-путь - прежнее k.cd; доказано косвенно (None = постоянная карта; остальные тесты не менялись и проходят).",
+      "checked": "tests picard_rs + dp-air целиком PASS."
+    }
+  ],
+  "dp_feedback": "",
+  "extra": {
+    "ongudai_400_heat_ts5": {
+      "iters_map": 90,
+      "iters_one": 90,
+      "cd_one": 0.00519,
+      "cd_map_min": 0.00153,
+      "cd_map_max": 0.0102
+    }
+  },
+  "t": "2026-10-26T06:48:17",
+  "by": "executor"
+}

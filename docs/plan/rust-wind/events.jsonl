@@ -299,3 +299,7 @@
 {"t": "2026-10-26T06:34:03", "by": "coordinator", "task": "RW-6r", "ev": "started"}
 {"t": "2026-10-26T06:42:42", "by": "coordinator", "task": "RW-1b", "ev": "checked", "note": "6/6 test_wind_fixtures_format=ok:4/4; fixtures_repro=ok:exit 0; fixtures_size_mb=ok:17; day_cases=ok:3; climate_in_places=ok:2; rust_reader=ok:quantity"}
 {"t": "2026-10-26T06:43:04", "by": "coordinator", "task": "RW-1b", "ev": "accepted", "note": "по отчёту: набор 2 (3 дневных случая) побитно воспроизводится; сдвига окон за фокусом нет — доснять к RW-6o"}
+{"t": "2026-10-26T06:48:17", "by": "executor", "task": "RW-6r", "ev": "reported", "commits": ["picard-rs:"], "note": "done: Case/CaseParts/Consts получили cd_col (C_d по столбцу, плоскость nyh*nxh с ореолом); импульс у стенки берёт cd_col[idx …"}
+{"t": "2026-10-26T06:48:38", "by": "coordinator", "task": "RW-6r", "ev": "note", "note": "Доработка (координатор): max_iters — тот же счёт, что у игры (max_outer сравнивается со счётом _iters без pre_steps), как пороги; тест на холодном старте с pre_steps > 0: упор в max_iters на той же итерации, что формула игры. Остальное принято. Затем accept --dry и report.", "addendum": true}
+{"t": "2026-10-26T06:55:59", "by": "coordinator", "task": "RW-1b", "ev": "accepted", "commits": ["d6a4019d1"], "note": "6/6 test_wind_fixtures_format=ok:4/4; fixtures_repro=ok:exit 0; fixtures_size_mb=ok:17; day_cases=ok:3; climate_in_places=ok:2; rust_reader=ok:quantity"}
+{"t": "2026-10-26T06:56:22", "by": "coordinator", "task": "RW-1b", "ev": "merged"}
