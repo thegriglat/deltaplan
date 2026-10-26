@@ -1,0 +1,1646 @@
+{
+	"arrays": {
+		"convection": {
+			"count": 60,
+			"dtype": "f64",
+			"offset": 2523176
+		},
+		"ongudai_eve_u0.3/g": {
+			"count": 2560,
+			"dtype": "f64",
+			"offset": 669600
+		},
+		"ongudai_eve_u0.3/gdiag": {
+			"count": 9,
+			"dtype": "f64",
+			"offset": 690080
+		},
+		"ongudai_eve_u0.3/nonconv": {
+			"count": 0,
+			"dtype": "u8",
+			"offset": 765576
+		},
+		"ongudai_eve_u0.3/stats": {
+			"count": 28,
+			"dtype": "f64",
+			"offset": 765352
+		},
+		"ongudai_eve_u0.3/theta": {
+			"count": 256,
+			"dtype": "f64",
+			"offset": 692200
+		},
+		"ongudai_eve_u0.3/uml": {
+			"count": 256,
+			"dtype": "f64",
+			"offset": 690152
+		},
+		"ongudai_eve_u0.3/warm_h_th": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 720912
+		},
+		"ongudai_eve_u0.3/warm_h_u": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 694248
+		},
+		"ongudai_eve_u0.3/warm_h_v": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 703136
+		},
+		"ongudai_eve_u0.3/warm_h_w": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 712024
+		},
+		"ongudai_eve_u0.3/warm_m_th": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 756464
+		},
+		"ongudai_eve_u0.3/warm_m_u": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 729800
+		},
+		"ongudai_eve_u0.3/warm_m_v": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 738688
+		},
+		"ongudai_eve_u0.3/warm_m_w": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 747576
+		},
+		"ongudai_eve_u1.5/g": {
+			"count": 2560,
+			"dtype": "f64",
+			"offset": 765576
+		},
+		"ongudai_eve_u1.5/gdiag": {
+			"count": 9,
+			"dtype": "f64",
+			"offset": 786056
+		},
+		"ongudai_eve_u1.5/nonconv": {
+			"count": 0,
+			"dtype": "u8",
+			"offset": 861552
+		},
+		"ongudai_eve_u1.5/stats": {
+			"count": 28,
+			"dtype": "f64",
+			"offset": 861328
+		},
+		"ongudai_eve_u1.5/theta": {
+			"count": 256,
+			"dtype": "f64",
+			"offset": 788176
+		},
+		"ongudai_eve_u1.5/uml": {
+			"count": 256,
+			"dtype": "f64",
+			"offset": 786128
+		},
+		"ongudai_eve_u1.5/warm_h_th": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 816888
+		},
+		"ongudai_eve_u1.5/warm_h_u": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 790224
+		},
+		"ongudai_eve_u1.5/warm_h_v": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 799112
+		},
+		"ongudai_eve_u1.5/warm_h_w": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 808000
+		},
+		"ongudai_eve_u1.5/warm_m_th": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 852440
+		},
+		"ongudai_eve_u1.5/warm_m_u": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 825776
+		},
+		"ongudai_eve_u1.5/warm_m_v": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 834664
+		},
+		"ongudai_eve_u1.5/warm_m_w": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 843552
+		},
+		"ongudai_eve_u12.0/g": {
+			"count": 2560,
+			"dtype": "f64",
+			"offset": 957784
+		},
+		"ongudai_eve_u12.0/gdiag": {
+			"count": 9,
+			"dtype": "f64",
+			"offset": 978264
+		},
+		"ongudai_eve_u12.0/nonconv": {
+			"count": 0,
+			"dtype": "u8",
+			"offset": 1053760
+		},
+		"ongudai_eve_u12.0/stats": {
+			"count": 28,
+			"dtype": "f64",
+			"offset": 1053536
+		},
+		"ongudai_eve_u12.0/theta": {
+			"count": 256,
+			"dtype": "f64",
+			"offset": 980384
+		},
+		"ongudai_eve_u12.0/uml": {
+			"count": 256,
+			"dtype": "f64",
+			"offset": 978336
+		},
+		"ongudai_eve_u12.0/warm_h_th": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 1009096
+		},
+		"ongudai_eve_u12.0/warm_h_u": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 982432
+		},
+		"ongudai_eve_u12.0/warm_h_v": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 991320
+		},
+		"ongudai_eve_u12.0/warm_h_w": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 1000208
+		},
+		"ongudai_eve_u12.0/warm_m_th": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 1044648
+		},
+		"ongudai_eve_u12.0/warm_m_u": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 1017984
+		},
+		"ongudai_eve_u12.0/warm_m_v": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 1026872
+		},
+		"ongudai_eve_u12.0/warm_m_w": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 1035760
+		},
+		"ongudai_eve_u6.0/g": {
+			"count": 2560,
+			"dtype": "f64",
+			"offset": 861552
+		},
+		"ongudai_eve_u6.0/gdiag": {
+			"count": 9,
+			"dtype": "f64",
+			"offset": 882032
+		},
+		"ongudai_eve_u6.0/nonconv": {
+			"count": 256,
+			"dtype": "u8",
+			"offset": 957528
+		},
+		"ongudai_eve_u6.0/stats": {
+			"count": 28,
+			"dtype": "f64",
+			"offset": 957304
+		},
+		"ongudai_eve_u6.0/theta": {
+			"count": 256,
+			"dtype": "f64",
+			"offset": 884152
+		},
+		"ongudai_eve_u6.0/uml": {
+			"count": 256,
+			"dtype": "f64",
+			"offset": 882104
+		},
+		"ongudai_eve_u6.0/warm_h_th": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 912864
+		},
+		"ongudai_eve_u6.0/warm_h_u": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 886200
+		},
+		"ongudai_eve_u6.0/warm_h_v": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 895088
+		},
+		"ongudai_eve_u6.0/warm_h_w": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 903976
+		},
+		"ongudai_eve_u6.0/warm_m_th": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 948416
+		},
+		"ongudai_eve_u6.0/warm_m_u": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 921752
+		},
+		"ongudai_eve_u6.0/warm_m_v": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 930640
+		},
+		"ongudai_eve_u6.0/warm_m_w": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 939528
+		},
+		"ongudai_noon_u0.3/nonconv": {
+			"count": 0,
+			"dtype": "u8",
+			"offset": 443072
+		},
+		"ongudai_noon_u0.3/stats": {
+			"count": 28,
+			"dtype": "f64",
+			"offset": 442848
+		},
+		"ongudai_noon_u0.3/theta": {
+			"count": 256,
+			"dtype": "f64",
+			"offset": 369696
+		},
+		"ongudai_noon_u0.3/uml": {
+			"count": 256,
+			"dtype": "f64",
+			"offset": 367648
+		},
+		"ongudai_noon_u0.3/warm_h_th": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 398408
+		},
+		"ongudai_noon_u0.3/warm_h_u": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 371744
+		},
+		"ongudai_noon_u0.3/warm_h_v": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 380632
+		},
+		"ongudai_noon_u0.3/warm_h_w": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 389520
+		},
+		"ongudai_noon_u0.3/warm_m_th": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 433960
+		},
+		"ongudai_noon_u0.3/warm_m_u": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 407296
+		},
+		"ongudai_noon_u0.3/warm_m_v": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 416184
+		},
+		"ongudai_noon_u0.3/warm_m_w": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 425072
+		},
+		"ongudai_noon_u1.5/nonconv": {
+			"count": 0,
+			"dtype": "u8",
+			"offset": 518496
+		},
+		"ongudai_noon_u1.5/stats": {
+			"count": 28,
+			"dtype": "f64",
+			"offset": 518272
+		},
+		"ongudai_noon_u1.5/theta": {
+			"count": 256,
+			"dtype": "f64",
+			"offset": 445120
+		},
+		"ongudai_noon_u1.5/uml": {
+			"count": 256,
+			"dtype": "f64",
+			"offset": 443072
+		},
+		"ongudai_noon_u1.5/warm_h_th": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 473832
+		},
+		"ongudai_noon_u1.5/warm_h_u": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 447168
+		},
+		"ongudai_noon_u1.5/warm_h_v": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 456056
+		},
+		"ongudai_noon_u1.5/warm_h_w": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 464944
+		},
+		"ongudai_noon_u1.5/warm_m_th": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 509384
+		},
+		"ongudai_noon_u1.5/warm_m_u": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 482720
+		},
+		"ongudai_noon_u1.5/warm_m_v": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 491608
+		},
+		"ongudai_noon_u1.5/warm_m_w": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 500496
+		},
+		"ongudai_noon_u12.0/nonconv": {
+			"count": 0,
+			"dtype": "u8",
+			"offset": 669600
+		},
+		"ongudai_noon_u12.0/stats": {
+			"count": 28,
+			"dtype": "f64",
+			"offset": 669376
+		},
+		"ongudai_noon_u12.0/theta": {
+			"count": 256,
+			"dtype": "f64",
+			"offset": 596224
+		},
+		"ongudai_noon_u12.0/uml": {
+			"count": 256,
+			"dtype": "f64",
+			"offset": 594176
+		},
+		"ongudai_noon_u12.0/warm_h_th": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 624936
+		},
+		"ongudai_noon_u12.0/warm_h_u": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 598272
+		},
+		"ongudai_noon_u12.0/warm_h_v": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 607160
+		},
+		"ongudai_noon_u12.0/warm_h_w": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 616048
+		},
+		"ongudai_noon_u12.0/warm_m_th": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 660488
+		},
+		"ongudai_noon_u12.0/warm_m_u": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 633824
+		},
+		"ongudai_noon_u12.0/warm_m_v": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 642712
+		},
+		"ongudai_noon_u12.0/warm_m_w": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 651600
+		},
+		"ongudai_noon_u6.0/nonconv": {
+			"count": 256,
+			"dtype": "u8",
+			"offset": 593920
+		},
+		"ongudai_noon_u6.0/stats": {
+			"count": 28,
+			"dtype": "f64",
+			"offset": 593696
+		},
+		"ongudai_noon_u6.0/theta": {
+			"count": 256,
+			"dtype": "f64",
+			"offset": 520544
+		},
+		"ongudai_noon_u6.0/uml": {
+			"count": 256,
+			"dtype": "f64",
+			"offset": 518496
+		},
+		"ongudai_noon_u6.0/warm_h_th": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 549256
+		},
+		"ongudai_noon_u6.0/warm_h_u": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 522592
+		},
+		"ongudai_noon_u6.0/warm_h_v": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 531480
+		},
+		"ongudai_noon_u6.0/warm_h_w": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 540368
+		},
+		"ongudai_noon_u6.0/warm_m_th": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 584808
+		},
+		"ongudai_noon_u6.0/warm_m_u": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 558144
+		},
+		"ongudai_noon_u6.0/warm_m_v": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 567032
+		},
+		"ongudai_noon_u6.0/warm_m_w": {
+			"count": 2222,
+			"dtype": "f32",
+			"offset": 575920
+		},
+		"synthetic_eve_u0.3/g": {
+			"count": 1440,
+			"dtype": "f64",
+			"offset": 160640
+		},
+		"synthetic_eve_u0.3/gdiag": {
+			"count": 9,
+			"dtype": "f64",
+			"offset": 172160
+		},
+		"synthetic_eve_u0.3/nonconv": {
+			"count": 0,
+			"dtype": "u8",
+			"offset": 212392
+		},
+		"synthetic_eve_u0.3/stats": {
+			"count": 28,
+			"dtype": "f64",
+			"offset": 212168
+		},
+		"synthetic_eve_u0.3/theta": {
+			"count": 144,
+			"dtype": "f64",
+			"offset": 173384
+		},
+		"synthetic_eve_u0.3/uml": {
+			"count": 144,
+			"dtype": "f64",
+			"offset": 172232
+		},
+		"synthetic_eve_u0.3/warm_h_th": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 188648
+		},
+		"synthetic_eve_u0.3/warm_h_u": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 174536
+		},
+		"synthetic_eve_u0.3/warm_h_v": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 179240
+		},
+		"synthetic_eve_u0.3/warm_h_w": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 183944
+		},
+		"synthetic_eve_u0.3/warm_m_th": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 207464
+		},
+		"synthetic_eve_u0.3/warm_m_u": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 193352
+		},
+		"synthetic_eve_u0.3/warm_m_v": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 198056
+		},
+		"synthetic_eve_u0.3/warm_m_w": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 202760
+		},
+		"synthetic_eve_u1.5/g": {
+			"count": 1440,
+			"dtype": "f64",
+			"offset": 212392
+		},
+		"synthetic_eve_u1.5/gdiag": {
+			"count": 9,
+			"dtype": "f64",
+			"offset": 223912
+		},
+		"synthetic_eve_u1.5/nonconv": {
+			"count": 0,
+			"dtype": "u8",
+			"offset": 264144
+		},
+		"synthetic_eve_u1.5/stats": {
+			"count": 28,
+			"dtype": "f64",
+			"offset": 263920
+		},
+		"synthetic_eve_u1.5/theta": {
+			"count": 144,
+			"dtype": "f64",
+			"offset": 225136
+		},
+		"synthetic_eve_u1.5/uml": {
+			"count": 144,
+			"dtype": "f64",
+			"offset": 223984
+		},
+		"synthetic_eve_u1.5/warm_h_th": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 240400
+		},
+		"synthetic_eve_u1.5/warm_h_u": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 226288
+		},
+		"synthetic_eve_u1.5/warm_h_v": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 230992
+		},
+		"synthetic_eve_u1.5/warm_h_w": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 235696
+		},
+		"synthetic_eve_u1.5/warm_m_th": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 259216
+		},
+		"synthetic_eve_u1.5/warm_m_u": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 245104
+		},
+		"synthetic_eve_u1.5/warm_m_v": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 249808
+		},
+		"synthetic_eve_u1.5/warm_m_w": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 254512
+		},
+		"synthetic_eve_u12.0/g": {
+			"count": 1440,
+			"dtype": "f64",
+			"offset": 315896
+		},
+		"synthetic_eve_u12.0/gdiag": {
+			"count": 9,
+			"dtype": "f64",
+			"offset": 327416
+		},
+		"synthetic_eve_u12.0/nonconv": {
+			"count": 0,
+			"dtype": "u8",
+			"offset": 367648
+		},
+		"synthetic_eve_u12.0/stats": {
+			"count": 28,
+			"dtype": "f64",
+			"offset": 367424
+		},
+		"synthetic_eve_u12.0/theta": {
+			"count": 144,
+			"dtype": "f64",
+			"offset": 328640
+		},
+		"synthetic_eve_u12.0/uml": {
+			"count": 144,
+			"dtype": "f64",
+			"offset": 327488
+		},
+		"synthetic_eve_u12.0/warm_h_th": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 343904
+		},
+		"synthetic_eve_u12.0/warm_h_u": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 329792
+		},
+		"synthetic_eve_u12.0/warm_h_v": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 334496
+		},
+		"synthetic_eve_u12.0/warm_h_w": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 339200
+		},
+		"synthetic_eve_u12.0/warm_m_th": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 362720
+		},
+		"synthetic_eve_u12.0/warm_m_u": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 348608
+		},
+		"synthetic_eve_u12.0/warm_m_v": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 353312
+		},
+		"synthetic_eve_u12.0/warm_m_w": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 358016
+		},
+		"synthetic_eve_u6.0/g": {
+			"count": 1440,
+			"dtype": "f64",
+			"offset": 264144
+		},
+		"synthetic_eve_u6.0/gdiag": {
+			"count": 9,
+			"dtype": "f64",
+			"offset": 275664
+		},
+		"synthetic_eve_u6.0/nonconv": {
+			"count": 0,
+			"dtype": "u8",
+			"offset": 315896
+		},
+		"synthetic_eve_u6.0/stats": {
+			"count": 28,
+			"dtype": "f64",
+			"offset": 315672
+		},
+		"synthetic_eve_u6.0/theta": {
+			"count": 144,
+			"dtype": "f64",
+			"offset": 276888
+		},
+		"synthetic_eve_u6.0/uml": {
+			"count": 144,
+			"dtype": "f64",
+			"offset": 275736
+		},
+		"synthetic_eve_u6.0/warm_h_th": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 292152
+		},
+		"synthetic_eve_u6.0/warm_h_u": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 278040
+		},
+		"synthetic_eve_u6.0/warm_h_v": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 282744
+		},
+		"synthetic_eve_u6.0/warm_h_w": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 287448
+		},
+		"synthetic_eve_u6.0/warm_m_th": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 310968
+		},
+		"synthetic_eve_u6.0/warm_m_u": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 296856
+		},
+		"synthetic_eve_u6.0/warm_m_v": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 301560
+		},
+		"synthetic_eve_u6.0/warm_m_w": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 306264
+		},
+		"synthetic_noon_u0.3/nonconv": {
+			"count": 0,
+			"dtype": "u8",
+			"offset": 40160
+		},
+		"synthetic_noon_u0.3/stats": {
+			"count": 28,
+			"dtype": "f64",
+			"offset": 39936
+		},
+		"synthetic_noon_u0.3/theta": {
+			"count": 144,
+			"dtype": "f64",
+			"offset": 1152
+		},
+		"synthetic_noon_u0.3/uml": {
+			"count": 144,
+			"dtype": "f64",
+			"offset": 0
+		},
+		"synthetic_noon_u0.3/warm_h_th": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 16416
+		},
+		"synthetic_noon_u0.3/warm_h_u": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 2304
+		},
+		"synthetic_noon_u0.3/warm_h_v": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 7008
+		},
+		"synthetic_noon_u0.3/warm_h_w": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 11712
+		},
+		"synthetic_noon_u0.3/warm_m_th": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 35232
+		},
+		"synthetic_noon_u0.3/warm_m_u": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 21120
+		},
+		"synthetic_noon_u0.3/warm_m_v": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 25824
+		},
+		"synthetic_noon_u0.3/warm_m_w": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 30528
+		},
+		"synthetic_noon_u1.5/nonconv": {
+			"count": 0,
+			"dtype": "u8",
+			"offset": 80320
+		},
+		"synthetic_noon_u1.5/stats": {
+			"count": 28,
+			"dtype": "f64",
+			"offset": 80096
+		},
+		"synthetic_noon_u1.5/theta": {
+			"count": 144,
+			"dtype": "f64",
+			"offset": 41312
+		},
+		"synthetic_noon_u1.5/uml": {
+			"count": 144,
+			"dtype": "f64",
+			"offset": 40160
+		},
+		"synthetic_noon_u1.5/warm_h_th": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 56576
+		},
+		"synthetic_noon_u1.5/warm_h_u": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 42464
+		},
+		"synthetic_noon_u1.5/warm_h_v": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 47168
+		},
+		"synthetic_noon_u1.5/warm_h_w": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 51872
+		},
+		"synthetic_noon_u1.5/warm_m_th": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 75392
+		},
+		"synthetic_noon_u1.5/warm_m_u": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 61280
+		},
+		"synthetic_noon_u1.5/warm_m_v": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 65984
+		},
+		"synthetic_noon_u1.5/warm_m_w": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 70688
+		},
+		"synthetic_noon_u12.0/nonconv": {
+			"count": 0,
+			"dtype": "u8",
+			"offset": 160640
+		},
+		"synthetic_noon_u12.0/stats": {
+			"count": 28,
+			"dtype": "f64",
+			"offset": 160416
+		},
+		"synthetic_noon_u12.0/theta": {
+			"count": 144,
+			"dtype": "f64",
+			"offset": 121632
+		},
+		"synthetic_noon_u12.0/uml": {
+			"count": 144,
+			"dtype": "f64",
+			"offset": 120480
+		},
+		"synthetic_noon_u12.0/warm_h_th": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 136896
+		},
+		"synthetic_noon_u12.0/warm_h_u": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 122784
+		},
+		"synthetic_noon_u12.0/warm_h_v": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 127488
+		},
+		"synthetic_noon_u12.0/warm_h_w": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 132192
+		},
+		"synthetic_noon_u12.0/warm_m_th": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 155712
+		},
+		"synthetic_noon_u12.0/warm_m_u": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 141600
+		},
+		"synthetic_noon_u12.0/warm_m_v": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 146304
+		},
+		"synthetic_noon_u12.0/warm_m_w": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 151008
+		},
+		"synthetic_noon_u6.0/nonconv": {
+			"count": 0,
+			"dtype": "u8",
+			"offset": 120480
+		},
+		"synthetic_noon_u6.0/stats": {
+			"count": 28,
+			"dtype": "f64",
+			"offset": 120256
+		},
+		"synthetic_noon_u6.0/theta": {
+			"count": 144,
+			"dtype": "f64",
+			"offset": 81472
+		},
+		"synthetic_noon_u6.0/uml": {
+			"count": 144,
+			"dtype": "f64",
+			"offset": 80320
+		},
+		"synthetic_noon_u6.0/warm_h_th": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 96736
+		},
+		"synthetic_noon_u6.0/warm_h_u": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 82624
+		},
+		"synthetic_noon_u6.0/warm_h_v": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 87328
+		},
+		"synthetic_noon_u6.0/warm_h_w": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 92032
+		},
+		"synthetic_noon_u6.0/warm_m_th": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 115552
+		},
+		"synthetic_noon_u6.0/warm_m_u": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 101440
+		},
+		"synthetic_noon_u6.0/warm_m_v": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 106144
+		},
+		"synthetic_noon_u6.0/warm_m_w": {
+			"count": 1176,
+			"dtype": "f32",
+			"offset": 110848
+		},
+		"t_ax_u0.3/nonconv": {
+			"count": 0,
+			"dtype": "u8",
+			"offset": 1152896
+		},
+		"t_ax_u0.3/stats": {
+			"count": 28,
+			"dtype": "f64",
+			"offset": 1152672
+		},
+		"t_ax_u0.3/warm_h_th": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1090852
+		},
+		"t_ax_u0.3/warm_h_u": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1053760
+		},
+		"t_ax_u0.3/warm_h_v": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1066124
+		},
+		"t_ax_u0.3/warm_h_w": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1078488
+		},
+		"t_ax_u0.3/warm_m_th": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1140308
+		},
+		"t_ax_u0.3/warm_m_u": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1103216
+		},
+		"t_ax_u0.3/warm_m_v": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1115580
+		},
+		"t_ax_u0.3/warm_m_w": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1127944
+		},
+		"t_ax_u1.5/nonconv": {
+			"count": 0,
+			"dtype": "u8",
+			"offset": 1252032
+		},
+		"t_ax_u1.5/stats": {
+			"count": 28,
+			"dtype": "f64",
+			"offset": 1251808
+		},
+		"t_ax_u1.5/warm_h_th": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1189988
+		},
+		"t_ax_u1.5/warm_h_u": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1152896
+		},
+		"t_ax_u1.5/warm_h_v": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1165260
+		},
+		"t_ax_u1.5/warm_h_w": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1177624
+		},
+		"t_ax_u1.5/warm_m_th": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1239444
+		},
+		"t_ax_u1.5/warm_m_u": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1202352
+		},
+		"t_ax_u1.5/warm_m_v": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1214716
+		},
+		"t_ax_u1.5/warm_m_w": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1227080
+		},
+		"t_ax_u12/nonconv": {
+			"count": 0,
+			"dtype": "u8",
+			"offset": 1351168
+		},
+		"t_ax_u12/stats": {
+			"count": 28,
+			"dtype": "f64",
+			"offset": 1350944
+		},
+		"t_ax_u12/warm_h_th": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1289124
+		},
+		"t_ax_u12/warm_h_u": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1252032
+		},
+		"t_ax_u12/warm_h_v": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1264396
+		},
+		"t_ax_u12/warm_h_w": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1276760
+		},
+		"t_ax_u12/warm_m_th": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1338580
+		},
+		"t_ax_u12/warm_m_u": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1301488
+		},
+		"t_ax_u12/warm_m_v": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1313852
+		},
+		"t_ax_u12/warm_m_w": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1326216
+		},
+		"t_contract/nonconv": {
+			"count": 0,
+			"dtype": "u8",
+			"offset": 1459520
+		},
+		"t_contract/stats": {
+			"count": 28,
+			"dtype": "f64",
+			"offset": 1459296
+		},
+		"t_contract/theta": {
+			"count": 576,
+			"dtype": "f64",
+			"offset": 1355776
+		},
+		"t_contract/uml": {
+			"count": 576,
+			"dtype": "f64",
+			"offset": 1351168
+		},
+		"t_contract/warm_h_th": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1397476
+		},
+		"t_contract/warm_h_u": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1360384
+		},
+		"t_contract/warm_h_v": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1372748
+		},
+		"t_contract/warm_h_w": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1385112
+		},
+		"t_contract/warm_m_th": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1446932
+		},
+		"t_contract/warm_m_u": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1409840
+		},
+		"t_contract/warm_m_v": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1422204
+		},
+		"t_contract/warm_m_w": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1434568
+		},
+		"t_det/nonconv": {
+			"count": 0,
+			"dtype": "u8",
+			"offset": 2523176
+		},
+		"t_det/stats": {
+			"count": 28,
+			"dtype": "f64",
+			"offset": 2522952
+		},
+		"t_det/theta": {
+			"count": 576,
+			"dtype": "f64",
+			"offset": 2419432
+		},
+		"t_det/uml": {
+			"count": 576,
+			"dtype": "f64",
+			"offset": 2414824
+		},
+		"t_det/warm_h_th": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 2461132
+		},
+		"t_det/warm_h_u": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 2424040
+		},
+		"t_det/warm_h_v": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 2436404
+		},
+		"t_det/warm_h_w": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 2448768
+		},
+		"t_det/warm_m_th": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 2510588
+		},
+		"t_det/warm_m_u": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 2473496
+		},
+		"t_det/warm_m_v": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 2485860
+		},
+		"t_det/warm_m_w": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 2498224
+		},
+		"t_fconv/nonconv": {
+			"count": 0,
+			"dtype": "u8",
+			"offset": 1567872
+		},
+		"t_fconv/stats": {
+			"count": 28,
+			"dtype": "f64",
+			"offset": 1567648
+		},
+		"t_fconv/theta": {
+			"count": 576,
+			"dtype": "f64",
+			"offset": 1464128
+		},
+		"t_fconv/uml": {
+			"count": 576,
+			"dtype": "f64",
+			"offset": 1459520
+		},
+		"t_fconv/warm_h_th": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1505828
+		},
+		"t_fconv/warm_h_u": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1468736
+		},
+		"t_fconv/warm_h_v": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1481100
+		},
+		"t_fconv/warm_h_w": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1493464
+		},
+		"t_fconv/warm_m_th": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1555284
+		},
+		"t_fconv/warm_m_u": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1518192
+		},
+		"t_fconv/warm_m_v": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1530556
+		},
+		"t_fconv/warm_m_w": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 1542920
+		},
+		"t_gvalley/g": {
+			"count": 5760,
+			"dtype": "f64",
+			"offset": 1567872
+		},
+		"t_gvalley/gdiag": {
+			"count": 9,
+			"dtype": "f64",
+			"offset": 1613952
+		},
+		"t_gvalley/nonconv": {
+			"count": 0,
+			"dtype": "u8",
+			"offset": 2315688
+		},
+		"t_gvalley/stats": {
+			"count": 28,
+			"dtype": "f64",
+			"offset": 2315464
+		},
+		"t_gvalley/theta": {
+			"count": 576,
+			"dtype": "f64",
+			"offset": 1618632
+		},
+		"t_gvalley/uml": {
+			"count": 576,
+			"dtype": "f64",
+			"offset": 1614024
+		},
+		"t_gvalley/warm_h_th": {
+			"count": 21632,
+			"dtype": "f32",
+			"offset": 1882824
+		},
+		"t_gvalley/warm_h_u": {
+			"count": 21632,
+			"dtype": "f32",
+			"offset": 1623240
+		},
+		"t_gvalley/warm_h_v": {
+			"count": 21632,
+			"dtype": "f32",
+			"offset": 1709768
+		},
+		"t_gvalley/warm_h_w": {
+			"count": 21632,
+			"dtype": "f32",
+			"offset": 1796296
+		},
+		"t_gvalley/warm_m_th": {
+			"count": 21632,
+			"dtype": "f32",
+			"offset": 2228936
+		},
+		"t_gvalley/warm_m_u": {
+			"count": 21632,
+			"dtype": "f32",
+			"offset": 1969352
+		},
+		"t_gvalley/warm_m_v": {
+			"count": 21632,
+			"dtype": "f32",
+			"offset": 2055880
+		},
+		"t_gvalley/warm_m_w": {
+			"count": 21632,
+			"dtype": "f32",
+			"offset": 2142408
+		},
+		"t_hstat/nonconv": {
+			"count": 0,
+			"dtype": "u8",
+			"offset": 2414824
+		},
+		"t_hstat/stats": {
+			"count": 28,
+			"dtype": "f64",
+			"offset": 2414600
+		},
+		"t_hstat/warm_h_th": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 2352780
+		},
+		"t_hstat/warm_h_u": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 2315688
+		},
+		"t_hstat/warm_h_v": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 2328052
+		},
+		"t_hstat/warm_h_w": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 2340416
+		},
+		"t_hstat/warm_m_th": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 2402236
+		},
+		"t_hstat/warm_m_u": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 2365144
+		},
+		"t_hstat/warm_m_v": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 2377508
+		},
+		"t_hstat/warm_m_w": {
+			"count": 3091,
+			"dtype": "f32",
+			"offset": 2389872
+		}
+	},
+	"cases": [
+		{
+			"g": false,
+			"tag": "synthetic_noon_u0.3"
+		},
+		{
+			"g": false,
+			"tag": "synthetic_noon_u1.5"
+		},
+		{
+			"g": false,
+			"tag": "synthetic_noon_u6.0"
+		},
+		{
+			"g": false,
+			"tag": "synthetic_noon_u12.0"
+		},
+		{
+			"g": true,
+			"tag": "synthetic_eve_u0.3"
+		},
+		{
+			"g": true,
+			"tag": "synthetic_eve_u1.5"
+		},
+		{
+			"g": true,
+			"tag": "synthetic_eve_u6.0"
+		},
+		{
+			"g": true,
+			"tag": "synthetic_eve_u12.0"
+		},
+		{
+			"g": false,
+			"tag": "ongudai_noon_u0.3"
+		},
+		{
+			"g": false,
+			"tag": "ongudai_noon_u1.5"
+		},
+		{
+			"g": false,
+			"tag": "ongudai_noon_u6.0"
+		},
+		{
+			"g": false,
+			"tag": "ongudai_noon_u12.0"
+		},
+		{
+			"g": true,
+			"tag": "ongudai_eve_u0.3"
+		},
+		{
+			"g": true,
+			"tag": "ongudai_eve_u1.5"
+		},
+		{
+			"g": true,
+			"tag": "ongudai_eve_u6.0"
+		},
+		{
+			"g": true,
+			"tag": "ongudai_eve_u12.0"
+		},
+		{
+			"g": false,
+			"tag": "t_ax_u0.3"
+		},
+		{
+			"g": false,
+			"tag": "t_ax_u1.5"
+		},
+		{
+			"g": false,
+			"tag": "t_ax_u12"
+		},
+		{
+			"g": false,
+			"tag": "t_contract"
+		},
+		{
+			"g": false,
+			"tag": "t_fconv"
+		},
+		{
+			"g": true,
+			"tag": "t_gvalley"
+		},
+		{
+			"g": false,
+			"tag": "t_hstat"
+		},
+		{
+			"g": false,
+			"tag": "t_det"
+		}
+	],
+	"g_fields": [
+		"dth_c",
+		"heat_mean",
+		"umax_med",
+		"l_med",
+		"layer_frac",
+		"d_layer_med",
+		"uc_layer_med",
+		"w_mean",
+		"w_ge_frac"
+	],
+	"g_planes": [
+		"GL",
+		"GDTH",
+		"GUS",
+		"GON",
+		"GLAY",
+		"GD",
+		"GUC",
+		"GDX",
+		"GDY",
+		"GW"
+	],
+	"nonconv_mech_w": 0.5,
+	"stat_fields": [
+		"fr",
+		"n_bv",
+		"u_over_n",
+		"w_h_case",
+		"w_d_strong",
+		"w_d_case",
+		"full_mech",
+		"u_sat",
+		"u10",
+		"omega",
+		"b_fr",
+		"b_u",
+		"frozen_frac",
+		"frozen_frac_mech",
+		"hc_dividing",
+		"d_layers",
+		"shadow_frac",
+		"h_spread",
+		"wstar_max",
+		"wstar_f",
+		"zi_agl"
+	],
+	"stride": 7,
+	"version": 1
+}
