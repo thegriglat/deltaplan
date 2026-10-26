@@ -2,15 +2,17 @@
 //! set_focuses → start_at(t) и ожидание Ready.
 use crate::sha1::sha1_hex;
 use dp_air::fixtures::{Case, read_case, read_place};
-use dp_air::{AirModel, Calm, Configs, State};
+use dp_air::{AirModel, Calm, Configs, Formula, State};
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 
-/// Единственное место выбора модели; `Formula` добавит RW-6.
+/// Единственное место выбора модели. `formula` — детерминированный режим (W1 v2): стенд ждёт
+/// фон на игровых моментах, ответ не зависит от скорости машины.
 pub fn make_model(name: &str) -> Result<Box<dyn AirModel>, String> {
     match name {
         "calm" => Ok(Box::new(Calm::new())),
-        other => Err(format!("unknown model '{other}' (known: calm)")),
+        "formula" => Ok(Box::new(Formula::new().with_deterministic(true))),
+        other => Err(format!("unknown model '{other}' (known: calm, formula)")),
     }
 }
 
