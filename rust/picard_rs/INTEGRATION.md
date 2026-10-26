@@ -47,7 +47,7 @@ related: ["rust/picard_rs/README.md", "docs/contracts/picard-rs.md", "docs/contr
 | `snapshot_at` | `Vec<usize>` (пусто) | строго возрастающие номера итераций, после которых брать `finalize`-снимок в `Solved.snapshots` (номера больше сделанных итераций не берутся). Не строго возрастающий список — ошибка. Для игры не нужно |
 | `freeze` | `Option<Freeze>` (None) | W11: заморозка колонн, см. «Заморозка колонн и отмена (W11)». `None` и маска из нулей — побитно R6 v3 |
 | `cancel` | `Option<Arc<AtomicBool>>` (None) | W11: флаг отмены, см. там же |
-| `fallback` | `Option<Fallback>` (None) | W11 v3: запасные правила сходимости, см. «Запасные правила (W11 v3)». `None` — побитно v2 |
+| `fallback` | `Option<Fallback>` (None) | W11 v3 (отсчёт порогов — v4, ниже): запасные правила сходимости, см. «Запасные правила (W11 v3)». `None` — побитно v2 |
 
 ### Solved (результат)
 
@@ -201,6 +201,12 @@ Diverged, Converged, MaxIters, Cancelled, TimeBudget. Взведён до выз
 (3) счёт проверок — по `check_every`/`pre_steps` случая (холодный старт: проверки на `pre_steps + k·check_every`), игра считает пачками по `check_every`. `omega ≤ 0`,
 конечность и длины `nonconv.mask`/`field` — `Err`. Тесты: `tests/fallback.rs` (ω-откат: до переключения побитно как без правила, малое ω почти останавливает поле;
 `late_mean` и `nonconv` — побитно с независимым подсчётом в тесте; 1 и 4 потока; `#[ignore]` — Онгудай штиль 12:00 и `None` побитно на 400 м).
+
+**W11 v4: отсчёт порогов.** `omega_after` и `late_from` сравниваются с номером итерации *игры* `_iters` — числом итераций в целых проверках, без `pre_steps` холодного старта (`it - pre_steps` на проверке). Порог, не кратный `check_every`, срабатывает на первой проверке, где счёт его достиг: `omega_after = ce + 1` ≡ `2·ce`. Тёплый старт: `pre_steps = 0`, счёт совпадает с сырым. `max_iters` — тот же счёт (`max_outer` игры против `_iters`) и останов на ближайшей проверке сверху: после `pre_steps + ceil(max_iters/check_every)·check_every` сырых итераций (`Solved.iters`, `history[].it` — сырые); `max_iters = 0` — ни одной. `FrozenField.thd` и `NonConv.field.thd` — `Option`: `None` — θ′_d из `init` (заморозка) / из `late_mean` (nonconv), как в игре.
+
+## C_d стенки по столбцу (W11 v4)
+
+`Case.cd_col: Option<Vec<f32>>` (`CaseParts.cd_col`) — `C_d` на столбец, плоскость `nyh·nxh` с ореолом (плоскость 12 игры). Член стенки импульса `u, v` у первой клетки воздуха берёт `cd_col[idx % (nxh·nyh)]`, как `air_picard.glsl:393`; `None` — одно `Case.cd` (файл R1 без карты, побитно v3; постоянная карта = `cd` даёт те же биты). Длина проверяется при сборке случая. `u*` решатель не использует (он входит в `nu_bg`). `dp-air::case_build` кладёт плоскость 12 `PreparedPlanes`.
 
 ## Нити и вызов в фоне
 

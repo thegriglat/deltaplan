@@ -105,6 +105,9 @@ pub struct CaseParts {
     pub crop: Option<Crop>,
     /// Drag coefficient of the first face; `None` = from `z0` and `dz` (as the file reader).
     pub cd: Option<f32>,
+    /// Drag coefficient per column, plane `NYX = nyh*nxh` with halo (the game's column plane 12);
+    /// `None` = the one `cd` everywhere (W11 v3). The wall momentum term takes it by column.
+    pub cd_col: Option<Vec<f32>>,
     pub arrays: HashMap<String, Vec<f32>>,
 }
 
@@ -136,6 +139,8 @@ pub struct Case {
     pub dtau_u: f32,
     /// Drag coefficient of the first face above ground.
     pub cd: f32,
+    /// Drag coefficient per column (`nyh*nxh`), `None` = `cd` everywhere.
+    pub cd_col: Option<Vec<f32>>,
     pub arrays: HashMap<String, Vec<f32>>,
 }
 
@@ -175,6 +180,7 @@ impl Case {
             history: m.history,
             crop: m.crop,
             cd: None,
+            cd_col: None,
             arrays,
         })
     }
@@ -220,8 +226,14 @@ impl Case {
             crop: m.crop,
             dtau_u: dtau_u as f32,
             cd: m.cd.unwrap_or(cd as f32),
+            cd_col: m.cd_col,
             arrays: m.arrays,
         };
+        if let Some(c) = &case.cd_col
+            && c.len() != nxh * nyh
+        {
+            bail!("cd_col: length {} != NY*NX {}", c.len(), nxh * nyh);
+        }
         let n3 = case.n3();
         for a in [
             "cell", "tu", "tv", "tw", "nu_bg", "Q", "sp_u", "sp_w", "spc", "ubg", "vbg",
@@ -277,6 +289,8 @@ pub struct Consts {
     pub inv_tau: f32,
     pub inv_prt: f32,
     pub cd: f32,
+    /// Drag coefficient per column (`nyh*nxh`); `None` = `cd`.
+    pub cd_col: Option<Vec<f32>>,
     pub u10_positive: bool,
     pub cell: Vec<u8>,
     pub tu: Vec<u8>,
@@ -351,6 +365,7 @@ impl Consts {
             inv_tau: (1.0 / p.tau_cool) as f32,
             inv_prt: (1.0 / p.pr_t) as f32,
             cd: c.cd,
+            cd_col: c.cd_col.clone(),
             u10_positive: c.case_params.u10 > 0.0,
             n_fluid: fluid.iter().map(|&x| f64::from(x)).sum(),
             mu: [mask(&tu), mask(&tv), mask(&tw)],

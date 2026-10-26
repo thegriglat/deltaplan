@@ -21,16 +21,16 @@
 //! (достигнутое — `tests/case_build.rs`).
 //!
 //! ## Границы модели
-//! - Решатель берёт одно `C_d` на область (`Case.cd` из `PreparedPlanes::cd`): `C_d` и `u*` по
-//!   столбцу (плоскости 12, 13 — SH-6, z0 клетки по покрову) решатель `picard_rs` не знает;
-//!   `u*` по столбцу входит в `nu_bg`, `C_d` по столбцу — нет.
+//! - `C_d` стенки решатель берёт по столбцу (W11 v4): `Case.cd_col` — плоскость 12 `PreparedPlanes`
+//!   с ореолом, как `air_picard.glsl:393`; `Case.cd` (одно на область) остаётся для файлов без карты.
+//!   `u*` по столбцу (плоскость 13) входит в `nu_bg`.
 //! - Индексы граней `b_u/b_v` хранятся как `f32` (R1): область ≤ 2^24 клеток с ореолом.
 //! - Грани `w` типа 2 и фон `w` (`ubw`, `thb`, `thbd`) в `Case` не входят: у области они нулевые.
 //! - Окно клипмапа (`P_NEST = 1`: фон и граница от родителя) не собирается — RW-6n.
 //!
 //! Стиль: плоские массивы SoA, обход подряд, `rayon` по плоскостям `k`, без промежуточных `Vec`
 //! в горячем пути (кроме выходных массивов и `u8`-кода типов).
-use super::case_prepare::{CaseParams, NCOL, NLEV, NPRM, P_NEST, PreparedPlanes};
+use super::case_prepare::{COL_CD, CaseParams, NCOL, NLEV, NPRM, P_NEST, PreparedPlanes};
 use crate::Error;
 use picard_rs::case::{Case, CaseParams as RsCaseParams, CaseParts, Criterion, Params};
 use rayon::prelude::*;
@@ -492,6 +492,7 @@ pub fn build_solver_case(
         history: None,
         crop: None,
         cd: Some(planes.cd as f32),
+        cd_col: Some(planes.col_plane(COL_CD).to_vec()),
         arrays,
     })
     .map_err(|e| bad(&e.to_string()))

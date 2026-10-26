@@ -62,7 +62,7 @@ fn scaled(s: &Solved, (u, v, w, th, thd): (f32, f32, f32, f32, f32)) -> FrozenFi
         v: sc(&s.state.v, v),
         w: sc(&s.state.w, w),
         th: sc(&s.state.th, th),
-        thd: sc(&s.state.thd, thd),
+        thd: Some(sc(&s.state.thd, thd)),
     }
 }
 
@@ -152,10 +152,12 @@ fn none_and_inert_fallback_are_bitwise_v2() {
 fn omega_rollback_switches_after_omega_after() {
     for name in ["flat_wind", "heated_slope"] {
         let c = load(name);
-        let sw = max_at_check(&c, 2);
+        // The game's iteration count (without `pre_steps`) and the raw one of the same check.
+        let sw = 2 * c.criterion.check_every;
+        let sw_raw = max_at_check(&c, 2);
         let end = max_at_check(&c, 6);
         let hard = |max_iters, fallback| SolveOpts {
-            max_iters,
+            max_iters: max_iters - c.criterion.pre_steps,
             tol_scale: 1e-9,
             fallback,
             ..base(2)
@@ -167,7 +169,7 @@ fn omega_rollback_switches_after_omega_after() {
         assert!(!rolled.nonconv_fallback && rolled.nonconv_frac == 0.0);
         // Before the switch (checks up to iteration `sw`, the iterations before it) the two
         // runs are the same bit for bit; after it they differ.
-        let n_same = plain.history.iter().take_while(|h| h.it <= sw).count();
+        let n_same = plain.history.iter().take_while(|h| h.it <= sw_raw).count();
         assert!(n_same >= 2, "{name}");
         for (x, y) in plain.history.iter().zip(&rolled.history).take(n_same) {
             assert_eq!(x.res.mom_rms.to_bits(), y.res.mom_rms.to_bits(), "{name}");
@@ -180,7 +182,7 @@ fn omega_rollback_switches_after_omega_after() {
         assert_ne!(last.0.mom_rms.to_bits(), last.1.mom_rms.to_bits(), "{name}");
         // A tiny omega nearly stops the iteration after the switch: the movement of the field
         // is a small part of the unrelaxed one (x <- x_old + w (x - x_old) with w = 1e-4).
-        let at_sw = api::solve(&c, &hard(sw, None)).unwrap();
+        let at_sw = api::solve(&c, &hard(sw_raw, None)).unwrap();
         let slow = api::solve(&c, &hard(end, Some(fb(sw, 1e-4, 0, None)))).unwrap();
         let mv = |a: &Solved| {
             a.state
@@ -209,13 +211,13 @@ fn late_mean_and_nonconv_at_max_iters() {
     let c = load("heated_slope");
     let ce = c.criterion.check_every;
     let end = max_at_check(&c, 6);
-    let late_from = max_at_check(&c, 3);
+    let late_from = 3 * ce; // the game's count, without `pre_steps`
     let plain = api::solve(&c, &base(2)).unwrap();
     let mask = stripe(&c, c.nx / 3, c.nx / 2);
     let n_mask = mask.iter().filter(|&&m| m != 0).count();
     let field = scaled(&plain, (0.9, 1.1, 0.5, 1.2, 0.7));
     let hard = |threads, nonconv: Option<NonConv>| SolveOpts {
-        max_iters: end,
+        max_iters: end - c.criterion.pre_steps,
         tol_scale: 1e-9,
         fallback: Some(fb(0, 0.5, late_from, nonconv)),
         ..base(threads)
@@ -246,7 +248,7 @@ fn late_mean_and_nonconv_at_max_iters() {
                     it > c.criterion.pre_steps && (it - c.criterion.pre_steps).is_multiple_of(ce);
                 if check {
                     s.residuals(); // the check's boundary condition pass
-                    if it >= late_from && it < end {
+                    if it - c.criterion.pre_steps >= late_from && it < end {
                         let f = &s.f;
                         let cur = [&f.u, &f.v, &f.w, &f.th, &f.thd];
                         match sum.as_mut() {
@@ -283,7 +285,7 @@ fn late_mean_and_nonconv_at_max_iters() {
                                 ('v', &mut f.v, &field.v),
                                 ('w', &mut f.w, &field.w),
                                 ('c', &mut f.th, &field.th),
-                                ('c', &mut f.thd, &field.thd),
+                                ('c', &mut f.thd, field.thd.as_ref().unwrap()),
                             ] {
                                 if masked(&c, &mask, kind, i, j) {
                                     x[t] = y[t];
@@ -319,7 +321,10 @@ fn late_mean_and_nonconv_at_max_iters() {
                     let t = (k * nyh + j) * nxh + i;
                     n_in += 1;
                     assert_eq!(r.state.th[t].to_bits(), field.th[t].to_bits());
-                    assert_eq!(r.state.thd[t].to_bits(), field.thd[t].to_bits());
+                    assert_eq!(
+                        r.state.thd[t].to_bits(),
+                        field.thd.as_ref().unwrap()[t].to_bits()
+                    );
                 }
             }
         }
@@ -347,7 +352,7 @@ fn late_mean_and_nonconv_at_max_iters() {
     let last = api::solve(
         &c,
         &SolveOpts {
-            max_iters: end,
+            max_iters: end - c.criterion.pre_steps,
             tol_scale: 1e-9,
             ..base(2)
         },
@@ -386,13 +391,13 @@ fn rollback_late_mean_and_freeze_threads() {
         api::solve(
             &c,
             &SolveOpts {
-                max_iters: end,
+                max_iters: end - c.criterion.pre_steps,
                 tol_scale: 1e-9,
                 freeze: Some(fz.clone()),
                 fallback: Some(fb(
-                    max_at_check(&c, 2),
+                    2 * c.criterion.check_every,
                     0.5,
-                    max_at_check(&c, 3),
+                    3 * c.criterion.check_every,
                     Some(nc.clone()),
                 )),
                 ..base(t)
@@ -415,7 +420,10 @@ fn rollback_late_mean_and_freeze_threads() {
                     // constant field (3 states: checks 3, 4, 5), summed in f32 and scaled.
                     let mean = |x: f32| (x + x + x) * ((1.0f64 / 3.0) as f32);
                     assert_eq!(a.state.th[t].to_bits(), mean(fld.th[t]).to_bits());
-                    assert_eq!(a.state.thd[t].to_bits(), mean(fld.thd[t]).to_bits());
+                    assert_eq!(
+                        a.state.thd[t].to_bits(),
+                        mean(fld.thd.as_ref().unwrap()[t]).to_bits()
+                    );
                 }
             }
         }

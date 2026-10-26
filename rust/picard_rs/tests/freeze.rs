@@ -70,7 +70,7 @@ fn mech_field(plain: &Solved) -> FrozenField {
         v: sc(&plain.state.v, 1.1),
         w: sc(&plain.state.w, 0.5),
         th: sc(&plain.state.th, 1.2),
-        thd: sc(&plain.state.thd, 0.7),
+        thd: Some(sc(&plain.state.thd, 0.7)),
     }
 }
 
@@ -86,7 +86,7 @@ fn consistent_field(plain: &Solved) -> FrozenField {
         v: plain.state.v.clone(),
         w: plain.state.w.clone(),
         th: sc(&plain.state.th, 1.2),
-        thd: sc(&plain.state.thd, 0.7),
+        thd: Some(sc(&plain.state.thd, 0.7)),
     }
 }
 
@@ -115,7 +115,7 @@ fn check_frozen(
                     ('v', &f.v, &fld.v),
                     ('w', &f.w, &fld.w),
                     ('c', &f.th, &fld.th),
-                    ('c', &f.thd, &fld.thd),
+                    ('c', &f.thd, fld.thd.as_ref().unwrap()),
                 ] {
                     if frozen_point(c, mask, kind, i, j) && !skip(kind, t) {
                         n += 1;
@@ -298,7 +298,7 @@ fn frozen_columns_keep_the_field_and_the_free_ones_converge() {
                     mask,
                     field: Some(FrozenField {
                         th: plain.state.th.clone(),
-                        thd: plain.state.thd.clone(),
+                        thd: Some(plain.state.thd.clone()),
                         ..consistent_field(&plain)
                     }),
                 }),
@@ -395,7 +395,10 @@ fn all_frozen_is_the_frozen_field() {
         assert_eq!(r.out.status, "ok");
         assert_eq!(r.history.last().unwrap().it, 0);
         assert!(bits_eq(&r.state.th, &fld.th), "{name}: th");
-        assert!(bits_eq(&r.state.thd, &fld.thd), "{name}: thd");
+        assert!(
+            bits_eq(&r.state.thd, fld.thd.as_ref().unwrap()),
+            "{name}: thd"
+        );
         // Before the sewing projection u, v, w are the field bit for bit.
         let (s, o) = run_raw(&c, &all, Some(&fld), 1, 100);
         assert_eq!((o.stop, o.iters), (StopReason::AllFrozen, 0), "{name}");
@@ -456,7 +459,7 @@ fn bad_lengths_are_errors() {
         .expect("mask length");
     assert!(e.to_string().contains("mask"), "{e}");
     let mut f = ok.clone();
-    f.thd.pop();
+    f.thd.as_mut().unwrap().pop();
     let bad_field = Freeze {
         mask: stripe(&c, 2, 3),
         field: Some(f),
@@ -537,13 +540,25 @@ fn cancel_before_the_start_and_during_the_run() {
             threads: 2,
             freeze: Some(fz),
             tol_scale: 1e-9,
+            // W11 v5: `max_iters` acts at a check; the snapshot is the state after `run.iters`.
             max_iters: run.iters,
+            snapshot_at: vec![run.iters],
             ..SolveOpts::default()
         },
     )
     .unwrap();
     assert_eq!(sep.stop, StopReason::MaxIters);
-    same_state("cancel vs max_iters", &run, &sep);
+    let snap = &sep.snapshots[0];
+    for (f, x, y) in [
+        ("u", &run.state.u, &snap.u),
+        ("v", &run.state.v, &snap.v),
+        ("w", &run.state.w, &snap.w),
+        ("th", &run.state.th, &snap.th),
+        ("thd", &run.state.thd, &snap.thd),
+        ("p", &run.state.p, &snap.p),
+    ] {
+        assert!(bits_eq(x, y), "cancel vs max_iters: {f} differs");
+    }
 }
 
 /// Long: the 400 m Ongudai case (38 MB), a stripe frozen with the field of the same case's
@@ -592,4 +607,36 @@ fn ongudai_stripe_few_iterations() {
     .unwrap();
     same_history("ongudai zero mask", &plain, &z);
     same_state("ongudai zero mask", &plain, &z);
+}
+
+/// W11 v5: `FrozenField.thd = None` - theta'_d of the frozen columns is that of the start field
+/// (the game passes no such channel); a cold start has theta'_d = 0, so `None` is `Some(zeros)`.
+#[test]
+fn missing_thd_is_the_start_thd() {
+    let c = load("heated_slope");
+    let plain = api::solve(&c, &opts(2, None)).unwrap();
+    let mut f = mech_field(&plain);
+    let mask = stripe(&c, 2, 5);
+    let run = |f: FrozenField| {
+        api::solve(
+            &c,
+            &opts(
+                2,
+                Some(Freeze {
+                    mask: mask.clone(),
+                    field: Some(f),
+                }),
+            ),
+        )
+        .unwrap()
+    };
+    let n = f.thd.as_ref().unwrap().len();
+    let some = run(FrozenField {
+        thd: Some(vec![0.0; n]),
+        ..f.clone()
+    });
+    f.thd = None;
+    let none = run(f);
+    same_history("thd none", &some, &none);
+    same_state("thd none", &some, &none);
 }

@@ -616,13 +616,10 @@ impl Picard {
     }
 
     fn check_field(what: &str, k: &Consts, fl: &FrozenField) -> Result<()> {
-        for (nm, a) in [
-            ("u", &fl.u),
-            ("v", &fl.v),
-            ("w", &fl.w),
-            ("th", &fl.th),
-            ("thd", &fl.thd),
-        ] {
+        for (nm, a) in [("u", &fl.u), ("v", &fl.v), ("w", &fl.w), ("th", &fl.th)]
+            .into_iter()
+            .chain(fl.thd.as_ref().map(|t| ("thd", t)))
+        {
             if a.len() != k.n3() {
                 anyhow::bail!(
                     "{what}.{nm} has {} values, the grid with halo has {}",
@@ -669,7 +666,7 @@ impl Picard {
             own(&cur.v, field.map(|f| &f.v)),
             own(&cur.w, field.map(|f| &f.w)),
             own(&cur.th, field.map(|f| &f.th)),
-            own(&cur.thd, field.map(|f| &f.thd)),
+            own(&cur.thd, field.and_then(|f| f.thd.as_ref())),
             cur.nu.clone(),
             cur.nuh.clone(),
         ];
@@ -826,7 +823,9 @@ impl Picard {
             freeze_copy(&mut f.v, &fl.v, &nc.fv, hd);
             freeze_copy(&mut f.w, &fl.w, &nc.fc, hd);
             freeze_copy(&mut f.th, &fl.th, &nc.fc, hd);
-            freeze_copy(&mut f.thd, &fl.thd, &nc.fc, hd);
+            if let Some(t) = &fl.thd {
+                freeze_copy(&mut f.thd, t, &nc.fc, hd);
+            }
         }
         true
     }
@@ -1158,7 +1157,14 @@ impl Picard {
                 res: None,
             });
         }
-        while it < run.max_iters && !all_frozen && !pre_cancel {
+        // The game's count: `max_outer` against `_iters`, which has no cold-start `pre_steps`.
+        // It acts at the nearest check from above (`air_picard_job.gd:1013`), not mid-batch.
+        let limit = if run.max_iters == 0 {
+            0
+        } else {
+            crit.pre_steps + run.max_iters.div_ceil(crit.check_every) * crit.check_every
+        };
+        while it < limit && !all_frozen && !pre_cancel {
             let t = Instant::now();
             self.outer_step();
             iter_s += t.elapsed().as_secs_f64();
@@ -1191,11 +1197,12 @@ impl Picard {
                 stop = v;
                 break;
             }
-            if it >= run.max_iters {
+            if it >= limit {
                 break;
             }
             if it > crit.pre_steps && (it - crit.pre_steps).is_multiple_of(crit.check_every) {
-                self.fb_after_check(it);
+                // The game counts `_iters` in whole checks, without the cold-start `pre_steps`.
+                self.fb_after_check(it - crit.pre_steps);
             }
             if self.cancelled() {
                 stop = StopReason::Cancelled;
