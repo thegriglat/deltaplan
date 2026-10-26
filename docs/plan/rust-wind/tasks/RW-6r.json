@@ -8,7 +8,7 @@
   "contracts": [
     {
       "name": "W11",
-      "version": "4",
+      "version": "5",
       "ref": "docs/contracts/rust-wind.md"
     }
   ],
@@ -20,7 +20,9 @@
     "rust/picard_rs/tests/",
     "rust/picard_rs/INTEGRATION.md",
     "rust/dp-air/src/field/case_build.rs",
-    "rust/dp-air/tests/case_build.rs"
+    "rust/dp-air/tests/case_build.rs",
+    "rust/dp-air/src/field/phase/assembly.rs",
+    "rust/dp-air/tests/phase_assembly.rs"
   ],
   "dont_touch": [
     "rust/dp-gd/",
@@ -57,5 +59,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-26T06:33:44"
+  "created": "2026-10-26T06:33:44",
+  "edited": "2026-10-26T07:10:18"
 }
