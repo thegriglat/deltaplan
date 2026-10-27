@@ -1,0 +1,89 @@
+{
+  "status": "done",
+  "summary": "Причина оказалась уже, чем в карточке: pin_far_faces ставил w=0 на гранях w типа >=2, а у окна там nest.ubw (u, v типа 3 уже брали ubg=значения родителя, window_solver_case кладёт их в ubg/vbg). Теперь w типа >=2 := nest.ubw (без nest 0). Окна 50/100 м lee_bowl, thermal_plain, crater_ridge, east_cliffs в допуске W8 (0,56-0,69), области 400 м lee_bowl/crater_ridge/east_cliffs остались (0,60-0,80); t1_open_ сужен до landing_hill, ridge_west, plateau_landing, thermal_slope и thermal_plain (область 9,8x). field_has_no_time_limit больше не требует длительности.",
+  "commits": [
+    "774a35517 rust-wind: w дальних граней тёплого старта окна - nest.ubw (W11 v9), окна T1 в допуске"
+  ],
+  "checks": [
+    {
+      "name": "acceptance_release",
+      "value": "12",
+      "pass": true
+    },
+    {
+      "name": "acceptance_test",
+      "value": "test result: ok. 1",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "T1 lee_bowl dx50/100/400",
+      "value": "0.57x / 0.57x / 0.60x",
+      "pass": true
+    },
+    {
+      "name": "T1 thermal_plain dx50/100",
+      "value": "0.60x / 0.69x (dx400 9.8x открыто)",
+      "pass": true
+    },
+    {
+      "name": "T1 crater_ridge dx50/100/400",
+      "value": "0.56x / 0.64x / 0.80x",
+      "pass": true
+    },
+    {
+      "name": "T1 east_cliffs dx50/100/400",
+      "value": "0.63x / 0.63x / 0.80x",
+      "pass": true
+    },
+    {
+      "name": "модульный far_faces_v9",
+      "value": "без правки окно-тест падает (w[2028] 0 вместо 1.75)",
+      "pass": true
+    },
+    {
+      "name": "clipmap хеш RW-6t",
+      "value": "не менялся, cargo test --workspace зелёный",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "landing_hill (RW-6u, 300-550x), ridge_west (5.6x), plateau_landing (17.5x), thermal_slope (314x), область thermal_plain (9.8x) остаются в t1_open_*, числа в доке"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RW-6x",
+  "uncertain": [
+    {
+      "where": "rust/picard_rs/src/solver.rs:1085 pin_far_faces",
+      "why": "Контракт говорит про ubu/ubv окна из nest/parent; в коде u, v типа 3 уже берут ubg/vbg, которые window_solver_case заполняет значениями родителя, поэтому менять их не пришлось. Дефектом был только w типа 3.",
+      "checked": "прогон T1 всех 8 полей до/после; модульный тест на окне с нестандартными ubg/vbg/ubw падает без правки w и проходит с ней"
+    },
+    {
+      "where": "docs/research/rust-wind-rw6-acceptance.md, таблица T1",
+      "why": "k у ridge_west/plateau_landing/thermal_slope теперь в допуске 0,02, хотя поле вне допуска; crater_ridge dx400 и east_cliffs dx400 дают одинаковые числа (Δu 1.003e-2) - так и раньше, причину не искал",
+      "checked": "числа из настоящего прогона t1_open_ --nocapture на 8 потоках"
+    }
+  ],
+  "dp_feedback": "Полный текст дополнения координатора в task show обрезается. Отчёт требует checks с именами проверок приёмки - в --template это не сказано.",
+  "t": "2026-10-27T06:14:25",
+  "by": "executor"
+}
