@@ -25,6 +25,11 @@
       "name": "W10",
       "version": "2",
       "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W11",
+      "version": "10",
+      "ref": "docs/contracts/rust-wind.md"
     }
   ],
   "copy": "~/worktrees/deltaplan/rust-wind-RW-6y",
@@ -36,6 +41,8 @@
     "rust/dp-gd/src/",
     "rust/dp-gd/tests/",
     "rust/dp-stand/src/",
+    "rust/picard_rs/src/",
+    "rust/picard_rs/tests/",
     "scripts/atmosphere/atmosphere.gd",
     "scripts/game/calm_air.gd",
     "tests/contracts/test_rust_wind_contracts.gd",
@@ -43,8 +50,6 @@
   ],
   "dont_touch": [
     "docs/contracts/",
-    "rust/picard_rs/",
-    "rust/dp-air/src/field/case_build.rs",
     "tests/fixtures/",
     "configs/",
     "scenes/",
@@ -82,5 +87,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-27T07:04:33"
+  "created": "2026-10-27T07:04:33",
+  "edited": "2026-10-27T08:05:34"
 }
