@@ -1,0 +1,73 @@
+{
+  "id": "RW-6x",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "W11 v9 (уточн.): дальние грани тёплого старта из граничных значений случая — окна T1 в допуске",
+  "goal": "В тёплых стартах picard_rs дальние грани u, v берут ubu/ubv случая (у окна — родитель), w типа ≥ 2 — nest.ubw или 0, как K_BC; окна dx50/dx100 полей lee_bowl, thermal_plain, crater_ridge, east_cliffs — в допуске W8 обычными тестами T1, области 400 м lee_bowl/crater_ridge/east_cliffs остаются в допуске.",
+  "plan_ref": "План переноса",
+  "contracts": [
+    {
+      "name": "W11",
+      "version": "9",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-6x",
+  "branch": "rust-wind/RW-6x",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/picard_rs/src/",
+    "rust/picard_rs/tests/",
+    "rust/dp-air/tests/acceptance.rs",
+    "rust/dp-air/tests/w11v9_w5v7.rs",
+    "rust/dp-air/tests/clipmap.rs",
+    "docs/research/rust-wind-rw6-acceptance.md"
+  ],
+  "dont_touch": [
+    "docs/contracts/",
+    "rust/dp-air/src/",
+    "scripts/",
+    "tests/fixtures/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "acceptance_release",
+      "cmd": "cargo test --release --manifest-path rust/Cargo.toml -p dp-air --test acceptance -- --ignored --skip t1_open_",
+      "expect": "num:test result: ok\\. (\\d+) >=12"
+    },
+    {
+      "name": "acceptance_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test acceptance",
+      "expect": "re:test result: ok\\. [1-9]"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": "python3 -c 'import sys' && .dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-27T05:33:29"
+}

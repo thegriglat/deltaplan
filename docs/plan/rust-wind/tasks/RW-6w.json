@@ -1,0 +1,77 @@
+{
+  "id": "RW-6w",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Разбор и правка расхождения k проходов start-полей (ridge_west, plateau_landing, thermal_slope) против запечённых",
+  "goal": "Найти, почему k второго прохода у полей с inflow_mode start расходится с запечённым на 0,6–1,1 % (ridge_west 0,7542/0,7495, plateau_landing 0,9237/0,9132, thermal_slope 0,6435/0,6367), и исправить в крейте: k крейта = k файла с точностью 1e-3 на всех трёх полях; причина и числа — в доке.",
+  "plan_ref": "План переноса",
+  "contracts": [
+    {
+      "name": "W5",
+      "version": "7",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W11",
+      "version": "9",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-6w",
+  "branch": "rust-wind/RW-6w",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/field/",
+    "rust/dp-air/tests/k_passes.rs",
+    "docs/research/rust-wind-k-passes.md"
+  ],
+  "dont_touch": [
+    "docs/contracts/",
+    "rust/picard_rs/",
+    "rust/dp-air/tests/acceptance.rs",
+    "scripts/",
+    "tests/fixtures/",
+    "configs/",
+    "rust/dp-gd/"
+  ],
+  "accept": [
+    {
+      "name": "k_passes",
+      "cmd": "cargo test --release --manifest-path rust/Cargo.toml -p dp-air --test k_passes -- --include-ignored",
+      "expect": "re:test result: ok\\. [3-9]"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fixtures_unchanged",
+      "cmd": "tools/wind_fixtures/verify.sh",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": "python3 -c 'import sys' && .dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-27T05:34:06"
+}
