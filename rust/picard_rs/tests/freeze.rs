@@ -206,6 +206,7 @@ fn run_raw(
             max_iters,
             time_budget: None,
             snapshot_at: &[],
+            progress: None,
         };
         let o = s.solve(&c.criterion, &run);
         (s, o)

@@ -35,9 +35,10 @@ func _load(a: Object) -> int:
 
 func test_api_version_and_constants() -> void:
 	var a := _new()
-	check(a.api_version() == 2, "api_version")
+	check(a.api_version() == 3, "api_version")
 	check(a.get_class() == "DpAir", "class")
 	check(a.state() == 0, "EMPTY")
+	check(a.stage() == "" and a.iters() == 0, "W3 v3: stage()/iters() пусты без задачи")
 	var c := 0
 	c += ClassDB.class_get_integer_constant("DpAir", "CORE_STRIDE")
 	c += ClassDB.class_get_integer_constant("DpAir", "CLOUD_STRIDE")

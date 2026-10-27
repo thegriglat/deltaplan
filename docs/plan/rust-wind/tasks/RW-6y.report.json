@@ -1,33 +1,50 @@
 {
-  "status": "partial",
-  "summary": "Status.stage/iters в dp-air (StageCounter, этапы lookup/prepare/phases/coarse/solve_mech/solve_heat/windows), Formula отдаёт их из задачи загрузки, DpAir.stage()/iters(), версия API = 3 во всех константах и контрактных тестах; dp-air без godot. Итерации добавляются по окончании каждого решения, не внутри него.",
+  "status": "done",
+  "summary": "Status.stage/iters, DpAir.stage()/iters(), API=3, dp-air без godot; iters идут изнутри решения через SolveOpts.progress (W11 v10, picard_rs), не реже чем каждые 10 итераций (пишется каждую).",
   "commits": [
-    "4c6f4cc4e rust-wind RW-6y: stage/iters в Status, DpAir.stage()/iters(), версия API 3"
+    "4c6f4cc4e stage/iters в Status, DpAir, API 3",
+    "aa4dababc SolveOpts.progress (W11 v10), iters изнутри решения"
   ],
   "checks": [
     {
-      "name": "accept --dry",
-      "value": "6/6 PASS (test_rust_wind_contracts 23/23, test_dp_air_ext 4/4 при собранном tune-расширении, cargo test, clippy, fmt, dp_air_no_godot 0)",
+      "name": "test_rust_wind_contracts",
+      "value": "23/23",
       "pass": true
     },
     {
-      "name": "тесты крейта",
-      "value": "job_stage_counter_follows_stages_and_counts_iters; Ready -> stage \"\" и iters 0; bridge stage/iters пусты без задачи",
+      "name": "test_dp_air_ext",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "dp_air_no_godot",
+      "value": "0",
       "pass": true
     }
   ],
-  "not_done": [
-    "Требование «iters обновляется не реже чем через 10 итераций» не выполнено внутри одного решения: solve() из picard_rs не имеет обратного вызова/счётчика по итерациям (SolveOpts: только cancel, snapshot_at, time_budget), picard_rs в dont_touch. Сейчас iters растёт скачками по окончании каждого решения (mech, heat, coarse, пары окон). На медленном CPU в долгом решении счётчик стоит."
-  ],
-  "questions": [
-    "Нужна ли отдельная задача на picard_rs: SolveOpts.iter_counter: Option<Arc<AtomicU32>> (инкремент после каждой итерации). Тогда StageCounter::add_iters заменяется передачей счётчика в solve_with — правка в dp-air в одном месте (solve_with)."
-  ],
+  "not_done": [],
+  "questions": [],
   "how_to_check": ".dpcli/dpcli accept RW-6y (для test_dp_air_ext нужен tools/build_rust.sh tune linux, иначе 4 пропуска = FAIL)",
   "uncertain": [
     {
       "where": "rust/dp-air/src/field/runtime.rs StageCounter",
-      "why": "stage и iters — два независимых атомика: читатель может на миг увидеть новый этап со старым iters или наоборот; enter() обнуляет iters до смены этапа, поэтому старый этап с 0 возможен, неверный большой счётчик нового этапа — нет",
-      "checked": "логика; тест счётчика"
+      "why": "stage и iters — разные атомики; iters = base + cur с seqlock-подобным gen, stage читается отдельно (на миг новый этап со старым счётчиком невозможен: enter обнуляет до смены idx, но возможен старый этап с 0)",
+      "checked": "тест счётчика; accept 6/6"
     },
     {
       "where": "rust/dp-air/src/formula.rs set_state",
@@ -43,6 +60,11 @@
       "where": "accept test_rust_wind_contracts",
       "why": "первый прогон accept упёрся в таймаут 900 с на этом тесте (при одновременном импорте/сборке), повтор — 65 с",
       "checked": "прямой запуск 23/23, повторный accept PASS"
+    },
+    {
+      "where": "rust/picard_rs/src/solver.rs progress",
+      "why": "пишет число итераций после каждой итерации (store Relaxed), отдельной записи в конце нет — равна последней",
+      "checked": "тест api.rs: progress == iters, результат побитно тот же с Some/None"
     }
   ],
   "dp_feedback": "accept --dry молча виснет до таймаута, когда test_dp_air_ext пропущен из-за несобранного расширения: FAIL 0/0 (пропуск 4) без подсказки в сводке; и accept без вывода при запуске в foreground дольше 120 с — лучше сразу печатать этапы.",
@@ -57,6 +79,6 @@
       "windows"
     ]
   },
-  "t": "2026-10-27T08:05:08",
+  "t": "2026-10-27T08:14:56",
   "by": "executor"
 }

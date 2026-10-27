@@ -79,6 +79,27 @@ fn concurrent_calls_with_different_threads_agree() {
     }
 }
 
+/// W11 v10: `progress` ends at `iters`, and the result is bit-identical with and without it.
+#[test]
+fn progress_counts_iterations_and_does_not_change_result() {
+    let c = case();
+    let mk = |progress| SolveOpts {
+        threads: 2,
+        max_iters: 10,
+        progress,
+        ..SolveOpts::default()
+    };
+    let base = api::solve(&c, &mk(None)).unwrap();
+    let p = std::sync::Arc::new(std::sync::atomic::AtomicU32::new(0));
+    let with = api::solve(&c, &mk(Some(p.clone()))).unwrap();
+    assert!(with.iters > 0);
+    assert_eq!(
+        p.load(std::sync::atomic::Ordering::Relaxed) as usize,
+        with.iters
+    );
+    check_same("progress", &base, &with);
+}
+
 #[test]
 fn max_iters_limits() {
     let c = case();

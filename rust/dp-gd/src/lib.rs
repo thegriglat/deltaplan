@@ -59,7 +59,7 @@ pub struct DpAir {
 #[godot_api]
 impl DpAir {
     #[constant]
-    pub const WIND_API_VERSION: i64 = 2;
+    pub const WIND_API_VERSION: i64 = 3;
     #[constant]
     pub const STATE_EMPTY: i64 = 0;
     #[constant]
@@ -106,6 +106,16 @@ impl DpAir {
     #[func]
     fn time_s(&self) -> f64 {
         self.bridge.time_s()
+    }
+    /// Идентификатор этапа подготовки воздуха (W4 v4; `""` — нет).
+    #[func]
+    fn stage(&self) -> GString {
+        gs(self.bridge.stage())
+    }
+    /// Итерации решателя в текущем этапе (W3 v3).
+    #[func]
+    fn iters(&self) -> i64 {
+        self.bridge.iters()
     }
     /// Причина состояния FAILED (или пусто).
     #[func]

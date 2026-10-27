@@ -30,7 +30,7 @@ use crate::solver::{Check, Picard, Residuals, RunLimits, SolveOut};
 use crate::state::State;
 use anyhow::{Result, bail};
 use std::sync::Arc;
-use std::sync::atomic::AtomicBool;
+use std::sync::atomic::{AtomicBool, AtomicU32};
 use std::time::{Duration, Instant};
 
 pub use crate::solver::StopReason;
@@ -120,6 +120,9 @@ pub struct SolveOpts {
     /// W11 v7: only with `init`: `p := 0`, then this many V-cycles (window start from the
     /// parent: 30); `None` = as v6 (4 V-cycles, `p` from `init`).
     pub init_cycles: Option<u32>,
+    /// W11 v10: the solver writes the number of iterations done (`Relaxed`) after every
+    /// iteration and at the end; `None` = bit-identical to v9, the result does not depend on it.
+    pub progress: Option<Arc<AtomicU32>>,
 }
 
 impl Default for SolveOpts {
@@ -135,6 +138,7 @@ impl Default for SolveOpts {
             cancel: None,
             fallback: None,
             init_cycles: None,
+            progress: None,
         }
     }
 }
@@ -266,6 +270,7 @@ pub fn solve(case: &Case, opts: &SolveOpts) -> Result<Solved> {
             max_iters: opts.max_iters,
             time_budget: opts.time_budget,
             snapshot_at: &opts.snapshot_at,
+            progress: opts.progress.as_deref(),
         };
         let mut o = s.solve(&crit, &run);
         // After a cancel in the middle of the iterations the delivered field is the finalized

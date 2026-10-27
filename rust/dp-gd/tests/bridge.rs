@@ -22,9 +22,15 @@ fn loaded() -> Bridge {
 }
 
 #[test]
-fn api_version_is_1() {
-    assert_eq!(WIND_API_VERSION, 2);
+fn api_version_is_3() {
+    assert_eq!(WIND_API_VERSION, 3);
     assert_eq!(WIND_API_VERSION, i64::from(dp_air::API_VERSION));
+}
+
+#[test]
+fn stage_and_iters_are_empty_without_a_job() {
+    let b = Bridge::default();
+    assert_eq!((b.stage().as_str(), b.iters()), ("", 0));
 }
 
 #[test]
