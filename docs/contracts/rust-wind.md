@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-10-27"
 summary: "Граница ветра в Rust: фасад Atmosphere, DpAir (gdext), трейт dp-air, место, описания, разложение, допуски, сборка, чистота."
 related: ["docs/plan/rust-wind.md", "docs/contracts/picard-rs.md", "docs/plan/rust-air-integration.md", "docs/plan/rust-ext.md", "docs/plan/air-cascade.md", "tools/research/rust_ext/gdext_probe/README.md", "docs/contracts/rust-wind/fixtures-tolerances.md", "docs/contracts/rust-wind/descriptions.md", "docs/contracts/rust-wind/solver.md", "docs/contracts/rust-wind/trait.md"]
-contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 3}, {"id": "W3", "version": 3}, {"id": "W4", "version": 4}, {"id": "W5", "version": 7}, {"id": "W6", "version": 3}, {"id": "W7", "version": 1}, {"id": "W8", "version": 1}, {"id": "W9", "version": 2}, {"id": "W10", "version": 2}, {"id": "W11", "version": 9}]
+contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 3}, {"id": "W3", "version": 3}, {"id": "W4", "version": 4}, {"id": "W5", "version": 7}, {"id": "W6", "version": 3}, {"id": "W7", "version": 1}, {"id": "W8", "version": 1}, {"id": "W9", "version": 2}, {"id": "W10", "version": 2}, {"id": "W11", "version": 10}]
 ---
 
 # Контракты модуля rust-wind
@@ -140,7 +140,7 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 3}, {"id": "W3",
 - Тесты в `tests/` под запрет не подпадают, но тесты поведения через `Atmosphere` после RW-3 пользуются фасадом (T7).
 
 - **v2 (решение пользователя 2026-10-27):** `dp-air` — самостоятельная библиотека погоды и воздуха: без Godot и без игрового — камеры, сети, ботов, игроков, UI, меню, экранов загрузки (в типах, именах и логике). Вход — место, конфиги, условия, время, фокусы как точки с весами; всё игровое — только в `dp-gd` и Godot. Проверка: `cargo tree -p dp-air -e normal` без `godot`; ревьюер задач крейта проверяет это правило при каждой правке `dp-air`.
-## W11. Решатель Пикара в крейте (v9)
+## W11. Решатель Пикара в крейте (v10)
 Владелец — RW-6g, RW-6h. Потребители — RW-6j, RW-6n, фазы RW-6k–6m. R6 v3 + заморозка колонн, отмена, `AllFrozen`/`Cancelled` — `docs/contracts/rust-wind/solver.md`.
 
 ## История
@@ -166,3 +166,4 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 3}, {"id": "W3",
 - Уточнение W1/W3 без смены версии (2026-10-27, RW-0f): `WIND_API_VERSION`, `api_version()`, `API_VERSION` = версии W2 (2 с W2 v2), не 1 — так требовало и правило W1 «равны версии W2». Потребители: RW-0f (крейт, dp-gd), RW-3a (константы фасада и `CalmAir`).
 - W9 v2, уточнение W1 (2026-10-27, решение пользователя: переключатель `gd | rust` убран) — поле в игре только из крейта (RW-7); нет расширения — ветер без поля, не запасной GD-расчёт. Потребители: RW-7, RW-3a/3c (тесты фасада).
 - W2 v3, W3 v3, W4 v4, W10 v2 (2026-10-27, решения пользователя) — счётчик итераций этапа в статусе (`iters`, W3 `stage()`/`iters()`, W4 `Status.stage/iters`); `dp-air` без игрового. Версия API = 3. Потребители: RW-6y (крейт, dp-gd, константы версий и контрактные тесты), RW-3c (реализация `gd` и экран загрузки), RW-7.
+- W11 v10 (2026-10-27, итог RW-6y) — `SolveOpts.progress` (счётчик итераций по ходу решения) для `Status.iters` W4 v4. Потребители: RW-6y, RW-3c (через `DpAir.iters()`).
