@@ -16,6 +16,11 @@ const FLOATS_PER_CLOUD := 24
 
 var atmo: Atmosphere
 var cfg: Dictionary
+## Высота рельефа (x, z) -> м MSL (NAN — нет земли): даёт Atmosphere при создании слоя; рельеф
+## места — не воздух, слой не ходит в ground сам (W10). Положение наблюдателя — по умолчанию камера.
+var ground_fn: Callable = Callable()
+var surface_fn: Callable = Callable()
+var eye_fn: Callable = Callable()
 ## Время последнего выбора облаков (CPU), мкс — для замеров.
 var last_rebuild_us: int = 0
 ## > 0 — одиночный выбор облаков порциями по этому бюджету за кадр, мкс (PF-8); 0 — сразу.
@@ -125,6 +130,18 @@ var _cf_quant := PackedFloat32Array()
 static var _quant_cache: Dictionary = {}
 ## Доля объёма маски выше последнего квантиля (верх шкалы превышения порога, cf_excess).
 const MASK_TOP_TAIL := 1.0e-5
+
+
+## Высота земли (x, z) м MSL или NAN, если места нет.
+func ground_msl(x: float, z: float) -> float:
+	return float(ground_fn.call(x, z)) if ground_fn.is_valid() else NAN
+
+
+## Единичное направление фонового ветра на высоте облаков (x, 0, z); штиль — вдоль +X.
+func _wind_dir() -> Vector3:
+	var bw := atmo.background_wind(PackedFloat32Array([atmo.cloudbase_msl()]))
+	var v := Vector2(bw[0], bw[1])
+	return Vector3(v.x, 0.0, v.y).normalized() if v.length_squared() > 1.0e-6 else Vector3(1, 0, 0)
 
 
 func setup(atmosphere: Atmosphere) -> void:
@@ -309,12 +326,12 @@ func _on_weather_changed() -> void:
 func _process(delta: float) -> void:
 	if atmo == null:
 		return
-	var t := atmo.time_s
+	var t := float(atmo.status().time_s)
 	var dt := clampf(t - _last_t, 0.0, 1.0e6) if _last_t > -1.0e17 else 0.0
 	_last_t = t
 	# Шум облаков «течёт» с ветром на кромке: форма стоит над термиком, клубы плывут.
-	var cb_agl := maxf(atmo.field.cloudbase_msl - atmo._ground_ref, 100.0)
-	var w := atmo.wind.vec2_at(cb_agl) * float(cfg.noise_wind_factor)
+	var bw := atmo.background_wind(PackedFloat32Array([atmo.cloudbase_msl()]))
+	var w := Vector2(bw[0], bw[1]) * float(cfg.noise_wind_factor)
 	_material.set_shader_parameter("wind_offset", -Vector3(w.x, 0.0, w.y) * t)
 	_material.set_shader_parameter("boil", t * float(cfg.boil_speed))
 	_light_acc += delta
@@ -322,7 +339,7 @@ func _process(delta: float) -> void:
 		_light_acc = 0.0
 		_update_light()
 	var cam := get_viewport().get_camera_3d()
-	var eye := cam.global_position if cam != null else atmo.get_focus()
+	var eye := _eye_pos()
 	if _effect != null:
 		_attach_effect(cam)
 	_update_field(t)
@@ -542,7 +559,7 @@ func _update_sun_transmission() -> Dictionary:
 	var k_ext: float = _tab_key[0]
 	var k_rgb: Vector3 = _tab_key[1]
 	var k_top: float = _tab_key[2]
-	var valley := float(atmo.weather.get("_derived", {}).get("valley_msl_m", 0.0))
+	var valley := float(atmo.get_weather().get("_derived", {}).get("valley_msl_m", 0.0))
 	var el_true: float = sky.clock.angles().y
 	var t_ref := SunTransmission.transmission(p.ref_el_deg, valley, k_ext, k_rgb, k_top, p)
 	var f := SunTransmission.sun_factor(el_true, k_ext, k_rgb, k_top, valley, p)
@@ -652,9 +669,7 @@ func _find_light(n: Node) -> DirectionalLight3D:
 ## тают к дальности первого не вошедшего. Облако с нулевой видимостью освобождает слот.
 func _select(t: float, eye: Vector3) -> void:
 	var t0 := Time.get_ticks_usec()
-	var wd := atmo.wind.dir
-	if wd.length_squared() < 1.0e-6:
-		wd = Vector3(1, 0, 0)
+	var wd := _wind_dir()
 	_basis_axes = [wd, Vector3.UP, wd.cross(Vector3.UP)]
 	if not history_free:
 		_select_with_fades(t, eye)
@@ -722,9 +737,7 @@ func _shown_ids() -> Dictionary:
 ## Выбор порциями (PF-8): тот же результат, что _select для одиночной игры, но набор кандидатов,
 ## слияние и волновые облака — по шагам за кадр (_select_pump); t, камера и «нарисованные» — на начало.
 func _select_begin(t: float, eye: Vector3) -> void:
-	var wd := atmo.wind.dir
-	if wd.length_squared() < 1.0e-6:
-		wd = Vector3(1, 0, 0)
+	var wd := _wind_dir()
 	_basis_axes = [wd, Vector3.UP, wd.cross(Vector3.UP)]
 	_sj = true
 	_sj_ph = 0
@@ -958,10 +971,18 @@ func _place(i: int, t: float, eye: Vector3) -> void:
 
 ## Видимость по дальности: облако тает к max_distance_m (от камеры) и к радиусу, где живут
 ## термики (от пилота, по основанию столба — как ThermalField удаляет), а не срезается.
+## Положение наблюдателя: eye_fn, иначе активная камера, иначе начало координат.
+func _eye_pos() -> Vector3:
+	if eye_fn.is_valid():
+		return eye_fn.call()
+	var cam := get_viewport().get_camera_3d() if is_inside_tree() else null
+	return cam.global_position if cam != null else Vector3.ZERO
+
+
 func _range_vis(th: AtmoThermal, t: float, c: Vector2, eye: Vector3) -> float:
 	var v := model.range_fade(Vector2(eye.x, eye.z).distance_to(c), model.far_m(th))
 	if not th.is_static:
-		var f := atmo.get_focus()
+		var f := _eye_pos()
 		var sd := th.drift_at(t)
 		var src := Vector2(th.src.x + sd.x, th.src.z + sd.y)
 		v = minf(v, model.range_fade(Vector2(f.x, f.z).distance_to(src), _gen_r))
@@ -989,7 +1010,7 @@ func _wave_clouds(eye: Vector3, crests_in: Variant = null) -> Array[PackedFloat3
 	var ax: Vector3 = _basis_axes[0]
 	var crests: Array = crests_in if crests_in != null else _wave_crests(eye)
 	var lam := wf.wavelength()
-	var above := float(atmo.weather.get("lens_level_above_crest_m", 2000.0))
+	var above := float(atmo.get_weather().get("lens_level_above_crest_m", 2000.0))
 	var eta_ref := float(w.lens_eta_ref_m)
 	var n := 0
 	for cr: Dictionary in crests:
@@ -1038,7 +1059,7 @@ func _wave_crests(eye: Vector3) -> Array[Dictionary]:
 
 ## Самая высокая точка рельефа рядом (для шапки): Vector3(x, z, высота) или z < 0.
 func _highest_ground(eye: Vector3, radius: float) -> Vector3:
-	if not atmo.ground.has_ground:
+	if is_nan(ground_msl(eye.x, eye.z)):
 		return Vector3(0, 0, -1)
 	var best := Vector3(0, 0, -1.0e9)
 	var step := radius / 10.0
@@ -1046,7 +1067,7 @@ func _highest_ground(eye: Vector3, radius: float) -> Vector3:
 		for i in range(-10, 11):
 			var x := eye.x + i * step
 			var z := eye.z + j * step
-			var h := atmo.ground.height(x, z)
+			var h := ground_msl(x, z)
 			if h > best.z:
 				best = Vector3(x, z, h)
 	return best
