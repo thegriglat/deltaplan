@@ -9,10 +9,13 @@ extends EasterEgg
 ## Траектория задаётся в begin от положения, курса и скорости крыла в момент появления (без
 ## слежения и подстройки): обгон — прямая в системе крыла, движущейся с его скоростью при
 ## появлении; дуга — кривая Эрмита от конца обгона к точке входа в круг; круг — вокруг оси
-## термика (наклон + снос AtmoThermal.drift_at — функция времени). Всё — функция ctx.t − t0.
-## Термик ищется общим поиском птиц BirdFlock.near_thermals (только чтение поля термиков).
+## термика (наклон + снос по среднему ветру — функция времени). Всё — функция ctx.t − t0.
+## Термик — ядро подъёма фасада воздуха (Atmosphere.cores, W6): снимок оси при появлении.
 ## Порядок бросков rng в begin: сторона, прибавка скорости, угол диагонали, промах, высота.
 ## Локальная по смыслу (К4): от игрока, у каждого пилота своя.
+
+## Запас радиуса выборки ядер сверх thermal_radius_m: наклон уводит ось на высоте от оси у земли.
+const CORE_LEAN_MARGIN_M := 600.0
 
 ## Крыло в момент появления {pos, vel} — подмена для тестов (пусто — телеметрия игры).
 var wing: Dictionary = {}
@@ -20,8 +23,9 @@ var wing: Dictionary = {}
 var side := 1.0
 var dv := 3.0
 var miss_m := 10.0
-## Термик, к которому летит (null — нет).
-var thermal: AtmoThermal
+## Термик, к которому летит (снимок ядра фасада, см. find_thermal; пусто — нет): {id, x, z, y_src,
+## top, w, radius, lean: Vector2, drift: Vector2 (м/с, снос), t_ref (ctx.t снимка)}.
+var thermal: Dictionary = {}
 ## Длительности фаз, с: обгон, дуга.
 var pass_s := 28.0
 var arc_s := 0.0
@@ -86,26 +90,54 @@ static func rocky_mountains(place: EggPlace, p: Vector3, cfg: Dictionary) -> boo
 	return false
 
 
-## Ближайший к точке подходящий термик (поиск птиц BirdFlock.near_thermals): [d², id, термик]
-## или [] — нет воздуха или термиков в радиусе.
+## Ближайший к точке подходящий термик (ядра фасада, W6): [d², id, термик] или [] — нет воздуха
+## или термиков в радиусе. Ядро слабее thermal_min_ms не берётся; расстояние — до оси на высоте точки.
 static func find_thermal(ctx: EggContext, p: Vector3, cfg: Dictionary) -> Array:
-	if ctx.air == null:
+	if ctx.air == null or not ctx.air.has_method("cores"):
 		return []
-	var field: Variant = ctx.air.get("field")
-	if field == null:
-		return []
-	var ths: Variant = field.get("thermals")
-	if not ths is Dictionary:
-		return []
-	var t_air := float(ctx.air.get("time_s")) if ctx.air.get("time_s") != null else ctx.t
-	var c := BirdFlock.near_thermals(
-		ths,
-		t_air,
-		p,
-		float(cfg.get("thermal_radius_m", 1500.0)),
-		float(cfg.get("thermal_min_ms", 1.0))
-	)
-	return c[0] if not c.is_empty() else []
+	var radius := float(cfg.get("thermal_radius_m", 1500.0))
+	var min_w := float(cfg.get("thermal_min_ms", 1.0))
+	# ось ядра отдана у земли; на высоте наклон уводит её до lean·высота — берём с запасом
+	var d: PackedFloat32Array = ctx.air.call("cores", p, radius + CORE_LEAN_MARGIN_M)
+	var stride := Atmosphere.CORE_STRIDE
+	var best: Array = []
+	for k in range(0, d.size() - stride + 1, stride):
+		var w := d[k + Atmosphere.CORE_W]
+		if w < min_w:
+			continue
+		var y_src := d[k + Atmosphere.CORE_Y_SRC]
+		var top := d[k + Atmosphere.CORE_TOP]
+		var lean := Vector2(d[k + Atmosphere.CORE_LEAN_X], d[k + Atmosphere.CORE_LEAN_Z])
+		var dh := clampf(p.y, y_src, top) - y_src
+		var ax := Vector2(d[k + Atmosphere.CORE_X], d[k + Atmosphere.CORE_Z]) + lean * dh
+		var d2 := Vector2(ax.x - p.x, ax.y - p.z).length_squared()
+		if d2 >= radius * radius or (not best.is_empty() and d2 >= float(best[0])):
+			continue
+		var is_static := (int(d[k + Atmosphere.CORE_FLAGS]) & 1) != 0
+		var drift := Vector2.ZERO
+		if not is_static and ctx.air.has_method("mean_wind_at"):
+			var wm: Vector3 = ctx.air.call(
+				"mean_wind_at",
+				Vector3(d[k + Atmosphere.CORE_X], 0.5 * (y_src + top), d[k + Atmosphere.CORE_Z])
+			)
+			drift = Vector2(wm.x, wm.z)  # термик дрейфует с ветром середины столба
+		best = [
+			d2,
+			int(d[k + Atmosphere.CORE_ID]),
+			{
+				"id": int(d[k + Atmosphere.CORE_ID]),
+				"x": d[k + Atmosphere.CORE_X],
+				"z": d[k + Atmosphere.CORE_Z],
+				"y_src": y_src,
+				"top": top,
+				"w": w,
+				"radius": d[k + Atmosphere.CORE_RADIUS],
+				"lean": lean,
+				"drift": drift,
+				"t_ref": ctx.t,
+			},
+		]
+	return best
 
 
 static func _game_of(n: Node) -> Game:
@@ -180,18 +212,19 @@ static func _cam_forward(ctx: EggContext) -> Vector3:
 	return Vector3(0.0, 0.0, -1.0)
 
 
-## Ось термика на высоте y в момент t (наклон + снос — функция времени, AtmoThermal).
+## Ось термика на высоте y в момент t (наклон + снос — функция времени): ось ядра в момент
+## снимка + снос ветром середины столба с t_ref.
 func _axis(y: float, t: float) -> Vector2:
 	var th := thermal
-	var dh := maxf(y - th.src.y, 0.0)
-	var d := th.drift_at(t)
-	return Vector2(th.src.x + th.lean.x * dh + d.x, th.src.z + th.lean.y * dh + d.y)
+	var dh := maxf(y - float(th.y_src), 0.0)
+	var d: Vector2 = th.drift * maxf(t - float(th.t_ref), 0.0)
+	return Vector2(th.x + th.lean.x * dh + d.x, th.z + th.lean.y * dh + d.y)
 
 
 func _plan_arc() -> void:
 	var speed := maxf(Vector2(_w1.x, _w1.z).length(), 6.0)
 	_radius = float(_cfg.get("circle_radius_m", 25.0))
-	_top = thermal.top - float(_cfg.get("top_margin_m", 60.0))
+	_top = float(thermal.top) - float(_cfg.get("top_margin_m", 60.0))
 	var sink := float(_cfg.get("glide_sink_ratio", 0.08))
 	var q := Vector2(_q1.x, _q1.z)
 	var w := Vector2(_w1.x, _w1.z).normalized()
@@ -213,9 +246,9 @@ func _plan_arc() -> void:
 		_e.z = e2.y
 		var length := _hermite_len(q, e2)
 		arc_s = maxf(length / speed, 2.0)
-		_e.y = clampf(_q1.y - length * sink, thermal.src.y + 50.0, maxf(_top, thermal.src.y + 50.0))
+		_e.y = clampf(_q1.y - length * sink, float(thermal.y_src) + 50.0, maxf(_top, float(thermal.y_src) + 50.0))
 	climb_ms = clampf(
-		thermal.strength * float(_cfg.get("climb_frac", 0.7)) - float(_cfg.get("sink_ms", 0.8)),
+		float(thermal.w) * float(_cfg.get("climb_frac", 0.7)) - float(_cfg.get("sink_ms", 0.8)),
 		float(_cfg.get("climb_min_ms", 0.4)),
 		float(_cfg.get("climb_max_ms", 4.0))
 	)
@@ -253,7 +286,7 @@ func pos_at(age: float) -> Vector3:
 	if age <= pass_s:
 		return _pass_pos(age)
 	var a := age - pass_s
-	if thermal == null:
+	if thermal.is_empty():
 		# уход вдаль: за leave_turn_s плавно доворачивает наружу и прибавляет скорость
 		var ta := float(_cfg.get("leave_turn_s", 6.0))
 		return _q1 + _w1 * a + _leave_dv * (a * a / (2.0 * ta) if a < ta else a - ta * 0.5)

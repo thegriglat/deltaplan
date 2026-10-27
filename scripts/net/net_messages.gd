@@ -128,6 +128,9 @@ const MESSAGES := {
 	{
 		"clock": "double",
 		"queue": "[]string",
+		# Не используются: воздух по сети не синхронизируется (rust-wind W1, RW-3a) — ни NetZone, ни
+		# NetFlight их не шлют и не читают. Поля остаются в схеме, пока их не уберут из net.proto и
+		# docs/guide/net-protocol.md (там примеры, по ним тест test_doc_examples_round_trip).
 		"thermalSources": "msg:ThermalSources",
 		"cloudField": "msg:CloudFieldSnapshot",
 	},

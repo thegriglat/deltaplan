@@ -1,10 +1,11 @@
 class_name CalmAir
 extends Node3D
 ## Запасная модель воздуха, если основная атмосфера (scripts/atmosphere) не загрузилась.
-## Тот же интерфейс, что у Atmosphere (docs/guide/architecture.md): set_weather, set_wind,
-## set_ground, air_velocity_at, step, focus_node. Постоянный ветер из пресета погоды,
-## фоновое опускание и несколько статичных термиков вокруг старта (configs/game.json → calm_air).
-## Облаков не рисует. Замена на настоящую атмосферу — строка game.json → air.script.
+## Тот же фасад W2 (docs/contracts/rust-wind.md), что у Atmosphere: configure, load_place,
+## set_conditions, set_static_thermals, set_focuses, start_at, advance_to, sample_many. Постоянный
+## ветер условий, фоновое опускание и несколько статичных термиков вокруг первого старта места
+## (configs/game.json → calm_air). Облаков не рисует, READY сразу. Замена на настоящую атмосферу —
+## строка game.json → air.script.
 
 signal weather_changed
 signal weather_updated
@@ -12,7 +13,7 @@ signal state_changed(state: int)
 
 # Фасад W2 (docs/contracts/rust-wind.md): те же константы, что у Atmosphere (копия — запасной
 # воздух не должен зависеть от основной атмосферы).
-const WIND_API_VERSION := 1
+const WIND_API_VERSION := 2
 const STATE_EMPTY := 0
 const STATE_LOADING := 1
 const STATE_READY := 2
@@ -26,8 +27,6 @@ const SAMPLE_MEAN := 1
 const CORE_STRIDE := 15
 const CLOUD_STRIDE := 10
 const CREST_STRIDE := 4
-
-@export var focus_node: Node3D
 
 var weather: Dictionary = {}
 var time_s: float = 0.0
@@ -147,11 +146,18 @@ func load_place(place: AirPlaceData) -> int:
 		return _f_fail("load_place: " + why)
 	_f_place = place
 	time_s = 0.0
+	_height_fn = Callable(place, "height_at")
+	_thermals.clear()
+	var sites: Array = place.header.start_sites
+	if not sites.is_empty():
+		var st: Dictionary = sites[0]
+		place_thermals_near(Vector3(float(st.x), float(st.h_msl), float(st.z)), 0.0)
 	return OK
 
 
 func unload_place() -> void:
 	_f_place = null
+	_height_fn = Callable()
 	time_s = 0.0
 	_thermals.clear()
 
@@ -166,6 +172,22 @@ func set_conditions(cond: Dictionary) -> int:
 	for k: Variant in cond:
 		if not allowed.has(String(k)):
 			return _f_fail("set_conditions: посторонний ключ %s" % str(k))
+	_cfg = Config.get_config("game").get("calm_air", {})
+	var w: Dictionary
+	if cond.has("preset"):
+		var p: Variant = cond.preset
+		w = (Config.get_config(String(p)) if p is String else p).duplicate(true)
+	else:
+		var fc: Dictionary = cond.forecast
+		w = Config.get_config(String(Config.value("atmosphere", "default_weather"))).duplicate(true)
+		w.wind_speed_kmh = float(fc.get("wind_speed_kmh", 0.0))
+		w.wind_from_deg = float(fc.get("wind_from_deg", 0.0))
+		for key: Variant in cond.get("overrides", {}):
+			w[key] = cond.overrides[key]
+	weather = w
+	_top_agl = float(weather.get("cloudbase_agl_m", _cfg.get("thermal_top_agl_m", 1800.0)))
+	set_wind(float(weather.get("wind_speed_kmh", 0.0)), float(weather.get("wind_from_deg", 0.0)))
+	weather_changed.emit()
 	return OK
 
 
@@ -176,6 +198,9 @@ func set_sun_direction(_to_sun: Vector3) -> void:
 func set_static_thermals(list: PackedFloat32Array, mode: int) -> int:
 	if list.size() % 4 != 0 or mode < 0 or mode > 2:
 		return _f_fail("set_static_thermals: длина кратна 4, mode 0..2")
+	if mode > 0:
+		for i in range(0, list.size(), 4):
+			add_static_thermal(list[i], list[i + 1], list[i + 2], list[i + 3])
 	return OK
 
 
@@ -217,11 +242,20 @@ func is_ready() -> bool:
 func sample_many(points: PackedVector3Array, _mode: int = SAMPLE_FULL) -> PackedFloat32Array:
 	var out := PackedFloat32Array()
 	out.resize(points.size() * 4)
+	for i in points.size():
+		var p := points[i]
+		if not (is_finite(p.x) and is_finite(p.y) and is_finite(p.z)):
+			continue
+		var v := air_velocity_at(p)
+		out[4 * i] = v.x
+		out[4 * i + 1] = v.y
+		out[4 * i + 2] = v.z
 	return out
 
 
-func sample(_pos: Vector3, _mode: int = SAMPLE_FULL) -> Vector4:
-	return Vector4()
+func sample(pos: Vector3, mode: int = SAMPLE_FULL) -> Vector4:
+	var r := sample_many(PackedVector3Array([pos]), mode)
+	return Vector4(r[0], r[1], r[2], r[3])
 
 
 func cloud_density_many(points: PackedVector3Array) -> PackedFloat32Array:

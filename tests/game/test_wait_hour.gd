@@ -32,7 +32,7 @@ func test_wait_hour_advances_world() -> void:
 	check(game.can_wait(), "на старте ждать можно (фаза %s)" % game.glider.phase())
 	var pos0: Vector3 = game.glider.get_telemetry().position
 	var h0 := game.sky.clock.hour
-	var t0 := air.time_s
+	var t0 := float(air.status().time_s)
 	check(game.start_wait(), "start_wait")
 	var dt := 1.0 / 60.0
 	var ticks := 0
@@ -41,10 +41,10 @@ func test_wait_hour_advances_world() -> void:
 		ticks += 1
 	var secs := ticks * dt
 	var dh := (game.sky.clock.hour - h0) * 60.0
-	print("         ожидание: %.1f с, часы +%.1f мин, time_s +%.0f с" % [secs, dh, air.time_s - t0])
+	print("         ожидание: %.1f с, часы +%.1f мин, time_s +%.0f с" % [secs, dh, float(air.status().time_s) - t0])
 	check(absf(secs - 60.0) < 2.0, "60 с: %.1f" % secs)
 	check(absf(dh - 60.0) < 2.0, "часы +1 ч: %.1f мин" % dh)
-	check(absf((air.time_s - t0) - 3600.0) < 120.0, "time_s +3600: %.0f" % (air.time_s - t0))
+	check(absf((float(air.status().time_s) - t0) - 3600.0) < 120.0, "time_s +3600: %.0f" % (float(air.status().time_s) - t0))
 	check(game.glider.get_telemetry().position.is_equal_approx(pos0), "пилот не сдвинулся")
 	check(not game.is_waiting(), "ожидание кончилось")
 	check(is_equal_approx(game.sky.clock.speed, 1.0), "множитель прежний")

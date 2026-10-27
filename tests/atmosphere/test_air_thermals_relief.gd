@@ -3,7 +3,7 @@ extends TestCase
 ## Terrain.thermal_source_strength_at) читают влажность ложбин из полей рельефа, которые Terrain
 ## считает в фоне и подменяет на главном потоке. Сборка до их готовности давала другое число
 ## источников (6994–6998 на одной точке между запусками), поэтому загрузка (Game) запускает сборку
-## заранее только по готовым полям (Game.air_sources_ready). Здесь — на синтетике: готовность полей
+## заранее только по готовым полям (Atmosphere.air_sources_ready). Здесь — на синтетике: готовность полей
 ## меняет итог (зачем ждать), гейт закрыт, пока поля считаются, и сборка по готовым полям
 ## воспроизводится бит-в-бит, в том числе из рабочего потока.
 
@@ -65,12 +65,12 @@ func test_relief_changes_sources() -> void:
 func test_ready_gate() -> void:
 	var t := FakeTerrain.new()
 	t.busy = true
-	check(not Game.air_sources_ready(t), "поля рельефа считаются — сборка источников ждёт")
+	check(not Atmosphere.air_sources_ready(t), "поля рельефа считаются — сборка источников ждёт")
 	t.busy = false
 	t.ready = true
-	check(Game.air_sources_ready(t), "поля готовы — можно собирать")
-	check(Game.air_sources_ready(RefCounted.new()), "рельеф без полей (нет relief_busy) — можно")
-	check(Game.air_sources_ready(null), "рельефа нет — можно")
+	check(Atmosphere.air_sources_ready(t), "поля готовы — можно собирать")
+	check(Atmosphere.air_sources_ready(RefCounted.new()), "рельеф без полей (нет relief_busy) — можно")
+	check(Atmosphere.air_sources_ready(null), "рельефа нет — можно")
 
 
 ## По готовым полям сборка воспроизводится бит-в-бит: повтор, полосы, рабочий поток.

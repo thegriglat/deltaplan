@@ -152,19 +152,26 @@ func _wind_at_launch(pos: Vector3) -> Vector2:
 ## Нижняя кромка кучевых, м над морем; NAN — воздух без облаков (CalmAir) или «голубой» день.
 func _cloud_base_msl() -> float:
 	var air := _game.air
-	if air == null or not air.has_method("get_cloudbase_msl"):
+	if air == null or not air.has_method("cloudbase_msl"):
 		return NAN
-	var w: Variant = air.get("weather")
+	var w: Variant = _air_weather(air)
 	if w is Dictionary and float((w as Dictionary).get("dry_thermal_fraction", 0.0)) >= 0.999:
 		return NAN
-	return float(air.call("get_cloudbase_msl"))
+	return float(air.call("cloudbase_msl"))
+
+
+## Погода воздуха (копия, W2); воздух без фасада — свойство weather. Переходное имя get_weather.
+static func _air_weather(air: Node) -> Variant:
+	if air == null:
+		return null
+	return air.call("get_weather") if air.has_method("get_weather") else air.get("weather")
 
 
 func _weather_value(key: String) -> float:
 	var air := _game.air
 	if air == null:
 		return NAN
-	var w: Variant = air.get("weather")
+	var w: Variant = _air_weather(air)
 	if w is Dictionary and (w as Dictionary).has(key):
 		return float((w as Dictionary)[key])
 	return NAN
@@ -175,7 +182,7 @@ func _weather_value(key: String) -> float:
 ## NAN — погоды нет.
 func _temp_at(alt_msl: float) -> float:
 	var air := _game.air
-	var w: Variant = air.get("weather") if air != null else null
+	var w: Variant = _air_weather(air)
 	if not (w is Dictionary) or (w as Dictionary).get("_derived") == null:
 		return NAN
 	return temp_at_altitude(w, alt_msl, _game.settings.month, _game.settings.day)
@@ -201,7 +208,7 @@ func _derived_weather(key: String) -> float:
 	var air := _game.air
 	if air == null:
 		return NAN
-	var w: Variant = air.get("weather")
+	var w: Variant = _air_weather(air)
 	if w is Dictionary:
 		var d: Variant = (w as Dictionary).get("_derived")
 		if d is Dictionary and (d as Dictionary).has(key):

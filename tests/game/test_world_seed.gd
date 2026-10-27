@@ -43,6 +43,8 @@ func _menu_fly(main: Node) -> bool:
 ## Отпечаток мира полёта: атмосфера в момент T_FP (чистая функция ключа мира).
 func _fp(game: Game) -> Dictionary:
 	game.air.call("start_at", T_FP)
+	while not game.air.call("is_ready"):  # start_at асинхронен: ждём готовности (pump)
+		game.air.call("pump", 1000000)
 	return AtmoFingerprint.capture(game.air)
 
 
