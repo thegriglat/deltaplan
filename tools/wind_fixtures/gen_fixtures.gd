@@ -10,6 +10,8 @@ extends Node
 ## описания — W6, оси и единицы — W1. Что в наборе и как воспроизвести — tests/fixtures/wind/README.md.
 
 const FORMAT_VERSION := 1
+## Число значений на точку и момент: k = 0 FULL, k = 1 MEAN, k ≥ 2 — слагаемые decompose (W8).
+const K_N := 2 + 9
 ## Моменты снимка, с: старт, +15 мин, +60 мин. Каждый — отдельная атмосфера со start_at(t)
 ## (W2: состояние на t = прогон с 0), поэтому момент не зависит от порядка и истории.
 const TIMES: Array[float] = [0.0, 900.0, 3600.0]
@@ -511,14 +513,14 @@ func _run_case(c: Dictionary, ctx: Dictionary) -> bool:
 	# выборка
 	var n := pts.size()
 	var data := PackedFloat32Array()
-	data.resize(TIMES.size() * n * 2 * 4)
+	data.resize(TIMES.size() * n * K_N * 4)
 	var descs: Array = []
 	for k in TIMES.size():
 		var a := atmos[k]
 		for i in n:
 			var r := _sample_both(a, pts[i])
-			var o := ((k * n + i) * 2) * 4
-			for m in 8:
+			var o := ((k * n + i) * K_N) * 4
+			for m in K_N * 4:
 				data[o + m] = r[m]
 		descs.append(_describe(a, ctx, TIMES[k]))
 	var focus: Vector3 = ctx.focus
@@ -535,7 +537,7 @@ func _run_case(c: Dictionary, ctx: Dictionary) -> bool:
 		focuses = [[focus.x, focus.y, focus.z, 1.0]],
 		points = _pts_json(pts),
 		point_tags = tags,
-		terms = null,
+		terms = Array(Atmosphere.T_NAMES),
 		generator = _git_rev,
 		extra = {
 			sample_recipe = "FULL: v = air_velocity_at(p), σ = _last_sigma (turbulence_enabled = true). MEAN: v = air_velocity_at(p) при turbulence_enabled = false (без шума порывов и бурления в облаке; поле, аналитика, термики, гроза, волна, ротор — в среднем); σ в MEAN — та же, что в FULL",
@@ -632,7 +634,16 @@ func _sample_both(a: Atmosphere, p: Vector3) -> Array:
 	a.turbulence_enabled = false
 	var m := a.air_velocity_at(p)
 	a.turbulence_enabled = true
-	return [v.x, v.y, v.z, sig, m.x, m.y, m.z, sig]
+	var out: Array = [v.x, v.y, v.z, sig, m.x, m.y, m.z, sig]
+	# слагаемые W7 (k ≥ 2); итог decompose обязан совпасть с k = 0 побитно
+	var d := a.decompose(p)
+	var tot: Vector4 = d.total
+	assert(tot == Vector4(v.x, v.y, v.z, sig), "decompose: total ≠ FULL")
+	var vel: PackedVector3Array = d.vel
+	var sg: PackedFloat32Array = d.sigma
+	for i in vel.size():
+		out.append_array([vel[i].x, vel[i].y, vel[i].z, sg[i]])
+	return out
 
 
 func _pick_points(
@@ -949,7 +960,7 @@ func _run_day_case(c: Dictionary, ctx: Dictionary) -> bool:
 		focuses = [[focus.x, focus.y, focus.z, 1.0]],
 		points = _pts_json(r1.pts),
 		point_tags = r1.tags,
-		terms = null,
+		terms = Array(Atmosphere.T_NAMES),
 		generator = _git_rev,
 		extra = {
 			sample_recipe = "FULL: v = air_velocity_at(p), σ = _last_sigma (turbulence_enabled = true). MEAN: v = air_velocity_at(p) при turbulence_enabled = false (без шума порывов и бурления в облаке); σ в MEAN — та же, что в FULL",
@@ -1252,11 +1263,11 @@ func _day_snapshot(S: Dictionary, a: Atmosphere) -> void:
 		return
 	var data: PackedFloat32Array = S.data
 	var base := data.size()
-	data.resize(base + S.pts.size() * 8)
+	data.resize(base + S.pts.size() * K_N * 4)
 	for i in S.pts.size():
 		var r := _sample_both(a, S.pts[i])
-		for m in 8:
-			data[base + i * 8 + m] = r[m]
+		for m in K_N * 4:
+			data[base + i * K_N * 4 + m] = r[m]
 	S.data = data
 	S.descs.append(_describe(a, ctx, t))
 

@@ -113,6 +113,21 @@ var field_turb: FieldTurbulence
 var time_s: float = 0.0
 ## Пульсации (турбулентность) — можно выключить для тестов.
 var turbulence_enabled: bool = true
+## Запись слагаемых для decompose (W7): только в decompose, в горячем пути выключена. Вклады уже
+## со своими весами; индексы — T_*. Физику не меняет.
+var _rec_on: bool = false
+var _rec: PackedVector3Array = PackedVector3Array()
+var _rec_sig: PackedFloat32Array = PackedFloat32Array()
+const T_NAMES := ["field", "analytic", "ridge", "thermal", "storm", "wave", "cloud", "turb", "gust"]
+const T_FIELD := 0
+const T_ANALYTIC := 1
+const T_RIDGE := 2
+const T_THERMAL := 3
+const T_STORM := 4
+const T_WAVE := 5
+const T_CLOUD := 6
+const T_TURB := 7
+const T_GUST := 8
 ## Сид мира (≥ 0) вместо atmosphere.json → seed — задать до configure/set_weather (сеть: сид зоны).
 var seed_value: int = -1
 ## Ход дня (погода, солнце, источники — функции времени, AtmoDay); null — погода постоянна
@@ -942,6 +957,11 @@ func air_velocity_at(pos: Vector3) -> Vector3:
 		var ld := _lee_flow(pos, agl, u, lee, danger, relief)
 		w += ld.y
 		h += ld.x
+	if _rec_on:
+		var w_th := fade * (_bg_sink * (1.0 - th.y) + th.x)
+		_rec[T_ANALYTIC] = Vector3(wd.x * h, w - w_th - w_ridge, wd.z * h)
+		_rec[T_THERMAL] = Vector3(0.0, w_th, 0.0)
+		_rec[T_RIDGE] = Vector3(0.0, w_ridge, 0.0)
 	var v := _extra_flow(Vector3(wd.x * h, w, wd.z * h), pos, agl)
 	_last_sigma = 0.0
 	if not turbulence_enabled:
@@ -955,8 +975,14 @@ func air_velocity_at(pos: Vector3) -> Vector3:
 	if chaos > 1.0e-3:
 		var nc := wind.gust_unit(pos * _in_cloud_scale_k, time_s * 3.0, _advect, 0.0)
 		v += nc * chaos
+		if _rec_on:
+			_rec[T_GUST] += nc * chaos
+	if _rec_on:
+		_rec_sig[T_GUST] = amp
 	if amp < 1.0e-3:
 		return v
+	if _rec_on:
+		_rec[T_GUST] += tv
 	return v + tv
 
 
@@ -979,6 +1005,8 @@ func _extra_flow(v_in: Vector3, pos: Vector3, agl: float) -> Vector3:
 	if not storm.cells.is_empty():
 		var sf := storm.sample(pos, agl, time_s)
 		v += Vector3(sf.x, sf.y, sf.z)
+		if _rec_on:
+			_rec[T_STORM] = Vector3(sf.x, sf.y, sf.z)
 		_storm_turb = sf.w
 	# Подветренные волны и роторы.
 	_rotor_turb = 0.0
@@ -986,11 +1014,15 @@ func _extra_flow(v_in: Vector3, pos: Vector3, agl: float) -> Vector3:
 		var wv := wave.sample(pos, agl, wind.speed_at(_wave_ref_agl))
 		v.y += wv.x
 		_rotor_turb = wv.y
+		if _rec_on:
+			_rec[T_WAVE] = Vector3(0.0, wv.x, 0.0)
 	# В облаке: поток «выкидывает» к краю, упорядоченного подъёма почти нет (FR-14b).
 	_cin = Vector3.ZERO
 	if cloud_phys.cloud_count() > 0:
 		_cin = cloud_phys.sample(pos)
 		v += Vector3(_cin.y, 0.0, _cin.z) * _in_cloud_eject * _cin.x
+		if _rec_on:
+			_rec[T_CLOUD] = Vector3(_cin.y, 0.0, _cin.z) * _in_cloud_eject * _cin.x
 	return v
 
 
@@ -1093,6 +1125,13 @@ func _air_velocity_field(pos: Vector3, gs: Vector4, agl: float, u: float, fw: Ve
 				* exp(-agl / maxf(_lee_rotor_h * relief, 1.0))
 			)
 	var v := Vector3(fw.x + wd.x * h, w, fw.z + wd.z * h)
+	if _rec_on:
+		var w_th := fade * (_bg_sink * (1.0 - th.y) + th.x)
+		var w_rd := (1.0 - a) * w_ridge
+		_rec[T_FIELD] = Vector3(fw.x, fw.y, fw.z)
+		_rec[T_ANALYTIC] = Vector3(wd.x * h, w - w_th - fw.y - w_rd, wd.z * h)
+		_rec[T_RIDGE] = Vector3(0.0, w_rd, 0.0)
+		_rec[T_THERMAL] = Vector3(0.0, w_th, 0.0)
 	v = _extra_flow(v, pos, agl)
 	_last_sigma = 0.0
 	if not turbulence_enabled:
@@ -1147,12 +1186,19 @@ func _air_velocity_field(pos: Vector3, gs: Vector4, agl: float, u: float, fw: Ve
 		e.x * n.x * s_u - e.y * n.z * s_v, n.y * s_w + a * w_burst, e.y * n.x * s_u + e.x * n.z * s_v
 	)
 	var sig := s_u
+	if _rec_on:
+		_rec[T_TURB] = tv
+		_rec_sig[T_TURB] = s_u
 	if a < 1.0:
 		# полоса края: смесь с аналитикой (два независимых шума — дисперсия сохраняется)
 		var rot := lerpf(_lee_turb, _lee_danger_turb, danger) * u * lee_a
 		var amp := _analytic_amp(pos, gs, agl, u, th, rot, above_base)
 		var ta := _analytic_turb(pos, agl, amp, fade)
 		var k := 1.0 / sqrt(a * a + (1.0 - a) * (1.0 - a))
+		if _rec_on:
+			_rec[T_TURB] = tv * (a * k)
+			_rec[T_GUST] = ta * ((1.0 - a) * k)
+			_rec_sig[T_GUST] = amp
 		tv = (tv * a + ta * (1.0 - a)) * k
 		sig = sqrt(a * s_u * s_u + (1.0 - a) * amp * amp)
 	var chaos := _in_cloud_turb * _cin.x
@@ -1160,6 +1206,8 @@ func _air_velocity_field(pos: Vector3, gs: Vector4, agl: float, u: float, fw: Ve
 	if chaos > 1.0e-3:
 		var nc := wind.gust_unit(pos * _in_cloud_scale_k, time_s * 3.0, _advect, 0.0)
 		v += nc * chaos
+		if _rec_on:
+			_rec[T_GUST] += nc * chaos
 	return v + tv
 
 
@@ -2250,26 +2298,36 @@ func wave_crests(
 # ---- разложение и отладка W7 ----
 
 
-## Слагаемые ветра в точке: {names, vel, sigma, total}. Реализация gd — три слагаемых: wind
-## (профиль ветра по высоте), flow (всё среднее остальное: поле, рельеф, термики, гроза, волна,
-## облака), turb (болтанка и порывы). total = sample(pos) побитно, Σ vel = total.xyz.
+## Слагаемые ветра в точке: {names, vel, sigma, total} (W7). Имена — T_NAMES (набор постоянный,
+## отсутствующее в точке — нули): field (поле Пикара: u, v, w_mech), analytic (профиль ветра,
+## линия тени, подветренный поток и рывки, доля аналитики в полосе края), ridge (склоновый
+## подъём), thermal (термики и фоновое опускание), storm, wave, cloud (выброс из облака),
+## turb (болтанка поля: FieldTurbulence × GustSpectrum, рывки слоя смешения), gust (шум
+## аналитики WindModel.gust_unit и бурление в облаке). Вклады со своими весами; total =
+## sample(pos, SAMPLE_FULL) побитно, Σ vel = total.xyz (погрешность float32). sigma — справочно:
+## turb — σ_u поля, gust — σ аналитики; total.w — как у sample.
 func decompose(pos: Vector3) -> Dictionary:
-	var names := PackedStringArray(["wind", "flow", "turb"])
-	var vel := PackedVector3Array([Vector3.ZERO, Vector3.ZERO, Vector3.ZERO])
-	var sigma := PackedFloat32Array([0.0, 0.0, 0.0])
+	var names := PackedStringArray(T_NAMES)
+	var n := names.size()
+	var vel := PackedVector3Array()
+	vel.resize(n)
+	var sigma := PackedFloat32Array()
+	sigma.resize(n)
 	if not _f_queryable() or not _f_finite3(pos):
 		return {"names": names, "vel": vel, "sigma": sigma, "total": Vector4()}
 	var tot := sample(pos, SAMPLE_FULL)
-	var mean := sample(pos, SAMPLE_MEAN)
-	var gh := ground.sample(pos.x, pos.z).x
-	var u := wind.speed_at_pos(maxf(pos.y - gh, 0.0), pos.y)
-	var w0 := Vector3(wind.dir.x * u, 0.0, wind.dir.z * u)
-	var mv := Vector3(mean.x, mean.y, mean.z)
-	var tv := Vector3(tot.x, tot.y, tot.z)
-	vel[0] = w0
-	vel[1] = mv - w0
-	vel[2] = tv - mv
-	sigma[2] = tot.w
+	_rec = vel
+	_rec_sig = sigma
+	_rec_on = true
+	var was := turbulence_enabled
+	turbulence_enabled = true
+	air_velocity_at(pos)
+	turbulence_enabled = was
+	_rec_on = false
+	vel = _rec
+	sigma = _rec_sig
+	_rec = PackedVector3Array()
+	_rec_sig = PackedFloat32Array()
 	return {"names": names, "vel": vel, "sigma": sigma, "total": tot}
 
 
