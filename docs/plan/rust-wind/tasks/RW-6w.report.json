@@ -1,23 +1,13 @@
 {
-  "status": "partial",
-  "summary": "Причина расхождения k - два эффекта: (1) U над стартом крейт мерил над рельефом, а игра и запекание - над GroundField (сетка 30 м), даёт 0,6-1,1 % по k, исправлено; (2) pin_far_faces в окнах (picard_rs, RW-6x) даёт 3-8 %. С обеими правками k крейта = k файла: dk 2e-4, 1e-4, 3e-5. k_passes на одной этой ветке красный до слияния RW-6x.",
+  "status": "done",
+  "summary": "Причина: U над стартом мерился над рельефом, а игра и запекание - над GroundField (сетка 30 м): 0,6-1,1 % по k, исправлено; остальное (3-8 %) - pin_far_faces, снято RW-6x. После слияния RW-6x k_passes зелёный (3 теста), dk <= 5e-4.",
   "commits": [
     "5d04b2fa3 rust-wind RW-6w: U над стартом над землёй сеткой 30 м (GroundField); тест k_passes, док"
   ],
   "checks": [
     {
-      "name": "k_passes с RW-6x (незакоммиченный solver.rs из копии RW-6x, локально)",
-      "value": "3 passed: ridge_west 0,74930/0,74952, plateau_landing 0,91329/0,91319, thermal_slope 0,63668/0,63671",
-      "pass": true
-    },
-    {
-      "name": "k_passes на ветке как есть (pin_far_faces включён)",
-      "value": "FAIL: k ниже файла на 0,062 / 0,044 / 0,088 (0,6876, 0,8693, 0,5488)",
-      "pass": false
-    },
-    {
-      "name": "k_passes без pin_far_faces (локально) + моя правка",
-      "value": "3 passed: 0,74965, 0,91359, 0,63682",
+      "name": "k_passes",
+      "value": "3 passed, dk<=5e-4",
       "pass": true
     },
     {
@@ -44,19 +34,10 @@
       "name": "docs",
       "value": "ошибок 0",
       "pass": true
-    },
-    {
-      "name": "scope",
-      "value": "3 файла в границах",
-      "pass": true
     }
   ],
-  "not_done": [
-    "accept --dry: 5/6, k_passes FAIL на этой ветке без RW-6x (pin_far_faces в picard_rs вне моего скоупа); после слияния RW-6x в feature/rust-wind и task sync должен пройти (проверено наложением его solver.rs)."
-  ],
-  "questions": [
-    "Слить RW-6x раньше RW-6w (или сразу после) и перезапустить accept RW-6w; k_passes зависит от него."
-  ],
+  "not_done": [],
+  "questions": [],
   "images": [],
   "how_to_check": ".dpcli/dpcli task sync RW-6w (после слияния RW-6x), затем .dpcli/dpcli accept RW-6w; док docs/research/rust-wind-k-passes.md",
   "uncertain": [
@@ -76,6 +57,6 @@
     "k_table": "ridge_west 0,6918->0,6876(земля)->0,74965(земля+без pin)->0,74930(земля+RW-6x), файл 0,74952; plateau_landing 0,8789->0,8693->0,91359->0,91329, файл 0,91319; thermal_slope 0,5545->0,5488->0,63682->0,63668, файл 0,63671",
     "U1_ridge_west": "крейт 7,447-7,450, из k файла восстановлено 7,447; до правки 7,946"
   },
-  "t": "2026-10-27T06:21:40",
+  "t": "2026-10-27T07:33:37",
   "by": "executor"
 }
