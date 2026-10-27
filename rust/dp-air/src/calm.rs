@@ -103,6 +103,8 @@ impl AirModel for Calm {
             progress: if self.placed { 1.0 } else { 0.0 },
             time_s: self.time_s,
             reason: String::new(),
+            stage: String::new(),
+            iters: 0,
         }
     }
 

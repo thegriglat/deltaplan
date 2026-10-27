@@ -181,6 +181,7 @@ fn job_in(
         warm,
         cancel: Arc::new(AtomicBool::new(false)),
         progress: Arc::new(AtomicU32::new(0)),
+        stage: Arc::new(StageCounter::default()),
         baked: Arc::new(Vec::new()),
         cache: None,
         place_hash: Arc::new(std::sync::OnceLock::new()),
@@ -219,6 +220,8 @@ fn load_synthetic_reaches_ready_with_finite_field() {
     wait_ready(&m, 600.0);
     let s = m.status();
     assert_eq!((s.state, s.progress, s.time_s), (State::Ready, 1.0, 0.0));
+    // готовое поле: этапа нет, счётчик сброшен
+    assert_eq!((s.stage.as_str(), s.iters), ("", 0));
     let r = m.report().unwrap();
     let p = &r.passes[0];
     eprintln!(
@@ -1978,4 +1981,27 @@ fn ongudai_medium_phases_iterations_release() {
         "ongudai medium: iterations with phases {} / without {}",
         iters[0], iters[1]
     );
+}
+
+/// W4 v4: этап и итерации задачи — этапы из `STAGES`, итерации этапа решения = итерации отчёта.
+#[test]
+fn job_stage_counter_follows_stages_and_counts_iters() {
+    let cfg = configs_with(cheap);
+    let pl = place("synthetic");
+    let c = cond("strong");
+    let ji = job_in(&cfg, |_| {}, pl, &c, true, None, None);
+    let st = ji.stage.clone();
+    let out = run_job(ji).unwrap();
+    let p = &out.report.passes[0];
+    // последний этап без окон — тепловое решение; его итерации = итерации отчёта
+    assert_eq!(st.stage(), "solve_heat");
+    assert_eq!(st.iters() as usize, p.iters[1]);
+    assert!(STAGES.contains(&st.stage()));
+    st.enter("windows");
+    assert_eq!((st.stage(), st.iters()), ("windows", 0));
+    st.add_iters(7);
+    st.add_iters(5);
+    assert_eq!(st.iters(), 12);
+    st.clear();
+    assert_eq!((st.stage(), st.iters()), ("", 0));
 }

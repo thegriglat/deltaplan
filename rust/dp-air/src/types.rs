@@ -63,6 +63,12 @@ pub struct Status {
     pub progress: f32,
     pub time_s: f64,
     pub reason: String,
+    /// Идентификатор этапа задачи поля (латиница, snake_case; `""` — нет): `lookup`,
+    /// `prepare`, `phases`, `coarse`, `solve_mech`, `solve_heat`, `windows`
+    /// (`field::runtime::STAGES`). Подпись для экрана делает потребитель.
+    pub stage: String,
+    /// Итерации решателя в текущем этапе (с его начала; этап без итераций — 0).
+    pub iters: u32,
 }
 
 /// Ядро подъёма (W6, `CORE_STRIDE = 15`).

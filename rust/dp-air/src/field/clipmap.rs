@@ -476,6 +476,7 @@ pub fn solve_windows(
         check_cancel(job)?;
         let t1 = Instant::now();
         let solved = solve_pair(cfg, &job.cancel, &mut inputs)?;
+        job.stage.add_iters(solved.iters[0] + solved.iters[1]);
         let solve_s = t1.elapsed().as_secs_f64();
         let t2 = Instant::now();
         let field = build_field(
