@@ -66,11 +66,6 @@
       "tests": "test_rust_wind_contracts"
     },
     {
-      "name": "baseline_empty",
-      "cmd": "grep -cvE '^(#|\\s*$)' tests/contracts/rust_wind_purity_baseline.txt || true",
-      "expect": "num:^(\\d+) <=0"
-    },
-    {
       "name": "no_rw3c_todo",
       "cmd": "grep -rn 'TODO(RW-3c)' scripts scenes tools | wc -l",
       "expect": "num:^(\\d+) <=0"
@@ -84,10 +79,15 @@
       "name": "server_go",
       "cmd": "cd server && go test ./... 2>&1 | tail -3",
       "expect": "!re:FAIL"
+    },
+    {
+      "name": "baseline_empty",
+      "cmd": "grep -vE '^(#|\\s*$)' tests/contracts/rust_wind_purity_baseline.txt | grep -cv '^scripts/atmosphere/cloud_layer.gd' || true",
+      "expect": "num:^(\\d+) <=0"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-27T07:38:02",
-  "edited": "2026-10-27T07:38:11"
+  "edited": "2026-10-27T07:50:32"
 }

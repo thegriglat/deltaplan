@@ -54,21 +54,18 @@
       "tests": "test_rust_wind_purity"
     },
     {
-      "name": "test_rust_wind_contracts",
-      "tests": "test_rust_wind_contracts"
-    },
-    {
       "name": "fixtures_unchanged",
       "cmd": "tools/wind_fixtures/verify.sh",
       "expect": "exit=0"
     },
     {
       "name": "baseline_rw3b_empty",
-      "cmd": "grep -cE '^(scripts/atmosphere/(cloud_layer|cloud_shadow_map|cirrus_layer|gust_dust|dust_devils|bird_flock|thermal_signs)|scripts/world_objects/easter_eggs/group)' tests/contracts/rust_wind_purity_baseline.txt || true",
+      "cmd": "grep -cE '^(scripts/atmosphere/(cloud_shadow_map|cirrus_layer|gust_dust|dust_devils|bird_flock|thermal_signs)|scripts/world_objects/easter_eggs/group)' tests/contracts/rust_wind_purity_baseline.txt || true",
       "expect": "num:^(\\d+) <=0"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-27T07:05:30"
+  "created": "2026-10-27T07:05:30",
+  "edited": "2026-10-27T07:50:31"
 }

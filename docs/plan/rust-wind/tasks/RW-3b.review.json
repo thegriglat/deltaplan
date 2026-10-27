@@ -1,0 +1,43 @@
+{
+  "verdict": "accept",
+  "summary": "Скоуп чист, 6 потребителей переведены на W2/W6, строки уходят из базы; cloud_layer.gd честно заявлен как частичный (нужен контракт W6 v4). Принять как этап, остаток — в RW-3c/контракт.",
+  "issues": [
+    {
+      "file": "scripts/atmosphere/atmosphere.gd",
+      "line": 2244,
+      "severity": "major",
+      "what": "Переходные места (_v_ground_height/_v_surface_class, передача wind в gust_dust.setup) без пометки # TODO(RW-3c): убрать и без списка в отчёте, как требовала карточка; wind (внутренняя модель) отдаётся слою — обход фасада.",
+      "fix": "Добавить TODO(RW-3c) у этих мест; список — в заметку RW-3c."
+    },
+    {
+      "file": "scripts/atmosphere/gust_dust.gd",
+      "line": 183,
+      "severity": "major",
+      "what": "Направление ветра пыли теперь из background_wind на 10 м над долиной вместо wind.dir: поведение не побитно прежнее (карточка требовала не менять); проверено только 'конечное ненулевое'.",
+      "fix": "Принять как осознанное изменение или сверить со старым значением; сообщить координатору."
+    },
+    {
+      "file": "scripts/atmosphere/thermal_signs.gd",
+      "line": 0,
+      "severity": "minor",
+      "what": "Сиды и выбор птиц/вихрей/признаков теперь от id&0xFFFFFF и cores W6, пух берёт w из sample_many: визуально иначе, чем раньше (заявлено в отчёте).",
+      "fix": "Учесть при визуальной приёмке."
+    },
+    {
+      "file": "scripts/atmosphere/cloud_layer.gd",
+      "line": 0,
+      "severity": "minor",
+      "what": "15 строк воздуха остаются в базе (Cb, поле облачности, волны); вопросы про W6 v4 открыты. Также atmosphere_preview.gd ломается на bf._flocks (вне скоупа).",
+      "fix": "Координатору: решить W6 v4 и добавить исправление preview в RW-3c."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "test_rust_wind_purity --dry",
+      "value": "2/2, scope ok",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-27T08:00:47",
+  "by": "reviewer"
+}

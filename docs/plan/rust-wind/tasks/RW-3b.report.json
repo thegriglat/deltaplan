@@ -1,0 +1,82 @@
+{
+  "status": "partial",
+  "summary": "На фасад W2 переведены птицы, знаки термиков, пылевые вихри, перистые, тени облаков и пыль порывов (cores, sample, background_wind, get_weather, status); easter_eggs/group.gd уже чист с RW-3a. cloud_layer.gd переведён только в части времени, ветра, погоды и рельефа: Cb-облака, поле облачности и волны не выражаются через W6 — нужен контракт и расширение скоупа (база храповика не пуста: cloud_layer.gd).",
+  "commits": [
+    "ac05d3042 rust-wind RW-3b: птицы, знаки термиков, пылевые вихри, перистые, тени облаков, пыль порывов — на фасад W2; cloud_layer частично"
+  ],
+  "checks": [
+    {
+      "name": "test_rust_wind_purity",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "test_rust_wind_contracts",
+      "value": "22/23: падает test_versions_match_docs (документ W2 v3, W3 v3, W4 v4, тест держит v2/v2/v3) — до моих правок, файл в dont_touch",
+      "pass": false
+    },
+    {
+      "name": "fixtures_unchanged",
+      "value": "exit 0 (488 с)",
+      "pass": true
+    },
+    {
+      "name": "baseline_rw3b_empty",
+      "value": "5 строк: все в cloud_layer.gd (AtmoThermal 7, CloudField 3, CloudPhysics 1, ThermalField 2, члены воздуха 15)",
+      "pass": false
+    },
+    {
+      "name": "tests_vs_base tests/atmosphere/",
+      "value": "копия 0 падений, база 0, новых 0 (тесты birds, gust_dust, cloud_*, atmosphere — зелёные; новый test_atmosphere_consumers 6/6)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "cloud_layer.gd: Cb-облака (выбор, слияние, окно истории history_free, стадия/размер/наковальня/осадки по AtmoThermal и CloudModel) — W6 clouds()/cores() не отдают rx и rz отдельно, активность, растекание, наковальню (storm_start), окно жизни; CloudModel (cloud_model.gd) типизирован на AtmoThermal и вне скоупа; history_free требует состояния облаков в прошлые моменты, которых фасад не даёт.",
+    "cloud_layer.gd: поле облачности (_update_field/_upload_field) — CloudField.to_image кодирует CloudFieldCodec (вне скоупа), cloud_raster() даёт массивы, но не кодек и не cfg поля (step_s, depth_max_m, edge_fade_m).",
+    "cloud_layer.gd: волны — wave_crests() есть, длины волны (wf.wavelength()) в W6 нет; лентикулярные и шапка на ней строятся.",
+    "gust_dust.gd: источник приземного ветра и шума порывов GustDustModel (WindModel.gust_unit/speed_at по слоту времени, в том числе прошлому) в фасаде отсутствует — передан слою реализацией при создании (аргумент wind_source из Atmosphere._create_visuals). Имя WindModel в потребителе нет, храповик чист, но по сути это обход до RW-8.",
+    "atmosphere_preview.gd (не мой скоуп): строка про bf._flocks[0][0] как AtmoThermal и .axis_at ломается — стая теперь держит запись ядра; заменить на BirdFlock.core_axis_at(bf._flocks[0][0], y)."
+  ],
+  "questions": [
+    "Нужен контракт W6 v4 (или расширение скоупа) для cloud_layer: (1) отдавать в clouds() для Cb полные поля записи: rx, rz, h, spread, activity, anvil, rain, seed, vis/life_fade, far; (2) решить судьбу history_free (облака в прошлые моменты или отказ от режима — воздух у клиентов теперь свой); (3) длина волны (cloud_raster/wave) и кодек поля облачности для cloud_layer; (4) либо разрешить мне править cloud_model.gd/cloud_field_codec.gd/dust_model.gd/gust_dust_model.gd (вне скоупа), либо отдельная задача.",
+    "Добавить в W6 cores(): длительности роста/зрелости/распада (сейчас восстанавливаются: огибающая — из стадии точно, длительность роста — по доле роста в жизни из конфига)."
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-3b --dry; тесты: --filter=test_atmosphere_consumers, test_birds, test_gust_dust, rust_wind_purity",
+  "uncertain": [
+    {
+      "where": "scripts/atmosphere/thermal_signs.gd, dust_devils.gd, bird_flock.gd",
+      "why": "Термики берутся из cores (W6): id = id & 0xFFFFFF, сид и случайные выборки (кто с вихрем/признаком) отличаются от прежних (id 32-битный); длительность роста для «молодости» и старта вихря — оценка по доле роста в жизни (grow_s/(grow+mature+decay) по конфигу), точная только пока идёт рост (стадия < 1); положение источника — ось с учётом сноса. Визуал не сравнивался со сборкой main.",
+      "checked": "unit-тесты test_atmosphere_consumers (разбор ядер, огибающая из стадии = envelope, признаки у статического термика, вихрь по правилам DustModel.devil), test_birds; на сборке Linux не смотрел."
+    },
+    {
+      "where": "scripts/atmosphere/thermal_signs.gd:_fluff_table/_fluff_start",
+      "why": "Пух раньше брал w из ThermalField.sample (только термик, w≈0,55 м/с уже на 1 м); теперь w — из sample_many SAMPLE_MEAN (полный средний ветер: у земли вертикаль → 0). Старт пуха — с самой низкой высоты таблицы, где подъём ≥ 2·оседание; таблица 16×3 строится раз в секунду (не опрос на каждую пушинку в кадре: иначе ~700 точек полного ветра на кадр).",
+      "checked": "test_fluff_rises_with_updraft: пух поднимается над статическим термиком 3 м/с. Вид на экране не проверял."
+    },
+    {
+      "where": "scripts/atmosphere/cirrus_layer.gd, dust_devils.gd, gust_dust.gd, cloud_layer.gd",
+      "why": "Фоновый ветер вместо wind.vec2_at(agl): background_wind(MSL), высота = valley_msl_m + agl (опорная земля — долина, раньше _ground_ref — среднее по месту) и с поправкой высоты места (altitude_factor), которой в vec2_at не было — дрейф перистых/вихрей/облачного шума слегка иной.",
+      "checked": "только что получается конечное ненулевое значение; сравнения со старым значением нет."
+    },
+    {
+      "where": "bird_flock.gd, thermal_signs.gd, dust_devils.gd, gust_dust.gd, cloud_layer.gd",
+      "why": "Без get_focus()/focus_node (их нет в W2): наблюдатель — активная камера, иначе (0,0,0); для тестов и превью добавлен eye_fn. Курс пилота у птиц — по сдвигу камеры, иначе по её взгляду; раньше — фокус-узел атмосферы (пилот). Для режима, где камера не у пилота, поведение чуть иное.",
+      "checked": "test_birds (с eye_fn = get_focus)."
+    },
+    {
+      "where": "scripts/atmosphere/atmosphere.gd:_v_ground_height/_v_surface_class",
+      "why": "Рельеф и класс поверхности слоям отдаёт реализация вызываемыми значениями при создании (в W2 их нет): это не воздух, но и не пункт контракта.",
+      "checked": "test_gust_dust::test_node_scan_fills_pool, tests/atmosphere/ против базы — без новых падений."
+    }
+  ],
+  "dp_feedback": "accept --dry на проверке fixtures_unchanged идёт ~8 минут при том, что в скоупе только визуальные потребители; удобно было бы пропускать её, если ни scripts/atmosphere/air_model, ни фасадные методы не менялись. tests_vs_base --filter по пути работает хорошо.",
+  "extra": {
+    "baseline_before": "AtmoThermal 28, члены воздуха 42 по 7 файлам потребителей",
+    "baseline_after": "cloud_layer.gd: AtmoThermal 7, CloudField 3, CloudPhysics 1, ThermalField 2, члены 15; остальные файлы — 0",
+    "files": "bird_flock, thermal_signs, dust_devils, cirrus_layer, cloud_shadow_map, gust_dust, cloud_layer (частично), atmosphere (только _v_* и создание слоёв)"
+  },
+  "t": "2026-10-27T07:50:04",
+  "by": "executor"
+}
