@@ -5,9 +5,9 @@ module: "rust-wind"
 area: "air"
 updated: "2026-10-27"
 summary: "RW-6q: T1 по 8 запечённым полям после RW-6v, T2/T4/T4a/T8, бенч Formula, загрузка Онгудая против GPU"
-conclusion: "После RW-6v (стенки, climate_lag) область 400 м у lee_bowl, crater_ridge и east_cliffs в допуске W8, но окна 50/100 м всех полей расходятся на метры в секунду из-за pin_far_faces (picard_rs): без него lee_bowl и окна thermal_plain/crater_ridge/east_cliffs в допуске (0,5–0,7); открыты landing_hill (RW-6u), k у start-полей и thermal_slope; бенч Formula запас 15–6000 раз; загрузка Онгудая на 2 потоках tol_scale 1 — 192 с"
+conclusion: "После RW-6v и RW-6x (дальние грани w тёплых стартов окна — nest.ubw, а не 0) T1 в допуске W8 у lee_bowl, crater_ridge, east_cliffs (все уровни) и окон 50/100 м thermal_plain; открыты landing_hill (RW-6u, 300–550×), ridge_west, plateau_landing, thermal_slope (k в допуске, поле 5–314×) и область 400 м thermal_plain (9,8×); бенч Formula запас 15–6000 раз; загрузка Онгудая на 2 потоках tol_scale 1 — 192 с"
 data: "rust/dp-air/benches/baseline.json"
-applied_in: "RW-6q"
+applied_in: "RW-6q, RW-6x"
 related: ["docs/plan/rust-wind.md", "docs/research/rust-wind-field-path.md", "docs/contracts/rust-wind.md", "docs/contracts/rust-wind/fixtures-tolerances.md", "docs/contracts/rust-wind/input.md", "docs/contracts/picard-rs.md", "docs/guide/air-model-gpu/clipmap.md", "docs/guide/air-model-gpu/picard.md", "tests/fixtures/wind/README.md"]
 ---
 
@@ -17,9 +17,9 @@ related: ["docs/plan/rust-wind.md", "docs/research/rust-wind-field-path.md", "do
 
 ## Итог
 
-1. **T1 сильный ветер — частично.** После RW-6v (W11 v9 стенки, W5 v7 `climate_lag`) 8 запечённых полей пересчитаны крейтом и сверены (допуск `1e-3·u0` + полкванта f16, θ′ 0,05 К + полкванта): в допуске **область 400 м у `lee_bowl`, `crater_ridge`, `east_cliffs`** (обычные тесты `t1_*_area`). Остальное красное и вынесено в `t1_open_*` (`#[ignore]`, приёмка их пропускает), таблица ниже.
-2. **Дефект RW-6v: `pin_far_faces` ломает окна.** Тот же прогон с отключённым вызовом `pin_far_faces()` (в `init_warm` и `init_parent`; локально, не закоммичено) даёт ровно то, что предсказывал опыт RW-6q: окна 50/100 м у `lee_bowl`, `thermal_plain`, `crater_ridge`, `east_cliffs` в допуске (0,5–0,7), а с ним — на метры в секунду (`lee_bowl` dx50 Δu 4,6 м/с). Для окон ей должны браться значения родителя (вложенная граница), не `ubg`. Зато с ней область 400 м у `crater_ridge`/`east_cliffs` укладывается (без неё 2,3×). Нужно: `pin_far_faces` — только для области, не для окон (W11, `picard_rs`; вне скоупа RW-6q). Ответ координатору: `RW-6q contract:`.
-3. **Не сходится независимо от этого:** `landing_hill` (слабый ветер, 300–550×, RW-6u), `k` у «start»-полей (ridge_west 0,7542/0,7495, plateau_landing 0,9237/0,9132, thermal_slope 0,6435/0,6367), `thermal_slope`, область 400 м у `thermal_plain` (9,8×).
+1. **T1 сильный ветер — частично.** После RW-6v (W11 v9 стенки, W5 v7 `climate_lag`) и RW-6x (см. п. 2) 8 запечённых полей пересчитаны крейтом и сверены (допуск `1e-3·u0` + полкванта f16, θ′ 0,05 К + полкванта): в допуске **все уровни `lee_bowl`, `crater_ridge`, `east_cliffs` и окна 50/100 м `thermal_plain`** (обычные тесты `t1_*_area`, `t1_*_windows`). Остальное красное и вынесено в `t1_open_*` (`#[ignore]`, приёмка их пропускает), таблица ниже.
+2. **Дефект RW-6v и правка RW-6x.** Окна 50/100 м всех полей расходились на метры в секунду (`lee_bowl` dx50 Δu 4,6 м/с). Отключение `pin_far_faces()` (RW-6q, локально) их лечило, но роняло область 400 м (2,3×); причина оказалась уже: `pin_far_faces` ставил `w = 0` на всех гранях `w` типа ≥ 2, а у окна на дальних гранях `w` типа 3 граница родителя (`nest.ubw`) не нулевая (`K_BC` игры берёт `ubw`). Правка (W11 v9, уточнение): `w` типа ≥ 2 := `nest.ubw` (без `nest` — 0); `u`, `v` типа 3 := `ubg`/`vbg` случая (у области — фон, у окна `window_solver_case` кладёт туда значения родителя) — как было. Окна пришли в допуск (0,57–0,69), область 400 м осталась в допуске (0,60–0,80). Тест: `rust/picard_rs/tests/far_faces_v9.rs`.
+3. **Не сходится независимо от этого:** `landing_hill` (слабый ветер, 300–550×, RW-6u), `ridge_west` (5,6×), `plateau_landing` (17,5×), `thermal_slope` (314×; `k` у трёх последних теперь в допуске 0,02: 0,7538/0,7495, 0,9234/0,9132, 0,6434/0,6367), область 400 м у `thermal_plain` (9,8×).
 4. **Остальные пункты** — зелёные: T2, T4 (оба решения сошлись, `div_rms` в критерии), T4a (грубый старт −37 % тонких итераций на Онгудае при AP-20 −30 %), T8 (побитно при 2/4/20 потоках, с окнами тоже), `pilot_left_baked` как в игре (тест был красным на старом коде), NaN-история решателя не доходит до отчётов.
 5. **Бенч `Formula`:** 18 точек 3,3 мкс (порог 50), 1000 — 75 мкс (2000), `advance_to` в покое 0,08 мкс (500); запас ≥ 15 раз.
 6. **Загрузка Онгудая:** на 8 потоках 45–144 с (tol_scale 5 / 1, без окон / с окнами), на 2 потоках 104–321 с; область при `tol_scale = 1` на 2 потоках — 191,8 с > `air.timeout_s` 180. Рекомендация: таймаут от числа потоков (раздел внизу).
@@ -28,7 +28,7 @@ related: ["docs/plan/rust-wind.md", "docs/research/rust-wind-field-path.md", "do
 
 | пункт | тест (`acceptance.rs`) | другой набор |
 |---|---|---|
-| T1 сильный ветер, 8 полей | `t1_*_area` ×3 (`--ignored`, зелёные); `t1_open_*` ×8 (`--ignored`, красные, пропускаются) | — |
+| T1 сильный ветер, 8 полей | `t1_*_area` ×3 и `t1_*_windows` ×4 (`--ignored`, зелёные: область и окна lee_bowl, crater_ridge, east_cliffs, окна thermal_plain); `t1_open_*` ×5 (`--ignored`, красные, пропускаются) | — |
 | T1 слабый ветер | — (RW-6u) | |
 | T2 штиль | `t2_calm_field_is_near_zero` | `runtime.rs` `calm_is_frozen_*` |
 | T2 пределы 40 и 10 м/с | `t2_limits_hold_end_to_end` (пределы 3 / 0,5 через `Formula`), `t2_extreme_wind_is_finite` (U10 40) | `wind_field.rs` `t2_limits_are_enforced` |
@@ -50,27 +50,26 @@ related: ["docs/plan/rust-wind.md", "docs/research/rust-wind-field-path.md", "do
 
 **Метод.** `Formula` с местом острова (`tests/fixtures/wind/places/{training_island,volcano_island}` — слой `detail` 25 м, экспорт `tools/wind_fixtures/run.sh --synthetic --places-only`; месяц/день — набор погоды первого старта: учебный 7.15, вулканический 1.15), условия из `key.weather` файла (`forecast`: T, `wind_speed_ms·3,6`, направление, небо; `quantum_h` 0,5; `inflow_mode` из `wind_ref`), фокус = `key.start`, `tol_scale` 1, `air.deterministic`, 8 потоков, запечённое и кеш выключены (`model_hash ""`). Три уровня `clip().levels()` против `parse_baked`: сетка совпадает во всех 24 уровнях (размеры, `dx`, `dz`, `x0`, `y0`, `z_bot`). Допуск по каналу: `1e-3·u0 + полкванта f16 от максимума канала` (u, v, w_mech, w_conv; `u0` — максимум |(u,v)| уровня файла), θ′ — `0,05 К + полкванта`. Итераций в файлах нет — число итераций не сверяется (в карточке «если есть»); `k` сверяется (допуск 0,02).
 
-**Результат после RW-6v (во сколько раз max Δ больше допуска; настоящий прогон `t1_` с `--nocapture`).** «Как есть» — ветка с `pin_far_faces`; «без pin» — тот же прогон с отключённым вызовом `pin_far_faces()` (локально, не закоммичено). ≤ 1× — в допуске.
+**Результат после RW-6x (во сколько раз max Δ больше допуска; настоящий прогон `t1_open_` и `t1_` с `--nocapture`; в скобках — «до» RW-6x, с прежним `pin_far_faces`, итог RW-6q). ≤ 1× — в допуске.**
 
-| поле | dx50 как есть / без pin | dx100 как есть / без pin | dx400 как есть / без pin |
+| поле | dx50 | dx100 | dx400 |
 |---|---|---|---|
-| training_island/landing_hill (1 м/с, ясно, 9 ч) | 492,1× / 473,0× | 548,4× / 548,0× | 310,2× / 310,2× |
-| training_island/lee_bowl (8,5 м/с, инфлоу) | 162,9× / 0,5× | 81,6× / 0,5× | 0,6× / 0,8× |
-| training_island/ridge_west (6 м/с, start) | 66,9× / 5,0× | 58,5× / 5,0× | 60,0× / 20,5× |
-| training_island/thermal_plain (2 м/с, 180°) | 123,1× / 0,6× | 13,3× / 0,7× | 9,8× / 9,8× |
-| volcano_island/crater_ridge (6 м/с, инфлоу) | 40,9× / 0,6× | 66,8× / 0,7× | 0,8× / 2,3× |
-| volcano_island/east_cliffs (6 м/с, start) | 31,1× / 0,5× | 5,7× / 0,5× | 0,8× / 2,3× |
-| volcano_island/plateau_landing (2 м/с) | 43,9× / 7,9× | 27,5× / 8,7× | 59,6× / 43,8× |
-| volcano_island/thermal_slope (3 м/с, 15 ч) | 120,3× / 16,0× | 584,3× / 217,3× | 483,2× / 280,4× |
+| training_island/landing_hill (1 м/с, ясно, 9 ч) | 473,0× (492,1×) | 548,0× (548,4×) | 310,2× (310,2×) |
+| training_island/lee_bowl (8,5 м/с, инфлоу) | 0,57× (162,9×) | 0,57× (81,6×) | 0,60× (0,6×) |
+| training_island/ridge_west (6 м/с, start) | 5,0× (66,9×) | 4,9× (58,5×) | 5,6× (60,0×) |
+| training_island/thermal_plain (2 м/с, 180°) | 0,60× (123,1×) | 0,69× (13,3×) | 9,8× (9,8×) |
+| volcano_island/crater_ridge (6 м/с, инфлоу) | 0,56× (40,9×) | 0,64× (66,8×) | 0,80× (0,8×) |
+| volcano_island/east_cliffs (6 м/с, start) | 0,63× (31,1×) | 0,63× (5,7×) | 0,80× (0,8×) |
+| volcano_island/plateau_landing (2 м/с) | 8,1× (43,9×) | 8,1× (27,5×) | 17,5× (59,6×) |
+| volcano_island/thermal_slope (3 м/с, 15 ч) | 16,1× (120,3×) | 136,8× (584,3×) | 314,1× (483,2×) |
 
-`k` крейта / файла как есть: landing_hill 0,3000/0,3000; lee_bowl, thermal_plain, crater_ridge, east_cliffs 1,0000/1,0000; ridge_west 0,6918/0,7495; plateau_landing 0,8789/0,9132; thermal_slope 0,5545/0,6367 (допуск 0,02: три последних за допуском; без pin 0,7542, 0,9237, 0,6435 — в допуске, но подбор `k` с ним сдвигается: второй проход стартует с другого поля). Стена на 8 потоках: 24–99 с на поле.
+`k` крейта / файла: landing_hill 0,3000/0,3000; lee_bowl, thermal_plain, crater_ridge, east_cliffs 1,0000/1,0000; ridge_west 0,7538/0,7495; plateau_landing 0,9234/0,9132; thermal_slope 0,6434/0,6367 (все в допуске 0,02). Стена на 8 потоках: 15–72 с на поле.
 
 Подробно (Δu, Δv, Δw_mech, Δw_conv, Δθ по каждому полю и уровню) — вывод `cargo test --release -p dp-air --test acceptance t1_ -- --ignored --nocapture`, строки `T1 …`.
 
 Что осталось:
-- **`pin_far_faces` в окнах** (пункт 2 итога): правка в `picard_rs` (вне скоупа).
 - **`landing_hill`** (слабый ветер 1 м/с, ясно, утро, область заморожена целиком, 0 итераций): окна и область расходятся на 0,3–1,9 м/с и до 0,5 К при u0 2,5 — слабый ветер и фазы, раздел T1 «слабый» (RW-6u).
-- **`k` у полей «start»** и **`thermal_slope`** (RW-6w): сдвиг `k` второго прохода 3–8 % с `pin_far_faces`, 0,6–1,1 % без; поле расходится в десятки–сотни раз.
+- **`ridge_west`, `plateau_landing`, `thermal_slope`** (RW-6w): `k` второго прохода в допуске (сдвиг 0,6–1,1 %), поле расходится в 5–314 раз.
 - **Область 400 м у `thermal_plain`** (9,8×, Δv при u0 5,3): не исследована.
 - Итерации GPU в файлах не записаны, число итераций не сверяется.
 
