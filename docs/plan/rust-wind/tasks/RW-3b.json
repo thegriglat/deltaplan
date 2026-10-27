@@ -1,0 +1,74 @@
+{
+  "id": "RW-3b",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Потребители в scripts/atmosphere (облака, пыль, птицы, знаки термиков, пасхалки) — на фасад W2",
+  "goal": "Облака, тени облаков, перистые, пыль порывов и вихри, птицы, знаки термиков и группа пасхалок берут воздух только через фасад W2 (sample_many, описания W6, weather через get_weather(), сигналы W2); их строки уходят из базы храповика W10; поведение игры не меняется (эталоны побитно).",
+  "plan_ref": "План переноса",
+  "contracts": [
+    {
+      "name": "W2",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W6",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W10",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-3b",
+  "branch": "rust-wind/RW-3b",
+  "base": "feature/rust-wind",
+  "scope": [
+    "scripts/atmosphere/cloud_layer.gd",
+    "scripts/atmosphere/cloud_shadow_map.gd",
+    "scripts/atmosphere/cirrus_layer.gd",
+    "scripts/atmosphere/gust_dust.gd",
+    "scripts/atmosphere/dust_devils.gd",
+    "scripts/atmosphere/bird_flock.gd",
+    "scripts/atmosphere/thermal_signs.gd",
+    "scripts/world_objects/easter_eggs/group.gd",
+    "scripts/atmosphere/atmosphere.gd",
+    "tests/contracts/rust_wind_purity_baseline.txt",
+    "tests/atmosphere/",
+    "tests/world_objects/"
+  ],
+  "dont_touch": [
+    "docs/contracts/",
+    "scripts/atmosphere/air_model/",
+    "rust/",
+    "tests/fixtures/",
+    "configs/",
+    "tests/contracts/test_rust_wind_contracts.gd",
+    "scripts/game/"
+  ],
+  "accept": [
+    {
+      "name": "test_rust_wind_purity",
+      "tests": "test_rust_wind_purity"
+    },
+    {
+      "name": "test_rust_wind_contracts",
+      "tests": "test_rust_wind_contracts"
+    },
+    {
+      "name": "fixtures_unchanged",
+      "cmd": "tools/wind_fixtures/verify.sh",
+      "expect": "exit=0"
+    },
+    {
+      "name": "baseline_rw3b_empty",
+      "cmd": "grep -cE '^(scripts/atmosphere/(cloud_layer|cloud_shadow_map|cirrus_layer|gust_dust|dust_devils|bird_flock|thermal_signs)|scripts/world_objects/easter_eggs/group)' tests/contracts/rust_wind_purity_baseline.txt || true",
+      "expect": "num:^(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-27T07:05:30"
+}

@@ -1,0 +1,86 @@
+{
+  "id": "RW-6y",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Счётчик итераций этапа в статусе крейта и DpAir (W2 v3, W3 v3, W4 v4); версия API 3; dp-air без игрового (W10 v2)",
+  "goal": "Status крейта несёт stage (идентификатор этапа) и iters (итерации решателя в текущем этапе), Formula обновляет их из оркестровки поля, DpAir отдаёт stage()/iters(); версия API = 3 во всех константах и контрактных тестах (Rust и GDScript) — контрактные тесты зелёные; проверка cargo tree: dp-air без godot.",
+  "plan_ref": "План переноса",
+  "contracts": [
+    {
+      "name": "W2",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W3",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W4",
+      "version": "4",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W10",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-6y",
+  "branch": "rust-wind/RW-6y",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/",
+    "rust/dp-air/tests/",
+    "rust/dp-gd/src/",
+    "rust/dp-gd/tests/",
+    "rust/dp-stand/src/",
+    "scripts/atmosphere/atmosphere.gd",
+    "scripts/game/calm_air.gd",
+    "tests/contracts/test_rust_wind_contracts.gd",
+    "tests/contracts/test_dp_air_ext.gd"
+  ],
+  "dont_touch": [
+    "docs/contracts/",
+    "rust/picard_rs/",
+    "rust/dp-air/src/field/case_build.rs",
+    "tests/fixtures/",
+    "configs/",
+    "scenes/",
+    "scripts/ui/"
+  ],
+  "accept": [
+    {
+      "name": "test_rust_wind_contracts",
+      "tests": "test_rust_wind_contracts"
+    },
+    {
+      "name": "test_dp_air_ext",
+      "tests": "test_dp_air_ext"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dp_air_no_godot",
+      "cmd": "cargo tree --manifest-path rust/Cargo.toml -p dp-air -e normal | grep -ci godot || true",
+      "expect": "num:^(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-27T07:04:33"
+}
