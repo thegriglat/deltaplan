@@ -25,7 +25,7 @@ signal weather_updated
 signal state_changed(state: int)
 
 # ---- Фасад W2 (docs/contracts/rust-wind.md): константы ----
-const WIND_API_VERSION := 2
+const WIND_API_VERSION := 3
 const STATE_EMPTY := 0
 const STATE_LOADING := 1
 const STATE_READY := 2

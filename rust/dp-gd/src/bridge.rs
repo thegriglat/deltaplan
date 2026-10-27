@@ -7,7 +7,7 @@ use dp_air::{
 };
 use std::sync::{Arc, OnceLock};
 
-pub const WIND_API_VERSION: i64 = 2;
+pub const WIND_API_VERSION: i64 = 3;
 pub const OK: i64 = 0;
 pub const BAD_INPUT: i64 = 1;
 pub const NO_PLACE: i64 = 2;
@@ -238,6 +238,16 @@ impl Bridge {
 
     pub fn status_reason(&self) -> String {
         self.model.status().reason
+    }
+
+    /// Идентификатор этапа задачи поля (`""` — нет).
+    pub fn stage(&self) -> String {
+        self.model.status().stage
+    }
+
+    /// Итерации решателя в текущем этапе.
+    pub fn iters(&self) -> i64 {
+        i64::from(self.model.status().iters)
     }
 
     pub fn sample_many(&self, pts: &[[f32; 3]], mode: i64, out: &mut [[f32; 4]]) {

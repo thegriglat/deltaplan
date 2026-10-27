@@ -208,6 +208,7 @@ fn job_in_at(
         warm,
         cancel: Arc::new(AtomicBool::new(false)),
         progress: Arc::new(AtomicU32::new(0)),
+        stage: Arc::new(StageCounter::default()),
         baked: Arc::new(Vec::new()),
         cache: None,
         place_hash: Arc::new(OnceLock::new()),

@@ -47,8 +47,8 @@ use crate::field::clipmap::{ClipMap, WinReport, run_shift};
 use crate::field::field_cache::FieldCache;
 use crate::field::field_set::FieldSet;
 use crate::field::runtime::{
-    BakedEntry, CondRec, Faults, JobErr, JobIn, JobOut, JobReport, Pair, RtCfg, Source, dir_key,
-    ground_height, needs_recompute, run_job, slot, slot_hour,
+    BakedEntry, CondRec, Faults, JobErr, JobIn, JobOut, JobReport, Pair, RtCfg, Source,
+    StageCounter, dir_key, ground_height, needs_recompute, run_job, slot, slot_hour,
 };
 use crate::field::weather_core::{WeatherInputs, hour_at};
 use crate::field::wind_field::Limits;
@@ -85,6 +85,7 @@ struct Shared {
     published: RwLock<Arc<Published>>,
     state: AtomicU8,
     progress: Arc<AtomicU32>,
+    stage: Arc<StageCounter>,
     time_bits: AtomicU64,
     reason: Mutex<String>,
     /// Журнал последней поданной задачи.
@@ -104,6 +105,7 @@ impl Shared {
             })),
             state: AtomicU8::new(State::Empty.as_int() as u8),
             progress: Arc::new(AtomicU32::new(0f32.to_bits())),
+            stage: Arc::new(StageCounter::default()),
             time_bits: AtomicU64::new(0f64.to_bits()),
             reason: Mutex::new(String::new()),
             report: Mutex::new(None),
@@ -147,6 +149,7 @@ impl Shared {
 
     fn set_state(&self, s: State, progress: f32, reason: &str) {
         self.progress.store(progress.to_bits(), Ordering::Relaxed);
+        self.stage.clear();
         *lock(&self.reason) = reason.to_string();
         self.state.store(s.as_int() as u8, Ordering::SeqCst);
     }
@@ -678,11 +681,14 @@ impl Formula {
         let epoch = self.sh.epoch.load(Ordering::SeqCst);
         let cancel = Arc::new(AtomicBool::new(false));
         let slot = Slot::new();
-        let progress = if matches!(kind, Kind::Flight | Kind::Shift) {
-            Arc::new(AtomicU32::new(0f32.to_bits()))
+        let (progress, stage) = if matches!(kind, Kind::Flight | Kind::Shift) {
+            (
+                Arc::new(AtomicU32::new(0f32.to_bits())),
+                Arc::new(StageCounter::default()),
+            )
         } else {
             self.sh.set_state(State::Loading, 0.0, "");
-            self.sh.progress.clone()
+            (self.sh.progress.clone(), self.sh.stage.clone())
         };
         let loading = kind == Kind::Load;
         let blend_s = cond.blend_s.unwrap_or(cfg.blend_s);
@@ -713,6 +719,7 @@ impl Formula {
             },
             cancel: cancel.clone(),
             progress,
+            stage,
             baked: self.baked.clone(),
             cache: self.cache_dir.as_ref().map(|d| FieldCache {
                 dir: d.clone(),
@@ -1144,6 +1151,8 @@ impl AirModel for Formula {
             progress: f32::from_bits(self.sh.progress.load(Ordering::Relaxed)),
             time_s: f64::from_bits(self.sh.time_bits.load(Ordering::SeqCst)),
             reason: lock(&self.sh.reason).clone(),
+            stage: self.sh.stage.stage().to_string(),
+            iters: self.sh.stage.iters(),
         }
     }
 

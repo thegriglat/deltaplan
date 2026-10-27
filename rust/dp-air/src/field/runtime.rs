@@ -870,6 +870,8 @@ pub struct JobIn {
     pub cancel: Arc<AtomicBool>,
     /// Доля готовности 0..1 (биты `f32`).
     pub progress: Arc<AtomicU32>,
+    /// Этап и его итерации (`Status::stage/iters`).
+    pub stage: Arc<StageCounter>,
     /// Запечённые поля места (`add_baked_field`).
     pub baked: Arc<Vec<BakedEntry>>,
     /// Кеш полей (`set_cache_dir`); `None` — выключен.
@@ -922,6 +924,85 @@ pub struct JobReport {
     pub windows: Vec<WinReport>,
     /// Окна не посчитались — подана только область: причина (в `Status.reason`).
     pub windows_error: Option<String>,
+}
+
+/// Этапы задачи поля (идентификаторы `Status::stage`), в порядке работы.
+pub const STAGES: [&str; 7] = [
+    "lookup",
+    "prepare",
+    "phases",
+    "coarse",
+    "solve_mech",
+    "solve_heat",
+    "windows",
+];
+
+/// Текущий этап задачи и итерации решателя в нём (W4 v4): читается из любого потока без
+/// блокировок. Итерации идущего решения приходят от решателя (`SolveOpts.progress`, W11 v10),
+/// законченных решений этапа — копятся в `base`.
+#[derive(Debug, Default)]
+pub struct StageCounter {
+    /// 0 — нет этапа, иначе индекс в [`STAGES`] + 1.
+    idx: AtomicU32,
+    /// Итерации законченных решений этапа.
+    base: AtomicU32,
+    /// Итерации идущего решения (пишет решатель).
+    cur: Arc<AtomicU32>,
+    /// Нечётное — перенос `cur` в `base` идёт: читатель повторяет.
+    gen_: AtomicU32,
+}
+
+impl StageCounter {
+    /// Начало этапа `name` (из [`STAGES`]): итерации с нуля.
+    pub fn enter(&self, name: &str) {
+        let i = STAGES.iter().position(|s| *s == name).map_or(0, |i| i + 1);
+        self.transfer(|| {
+            self.base.store(0, Ordering::Relaxed);
+            self.cur.store(0, Ordering::Relaxed);
+        });
+        self.idx.store(i as u32, Ordering::Relaxed);
+    }
+    fn transfer(&self, f: impl FnOnce()) {
+        self.gen_.fetch_add(1, Ordering::SeqCst);
+        f();
+        self.gen_.fetch_add(1, Ordering::SeqCst);
+    }
+    /// Счётчик для `SolveOpts.progress` следующего решения.
+    pub fn solve_counter(&self) -> Arc<AtomicU32> {
+        self.cur.clone()
+    }
+    /// Решение закончено, сделало `n` итераций: в копилку этапа.
+    pub fn end_solve(&self, n: usize) {
+        let n = u32::try_from(n).unwrap_or(u32::MAX);
+        self.transfer(|| {
+            let v = self.base.load(Ordering::Relaxed).saturating_add(n);
+            self.base.store(v, Ordering::Relaxed);
+            self.cur.store(0, Ordering::Relaxed);
+        });
+    }
+    pub fn clear(&self) {
+        self.enter("");
+    }
+    /// Идентификатор этапа (`""` — нет).
+    pub fn stage(&self) -> &'static str {
+        match self.idx.load(Ordering::Relaxed) {
+            0 => "",
+            i => STAGES.get(i as usize - 1).copied().unwrap_or(""),
+        }
+    }
+    pub fn iters(&self) -> u32 {
+        loop {
+            let g = self.gen_.load(Ordering::SeqCst);
+            let v = self
+                .base
+                .load(Ordering::Relaxed)
+                .saturating_add(self.cur.load(Ordering::Relaxed));
+            if g.is_multiple_of(2) && self.gen_.load(Ordering::SeqCst) == g {
+                return v;
+            }
+            std::hint::spin_loop();
+        }
+    }
 }
 
 fn set_progress(job: &JobIn, pass: usize, passes: usize, x: f32) {
@@ -1120,13 +1201,14 @@ pub(crate) struct Spec {
 }
 
 fn solve_one(job: &JobIn, case: &Case, init: Option<State>, spec: Spec) -> Result<Solved, JobErr> {
-    solve_with(&job.cfg, &job.cancel, case, init, spec)
+    solve_with(&job.cfg, &job.cancel, Some(&job.stage), case, init, spec)
 }
 
 /// Одно решение `picard_rs` с отменой и разбором причины остановки (без предела по времени).
 pub(crate) fn solve_with(
     cfg: &RtCfg,
     cancel: &Arc<AtomicBool>,
+    stage: Option<&StageCounter>,
     case: &Case,
     init: Option<State>,
     spec: Spec,
@@ -1139,6 +1221,7 @@ pub(crate) fn solve_with(
         init,
         freeze: spec.freeze,
         init_cycles: spec.init_cycles,
+        progress: stage.map(StageCounter::solve_counter),
         cancel: Some(cancel.clone()),
         fallback: spec.fallback.then_some(Fallback {
             omega_after: cfg.omega_after,
@@ -1149,6 +1232,9 @@ pub(crate) fn solve_with(
         ..SolveOpts::default()
     };
     let s = solve(case, &opts).map_err(|e| JobErr::Failed(format!("solver: {e:#}")))?;
+    if let Some(st) = stage {
+        st.end_solve(s.iters);
+    }
     match s.stop {
         StopReason::Cancelled => Err(JobErr::Cancelled),
         StopReason::Diverged => Err(JobErr::Failed(format!(
@@ -1192,6 +1278,7 @@ fn solve_pass(
     let t0 = Instant::now();
     check_cancel(job)?;
     set_progress(job, pass, passes, 0.0);
+    job.stage.enter("prepare");
     let fine_dom = domain_for(&job.place, cfg)?;
     let want_coarse = prev.is_none() && cfg.coarse_factor > 1;
     let coarse_dom = coarse_domain(&fine_dom, cfg.coarse_factor);
@@ -1216,6 +1303,7 @@ fn solve_pass(
     let t_prep = t0.elapsed().as_secs_f64();
     set_progress(job, pass, passes, 0.15);
     check_cancel(job)?;
+    job.stage.enter("phases");
     let t_ph = Instant::now();
     let phase = if cfg.faults.no_phase {
         None
@@ -1261,6 +1349,7 @@ fn solve_pass(
         }
     }
     let t1 = Instant::now();
+    job.stage.enter("coarse");
     if start == Start::Cold
         && !all_mech
         && let Some(c) = &coarse
@@ -1297,8 +1386,10 @@ fn solve_pass(
         nonconv,
         init_cycles: None,
     };
+    job.stage.enter("solve_mech");
     let sm = solve_one(job, &fine.case_m, init_m, spec(fr_m, nonconv.clone()))?;
     set_progress(job, pass, passes, 0.6);
+    job.stage.enter("solve_heat");
     let sh = solve_one(job, &fine.case_h, init_h, spec(fr_h, nonconv))?;
     set_progress(job, pass, passes, 0.9);
     let t_solve = t2.elapsed().as_secs_f64();
@@ -1429,6 +1520,7 @@ fn windows_of(
         },
     });
     let corners = plan.corners.clone();
+    job.stage.enter("windows");
     let progress = |x: f32| set_progress(job, pass, passes, 0.9 + 0.1 * x);
     match solve_windows(job, &area, area_field, k, plan, &progress) {
         Ok(w) => Ok((w.clip.levels(), Some(w.clip), w.reports, None)),
@@ -1599,6 +1691,7 @@ pub fn run_job(job: JobIn) -> Result<JobOut, JobErr> {
     let cfg = job.cfg.clone();
     let mut notes = Vec::new();
     let mut ckey = None;
+    job.stage.enter("lookup");
     if job.loading {
         match pick_baked(&job) {
             Ok(b) => return Ok(from_file(job, b, Source::Baked, t0, notes)),

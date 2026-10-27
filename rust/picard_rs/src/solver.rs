@@ -97,6 +97,9 @@ pub struct RunLimits<'a> {
     pub time_budget: Option<Duration>,
     /// Strictly ascending iteration numbers after which a finalized snapshot is taken.
     pub snapshot_at: &'a [usize],
+    /// W11 v10: receives the number of iterations done (`Relaxed`) after every iteration and at
+    /// the end; `None` - nothing written. The result does not depend on it.
+    pub progress: Option<&'a std::sync::atomic::AtomicU32>,
 }
 
 /// A finalized copy of the fields taken after `it` iterations.
@@ -1274,6 +1277,9 @@ impl Picard {
             self.outer_step();
             iter_s += t.elapsed().as_secs_f64();
             it += 1;
+            if let Some(p) = run.progress {
+                p.store(u32::try_from(it).unwrap_or(u32::MAX), Ordering::Relaxed);
+            }
             let mut verdict = None;
             if it > crit.pre_steps && (it - crit.pre_steps).is_multiple_of(crit.check_every) {
                 self.check_into(it, t_start, &mut hist, &mut check_s);

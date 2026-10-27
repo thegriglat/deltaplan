@@ -13,7 +13,7 @@ signal state_changed(state: int)
 
 # Фасад W2 (docs/contracts/rust-wind.md): те же константы, что у Atmosphere (копия — запасной
 # воздух не должен зависеть от основной атмосферы).
-const WIND_API_VERSION := 2
+const WIND_API_VERSION := 3
 const STATE_EMPTY := 0
 const STATE_LOADING := 1
 const STATE_READY := 2

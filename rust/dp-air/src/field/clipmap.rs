@@ -337,6 +337,16 @@ pub fn solve_pair(
     cancel: &Arc<AtomicBool>,
     inputs: &mut PairInputs,
 ) -> Result<PairSolved, JobErr> {
+    solve_pair_counted(cfg, cancel, None, inputs)
+}
+
+/// [`solve_pair`] со счётчиком итераций этапа.
+pub fn solve_pair_counted(
+    cfg: &super::runtime::RtCfg,
+    cancel: &Arc<AtomicBool>,
+    stage: Option<&super::runtime::StageCounter>,
+    inputs: &mut PairInputs,
+) -> Result<PairSolved, JobErr> {
     let cycles = (!inputs.warm).then_some(INIT_CYCLES);
     let level = inputs.level;
     let spec = || Spec {
@@ -347,6 +357,7 @@ pub fn solve_pair(
     let sm = solve_with(
         cfg,
         cancel,
+        stage,
         &inputs.mech.case,
         Some(to_state(&level, take(&mut inputs.mech.start))),
         spec(),
@@ -354,6 +365,7 @@ pub fn solve_pair(
     let sh = solve_with(
         cfg,
         cancel,
+        stage,
         &inputs.heat.case,
         Some(to_state(&level, take(&mut inputs.heat.start))),
         spec(),
@@ -475,7 +487,7 @@ pub fn solve_windows(
         let start_s = t0.elapsed().as_secs_f64();
         check_cancel(job)?;
         let t1 = Instant::now();
-        let solved = solve_pair(cfg, &job.cancel, &mut inputs)?;
+        let solved = solve_pair_counted(cfg, &job.cancel, Some(&job.stage), &mut inputs)?;
         let solve_s = t1.elapsed().as_secs_f64();
         let t2 = Instant::now();
         let field = build_field(
