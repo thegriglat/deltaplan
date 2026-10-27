@@ -1,0 +1,93 @@
+{
+  "id": "RW-3c",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Отладочные потребители на фасад, уборка переходного W2, фокусы ботов и сети, счётчик итераций на экране загрузки",
+  "goal": "Последний шаг перевода потребителей: отладка и превью (atmo_fingerprint, atmosphere_preview, wind_field_debug, debug_overlays, terrain_wind, terrain_preview, world_objects_preview, pool_for) — на фасад W2, база храповика W10 пуста; переходные имена W2 убраны (weather() вместо поля и get_weather(), TODO(RW-3c) — 0); замечания ревью RW-3a закрыты; реализация gd отдаёт status().iters (W2 v3), экран загрузки показывает этап и число итераций.",
+  "plan_ref": "План переноса",
+  "contracts": [
+    {
+      "name": "W2",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W6",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W10",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-3c",
+  "branch": "rust-wind/RW-3c",
+  "base": "feature/rust-wind",
+  "scope": [
+    "scripts/atmosphere/",
+    "scripts/game/",
+    "scripts/terrain/terrain_wind.gd",
+    "scripts/terrain/terrain_preview.gd",
+    "scripts/world_objects/world_objects_preview.gd",
+    "scripts/world_objects/easter_eggs/group.gd",
+    "scripts/core/pool_for.gd",
+    "scripts/net/",
+    "scripts/flight/",
+    "scripts/glider/",
+    "scripts/instruments/",
+    "scenes/main.gd",
+    "tools/terrain/island/air_check_run.gd",
+    "tools/terrain/volcano/air_check_run.gd",
+    "server/proto/deltaplan/v1/net.proto",
+    "server/gen/",
+    "server/proto_examples_test.go",
+    "docs/guide/net-protocol.md",
+    "docs/guide/game/network.md",
+    "locale/ui.csv",
+    "tests/"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/air_model/",
+    "docs/contracts/",
+    "rust/",
+    "tests/fixtures/",
+    "configs/",
+    "tests/contracts/test_rust_wind_contracts.gd"
+  ],
+  "accept": [
+    {
+      "name": "test_rust_wind_purity",
+      "tests": "test_rust_wind_purity"
+    },
+    {
+      "name": "test_rust_wind_contracts",
+      "tests": "test_rust_wind_contracts"
+    },
+    {
+      "name": "baseline_empty",
+      "cmd": "grep -cvE '^(#|\\s*$)' tests/contracts/rust_wind_purity_baseline.txt || true",
+      "expect": "num:^(\\d+) <=0"
+    },
+    {
+      "name": "no_rw3c_todo",
+      "cmd": "grep -rn 'TODO(RW-3c)' scripts scenes tools | wc -l",
+      "expect": "num:^(\\d+) <=0"
+    },
+    {
+      "name": "fixtures_unchanged",
+      "cmd": "tools/wind_fixtures/verify.sh",
+      "expect": "exit=0"
+    },
+    {
+      "name": "server_go",
+      "cmd": "cd server && go test ./... 2>&1 | tail -3",
+      "expect": "!re:FAIL"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-27T07:38:02",
+  "edited": "2026-10-27T07:38:11"
+}
