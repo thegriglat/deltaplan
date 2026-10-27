@@ -3,10 +3,10 @@ type: "contract"
 status: "active"
 module: "rust-wind"
 area: "air"
-updated: "2026-10-26"
+updated: "2026-10-27"
 summary: "W4 rust-wind: трейт AirModel крейта dp-air (без Godot) — типы, методы, порядок команд, структуры описаний, реализации Calm/Formula/Live."
 related: ["docs/contracts/rust-wind.md", "docs/plan/rust-wind.md"]
-contracts: [{"id": "W4", "version": 3}]
+contracts: [{"id": "W4", "version": 4}]
 ---
 
 # W4. Трейт `AirModel` (крейт `dp-air`, без Godot) (v3)
@@ -60,3 +60,4 @@ pub trait AirModel: Send + Sync {
 - `dp-air` не зависит от `godot`; `picard_rs` переносится в workspace как крейт (или модуль `dp-air::picard`) с сохранением R6 v3 (`docs/contracts/picard-rs.md`) — расчёт Пикара берётся готовый, не пишется заново (решение пользователя 2026-10-26).
 - Реализации: `Calm` (RW-4: всё по W1, ветер 0, сразу Ready — для контрактных тестов и пустого запуска), `Formula` (RW-6…12), `Live` (вне модуля).
 - **v3 (постановка RW-6t):** `add_baked_field` — то же, что W3 v2 (`DpAir.add_baked_field`): после `load_place` и до Ready — `Ok` (поле запоминается; разбор TI-К3 v3 — `field::baked::parse_baked`; битое — `BadInput` с причиной), без места — `NoPlace`, после Ready — `BadInput`; при загрузке реализация ищет подходящее поле как `AirRuntime.baked_lookup` (`field::baked::baked_lookup`) и при попадании пропускает Пикар. `set_cache_dir` — W3 v2: `None` — без кеша; каталог создаёт реализация; ошибка создания — `BadInput`, кеш выключен. Обе — `&mut self`, из потока владельца, как остальные команды.
+- **v4 (2026-10-27, решение пользователя):** `Status` += `stage: String` (подпись этапа, как W2 `status().stage`; `""` — нет) и `iters: u32` (итерации решателя в текущем этапе, семантика W2 v3); `Formula` обновляет `iters` из оркестровки поля не реже чем через 10 итераций (атомарный счётчик, без блокировки решателя); `Calm` — `""`, 0.
