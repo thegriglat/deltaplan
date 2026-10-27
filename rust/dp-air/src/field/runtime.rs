@@ -204,6 +204,8 @@ pub struct RtCfg {
     pub step_min: f64,
     pub blend_s: f64,
     pub edge_blend_cells: f64,
+    /// Шаг сетки рельефа атмосферы (`atmosphere.ground.cell_m`, `GroundField`), м.
+    pub ground_cell_m: f64,
     pub limits: Limits,
     pub max_iters: usize,
     pub omega_after: usize,
@@ -328,6 +330,7 @@ impl RtCfg {
             step_min: am("recompute_game_min", 15.0),
             blend_s: am("blend_s", 60.0),
             edge_blend_cells: am("edge_blend_cells", 5.0),
+            ground_cell_m: num(&atm, "/ground/cell_m", 30.0).max(1.0),
             limits: Limits {
                 max_speed: am("max_speed_ms", 40.0),
                 max_w: am("max_w_ms", 10.0),
@@ -1508,11 +1511,26 @@ pub fn start_speed(f: &Field, place: &Place, p: Option<[f32; 2]>, u10: f64, wdir
     (vx - a.sin() * rest).hypot(vz + a.cos() * rest)
 }
 
+/// Земля для выборки поля, как у атмосферы (`GroundField.sample().x`): рельеф в узлах сетки
+/// `cell` м (узлы — кратные `cell` координаты мира), между узлами — билинейно. У гребня и в
+/// ложбине она на 0,3–2 м отличается от рельефа; `U` над стартом `start_speed` игры берётся над ней.
+pub fn ground_height_grid(place: &Place, x: f32, z: f32, cell: f64) -> f32 {
+    let (fx, fz) = (x as f64 / cell, z as f64 / cell);
+    let (ix, iz) = (fx.floor(), fz.floor());
+    let (tx, tz) = ((fx - ix) as f32, (fz - iz) as f32);
+    let node = |i: f64, j: f64| ground_height(place, (i * cell) as f32, (j * cell) as f32);
+    let (h00, h10) = (node(ix, iz), node(ix + 1.0, iz));
+    let (h01, h11) = (node(ix, iz + 1.0), node(ix + 1.0, iz + 1.0));
+    h00 * (1.0 - tx) * (1.0 - tz) + h10 * tx * (1.0 - tz) + h01 * (1.0 - tx) * tz + h11 * tx * tz
+}
+
 /// `U` над стартом по набору уровней (`start_speed` игры с окнами): горизонталь на `START_AGL_M`
-/// над землёй точки с весами краёв уровней (мелкий первым), непокрытая доля — ветер меню.
+/// над землёй точки (высота — рельеф, земля выборки — сетка `ground_cell_m`, [`ground_height_grid`])
+/// с весами краёв уровней (мелкий первым), непокрытая доля — ветер меню.
 pub fn start_speed_levels(
     levels: &[Arc<Field>],
     place: &Place,
+    ground_cell_m: f64,
     p: Option<[f32; 2]>,
     u10: f64,
     wdir: f64,
@@ -1524,6 +1542,7 @@ pub fn start_speed_levels(
         return f64::NAN;
     }
     let h = ground_height(place, p[0], p[1]);
+    let gh = ground_height_grid(place, p[0], p[1], ground_cell_m);
     let pos = [p[0], h + START_AGL_M as f32, p[1]];
     let (mut vx, mut vz, mut rem) = (0.0f64, 0.0f64, 1.0f64);
     for f in levels {
@@ -1531,7 +1550,7 @@ pub fn start_speed_levels(
         if w <= 0.0 {
             continue;
         }
-        let s = f.sample(pos, h);
+        let s = f.sample(pos, gh);
         vx += s[0] as f64 * (rem * w);
         vz += s[2] as f64 * (rem * w);
         rem *= 1.0 - w;
@@ -1654,7 +1673,14 @@ pub fn run_job(job: JobIn) -> Result<JobOut, JobErr> {
                 return Err(JobErr::Failed(m));
             }
         };
-        let u = start_speed_levels(&out.levels, &job.place, job.focus, u10, job.rec.wdir);
+        let u = start_speed_levels(
+            &out.levels,
+            &job.place,
+            job.cfg.ground_cell_m,
+            job.focus,
+            u10,
+            job.rec.wdir,
+        );
         report.log.push(PassLog { k, u });
         report.passes.push(out.report.clone());
         let mut more = pass < passes;
