@@ -1125,30 +1125,33 @@ fn t1(loc: &str, site: &str, only: &[&str]) {
     }
 }
 
-/// Область 400 м в допуске W8 (`1e-3·u0` плюс полкванта f16, θ′ 0,05 К) на состоянии крейта
-/// после RW-6v; остальные уровни и поля — `t1_open_*` ниже.
-macro_rules! t1_area_tests {
-    ($($name:ident: $loc:literal, $site:literal;)*) => {$(
+/// Поля в допуске W8 (`1e-3·u0` плюс полкванта f16, θ′ 0,05 К) на состоянии крейта после
+/// RW-6x (дальние грани тёплых стартов - граничные значения случая, W11 v9): `lee_bowl`,
+/// `crater_ridge`, `east_cliffs` - область 400 м и окна 50/100 м (отдельные тесты); `thermal_plain` - окна 50/100 м (область 400 м
+/// открыта: `t1_open_training_island_thermal_plain`). Остальное - `t1_open_*` ниже.
+macro_rules! t1_ok_tests {
+    ($($name:ident: $loc:literal, $site:literal, $levels:expr;)*) => {$(
         #[test]
         #[ignore = "release, тяжёлый: cargo test --release -p dp-air --test acceptance -- --ignored --nocapture"]
         fn $name() {
-            t1($loc, $site, &["400"]);
+            t1($loc, $site, $levels);
         }
     )*};
 }
 
-t1_area_tests! {
-    t1_training_island_lee_bowl_area: "training_island", "lee_bowl";
-    t1_volcano_island_crater_ridge_area: "volcano_island", "crater_ridge";
-    t1_volcano_island_east_cliffs_area: "volcano_island", "east_cliffs";
+t1_ok_tests! {
+    t1_training_island_lee_bowl_area: "training_island", "lee_bowl", &["dx400"];
+    t1_training_island_lee_bowl_windows: "training_island", "lee_bowl", &["dx50", "dx100"];
+    t1_volcano_island_crater_ridge_area: "volcano_island", "crater_ridge", &["dx400"];
+    t1_volcano_island_crater_ridge_windows: "volcano_island", "crater_ridge", &["dx50", "dx100"];
+    t1_volcano_island_east_cliffs_area: "volcano_island", "east_cliffs", &["dx400"];
+    t1_volcano_island_east_cliffs_windows: "volcano_island", "east_cliffs", &["dx50", "dx100"];
+    t1_training_island_thermal_plain_windows: "training_island", "thermal_plain", &["dx50", "dx100"];
 }
 
 /// Открытые расхождения T1: все уровни и `k` поля против запечённого (`--skip t1_open_` в приёмке).
-/// Причины (числа — docs/research/rust-wind-rw6-acceptance.md, «T1 после RW-6v»):
-/// - `lee_bowl`, `thermal_plain` (окна), `crater_ridge`, `east_cliffs` (окна): окна 50/100 м
-///   расходятся на метры в секунду из-за `pin_far_faces` (W11 v9, `picard_rs`: дальние грани
-///   окна берут `ubg`); без него окна в допуске (0,5–0,7 от допуска);
-/// - `landing_hill`: слабый ветер, окна и область расходятся в 300–550 раз (RW-6u);
+/// Причины (числа - docs/research/rust-wind-rw6-acceptance.md, «T1 после RW-6x»):
+/// - `landing_hill`: слабый ветер, окна и область расходятся в 300-550 раз (RW-6u);
 /// - `ridge_west`, `plateau_landing`, `thermal_slope`: сдвиг `k` второго прохода и поле (RW-6w);
 /// - `thermal_plain`, область 400 м: 9,8 допуска.
 macro_rules! t1_open_tests {
@@ -1163,11 +1166,8 @@ macro_rules! t1_open_tests {
 
 t1_open_tests! {
     t1_open_training_island_landing_hill: "training_island", "landing_hill";
-    t1_open_training_island_lee_bowl: "training_island", "lee_bowl";
     t1_open_training_island_ridge_west: "training_island", "ridge_west";
     t1_open_training_island_thermal_plain: "training_island", "thermal_plain";
-    t1_open_volcano_island_crater_ridge: "volcano_island", "crater_ridge";
-    t1_open_volcano_island_east_cliffs: "volcano_island", "east_cliffs";
     t1_open_volcano_island_plateau_landing: "volcano_island", "plateau_landing";
     t1_open_volcano_island_thermal_slope: "volcano_island", "thermal_slope";
 }

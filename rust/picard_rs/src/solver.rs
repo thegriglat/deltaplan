@@ -1083,8 +1083,9 @@ impl Picard {
     }
 
     /// Far boundary of a warm start (`K_BC` of the game sets every face that is not free): the
-    /// type-3 faces of `u`, `v` take the background `ubg`, `vbg`, the non-free faces of `w` are 0
-    /// (type 2 of a window: `apply_bc_nest`). A state interpolated from a coarser grid carries
+    /// type-3 faces of `u`, `v` take the boundary values of the case `ubg`, `vbg` (the background
+    /// for a domain, the parent's values for a window, which fills them the same way), the
+    /// non-free faces of `w` (type >= 2) take `nest.ubw`, 0 without a `nest` (W11 v9, RW-6x). A state interpolated from a coarser grid carries
     /// other values there; kept, they leave a net mass flux through the boundary that the
     /// projection cannot remove (the divergence stays at a constant) - with the wall zeroing
     /// (W11 v9) this stopped the iteration of a coarse start.
@@ -1099,7 +1100,7 @@ impl Picard {
                 f.v[i] = k.vbg[i];
             }
             if k.tw[i] >= 2 {
-                f.w[i] = 0.0;
+                f.w[i] = k.nest.as_ref().map_or(0.0, |n| n.ubw[i]);
             }
         }
     }
