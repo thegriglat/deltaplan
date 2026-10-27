@@ -2071,12 +2071,6 @@ func weather() -> Dictionary:
 	return _weather.duplicate(true)
 
 
-## Старое имя для test_rust_wind_contracts.gd:354 (файл вне карточки RW-3c): убрать, когда тест
-## перейдёт на weather() (замечание координатору в отчёте RW-3c).
-func get_weather() -> Dictionary:
-	return weather()
-
-
 ## (на солнце x, y, z; прогрев 0..1) на текущий момент.
 func sun_state() -> Vector4:
 	if not _f_queryable():

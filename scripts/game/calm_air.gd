@@ -200,11 +200,6 @@ func weather() -> Dictionary:
 	return _weather.duplicate(true)
 
 
-## Старое имя для test_rust_wind_contracts.gd:354 (см. Atmosphere.get_weather).
-func get_weather() -> Dictionary:
-	return weather()
-
-
 func sun_state() -> Vector4:
 	return Vector4(0.0, 1.0, 0.0, 1.0)
 

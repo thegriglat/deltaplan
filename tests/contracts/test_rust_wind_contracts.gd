@@ -351,7 +351,7 @@ func test_batch_formats() -> void:
 		check(is_finite(a.cloudbase_msl()), "%s: cloudbase_msl конечна" % impl)
 		var su: Vector4 = a.sun_state()
 		check(su.w >= 0.0 and su.w <= 1.0, "%s: прогрев sun_state 0..1" % impl)
-		check(a.get_weather() is Dictionary, "%s: погода — словарь" % impl)
+		check(a.weather() is Dictionary, "%s: погода — словарь" % impl)
 		a.free()
 
 
@@ -680,7 +680,7 @@ func test_calm_has_facade_methods() -> void:
 		"set_static_thermals", "advance_to", "start_at", "pump", "status", "is_ready", "set_focuses",
 		"sample_many", "sample", "air_velocity_at", "mean_wind_at", "turbulence_intensity_at",
 		"thermals_near", "cloud_density_many", "cloud_density_at", "cloudbase_msl",
-		"get_cloudbase_msl", "background_wind", "get_weather", "sun_state", "cores", "clouds",
+		"get_cloudbase_msl", "background_wind", "weather", "sun_state", "cores", "clouds",
 		"cloud_raster", "cloud_raster_version", "wave_crests", "decompose", "debug_raster",
 		"debug_raster_names", "last_error",
 	]
