@@ -160,11 +160,11 @@ func _cloud_base_msl() -> float:
 	return float(air.call("cloudbase_msl"))
 
 
-## Погода воздуха (копия, W2); воздух без фасада — свойство weather. Переходное имя get_weather.
+## Погода воздуха (копия, W2 weather()); воздуха нет — null.
 static func _air_weather(air: Node) -> Variant:
-	if air == null:
+	if air == null or not air.has_method("weather"):
 		return null
-	return air.call("get_weather") if air.has_method("get_weather") else air.get("weather")
+	return air.call("weather")
 
 
 func _weather_value(key: String) -> float:

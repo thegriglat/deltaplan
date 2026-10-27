@@ -46,6 +46,48 @@ func test_empty_air_answers_zero() -> void:
 	a.free()
 
 
+## Подписи этапов по идентификатору (gd и крейт) — в фасаде.
+func test_stage_labels() -> void:
+	for id in ["solver", "prepare", "phases", "coarse", "solve_mech", "solve_heat", "windows"]:
+		check(Atmosphere.stage_label(id) == tr("loading_wind"), "%s — «Рассчитываем ветер»" % id)
+	check(Atmosphere.stage_label("simple") == tr("loading_wind_simple"), "simple — упрощённая модель")
+	check(Atmosphere.stage_label("lookup") == "" and Atmosphere.stage_label("") == "", "lookup и пусто — без подписи")
+	check(Atmosphere.stage_label("нет такого") == "", "неизвестный — без подписи")
+
+
+## W2 v3: status() несёт stage, field_on и iters (int ≥ 0, не убывает); без решателя — «» и 0.
+## Рост iters при расчёте поля на GPU — tests/atmosphere/test_air_status_iters_gpu.gd.
+func test_status_stage_field_iters() -> void:
+	var a := Atmosphere.new()
+	a.visuals_enabled = false
+	var st0: Dictionary = a.status()
+	check(st0.has("stage") and st0.has("field_on") and st0.has("iters"), "ключи stage, field_on, iters")
+	check(String(st0.stage) == "" and int(st0.iters) == 0 and not bool(st0.field_on), "EMPTY: этапа нет")
+	var loc := {
+		"id": "t", "center_lat": 51.5, "center_lon": 86.5, "utc_offset_h": 6.0, "month": 7, "day": 15
+	}
+	var place := AirPlaceData.from_functions(
+		func(_x: float, _z: float) -> float: return 500.0,
+		func(_x: float, _z: float) -> float: return 0.8, loc, -2000.0, -2000.0, 100.0, 41, 41
+	)
+	check(a.configure(5) == 0, "configure")
+	check(a.set_conditions({"preset": "weather/medium"}) == 0, "set_conditions")
+	check(a.load_place(place) == 0, "load_place")
+	check(a.start_at(0.0) in [0, 3], "start_at")
+	var last := 0
+	for i in 2000:
+		a.pump(8000)
+		var st: Dictionary = a.status()
+		check(typeof(st.iters) == TYPE_INT and int(st.iters) >= last, "iters — int, не убывает")
+		last = int(st.iters)
+		if a.is_ready():
+			break
+	check(a.is_ready(), "READY на синтетическом месте")
+	var done: Dictionary = a.status()
+	check(String(done.stage) == "" and int(done.iters) == 0 and not bool(done.field_on), "без решателя: нет этапа, iters 0")
+	a.free()
+
+
 func test_place_from_terrain_and_field_in_facade() -> void:
 	var t := Terrain.new()
 	t.location_id = ""
@@ -85,9 +127,9 @@ func test_place_from_terrain_and_field_in_facade() -> void:
 	check(await _ready_up(a), "дошёл до READY")
 	var st: Dictionary = a.status()
 	check(a.runtime != null, "поле Пикара создано внутри фасада (место из рельефа + прогноз)")
-	check(float(st.wind_progress) >= 1.0, "поле подано (в headless — аналитика): прогресс 1")
-	check(String(st.wind) == "simple", "headless: подпись «упрощённый ветер»: %s" % st.wind)
-	var w: Dictionary = a.get_weather()
+	check(float(st.progress) >= 1.0 and String(st.stage) == "", "готов: прогресс 1, этапа нет: %s" % str(st))
+	check(not bool(st.field_on) and int(st.iters) == 0, "headless: поля нет (аналитика), итераций 0")
+	var w: Dictionary = a.weather()
 	check(absf(float(w.wind_from_deg) - 123.0) < 1.0e-6, "румб игры поверх прогноза: %.1f" % w.wind_from_deg)
 	check(absf(float(w.wind_speed_kmh) - 14.0) < 1.0e-6, "скорость — из прогноза")
 	check(is_equal_approx(a.wind.ref_msl, 1000.0), "опора ветра — wind_ref")
@@ -97,13 +139,13 @@ func test_place_from_terrain_and_field_in_facade() -> void:
 	# условия-часы: те же, кроме часа и скорости — перепривязка хода дня без смены погоды
 	var updated := [0]
 	a.weather_updated.connect(func() -> void: updated[0] += 1)
-	var w_before: Dictionary = a.get_weather()
+	var w_before: Dictionary = a.weather()
 	var c2 := cond.duplicate(true)
 	c2["start_hour"] = 13.5
 	c2["speed"] = 2.0
 	check(a.set_conditions(c2) == 0, "set_conditions: другой час и скорость")
 	check(updated[0] == 0, "перепривязка часов — без сигнала погоды")
-	check(a.get_weather() == w_before, "погода не менялась")
+	check(a.weather() == w_before, "погода не менялась")
 	check(is_equal_approx(a.day.start_hour, 13.5) and is_equal_approx(a.day.speed, 2.0), "ход дня перепривязан")
 	# смена места: выгрузка гасит поле и сбрасывает всё, что связано с местом
 	a.unload_place()

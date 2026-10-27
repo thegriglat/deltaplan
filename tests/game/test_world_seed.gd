@@ -51,7 +51,7 @@ func _fp(game: Game) -> Dictionary:
 ## Отпечаток эталонного мира по ключу (AtmoFingerprint.make_world) в момент T_FP.
 func _key_fp(key: String) -> Dictionary:
 	var a := AtmoFingerprint.make_world(key)
-	a.start_at(T_FP)
+	AtmoFingerprint.jump_to(a, T_FP)
 	var fp := AtmoFingerprint.capture(a)
 	a.free()
 	return fp

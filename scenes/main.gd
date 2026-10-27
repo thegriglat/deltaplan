@@ -1279,7 +1279,7 @@ func _fix_sky_camera() -> void:
 		focus.name = "SkyShotFocus"
 		game.add_child(focus)
 	focus.global_position = st.position
-	game.air.set("focus_node", focus)
+	game.air_focus_node = focus  # фокус воздуха берёт игра (set_focuses, W2)
 
 
 ## Пасхалки по ключу --egg (или configs/easter_eggs.json → force): вызвать без кубика.

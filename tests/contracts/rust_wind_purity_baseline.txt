@@ -1,23 +1,6 @@
 # Храповик чистоты W10: файл:шаблон<TAB>число вхождений. Только вниз; обновление — см. test_rust_wind_purity.gd
-scripts/atmosphere/atmo_fingerprint.gd:\bAtmoThermal\b	1
-scripts/atmosphere/atmo_fingerprint.gd:\bCloudField\b	1
-scripts/atmosphere/atmo_fingerprint.gd:\bGroundField\b	1
-scripts/atmosphere/atmosphere_preview.gd:\bAtmoThermal\b	3
-scripts/atmosphere/atmosphere_preview.gd:\b_?(?:air|atmo|atmosphere)\w*\.(?:field|wind|ground|cloud_phys|wave|storm)\b	7
-scripts/atmosphere/atmosphere_preview.gd:\b_?(?:air|atmo|atmosphere)\w*\.(?:set_air_field|set_ground|set_day|set_wind|set_weather)\b	6
-scripts/atmosphere/atmosphere_preview.gd:\b_?(?:air|atmo|atmosphere)\w*\.step\(	4
-scripts/atmosphere/atmosphere_preview.gd:\b_?(?:air|atmo|atmosphere)\w*\.time_s\s*=[^=]	1
 scripts/atmosphere/cloud_layer.gd:\bAtmoThermal\b	7
 scripts/atmosphere/cloud_layer.gd:\bCloudField\b	3
 scripts/atmosphere/cloud_layer.gd:\bCloudPhysics\b	1
 scripts/atmosphere/cloud_layer.gd:\bThermalField\b	2
 scripts/atmosphere/cloud_layer.gd:\b_?(?:air|atmo|atmosphere)\w*\.(?:field|wind|ground|cloud_phys|wave|storm)\b	15
-scripts/atmosphere/wind_field_debug.gd:\bAirRuntime\b	3
-scripts/core/pool_for.gd:\bAirRuntime\b	1
-scripts/game/debug_overlays.gd:\bAtmoThermal\b	2
-scripts/game/debug_overlays.gd:\bThermalField\b	1
-scripts/game/debug_overlays.gd:\bWindField\b	2
-scripts/game/debug_overlays.gd:\b_?(?:air|atmo|atmosphere)\w*\.(?:get|set|call)\("(?:field|wind|ground|cloud_phys|wave|storm|air_field|time_s|step|set_ground|set_day|set_wind|set_weather|set_air_field)"	3
-scripts/game/debug_overlays.gd:_rmin	2
-scripts/terrain/terrain_wind.gd:\bAirFieldSet\b	2
-scripts/world_objects/world_objects_preview.gd:\b_?(?:air|atmo|atmosphere)\w*\.(?:set_air_field|set_ground|set_day|set_wind|set_weather)\b	3

@@ -16,9 +16,9 @@ var thermals_fn: Callable
 var air_fn: Callable
 ## (x, z) -> высота земли.
 var ground_fn: Callable
-## Источник поля воздуха (AM-10, WF-10): сам Atmosphere (duck typing — has_method
-## is_air_field_on, свойство air_field: AirFieldSet с sample(pos, ground_h) -> Vector4);
-## null — травы берёт только средний ветер камеры, как раньше (WF-04/05 не подключены).
+## Источник воздуха (AM-10, WF-10): сам Atmosphere / любой воздух с фасадом W2 (duck typing —
+## status().field_on и sample_many); null — травы берёт только средний ветер камеры, как раньше
+## (WF-04/05 не подключены).
 var field_src: Object = null
 var camera: Camera3D
 var materials: Array[ShaderMaterial] = []
@@ -172,24 +172,20 @@ func _collect_thermals(p: Vector3) -> Array[Vector4]:
 	return out
 
 
-## Пересобрать текстуру ветра поля вокруг центра cam_pos (WF-10): нет поля — выключить (сброс
-## field_wind_size_m → 0, шейдер берёт только wind_vec, как раньше); есть — сетка field_tex_res ×
-## field_tex_res на field_tex_size_m метров; RG — горизонтальный ветер на sample_agl_m:
-## (u, −v) поля = мировые (x, z)
-## над рельефом (тот же канал AirFieldSet.sample, что видит пилот). Центр округлён до половины
-## клетки текстуры — сетка не «плавает» между пересборками.
+## Пересобрать текстуру ветра поля вокруг центра cam_pos (WF-10): нет поля (status().field_on) —
+## выключить (сброс field_wind_size_m → 0, шейдер берёт только wind_vec, как раньше); есть — сетка
+## field_tex_res × field_tex_res на field_tex_size_m метров; RG — средний горизонтальный ветер
+## на sample_agl_m над рельефом (sample_many(SAMPLE_MEAN) фасада W2: то же, что видит пилот, без
+## болтанки). Центр округлён до половины клетки текстуры — сетка не «плавает» между пересборками.
 func _update_field_texture(cam_pos: Vector3) -> void:
-	var on := field_src != null and field_src.has_method("is_air_field_on") and bool(
-		field_src.call("is_air_field_on")
-	)
+	var on := false
+	if field_src != null and field_src.has_method("status"):
+		on = bool((field_src.call("status") as Dictionary).get("field_on", false))
 	if not on:
 		if field_size_m != 0.0:
 			field_size_m = 0.0
 			for m in materials:
 				m.set_shader_parameter("field_wind_size_m", 0.0)
-		return
-	var af: Variant = field_src.get("air_field")
-	if af == null or not af.has_method("sample"):
 		return
 	var res := maxi(int(_cfg.get("field_tex_res", 40)), 4)
 	var size_m := maxf(float(_cfg.get("field_tex_size_m", 2400.0)), 100.0)
@@ -197,14 +193,22 @@ func _update_field_texture(cam_pos: Vector3) -> void:
 	var cx := roundf(cam_pos.x / step) * step - size_m * 0.5
 	var cz := roundf(cam_pos.z / step) * step - size_m * 0.5
 	var agl := float(_cfg.get("sample_agl_m", 10.0))
-	var img := Image.create(res, res, false, Image.FORMAT_RGF)
+	var pts := PackedVector3Array()
+	pts.resize(res * res)
 	for j in res:
 		var z := cz + (j + 0.5) * step
 		for i in res:
 			var x := cx + (i + 0.5) * step
 			var g := float(ground_fn.call(x, z)) if ground_fn.is_valid() else 0.0
-			var v: Vector4 = af.call("sample", Vector3(x, g + agl, z), g)
-			img.set_pixel(i, j, Color(v.x, v.z, 0.0))
+			pts[j * res + i] = Vector3(x, g + agl, z)
+	var v: PackedFloat32Array = field_src.call("sample_many", pts, 1)  # SAMPLE_MEAN
+	if v.size() != 4 * pts.size():
+		return
+	var img := Image.create(res, res, false, Image.FORMAT_RGF)
+	for j in res:
+		for i in res:
+			var k := 4 * (j * res + i)
+			img.set_pixel(i, j, Color(v[k], v[k + 2], 0.0))
 	if field_tex == null or field_tex.get_width() != res or field_tex.get_height() != res:
 		field_tex = ImageTexture.create_from_image(img)
 	else:

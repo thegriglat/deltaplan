@@ -89,9 +89,9 @@ func _link_prep(terrain: Terrain, air: Node, pilot: Node3D) -> bool:
 		var mean := Callable(air, "mean_wind_at") if air.has_method("mean_wind_at") else Callable()
 		var th := Callable(air, "thermals_near") if air.has_method("thermals_near") else Callable()
 		var gusts := Callable(air, "air_velocity_at") if air.has_method("air_velocity_at") else Callable()
-		# Поле воздуха для травы (AM-10, WF-10): сам air (Atmosphere) — is_air_field_on(),
-		# air_field. У CalmAir и т. п. этого метода нет — текстура ветра поля не строится.
-		var field_src: Object = air if air.has_method("is_air_field_on") else null
+		# Поле воздуха для травы (AM-10, WF-10): сам air (фасад W2) — status().field_on и sample_many.
+		# У CalmAir поля нет (field_on = false) — текстура ветра поля не строится.
+		var field_src: Object = air if air.has_method("status") else null
 		terrain.set_wind_sources(mean, th, gusts, field_src)
 	_terrain = terrain
 	if terrain.has_method("set_pilot"):

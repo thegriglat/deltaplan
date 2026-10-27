@@ -44,7 +44,7 @@ func _static_one(wind_kmh: float, strength: float = 3.0, radius: float = 100.0) 
 func test_thermal_profile() -> void:
 	var a := _static_one(0.0)
 	var y := 800.0
-	var bg := float(a.weather.background_sink_ms)
+	var bg := float(a.weather().background_sink_ms)
 	var w0 := a.air_velocity_at(Vector3(0, y, 0)).y
 	check(w0 > 2.0, "ядро поднимает: %.2f" % w0)
 	# Убывает от ядра к краю.
@@ -159,7 +159,7 @@ func test_background_sink() -> void:
 	var a := _atmo({"wind_speed_kmh": 0.0, "thermal_mode": "static"})
 	a.set_ground(_flat, _sun)
 	a.step(0.01)
-	var bg := float(a.weather.background_sink_ms)
+	var bg := float(a.weather().background_sink_ms)
 	approx(a.air_velocity_at(Vector3(100, 600, 50)).y, bg, 1e-4, "фоновое опускание")
 	approx(a.air_velocity_at(Vector3(100, 0, 50)).y, 0.0, 1e-4, "у земли вертикального потока нет")
 	check(bg < 0.0, "фон отрицательный")
@@ -183,7 +183,7 @@ func test_ridge_lift_windward_and_lee_sink() -> void:
 	var a := _atmo({"wind_speed_kmh": 25.0, "wind_from_deg": 270.0, "thermal_mode": "static"})
 	a.set_ground(_ridge, _sun)
 	a.step(0.01)
-	var bg := float(a.weather.background_sink_ms)
+	var bg := float(a.weather().background_sink_ms)
 	var xw := -300.0
 	var ww := a.air_velocity_at(Vector3(xw, _ridge(xw, 0) + 50.0, 0)).y
 	check(ww > 1.0, "наветренный склон поднимает: %.2f" % ww)

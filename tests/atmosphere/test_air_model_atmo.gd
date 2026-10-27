@@ -111,7 +111,7 @@ func test_off_and_outside_bitwise_analytic() -> void:
 	a.set_air_mode("auto")
 	check(a.is_air_field_on(), "auto с полем — снова поле")
 	# поле переживает configure (как функции рельефа)
-	a.configure(a.cfg, a.weather)
+	a.configure(a.cfg, a.weather())
 	check(a.is_air_field_on(), "поле переживает configure")
 	ref.free()
 	a.free()

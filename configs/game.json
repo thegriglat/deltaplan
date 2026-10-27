@@ -23,49 +23,11 @@
   },
   "languages_doc": "Языки в переключателе: код → самоназвание, в порядке переключения",
   "air": {
-    "_doc": "Модель воздуха. Заменяется одной строкой: скрипт должен давать set_weather(имя), set_wind(км/ч, откуда°), set_ground(height_fn, sun_fn), air_velocity_at(pos), step(dt), focus_node",
+    "_doc": "Модель воздуха. Заменяется одной строкой: скрипт должен давать фасад W2 (docs/contracts/rust-wind.md): configure, load_place, set_conditions, start_at, advance_to, sample_many, air_velocity_at и др.",
     "script": "res://scripts/atmosphere/atmosphere.gd",
     "script_doc": "Основная атмосфера (агент atmosphere)",
     "fallback_script": "res://scripts/game/calm_air.gd",
     "fallback_script_doc": "Запасная заглушка, если основной скрипт не найден или не загрузился"
-  },
-  "calm_air": {
-    "_doc": "Заглушка атмосферы (scripts/game/calm_air.gd): постоянный ветер + статичные термики. Работает, только если основная атмосфера не загрузилась",
-    "background_sink_ms": -0.5,
-    "background_sink_ms_doc": "Фоновое опускание воздуха между термиками, м/с",
-    "ground_fade_m": 60.0,
-    "ground_fade_m_doc": "Вертикальные потоки плавно гаснут к земле на этой высоте, м",
-    "thermal_top_agl_m": 1800.0,
-    "thermal_top_agl_m_doc": "Потолок термиков над землёй, м (если у погоды нет cloudbase_agl_m)",
-    "sink_ring_factor": 0.3,
-    "sink_ring_factor_doc": "Опускание в кольце вокруг ядра — доля силы термика",
-    "thermals_from_site": [
-      {
-        "forward_m": 800,
-        "right_m": 0,
-        "strength_ms": 2.5,
-        "radius_m": 100
-      },
-      {
-        "forward_m": 1600,
-        "right_m": -700,
-        "strength_ms": 3.0,
-        "radius_m": 120
-      },
-      {
-        "forward_m": 1200,
-        "right_m": 900,
-        "strength_ms": 1.8,
-        "radius_m": 80
-      },
-      {
-        "forward_m": 2600,
-        "right_m": 300,
-        "strength_ms": 3.5,
-        "radius_m": 130
-      }
-    ],
-    "thermals_from_site_doc": "Статичные термики относительно точки старта: вперёд по курсу разбега и вправо, м"
   },
   "start_wind_align": {
     "_doc": "При «встречном» ветре пилот встаёт носом против среднего ветра поля у старта на высоте крыла (поле поворачивает поток по рельефу, боковой поток кренит крыло на разбеге)",

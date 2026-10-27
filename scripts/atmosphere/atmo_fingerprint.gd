@@ -4,10 +4,12 @@ extends RefCounted
 ## радиус, фаза жизни), облака (центр, размеры, стадия) и воздух в 20 точках (5 мест × 4 высоты)
 ## вокруг центра. Два клиента с одинаковыми параметрами зоны должны получать одно и то же.
 ##
-## Эталонный мир без рельефа из данных: аналитические холмы, источники термиков по солнцу,
-## ход дня (WeatherModel.derive по часам, солнце по дате и месту) — всё, что есть в игре, кроме
-## загрузки карты. Тест — tests/atmosphere/test_determinism.gd; сравнить Linux и Windows —
-## scripts/atmosphere/atmo_fingerprint_cli.gd (docs/guide/atmosphere.md → «Детерминизм»).
+## Эталонный мир без рельефа из данных: аналитические холмы (растр места W5), источники термиков по
+## солнцу, ход дня (прогноз → WeatherModel.derive по часам внутри фасада) — всё, что есть в игре,
+## кроме загрузки карты. Только фасад W2 и описания W6: термики — cores(), облака — clouds() и
+## cloud_raster(), воздух — air_velocity_at(). Тест — tests/atmosphere/test_determinism.gd; сравнить
+## Linux и Windows — scripts/atmosphere/atmo_fingerprint_cli.gd (docs/guide/atmosphere.md →
+## «Детерминизм»).
 
 ## Центр отпечатка и фокус (пилот) эталонного мира.
 const CENTER := Vector3(1500.0, 0.0, -2500.0)
@@ -15,6 +17,9 @@ const CENTER := Vector3(1500.0, 0.0, -2500.0)
 const RADIUS_M := 7000.0
 ## Радиус, где живут термики эталонного мира, м.
 const GEN_RADIUS_M := 10000.0
+## Растр места эталонного мира: квадрат вокруг центра, шаг, м (как у эталонов RW-1, но реже).
+const PLACE_HALF_M := 11000.0
+const PLACE_STEP_M := 50.0
 ## Высоты точек воздуха над рельефом, м.
 const HEIGHTS_AGL: Array[float] = [30.0, 300.0, 1000.0, 1800.0]
 ## Места точек воздуха относительно центра (x, z), м.
@@ -62,7 +67,7 @@ static func _surface_k(x: float, z: float) -> float:
 	return 0.65 + 0.35 * sin(x / 830.0 + 1.3) * cos(z / 1170.0 - 0.4)
 
 
-## Сила источника без времени (солнце из world.json) — для GroundField.sun_fn.
+## Сила источника без времени (солнце из world.json) — для растра влажности места и генератора эталонов.
 static func source_static(x: float, z: float) -> float:
 	var n := _normal(x, z)
 	return clampf(_surface_k(x, z) * (0.35 + 0.8 * n.dot(Vector3(0.3, 0.8, 0.5).normalized())), 0, 1)
@@ -100,10 +105,21 @@ static func weather_ctx() -> Dictionary:
 	return ctx
 
 
+## Место эталонного мира (W5): растр высот и влажности поверхности вокруг центра; площадка
+## старта в (0, 0) — опорная высота ветра. loc — из ключа мира (make_world).
+static func make_place(loc: Dictionary) -> AirPlaceData:
+	var n := int(2.0 * PLACE_HALF_M / PLACE_STEP_M) + 1
+	var sites := [{"id": "origin", "x": 0.0, "z": 0.0, "h_msl": height(0.0, 0.0)}]
+	return AirPlaceData.from_functions(
+		height, _surface_k, loc, CENTER.x - PLACE_HALF_M, CENTER.z - PLACE_HALF_M, PLACE_STEP_M, n,
+		n, sites
+	)
+
+
 ## Эталонный мир из ключа мира (WorldKey): атмосфера с сидом, прогнозом и ходом дня, фокус —
-## CENTER. Место (для солнца), дата, час старта, прогноз и сид — только из ключа. Не в дереве —
-## free().
-static func make_world(key: String = DEFAULT_KEY, atmo_cfg: Dictionary = {}) -> Atmosphere:
+## CENTER, готовая на t = 0 (READY). Место (для солнца), дата, час старта, прогноз и сид — только
+## из ключа. Не в дереве — free().
+static func make_world(key: String = DEFAULT_KEY, cfg_over: Dictionary = {}) -> Atmosphere:
 	var parsed := WorldKey.parse(key)
 	var fs: FlightSettings = parsed.settings
 	var ll := WorldKey.launch_latlon(fs)
@@ -116,16 +132,9 @@ static func make_world(key: String = DEFAULT_KEY, atmo_cfg: Dictionary = {}) -> 
 	var forecast := fs.forecast()
 	if fs.wind_into_launch:
 		forecast.wind_from_deg = LAUNCH_HEADING
-	var ctx := weather_ctx()
-	var spacing := float(WeatherModel.derive(forecast, ctx).thermal_spacing_m)
-	var derive := func(h: float) -> Dictionary:
-		var w := WeatherModel.derive(forecast, ctx, {}, h)
-		w.thermal_spacing_m = spacing
-		return w
 	var a := Atmosphere.new()
 	a.visuals_enabled = false
-	a.seed_value = int(parsed.seed)
-	var cfg := atmo_cfg
+	var cfg := cfg_over
 	if cfg.is_empty():
 		# Термики — в 10 км вокруг (в игре 20 км): для отпечатка в 7 км хватает, прогон вчетверо
 		# быстрее. Правила те же.
@@ -137,72 +146,94 @@ static func make_world(key: String = DEFAULT_KEY, atmo_cfg: Dictionary = {}) -> 
 	var am: Dictionary = cfg.get("air_model", {})
 	am.enabled = "off"
 	cfg.air_model = am
-	a.configure(cfg, derive.call(fs.start_hour))
-	a.set_ground(height, source_static)
-	a.set_wind(fs.wind_speed_kmh, float(forecast.wind_from_deg), height(0, 0))
-	a.load_static_thermals([{"x_m": -4000.0, "z_m": 3000.0, "strength_ms": 2.5, "radius_m": 120.0}])
-	var d := AtmoDay.new()
-	d.start_hour = fs.start_hour
-	d.quantum_h = float(WeatherModel.config().get("diurnal", {}).get("update_s", 60.0)) / 3600.0
-	d.weather_fn = derive
-	d.sun_fn = sun_at_hour
-	d.source_fn = source_at
-	a.set_day(d)
-	a.set_focus(CENTER)
+	a.cfg_override = cfg
+	var loc := {
+		"id": "fingerprint", "center_lat": _lat, "center_lon": _lon, "utc_offset_h": _utc,
+		"month": _month, "day": _day,
+	}
+	a.configure(int(parsed.seed))
+	a.set_conditions({"forecast": forecast, "start_hour": fs.start_hour})
+	a.load_place(make_place(loc))
+	a.set_static_thermals(PackedFloat32Array([-4000.0, 3000.0, 2.5, 120.0]), 2)
+	a.set_focuses(PackedVector3Array([CENTER]), PackedFloat32Array([1.0]))
+	jump_to(a, 0.0)
 	return a
 
 
-## Прогнать атмосферу до момента t шагом dt (последний шаг — остаток) и обновить на t.
+## Ждать READY, подкачивая воздух (pump) без кадров дерева.
+static func wait_ready(a: Atmosphere, max_pumps: int = 100000) -> bool:
+	for i in max_pumps:
+		if a.is_ready():
+			return true
+		a.pump(8000)
+	return a.is_ready()
+
+
+## «Прыжок» в t: состояние на t, равное прогону от 0 (start_at), и ожидание READY.
+static func jump_to(a: Atmosphere, t: float) -> void:
+	a.start_at(t)
+	wait_ready(a)
+
+
+## Прогнать атмосферу до момента t шагом dt (последний шаг — остаток); состояние на t обновлено.
 static func run_to(a: Atmosphere, t: float, dt: float) -> void:
-	while a.time_s < t - 1.0e-9:
-		a.step(minf(dt, t - a.time_s))
-	a.time_s = t
-	a.refresh_now()
+	var now := float(a.status().time_s)
+	while now < t - 1.0e-9:
+		now = minf(now + dt, t)
+		a.advance_to(now)
+	a.advance_to(t)
 
 
-## Отпечаток: {thermals: [[id, x, z, src_y, top, strength, radius, t_birth, env, cloud, cb], …],
-## clouds: [[id, cx, cz, rx, rz, depth, grow, decay, active], …] — облака-объекты (Cb),
-## field: [[столбец, покрытие, мощность, стадия, активность], …] — поле облачности (кучевые),
-## air: [[x, y, z, vx, vy, vz], …]}. Термики и облака — по возрастанию id, поле — по столбцу.
+## Отпечаток: {thermals: [[id, x, z, y_src, top, w, radius, age, stage, облако, Cb], …] — ядра W6,
+## clouds: [[id, x, z, radius, base, top, growth, decay, flags], …] — облака W6,
+## field: [[ячейка, покрытие, мощность, стадия, активность], …] — растр облачности (кучевые),
+## air: [[x, y, z, vx, vy, vz], …]}. Ядра и облака — по возрастанию id, поле — по ячейке растра.
 ## Поле зависит от истории (разгон поля при скачке времени ≠ прогон), поэтому «прыжок» с ним не
 ## сравнивается (diff по умолчанию без поля, with_field = true — для двух прогонов).
 static func capture(a: Atmosphere) -> Dictionary:
-	var t := a.time_s
+	var t := float(a.status().time_s)
 	var ths: Array = []
-	var clouds: Array = []
-	var ids: Array = a.field.thermals.keys()
-	ids.sort()
-	var model := a.cloud_phys.model
-	var r2 := RADIUS_M * RADIUS_M
-	for id: int in ids:
-		var th: AtmoThermal = a.field.thermals[id]
-		th.update_time(t)
-		var gx := th.src.x + th.drift.x
-		var gz := th.src.z + th.drift.y
-		if Vector2(gx - CENTER.x, gz - CENTER.z).length_squared() > r2:
-			continue
+	var cores := a.cores(CENTER, RADIUS_M)
+	for k in cores.size() / Atmosphere.CORE_STRIDE:
+		var o := k * Atmosphere.CORE_STRIDE
+		var fl := int(cores[o + Atmosphere.CORE_FLAGS])
 		ths.append(
 			[
-				id, gx, gz, th.src.y, th.top, th.strength, th.radius, th.t_birth, th.env,
-				1 if th.has_cloud else 0, 1 if th.is_cb else 0
+				int(cores[o + Atmosphere.CORE_ID]), cores[o + Atmosphere.CORE_X],
+				cores[o + Atmosphere.CORE_Z], cores[o + Atmosphere.CORE_Y_SRC],
+				cores[o + Atmosphere.CORE_TOP], cores[o + Atmosphere.CORE_W],
+				cores[o + Atmosphere.CORE_RADIUS], cores[o + Atmosphere.CORE_AGE],
+				cores[o + Atmosphere.CORE_STAGE], 1 if fl & 2 != 0 else 0, 1 if fl & 4 != 0 else 0
 			]
 		)
-		var st := model.stage(th, t)
-		if st.x >= 0.0:
-			var c := model.center(th, t)
-			var sz := model.size(th, st)
-			clouds.append([id, c.x, c.y, sz.x, sz.y, sz.z, st.x, st.y, st.z])
+	ths.sort_custom(func(u: Array, v: Array) -> bool: return int(u[0]) < int(v[0]))
+	var clouds: Array = []
+	var cl := a.clouds(CENTER, RADIUS_M)
+	for k in cl.size() / Atmosphere.CLOUD_STRIDE:
+		var o := k * Atmosphere.CLOUD_STRIDE
+		clouds.append(
+			[
+				int(cl[o + Atmosphere.CLOUD_ID]), cl[o + Atmosphere.CLOUD_X],
+				cl[o + Atmosphere.CLOUD_Z], cl[o + Atmosphere.CLOUD_RADIUS],
+				cl[o + Atmosphere.CLOUD_BASE], cl[o + Atmosphere.CLOUD_TOP],
+				cl[o + Atmosphere.CLOUD_GROWTH], cl[o + Atmosphere.CLOUD_DECAY],
+				int(cl[o + Atmosphere.CLOUD_FLAGS])
+			]
+		)
+	clouds.sort_custom(func(u: Array, v: Array) -> bool: return int(u[0]) < int(v[0]))
 	var field_rows: Array = []
-	var f: CloudField = a.cloud_phys.field
-	if f != null and f.nx > 0:
-		for c in f.nx * f.ny:
-			if f.cover[c] < 0.05:
+	var r := a.cloud_raster()
+	if int(r.get("version", 0)) > 0:
+		var nx := int(r.nx)
+		var r2 := RADIUS_M * RADIUS_M
+		for c in nx * int(r.ny):
+			if float(r.cover[c]) < 0.05:
 				continue
-			var cx := f.x0 + (c % f.nx + 0.5) * f.dx
-			var cz := -(f.y0 + (c / f.nx + 0.5) * f.dx)
+			var cx := float(r.x0) + (c % nx) * float(r.dx)
+			var cz := float(r.z0) + (c / nx) * float(r.dx)
 			if Vector2(cx - CENTER.x, cz - CENTER.z).length_squared() > r2:
 				continue
-			field_rows.append([c, f.cover[c], f.depth[c], f.stage[c], f.activity[c]])
+			field_rows.append([c, r.cover[c], r.depth[c], r.stage[c], r.activity[c]])
 	var air: Array = []
 	for s in SPOTS:
 		for h in HEIGHTS_AGL:
