@@ -46,6 +46,15 @@ func test_empty_air_answers_zero() -> void:
 	a.free()
 
 
+## Подписи этапов по идентификатору (gd и крейт) — в фасаде.
+func test_stage_labels() -> void:
+	for id in ["solver", "prepare", "phases", "coarse", "solve_mech", "solve_heat", "windows"]:
+		check(Atmosphere.stage_label(id) == tr("loading_wind"), "%s — «Рассчитываем ветер»" % id)
+	check(Atmosphere.stage_label("simple") == tr("loading_wind_simple"), "simple — упрощённая модель")
+	check(Atmosphere.stage_label("lookup") == "" and Atmosphere.stage_label("") == "", "lookup и пусто — без подписи")
+	check(Atmosphere.stage_label("нет такого") == "", "неизвестный — без подписи")
+
+
 ## W2 v3: status() несёт stage, field_on и iters (int ≥ 0, не убывает); без решателя — «» и 0.
 ## Рост iters при расчёте поля на GPU — tests/atmosphere/test_air_status_iters_gpu.gd.
 func test_status_stage_field_iters() -> void:

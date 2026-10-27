@@ -1948,14 +1948,22 @@ func status() -> Dictionary:
 	}
 
 
-## Подпись этапа по идентификатору этапа gd ("solver" | "simple") — ключи locale/ui.csv.
-func _f_stage_label() -> String:
-	match _f_wind_kind:
-		"solver":
-			return tr("loading_wind")
+## Подпись этапа для экрана загрузки по идентификатору этапа (ключи locale/ui.csv). Идентификаторы gd —
+## "solver" (считает решатель) и "simple" (упрощённый ветер, расчёт недоступен); крейта — из
+## doc-комментария Status.stage (W4 v4): lookup (поиск готового поля — быстро, этапа на экране
+## нет), prepare, phases, coarse, solve_mech, solve_heat, windows — все «Рассчитываем ветер».
+## Неизвестный идентификатор и "" — подписи нет.
+static func stage_label(stage_id: String) -> String:
+	match stage_id:
+		"solver", "prepare", "phases", "coarse", "solve_mech", "solve_heat", "windows":
+			return TranslationServer.translate("loading_wind")
 		"simple":
-			return tr("loading_wind_simple")
+			return TranslationServer.translate("loading_wind_simple")
 	return ""
+
+
+func _f_stage_label() -> String:
+	return stage_label(_f_wind_kind)
 
 
 ## Итерации решателя поля в этапе «solver» (AirRuntime → AirPicardJob; air_model только читается):
