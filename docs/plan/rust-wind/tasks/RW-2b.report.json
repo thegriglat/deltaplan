@@ -1,0 +1,75 @@
+{
+  "status": "done",
+  "summary": "decompose в gd отдаёт 9 слагаемых Formula (field, analytic, ridge, thermal, storm, wave, cloud, turb, gust) через запись вкладов в самом расчёте (физика и sample не менялись); генератор пишет terms и k>=2; все 11 случаев пересняты, k=0,1 побитно прежние.",
+  "commits": [
+    "560e4b7cc decompose по слагаемым Formula, check_k01, генератор k>=2",
+    "8255a2564 второй набор фикстур (terms, k>=2), README; стенд cancel_nan без terms"
+  ],
+  "checks": [
+    {
+      "name": "test_decompose_terms",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "test_rust_wind_contracts",
+      "value": "23/23",
+      "pass": true
+    },
+    {
+      "name": "test_rust_wind_purity",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "k01_unchanged",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fixtures_unchanged",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "terms_present",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "Σ слагаемых против k=0 по всем фикстурам",
+      "value": "max 1.9e-6 м/с (порог 1e-4)",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-2b",
+  "uncertain": [
+    {
+      "where": "scripts/atmosphere/atmosphere.gd: decompose, _rec*",
+      "why": "Деление «σ × шум» на turb и gust условное: turb = болтанка поля (FieldTurbulence x GustSpectrum + рывки слоя смешения), gust = шум аналитики WindModel.gust_unit (в т.ч. доля (1-a) в полосе края) и бурление в облаке; analytic включает вертикальные добавки линии тени; cloud = только выброс из облака. Σ vel = total по построению.",
+      "checked": "инварианты W7 на синтетике (medium, storm, wave) в test_decompose_terms; на Онгудае (поле) — assert total==k0 в генераторе и Σ по .bin (max 1.9e-6)"
+    },
+    {
+      "where": "rust/dp-stand/src/cancel_nan.rs",
+      "why": "Тест ставил terms:true при terms=null в фикстурах (игнорировалось); теперь Formula без слагаемых даёт NaN по замыслу стенда, поэтому terms:false.",
+      "checked": "cargo test --workspace зелёный"
+    },
+    {
+      "where": "cases/*.json configs_sha1.atmosphere",
+      "why": "хэш configs/atmosphere.json изменён соседями в ветке модуля, не мной; dp-stand печатает warning.",
+      "checked": "k=0,1 побитно прежние"
+    }
+  ],
+  "dp_feedback": "report требует настоящего accept (не --dry) и имён проверок карточки в checks — в задании не сказано; accept в foreground упирается в 600 с вызова; task show обрезает дополнения.",
+  "extra": {},
+  "t": "2026-10-27T12:23:58",
+  "by": "executor"
+}
