@@ -140,6 +140,12 @@ static func make_world(key: String = DEFAULT_KEY, cfg_over: Dictionary = {}) -> 
 		# быстрее. Правила те же.
 		cfg = Config.get_config("atmosphere").duplicate(true)
 		cfg.thermal.generation_radius_m = GEN_RADIUS_M
+	# Поле воздуха (масштаб 1) — у каждого клиента своё и зависит от GPU: отпечаток мира — всегда
+	# на аналитике (docs/guide/air-model.md → «Поле на CPU»).
+	cfg = cfg.duplicate(true)
+	var am: Dictionary = cfg.get("air_model", {})
+	am.enabled = "off"
+	cfg.air_model = am
 	a.cfg_override = cfg
 	var loc := {
 		"id": "fingerprint", "center_lat": _lat, "center_lon": _lon, "utc_offset_h": _utc,

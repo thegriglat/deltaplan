@@ -987,21 +987,19 @@ func test_c5_signature_and_mask() -> void:
 
 
 func test_c5_net_schema() -> void:
+	# Воздух по сети не ходит (rust-wind W1, RW-3c): источники термиков и снимок облачности
+	# убраны из схемы ZoneState, номера 3 и 4 в net.proto — reserved.
 	var zs: Dictionary = NetMessages.MESSAGES.get("ZoneState", {})
-	check(String(zs.get("thermalSources", "")) == "msg:ThermalSources", "ZoneState.thermalSources")
+	check(not zs.has("thermalSources") and not zs.has("cloudField"), "ZoneState без полей воздуха")
 	check(
-		NetMessages.MESSAGES.get("ThermalSources", {}) == {"grid": "string", "mask": "string"},
-		"ThermalSources = {grid, mask (base64)}"
+		not NetMessages.MESSAGES.has("ThermalSources")
+		and not NetMessages.MESSAGES.has("CloudFieldSnapshot"),
+		"сообщений воздуха нет"
 	)
-	check(NetMessages.NULLABLE.has("ZoneState.thermalSources"), "thermalSources может отсутствовать")
+	check(not NetMessages.NULLABLE.has("ZoneState.thermalSources"), "thermalSources не nullable")
 	var proto := FileAccess.get_file_as_string("res://server/proto/deltaplan/v1/net.proto")
-	check(
-		proto.contains("ThermalSources thermal_sources = 3;"), "proto: ZoneState.thermal_sources = 3"
-	)
-	check(
-		proto.contains("string grid = 1;") and proto.contains("bytes mask = 2;"),
-		"proto: grid = 1, mask = 2"
-	)
+	check(not proto.contains("ThermalSources thermal_sources"), "proto: поля thermal_sources нет")
+	check(proto.contains("reserved 3, 4;"), "proto: номера 3 и 4 зарезервированы")
 
 
 # ------------------------------------------------------------------ C6
