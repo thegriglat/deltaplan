@@ -46,6 +46,39 @@ func test_empty_air_answers_zero() -> void:
 	a.free()
 
 
+## W2 v3: status() несёт stage, field_on и iters (int ≥ 0, не убывает); без решателя — «» и 0.
+## Рост iters при расчёте поля на GPU — tests/atmosphere/test_air_status_iters_gpu.gd.
+func test_status_stage_field_iters() -> void:
+	var a := Atmosphere.new()
+	a.visuals_enabled = false
+	var st0: Dictionary = a.status()
+	check(st0.has("stage") and st0.has("field_on") and st0.has("iters"), "ключи stage, field_on, iters")
+	check(String(st0.stage) == "" and int(st0.iters) == 0 and not bool(st0.field_on), "EMPTY: этапа нет")
+	var loc := {
+		"id": "t", "center_lat": 51.5, "center_lon": 86.5, "utc_offset_h": 6.0, "month": 7, "day": 15
+	}
+	var place := AirPlaceData.from_functions(
+		func(_x: float, _z: float) -> float: return 500.0,
+		func(_x: float, _z: float) -> float: return 0.8, loc, -2000.0, -2000.0, 100.0, 41, 41
+	)
+	check(a.configure(5) == 0, "configure")
+	check(a.set_conditions({"preset": "weather/medium"}) == 0, "set_conditions")
+	check(a.load_place(place) == 0, "load_place")
+	check(a.start_at(0.0) in [0, 3], "start_at")
+	var last := 0
+	for i in 2000:
+		a.pump(8000)
+		var st: Dictionary = a.status()
+		check(typeof(st.iters) == TYPE_INT and int(st.iters) >= last, "iters — int, не убывает")
+		last = int(st.iters)
+		if a.is_ready():
+			break
+	check(a.is_ready(), "READY на синтетическом месте")
+	var done: Dictionary = a.status()
+	check(String(done.stage) == "" and int(done.iters) == 0 and not bool(done.field_on), "без решателя: нет этапа, iters 0")
+	a.free()
+
+
 func test_place_from_terrain_and_field_in_facade() -> void:
 	var t := Terrain.new()
 	t.location_id = ""
