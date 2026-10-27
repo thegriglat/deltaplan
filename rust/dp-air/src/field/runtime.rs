@@ -935,26 +935,47 @@ pub const STAGES: [&str; 7] = [
 ];
 
 /// Текущий этап задачи и итерации решателя в нём (W4 v4): читается из любого потока без
-/// блокировок. Итерации добавляются по окончании каждого решения (счёт внутри решения —
-/// только по обратному вызову решателя, которого в `picard_rs` пока нет).
+/// блокировок. Итерации идущего решения приходят от решателя (`SolveOpts.progress`, W11 v10),
+/// законченных решений этапа — копятся в `base`.
 #[derive(Debug, Default)]
 pub struct StageCounter {
     /// 0 — нет этапа, иначе индекс в [`STAGES`] + 1.
     idx: AtomicU32,
-    iters: AtomicU32,
+    /// Итерации законченных решений этапа.
+    base: AtomicU32,
+    /// Итерации идущего решения (пишет решатель).
+    cur: Arc<AtomicU32>,
+    /// Нечётное — перенос `cur` в `base` идёт: читатель повторяет.
+    gen_: AtomicU32,
 }
 
 impl StageCounter {
     /// Начало этапа `name` (из [`STAGES`]): итерации с нуля.
     pub fn enter(&self, name: &str) {
         let i = STAGES.iter().position(|s| *s == name).map_or(0, |i| i + 1);
-        self.iters.store(0, Ordering::Relaxed);
+        self.transfer(|| {
+            self.base.store(0, Ordering::Relaxed);
+            self.cur.store(0, Ordering::Relaxed);
+        });
         self.idx.store(i as u32, Ordering::Relaxed);
     }
-    pub fn add_iters(&self, n: usize) {
+    fn transfer(&self, f: impl FnOnce()) {
+        self.gen_.fetch_add(1, Ordering::SeqCst);
+        f();
+        self.gen_.fetch_add(1, Ordering::SeqCst);
+    }
+    /// Счётчик для `SolveOpts.progress` следующего решения.
+    pub fn solve_counter(&self) -> Arc<AtomicU32> {
+        self.cur.clone()
+    }
+    /// Решение закончено, сделало `n` итераций: в копилку этапа.
+    pub fn end_solve(&self, n: usize) {
         let n = u32::try_from(n).unwrap_or(u32::MAX);
-        let v = self.iters.load(Ordering::Relaxed).saturating_add(n);
-        self.iters.store(v, Ordering::Relaxed);
+        self.transfer(|| {
+            let v = self.base.load(Ordering::Relaxed).saturating_add(n);
+            self.base.store(v, Ordering::Relaxed);
+            self.cur.store(0, Ordering::Relaxed);
+        });
     }
     pub fn clear(&self) {
         self.enter("");
@@ -967,7 +988,17 @@ impl StageCounter {
         }
     }
     pub fn iters(&self) -> u32 {
-        self.iters.load(Ordering::Relaxed)
+        loop {
+            let g = self.gen_.load(Ordering::SeqCst);
+            let v = self
+                .base
+                .load(Ordering::Relaxed)
+                .saturating_add(self.cur.load(Ordering::Relaxed));
+            if g.is_multiple_of(2) && self.gen_.load(Ordering::SeqCst) == g {
+                return v;
+            }
+            std::hint::spin_loop();
+        }
     }
 }
 
@@ -1167,15 +1198,14 @@ pub(crate) struct Spec {
 }
 
 fn solve_one(job: &JobIn, case: &Case, init: Option<State>, spec: Spec) -> Result<Solved, JobErr> {
-    let s = solve_with(&job.cfg, &job.cancel, case, init, spec)?;
-    job.stage.add_iters(s.iters);
-    Ok(s)
+    solve_with(&job.cfg, &job.cancel, Some(&job.stage), case, init, spec)
 }
 
 /// Одно решение `picard_rs` с отменой и разбором причины остановки (без предела по времени).
 pub(crate) fn solve_with(
     cfg: &RtCfg,
     cancel: &Arc<AtomicBool>,
+    stage: Option<&StageCounter>,
     case: &Case,
     init: Option<State>,
     spec: Spec,
@@ -1188,6 +1218,7 @@ pub(crate) fn solve_with(
         init,
         freeze: spec.freeze,
         init_cycles: spec.init_cycles,
+        progress: stage.map(StageCounter::solve_counter),
         cancel: Some(cancel.clone()),
         fallback: spec.fallback.then_some(Fallback {
             omega_after: cfg.omega_after,
@@ -1198,6 +1229,9 @@ pub(crate) fn solve_with(
         ..SolveOpts::default()
     };
     let s = solve(case, &opts).map_err(|e| JobErr::Failed(format!("solver: {e:#}")))?;
+    if let Some(st) = stage {
+        st.end_solve(s.iters);
+    }
     match s.stop {
         StopReason::Cancelled => Err(JobErr::Cancelled),
         StopReason::Diverged => Err(JobErr::Failed(format!(

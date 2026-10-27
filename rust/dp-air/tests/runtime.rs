@@ -1999,8 +1999,14 @@ fn job_stage_counter_follows_stages_and_counts_iters() {
     assert!(STAGES.contains(&st.stage()));
     st.enter("windows");
     assert_eq!((st.stage(), st.iters()), ("windows", 0));
-    st.add_iters(7);
-    st.add_iters(5);
+    // идущее решение пишет в счётчик решателя, законченное — в копилку этапа
+    st.solve_counter()
+        .store(7, std::sync::atomic::Ordering::Relaxed);
+    assert_eq!(st.iters(), 7);
+    st.end_solve(7);
+    assert_eq!(st.iters(), 7);
+    st.solve_counter()
+        .store(5, std::sync::atomic::Ordering::Relaxed);
     assert_eq!(st.iters(), 12);
     st.clear();
     assert_eq!((st.stage(), st.iters()), ("", 0));
