@@ -521,3 +521,5 @@
 {"t": "2026-10-27T11:07:51", "by": "coordinator", "task": "RW-3c", "ev": "checked", "note": "6/6 test_rust_wind_purity=ok:2/2; test_rust_wind_contracts=ok:23/23; no_rw3c_todo=ok:0; fixtures_unchanged=ok:exit 0; server_go=ok:exit 0; baseline_empty=ok:0"}
 {"t": "2026-10-27T11:20:23", "by": "reviewer", "task": "RW-3c", "ev": "reviewed", "note": "Потребители на фасаде W2, get_weather/TODO(RW-3c) убраны, фокусы ботов и сети, iters на экране загрузки. Два «новых падения» tests_vs_base (test_air_model_atmo…", "verdict": "accept", "issues": {"minor": 2}, "review": "docs/plan/rust-wind/tasks/RW-3c.review.json"}
 {"t": "2026-10-27T11:20:38", "by": "coordinator", "task": "RW-3c", "ev": "accepted", "note": "по ревью (accept, 0 блокеров; minor: фокусы каждый тик, iters из приватных полей GPU-пути — этап 3)"}
+{"t": "2026-10-27T11:20:39", "by": "coordinator", "task": "RW-3c", "ev": "checked", "commits": ["942fbf0bf"], "note": "1/6 baseline_empty=ok:0"}
+{"t": "2026-10-27T11:20:39", "by": "coordinator", "task": "RW-3c", "ev": "merged"}
