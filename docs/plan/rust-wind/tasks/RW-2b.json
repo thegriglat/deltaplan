@@ -1,0 +1,84 @@
+{
+  "id": "RW-2b",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Разложение decompose по слагаемым в реализации gd (W7) и второй набор фикстур по слагаемым (W8)",
+  "goal": "decompose(pos) реализации gd отдаёт слагаемые ветра по именам Formula (field, analytic, ridge, thermal, storm, wave, cloud, turb, gust — какие есть в gd) с инвариантами W7 (total = sample FULL побитно, Σvel = total.xyz ± 1e-4); генератор фикстур пишет второй набор: terms в cases/*.json и k ≥ 2 в .bin; срезы k = 0, 1 побитно прежние.",
+  "plan_ref": "План переноса",
+  "contracts": [
+    {
+      "name": "W7",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W2",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-2b",
+  "branch": "rust-wind/RW-2b",
+  "base": "feature/rust-wind",
+  "scope": [
+    "scripts/atmosphere/",
+    "tools/wind_fixtures/",
+    "tests/fixtures/wind/cases/",
+    "tests/fixtures/wind/README.md",
+    "tests/atmosphere/test_decompose_terms.gd",
+    "tests/atmosphere/test_decompose_terms.gd.uid",
+    "rust/dp-air/tests/fixtures.rs",
+    "rust/dp-stand/src/"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/air_model/",
+    "docs/contracts/",
+    "rust/dp-air/src/",
+    "rust/picard_rs/",
+    "configs/",
+    "tests/fixtures/wind/places/",
+    "scripts/game/"
+  ],
+  "accept": [
+    {
+      "name": "test_decompose_terms",
+      "tests": "test_decompose_terms"
+    },
+    {
+      "name": "test_rust_wind_contracts",
+      "tests": "test_rust_wind_contracts"
+    },
+    {
+      "name": "test_rust_wind_purity",
+      "tests": "test_rust_wind_purity"
+    },
+    {
+      "name": "k01_unchanged",
+      "cmd": "python3 tools/wind_fixtures/check_k01.py $(git merge-base HEAD feature/rust-wind)",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fixtures_unchanged",
+      "cmd": "tools/wind_fixtures/verify.sh",
+      "expect": "exit=0"
+    },
+    {
+      "name": "terms_present",
+      "cmd": "python3 -c \"import json,glob,sys; n=[f for f in glob.glob('tests/fixtures/wind/cases/*.json') if not f.endswith('.desc.json') and not json.load(open(f)).get('terms')]; print('без terms:', n); sys.exit(1 if n else 0)\"",
+      "expect": "exit=0"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-27T11:21:05"
+}
