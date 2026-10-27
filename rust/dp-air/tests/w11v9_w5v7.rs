@@ -223,15 +223,22 @@ fn ready(cfg: &Configs) -> (Formula, f64) {
 #[test]
 fn field_has_no_time_limit() {
     // Ключ в конфиге — неизвестный, не ошибка и ничего не ограничивает: при прежних правилах
-    // (max(1, timeout_s) на проход) подготовка синтетики не укладывалась бы в 1 с.
+    // (max(1, timeout_s) на проход) подготовка не дошла бы до Ready. Длительность не проверяем
+    // (зависит от скорости машины): `ready` возвращает модель только в состоянии Ready.
     let cfg = configs_with(|v| {
         cheap(v);
         v["air"]["timeout_s"] = json!(0.001);
     });
-    let (_, secs) = ready(&cfg);
+    let (m, _) = ready(&cfg);
+    assert_eq!(m.status().state, State::Ready);
+    let r = m.report().unwrap();
     assert!(
-        secs > 1.0,
-        "тест не проверяет предел: слишком быстро ({secs} с)"
+        r.passes[0]
+            .stop
+            .iter()
+            .all(|s| matches!(s, Stop::Converged | Stop::AllFrozen)),
+        "stop {:?}",
+        r.passes[0].stop
     );
 }
 
