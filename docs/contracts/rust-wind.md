@@ -87,7 +87,7 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 3}, {"id": "W3",
 Владелец — RW-4 (каркас, заглушка `Calm`), RW-6…12 (наполнение). Потребитель — фасад (реализация `rust`), контрактные тесты.
 - `class DpAir extends RefCounted` (один объект на игру; создаёт фасад). Методы — как W2 с теми же именами, кодами и семантикой, только типы Godot без `Dictionary`/`Object` в горячем пути:
   - `api_version() -> int` (= версии W2, сейчас 3); `last_error() -> String`; `state() -> int`; `progress() -> float`; `time_s() -> float`;
-  - v3: `stage() -> String`, `iters() -> int` — как `status().stage`/`iters` W2 v3.
+  - v3: `stage() -> String` (идентификатор этапа W4 v4; подпись для экрана — фасад), `iters() -> int` — как `status().iters` W2 v3.
   - `configure(configs_json: PackedStringArray /* пары имя, текст */, seed: int) -> int` — имена: `atmosphere`, `weather_model`, `surface_heat`, `weather/<имя>`;
   - `load_place(header_json: String, heights: PackedFloat32Array, water: PackedByteArray, surface_cls: PackedByteArray, surface_moist: PackedFloat32Array) -> int` (W5), `unload_place()`;
   - v2: `add_baked_field(header_json: String, data: PackedByteArray) -> int` — запечённое поле места (W5 v4, формат TI-К3 v3) сразу после `load_place`, до READY (позже — BAD_INPUT); `set_cache_dir(path: String) -> int` — каталог кеша полей реализации (абсолютный путь; фасад даёт `ProjectSettings.globalize_path("user://air_cache")`), крейт сам читает и пишет туда свои файлы (запись — временный файл и переименование); пусто — без кеша;
