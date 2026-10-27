@@ -2241,6 +2241,19 @@ func debug_raster(raster_name: String) -> Dictionary:
 # ================================================================ визуал
 
 
+## Входы визуальных слоёв (не воздух, а рельеф места): высота земли и класс поверхности в точке.
+## Слои получают их вызываемыми значениями при создании и не ходят в ground сами (W10).
+func _v_ground_height(x: float, z: float) -> float:
+	return ground.height(x, z) if ground != null and ground.has_ground else NAN
+
+
+## Класс поверхности (x, z); поверхности нет — 3 (пашня: сухо и пылит, как раньше без surface_fn).
+func _v_surface_class(x: float, z: float) -> int:
+	if ground != null and ground.surface_fn.is_valid():
+		return int(ground.surface_fn.call(x, z))
+	return 3
+
+
 func _create_visuals() -> void:
 	if bool(cfg.clouds.enabled):
 		var cloud_script: Script = load("res://scripts/atmosphere/cloud_layer.gd")
@@ -2248,6 +2261,8 @@ func _create_visuals() -> void:
 			_clouds = cloud_script.new()
 			_clouds.name = "Clouds"
 			add_child(_clouds)
+			_clouds.set("ground_fn", Callable(self, "_v_ground_height"))
+			_clouds.set("surface_fn", Callable(self, "_v_surface_class"))
 			_clouds.call("setup", self)
 			_clouds.set("select_budget_us", 3000)
 	var cirrus := CirrusLayer.new()
@@ -2257,12 +2272,14 @@ func _create_visuals() -> void:
 	var dust := DustDevils.new()
 	dust.name = "DustDevils"
 	add_child(dust)
-	dust.setup(self)
+	dust.setup(self, Callable(self, "_v_ground_height"), Callable(self, "_v_surface_class"))
 	if bool(cfg.gust_dust.enabled):
 		var gdust := GustDust.new()
 		gdust.name = "GustDust"
 		add_child(gdust)
-		gdust.setup(self)
+		gdust.setup(
+			self, Callable(self, "_v_ground_height"), Callable(self, "_v_surface_class"), wind
+		)
 	if bool(cfg.birds.enabled):
 		var bird_script: Script = load("res://scripts/atmosphere/bird_flock.gd")
 		if bird_script != null:

@@ -112,7 +112,7 @@ func test_node_scan_fills_pool() -> void:
 	a.set_ground(func(_x: float, _z: float) -> float: return 0.0, func(_x: float, _z: float) -> float: return 1.0, _crop)
 	var g := GustDust.new()
 	a.add_child(g)
-	g.setup(a)
+	g.setup(a, Callable(a, "_v_ground_height"), Callable(a, "_v_surface_class"), a.wind)
 	var t := 400.0
 	a.time_s = t
 	var eye := Vector3(5000, 100, 5000)

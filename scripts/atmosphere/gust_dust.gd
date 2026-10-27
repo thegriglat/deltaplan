@@ -8,6 +8,11 @@ extends Node3D
 var atmo: Atmosphere
 var cfg: Dictionary
 var model: GustDustModel = GustDustModel.new()
+## Высота рельефа (x, z) -> м MSL (NAN — нет земли) и класс поверхности (x, z) -> int: даёт
+## Atmosphere при создании слоя. Положение наблюдателя — по умолчанию активная камера.
+var ground_fn: Callable = Callable()
+var surface_fn: Callable = Callable()
+var eye_fn: Callable = Callable()
 var mm: MultiMesh
 var mmi: MultiMeshInstance3D
 var mat: ShaderMaterial
@@ -22,15 +27,24 @@ var _scan_new: int = 0
 var _scan_cell: Vector2i = Vector2i.ZERO
 
 
-func setup(atmosphere: Atmosphere) -> void:
+## wind_source — источник приземного ветра и шума порывов (мировая функция слота времени, которую
+## отдаёт реализация при создании слоя; в фасаде W2 такой функции нет — перейдёт в крейт с RW-8).
+func setup(
+	atmosphere: Atmosphere,
+	ground: Callable = Callable(),
+	surface: Callable = Callable(),
+	wind_source: Variant = null
+) -> void:
 	atmo = atmosphere
+	ground_fn = ground
+	surface_fn = surface
 	cfg = atmo.cfg.gust_dust.duplicate()
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--gust-dust-wind="):
 			cfg.force_wind_ms = float(a.get_slice("=", 1))
-	model.setup(cfg, atmo.weather, atmo.wind)
+	model.setup(cfg, atmo.get_weather(), wind_source)
 	atmo.weather_changed.connect(func() -> void: _reset_weather())
-	atmo.weather_updated.connect(func() -> void: model.update_weather(cfg, atmo.weather))
+	atmo.weather_updated.connect(func() -> void: model.update_weather(cfg, atmo.get_weather()))
 	var n := int(cfg.events_max)
 	events.resize(n)
 	for i in n:
@@ -57,11 +71,11 @@ func setup(atmosphere: Atmosphere) -> void:
 	mmi.material_override = mat
 	mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(mmi)
-	_next_slot = model.slot_of(atmo.time_s) - model.lookback_slots()
+	_next_slot = model.slot_of(float(atmo.status().time_s)) - model.lookback_slots()
 
 
 func _reset_weather() -> void:
-	model.update_weather(cfg, atmo.weather)
+	model.update_weather(cfg, atmo.get_weather())
 
 
 func _hide(i: int) -> void:
@@ -72,10 +86,21 @@ func _hide(i: int) -> void:
 func _process(_delta: float) -> void:
 	if atmo == null or not model.enabled:
 		return
-	mat.set_shader_parameter("now", atmo.time_s)
-	var cam := get_viewport().get_camera_3d()
-	var eye := cam.global_position if cam != null else atmo.get_focus()
-	step_scan(eye, atmo.time_s, int(cfg.cells_per_frame))
+	var t := float(atmo.status().time_s)
+	mat.set_shader_parameter("now", t)
+	step_scan(_eye(), t, int(cfg.cells_per_frame))
+
+
+func _eye() -> Vector3:
+	if eye_fn.is_valid():
+		return eye_fn.call()
+	var cam := get_viewport().get_camera_3d() if is_inside_tree() else null
+	return cam.global_position if cam != null else Vector3.ZERO
+
+
+func _ground(x: float, z: float) -> float:
+	var h := float(ground_fn.call(x, z)) if ground_fn.is_valid() else 0.0
+	return h if is_finite(h) else 0.0
 
 
 ## Продвинуть просмотр на budget клеток. Тестам — вызывать напрямую.
@@ -104,7 +129,7 @@ func step_scan(eye: Vector3, t: float, budget: int) -> void:
 		var key := Vector3i(c.x, c.y, slot)
 		if _keys.has(key) or _scan_new >= int(cfg.new_per_slot_max):
 			continue
-		var ev := model.event(c.x, c.y, slot, atmo.ground.surface_fn)
+		var ev := model.event(c.x, c.y, slot, surface_fn)
 		if ev.is_empty():
 			continue
 		_keys[key] = slot
@@ -130,8 +155,8 @@ func _add_event(ev: Dictionary) -> void:
 	var per := int(cfg.puffs_max)
 	var x: float = ev.x
 	var z: float = ev.z
-	var y: float = atmo.ground.height(x, z)
-	var w := Vector2(atmo.wind.dir.x, atmo.wind.dir.z) * model.mean_wind10() * float(cfg.drift_k)
+	var y: float = _ground(x, z)
+	var w := _wind_dir() * model.mean_wind10() * float(cfg.drift_k)
 	var h: float = ev.h
 	var base_seed: float = ev.seed
 	var tint := 1.0 if int(ev.cls) == 5 else 0.0
@@ -153,6 +178,14 @@ func _add_event(ev: Dictionary) -> void:
 		mm.set_instance_custom_data(
 			i, Color(r1 * TAU, float(ev.t0) + delay, float(ev.life) * (1.0 - 0.18), tint + base_seed * 0.99)
 		)
+
+
+## Направление ветра у земли (единичный, x, z) — из фонового ветра W2 на 10 м над долиной; штиль — 0.
+func _wind_dir() -> Vector2:
+	var h := float(atmo.get_weather().get("_derived", {}).get("valley_msl_m", 0.0)) + 10.0
+	var bw := atmo.background_wind(PackedFloat32Array([h]))
+	var v := Vector2(bw[0], bw[1])
+	return v.normalized() if v.length() > 1.0e-6 else Vector2.ZERO
 
 
 ## Сколько событий сейчас живо в пуле (для тестов).

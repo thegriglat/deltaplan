@@ -34,6 +34,7 @@ func test_birds_absent_below_min_strength() -> void:
 	a.step(1.0)
 	var bf := BirdFlock.new()
 	bf.setup(a)
+	bf.eye_fn = a.get_focus
 	bf._choose_flocks()
 	check(bf._flocks.is_empty(), "птиц нет в термике слабее min_strength_ms")
 	bf.free()
@@ -49,6 +50,7 @@ func test_birds_appear_in_weak_thermal_and_climb() -> void:
 	a.step(1.0)
 	var bf := BirdFlock.new()
 	bf.setup(a)
+	bf.eye_fn = a.get_focus
 	bf._choose_flocks()
 	check(not bf._flocks.is_empty(), "птицы появились в слабом термике (1,2 м/с)")
 	if bf._flocks.is_empty():
@@ -89,6 +91,7 @@ func test_bird_flees_when_pilot_close() -> void:
 	a.step(1.0)
 	var bf := BirdFlock.new()
 	bf.setup(a)
+	bf.eye_fn = a.get_focus
 	bf._choose_flocks()
 	check(not bf._flocks.is_empty(), "стая появилась")
 	if bf._flocks.is_empty():
@@ -128,6 +131,7 @@ func test_companion_pair_ignores_pilot_proximity() -> void:
 	a.step(1.0)
 	var bf := BirdFlock.new()
 	bf.setup(a)
+	bf.eye_fn = a.get_focus
 	bf._choose_flocks()
 	check(not bf._flocks.is_empty(), "стая появилась")
 	if bf._flocks.is_empty():
