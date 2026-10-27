@@ -71,9 +71,17 @@ const DAY_AFTER_BLEND_S := 30.0
 ## Точки термиков дневных случаев — не ниже этой высоты над землёй, м (ось у склона бывает под землёй).
 const DAY_THERMAL_AGL_MIN_M := 10.0
 
+## Места-острова для T1 «сильный ветер» (RW-6q): слой detail 25 м из data/locations (поставка игры).
+## Пишутся без случаев: при --places-only[=id,id], без --only и в прогоне, где есть случай
+## ISLANDS_WITH (так их воспроизводит и verify.sh — в группе, где этот случай).
+const ISLANDS: Array[String] = ["training_island", "volcano_island"]
+const ISLANDS_WITH := "ongudai_medium"
+
 var _out := ""
 var _only: PackedStringArray = []
 var _synthetic_only := false
+var _places_only := false
+var _places_ids: PackedStringArray = []
 var _git_rev := "unknown"
 var _tags_seen: Dictionary = {}
 var _terrain: Terrain
@@ -88,6 +96,10 @@ func _ready() -> void:
 			_only = a.substr(7).split(",")
 		elif a == "--synthetic":
 			_synthetic_only = true
+		elif a == "--places-only" or a.begins_with("--places-only="):
+			_places_only = true
+			if a.begins_with("--places-only="):
+				_places_ids = a.substr(14).split(",")
 	if _out == "":
 		_out = ProjectSettings.globalize_path("res://tests/fixtures/wind")
 	Locations.fixtures_root = "res://tests/fixtures/locations"
@@ -104,6 +116,8 @@ func _run() -> bool:
 	DirAccess.make_dir_recursive_absolute(_out.path_join("cases"))
 	var gpu := DisplayServer.get_name() != "headless"
 	var places_done := {}
+	if _places_only:
+		return await _write_island_places(_places_ids if not _places_ids.is_empty() else PackedStringArray(ISLANDS))
 	for c in CASES:
 		if not _only.is_empty() and not _only.has(String(c.name)):
 			continue
@@ -129,6 +143,9 @@ func _run() -> bool:
 		if not ok_case:
 			return false
 		print("gen_fixtures: %s готов за %.1f с" % [c.name, (Time.get_ticks_msec() - t0) / 1000.0])
+	if not _synthetic_only and gpu and (_only.is_empty() or _only.has(ISLANDS_WITH)):
+		if not await _write_island_places(PackedStringArray(ISLANDS)):
+			return false
 	var missing: Array[String] = []
 	for tag in TAGS:
 		if not _tags_seen.has(tag):
@@ -193,7 +210,7 @@ func _synthetic_ctx() -> Dictionary:
 ## Климат места для заголовка (W5 v3, loc.climate): ClimateGrid.place у центра места на month/day
 ## без высоты долины (valley_msl_m не задан — значения ячейки как есть, поправку на высоту долины
 ## из растра высот делает потребитель). Нет сетки HH1/HH5 — has_* = false и запасные значения конфига.
-func _climate(lat: float, lon: float, month: int, day: int) -> Dictionary:
+func _climate(lat: float, lon: float, month: int = MONTH, day: int = DAY) -> Dictionary:
 	var r := ClimateGrid.place({"lat": lat, "lon": lon, "month": month, "day": day})
 	var src: Dictionary = r.src
 	return {
@@ -207,9 +224,9 @@ func _climate(lat: float, lon: float, month: int, day: int) -> Dictionary:
 
 ## Климат воды (W5 v7, loc.climate_lag): та же ячейка на дату MONTH/DAY − round(water.lag_days) с
 ## переходом через год, как SurfaceHeat.water_temp_c (и AirPlaceData.fill_climate).
-func _climate_lag(lat: float, lon: float) -> Dictionary:
+func _climate_lag(lat: float, lon: float, month: int = MONTH, day: int = DAY) -> Dictionary:
 	var lag := int(round(float(SurfaceHeat.config().get("water", {}).get("lag_days", 30.0))))
-	var doy := SunClock.day_of_year(MONTH, DAY) - lag
+	var doy := SunClock.day_of_year(month, day) - lag
 	if doy < 1:
 		doy += 365
 	var md := SurfaceHeat._month_day(doy)
@@ -281,6 +298,82 @@ func _ongudai_ctx() -> Dictionary:
 		utc = utc,
 	}
 	return _ongudai
+
+## Места-острова (RW-6q, T1): слой detail каждого острова из data/locations, дата — набор погоды
+## первого старта (месяц острова: учебный — 7, вулканический — 1). Без случаев и без GPU.
+func _write_island_places(ids: PackedStringArray) -> bool:
+	var saved_root := Locations.fixtures_root
+	Locations.fixtures_root = ""
+	var ok := true
+	for id in ids:
+		var pd := await _island_place_data(id)
+		if pd.is_empty():
+			ok = false
+			break
+		_write_place(id, pd)
+		print("gen_fixtures: место %s записано" % id)
+	Locations.fixtures_root = saved_root
+	return ok
+
+
+func _island_place_data(id: String) -> Dictionary:
+	var terrain := Terrain.new()
+	add_child(terrain)
+	if not terrain.load_location(id):
+		push_error("gen_fixtures: место %s не загрузилось" % id)
+		terrain.queue_free()
+		return {}
+	terrain.wait_relief()
+	var month := MONTH
+	var day := DAY
+	for st: Dictionary in Locations.config(id).get("start_sites", []):
+		if st.get("weather") is Dictionary:
+			month = int(st.weather.month)
+			day = int(st.weather.day)
+			break
+	# пояс часов места, как tools/terrain/bake_air.gd (_clock_utc_offset)
+	var utc := NAN
+	var uv: Variant = Config.value("world", "time.utc_offset_h", null)
+	if uv is String and uv == "solar":
+		utc = NAN
+	elif uv != null:
+		utc = float(uv)
+	else:
+		var z := float(terrain.location.get("utc_offset_h", NAN))
+		utc = z if not is_nan(z) else roundf(terrain.center_lon / 15.0)
+	var place := AirRuntime.place_of(terrain, utc, month, day)
+	(place.surface as AirPlace.Surface).wait()
+	var detail: HeightLayer = place.detail
+	var sf: AirPlace.Surface = place.surface
+	if (
+		sf.width != detail.width or sf.height != detail.height
+		or sf.origin_x != detail.origin_x or sf.origin_z != detail.origin_z
+	):
+		push_error("gen_fixtures: сетка поверхности %s не совпала со слоем detail" % id)
+		return {}
+	var n := detail.width * detail.height
+	var water := _water_nodes(place.water, detail)
+	if water.size() != n or sf.cls.size() != n or sf.moist.size() != n:
+		push_error("gen_fixtures: длины растров места %s не сошлись с %d" % [id, n])
+		return {}
+	var sites: Array = []
+	for st: Dictionary in place.start_sites:
+		var p: Vector3 = st.position
+		sites.append({id = String(st.id), x = p.x, z = p.z, h_msl = p.y})
+	var loc: Dictionary = (place.loc as Dictionary).duplicate()
+	loc.month = month
+	loc.day = day
+	loc.climate = _climate(float(loc.center_lat), float(loc.center_lon), month, day)
+	loc.climate_lag = _climate_lag(float(loc.center_lat), float(loc.center_lon), month, day)
+	var pd := {
+		loc = loc,
+		grid = {origin_x = detail.origin_x, origin_z = detail.origin_z, spacing = detail.spacing, width = detail.width, height = detail.height},
+		start_sites = sites,
+		heights = detail.heights, water = water, cls = sf.cls, moist = sf.moist, h_scale = 0.03125,
+		note = "%s (data/locations/%s): слой detail 25 м, AirRuntime.place_of; water — узел по ближайшему пикселю маски (> 127), cls/moist — снимок поверхности AirPlace.Surface; для T1 «сильный ветер» RW-6q" % [id, id],
+	}
+	terrain.queue_free()
+	return pd
 
 
 ## Вода по узлам слоя: ближайший к узлу пиксель маски (как AirPlace.water_fraction при f = 1).

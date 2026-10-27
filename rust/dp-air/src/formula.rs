@@ -842,12 +842,17 @@ impl Formula {
         Some((Kind::Shift, rec, t.max(cursor)))
     }
 
-    /// Фокус вышел из окон поля из файла: дальше `window_shift_frac` стороны от центра окна.
+    /// Фокус вышел из окон поля из файла: дальше `window_shift_frac` стороны от центра уровня.
+    /// Как `AirRuntime._pilot_left_baked_windows`: меньше двух уровней — нет; проверяются уровни с
+    /// индекса 1 (от мелкого к грубому): мелкое окно (50 м) пропускается, окно 100 м и область
+    /// проверяются.
     fn pilot_left_baked(&self, cfg: &RtCfg, pilot: [f64; 2]) -> bool {
         let pb = self.sh.snapshot();
         let lv = pb.fs.levels();
-        // окна — все уровни, кроме последнего (область)
-        lv[..lv.len().saturating_sub(1)].iter().any(|f| {
+        if lv.len() < 2 {
+            return false;
+        }
+        lv[1..].iter().any(|f| {
             let g = f.grid();
             let side = g.nx as f64 * g.dx;
             let (cx, cy) = (g.x0 + 0.5 * side, g.y0 + 0.5 * g.ny as f64 * g.dx);

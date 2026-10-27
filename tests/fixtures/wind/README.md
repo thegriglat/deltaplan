@@ -5,10 +5,11 @@
 `docs/contracts/rust-wind/fixtures-tolerances.md` (W8), поля места — W5, описания — W6, оси — W1
 (`docs/contracts/rust-wind.md`). Набор слагаемых (`terms`) снимет RW-2; здесь `terms = null`. Набор 1 — RW-1 (пресеты, `start_at` на каждый момент), набор 2 — RW-1b (ход игры на Онгудае: прогноз, ход дня, окна, пересчёт в полёте).
 
-## Состав (~17 МБ)
+## Состав (~42 МБ)
 - `places/synthetic` — аналитический мир `atmo_fingerprint.gd`, сетка 25 м, 801 x 801 (20 км вокруг центра отпечатка), без поля Пикара.
   `moist` = множитель поверхности `_surface_k`, `cls` = луг, вода нет. Сила источников термиков в генераторе — `AtmoFingerprint.source_static` (формула по нормали и `_surface_k`).
 - `places/ongudai` — Онгудай, слой `detail` 25 м (1601 x 1601), вода и снимок поверхности из `AirRuntime.place_of`; поле Пикара 400 м посчитано на GPU.
+- `places/training_island`, `places/volcano_island` (RW-6q) — острова поставки игры (`data/locations/<id>`), слой `detail` 25 м (1601 x 1601, ~12 МБ каждый), как Онгудай: `AirRuntime.place_of`; дата `month/day` — набор погоды первого старта (учебный — 7.15, вулканический — 1.15). Нужны T1 «сильный ветер»: `rust/dp-air/tests/acceptance.rs` пересчитывает ими восемь запечённых полей `data/locations/*/air/*.json`. Без случаев: пишутся прогоном, где есть случай `ongudai_medium` (так их воспроизводит `verify.sh`), прогоном без `--only` и `run.sh --synthetic --places-only[=id,id]` (headless, ~1 мин без импорта).
 - `places/*.json` — заголовок W5 (`loc.climate` — W5 v3, см. ниже) + `h_offset`, `h_scale` (высота = `h_offset + int16 * h_scale`; Онгудай 1/32 м — точно, синтетика 0,05 м). `.bin`: `heights` int16 LE, `water` u8, `cls` u8, `moist` u8 (x 1/255), подряд.
 - `cases/<имя>.json` — W8 (`conditions.preset` — полный словарь пресета; `extra` — как снято: рецепт выборки, фокус, радиус описаний, условия поля).
 - `cases/<имя>.bin` — f32 LE `[время][точка][k][4]`, k = 0 FULL `(vx, vy, vz, σ)`, k = 1 MEAN.
