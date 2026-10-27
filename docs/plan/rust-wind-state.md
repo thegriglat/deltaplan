@@ -3,8 +3,8 @@ type: "plan"
 status: "postponed"
 module: "rust-wind"
 area: "air"
-updated: "2026-10-26"
-summary: "rust-wind на паузе 2026-10-26: что влито, красное, что в ветках задач, не начато и порядок продолжения"
+updated: "2026-10-27"
+summary: "rust-wind 2026-10-27: этап 1–2 доведён (кроме RW-6u, RW-7); что влито, что открыто, порядок продолжения"
 related: ["docs/plan/rust-wind.md", "docs/contracts/rust-wind.md", "docs/research/rust-wind-field-path.md"]
 ---
 
@@ -46,3 +46,15 @@ related: ["docs/plan/rust-wind.md", "docs/contracts/rust-wind.md", "docs/researc
 3. RW-0e (приёмка) → RW-3a (сравнение с базой, 42 падения) → RW-3b/3c → RW-2b.
 4. RW-6u, затем RW-7 — первое место, где игра реально идёт на Rust.
 5. Этап 3 — только отдельным решением пользователя (объём: одни термики ~2,4 тыс. строк GDScript; этап 1–2 занял ~13 % недельного лимита).
+
+## Итог продолжения 2026-10-27
+
+Влиты RW-0f, RW-0e, RW-6v, RW-6q, RW-6x, RW-6w, RW-3a, RW-3b, RW-3c, RW-6y, RW-2b (ветки в `feature/rust-wind`, все проверки задач — PASS). Контракт: W2 v3, W3 v3, W4 v4, W5 v7, W9 v2, W10 v2, W11 v10.
+- Красного в ветке модуля нет (версия API 3, `verify.sh` без `configs_sha1`).
+- T1 сильного ветра: области 400 м `lee_bowl`, `crater_ridge`, `east_cliffs` и окна 50/100 м `lee_bowl`, `thermal_plain`, `crater_ridge`, `east_cliffs` — в допуске W8 (0,56–0,8×); `k` start-полей = `k` запечённых (dk ≤ 5e-4). Причины — стенки и дальние грани тёплого старта (W11 v9), климат воды на дату сдвига (W5 v7), U над стартом по сетке GroundField 30 м. Открыто (`t1_open_*`): `landing_hill` (слабый ветер — RW-6u), поля `ridge_west` 5,6×, `plateau_landing` 17,5×, `thermal_slope` 314× при совпавшем `k`, область `thermal_plain` 9,8×. Числа — `docs/research/rust-wind-rw6-acceptance.md`, `docs/research/rust-wind-k-passes.md`.
+- Таймаута поля в крейте нет; счётчик итераций этапа — в статусе крейта, `DpAir` и фасада, на экране загрузки.
+- Потребители — на фасаде W2; в базе W10 остался только `cloud_layer.gd` (Cb, поле облачности, волны — до RW-11). Переходное до этапа 3 помечено `TODO(этап 3: …)`: `_v_ground_height`, `_v_surface_class`, шум порывов пыли через `wind`, iters из приватных полей GPU-пути.
+- Сломаны сменой API и не чинились: `tools/shots/{birds,thermal_signs,cloud_fade}_shot.gd`, пробы `tools/research/fb1013_evening`, `air_weak_wind/AWW-1`; `docs/guide` со старыми именами — RW-13.
+- `tools/tests_vs_base.sh` — обе стороны ~1 ч 50 мин на 8 процессах; в `accept` не помещается (таймаут 900 с) — прогон вручную, итог в отчёт.
+
+**Дальше:** разбор открытого T1 (`ridge_west`, `plateau_landing`, `thermal_slope`, область `thermal_plain`) до переноса чего-либо на поле; RW-6u (слабый ветер); RW-7 (фасад на `DpAir`, без переключателя); этап 3 — отдельным решением пользователя; T7, T9 и проверка пилотом — один раз после этапа 3.
