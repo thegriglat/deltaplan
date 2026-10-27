@@ -91,8 +91,8 @@ func setup(atmosphere: Atmosphere, ground: Callable = Callable(), surface: Calla
 
 
 func _reload_weather() -> void:
-	_chance = float(atmo.get_weather().get("dust_devil_chance", 0.0))
-	model.setup(cfg, atmo.get_weather())
+	_chance = float(atmo.weather().get("dust_devil_chance", 0.0))
+	model.setup(cfg, atmo.weather())
 
 
 func _eye() -> Vector3:
@@ -154,7 +154,7 @@ func _process(delta: float) -> void:
 
 ## Приземный ветер для дрейфа вихрей (W2 background_wind на drift_height_m над долиной).
 func _surface_wind() -> Vector2:
-	var h := float(atmo.get_weather().get("_derived", {}).get("valley_msl_m", 0.0))
+	var h := float(atmo.weather().get("_derived", {}).get("valley_msl_m", 0.0))
 	var bw := atmo.background_wind(PackedFloat32Array([h + float(cfg.drift_height_m)]))
 	return Vector2(bw[0], bw[1])
 

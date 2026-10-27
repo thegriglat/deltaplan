@@ -1,6 +1,6 @@
 extends TestCase
 ## RW-3b: потребители scripts/atmosphere берут термики и ветер через фасад W2 — описания ядер
-## (cores, W6), sample_many, background_wind, get_weather(): разбор ядер, признаки термиков,
+## (cores, W6), sample_many, background_wind, weather(): разбор ядер, признаки термиков,
 ## пылевые вихри. godot --headless --path . res://tests/run_tests.tscn -- --filter=atmosphere_consumers
 
 
@@ -136,5 +136,5 @@ func test_background_wind_and_weather_facade() -> void:
 	var a := _atmo()
 	var bw := a.background_wind(PackedFloat32Array([1000.0]))
 	check(bw.size() == 2, "background_wind: [vx, vz]")
-	check(a.get_weather().has("_derived") or a.get_weather().size() >= 0, "get_weather() отдаёт копию погоды")
+	check(a.weather().has("_derived") or a.weather().size() >= 0, "weather() отдаёт копию погоды")
 	a.free()

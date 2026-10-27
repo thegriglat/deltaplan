@@ -99,7 +99,7 @@ func _run() -> void:
 			"wind_ref": StartWeather.wind_ref_of(settings),
 		},
 		"info": {"load_s": (Time.get_ticks_msec() - t0) / 1000.0, "air_field_on": _air.call("is_air_field_on"),
-			"weather": _weather_brief(_air.get("weather")), "cloudbase_msl": _air.call("get_cloudbase_msl")},
+			"weather": _weather_brief(_air.call("weather")), "cloudbase_msl": _air.call("get_cloudbase_msl")},
 	}
 	var rt: Node = _game.get_node_or_null("AirRuntime")
 	if rt == null:
@@ -114,7 +114,7 @@ func _run() -> void:
 	_marker.global_position = start
 	var shots := String(_a.get("shots", ""))
 	get_tree().paused = true
-	_air.set("focus_node", _marker)
+	_set_focus(_marker)
 	_air.set("turbulence_enabled", false)
 	match String(_a.get("mode", "")):
 		"points":
@@ -133,10 +133,18 @@ func _run() -> void:
 	print("air_check_run: ", out_path)
 	if shots != "":
 		_air.set("turbulence_enabled", true)
-		_air.set("focus_node", _game.get("glider"))
+		_set_focus(null)
 		get_tree().paused = false
 		await _shots(shots, start)
 	get_tree().quit(0)
+
+
+## Фокус воздуха (W2): игра берёт его у air_focus_node (null — глайдер), а при паузе мира
+## сама set_focuses не зовёт — задаём точку и воздуху напрямую.
+func _set_focus(n: Node3D) -> void:
+	_game.set("air_focus_node", n)
+	var node: Node3D = n if n != null else _game.get("glider")
+	_air.call("set_focuses", PackedVector3Array([node.global_position]), PackedFloat32Array([1.0]))
 
 
 func _weather_brief(w: Dictionary) -> Dictionary:

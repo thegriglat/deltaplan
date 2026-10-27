@@ -37,9 +37,6 @@ const AIR_PUMP_BUDGET_US := 4000
 var settings: FlightSettings
 ## Модель воздуха: Atmosphere или запасная CalmAir (game.json → air).
 var air: Node3D
-## Расчёт среднего поля воздуха внутри Atmosphere (AM-06Б, контракт C9; переходное, до RW-6):
-## запросы состояния для тестов и отладки (unavailable_reason, baked_ready…). null — нет.
-var air_runtime: Node
 ## Приборы на трапеции (game.json → mounted_instruments); первый — планшет Instrument3D.
 var mounted: Array[Node3D] = []
 var stats := FlightStats.new()
@@ -133,7 +130,7 @@ var _air_t := 0.0
 ## (камера в режиме осмотра).
 var air_focus_node: Node3D
 ## Где стоял фокус воздуха при последнем set_focuses (повторно зовём, когда сдвинулся).
-var _air_focus := Vector3(INF, INF, INF)
+var _air_focus := PackedVector3Array()
 var _recentered := false  ## дельталёт: камера уже по центру после первого отрыва полёта (подскоки не в счёт)
 var _touchdown := {}  ## оценка последнего касания (LandingJudge) — для итога
 var _prev_phase := ""
@@ -182,7 +179,6 @@ func _ready() -> void:
 	air.set_physics_process(false)
 	if "air_cache_enabled" in air:
 		air.set("air_cache_enabled", true)  # кеш поля на диске (FL-К1) — только в игре
-	air_runtime = air.get("runtime") as Node  # создан воздухом в _ready; иначе — при загрузке места
 	if air.has_signal("weather_updated"):
 		air.connect("weather_updated", _apply_haze)  # ход дня (AtmoDay): дымка за погодой
 	debug_overlays = DebugOverlays.new()
@@ -363,7 +359,7 @@ func start(s: FlightSettings) -> bool:
 	air.call("unload_place")
 	air.call("configure", world_seed)
 	_air_t = 0.0
-	_air_focus = Vector3(INF, INF, INF)
+	_air_focus = PackedVector3Array()
 	# Солнце по времени и дате старта над центром локации (sky.clock → небо, свет, облака,
 	# тени облаков на источниках термиков, прогрев поверхности с инерцией по классам).
 	sky.clock.start_flight(
@@ -492,25 +488,25 @@ func _air_field_job(progress: LoadProgress, job: Dictionary) -> void:
 	_air_set_focus(true)
 	air.call("start_at", 0.0)
 	var wind_stage := false
-	var noted := false
+	var wind_seen := false
 	while true:
 		air.call("pump", LOAD_REFRESH_BUDGET_US)
-		if air_runtime == null:
-			air_runtime = air.get("runtime") as Node
 		var st: Dictionary = air.call("status")
 		var state := int(st.state)
-		var kind := String(st.get("wind", ""))
-		if kind == "solver" and not wind_stage:
-			progress.stage("wind", tr(wind_stage_key("solver")))
-			if bool(job.get("objects", false)):
-				progress.note = tr("loading_objects")
-			wind_stage = true
-		elif kind == "simple" and not noted:
-			progress.note = tr(wind_stage_key("simple"))  # выбранный режим недоступен или «упрощённый»
-			noted = true
-		var field_done := float(st.get("wind_progress", 1.0)) >= 1.0 or state != 1
-		if wind_stage and not field_done:
-			progress.sub(float(st.get("wind_progress", 0.0)), 1.0)
+		var label := String(st.get("stage", ""))
+		# Этап подготовки ветра ведёт воздух (подпись и число итераций — status, W2 v3).
+		if label != "":
+			if not wind_stage:
+				progress.stage("wind", label)
+				if bool(job.get("objects", false)):
+					progress.note = tr("loading_objects")
+				wind_stage = true
+				wind_seen = true
+			var iters := int(st.get("iters", 0))
+			# прогресс решателя заранее не известен: рядом с этапом — число итераций
+			progress.text = label if iters <= 0 else tr("loading_wind_iters") % [label, iters]
+			progress.sub(float(st.get("progress", 0.0)), 1.0)
+		var field_done := (wind_seen and label == "") or bool(st.get("field_on", false)) or state != 1
 		if field_done and bool(job.air):
 			if wind_stage and bool(job.get("objects", false)):
 				progress.stage("objects", tr("loading_objects"))  # ветер готов, объекты ещё строятся
@@ -593,18 +589,60 @@ func _location_thermals() -> PackedFloat32Array:
 	return out
 
 
-## Фокус воздуха (вокруг кого живут термики и облака): игрок — крыло (камера в режиме осмотра);
-## на загрузке — старт. Зовём, когда фокус сдвинулся не меньше чем на метр.
+## Вес точки внимания воздуха (W2 set_focuses): игрок — 1; другие пилоты в небе — меньше.
+const AIR_FOCUS_W_BOT := 0.3
+const AIR_FOCUS_W_PEER := 0.5
+## Больше стольких других точек внимания воздух не получает (ближайшие к игроку).
+const AIR_FOCUS_OTHERS_MAX := 16
+
+
+## Точки внимания воздуха (вокруг кого живут термики и облака; индекс 0 — игрок): игрок — крыло
+## (камера в режиме осмотра); на загрузке — старт; в полёте — ещё боты в воздухе и пилоты сети.
+## Зовём, когда любая точка сдвинулась не меньше чем на метр или их число изменилось.
 func _air_set_focus(force := false) -> void:
 	var p := _start_pos
 	if flying_enabled or not force:
 		var n: Node3D = air_focus_node if air_focus_node != null else (camera if inspect_mode else glider)
 		if n != null and n.is_inside_tree():
 			p = n.global_position
-	if not force and p.distance_squared_to(_air_focus) < 1.0:
+	var pts := PackedVector3Array([p])
+	var ws := PackedFloat32Array([1.0])
+	if flying_enabled and not force:
+		_air_other_focuses(p, pts, ws)
+	if not force and _air_focus_same(pts):
 		return
-	_air_focus = p
-	air.call("set_focuses", PackedVector3Array([p]), PackedFloat32Array([1.0]))
+	_air_focus = pts
+	air.call("set_focuses", pts, ws)
+
+
+func _air_focus_same(pts: PackedVector3Array) -> bool:
+	if pts.size() != _air_focus.size():
+		return false
+	for i in pts.size():
+		if pts[i].distance_squared_to(_air_focus[i]) >= 1.0:
+			return false
+	return true
+
+
+## Боты в воздухе (BotPilots) и пилоты сети (RemotePilots): точки и веса после игрока.
+func _air_other_focuses(from: Vector3, pts: PackedVector3Array, ws: PackedFloat32Array) -> void:
+	var found: Array[Vector4] = []  # x, y, z — точка, w — вес
+	if bots != null:
+		for a: BotAgent in bots.agents:
+			if a.state == BotAgent.State.FLY:
+				found.append(Vector4(a.model.position.x, a.model.position.y, a.model.position.z, AIR_FOCUS_W_BOT))
+	if net != null and net.remote != null:
+		for r: Dictionary in net.remote.pilots():
+			if String(r.get("phase", "")) == "flying":
+				var q: Vector3 = r.position
+				found.append(Vector4(q.x, q.y, q.z, AIR_FOCUS_W_BOT if bool(r.get("is_bot", false)) else AIR_FOCUS_W_PEER))
+	found.sort_custom(
+		func(u: Vector4, v: Vector4) -> bool:
+			return Vector3(u.x, u.y, u.z).distance_squared_to(from) < Vector3(v.x, v.y, v.z).distance_squared_to(from)
+	)
+	for i in mini(found.size(), AIR_FOCUS_OTHERS_MAX):
+		pts.append(Vector3(found[i].x, found[i].y, found[i].z))
+		ws.append(found[i].w)
 
 
 ## Продвинуть воздух на dt (раз в тик): фокус, время, и пока он готовится (start_at) — порции.
@@ -624,17 +662,9 @@ func _air_rebase_clock() -> void:
 		air.call("set_conditions", _air_conditions())
 
 
-## Погода воздуха (копия, только чтение) — переходное имя до RW-3c (см. Atmosphere.get_weather).
+## Погода воздуха (копия, только чтение): weather() фасада W2.
 func _air_weather() -> Dictionary:
-	return air.call("get_weather") if air != null and air.has_method("get_weather") else {}
-
-
-## Ключ подписи ветра на экране загрузки по фактическому режиму: "solver" | иначе упрощённый.
-static func wind_stage_key(engine: String) -> String:
-	match engine:
-		"solver":
-			return "loading_wind"
-	return "loading_wind_simple"
+	return air.call("weather") if air != null and air.has_method("weather") else {}
 
 
 ## Место для погоды: дата, широта/долгота, пояс, высоты долины и средней земли вокруг (0, 0).
@@ -851,7 +881,7 @@ func _align_start_heading() -> void:
 	if settings == null or net != null or not settings.wind_into_launch or _exact_start:
 		return
 	_start_heading = _site_heading
-	if not air.has_method("is_air_field_on") or not air.call("is_air_field_on"):
+	if not bool((air.call("status") as Dictionary).get("field_on", false)):
 		return
 	var c: Dictionary = _cfg.get("start_wind_align", {})
 	var r := float(c.get("sample_radius_m", 15.0))

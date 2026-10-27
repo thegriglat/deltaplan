@@ -8,9 +8,9 @@ extends Node
 ## F7 — поток тепла от поверхности H, Вт/м²: рельеф вокруг пилота закрашен картой H модели воздуха
 ## (сетка поля как есть, полупрозрачно: 0 — синий/прозрачно, от 300–400 — красный) и шкала в углу.
 ## Выключенный слой ничего не считает и не рисует. Воздух — только через публичные функции
-## (mean_wind_at, air_velocity_at, time_s, field) — годится для любой модели воздуха.
+## фасада W2 (sample, air_velocity_at, cores, debug_raster) — годится для любой модели воздуха.
 
-## Модель воздуха (Atmosphere, CalmAir или другая с mean_wind_at / air_velocity_at).
+## Модель воздуха (Atmosphere, CalmAir или другая с фасадом W2).
 var air: Node
 ## Пилот (центр сетки ветра и отбора термиков).
 var target: Node3D
@@ -277,16 +277,11 @@ func perf_text() -> String:
 # ================================================================ F5: ветер
 
 
-## Средний воздух в точке: горизонталь — mean_wind_at, вертикаль — поток без пульсаций
-## (склон, подветренная, термики), если модель умеет выключать турбулентность.
+## Средний воздух в точке без пульсаций и порывов: горизонталь и вертикаль (склон, подветренная,
+## термики) — sample(SAMPLE_MEAN) фасада W2.
 func mean_air_at(pos: Vector3) -> Vector3:
-	var v: Vector3 = air.call("mean_wind_at", pos)
-	if absf(v.y) < 1.0e-6 and "turbulence_enabled" in air:
-		var was: bool = air.get("turbulence_enabled")
-		air.set("turbulence_enabled", false)
-		v.y = (air.call("air_velocity_at", pos) as Vector3).y
-		air.set("turbulence_enabled", was)
-	return v
+	var v: Vector4 = air.call("sample", pos, Atmosphere.SAMPLE_MEAN)
+	return Vector3(v.x, v.y, v.z)
 
 
 ## Цвет по вертикали: синий — опускание, серый — ~0, красный — подъём.
@@ -427,51 +422,45 @@ static func strength_color(w: float) -> Color:
 	return Color(1.0, 0.85, 0.0).lerp(Color(1.0, 0.1, 0.05), (k - 0.45) / 0.55)
 
 
-## Термики для слоя: [{axis0, axis1 (низ/верх оси), y0, y1, r0 (у верха), strength, id}].
-## Считается по полям AtmoThermal на время атмосферы, модель не трогает.
+## Термики для слоя: [{id, src (ось у земли сейчас), lean, y0 (низ: растёт при распаде), y1 (верх),
+## r (у верха), rmin, strength}]. Строятся из описаний ядер W6 (cores), модель не трогают.
 func thermal_shapes() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	if air == null or target == null or not ("field" in air):
+	if air == null or target == null or not air.has_method("cores"):
 		return out
-	var field: Object = air.get("field")
-	if field == null or not ("thermals" in field):
-		return out
-	var t := float(air.get("time_s")) if "time_s" in air else 0.0
 	var p := target.global_position
 	var rmax := float(_cfg.get("thermal_radius_m", 8000.0))
-	var rmin := float(field.get("_rmin")) if "_rmin" in field else 0.45
-	for th: AtmoThermal in (field.get("thermals") as Dictionary).values():
-		var env := th.envelope(t)
-		if env < 0.02 or (not th.is_static and t > th.t_end()):
-			continue
-		var d := th.drift_at(t)
-		var u := th.decay_progress(t)
-		var y0 := th.src.y + (th.top - th.src.y) * u
-		var y1 := th.top
-		if y1 - y0 < 5.0:
-			continue
-		var a0 := Vector2(th.src.x, th.src.z) + th.lean * (y0 - th.src.y) + d
-		if a0.distance_to(Vector2(p.x, p.z)) > rmax:
+	var rmin := float(Config.get_config("atmosphere").thermal.radius_min_factor)
+	var list: PackedFloat32Array = air.call("cores", p, rmax)
+	var stride := Atmosphere.CORE_STRIDE
+	for k in list.size() / stride:
+		var o := k * stride
+		var y_src := list[o + Atmosphere.CORE_Y_SRC]
+		var top := list[o + Atmosphere.CORE_TOP]
+		# распад (стадия 2…3): низ ядра поднимается к верху
+		var u := clampf(list[o + Atmosphere.CORE_STAGE] - 2.0, 0.0, 1.0)
+		var y0 := y_src + (top - y_src) * u
+		if top - y0 < 5.0:
 			continue
 		(
 			out
 			. append(
 				{
-					"id": th.id,
-					"src": th.src + Vector3(d.x, 0.0, d.y),
-					"lean": th.lean,
+					"id": int(list[o + Atmosphere.CORE_ID]),
+					"src": Vector3(list[o + Atmosphere.CORE_X], y_src, list[o + Atmosphere.CORE_Z]),
+					"lean": Vector2(list[o + Atmosphere.CORE_LEAN_X], list[o + Atmosphere.CORE_LEAN_Z]),
 					"y0": y0,
-					"y1": y1,
-					"r": th.radius,
+					"y1": top,
+					"r": list[o + Atmosphere.CORE_RADIUS],
 					"rmin": rmin,
-					"strength": th.strength * env,
+					"strength": list[o + Atmosphere.CORE_W],
 				}
 			)
 		)
 	return out
 
 
-## Радиус ядра на высоте y (как ThermalField.sample: Allen, от rmin у земли до r у верха).
+## Радиус ядра на высоте y (профиль Аллена: от rmin у земли до r у верха).
 static func core_radius(s: Dictionary, y: float) -> float:
 	var span := maxf(float(s.y1) - float(s.src.y), 1.0)
 	var xi := clampf((y - float(s.src.y)) / span, 0.0, 1.0)
@@ -607,14 +596,11 @@ func toggle_heat() -> void:
 	_update_process()
 
 
-## Поле, из которого берём H: тот же грубейший уровень, что у источников термиков.
-func _heat_field() -> WindField:
-	if air == null or not ("air_field" in air):
-		return null
-	var set_v: Variant = air.get("air_field")
-	if set_v == null or set_v.levels.is_empty():
-		return null
-	return set_v.levels[set_v.levels.size() - 1]
+## Растр потока тепла H (debug_raster, W7): тот же грубейший уровень поля, что у источников термиков.
+func _heat_raster() -> Dictionary:
+	if air == null or not air.has_method("debug_raster"):
+		return {}
+	return air.call("debug_raster", "heat_flux")
 
 
 func _make_heat_legend() -> void:
@@ -652,24 +638,27 @@ func _make_heat_legend() -> void:
 ## Сетка по клеткам поля вокруг пилота (радиус heat_radius_m): вершина на рельефе +HEAT_LIFT, цвет по H.
 ## Пересобирается при смене поля (ход дня) или когда пилот ушёл от центра сетки на четверть радиуса.
 func _rebuild_heat() -> void:
-	var f := _heat_field()
-	if f == null or target == null:
+	var r := _heat_raster()
+	if r.is_empty() or target == null:
 		return
-	var heat := f.heat_flux()
-	if heat.size() != f.nx * f.ny:
-		return
-	var key: int = hash([f.get_instance_id(), hash(heat)])
+	var heat: PackedFloat32Array = r.data
+	var nx := int(r.nx)
+	var ny := int(r.ny)
+	var dx := float(r.dx)
+	var x0 := float(r.x0)
+	var z0 := float(r.z0)
+	var key: int = hash([x0, z0, hash(heat)])
 	var p := Vector2(target.global_position.x, target.global_position.z)
 	var rad := float(_cfg.get("heat_radius_m", 4000.0))
 	if key == _heat_key and _heat_center.distance_to(p) < rad * 0.25:
 		return
 	_heat_key = key
 	_heat_center = p
-	# i — по X мира, j — по y = −Z мира (см. WindField.x0/y0)
-	var i0 := clampi(int(floor((p.x - rad - f.x0) / f.dx)), 0, f.nx - 1)
-	var i1 := clampi(int(ceil((p.x + rad - f.x0) / f.dx)), 0, f.nx - 1)
-	var j0 := clampi(int(floor((-p.y - rad - f.y0) / f.dx)), 0, f.ny - 1)
-	var j1 := clampi(int(ceil((-p.y + rad - f.y0) / f.dx)), 0, f.ny - 1)
+	# i — по X мира, j — по Z мира (строки растра W7 идут к +Z)
+	var i0 := clampi(int(floor((p.x - rad - x0) / dx)), 0, nx - 1)
+	var i1 := clampi(int(ceil((p.x + rad - x0) / dx)), 0, nx - 1)
+	var j0 := clampi(int(floor((p.y - rad - z0) / dx)), 0, ny - 1)
+	var j1 := clampi(int(ceil((p.y + rad - z0) / dx)), 0, ny - 1)
 	var w := i1 - i0 + 1
 	var h := j1 - j0 + 1
 	if w < 2 or h < 2:
@@ -680,11 +669,11 @@ func _rebuild_heat() -> void:
 	cols.resize(w * h)
 	for j in h:
 		for i in w:
-			var x := f.x0 + (i0 + i) * f.dx
-			var z := -(f.y0 + (j0 + j) * f.dx)
+			var x := x0 + (i0 + i) * dx
+			var z := z0 + (j0 + j) * dx
 			var y: float = float(height_fn.call(x, z)) if height_fn.is_valid() else 0.0
 			verts[j * w + i] = Vector3(x, y + 3.0, z)
-			cols[j * w + i] = heat_color(heat[(j0 + j) * f.nx + i0 + i])
+			cols[j * w + i] = heat_color(heat[(j0 + j) * nx + i0 + i])
 	var idx := PackedInt32Array()
 	for j in h - 1:
 		for i in w - 1:

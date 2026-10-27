@@ -85,9 +85,9 @@ func test_place_from_terrain_and_field_in_facade() -> void:
 	check(await _ready_up(a), "дошёл до READY")
 	var st: Dictionary = a.status()
 	check(a.runtime != null, "поле Пикара создано внутри фасада (место из рельефа + прогноз)")
-	check(float(st.wind_progress) >= 1.0, "поле подано (в headless — аналитика): прогресс 1")
-	check(String(st.wind) == "simple", "headless: подпись «упрощённый ветер»: %s" % st.wind)
-	var w: Dictionary = a.get_weather()
+	check(float(st.progress) >= 1.0 and String(st.stage) == "", "готов: прогресс 1, этапа нет: %s" % str(st))
+	check(not bool(st.field_on) and int(st.iters) == 0, "headless: поля нет (аналитика), итераций 0")
+	var w: Dictionary = a.weather()
 	check(absf(float(w.wind_from_deg) - 123.0) < 1.0e-6, "румб игры поверх прогноза: %.1f" % w.wind_from_deg)
 	check(absf(float(w.wind_speed_kmh) - 14.0) < 1.0e-6, "скорость — из прогноза")
 	check(is_equal_approx(a.wind.ref_msl, 1000.0), "опора ветра — wind_ref")
@@ -97,13 +97,13 @@ func test_place_from_terrain_and_field_in_facade() -> void:
 	# условия-часы: те же, кроме часа и скорости — перепривязка хода дня без смены погоды
 	var updated := [0]
 	a.weather_updated.connect(func() -> void: updated[0] += 1)
-	var w_before: Dictionary = a.get_weather()
+	var w_before: Dictionary = a.weather()
 	var c2 := cond.duplicate(true)
 	c2["start_hour"] = 13.5
 	c2["speed"] = 2.0
 	check(a.set_conditions(c2) == 0, "set_conditions: другой час и скорость")
 	check(updated[0] == 0, "перепривязка часов — без сигнала погоды")
-	check(a.get_weather() == w_before, "погода не менялась")
+	check(a.weather() == w_before, "погода не менялась")
 	check(is_equal_approx(a.day.start_hour, 13.5) and is_equal_approx(a.day.speed, 2.0), "ход дня перепривязан")
 	# смена места: выгрузка гасит поле и сбрасывает всё, что связано с местом
 	a.unload_place()

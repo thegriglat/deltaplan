@@ -41,11 +41,12 @@ func _ready() -> void:
 			await terrain.load_builtin(String(_args.location))  # нет в кеше — соберётся (нужна сеть)
 		else:
 			terrain.load_location(String(_args.location))
-	atmo.set_weather("weather/" + String(_args.get("weather", "medium")))
-	var from := float(_args.get("from", str(atmo.weather.wind_from_deg)))
-	atmo.set_wind(float(_args.get("wind", str(atmo.weather.wind_speed_kmh))), from)
-	atmo.set_ground(terrain.height_at, terrain.sun_exposure_at)
-	atmo.set_sun_direction(terrain.sun_direction())
+	var w: Dictionary = Config.get_config("weather/" + String(_args.get("weather", "medium"))).duplicate(true)
+	if _args.has("from"):
+		w.wind_from_deg = float(_args.from)
+	if _args.has("wind"):
+		w.wind_speed_kmh = float(_args.wind)
+	await _start_air(w)
 	if _args.has("mask"):
 		var c := WorldClearings.build_for(terrain.location_id)
 		c.image.save_png(String(_args.mask))
@@ -61,6 +62,35 @@ func _ready() -> void:
 	if _args.has("bench"):
 		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
 		RenderingServer.viewport_set_measure_render_time(get_viewport().get_viewport_rid(), true)
+
+
+## Воздух превью по фасаду W2: пресет погоды, место из растра высот рельефа вокруг первой
+## площадки (высоты и источники термиков — у рельефа, AirPlaceData.terrain), старт и ожидание READY.
+func _start_air(w: Dictionary) -> void:
+	var start: Dictionary = terrain.get_start_sites()[0]
+	var sp: Vector3 = start.position
+	var loc := {
+		"id": String(terrain.location_id), "center_lat": terrain.center_lat,
+		"center_lon": terrain.center_lon,
+		"utc_offset_h": float(terrain.location.get("utc_offset_h", NAN)), "month": 7, "day": 15,
+	}
+	if terrain.has_method("wait_relief"):
+		terrain.wait_relief()
+	# источники и поверхность — у рельефа (place.terrain), в растр места идут только высоты
+	var place := AirPlaceData.from_functions(
+		terrain.height_at, func(_x: float, _z: float) -> float: return 0.8, loc, sp.x - 15000.0, sp.z - 15000.0, 100.0,
+		301, 301, [{"id": "start", "x": sp.x, "z": sp.z, "h_msl": sp.y}]
+	)
+	place.terrain = terrain
+	atmo.configure(-1)
+	atmo.set_conditions({"preset": w})
+	atmo.load_place(place)
+	atmo.set_sun_direction(terrain.sun_direction())
+	atmo.set_focuses(PackedVector3Array([sp]), PackedFloat32Array([1.0]))
+	atmo.start_at(0.0)
+	while not atmo.is_ready():
+		atmo.pump(8000)
+		await get_tree().process_frame
 
 
 func _set_view(view: String) -> void:
@@ -103,7 +133,7 @@ func _set_view(view: String) -> void:
 	cam.look_at(target)
 	_yaw = rad_to_deg(-cam.rotation.y)
 	_pitch = rad_to_deg(cam.rotation.x)
-	atmo.set_focus(eye)
+	atmo.set_focuses(PackedVector3Array([eye]), PackedFloat32Array([1.0]))
 	print("Вид '%s': камера %s → %s" % [view, eye.round(), target.round()])
 
 

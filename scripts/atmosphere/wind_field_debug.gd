@@ -5,11 +5,11 @@ extends Node3D
 ## составляющая (подъём/опускание); повторное F3 — выключить. Выключено — ничего не считается и
 ## не рисуется (_process выключен, MultiMesh скрыт): ноль влияния на FPS.
 ## Ветер берётся из Atmosphere.air_velocity_at (уже сочетает поле AM-05 и аналитику — тот же
-## вызов, что видит пилот); подпись режима — Atmosphere.is_air_field_on().
+## вызов, что видит пилот); подпись режима — status().field_on фасада W2.
 ## Узел — сцена, не игровая логика: в game.tscn как самостоятельный ребёнок Game, ссылки на
 ## Air/Glider/Terrain берутся по имени (get_node), поэтому game.gd трогать не нужно.
-## F4 — слой «карта фаз» (air-phase P12): клетки области 400 м цветом главной фазы (наибольший вес
-## AirRuntime.phase_map.weights), точка — пилот; текстура ny×nx собирается один раз на новое поле.
+## F4 — слой «карта фаз» (air-phase P12): клетки области 400 м цветом главной фазы (растр
+## debug_raster("phase_main") фасада W7), точка — пилот; текстура ny×nx — один раз на новую карту.
 
 ## Цвета фаз A, B, C, D, F, G, H (порядок AirPhase.PHASES) и подписи легенды.
 const PHASE_COLORS := {
@@ -137,50 +137,48 @@ func _ensure_phase_ui() -> void:
 	_phase_canvas.add_child(_phase_label)
 
 
-## Карта фаз из AirRuntime: текстура — при новой карте, точка пилота — каждый раз.
+## Карта фаз (debug_raster "phase_main"): текстура — при новой карте, точка пилота — каждый раз.
 func _update_phase() -> void:
-	var rt := get_node_or_null("../AirRuntime")
-	var pm: Dictionary = rt.get("phase_map") if rt != null else {}
+	var pm: Dictionary = {}
+	if _air != null and _air.has_method("debug_raster"):
+		pm = _air.call("debug_raster", "phase_main")
 	if pm.is_empty():
 		_phase_rect.texture = null
 		_phase_dot.visible = false
 		_phase_label.text = "F4 — карта фаз: нет (поле без фаз)"
 		return
-	var w: PackedFloat32Array = pm.weights
-	if not is_same(_phase_src, w):
-		_phase_src = w
+	var ver := int(pm.get("version", 0))
+	if ver != _phase_src:
+		_phase_src = ver
 		_phase_rect.texture = ImageTexture.create_from_image(phase_image(pm))
 		var legend: PackedStringArray = []
-		for nm: String in pm.phases:
+		for nm: String in pm.labels:
 			legend.append(nm)
 		_phase_label.text = "F4 — карта фаз: " + " ".join(legend)
 	_phase_dot.visible = _glider != null and is_instance_valid(_glider)
 	if _phase_dot.visible:
 		var p := _glider.global_position
 		var span := float(pm.dx) * Vector2(float(pm.nx), float(pm.ny))
-		var uv := Vector2((p.x - float(pm.x0)) / span.x, (-p.z - float(pm.y0)) / span.y)
-		# север (+y мира) — вверх карты
-		var px := Vector2(uv.x, 1.0 - uv.y).clamp(Vector2.ZERO, Vector2.ONE) * phase_map_px
+		# x0, z0 растра — центр первой ячейки (строки к +Z): угол карты на полшага дальше
+		var corner := Vector2(float(pm.x0), float(pm.z0)) - 0.5 * float(pm.dx) * Vector2.ONE
+		var uv := Vector2((p.x - corner.x) / span.x, (p.z - corner.y) / span.y)
+		# север (−Z) — вверх карты: строка 0 растра — самая северная
+		var px := uv.clamp(Vector2.ZERO, Vector2.ONE) * phase_map_px
 		_phase_dot.position = _phase_rect.position + px - _phase_dot.size * 0.5
 
 
-## Изображение ny×nx: цвет фазы с наибольшим весом (север вверху).
+## Изображение ny×nx: цвет главной фазы клетки (север вверху — строки растра идут к +Z).
 static func phase_image(pm: Dictionary) -> Image:
 	var nx := int(pm.nx)
 	var ny := int(pm.ny)
-	var w: PackedFloat32Array = pm.weights
-	var names: Array = pm.phases
-	var kk := names.size()
+	var data: PackedFloat32Array = pm.data
+	var names: PackedStringArray = pm.labels
 	var img := Image.create(nx, ny, false, Image.FORMAT_RGB8)
 	for j in ny:
 		for i in nx:
-			var q := j * nx + i
-			var best := 0
-			for k in range(1, kk):
-				if w[k * nx * ny + q] > w[best * nx * ny + q]:
-					best = k
-			var col: Color = PHASE_COLORS.get(names[best] if kk > 0 else "", Color.BLACK)
-			img.set_pixel(i, ny - 1 - j, col)
+			var k := int(data[j * nx + i])
+			var col: Color = PHASE_COLORS.get(names[k] if k < names.size() else "", Color.BLACK)
+			img.set_pixel(i, j, col)
 	return img
 
 
@@ -275,7 +273,7 @@ func _rebuild() -> void:
 				idx += 1
 	_grid_center = Vector2(origin.x, origin.z)
 	if _label != null:
-		var on := bool(_air.call("is_air_field_on")) if _air.has_method("is_air_field_on") else false
+		var on := bool((_air.call("status") as Dictionary).get("field_on", false)) if _air.has_method("status") else false
 		_label.text = "F3 — ветер: %s" % ("поле" if on else "аналитика")
 
 

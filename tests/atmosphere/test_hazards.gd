@@ -86,7 +86,7 @@ func test_cb_downdraft_and_outflow() -> void:
 	var u_out := a.air_velocity_at(p_out).x
 	check(u_out > 5.0, "у земли ветер от облака: %.1f м/с" % u_out)
 	var w_front := a.air_velocity_at(Vector3(c.x + rf, 400.0, c.y)).y
-	var bg := float(a.weather.background_sink_ms)
+	var bg := float(a.weather().background_sink_ms)
 	check(w_front > bg + 0.8, "над фронтом порывов подъём: %.2f" % w_front)
 	var far := a.air_velocity_at(Vector3(c.x + rf + 4000.0, 50.0, c.y))
 	check(absf(far.x) < 0.5, "за фронтом тихо: %.2f" % far.x)
@@ -137,7 +137,7 @@ func test_lee_wave_crest_lift() -> void:
 			w_max = w
 			x_max = x
 		w_min = minf(w_min, w)
-	var bg := float(a.weather.background_sink_ms)
+	var bg := float(a.weather().background_sink_ms)
 	check(w_max > bg + 1.0, "в гребне волны подъём: %.2f м/с на x = %.0f" % [w_max, x_max])
 	check(w_min < bg - 0.5, "в ложбине опускание: %.2f" % w_min)
 	# Высоко над волной поток слабее.
@@ -173,7 +173,7 @@ func test_dust_devils_from_young_thermals_over_dry_ground() -> void:
 	var a := _atmo({"thermal_mode": "static", "dust_devil_chance": 1.0}, "weather/strong")
 	a.set_ground(_flat, _sun)
 	var dm := DustModel.new()
-	dm.setup(a.cfg.dust, a.weather)
+	dm.setup(a.cfg.dust, a.weather())
 	var crop := func(_x: float, _z: float) -> int: return 3
 	var forest := func(_x: float, _z: float) -> int: return 1
 	var th := _young(a, 0.0)
@@ -200,7 +200,7 @@ func test_dust_devils_from_young_thermals_over_dry_ground() -> void:
 	check(dm.devil(th, th.t_birth + 800.0, crop, Vector2.ZERO).is_empty(), "у зрелого термика нет")
 	var weak := _atmo({"dust_devil_chance": 0.0}, "weather/weak")
 	var dw := DustModel.new()
-	dw.setup(weak.cfg.dust, weak.weather)
+	dw.setup(weak.cfg.dust, weak.weather())
 	check(dw.devil(th, th.t_birth + 30.0, crop, Vector2.ZERO).is_empty(), "в слабый день нет")
 	weak.free()
 	a.free()

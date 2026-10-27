@@ -39,7 +39,7 @@ static func _world_no_field(key: String) -> Atmosphere:
 
 func _jump(t: float) -> Dictionary:
 	var a := _world_no_field(KEY)
-	a.start_at(t)
+	AtmoFingerprint.jump_to(a, t)
 	var fp := AtmoFingerprint.capture(a)
 	a.free()
 	return fp
@@ -93,8 +93,8 @@ func test_runs_match_with_field() -> void:
 func test_other_seed_differs() -> void:
 	var a := AtmoFingerprint.make_world(KEY)
 	var b := AtmoFingerprint.make_world(KEY.replace("seed=4242", "seed=4243"))
-	a.start_at(600.0)
-	b.start_at(600.0)
+	AtmoFingerprint.jump_to(a, 600.0)
+	AtmoFingerprint.jump_to(b, 600.0)
 	var d := AtmoFingerprint.diff(AtmoFingerprint.capture(a), AtmoFingerprint.capture(b), TOL)
 	check(d != "", "другой сид — другой мир")
 	a.free()
@@ -108,10 +108,10 @@ func test_pilot_path_does_not_matter() -> void:
 	while t < 1800.0:
 		t += 1.0
 		var ang := t / 1800.0 * TAU
-		a.set_focus(AtmoFingerprint.CENTER + Vector3(sin(ang), 0.0, 1.0 - cos(ang)) * 7500.0)
-		a.step(1.0)
-	a.set_focus(AtmoFingerprint.CENTER)
-	a.time_s = 1800.0
-	a.refresh_now()
+		var pilot := AtmoFingerprint.CENTER + Vector3(sin(ang), 0.0, 1.0 - cos(ang)) * 7500.0
+		a.set_focuses(PackedVector3Array([pilot]), PackedFloat32Array([1.0]))
+		a.advance_to(t)
+	a.set_focuses(PackedVector3Array([AtmoFingerprint.CENTER]), PackedFloat32Array([1.0]))
+	a.advance_to(1800.0)
 	_same(AtmoFingerprint.capture(a), _jump(1800.0), "пилот летал далеко")
 	a.free()

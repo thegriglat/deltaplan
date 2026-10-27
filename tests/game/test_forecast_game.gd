@@ -36,20 +36,20 @@ func test_game_uses_forecast() -> void:
 		return
 	var start: Dictionary = game.get_start()
 	check(
-		absf(angle_difference(deg_to_rad(float(air.get_weather().wind_from_deg)),
+		absf(angle_difference(deg_to_rad(float(air.weather().wind_from_deg)),
 			deg_to_rad(float(start.heading_deg)))) < 0.01,
-		"встречный: ветер с %.0f°, курс %.0f°" % [air.get_weather().wind_from_deg, start.heading_deg]
+		"встречный: ветер с %.0f°, курс %.0f°" % [air.weather().wind_from_deg, start.heading_deg]
 	)
 	check(is_equal_approx(air.wind.ref_msl, (start.position as Vector3).y), "опора ветра — старт")
 	var ctx := game._weather_context()
 	var w := WeatherModel.derive(s.forecast(), ctx, {}, 14.0)
-	var cb := float(air.get_weather().cloudbase_agl_m)
+	var cb := float(air.weather().cloudbase_agl_m)
 	check(absf(cb - float(w.cloudbase_agl_m)) <= 0.1 * float(w.cloudbase_agl_m), "кромка %.0f" % cb)
 	check(cb > 1000.0 and cb < 2800.0, "июль +26 на Алтае: кромка %.0f" % cb)
 	s.wind_into_launch = false
 	s.wind_from_deg = 225.0
 	await main.call("_fly", s)
-	check(is_equal_approx(float(air.get_weather().wind_from_deg), 225.0), "румб ЮЗ")
+	check(is_equal_approx(float(air.weather().wind_from_deg), 225.0), "румб ЮЗ")
 	# Пилот: «вечером термиков мало» — в 19 ч в разы меньше, чем в 14 ч (прогрев, солнце низко).
 	var n14 := await _count_thermals(main, game, s, 14.0)
 	var n19 := await _count_thermals(main, game, s, 19.0)

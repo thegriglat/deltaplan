@@ -296,11 +296,8 @@ func test_loading_screen_follows_progress() -> void:
 
 ## Подпись этапа ветра — по фактическому режиму; пропущенный этап — строка-заметка в панели.
 func test_loading_wind_mode_labels() -> void:
-	var k := {}
-	for e in ["solver", "simple"]:
-		k[e] = tr(Game.wind_stage_key(e))
+	var k := {"solver": tr("loading_wind"), "simple": tr("loading_wind_simple")}
 	check(k.solver != k.simple, "две разные подписи")
-	check(k.solver == tr("loading_wind") and k.simple == tr("loading_wind_simple"), "ключи")
 	var l: LoadingScreen = _scene("res://scenes/ui/loading_screen.tscn")
 	var p := LoadProgress.new({"a": 1.0})
 	p.begin()

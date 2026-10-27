@@ -42,9 +42,9 @@ func setup(
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--gust-dust-wind="):
 			cfg.force_wind_ms = float(a.get_slice("=", 1))
-	model.setup(cfg, atmo.get_weather(), wind_source)
+	model.setup(cfg, atmo.weather(), wind_source)
 	atmo.weather_changed.connect(func() -> void: _reset_weather())
-	atmo.weather_updated.connect(func() -> void: model.update_weather(cfg, atmo.get_weather()))
+	atmo.weather_updated.connect(func() -> void: model.update_weather(cfg, atmo.weather()))
 	var n := int(cfg.events_max)
 	events.resize(n)
 	for i in n:
@@ -75,7 +75,7 @@ func setup(
 
 
 func _reset_weather() -> void:
-	model.update_weather(cfg, atmo.get_weather())
+	model.update_weather(cfg, atmo.weather())
 
 
 func _hide(i: int) -> void:
@@ -182,7 +182,7 @@ func _add_event(ev: Dictionary) -> void:
 
 ## Направление ветра у земли (единичный, x, z) — из фонового ветра W2 на 10 м над долиной; штиль — 0.
 func _wind_dir() -> Vector2:
-	var h := float(atmo.get_weather().get("_derived", {}).get("valley_msl_m", 0.0)) + 10.0
+	var h := float(atmo.weather().get("_derived", {}).get("valley_msl_m", 0.0)) + 10.0
 	var bw := atmo.background_wind(PackedFloat32Array([h]))
 	var v := Vector2(bw[0], bw[1])
 	return v.normalized() if v.length() > 1.0e-6 else Vector2.ZERO

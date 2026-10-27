@@ -54,7 +54,7 @@ func test_soft_update_keeps_thermals() -> void:
 	check(not ids_before.is_empty(), "термики есть")
 	var cb0 := a.get_cloudbase_msl()
 	var target := _day(14.0)
-	var spacing := float(a.weather.thermal_spacing_m)
+	var spacing := float(a.weather().thermal_spacing_m)
 	a.set_weather(target, 300.0)
 	a.step(1.0)
 	var kept := 0
@@ -68,8 +68,8 @@ func test_soft_update_keeps_thermals() -> void:
 	for i in 900:
 		a.step(1.0)
 	approx(a.get_cloudbase_msl(), cb_goal, 25.0, "через 15 мин кромка на месте")
-	approx(float(a.weather.thermal_spacing_m), spacing, 1.0e-6, "сетка источников не меняется")
-	approx(float(a.weather.wind_speed_kmh), 11.0, 1.0e-6, "ветер не меняется")
+	approx(float(a.weather().thermal_spacing_m), spacing, 1.0e-6, "сетка источников не меняется")
+	approx(float(a.weather().wind_speed_kmh), 11.0, 1.0e-6, "ветер не меняется")
 	a.free()
 
 
@@ -78,7 +78,7 @@ func test_soft_update_keeps_thermals() -> void:
 func test_wind_profile_follows_hour() -> void:
 	var a := _atmo(_day(12.0))
 	a.set_wind(10.8, 270.0)  # 3 м/с
-	var w12: Dictionary = a.weather._derived
+	var w12: Dictionary = a.weather()._derived
 	var cover := float(WeatherModel.sky_params(String(w12.sky)).cover)
 	var a12 := WindProfile.alpha(3.0, float(w12.sun_elev_deg), cover)
 	approx(a.wind.profile_params().x, a12, 1.0e-6, "12:00: α = WindProfile")
@@ -89,7 +89,7 @@ func test_wind_profile_follows_hour() -> void:
 		"12:00: предел = WindProfile"
 	)
 	a.set_weather(_day(20.0), 0.0)
-	var w20: Dictionary = a.weather._derived
+	var w20: Dictionary = a.weather()._derived
 	check(float(w20.sun_elev_deg) < float(w12.sun_elev_deg), "вечером солнце ниже")
 	var a20 := WindProfile.alpha(3.0, float(w20.sun_elev_deg), cover)
 	approx(a.wind.profile_params().x, a20, 1.0e-6, "20:00: α = WindProfile")

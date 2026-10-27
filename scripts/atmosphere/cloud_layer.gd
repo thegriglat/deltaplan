@@ -559,7 +559,7 @@ func _update_sun_transmission() -> Dictionary:
 	var k_ext: float = _tab_key[0]
 	var k_rgb: Vector3 = _tab_key[1]
 	var k_top: float = _tab_key[2]
-	var valley := float(atmo.get_weather().get("_derived", {}).get("valley_msl_m", 0.0))
+	var valley := float(atmo.weather().get("_derived", {}).get("valley_msl_m", 0.0))
 	var el_true: float = sky.clock.angles().y
 	var t_ref := SunTransmission.transmission(p.ref_el_deg, valley, k_ext, k_rgb, k_top, p)
 	var f := SunTransmission.sun_factor(el_true, k_ext, k_rgb, k_top, valley, p)
@@ -1010,7 +1010,7 @@ func _wave_clouds(eye: Vector3, crests_in: Variant = null) -> Array[PackedFloat3
 	var ax: Vector3 = _basis_axes[0]
 	var crests: Array = crests_in if crests_in != null else _wave_crests(eye)
 	var lam := wf.wavelength()
-	var above := float(atmo.get_weather().get("lens_level_above_crest_m", 2000.0))
+	var above := float(atmo.weather().get("lens_level_above_crest_m", 2000.0))
 	var eta_ref := float(w.lens_eta_ref_m)
 	var n := 0
 	for cr: Dictionary in crests:

@@ -1097,8 +1097,8 @@ func _day_course(c: Dictionary, ctx: Dictionary, plan: Dictionary) -> Dictionary
 	rt.setup(a, ctx.place, func() -> Dictionary:
 		return {
 			hour = clock.hour,
-			u10 = float(a.weather.get("wind_speed_kmh", 0.0)) / 3.6,
-			wdir = float(a.weather.get("wind_from_deg", 0.0)),
+			u10 = float(a.weather().get("wind_speed_kmh", 0.0)) / 3.6,
+			wdir = float(a.weather().get("wind_from_deg", 0.0)),
 			t_max = float(fc.temperature_c),
 			sky = String(fc.sky),
 			wind_ref = inflow,

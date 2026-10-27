@@ -135,9 +135,12 @@ func test_phase_image() -> void:
 		check(false, "случай Онгудая")
 		return
 	var ph := PhaseStub.new().run(c)
-	var pm := {weights = ph.weights, phases = AirRuntime._phase_names(), nx = c.nx, ny = c.ny}
+	var pm := {
+		weights = ph.weights, phases = AirRuntime._phase_names(), nx = c.nx, ny = c.ny,
+		dx = AirRuntime.DX, x0 = 0.0, y0 = 0.0,
+	}
 	check(Array(pm.phases) == PHASES, "имена фаз: %s" % [pm.phases])
-	var img := WindFieldDebug.phase_image(pm)
+	var img := WindFieldDebug.phase_image(Atmosphere.phase_main_raster(pm))
 	check(_near(img.get_pixel(0, c.ny - 1), WindFieldDebug.PHASE_COLORS.F), "угол — F")
 	check(_near(img.get_pixel(c.nx - 1, 0), WindFieldDebug.PHASE_COLORS.A), "остальное — A")
 

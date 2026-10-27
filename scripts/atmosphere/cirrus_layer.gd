@@ -59,7 +59,7 @@ func setup(atmosphere: Atmosphere) -> void:
 func _process(_delta: float) -> void:
 	if atmo == null:
 		return
-	var wx := atmo.get_weather()
+	var wx := atmo.weather()
 	var cover := clampf(float(wx.get("cirrus_cover", 0.0)), 0.0, 1.0)
 	_mi.visible = cover > 0.01
 	if not _mi.visible:

@@ -115,6 +115,38 @@ static func from_terrain(
 	return p
 
 
+## Место из функций (превью и эталонный мир без карты): сетка width × height узлов с шагом spacing
+## от (origin_x, origin_z); высота — height_fn(x, z), влажность поверхности — moist_fn(x, z) (0..1;
+## множитель силы источников), вода нет, класс — луг. loc — {id, center_lat, center_lon,
+## utc_offset_h, month, day}; климат — fill_climate().
+static func from_functions(
+	height_fn: Callable, moist_fn: Callable, loc: Dictionary, origin_x: float, origin_z: float,
+	spacing: float, width: int, height: int, start_sites: Array = []
+) -> AirPlaceData:
+	var n := width * height
+	var hs := PackedFloat32Array()
+	hs.resize(n)
+	var moist := PackedFloat32Array()
+	moist.resize(n)
+	for j in height:
+		var z := origin_z + spacing * j
+		for i in width:
+			var x := origin_x + spacing * i
+			hs[j * width + i] = float(height_fn.call(x, z))
+			moist[j * width + i] = clampf(float(moist_fn.call(x, z)), 0.0, 1.0)
+	var cls := PackedByteArray()
+	cls.resize(n)
+	cls.fill(SurfaceLayer.GRASS)
+	var grid := {
+		"origin_x": origin_x, "origin_z": origin_z, "spacing": spacing, "width": width,
+		"height": height,
+	}
+	var p := from_arrays(make_header(loc, grid, start_sites), hs, PackedByteArray(), cls, moist)
+	p.water.resize(n)
+	p.fill_climate()
+	return p
+
+
 ## Вода по узлам слоя: ближайший к узлу пиксель маски (> 127), как у генератора эталонов.
 static func _water_nodes(img: Image, layer: HeightLayer) -> PackedByteArray:
 	var out := PackedByteArray()

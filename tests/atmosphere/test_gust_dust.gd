@@ -13,7 +13,7 @@ func _atmo(w_over: Dictionary = {}, dust_over: Dictionary = {}) -> Atmosphere:
 
 func _model(a: Atmosphere) -> GustDustModel:
 	var m := GustDustModel.new()
-	m.setup(a.cfg.gust_dust, a.weather, a.wind)
+	m.setup(a.cfg.gust_dust, a.weather(), a.wind)
 	return m
 
 
@@ -124,3 +124,23 @@ func test_node_scan_fills_pool() -> void:
 	check(g.mm.instance_count == int(g.cfg.events_max) * int(g.cfg.puffs_max), "один MultiMesh фиксированного размера")
 	g.free()
 	a.free()
+
+
+## RW-3b → RW-3c: направление пыли — фоновый ветер фасада на 10 м над долиной (background_wind) —
+## совпадает с прежним wind.dir (RW-3b ревью, пункт б) на нескольких погодах и румбах.
+func test_dust_direction_matches_wind_dir() -> void:
+	for case: Array in [["weather/weak", 270.0, 11.0], ["weather/medium", 45.0, 25.0], ["weather/strong", 135.0, 40.0]]:
+		var a := Atmosphere.new()
+		var w := Config.get_config(String(case[0])).duplicate(true)
+		w.wind_from_deg = float(case[1])
+		w.wind_speed_kmh = float(case[2])
+		a.configure(Config.get_config("atmosphere"), w)
+		a.set_ground(func(_x: float, _z: float) -> float: return 300.0, func(_x: float, _z: float) -> float: return 0.8)
+		a.set_wind(float(case[2]), float(case[1]), 300.0)
+		var g := GustDust.new()
+		g.atmo = a
+		var d: Vector2 = g._wind_dir()
+		var old := Vector2(a.wind.dir.x, a.wind.dir.z)
+		check(d.distance_to(old) < 1.0e-5, "%s %.0f°: направление %s против wind.dir %s" % [case[0], case[1], d, old])
+		g.free()
+		a.free()
