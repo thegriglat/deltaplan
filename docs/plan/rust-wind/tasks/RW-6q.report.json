@@ -1,0 +1,59 @@
+{
+  "status": "partial",
+  "summary": "Влит feature/rust-wind (конфликт gen_fixtures.gd снят), места островов пересняты с climate_lag. T1 по 8 полям после RW-6v: область 400 м в допуске W8 у lee_bowl, crater_ridge, east_cliffs (обычные t1_*_area), остальное в t1_open_* (8 тестов, ignore). Окна 50/100 м красные из-за pin_far_faces (RW-6v, picard_rs) - без него именно то, что предсказывал опыт. accept --dry 8/8 PASS, док обновлён.",
+  "commits": [
+    "f3ceaeb3d места островов с loc.climate_lag (W5 v7)",
+    "7cd51ca61 T1 - области 400 м в допуске, остальное t1_open_*",
+    "ce687380c док - summary, T4 после RW-6v"
+  ],
+  "checks": [
+    {
+      "name": "accept --dry",
+      "value": "8/8 PASS",
+      "pass": true
+    },
+    {
+      "name": "T1 area lee_bowl/crater_ridge/east_cliffs",
+      "value": "0.8x/2.3x->ok(1.0)/ok",
+      "pass": true
+    },
+    {
+      "name": "T1 окна как есть",
+      "value": "красные, 4.6 м/с на lee_bowl dx50",
+      "pass": false
+    },
+    {
+      "name": "T1 окна без pin_far_faces (локально)",
+      "value": "lee_bowl, thermal_plain, crater_ridge, east_cliffs - 0.5-0.7x допуска",
+      "pass": true
+    },
+    {
+      "name": "T4 после RW-6v",
+      "value": "утечка 0, div_rms 5e-10",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "T1 окна 50/100 м: нужна правка pin_far_faces (только область, не окна) в picard_rs - вне скоупа",
+    "landing_hill (RW-6u), k у start-полей и thermal_slope (RW-6w), область thermal_plain 9.8x - открыты, в t1_open_*"
+  ],
+  "questions": [
+    "RW-6q contract: W11 v9 - pin_far_faces() в init_warm/init_parent не должен задавать ubg на дальних гранях окна (вложенная граница берёт значения родителя); сейчас окна всех полей расходятся на метры в с. С отключённым вызовом окна lee_bowl/thermal_plain/crater_ridge/east_cliffs в допуске, но область crater_ridge/east_cliffs тогда 2.3x - значит pin нужен только области. После правки t1_open_* этих полей переводятся в обычные."
+  ],
+  "how_to_check": ".dpcli/dpcli accept RW-6q",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/tests/acceptance.rs t1_area_tests",
+      "why": "area dx400 crater_ridge/east_cliffs в допуске с малым запасом (Δu 1.003e-2 при пределе около 1.05e-2)",
+      "checked": "прогон детерминированный (air.deterministic), результат повторился в двух прогонах"
+    },
+    {
+      "where": "docs/research/rust-wind-rw6-acceptance.md",
+      "why": "колонка 'без pin' получена локальным отключением вызова pin_far_faces, не закоммичено",
+      "checked": "lee_bowl повторён отдельно, полный прогон 8 полей"
+    }
+  ],
+  "dp_feedback": "task sync при конфликте только отменяет слияние и называет файл; удобно было бы предложить git merge в копии. Текст заметки координатора обрезается в task show - полный текст пришлось искать в events.jsonl.",
+  "t": "2026-10-27T05:11:17",
+  "by": "executor"
+}
