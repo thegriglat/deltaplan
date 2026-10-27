@@ -65,7 +65,9 @@ fn restarted_load_does_not_break_the_stand_or_compare_nan() {
     let rep = compare::run(
         &mut sess,
         &Options {
-            terms: true,
+            // у фикстуры есть terms (RW-2b), а Formula слагаемых ещё не отдаёт: «нет слагаемого» —
+            // NaN по замыслу стенда; здесь проверяется только отсутствие NaN из-за перезапуска
+            terms: false,
             noise_replaced: false,
         },
     )
