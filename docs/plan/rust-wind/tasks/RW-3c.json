@@ -20,6 +20,11 @@
       "name": "W10",
       "version": "2",
       "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W11",
+      "version": "10",
+      "ref": "docs/contracts/rust-wind.md"
     }
   ],
   "copy": "~/worktrees/deltaplan/rust-wind-RW-3c",
@@ -46,15 +51,18 @@
     "docs/guide/net-protocol.md",
     "docs/guide/game/network.md",
     "locale/ui.csv",
-    "tests/"
+    "tests/",
+    "scripts/world_objects/easter_eggs.gd",
+    "tools/wind_fixtures/gen_fixtures.gd",
+    "configs/game.json"
   ],
   "dont_touch": [
     "scripts/atmosphere/air_model/",
     "docs/contracts/",
     "rust/",
     "tests/fixtures/",
-    "configs/",
-    "tests/contracts/test_rust_wind_contracts.gd"
+    "configs/atmosphere.json",
+    "configs/weather/"
   ],
   "accept": [
     {
@@ -89,5 +97,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-10-27T07:38:02",
-  "edited": "2026-10-27T07:50:32"
+  "edited": "2026-10-27T10:47:23"
 }

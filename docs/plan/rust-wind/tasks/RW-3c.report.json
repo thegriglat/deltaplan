@@ -1,0 +1,139 @@
+{
+  "status": "done",
+  "summary": "Отладка и превью на фасаде W2/W6/W7, база W10 пуста (кроме cloud_layer.gd), weather() вместо поля и get_weather (псевдоним убран, тест контрактов переведён), TODO(RW-3c)=0, фокусы ботов и сети, net.proto без воздуха, Calm по W4, секция calm_air убрана из game.json, status().stage/field_on/iters и итерации на экране загрузки. accept 6/6 PASS, scope PASS.",
+  "commits": [
+    "f8ec24f77 rust-wind RW-3c: отладка и превью на фасад W2, уборка переходного, фокусы ботов и сети, итерации на экране загрузки",
+    "0e0b0dab8 rust-wind RW-3c: тест status() stage/field_on/iters на синтетическом месте",
+    "8afddb585 rust-wind RW-3c: подписи этапов поля по идентификатору (gd и крейт) — в фасаде",
+    "59bf7c486 rust-wind RW-3c: тесты после прогона против базы — схема сети без воздуха, отпечаток мира на аналитике",
+    "rust-wind RW-3c: get_weather убран, секция calm_air из game.json",
+    "rust-wind RW-3c: CONTRACTS W11 = 10 по заголовку контракта"
+  ],
+  "checks": [
+    {
+      "name": "test_rust_wind_purity",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "no_rw3c_todo",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "fixtures_unchanged",
+      "value": "exit 0 (побитно)",
+      "pass": true
+    },
+    {
+      "name": "server_go",
+      "value": "go test ./...: 27 passed",
+      "pass": true
+    },
+    {
+      "name": "baseline_empty",
+      "value": "0 (в базе остались только строки cloud_layer.gd)",
+      "pass": true
+    },
+    {
+      "name": "tests_vs_base (вручную, job rw3c-vs, база feature/rust-wind a4b4364f2)",
+      "value": "копия 42 падения, база 40, новых 2: test_air_model_atmo::test_fingerprint_world_without_field и test_air_contracts::test_c5_net_schema — оба починены (коммит 59bf7c486), перепрогон обоих файлов: 0 упало; остальное — флейки по времени; стена 6415 с",
+      "pass": true
+    },
+    {
+      "name": "GPU: tests/atmosphere/test_air_status_iters_gpu.gd",
+      "value": "ok: поле Онгудая, этап solver, iters 300 за ~6000 кадров, не убывает, кратно 10; после READY этап пуст, iters 0, field_on",
+      "pass": true
+    },
+    {
+      "name": "test_determinism, test_gust_dust, test_debug_overlays, test_atmosphere_consumers, test_messages, menu_setup, game_logic (кроме test_forecast_settings — см. extra)",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_rust_wind_contracts",
+      "value": "23/23",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "50 файлов в границах",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "configure(Dictionary, Dictionary), set_ground/set_day/set_wind/set_weather/step и focus_node остаются внутри Atmosphere: их зовут ~45 тестов внутренностей, tools/wind_fixtures/gen_fixtures.gd, tools/terrain/bake_air.gd и ~20 исследовательских скриптов (вне скоупа). Из scripts/ и scenes/ снаружи не зовёт никто (игра, превью, отпечаток мира — только W2). Убрать — RW-13.",
+    "Game.air_runtime удалён (игра не знает AirRuntime): сломались исследовательские скрипты tools/research/fb1013_evening/probe.gd, tools/research/air_weak_wind/AWW-1/*; probe-скрипты в tools/research читают и air.weather (поле). Не чинил — вне скоупа.",
+    "tools/shots/{birds,thermal_signs,cloud_fade}_shot.gd лезут во внутренности атмосферы и зовут прежние set_weather/step после _ready превью; превью теперь поднимает воздух через load_place по кадрам, эти ручные кадры, вероятно, надо переписать (вне скоупа).",
+    "Ракурсы превью stages/cb/dust — приближения: стадии облаков и флаг Cb фасадом не задаются (статические термики — зрелые, гроза — пресет storm, вихри — dust_devil_chance=1 в пресете).",
+    "wind_source пыли (шум порывов по слоту времени): без расширения W2 фасад вызываемого не отдаёт — оставлено wind и пометка TODO(этап 3: RW-8/RW-11).",
+    "Документация docs/guide со старыми именами не обновлялась; tools/shots и tools/research пробы не чинились (решение координатора)."
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-3c --dry; GPU: tools/gpu_tests.sh --filter=air_status_iters; тест фокусов/сети — запуск игры в сети вручную не гонял",
+  "uncertain": [
+    {
+      "where": "scripts/game/game.gd:_air_set_focus / _air_other_focuses",
+      "why": "веса точек внимания (боты 0,3, пилоты сети 0,5, не более 16) выбраны без калибровки: gd использует только индекс 0, смысл весов появится у крейта",
+      "checked": "компилируется и гоняется в test_world_seed/test_forecast_game в прогоне против базы без новых падений; сеть вживую не проверял"
+    },
+    {
+      "where": "scripts/atmosphere/atmosphere.gd:_f_poll_iters",
+      "why": "iters читает приватные поля AirPicardJob (_iters, results) и AirRuntime (_coarse_job, _job) — air_model не правился; при переименовании там счётчик станет 0",
+      "checked": "GPU-тест test_air_status_iters_gpu: iters 300, не убывает, кратно 10; coarse → основной → окна — база копится, при сбросе суммы"
+    },
+    {
+      "where": "scripts/game/game.gd:_air_field_job (экран загрузки)",
+      "why": "строка этапа с итерациями идёт через progress.text перед progress.sub (LoadProgress в scripts/core не правился); status.progress у gd — общий (0,1…0,7 на этапе solver), а не доля решателя, полоса этапа стартует с ~10 %",
+      "checked": "логика; экран вживую и скрин не снимал (не заказаны)"
+    },
+    {
+      "where": "scripts/atmosphere/atmo_fingerprint.gd (make_world/capture)",
+      "why": "отпечаток мира теперь строится из растра места 50 м и описаний W6 (cores/clouds/cloud_raster), а не из прежних внутренностей: столбцы термиков и облаков другие (стадия, возраст вместо t_birth/env); сравнение Linux/Windows надо повторять новой версией",
+      "checked": "test_determinism 4/4 (прогон, прыжок, другой сид, путь пилота), test_world_seed без новых падений"
+    },
+    {
+      "where": "scripts/atmosphere/gust_dust.gd:_wind_dir (ревью RW-3b, пункт б)",
+      "why": "направление пыли из background_wind(10 м над долиной) совпадает с прежним wind.dir, пока скорость > 1e-6; при нулевой скорости раньше был ненулевой вектор, но снос и так умножался на 0",
+      "checked": "новый тест test_dust_direction_matches_wind_dir: 3 погоды/румба, расхождение < 1e-5"
+    },
+    {
+      "where": "tests/contracts/test_rust_wind_contracts.gd:13",
+      "why": "в копии после sync стояло W11 = 9, поставил 10 по заголовку контракта",
+      "checked": "test_versions_match_docs зелёный"
+    }
+  ],
+  "dp_feedback": "accept --dry: проверка scope падает на файлах, которые карточка не могла предвидеть (читатель переименованного поля), а добавление в скоуп — только через координатора; полезен режим «предупреждение». tools/gpu_tests.sh и godot под lock cpu не имеют подсказки, как запустить GPU-тест под замком — пришлось угадывать. job wait ограничен 10 минутами — 6400-секундный tests_vs_base ждёт ~11 вызовов; хотелось бы wait без предела или с вербальным прогрессом. rtk-фильтр режет вывод grep по ‘+N more’ — для разбора индексов файла пришлось использовать rtk proxy.",
+  "extra": {
+    "tests_vs_base": {
+      "new_failures": 2,
+      "fixed_after": true,
+      "copy": 42,
+      "base": 40,
+      "wall_s": 6415,
+      "list": [
+        "tests/atmosphere/test_air_model_atmo.gd::test_fingerprint_world_without_field",
+        "tests/contracts/test_air_contracts.gd::test_c5_net_schema"
+      ]
+    },
+    "todo_etap3": [
+      "atmosphere.gd:_v_ground_height",
+      "atmosphere.gd:_v_surface_class",
+      "atmosphere.gd:_create_visuals — wind в gust_dust.setup"
+    ],
+    "thermal_signs": "сиды знаков — от id ядер W6 (заявлено в RW-3b), оставлено",
+    "status_iters_gpu": {
+      "iters_in_stage": 300,
+      "frames_in_stage": 6046,
+      "note": "Онгудай, 17,3 км/ч с 131°, два прохода решателя [100, 90] + грубая сетка"
+    },
+    "files_out_of_scope_touched": [
+      "tools/wind_fixtures/gen_fixtures.gd (2 строки)",
+      "scripts/world_objects/easter_eggs.gd (1 строка)",
+      "scripts/game/achievement_feed.gd, scripts/game/world_link.gd (в scripts/game — в скоупе)"
+    ]
+  },
+  "t": "2026-10-27T10:58:36",
+  "by": "executor"
+}

@@ -1,0 +1,39 @@
+{
+  "verdict": "accept",
+  "summary": "Потребители на фасаде W2, get_weather/TODO(RW-3c) убраны, фокусы ботов и сети, iters на экране загрузки. Два «новых падения» tests_vs_base (test_air_model_atmo, test_air_contracts) перезапущены — зелёные. Правок вне скоупа нет.",
+  "issues": [
+    {
+      "file": "scripts/game/game.gd",
+      "line": 601,
+      "severity": "minor",
+      "what": "_air_set_focus каждый тик строит массивы и сортирует ботов/пилотов сети; веса 0,3/0,5 не калиброваны (заявлено в отчёте).",
+      "fix": "При заметной цене кадра — считать другие фокусы реже (раз в 0,25 с)."
+    },
+    {
+      "file": "scripts/atmosphere/atmosphere.gd",
+      "line": 0,
+      "severity": "minor",
+      "what": "_f_poll_iters читает приватные _iters/_job/_coarse_job air_model: связь хрупкая (заявлено).",
+      "fix": "В этапе 3 заменить публичным счётчиком в AirRuntime."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "accept --only test_rust_wind_contracts --dry",
+      "value": "23/23, scope 50 файлов",
+      "pass": true
+    },
+    {
+      "name": "test_air_model_atmo (файл)",
+      "value": "5 тестов, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_air_contracts (файл)",
+      "value": "31 тест, 0 упало",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-27T11:20:23",
+  "by": "reviewer"
+}
