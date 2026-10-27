@@ -469,3 +469,5 @@
 {"t": "2026-10-27T06:21:40", "by": "executor", "task": "RW-6w", "ev": "reported", "commits": ["5d04b2fa3"], "note": "partial: Причина расхождения k - два эффекта: (1) U над стартом крейт мерил над рельефом, а игра и запекание - над GroundField (…", "dp_feedback": "Нет способа дождаться/подтянуть незакоммиченную работу соседней задачи для проверки зависимости - пришлось git apply diff из чужой копии вручную. job wait дольше 600 с не помещается в один вызов Bash."}
 {"t": "2026-10-27T06:37:35", "by": "coordinator", "task": "RW-6x", "ev": "checked", "note": "6/6 acceptance_release=ok:12; acceptance_test=ok:test result: ok. 1; cargo_test=ok:exit 0; clippy=ok:exit 0; fmt=ok:exit 0; docs=ok:ошибок 0"}
 {"t": "2026-10-27T06:37:46", "by": "coordinator", "task": "RW-6x", "ev": "accepted", "note": "по отчёту: одна правка w дальних граней окна (nest.ubw) + модульный тест; окна T1 4 полей 0,56–0,69× допуска, область без изменений, хеш RW-6t прежний"}
+{"t": "2026-10-27T06:37:47", "by": "coordinator", "task": "RW-6x", "ev": "checked", "commits": ["29cbc4620"], "note": "1/6 fmt=ok:exit 0"}
+{"t": "2026-10-27T06:37:48", "by": "coordinator", "task": "RW-6x", "ev": "merged"}
