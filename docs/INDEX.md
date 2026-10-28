@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-26"
+updated: "2026-10-29"
 summary: "Точка входа: модули docs/ по подпроектам, прочие документы по типам."
 related: []
 generated: true
@@ -53,11 +53,14 @@ generated: true
   - [docs/contracts/rust-wind/input.md](contracts/rust-wind/input.md) — W5 rust-wind: вход реализации — AirPlaceData (место, растры, климат, запечённые поля, хеши), конфиги, условия
   - [docs/contracts/rust-wind/solver.md](contracts/rust-wind/solver.md) — W11 rust-wind: решатель Пикара в крейте — R6 v3 + заморозка колонн, отмена, новые причины остановки; пустая маска — побитно R6 v3.
   - [docs/contracts/rust-wind/trait.md](contracts/rust-wind/trait.md) — W4 rust-wind: трейт AirModel крейта dp-air (без Godot) — типы, методы, порядок команд, структуры описаний, реализации Calm/Formula/Live.
-  - [docs/plan/rust-wind-state.md](plan/rust-wind-state.md) — rust-wind на паузе 2026-10-26: что влито, красное, что в ветках задач, не начато и порядок продолжения [postponed]
+  - [docs/plan/rust-wind-state.md](plan/rust-wind-state.md) — rust-wind 2026-10-27: этап 1–2 доведён (кроме RW-6u, RW-7); что влито, что открыто, порядок продолжения [postponed]
   - [docs/research/rust-wind-field-path.md](research/rust-wind-field-path.md) — RW-6a: путь поля Пикара в игре от места до опроса точки, что есть в picard_rs, разбиение RW-6 на задачи, окна 100/50 м на CPU
+  - [docs/research/rust-wind-k-passes.md](research/rust-wind-k-passes.md) — RW-6w: почему k второго прохода у start-полей расходился с запечённым, что исправлено, числа до и после
+  - [docs/research/rust-wind-rw6-acceptance.md](research/rust-wind-rw6-acceptance.md) — RW-6q: T1 по 8 запечённым полям после RW-6v, T2/T4/T4a/T8, бенч Formula, загрузка Онгудая против GPU
+  - [docs/research/rust-wind-t1-stability.md](research/rust-wind-t1-stability.md) — RW-6z: крейт сходится и не чувствителен к CHUNK и возмущению 1e-6 (R ≤ 2,6e-3) — расхождение T1 не от неустойчивости крейта
   - [tools/research/rust_wind/README.md](../tools/research/rust_wind/README.md) — RW-6a: расчёт размера окон 100/50 м и времени picard_rs на CPU, приложение с таблицами шагов и задач RW-6
   - [tools/research/rust_wind/summary.md](../tools/research/rust_wind/summary.md) — RW-6a вывод: в крейте нет сборщика случая, грубого старта, заморозки и фаз; окна переносить последним отключаемым хвостом
-- **rust-wind-state** — rust-wind на паузе 2026-10-26: что влито, красное, что в ветках задач, не начато и порядок продолжения [postponed 2026-10-26] — [план](plan/rust-wind-state.md)
+- **rust-wind-state** — rust-wind 2026-10-27: этап 1–2 доведён (кроме RW-6u, RW-7); что влито, что открыто, порядок продолжения [postponed 2026-10-27] — [план](plan/rust-wind-state.md)
 
 ## flight
 

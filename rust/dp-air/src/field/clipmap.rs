@@ -124,6 +124,8 @@ pub struct WinReport {
     /// Итерации решений `[mech, heat]`.
     pub iters: [usize; 2],
     pub stop: [StopReason; 2],
+    /// `div_rms` невязки `[mech, heat]` (диагностика RW-6z).
+    pub div_rms: [f64; 2],
     /// Поправка потока границы `[mech, heat]`, м/с.
     pub corr: [f32; 2],
     /// Секунды: подготовка входа (параллельно на все окна), граница и старт, решения, поле.
@@ -329,6 +331,8 @@ pub struct PairSolved {
     pub heat: State,
     pub iters: [usize; 2],
     pub stop: [StopReason; 2],
+    /// `div_rms` невязки поданных решений `[mech, heat]` (диагностика RW-6z).
+    pub div_rms: [f64; 2],
 }
 
 /// Решает пару `inputs` (старт переносится в состояния решателя, без копий).
@@ -373,6 +377,7 @@ pub fn solve_pair_counted(
     Ok(PairSolved {
         iters: [sm.iters, sh.iters],
         stop: [sm.stop, sh.stop],
+        div_rms: [sm.residuals.div_rms, sh.residuals.div_rms],
         mech: sm.state,
         heat: sh.state,
     })
@@ -508,6 +513,7 @@ pub fn solve_windows(
             warm: inputs.warm,
             iters: solved.iters,
             stop: solved.stop,
+            div_rms: solved.div_rms,
             corr: [inputs.mech.corr, inputs.heat.corr],
             secs: [prep_s, start_s, solve_s, t2.elapsed().as_secs_f64()],
         });
