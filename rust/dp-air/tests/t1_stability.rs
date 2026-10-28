@@ -248,7 +248,7 @@ fn run_field(variant: &str, loc: &str, site: &str) {
         }
     };
     let ph = phase_result(&jin, last_k).unwrap_or_else(|_| panic!("phase_result"));
-    let area = got.last().unwrap().grid().clone();
+    let area = *got.last().unwrap().grid();
     let n_col = area.nx * area.ny;
     assert_eq!(
         ph.freeze.mask.len(),
@@ -384,6 +384,8 @@ fn load(variant: &str, loc: &str, site: &str) -> Option<(Meta, Vec<Lvl>, Vec<u8>
     Some((Meta { v }, lv, masks))
 }
 
+type Sel = fn(u8) -> bool;
+
 const CH: [&str; 5] = ["u", "v", "w_mech", "w_conv", "theta"];
 
 #[derive(Default, Clone)]
@@ -482,7 +484,7 @@ fn stab_compare() {
                     0
                 }
             };
-            let sets: [(&str, fn(u8) -> bool); 5] = [
+            let sets: [(&str, Sel); 5] = [
                 ("picard", |c| c != 2),
                 ("mech", |c| c == 2),
                 ("all", |_| true),
