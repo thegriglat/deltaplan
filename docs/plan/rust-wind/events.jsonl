@@ -558,3 +558,6 @@
 {"t": "2026-10-29T02:10:47", "by": "coordinator", "task": "RW-8a", "ev": "edited", "note": "scope", "diff": {"scope": ["[\"docs/research/rust-wind-stage3-path.md\", \"docs/INDEX.md\"]", "[\"docs/research/rust-wind-stage3-path.md\", \"docs/research/rust-wind-stage3/\", \"docs/INDEX.md\"]"]}}
 {"t": "2026-10-29T02:11:06", "by": "coordinator", "task": "RW-7a", "ev": "started"}
 {"t": "2026-10-29T02:11:06", "by": "coordinator", "task": "RW-8a", "ev": "started"}
+{"t": "2026-10-29T02:35:05", "by": "executor", "task": "RW-8a", "ev": "reported", "commits": ["5c6f8c609"], "note": "done: Разбор этапа 3 в docs/research/rust-wind-stage3-path.md (33 КБ) + 7 подфайлов в docs/research/rust-wind-stage3/ (сумма …", "dp_feedback": "task show обрезает дополнения после выдачи (читалось через --full); docs index перегенерировал docs/registry/*.md вне скоупа задачи — пришлось откатывать git checkout, лучше исключить registry из проверки scope или не трогать их в docs index."}
+{"t": "2026-10-29T02:35:15", "by": "coordinator", "task": "RW-8a", "ev": "checked", "note": "2/2 sections=ok:sections ok; docs=ok:ошибок 0"}
+{"t": "2026-10-29T02:35:24", "by": "coordinator", "task": "RW-8a", "ev": "accepted", "note": "по отчёту"}
