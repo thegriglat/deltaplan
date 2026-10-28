@@ -96,3 +96,19 @@ func test_unload_during_use_is_fast() -> void:
 	a.unload_place()
 	a = null
 	check(Time.get_ticks_msec() - t0 < 1000, "выгрузка ≤ 1 с")
+
+
+func test_field_mode_and_export_v4() -> void:
+	var a := _new()
+	for m in ["set_field_enabled", "field_export", "field_version", "field_export_header",
+			"field_export_data"]:
+		check(a.has_method(m), "W3 v4: метод " + m)
+	check(a.field_export() == 0 and a.field_version() == 0, "без места поля нет")
+	check(a.field_export_header() == "", "заголовок пуст")
+	check(a.field_export_data().size() == 0, "тело пусто")
+	check(a.set_field_enabled(false) == 0, "set_field_enabled(false) до места")
+	check(a.set_field_enabled(true) == 0, "set_field_enabled(true)")
+	check(_load(a) == 0, "load_place")
+	check(a.set_field_enabled(false) == 0, "set_field_enabled(false) на Calm")
+	check(a.field_export() == 0 and a.field_export_header() == "", "Calm: снимка нет")
+	check(a.field_export_data().size() == 0, "Calm: тело пусто")
