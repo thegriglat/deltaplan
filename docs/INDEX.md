@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-26"
+updated: "2026-10-29"
 summary: "Точка входа: модули docs/ по подпроектам, прочие документы по типам."
 related: []
 generated: true
@@ -49,15 +49,26 @@ generated: true
 - **rust-air-integration** — Встраивание Rust-Пикара в игру: поле, кэш, фоновый пересчёт и вход в крейте, Godot опрашивает точки; оценка 6–11 дней, проба [idea 2026-10-24] — [план](plan/rust-air-integration.md)
 - **rust-wind** — Весь ветер — в Rust-крейте за одной границей; пауза 2026-10-26: поле Пикара в крейте, сверка T1 сильного ветра не сходится [postponed 2026-10-26] — [план](plan/rust-wind.md) · [контракты](contracts/rust-wind.md)
   - [docs/contracts/rust-wind/descriptions.md](contracts/rust-wind/descriptions.md) — W6 rust-wind: описания — ядра подъёма, облака, растр облаков, гребни волн; поля, шаги, инвариант найденного ядра.
+  - [docs/contracts/rust-wind/dpair.md](contracts/rust-wind/dpair.md) — W3 rust-wind: класс DpAir (gdext, dp-gd) — методы как W2 в типах Godot, потоки, жизненный цикл, режим поля и выдача поля фасаду (v4).
   - [docs/contracts/rust-wind/fixtures-tolerances.md](contracts/rust-wind/fixtures-tolerances.md) — W8 rust-wind: формат фикстур T1 (json + f32), допуски сверки Rust против GDScript, пороги скорости.
   - [docs/contracts/rust-wind/input.md](contracts/rust-wind/input.md) — W5 rust-wind: вход реализации — AirPlaceData (место, растры, климат, запечённые поля, хеши), конфиги, условия
   - [docs/contracts/rust-wind/solver.md](contracts/rust-wind/solver.md) — W11 rust-wind: решатель Пикара в крейте — R6 v3 + заморозка колонн, отмена, новые причины остановки; пустая маска — побитно R6 v3.
   - [docs/contracts/rust-wind/trait.md](contracts/rust-wind/trait.md) — W4 rust-wind: трейт AirModel крейта dp-air (без Godot) — типы, методы, порядок команд, структуры описаний, реализации Calm/Formula/Live.
-  - [docs/plan/rust-wind-state.md](plan/rust-wind-state.md) — rust-wind на паузе 2026-10-26: что влито, красное, что в ветках задач, не начато и порядок продолжения [postponed]
+  - [docs/plan/rust-wind-state.md](plan/rust-wind-state.md) — rust-wind 2026-10-27: этап 1–2 доведён (кроме RW-6u, RW-7); что влито, что открыто, порядок продолжения [postponed]
   - [docs/research/rust-wind-field-path.md](research/rust-wind-field-path.md) — RW-6a: путь поля Пикара в игре от места до опроса точки, что есть в picard_rs, разбиение RW-6 на задачи, окна 100/50 м на CPU
+  - [docs/research/rust-wind-k-passes.md](research/rust-wind-k-passes.md) — RW-6w: почему k второго прохода у start-полей расходился с запечённым, что исправлено, числа до и после
+  - [docs/research/rust-wind-rw6-acceptance.md](research/rust-wind-rw6-acceptance.md) — RW-6q: T1 по 8 запечённым полям после RW-6v, T2/T4/T4a/T8, бенч Formula, загрузка Онгудая против GPU
+  - [docs/research/rust-wind-stage3/cards.md](research/rust-wind-stage3/cards.md) — RW-8a: проект карточек подзадач этапа 3 (RW-8b…12z): скоуп, красные тесты, зависимости, параллельность, где сталкиваются правки formula.rs.
+  - [docs/research/rust-wind-stage3/fixtures.md](research/rust-wind-stage3/fixtures.md) — RW-8a: какие слагаемые W7 покрывают эталоны RW-1/RW-1b/RW-2b, сколько ненулевых вкладов в каком случае; что не покрыто.
+  - [docs/research/rust-wind-stage3/godot-compat.md](research/rust-wind-stage3/godot-compat.md) — RW-8a: где слагаемые ветра опираются на движок Godot (FastNoiseLite, RandomNumberGenerator, hash) и что с этим делать в крейте.
+  - [docs/research/rust-wind-stage3/rw10-thermals.md](research/rust-wind-stage3/rw10-thermals.md) — RW-8a: разбор RW-10 (термики, фон, AirThermals, ядра): исходники, жизнь термика, петля с облаками, разбиение на 4 подзадачи.
+  - [docs/research/rust-wind-stage3/rw11-clouds.md](research/rust-wind-stage3/rw11-clouds.md) — RW-8a: подробный разбор RW-11 (_extra_flow: гроза, волны и роторы, выброс из облака) и граница «физика облаков в крейте, отрисовка в Godot».
+  - [docs/research/rust-wind-stage3/rw12-weather.md](research/rust-wind-stage3/rw12-weather.md) — RW-8a: разбор RW-12 (погода из прогноза, AtmoDay, коэффициенты): что есть в крейте, чего нет, климат места, эталоны.
+  - [docs/research/rust-wind-stage3/rw8-rw9.md](research/rust-wind-stage3/rw8-rw9.md) — RW-8a: разбор RW-8 (болтанка поля, шум порывов) и RW-9 (аналитика, полоса края, off): входы, выходы, крейт, тесты.
+  - [docs/research/rust-wind-stage3-path.md](research/rust-wind-stage3-path.md) — RW-8a: слагаемые ветра на GDScript → крейт (RW-8…12): сумма air_velocity_at, разбор задач, порядок, пробелы контракта, переход фасада.
   - [tools/research/rust_wind/README.md](../tools/research/rust_wind/README.md) — RW-6a: расчёт размера окон 100/50 м и времени picard_rs на CPU, приложение с таблицами шагов и задач RW-6
   - [tools/research/rust_wind/summary.md](../tools/research/rust_wind/summary.md) — RW-6a вывод: в крейте нет сборщика случая, грубого старта, заморозки и фаз; окна переносить последним отключаемым хвостом
-- **rust-wind-state** — rust-wind на паузе 2026-10-26: что влито, красное, что в ветках задач, не начато и порядок продолжения [postponed 2026-10-26] — [план](plan/rust-wind-state.md)
+- **rust-wind-state** — rust-wind 2026-10-27: этап 1–2 доведён (кроме RW-6u, RW-7); что влито, что открыто, порядок продолжения [postponed 2026-10-27] — [план](plan/rust-wind-state.md)
 
 ## flight
 
