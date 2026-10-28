@@ -234,7 +234,7 @@ fn field_off_and_on_again() {
     let before = sample(&m, &pts);
     let v0 = m.field_version();
     let first = m.field_export();
-    assert_eq!(m.set_field_enabled(true).is_ok(), true, "повтор — Ok");
+    assert!(m.set_field_enabled(true).is_ok(), "повтор — Ok");
     assert_eq!(m.field_version(), v0);
 
     m.set_field_enabled(false).unwrap();
