@@ -1,0 +1,83 @@
+{
+  "id": "RW-12c",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Ход дня и коэффициенты в крейте: AtmoDay, _cache_coefficients, мягкая смена погоды, версии погоды, sun_state — модулем weather",
+  "goal": "Модуль dp_air::weather получает ход дня (AtmoDay: hour_at с зажимом world.time, weather_at по квантам, bracket, sun_at, source_at, sun_direction), коэффициенты суммы из словаря погоды (_cache_coefficients), мягкую смену (_blend/_update_weather) и состояние погоды с номерами версий и weather_json; дамп из Godot и cargo-тесты сверяют. Подключение к Formula — не здесь (после каркаса RW-8b).",
+  "plan_ref": "План переноса",
+  "contracts": [
+    {
+      "name": "W2",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W4",
+      "version": "5",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W5",
+      "version": "8",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W10",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-12c",
+  "branch": "rust-wind/RW-12c",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/weather/",
+    "rust/dp-air/tests/weather_day.rs",
+    "rust/dp-air/tests/data/day_dump/",
+    "tools/wind_fixtures/day_dump.gd",
+    "tools/wind_fixtures/day_dump.gd.uid",
+    "tools/wind_fixtures/day_dump.tscn",
+    "tools/wind_fixtures/day_dump.sh"
+  ],
+  "dont_touch": [
+    "rust/dp-air/src/formula.rs",
+    "rust/dp-air/src/terms/",
+    "rust/dp-air/src/field/",
+    "rust/picard_rs/",
+    "rust/dp-gd/",
+    "scripts/",
+    "tests/fixtures/",
+    "docs/contracts/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "weather_day",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test weather_day",
+      "expect": "num:test result: ok\\. (\\d+) >=10"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dp_air_no_godot",
+      "cmd": "cargo tree --manifest-path rust/Cargo.toml -p dp-air -e normal | grep -ci godot || true",
+      "expect": "num:^(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T04:42:14"
+}
