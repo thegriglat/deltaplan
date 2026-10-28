@@ -126,7 +126,9 @@ func test_place_from_terrain_and_field_in_facade() -> void:
 	check(int(st0.state) == Atmosphere.STATE_LOADING, "после start_at — LOADING")
 	check(await _ready_up(a), "дошёл до READY")
 	var st: Dictionary = a.status()
-	check(a.runtime != null, "поле Пикара создано внутри фасада (место из рельефа + прогноз)")
+	check(a.get("runtime") == null, "AirRuntime фасад не создаёт (RW-7b): поле ведёт крейт")
+	if ClassDB.class_exists("DpAir"):
+		check(a.get("_dp") != null, "место и прогноз отданы DpAir (поле в headless выключено)")
 	check(float(st.progress) >= 1.0 and String(st.stage) == "", "готов: прогресс 1, этапа нет: %s" % str(st))
 	check(not bool(st.field_on) and int(st.iters) == 0, "headless: поля нет (аналитика), итераций 0")
 	var w: Dictionary = a.weather()
