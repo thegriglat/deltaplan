@@ -43,6 +43,7 @@
 //! перезапускается (подбор поля — первое, что делает задача), после готового поля — `BadInput`.
 //! `set_cache_dir` — до `load_place` (или до первой загрузки): каталог читает и пишет задача
 //! загрузки (`field::runtime`); пусто — без кеша. Нужен `header.model_hash` места.
+use crate::field::baked::{BakedField, encode_baked};
 use crate::field::clipmap::{ClipMap, WinReport, run_shift};
 use crate::field::field_cache::FieldCache;
 use crate::field::field_set::FieldSet;
@@ -51,10 +52,10 @@ use crate::field::runtime::{
     StageCounter, dir_key, ground_height, needs_recompute, run_job, slot, slot_hour,
 };
 use crate::field::weather_core::{WeatherInputs, hour_at};
-use crate::field::wind_field::Limits;
+use crate::field::wind_field::{Field, Limits};
 use crate::{
-    AirModel, Cloud, Conditions, Configs, Core, Crest, Decomposition, Error, Focus, Place, Raster,
-    SampleMode, State, Status,
+    AirModel, Cloud, Conditions, Configs, Core, Crest, Decomposition, Error, FieldExport, Focus,
+    Place, Raster, SampleMode, State, Status,
 };
 use rayon::prelude::*;
 use std::collections::HashMap;
@@ -81,7 +82,40 @@ struct Published {
     place: Option<Arc<Place>>,
 }
 
+/// Снимок последней подачи поля для выдачи фасаду (W3 v4, переходное): целевой набор уровней.
+#[derive(Default)]
+struct ExpState {
+    /// Номер подачи; растёт всегда, не сбрасывается.
+    version: u64,
+    levels: Vec<Arc<Field>>,
+    blend_s: f64,
+    blend_t0: f64,
+    location: String,
+    model_hash: String,
+    k: f64,
+}
+
+/// Что подаче знать о месте и множителе притока для заголовка снимка.
+#[derive(Clone, Default)]
+struct ExpMeta {
+    location: String,
+    model_hash: String,
+    k: f64,
+}
+
+impl ExpMeta {
+    fn of(place: &Place, k: f64) -> Self {
+        let h = place.header();
+        ExpMeta {
+            location: h.loc.id.clone(),
+            model_hash: h.model_hash.clone(),
+            k,
+        }
+    }
+}
+
 struct Shared {
+    exp: Mutex<ExpState>,
     published: RwLock<Arc<Published>>,
     state: AtomicU8,
     progress: Arc<AtomicU32>,
@@ -99,6 +133,7 @@ struct Shared {
 impl Shared {
     fn new() -> Self {
         Shared {
+            exp: Mutex::new(ExpState::default()),
             published: RwLock::new(Arc::new(Published {
                 fs: FieldSet::default(),
                 place: None,
@@ -173,6 +208,70 @@ impl Shared {
 
     fn set_time(&self, t: f64) {
         self.time_bits.store(t.to_bits(), Ordering::SeqCst);
+    }
+
+    fn time(&self) -> f64 {
+        f64::from_bits(self.time_bits.load(Ordering::SeqCst))
+    }
+
+    /// Новая подача поля (пустые уровни — поле снято): номер растёт, снимок — целевой набор.
+    /// Подмена с пустого поля — сразу (`blend_s = 0`).
+    fn note_feed(&self, levels: &[Arc<Field>], blend_s: f64, t0: f64, meta: ExpMeta) {
+        let mut e = lock(&self.exp);
+        e.version += 1;
+        let first = e.levels.is_empty();
+        e.blend_s = if first || levels.is_empty() {
+            0.0
+        } else {
+            blend_s.max(0.0)
+        };
+        e.blend_t0 = t0;
+        e.levels = levels.to_vec();
+        if !levels.is_empty() {
+            e.location = meta.location;
+            e.model_hash = meta.model_hash;
+            e.k = meta.k;
+        }
+    }
+
+    fn field_export(&self) -> FieldExport {
+        let e = lock(&self.exp);
+        if e.levels.is_empty() {
+            return FieldExport {
+                version: e.version,
+                ..FieldExport::default()
+            };
+        }
+        let mut meta = serde_json::Map::new();
+        meta.insert("inflow_k".into(), serde_json::json!(e.k));
+        let b = BakedField {
+            location: e.location.clone(),
+            site: String::new(),
+            model_hash: e.model_hash.clone(),
+            key: serde_json::Value::Null,
+            levels: e.levels.iter().map(|l| (**l).clone()).collect(),
+            names: Vec::new(),
+            level_meta: vec![meta],
+            inflow_k: e.k,
+        };
+        let mut extra = serde_json::Map::new();
+        extra.insert("field_version".into(), serde_json::json!(e.version));
+        extra.insert("blend_s".into(), serde_json::json!(e.blend_s));
+        extra.insert("blend_t0".into(), serde_json::json!(e.blend_t0));
+        let key = serde_json::json!({});
+        match encode_baked(&b, &key, &extra) {
+            Ok((header_json, data)) => FieldExport {
+                version: e.version,
+                blend_s: e.blend_s,
+                blend_t0: e.blend_t0,
+                header_json,
+                data,
+            },
+            Err(_) => FieldExport {
+                version: e.version,
+                ..FieldExport::default()
+            },
+        }
     }
 }
 
@@ -313,6 +412,7 @@ fn job_main(
     slot: Arc<Slot>,
 ) {
     let cfg = job.cfg.clone();
+    let place_meta = ExpMeta::of(&job.place, 1.0);
     let res = std::panic::catch_unwind(AssertUnwindSafe(|| match shift {
         Some((q, pilot)) => run_shift(job, q, pilot),
         None => run_job(job),
@@ -327,6 +427,15 @@ fn job_main(
                 let why = out.report.windows_error.clone().unwrap_or_default();
                 sh.modify_epoch(epoch, |p| {
                     apply_limits(p, &cfg);
+                    sh.note_feed(
+                        &levels,
+                        0.0,
+                        sh.time(),
+                        ExpMeta {
+                            k: out.k,
+                            ..place_meta
+                        },
+                    );
                     p.fs.set_levels(levels, 0.0);
                     *lock(&sh.report) = Some(out.report.clone());
                     sh.set_state(State::Ready, 1.0, &why);
@@ -404,6 +513,10 @@ pub struct Formula {
     shifts: Vec<ShiftRec>,
     /// Подставные отказы окон (тесты).
     win_fail: Arc<AtomicUsize>,
+    /// Режим поля (`set_field_enabled`); по умолчанию включено.
+    field_on: bool,
+    /// Следующая загрузка — включение поля при `Ready`: состояние не меняется.
+    quiet_load: bool,
 }
 
 impl Default for Formula {
@@ -447,6 +560,8 @@ impl Formula {
             shift_req: None,
             shifts: Vec::new(),
             win_fail: Arc::new(AtomicUsize::new(0)),
+            field_on: true,
+            quiet_load: false,
         }
     }
 
@@ -608,11 +723,20 @@ impl Formula {
             };
             let (cfg, blend) = (self.cfg_ok().ok(), job.blend_s);
             let levels = out.levels;
+            let k = if job.kind == Kind::Shift {
+                self.inflow_k
+            } else {
+                out.k
+            };
+            let meta = self.place.as_ref().map(|pl| ExpMeta::of(pl, k));
             self.sh.modify(|p| {
                 if let Some(c) = &cfg {
                     apply_limits(p, c);
                 }
                 p.fs.advance(tdel - *cursor);
+                if let Some(m) = meta {
+                    self.sh.note_feed(&levels, blend, tdel, m);
+                }
                 p.fs.set_levels(levels, blend);
             });
             *cursor = tdel;
@@ -687,7 +811,12 @@ impl Formula {
                 Arc::new(StageCounter::default()),
             )
         } else {
-            self.sh.set_state(State::Loading, 0.0, "");
+            if std::mem::take(&mut self.quiet_load) {
+                self.sh.progress.store(0f32.to_bits(), Ordering::Relaxed);
+                self.sh.stage.clear();
+            } else {
+                self.sh.set_state(State::Loading, 0.0, "");
+            }
             (self.sh.progress.clone(), self.sh.stage.clone())
         };
         let loading = kind == Kind::Load;
@@ -750,7 +879,7 @@ impl Formula {
     /// Нужен ли пересчёт на моменте `t`; запускает задачу. `cursor` — игровое время, до
     /// которого подмена уже продвинута.
     fn try_launch(&mut self, t: f64, cursor: f64) -> bool {
-        if self.failed || self.place.is_none() {
+        if self.failed || self.place.is_none() || !self.field_on {
             return false;
         }
         let plan = self.plan(t, cursor);
@@ -989,7 +1118,11 @@ impl AirModel for Formula {
         *lock(&self.sh.report) = None;
         self.cond_t = 0.0;
         self.reset_published(Some(place));
+        self.sh.note_feed(&[], 0.0, 0.0, ExpMeta::default());
         self.sh.set_state(State::Ready, 1.0, "");
+        if !self.field_on {
+            return Ok(());
+        }
         if let (Some(cond), Some(inputs)) = (self.cond.clone(), self.inputs.clone()) {
             match inputs {
                 Ok(i) => {
@@ -1023,6 +1156,8 @@ impl AirModel for Formula {
         self.thermals.clear();
         self.focuses.clear();
         self.reset_published(None);
+        self.sh.note_feed(&[], 0.0, 0.0, ExpMeta::default());
+        self.quiet_load = false;
         self.sh.set_state(State::Empty, 0.0, "");
     }
 
@@ -1090,7 +1225,7 @@ impl AirModel for Formula {
             self.sh.set_state(State::Ready, 1.0, "");
         }
         self.cond_t = t;
-        if self.failed {
+        if self.failed || !self.field_on {
             return Ok(());
         }
         let (Some(cond), Some(Ok(inputs)), Ok(cfg)) =
@@ -1143,6 +1278,50 @@ impl AirModel for Formula {
         }
         self.cache_dir = (!path.is_empty()).then(|| PathBuf::from(path));
         Ok(())
+    }
+
+    fn set_field_enabled(&mut self, on: bool) -> Result<(), Error> {
+        if on == self.field_on {
+            return Ok(());
+        }
+        self.field_on = on;
+        if self.place.is_none() {
+            return Ok(());
+        }
+        self.reap();
+        if !on {
+            // поле снимается сразу, без подмены; задача отменяется, расчётов больше нет
+            self.cancel_job();
+            self.quiet_load = false;
+            self.cur = None;
+            self.warm = None;
+            self.inflow_k = 1.0;
+            self.failed = false;
+            self.reset_clip();
+            self.sh.modify(|p| p.fs.set_levels(Vec::new(), 0.0));
+            self.sh.note_feed(&[], 0.0, self.time_s, ExpMeta::default());
+            if self.sh.state() != State::Empty {
+                self.sh.set_state(State::Ready, 1.0, "");
+            }
+            return Ok(());
+        }
+        // включение: загрузка фоном как при load_place, состояние не меняется, подача сразу
+        self.quiet_load = true;
+        if let (Some(cond), Some(Ok(inputs))) = (self.cond.clone(), self.inputs.clone()) {
+            let rec = CondRec::new(&inputs, &cond, hour_at(&cond, self.time_s));
+            self.launch(Kind::Load, rec, self.time_s);
+            // нет конфига: launch отказал, а режим «тихо» не нужен
+            self.quiet_load = false;
+        }
+        Ok(())
+    }
+
+    fn field_export(&self) -> FieldExport {
+        self.sh.field_export()
+    }
+
+    fn field_version(&self) -> u64 {
+        lock(&self.sh.exp).version
     }
 
     fn status(&self) -> Status {

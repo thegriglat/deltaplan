@@ -52,6 +52,11 @@ var CASES: Array[Dictionary] = [
 		from_deg = 151.0, seed = 707, statics = []},
 	{name = "ongudai_wave", place = "ongudai", preset = "wave", wind_kmh = 36.0,
 		from_deg = 151.0, seed = 808, statics = []},
+	# RW-2c: режим off явно (set_air_mode) и гроза с полем Пикара на Онгудае.
+	{name = "synth_off", place = "synthetic", preset = "medium", wind_kmh = 14.0,
+		from_deg = 230.0, seed = 4242, statics = [[-4000.0, 3000.0, 2.5, 120.0]], air_mode = "off"},
+	{name = "ongudai_storm", place = "ongudai", preset = "storm", wind_kmh = 14.0,
+		from_deg = 151.0, seed = 909, statics = []},
 	# Набор 2 (RW-1b): ход игры на Онгудае — условия-прогноз W5 v3, ход дня AtmoDay, окна 100/50 м,
 	# пересчёт поля в полёте. Идут ПОСЛЕ набора 1: меняют состояние рельефа (солнце классов, вода).
 	{name = "ongudai_day_1", place = "ongudai", day = true, seed = 1101, start_hour = 10.9,
@@ -478,6 +483,8 @@ func _make_atmo(c: Dictionary, ctx: Dictionary, weather: Dictionary) -> Atmosphe
 	a.visuals_enabled = false
 	a.seed_value = int(c.seed)
 	a.configure(cfg, w)
+	if c.has("air_mode"):
+		a.set_air_mode(String(c.air_mode))
 	a.cloud_phys.deterministic = true
 	a.cloud_phys.async_field = false
 	a.set_ground(ctx.height_fn, ctx.sun_fn, ctx.surface_fn)
@@ -524,6 +531,9 @@ func _run_case(c: Dictionary, ctx: Dictionary) -> bool:
 				data[o + m] = r[m]
 		descs.append(_describe(a, ctx, TIMES[k]))
 	var focus: Vector3 = ctx.focus
+	var extra_mode := {}
+	if c.has("air_mode"):
+		extra_mode.air_mode = String(c.air_mode)
 	var tmp_cfg := {
 		version = FORMAT_VERSION,
 		place = String(c.place),
@@ -551,6 +561,7 @@ func _run_case(c: Dictionary, ctx: Dictionary) -> bool:
 			hour_note = "AtmoDay не используется (эталон-пресет W5): ход дня и солнце — из пресета и clouds.sun_* конфига",
 		},
 	}
+	tmp_cfg.extra.merge(extra_mode)
 	_write_text(_out.path_join("cases/%s.json" % c.name), JSON.stringify(tmp_cfg) + "\n")
 	_write_bytes(_out.path_join("cases/%s.bin" % c.name), data.to_byte_array())
 	_write_text(

@@ -1,0 +1,63 @@
+{
+  "status": "done",
+  "summary": "Модуль dp_air::weather: derive, climate_place (ClimateGrid.place по сырой ячейке W5 v8), td_day/td_noise/splitmix64, _apply_heat, haze_k_rh, cirrus_base_cover, sun_block_cover, lerp_table, interp_rows. Дамп Godot (6181 строка, 636 КБ zstd, 6 мест) воспроизводится побитно; 32 теста weather_derive (дамп с допуском 1e-9 + 13 портов test_weather_model.gd) проходят.",
+  "commits": [
+    "f701e8a90 rust-wind RW-12b: погода из прогноза в крейте и дамп-эталон из Godot"
+  ],
+  "checks": [
+    {
+      "name": "weather_derive",
+      "value": "32",
+      "pass": true
+    },
+    {
+      "name": "dump_reproducible",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "dp_air_no_godot",
+      "value": "0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-12b",
+  "uncertain": [
+    {
+      "where": "field/weather_core.rs sun_elevation_deg; weather/tables.rs seg",
+      "why": "Расхождение с GD ~1e-7 шло от f32: SunClock.solar_position возвращает Vector2, _seg хранит долю в Vector2. Эмулировано округлением до f32; diurnal_state_amp теперь использует sun_elevation_deg (значения field сдвинулись на ~1e-7). Допуск 1e-9 держится без исключений.",
+      "checked": "весь дамп 6181 строка, cargo test workspace PASS"
+    },
+    {
+      "where": "field/weather_core.rs",
+      "why": "Правки вне «одной строки pub(crate)»: WeatherModelCfg получил pub raw и altitude_gain_per_km (из atmosphere.json, по умолчанию 0.6); belt_gradient pub(crate); новая pub sun_elevation_deg. Координатор разрешил.",
+      "checked": "compat и weather_core тесты проходят"
+    },
+    {
+      "where": "weather/climate.rs",
+      "why": "PlaceCtx расширен utc_offset_h и start_msl_m (NaN = не задано) сверх API карточки; derive ждёт climate_place с start_msl_m=NaN, как внутренний вызов GD. Небо вне clear/partly/overcast трактуется как clear, как в GD. Совпадение loc.climate заголовков с поправленной ячейкой не проверялось: фикстуры мест ещё без climate_cell.",
+      "checked": "дамп: place_nostart и place_start, места без hh1/hh6/всех сеток, valley NaN"
+    }
+  ],
+  "dp_feedback": "job wait не сообщает, что Godot завис после parse error в скрипте (job висит «идёт»); нужен таймаут у job start. ps из песочницы агента не видит процессы хоста. Первый запуск дампа потерял ~40 мин.",
+  "t": "2026-10-29T04:10:23",
+  "by": "executor"
+}

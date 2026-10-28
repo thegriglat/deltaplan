@@ -3,13 +3,13 @@ type: "contract"
 status: "active"
 module: "rust-wind"
 area: "air"
-updated: "2026-10-27"
+updated: "2026-10-29"
 summary: "W4 rust-wind: трейт AirModel крейта dp-air (без Godot) — типы, методы, порядок команд, структуры описаний, реализации Calm/Formula/Live."
 related: ["docs/contracts/rust-wind.md", "docs/plan/rust-wind.md"]
-contracts: [{"id": "W4", "version": 4}]
+contracts: [{"id": "W4", "version": 5}]
 ---
 
-# W4. Трейт `AirModel` (крейт `dp-air`, без Godot) (v3)
+# W4. Трейт `AirModel` (крейт `dp-air`, без Godot) (v5)
 
 Часть `docs/contracts/rust-wind.md` (версия — там, заголовок W4). Менять — только координатор.
 Владелец — RW-4 (трейт, заглушка `Calm`), RW-6…12 (`Formula`), будущий живой воздух (`Live`). Потребители — `dp-gd`, стенд RW-5, `cargo test`, `cargo bench`.
@@ -61,3 +61,6 @@ pub trait AirModel: Send + Sync {
 - Реализации: `Calm` (RW-4: всё по W1, ветер 0, сразу Ready — для контрактных тестов и пустого запуска), `Formula` (RW-6…12), `Live` (вне модуля).
 - **v3 (постановка RW-6t):** `add_baked_field` — то же, что W3 v2 (`DpAir.add_baked_field`): после `load_place` и до Ready — `Ok` (поле запоминается; разбор TI-К3 v3 — `field::baked::parse_baked`; битое — `BadInput` с причиной), без места — `NoPlace`, после Ready — `BadInput`; при загрузке реализация ищет подходящее поле как `AirRuntime.baked_lookup` (`field::baked::baked_lookup`) и при попадании пропускает Пикар. `set_cache_dir` — W3 v2: `None` — без кеша; каталог создаёт реализация; ошибка создания — `BadInput`, кеш выключен. Обе — `&mut self`, из потока владельца, как остальные команды.
 - **v4 (2026-10-27, решение пользователя):** `Status` += `stage: String` (идентификатор этапа — латиница, snake_case, набор перечислен в doc-комментарии `Status`, `""` — нет; не текст для экрана: подпись по идентификатору делает фасад, W10 v2) и `iters: u32` (итерации решателя в текущем этапе, семантика W2 v3); `Formula` обновляет `iters` из оркестровки поля не реже чем через 10 итераций (атомарный счётчик, без блокировки решателя); `Calm` — `""`, 0.
+- **v5 (2026-10-29, постановка RW-7):**
+  - `fn set_field_enabled(&mut self, on: bool) -> Result<(), Error>` — по умолчанию `Ok(())` (`Calm`). Без места — запоминается, применяется при `load_place`; по умолчанию `true`. `Formula`: `false` — идущая задача поля отменяется (W11 v6), поле снимается сразу, без подмены (опросы — как без поля), новых расчётов нет, `state` не меняется (`Loading` из-за поля → `Ready`); `true` после `Ready` — подбор запечённого/кеша/расчёт фоном, как при загрузке, `state` остаётся `Ready`, ход — `stage`/`iters`, первое поле подаётся сразу (`blend_s = 0`); `true` до `Ready` — как обычная загрузка. Повтор того же значения — `Ok`, ничего. Уточнение без смены версии (ревью RW-7a): подготовка поля после включения не удалась — как ошибка загрузки: `Failed`, причина в `reason` (опросы — по запасному пути).
+  - Переходное (W3 v4, до переноса GDScript-слагаемых, не позже RW-13): `fn field_export(&self) -> FieldExport` — по умолчанию пустой; `pub struct FieldExport { pub version: u64, pub blend_s: f64, pub blend_t0: f64, pub header_json: String, pub data: Vec<u8> }` — снимок последней подачи (целевой набор уровней), заголовок и тело — `field::baked::encode_baked` (без потерь, `parse_baked` читает обратно бит в бит); `version = 0` и пустые строки — поля нет. `fn field_version(&self) -> u64` — номер последней подачи без кодирования (по умолчанию 0). Номер растёт по правилу W3 v4.

@@ -1,0 +1,147 @@
+{
+  "status": "done",
+  "summary": "Опыт t1_open_*: крейт не чувствителен к порядку сложения (CHUNK 4096->1000 даёт побитно то же поле) и к возмущению входа 1e-6 (сдвиг <= 6,5e-3 допуска, R <= 2,6e-3 против 5-314x расхождения с GPU); все проходы крейта Converged, nonconv-клеток нет. Формальный вердикт всех полей port_error, но без статуса GPU опыт не отличает ошибку переноса от блуждания эталона; на механизмах расхождение есть (thermal_plain 9,8x, thermal_slope 27,8x, landing_hill 548x).",
+  "commits": [
+    "036184f14 опыт устойчивости открытых полей T1",
+    "clippy в t1_stability.rs"
+  ],
+  "checks": [
+    {
+      "name": "results",
+      "value": "results ok",
+      "pass": true
+    },
+    {
+      "name": "picard_untouched",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "acceptance_release",
+      "value": "12 passed",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "R ridge_west / plateau_landing / thermal_slope / lee_bowl",
+      "value": "2.6e-3 / 4.0e-4 / 2.1e-5 / 3.4e-3 (thermal_plain, landing_hill: нет picard-клеток, вердикт по механизмам)",
+      "pass": true
+    },
+    {
+      "name": "chunk1000_vs_base",
+      "value": "max |d| = 0 по всем каналам и уровням (невязки отличаются в 16-м знаке)",
+      "pass": true
+    },
+    {
+      "name": "pert_u10 1e-6",
+      "value": "|du| <= 6e-5 м/с, <= 6,5e-3 допуска; усиление 3-34",
+      "pass": true
+    },
+    {
+      "name": "base_vs_gpu mech x допуска",
+      "value": "thermal_plain 9,8; thermal_slope 27,8; landing_hill 548; остальные 0 клеток mech",
+      "pass": true
+    },
+    {
+      "name": "lee_bowl контроль",
+      "value": "base_vs_gpu 0,6x; сдвиги chunk 0, pert 2e-3",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Статус решателя GPU (stop/iters/div_rms) в запечённых файлах не записан; status_gpu = 'нет данных'. Восстановление прогоном Godot не делалось (оценка > 1 ч).",
+    "Размах блуждания по последним итерациям не снимался; огибающая по вариантам крейта ~1e-5 м/с — неинформативна, т.к. крейт не блуждает.",
+    "Возмущения крупнее 1e-6 и смена стартов Пикара не пробовались."
+  ],
+  "questions": [
+    "Дописать в tools/terrain/bake_air.gd/air_baked_field.gd запись stop/iters/div_rms по уровню и перепечь поля (или два прогона GPU) — без этого класс conv_both/nonconv для GPU и огибающая блуждания для W8 v2 не строятся. Брать отдельной задачей?"
+  ],
+  "how_to_check": ".dpcli/dpcli accept RW-6z --dry; воспроизведение — tools/research/rust_wind_t1_stability/README.md",
+  "uncertain": [
+    {
+      "where": "docs/research/rust-wind-t1-stability.md, разбор по клеткам",
+      "why": "Клетки окон 50/100 м отнесены к mech по замороженной колонне области (окна сами колонн не замораживают); класс 'mech' в окнах условный",
+      "checked": "Размеры маски = nx*ny уровня dx400 (assert); колонна по центру клетки"
+    },
+    {
+      "where": "fields[].fr, fields[].u10",
+      "why": "Взяты из PhaseStats крейта (fr = U_a/(N*max(relief,1)), N = n_bv); формулу по order-and-picard §4.1 вручную не сверял; у plateau_landing и thermal_slope N = 0, Fr = 1000 (не определён)",
+      "checked": "u10 крейта совпадает с u10 в метаданных файлов GPU"
+    },
+    {
+      "where": "verdict = port_error для всех полей",
+      "why": "Правило R сравнивает чувствительность крейта, а не GPU; вердикт значит 'не неустойчивость крейта'",
+      "checked": "Описано в docs и README"
+    }
+  ],
+  "dp_feedback": "Запуск скрипта под lock cpu получает вес 1 слот и CPUQuota=100% (вес по регэкспу команды): 8 потоков шли бы на одном ядре; пришлось запускать cargo напрямую. Хорошо бы предупреждение в job start, если команда не cargo/godot, а скрипт. accept --dry при нагрузке (load 35-50) упёрся в таймаут acceptance_release 900 с (обычно 466-640 с).",
+  "extra": {
+    "fields": {
+      "ridge_west": {
+        "u10": 4.5,
+        "fr": 1.4,
+        "R": 0.0026,
+        "verdict": "port_error",
+        "gpu_picard_x_tol": 1.3
+      },
+      "thermal_plain": {
+        "u10": 2.0,
+        "fr": 0.38,
+        "R": null,
+        "verdict": "port_error (механизмы)",
+        "gpu_mech_x_tol": 9.8
+      },
+      "plateau_landing": {
+        "u10": 1.83,
+        "fr": "N=0",
+        "R": 0.0004,
+        "verdict": "port_error",
+        "gpu_picard_x_tol": 7.7
+      },
+      "thermal_slope": {
+        "u10": 1.91,
+        "fr": "N=0",
+        "R": 2e-05,
+        "verdict": "port_error",
+        "gpu_picard_x_tol": 311.6,
+        "gpu_mech_x_tol": 27.8,
+        "frac_in_10_20pct_local_U_picard": "0,951-0,962 / 0,984-0,987"
+      },
+      "lee_bowl": {
+        "u10": 8.5,
+        "fr": 2.88,
+        "R": 0.0034,
+        "base_vs_gpu_x_tol": 0.6
+      },
+      "landing_hill": {
+        "u10": 0.3,
+        "fr": 0.05,
+        "verdict": "port_error (механизмы)",
+        "gpu_mech_x_tol": 548
+      }
+    },
+    "raw": "~/data/rw6z (430 МБ, вне репозитория)",
+    "w8_v2_proposal": "mech и conv_both - жёсткий допуск; nonconv - >=98 % клеток в 20 % и >=95 % в 10 % местной |U| (пол 0,1 м/с); нужен статус GPU"
+  },
+  "t": "2026-10-29T04:00:33",
+  "by": "executor"
+}
