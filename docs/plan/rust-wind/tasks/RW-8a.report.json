@@ -1,0 +1,75 @@
+{
+  "status": "done",
+  "summary": "Разбор этапа 3 в docs/research/rust-wind-stage3-path.md (33 КБ) + 7 подфайлов в docs/research/rust-wind-stage3/ (сумма air_velocity_at с файлами:строками, разделы RW-8…12, порядок, пробелы контракта, переход фасада; проект 16 карточек, совместимость с Godot, покрытие эталонами). Ничего не запускалось, код не менялся; accept --dry PASS.",
+  "commits": [
+    "5c6f8c609 rust-wind: разбор этапа 3 (RW-8a)"
+  ],
+  "checks": [
+    {
+      "name": "sections",
+      "value": "sections ok",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "файлов 8, ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "9 файлов в границах",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Не запускались Godot/cargo (по условию): FastNoiseLite/randf/hash(Vector*) Godot 4.7.2 описаны как вопросы к дампу, не как факты",
+    "Оценки строк и дней — по чтению кода, не замер; стоимость пересборки AirThermals и поля облаков в Rust, уложится ли сумма в бюджет W8 — не измерено"
+  ],
+  "questions": [
+    "Брать ли порт FastNoiseLite+PCG32 (RW-8c, шлюз: дамп из Godot ≤ 1e-6, иначе замена с T3)? Рекомендую порт — подробности в godot-compat.md",
+    "W5 v8: расширить loc.climate полной ячейкой ClimateGrid.place (td_c, td_sd_k, t700_c, z700_m, trop_m, wr, hcc, флаги) и добавить world.json в список configure — блокер RW-12b, а через него RW-10e/11d",
+    "Согласны ли с одним шагом перехода фасада в конце (RW-12z) вместо переключения по слагаемым?",
+    "W6 v4 (записи Cb/гроз, момент t ≤ now для истории CloudLayer) и поверхностный порыв для GustDust — править W2/W6 до RW-11e",
+    "Нужен ли RW-2c: случаи для air_model.enabled=off, гроза на Онгудае с полем, дамп WeatherModel.derive/AtmoDay (эталоны не покрывают)"
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-8a",
+  "uncertain": [
+    {
+      "where": "docs/research/rust-wind-stage3/godot-compat.md",
+      "why": "детали RandomNumberGenerator.randf, hash(Vector3i) и FastNoiseLite Godot (поворот 3D, нормировка FBM) даны по памяти, исходников движка в копии нет",
+      "checked": "перечислено, что должен подтвердить дамп; в коде GDScript прочитан порядок вызовов RNG и места hash"
+    },
+    {
+      "where": "docs/research/rust-wind-stage3/cards.md",
+      "why": "объёмы и дни по чтению кода; критический путь 18–19 дней — расчёт",
+      "checked": "строки GD посчитаны wc -l по файлам и диапазонам функций"
+    },
+    {
+      "where": "docs/research/rust-wind-stage3/rw10-thermals.md",
+      "why": "расхождение силы источника по растру 25 м против слоёв 10 м Terrain не измерено",
+      "checked": "прочитан terrain.gd:677–800,1056 и air_place_data.gd:286"
+    }
+  ],
+  "dp_feedback": "task show обрезает дополнения после выдачи (читалось через --full); docs index перегенерировал docs/registry/*.md вне скоупа задачи — пришлось откатывать git checkout, лучше исключить registry из проверки scope или не трогать их в docs index.",
+  "extra": {
+    "gd_lines": {
+      "RW-8": 600,
+      "RW-9": 680,
+      "RW-10": 2750,
+      "RW-11": 1850,
+      "RW-12": 735,
+      "skeleton_compat": 880
+    },
+    "subtasks": 16,
+    "executor_days_estimate": 37,
+    "fixtures_nonzero_points": {
+      "turb": 1270,
+      "gust": 920,
+      "storm": 192,
+      "wave": 237
+    }
+  },
+  "t": "2026-10-29T02:35:05",
+  "by": "executor"
+}

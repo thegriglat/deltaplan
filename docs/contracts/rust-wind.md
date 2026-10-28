@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-10-29"
 summary: "Граница ветра в Rust: фасад Atmosphere, DpAir (gdext), трейт dp-air, место, описания, разложение, допуски, сборка, чистота."
 related: ["docs/plan/rust-wind.md", "docs/contracts/picard-rs.md", "docs/plan/rust-air-integration.md", "docs/plan/rust-ext.md", "docs/plan/air-cascade.md", "tools/research/rust_ext/gdext_probe/README.md", "docs/contracts/rust-wind/fixtures-tolerances.md", "docs/contracts/rust-wind/descriptions.md", "docs/contracts/rust-wind/solver.md", "docs/contracts/rust-wind/trait.md", "docs/contracts/rust-wind/dpair.md"]
-contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 3}, {"id": "W3", "version": 4}, {"id": "W4", "version": 5}, {"id": "W5", "version": 7}, {"id": "W6", "version": 3}, {"id": "W7", "version": 1}, {"id": "W8", "version": 1}, {"id": "W9", "version": 2}, {"id": "W10", "version": 2}, {"id": "W11", "version": 10}]
+contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 3}, {"id": "W3", "version": 4}, {"id": "W4", "version": 5}, {"id": "W5", "version": 8}, {"id": "W6", "version": 3}, {"id": "W7", "version": 1}, {"id": "W8", "version": 1}, {"id": "W9", "version": 2}, {"id": "W10", "version": 2}, {"id": "W11", "version": 10}]
 ---
 
 # Контракты модуля rust-wind
@@ -90,8 +90,8 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 3}, {"id": "W3",
 ## W4. Трейт `AirModel` (крейт `dp-air`, без Godot) (v5)
 Владелец — RW-4 (трейт, `Calm`), RW-6…12 (`Formula`), живой воздух (`Live`). Потребители — `dp-gd`, стенд RW-5, `cargo test`, `cargo bench`. Трейт, типы, порядок команд, структуры описаний — `docs/contracts/rust-wind/trait.md`.
 
-## W5. Вход: место, конфиги, условия (v7)
-Владелец — RW-2 (сборка `AirPlaceData`), RW-4 (разбор в крейте). Потребители — W2–W4, фикстуры W8. `AirPlaceData`, конфиги, условия и история версий v2–v7 — `docs/contracts/rust-wind/input.md`.
+## W5. Вход: место, конфиги, условия (v8)
+Владелец — RW-2 (сборка `AirPlaceData`), RW-4 (разбор в крейте). Потребители — W2–W4, фикстуры W8. `AirPlaceData`, конфиги, условия и история версий v2–v8 — `docs/contracts/rust-wind/input.md`.
 
 ## W6. Описания — найденное, а не заданное (v3)
 Владелец — RW-2 (из текущего кода), RW-10/RW-11 (из крейта). Поля, шаги `CORE_STRIDE`/`CLOUD_STRIDE`/`CREST_STRIDE`, растр облаков, гребни и инвариант найденного ядра — `docs/contracts/rust-wind/descriptions.md`.
@@ -155,3 +155,4 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 3}, {"id": "W3",
 - W2 v3, W3 v3, W4 v4, W10 v2 (2026-10-27, решения пользователя) — счётчик итераций этапа в статусе (`iters`, W3 `stage()`/`iters()`, W4 `Status.stage/iters`); `dp-air` без игрового. Версия API = 3. Потребители: RW-6y (крейт, dp-gd, константы версий и контрактные тесты), RW-3c (реализация `gd` и экран загрузки), RW-7.
 - W11 v10 (2026-10-27, итог RW-6y) — `SolveOpts.progress` (счётчик итераций по ходу решения) для `Status.iters` W4 v4. Потребители: RW-6y, RW-3c (через `DpAir.iters()`).
 - W3 v4, W4 v5, уточнение W2 без смены версии (2026-10-29, постановка RW-7) — режим поля `set_field_enabled` (W2 «Режим поля»: `auto` в headless — без поля), переходная выдача поля фасаду `field_export*`/`field_version` (TI-К3 v3 без потерь) для GDScript-слагаемых до их переноса. Версия API не меняется (= W2 v3). Потребители: RW-7a (крейт, `dp-gd`, контрактные тесты), RW-7b (фасад).
+- W5 v8 (2026-10-29, разбор RW-8a) — сырая ячейка климата `loc.climate_cell`/`climate_cell_lag` (поправки на высоту — в крейте), конфиг `world` в `configure`. Потребители: RW-12b (фасад `AirPlaceData`, крейт `derive`/`ClimateGrid.place`, места фикстур), RW-10c (правило скал, `surface.thermal.edge_*`), RW-12c (`AtmoDay`, часы 6…21).

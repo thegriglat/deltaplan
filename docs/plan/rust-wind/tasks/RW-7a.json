@@ -1,0 +1,83 @@
+{
+  "id": "RW-7a",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Режим поля и выдача поля фасаду в крейте и DpAir (W3 v4, W4 v5)",
+  "goal": "AirModel/Formula/DpAir получают set_field_enabled и переходную выдачу поля field_version/field_export (снимок последней подачи в TI-К3 v3 без потерь); снимок разбирается parse_baked обратно бит в бит и опрос по нему совпадает с опросом Formula; контрактные тесты на новые версии зелёные.",
+  "plan_ref": "План переноса",
+  "contracts": [
+    {
+      "name": "W3",
+      "version": "4",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W4",
+      "version": "5",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W10",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-7a",
+  "branch": "rust-wind/RW-7a",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/",
+    "rust/dp-air/tests/",
+    "rust/dp-gd/src/",
+    "rust/dp-gd/tests/",
+    "rust/dp-stand/src/",
+    "tests/contracts/test_dp_air_ext.gd",
+    "tests/contracts/test_rust_wind_contracts.gd"
+  ],
+  "dont_touch": [
+    "rust/picard_rs/",
+    "docs/contracts/",
+    "tests/fixtures/",
+    "data/",
+    "configs/",
+    "scripts/"
+  ],
+  "accept": [
+    {
+      "name": "test_rust_wind_contracts",
+      "tests": "test_rust_wind_contracts"
+    },
+    {
+      "name": "test_dp_air_ext",
+      "tests": "test_dp_air_ext"
+    },
+    {
+      "name": "field_export",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test field_export",
+      "expect": "num:test result: ok\\. (\\d+) >=5"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dp_air_no_godot",
+      "cmd": "cargo tree --manifest-path rust/Cargo.toml -p dp-air -e normal | grep -ci godot || true",
+      "expect": "num:^(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T02:09:42"
+}

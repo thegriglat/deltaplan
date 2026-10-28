@@ -1,0 +1,56 @@
+{
+  "id": "RW-2c",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Эталоны: случаи synth_off (режим off) и ongudai_storm (гроза с полем) — до перевода фасада на крейт",
+  "goal": "В tests/fixtures/wind/cases/ два новых случая в формате W8 (итог, MEAN и слагаемые W7, описания) на нынешнем GDScript-коде с GPU-полем: synth_off — синтетика при air_model.enabled = off (упрощённый профиль, термики без поля), ongudai_storm — гроза (пресет storm) на Онгудае с полем Пикара; прежние случаи побитно не меняются; verify.sh воспроизводит новые.",
+  "plan_ref": "Тесты (TDD)",
+  "contracts": [
+    {
+      "name": "W7",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-2c",
+  "branch": "rust-wind/RW-2c",
+  "base": "feature/rust-wind",
+  "scope": [
+    "tools/wind_fixtures/",
+    "tests/fixtures/wind/cases/",
+    "tests/fixtures/wind/README.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "rust/",
+    "configs/",
+    "docs/contracts/",
+    "tests/fixtures/wind/places/",
+    "data/"
+  ],
+  "accept": [
+    {
+      "name": "new_cases",
+      "cmd": "python3 -c 'import json,os;b=\"tests/fixtures/wind/cases/\";[(json.load(open(b+n+\".json\")),os.path.getsize(b+n+\".bin\")>0,json.load(open(b+n+\".desc.json\"))) for n in (\"synth_off\",\"ongudai_storm\")];print(\"cases ok\")'",
+      "expect": "re:cases ok"
+    },
+    {
+      "name": "old_cases_untouched",
+      "cmd": "git diff --quiet feature/rust-wind -- tests/fixtures/wind/places $(cd tests/fixtures/wind/cases && ls | grep -v -e '^synth_off\\.' -e '^ongudai_storm\\.' | sed 's|^|tests/fixtures/wind/cases/|')",
+      "expect": "exit=0"
+    },
+    {
+      "name": "verify_new",
+      "cmd": "tools/wind_fixtures/verify.sh --only=synth_off,ongudai_storm",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T02:37:07"
+}
