@@ -584,3 +584,4 @@
 {"t": "2026-10-29T03:08:14", "by": "coordinator", "task": "RW-2c", "ev": "merged"}
 {"t": "2026-10-29T03:08:22", "by": "coordinator", "task": "RW-8c", "ev": "checked", "note": "6/6 godot_compat=ok:9; dump_reproducible=ok:exit 0; cargo_test=ok:exit 0; clippy=ok:exit 0; fmt=ok:exit 0; dp_air_no_godot=ok:0; scope=FAIL:вне scope: r-RW-8c.json"}
 {"t": "2026-10-29T03:08:35", "by": "coordinator", "task": "RW-8c", "ev": "accepted", "note": "по отчёту; scope FAIL — только неотслеживаемый r-RW-8c.json (удалён), в коммитах нет"}
+{"t": "2026-10-29T03:08:36", "by": "coordinator", "task": "RW-8c", "ev": "merged", "note": "f0d35f032"}
