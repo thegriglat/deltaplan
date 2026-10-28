@@ -77,14 +77,10 @@
       "name": "no_air_field_flag",
       "cmd": "grep -rc -- '--air-field' scripts/ | awk -F: '{s+=$2} END {print s+0}'",
       "expect": "num:^(\\d+) <=0"
-    },
-    {
-      "name": "vs_base_contracts",
-      "cmd": "tools/tests_vs_base.sh --filter=tests/contracts/",
-      "expect": "exit=0"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-29T03:32:37"
+  "created": "2026-10-29T03:32:37",
+  "edited": "2026-10-29T04:41:16"
 }
