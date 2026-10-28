@@ -71,10 +71,15 @@
       "name": "dp_air_no_godot",
       "cmd": "cargo tree --manifest-path rust/Cargo.toml -p dp-air -e normal | grep -ci godot || true",
       "expect": "num:^(\\d+) <=0"
+    },
+    {
+      "name": "acceptance_release",
+      "cmd": "cargo test --release --manifest-path rust/Cargo.toml -p dp-air --test acceptance -- --ignored --skip t1_open_ --skip stab_",
+      "expect": "num:test result: ok\\. (\\d+) >=12"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-29T03:34:08",
-  "edited": "2026-10-29T03:34:36"
+  "edited": "2026-10-29T04:10:36"
 }

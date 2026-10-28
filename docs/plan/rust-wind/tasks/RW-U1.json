@@ -1,0 +1,62 @@
+{
+  "id": "RW-U1",
+  "module": "rust-wind",
+  "type": "dp-researcher",
+  "title": "Аудит без правок: landing_hill — крейт против GPU, чья сторона неверна",
+  "goal": "Найти причину расхождения крейта с GPU-эталоном на поле training_island/landing_hill — клетки механизмов (класс F, область заморожена целиком, 0 итераций): max Δ 2,07 м/с, rms 0,31 м/с, в 10 % лишь 13 % клеток: прочитать документы, затем код Rust с нуля по документам (не только сверкой с GPU), затем код GPU; итог — находки с файл:строка и чья сторона неверна (Rust, GPU, обе, документ). Ничего не чинить, код не коммитить.",
+  "plan_ref": "Решения пользователя (2026-10-29: ревью fable двух полей RW-6z)",
+  "contracts": [
+    {
+      "name": "W5",
+      "version": "7",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W11",
+      "version": "10",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-U1",
+  "branch": "rust-wind/RW-U1",
+  "base": "rust-wind/RW-6z",
+  "scope": [
+    "docs/research/rust-wind-t1-audit-landing-hill.md",
+    "docs/INDEX.md"
+  ],
+  "dont_touch": [
+    "rust/",
+    "scripts/",
+    "tools/",
+    "data/",
+    "configs/",
+    "docs/contracts/",
+    "docs/guide/",
+    "tests/"
+  ],
+  "accept": [
+    {
+      "name": "no_code",
+      "cmd": "git diff --quiet $(git merge-base HEAD feature/rust-wind) HEAD -- rust scripts tools data configs tests shaders",
+      "expect": "exit=0"
+    },
+    {
+      "name": "findings",
+      "cmd": "grep -cE '[A-Za-z0-9_/.-]+\\.(rs|glsl|gd):[0-9]+' docs/research/rust-wind-t1-audit-landing-hill.md",
+      "expect": "num:^(\\d+) >=1"
+    },
+    {
+      "name": "docs",
+      "cmd": "python3 -c 'import sys' && .dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T04:23:13"
+}
