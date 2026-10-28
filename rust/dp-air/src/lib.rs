@@ -12,6 +12,7 @@ mod formula;
 mod level;
 mod place;
 mod types;
+pub mod weather;
 
 pub use calm::Calm;
 pub use conditions::{Conditions, Forecast, InflowMode, Source, WindRef};
