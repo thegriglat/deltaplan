@@ -20,6 +20,11 @@
       "name": "W10",
       "version": "2",
       "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W5",
+      "version": "8",
+      "ref": "docs/contracts/rust-wind.md"
     }
   ],
   "copy": "~/worktrees/deltaplan/rust-wind-RW-7a",
@@ -79,5 +84,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-29T02:09:42"
+  "created": "2026-10-29T02:09:42",
+  "edited": "2026-10-29T02:39:16"
 }
