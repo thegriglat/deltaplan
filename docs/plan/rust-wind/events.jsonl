@@ -580,3 +580,7 @@
 {"t": "2026-10-29T03:03:38", "by": "executor", "task": "RW-8c", "ev": "reported", "commits": ["af3e19647"], "note": "done: dp_air::compat (noise::FastNoise OpenSimplex2S 3D NONE/FBM, rng::Pcg32, hash::hash_v2i/v3i) сошёлся с дампом Godot 4.7.…", "dp_feedback": "docs check падает на docs/plan/rust-wind.md (41 КБ > 40 КБ) — не моя правка. lock cpu + bash-таймаут: фоновый запуск через & убивается по возврату вызова, помог только job start."}
 {"t": "2026-10-29T03:03:46", "by": "coordinator", "task": "RW-2c", "ev": "checked", "note": "3/3 new_cases=ok:cases ok; old_cases_untouched=ok:exit 0; verify_new=ok:exit 0"}
 {"t": "2026-10-29T03:06:59", "by": "coordinator", "task": "RW-2c", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-29T03:08:14", "by": "coordinator", "task": "RW-2c", "ev": "accepted", "commits": ["d8ea74b18"], "note": "3/3 new_cases=ok:cases ok; old_cases_untouched=ok:exit 0; verify_new=ok:exit 0"}
+{"t": "2026-10-29T03:08:14", "by": "coordinator", "task": "RW-2c", "ev": "merged"}
+{"t": "2026-10-29T03:08:22", "by": "coordinator", "task": "RW-8c", "ev": "checked", "note": "6/6 godot_compat=ok:9; dump_reproducible=ok:exit 0; cargo_test=ok:exit 0; clippy=ok:exit 0; fmt=ok:exit 0; dp_air_no_godot=ok:0; scope=FAIL:вне scope: r-RW-8c.json"}
+{"t": "2026-10-29T03:08:35", "by": "coordinator", "task": "RW-8c", "ev": "accepted", "note": "по отчёту; scope FAIL — только неотслеживаемый r-RW-8c.json (удалён), в коммитах нет"}
