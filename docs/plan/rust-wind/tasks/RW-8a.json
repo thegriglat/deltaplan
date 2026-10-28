@@ -1,0 +1,67 @@
+{
+  "id": "RW-8a",
+  "module": "rust-wind",
+  "type": "dp-researcher",
+  "title": "Разбор этапа 3: слагаемые ветра на GDScript → крейт (RW-8…12)",
+  "goal": "Документ-разбор, по которому координатор заводит карточки RW-8…12 без поиска: для каждого слагаемого — исходники, входы, выходы и место в сумме ветра, зависимости, что уже есть в крейте, фикстуры, пробелы контракта, оценка объёма; порядок и параллельность; как фасад переходит на слагаемые крейта. Только разбор — ничего не переносить и не чинить.",
+  "plan_ref": "План переноса",
+  "contracts": [
+    {
+      "name": "W2",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W4",
+      "version": "5",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W6",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W7",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-8a",
+  "branch": "rust-wind/RW-8a",
+  "base": "feature/rust-wind",
+  "scope": [
+    "docs/research/rust-wind-stage3-path.md",
+    "docs/research/rust-wind-stage3/",
+    "docs/INDEX.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "rust/",
+    "configs/",
+    "docs/contracts/",
+    "docs/plan/",
+    "tests/"
+  ],
+  "accept": [
+    {
+      "name": "sections",
+      "cmd": "python3 -c 'import re;t=open(\"docs/research/rust-wind-stage3-path.md\",encoding=\"utf-8\").read();need=[\"RW-8\",\"RW-9\",\"RW-10\",\"RW-11\",\"RW-12\",\"Порядок\",\"Пробелы контракта\",\"Переход фасада\",\"Сумма ветра\"];miss=[n for n in need if not re.search(r\"^#+ .*\"+re.escape(n),t,re.M)];assert not miss,miss;print(\"sections ok\")'",
+      "expect": "re:sections ok"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check docs/research/rust-wind-stage3-path.md",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T02:10:16",
+  "edited": "2026-10-29T02:10:47"
+}
