@@ -49,10 +49,11 @@ use crate::field::field_cache::FieldCache;
 use crate::field::field_set::FieldSet;
 use crate::field::runtime::{
     BakedEntry, CondRec, Faults, JobErr, JobIn, JobOut, JobReport, Pair, RtCfg, Source,
-    StageCounter, dir_key, ground_height, needs_recompute, run_job, slot, slot_hour,
+    StageCounter, dir_key, needs_recompute, run_job, slot, slot_hour,
 };
 use crate::field::weather_core::{WeatherInputs, hour_at};
 use crate::field::wind_field::{Field, Limits};
+use crate::terms::{self, Terms};
 use crate::{
     AirModel, Cloud, Conditions, Configs, Core, Crest, Decomposition, Error, FieldExport, Focus,
     Place, Raster, SampleMode, State, Status,
@@ -80,6 +81,8 @@ fn lock<T>(m: &Mutex<T>) -> MutexGuard<'_, T> {
 struct Published {
     fs: FieldSet,
     place: Option<Arc<Place>>,
+    /// Слагаемые ветра помимо поля (`terms`): подмена указателя, как у поля.
+    terms: Arc<Terms>,
 }
 
 /// Снимок последней подачи поля для выдачи фасаду (W3 v4, переходное): целевой набор уровней.
@@ -137,6 +140,7 @@ impl Shared {
             published: RwLock::new(Arc::new(Published {
                 fs: FieldSet::default(),
                 place: None,
+                terms: Arc::new(Terms::default()),
             })),
             state: AtomicU8::new(State::Empty.as_int() as u8),
             progress: Arc::new(AtomicU32::new(0f32.to_bits())),
@@ -235,7 +239,19 @@ impl Shared {
     }
 
     fn field_export(&self) -> FieldExport {
-        let e = lock(&self.exp);
+        // под замком — только снимок (Arc уровней и числа); кодирование zstd — после снятия
+        let e = {
+            let g = lock(&self.exp);
+            ExpState {
+                version: g.version,
+                levels: g.levels.clone(),
+                blend_s: g.blend_s,
+                blend_t0: g.blend_t0,
+                location: g.location.clone(),
+                model_hash: g.model_hash.clone(),
+                k: g.k,
+            }
+        };
         if e.levels.is_empty() {
             return FieldExport {
                 version: e.version,
@@ -480,6 +496,8 @@ pub struct Formula {
     thermals: Vec<[f32; 4]>,
     thermals_mode: u8,
     focuses: Vec<Focus>,
+    /// Слагаемые ветра помимо поля; опросы читают публикацию (`publish_terms`).
+    terms: Terms,
     place: Option<Arc<Place>>,
     time_s: f64,
     /// Условия поля в атмосфере (`None` — поля нет).
@@ -540,6 +558,7 @@ impl Formula {
             thermals: Vec::new(),
             thermals_mode: 0,
             focuses: Vec::new(),
+            terms: Terms::default(),
             place: None,
             time_s: 0.0,
             cur: None,
@@ -669,6 +688,12 @@ impl Formula {
     fn set_time(&mut self, t: f64) {
         self.time_s = t;
         self.sh.set_time(t);
+    }
+
+    /// Публикует слагаемые (`terms`) опросам: подмена указателя.
+    fn publish_terms(&self) {
+        let t = Arc::new(self.terms.clone());
+        self.sh.modify(|p| p.terms = t);
     }
 
     /// Останавливает идущую задачу и ждёт её (не дольше `JOIN_LIMIT`; дальше — отпускает и
@@ -1052,6 +1077,7 @@ impl Formula {
         *g = Arc::new(Published {
             fs: FieldSet::new(limits, edge),
             place,
+            terms: g.terms.clone(),
         });
     }
 }
@@ -1062,23 +1088,9 @@ impl Drop for Formula {
     }
 }
 
-fn sample_point(pb: &Published, p: [f32; 3]) -> [f32; 4] {
-    if !p.iter().all(|v| v.is_finite()) {
-        return [0.0; 4];
-    }
-    let Some(place) = &pb.place else {
-        return [0.0; 4];
-    };
-    if !pb.fs.is_active() {
-        return [0.0; 4];
-    }
-    let g = ground_height(place, p[0], p[2]);
-    let v = pb.fs.sample(p, g);
-    let f = |x: f64| {
-        let y = x as f32;
-        if y.is_finite() { y } else { 0.0 }
-    };
-    [f(v.v[0]), f(v.v[1]), f(v.v[2]), 0.0]
+/// Опрос точки: сумма слагаемых (`terms::sum`) в момент `t` атмосферы.
+fn sample_point(pb: &Published, p: [f32; 3], mode: SampleMode, t: f64) -> [f32; 4] {
+    terms::sum(&pb.terms, &pb.fs, pb.place.as_deref(), p, mode, t, None)
 }
 
 impl AirModel for Formula {
@@ -1097,6 +1109,8 @@ impl AirModel for Formula {
             Arc::new(c)
         }));
         self.recompute_inputs();
+        self.terms.configure(&self.configs, seed);
+        self.publish_terms();
         Ok(())
     }
 
@@ -1155,7 +1169,9 @@ impl AirModel for Formula {
         *lock(&self.sh.report) = None;
         self.thermals.clear();
         self.focuses.clear();
+        self.terms.unload_place();
         self.reset_published(None);
+        self.publish_terms();
         self.sh.note_feed(&[], 0.0, 0.0, ExpMeta::default());
         self.quiet_load = false;
         self.sh.set_state(State::Empty, 0.0, "");
@@ -1169,11 +1185,15 @@ impl AirModel for Formula {
         self.force_recompute = c.rebuild;
         self.cond = Some(c.clone());
         self.recompute_inputs();
+        self.terms.set_conditions(c);
+        self.publish_terms();
         Ok(())
     }
 
     fn set_sun_direction(&mut self, to_sun: Option<[f32; 3]>) {
         self.sun = to_sun.filter(|d| d.iter().all(|v| v.is_finite()));
+        self.terms.sun = self.sun;
+        self.publish_terms();
     }
 
     fn set_static_thermals(&mut self, list: &[[f32; 4]], mode: u8) -> Result<(), Error> {
@@ -1182,6 +1202,9 @@ impl AirModel for Formula {
         }
         self.thermals = list.to_vec();
         self.thermals_mode = mode;
+        self.terms.statics = self.thermals.clone();
+        self.terms.statics_mode = mode;
+        self.publish_terms();
         Ok(())
     }
 
@@ -1192,6 +1215,8 @@ impl AirModel for Formula {
             return Err(Error::bad_input("focuses: NaN/inf or negative weight"));
         }
         self.focuses = f.to_vec();
+        self.terms.focuses = self.focuses.clone();
+        self.publish_terms();
         Ok(())
     }
 
@@ -1209,6 +1234,9 @@ impl AirModel for Formula {
         }
         self.pump(t);
         self.set_time(t);
+        if self.terms.advance(t) {
+            self.publish_terms();
+        }
         Ok(())
     }
 
@@ -1220,6 +1248,9 @@ impl AirModel for Formula {
         self.cancel_job();
         self.sh.advance_fs(t - self.time_s);
         self.set_time(t);
+        if self.terms.start_at(t) {
+            self.publish_terms();
+        }
         if self.sh.state() == State::Loading {
             // прерванная задача не подала ничего: состояние вернёт новая
             self.sh.set_state(State::Ready, 1.0, "");
@@ -1335,20 +1366,21 @@ impl AirModel for Formula {
         }
     }
 
-    fn sample_many(&self, pts: &[[f32; 3]], _mode: SampleMode, out: &mut [[f32; 4]]) {
+    fn sample_many(&self, pts: &[[f32; 3]], mode: SampleMode, out: &mut [[f32; 4]]) {
         let n = pts.len().min(out.len());
         let pb = self.sh.snapshot();
+        let t = f64::from_bits(self.sh.time_bits.load(Ordering::SeqCst));
         let (pts, out) = (&pts[..n], &mut out[..n]);
         if n <= 512 {
             for (o, p) in out.iter_mut().zip(pts) {
-                *o = sample_point(&pb, *p);
+                *o = sample_point(&pb, *p, mode, t);
             }
         } else {
             out.par_chunks_mut(256)
                 .zip(pts.par_chunks(256))
                 .for_each(|(o, p)| {
                     for (o, p) in o.iter_mut().zip(p) {
-                        *o = sample_point(&pb, *p);
+                        *o = sample_point(&pb, *p, mode, t);
                     }
                 });
         }
@@ -1399,13 +1431,8 @@ impl AirModel for Formula {
 
     fn decompose(&self, p: [f32; 3]) -> Decomposition {
         let pb = self.sh.snapshot();
-        let v = sample_point(&pb, p);
-        Decomposition {
-            names: vec!["field".into()],
-            vel: vec![[v[0], v[1], v[2]]],
-            sigma: vec![0.0],
-            total: v,
-        }
+        let t = f64::from_bits(self.sh.time_bits.load(Ordering::SeqCst));
+        terms::decompose(&pb.terms, &pb.fs, pb.place.as_deref(), p, t)
     }
 
     fn debug_raster(&self, _name: &str) -> Option<Arc<Raster>> {

@@ -11,6 +11,7 @@ pub mod fixtures;
 mod formula;
 mod level;
 mod place;
+pub mod terms;
 mod types;
 
 pub use calm::Calm;
