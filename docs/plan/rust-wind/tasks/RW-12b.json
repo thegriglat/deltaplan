@@ -1,0 +1,80 @@
+{
+  "id": "RW-12b",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Погода из прогноза в крейте: WeatherModel.derive, ClimateGrid.place, td_day/td_noise, _apply_heat, дымка, перистые + дамп-эталон из Godot",
+  "goal": "Модуль dp_air::weather воспроизводит WeatherModel.derive (прогноз + место + час → словарь погоды с _derived) и поправки ClimateGrid.place по сырой ячейке климата (W5 v8); дамп из Godot по сетке прогнозов × мест × часов и cargo-тест сверяют числа; тесты test_weather_model.gd перенесены в cargo.",
+  "plan_ref": "План переноса",
+  "contracts": [
+    {
+      "name": "W5",
+      "version": "8",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W10",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-12b",
+  "branch": "rust-wind/RW-12b",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/weather/",
+    "rust/dp-air/src/lib.rs",
+    "rust/dp-air/tests/weather_derive.rs",
+    "rust/dp-air/tests/data/weather_dump/",
+    "tools/wind_fixtures/weather_dump.gd",
+    "tools/wind_fixtures/weather_dump.gd.uid",
+    "tools/wind_fixtures/weather_dump.tscn",
+    "tools/wind_fixtures/weather_dump.sh",
+    "rust/dp-air/src/field/weather_core.rs"
+  ],
+  "dont_touch": [
+    "rust/dp-air/src/formula.rs",
+    "rust/dp-air/src/terms/",
+    "rust/picard_rs/",
+    "rust/dp-gd/",
+    "scripts/",
+    "tests/fixtures/",
+    "docs/contracts/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "weather_derive",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test weather_derive",
+      "expect": "num:test result: ok\\. (\\d+) >=18"
+    },
+    {
+      "name": "dump_reproducible",
+      "cmd": "tools/wind_fixtures/weather_dump.sh --verify",
+      "expect": "exit=0"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dp_air_no_godot",
+      "cmd": "cargo tree --manifest-path rust/Cargo.toml -p dp-air -e normal | grep -ci godot || true",
+      "expect": "num:^(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T03:34:08",
+  "edited": "2026-10-29T03:34:36"
+}
