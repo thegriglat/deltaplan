@@ -110,8 +110,8 @@ pub fn sum(
     }
     let ex = s.extra.flow(&c, v);
     if let Some(e) = &ex {
-        for q in 0..3 {
-            v[q] += e.storm[q] + e.wave[q] + e.cloud[q];
+        for (q, x) in v.iter_mut().enumerate() {
+            *x += e.storm[q] + e.wave[q] + e.cloud[q];
         }
         if let Some(r) = rec.as_deref_mut() {
             r.add(T_STORM, e.storm);
@@ -228,7 +228,7 @@ pub fn sum(
         for q in 0..3 {
             v[q] += nc[q] * chaos;
         }
-        if let Some(r) = rec.as_deref_mut() {
+        if let Some(r) = rec {
             r.add(T_GUST, [nc[0] * chaos, nc[1] * chaos, nc[2] * chaos]);
         }
     }

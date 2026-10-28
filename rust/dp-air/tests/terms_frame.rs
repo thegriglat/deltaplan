@@ -613,6 +613,13 @@ fn analytic_term_of_synth_medium_matches_frame() {
             if agl >= 200.0 {
                 // выше слоя сдвига тени (350 м над линией — у синтетики гребни ниже): ровно профиль
                 assert!((r - 1.0).abs() < 1e-4, "t {t} {p:?}: gd/frame {r}");
+                assert!(
+                    (f64::from(a[0]) - want[0]).abs() < 1e-3
+                        && (f64::from(a[2]) - want[1]).abs() < 1e-3,
+                    "t {t} {p:?}: gd ({}, {}) frame {want:?}",
+                    a[0],
+                    a[2]
+                );
                 free += 1;
             }
             if (r - 1.0).abs() < 3e-3 {
