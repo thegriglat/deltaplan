@@ -3,6 +3,7 @@
 //! Крейт не зависит от Godot. Реализации: `Calm` (здесь), `Formula` (RW-6…12), `Live` (вне модуля).
 
 mod calm;
+pub mod compat;
 mod conditions;
 mod error;
 pub mod field;
