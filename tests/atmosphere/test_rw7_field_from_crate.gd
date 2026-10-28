@@ -96,10 +96,10 @@ func _focus(h: Dictionary) -> PackedVector3Array:
 
 
 ## Фасад с местом острова до READY. mode — set_air_mode; deterministic — подача поля синхронно.
-func _facade(h: Dictionary, mode: String) -> Atmosphere:
+func _facade(h: Dictionary, mode: String, det := true) -> Atmosphere:
 	var a := Atmosphere.new()
 	a.visuals_enabled = false
-	a.deterministic = true
+	a.deterministic = det
 	a.set_air_mode(mode)
 	check(a.configure(5) == 0, "configure")
 	check(a.set_conditions(_cond(h)) == 0, "set_conditions")
@@ -262,4 +262,17 @@ func test_condition_change_blends_over_blend_s() -> void:
 	a.step(blend)
 	approx(a.air_field.blend_fraction(), 1.0, 1.0e-6, "после blend_s подмена кончилась")
 	check(a.is_ready(), "READY")
+	a.free()
+
+
+## Игровой режим (deterministic = false): уровни снимка собираются в фоне, READY приходит с полем;
+## главный поток уровни не ждёт, итог тот же, что в синхронном режиме.
+func test_background_feed_gives_the_same_field() -> void:
+	var h := _baked_header()
+	var a := _facade(h, "on", false)
+	check(a.is_ready(), "READY")
+	check(bool(a.status().field_on), "field_on после READY (подача в фоне закончена)")
+	check(a.air_field.levels.size() == 3, "уровней 3, есть %d" % a.air_field.levels.size())
+	var worst := _max_diff(a, _points(a, 30))
+	check(worst <= TOL, "field фасада = DpAir.sample_many(MEAN): max |Δ| = %s м/с" % worst)
 	a.free()
