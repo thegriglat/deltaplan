@@ -1,0 +1,62 @@
+{
+	"format": "little-endian, f32 / u32 / i32, no header",
+	"godot": "4.7.2-stable (official)",
+	"hash": {
+		"files": "hash2_in.i32 (x, y), hash2_out.u32, hash3_in.i32 (x, y, z), hash3_out.u32; hash(Vector2i/Vector3i)",
+		"n": 1000
+	},
+	"noise": {
+		"files": "noise_<seed>_<kind>.f32",
+		"kinds": {
+			"fbm2": {
+				"fractal": 1,
+				"frequency": 1.0,
+				"gain": 0.5,
+				"lacunarity": 2.0,
+				"octaves": 2,
+				"weighted": 0.0
+			},
+			"fbm4w": {
+				"fractal": 1,
+				"frequency": 0.7,
+				"gain": 0.6,
+				"lacunarity": 1.9,
+				"octaves": 4,
+				"weighted": 0.5
+			},
+			"none": {
+				"fractal": 0,
+				"frequency": 1.0,
+				"gain": 0.5,
+				"lacunarity": 2.0,
+				"octaves": 5,
+				"weighted": 0.0
+			}
+		},
+		"points": 16096,
+		"points_file": "noise_pts.f32",
+		"seeds": [
+			0,
+			1,
+			20260927,
+			20268846
+		],
+		"type": "TYPE_SIMPLEX_SMOOTH"
+	},
+	"rng": {
+		"files": "rng_<seed>_randf.f32 (randf), _range.f32 (randf_range(-5000, 5000)), _randi.u32, _mix.f32 (по кругу: randf, randf_range(100, 200), randf_range(-1, 1)), _mixi.u32 (randi после каждой тройки)",
+		"n_mix": 3000,
+		"n_stream": 10000,
+		"seeds": [
+			0,
+			1,
+			42,
+			7919,
+			20260927,
+			2147483647,
+			4294967295,
+			3405691582,
+			-1
+		]
+	}
+}
