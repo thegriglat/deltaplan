@@ -810,6 +810,8 @@ pub struct PassReport {
     /// Заметки: отказ грубого шага и т. п.
     pub notes: Vec<String>,
     pub stop: [Stop; 2],
+    /// `div_rms` невязки решений `[mech, heat]` (диагностика RW-6z).
+    pub div_rms: [f64; 2],
     pub omega_fallback: bool,
     pub nonconv_fallback: bool,
     /// Секунды: подготовка (вход, случаи), грубый шаг, решения, сборка поля.
@@ -1459,6 +1461,7 @@ fn solve_pass(
         start,
         notes,
         stop: [sm.stop, sh.stop],
+        div_rms: [sm.residuals.div_rms, sh.residuals.div_rms],
         omega_fallback: sm.omega_fallback_used || sh.omega_fallback_used,
         nonconv_fallback: sm.nonconv_fallback || sh.nonconv_fallback,
         secs: [t_prep, t_coarse, t_solve, t_build],

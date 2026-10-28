@@ -72,6 +72,7 @@ related: ["docs/plan/rust-wind.md", "docs/research/rust-wind-field-path.md", "do
 - **`ridge_west`, `plateau_landing`, `thermal_slope`** (RW-6w): `k` второго прохода в допуске (сдвиг 0,6–1,1 %), поле расходится в 5–314 раз.
 - **Область 400 м у `thermal_plain`** (9,8×, Δv при u0 5,3): не исследована.
 - Итерации GPU в файлах не записаны, число итераций не сверяется.
+- RW-6z: опыт «неустойчивость или перенос» для открытых полей — [rust-wind-t1-stability.md](rust-wind-t1-stability.md) (крейт устойчив, R ≤ 2,6e-3; статус GPU нужен).
 
 
 ## T2, T4, T4a, T8 (числа)

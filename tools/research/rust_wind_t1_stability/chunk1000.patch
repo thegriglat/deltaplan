@@ -1,0 +1,13 @@
+diff --git a/rust/picard_rs/src/util.rs b/rust/picard_rs/src/util.rs
+index 19f71e667..bed82cc59 100644
+--- a/rust/picard_rs/src/util.rs
++++ b/rust/picard_rs/src/util.rs
+@@ -8,7 +8,7 @@ pub type Row = [f32; 8];
+ /// Index of the right-hand side inside a [`Row`].
+ pub const RHS: usize = 7;
+ 
+-const CHUNK: usize = 4096;
++const CHUNK: usize = 1000;
+ 
+ /// Sum of `f(i)` for `i in 0..n` in `f64`; the result does not depend on the thread count
+ /// (fixed chunks, combined in order).
