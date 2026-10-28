@@ -167,3 +167,16 @@ pub fn as_f32s<T: F32Record>(v: &[T]) -> &[f32] {
     // SAFETY: F32Record — repr(C) из одних f32 без отступов; выравнивание то же.
     unsafe { std::slice::from_raw_parts(v.as_ptr().cast::<f32>(), std::mem::size_of_val(v) / 4) }
 }
+
+/// Снимок последней подачи поля для фасада (W4 v5, переходное): заголовок и тело TI-К3 v3
+/// (`field::baked::encode_baked`, каналы `f32` без потерь). `version = 0` и пустые строки — поля нет.
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct FieldExport {
+    pub version: u64,
+    /// За сколько подменить прежнее поле; `0` — сразу.
+    pub blend_s: f64,
+    /// Время атмосферы начала подмены.
+    pub blend_t0: f64,
+    pub header_json: String,
+    pub data: Vec<u8>,
+}

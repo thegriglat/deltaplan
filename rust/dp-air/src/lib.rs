@@ -23,8 +23,8 @@ pub use level::{
 };
 pub use place::{Grid, Loc, LocClimate, Place, PlaceHeader, StartSite};
 pub use types::{
-    Cloud, Configs, Core, Crest, Decomposition, F32Record, Focus, Raster, SampleMode, State,
-    Status, as_f32s,
+    Cloud, Configs, Core, Crest, Decomposition, F32Record, FieldExport, Focus, Raster, SampleMode,
+    State, Status, as_f32s,
 };
 
 /// Версия границы; равна версии в заголовке W2 `docs/contracts/rust-wind.md`.
@@ -53,6 +53,21 @@ pub trait AirModel: Send + Sync {
     /// W4 v3: каталог кеша полей реализации (абсолютный путь); пусто — без кеша. По умолчанию — ничего.
     fn set_cache_dir(&mut self, _path: &str) -> Result<(), Error> {
         Ok(())
+    }
+    /// W4 v5: режим поля. `false` — поле снимается сразу, расчётов нет, `Loading` из-за поля →
+    /// `Ready`; `true` — поле возвращается фоном (запечённое, кеш, расчёт), `state` не меняется.
+    /// Повтор значения — `Ok`, ничего. По умолчанию — ничего (`Calm`).
+    fn set_field_enabled(&mut self, _on: bool) -> Result<(), Error> {
+        Ok(())
+    }
+    /// W4 v5, переходное (W3 v4): снимок последней подачи поля — целевой набор уровней в формате
+    /// TI-К3 v3 без потерь. `version = 0` — поля не было. По умолчанию — пустой.
+    fn field_export(&self) -> FieldExport {
+        FieldExport::default()
+    }
+    /// W4 v5: номер последней подачи без кодирования (`0` — подач не было).
+    fn field_version(&self) -> u64 {
+        0
     }
     fn status(&self) -> Status;
     fn sample_many(&self, pts: &[[f32; 3]], mode: SampleMode, out: &mut [[f32; 4]]);
