@@ -43,6 +43,7 @@ pub mod storm;
 mod sum;
 pub mod thermal;
 pub mod thermal_src;
+pub mod thermal_air;
 
 use crate::field::field_set::FieldSet;
 use crate::place::Place;

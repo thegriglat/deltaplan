@@ -44,3 +44,7 @@ related: ["docs/research/rust-wind-stage3-path.md", "docs/plan/rust-wind.md"]
 | RW-10c | `terms/thermal_src/mod.rs` `edge_proximity`, `Grid::bilinear(moist)` | классы кромок из cls 25 м, влажность — растр 25 м вместо поля 50 м; доля |Δ| > 0,05 против terrain-пути — 1,57 % (Онгудай 0,4–7,1 % по часам) | принято как граница W5; сверка ядер в RW-10e |
 | RW-10c | `SourceHour::at` / `atmo_sun` | часовой множитель не сверен с `AtmoDay.source_fn` на потоке часов | RW-10e (с RW-12d) |
 | общее | `rust/dp-air/tests/runtime.rs` `picard_cancel_during_the_setup_returns_within_the_limit`, `ongudai_size_cancel_…` | тайминговые пороги падают под нагрузкой accept (275–522 мс, 1,016 с) | RW-0g: вынести в итоговый прогон |
+| RW-10d | `rust/dp-air/tests/data/RW-10d/ongudai_medium/field.bin` | эталон поля — f16 (запечённое, w_mech обнулён), не f32 без потерь (бюджет 5 МБ); strong/wave — только счётчики, тестом не читаются | итоговый прогон: источники strong/wave по дампу из опорной ревизии |
+| RW-10d | `terms/thermal_air/pick.rs:20-60` | водная ветка `pick_in_column`/`land_fraction` не сверена с GD на реальных данных | RW-10e: острова |
+| RW-10d | `terms/thermal_air/mod.rs` `BuildIn::u10` | `u10` параметром (GD — `level.meta.u10`) | RW-10e |
+| RW-11b | `terms/waves/` на `ongudai_wave` | волна смотрит на 3λ ≈ 43 км против ветра, растр места ±20 км: за краем — высота края; с эталоном по terrain.height_at расходится до 5,5 м/с (120/189 точек) | вопрос к итоговой проверке: дальний грубый рельеф для волн (W5) |
