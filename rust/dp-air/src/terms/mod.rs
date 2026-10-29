@@ -116,6 +116,9 @@ pub fn named_json(c: &Configs, name: &str) -> Option<Value> {
         .and_then(|(_, t)| serde_json::from_str(t).ok())
 }
 
+/// Часовая часть силы источников термиков по времени атмосферы (ход дня).
+pub type HourFn = dyn Fn(f64) -> thermal_src::SourceHour + Send + Sync;
+
 /// Слоты слагаемых. Каждая задача заменяет свою строку в `Slots::new`.
 #[derive(Clone)]
 pub struct Slots {
@@ -387,7 +390,7 @@ impl Terms {
     pub fn set_thermal_place_hours(
         &mut self,
         place: Arc<crate::place::Place>,
-        hours: Arc<thermal_src::HourFn>,
+        hours: Arc<HourFn>,
     ) -> Result<(), crate::Error> {
         let cfg = thermal_src::SourceCfg::from_configs(&self.configs)?;
         let p2 = place.clone();

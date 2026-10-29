@@ -313,7 +313,7 @@ impl Terms {
     /// ходу дня. Воды нет (`water: None`): температуры воды и воздуха для источника - по клетке,
     /// растровый путь их не знает. Нет хода дня, места или `weather_model` - `None` (источники -
     /// статичное солнце мира). Ответ кешируется по минуте часа места.
-    pub fn source_hours(&self) -> Option<Arc<thermal_src::HourFn>> {
+    pub fn source_hours(&self) -> Option<Arc<super::HourFn>> {
         let (day, pl, wm) = (
             self.day()?,
             self.link.place.as_ref()?,
