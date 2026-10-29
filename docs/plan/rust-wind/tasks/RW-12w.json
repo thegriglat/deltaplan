@@ -1,0 +1,70 @@
+{
+  "id": "RW-12w",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "dp-gd на W3 v5: DpAir.cloud_objects, wave_info, surface_gust_many",
+  "goal": "DpAir отдаёт три метода W3 v5 (docs/contracts/rust-wind/dpair.md, v5) поверх трейта W4 v6: разбор и выдача массивов (cloud_objects — 22·N f32, radius < 0 без ограничения, t не конечно — текущее; surface_gust_many — длина min, нечисловой вход → 0, срезы без копирования; wave_info — два числа); на пустом объекте и без места — пусто/нули; cargo-тесты dp-gd на разбор и границы; tests/contracts/test_dp_air_ext.gd дополнен (api_version 4, три метода на пустом объекте) — без прогона Godot (итоговый прогон).",
+  "plan_ref": "План переноса",
+  "contracts": [
+    {
+      "name": "W3",
+      "version": "5",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W4",
+      "version": "6",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W6",
+      "version": "4",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-12w",
+  "branch": "rust-wind/RW-12w",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-gd/src/",
+    "rust/dp-gd/tests/",
+    "tests/contracts/test_dp_air_ext.gd"
+  ],
+  "dont_touch": [
+    "rust/dp-air/",
+    "rust/picard_rs/",
+    "scripts/",
+    "docs/contracts/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "dp_gd_tests",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-gd",
+      "expect": "num:test result: ok\\. (\\d+) >=1"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dp_air_no_godot",
+      "cmd": "cargo tree --manifest-path rust/Cargo.toml -p dp-air -e normal | grep -ci godot || true",
+      "expect": "num:^(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T14:21:26"
+}
