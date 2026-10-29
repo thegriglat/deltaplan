@@ -1,0 +1,80 @@
+{
+  "id": "RW-8s",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "surface_gust_many в крейте: порыв на 10 м для пыли (GustDustModel.gust_ms) — pub-функция terms",
+  "goal": "pub fn terms::surface_gust::surface_gust_many(terms, xz, t, out) по W6 v4 (descriptions.md, «Поверхностный порыв»): max(u + σ·(g·dir), 0) на профиле ветра 10 м, σ из gust_sigma_frac и convective_turbulence_ms, g = gust_unit (terms::turb::gust, RW-8); совпадает с GustDustModel.gust_ms опорной ревизии c591b1026 в допуске W8 v2 на синтетике и Онгудае, прошлые t, нечисловой вход и нет места — по W6.",
+  "plan_ref": "План переноса",
+  "contracts": [
+    {
+      "name": "W6",
+      "version": "4",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W7",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W10",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-8s",
+  "branch": "rust-wind/RW-8s",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/terms/surface_gust/",
+    "rust/dp-air/src/terms/mod.rs",
+    "rust/dp-air/tests/terms_surface_gust.rs",
+    "rust/dp-air/tests/data/RW-8s/"
+  ],
+  "dont_touch": [
+    "rust/dp-air/src/formula.rs",
+    "rust/dp-air/src/field/",
+    "rust/dp-air/src/terms/turb/",
+    "rust/picard_rs/",
+    "rust/dp-gd/",
+    "scripts/",
+    "tests/fixtures/",
+    "docs/contracts/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "terms_surface_gust",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test terms_surface_gust",
+      "expect": "num:test result: ok\\. (\\d+) >=4"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dp_air_no_godot",
+      "cmd": "cargo tree --manifest-path rust/Cargo.toml -p dp-air -e normal | grep -ci godot || true",
+      "expect": "num:^(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T13:17:49"
+}
