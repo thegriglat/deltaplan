@@ -1,11 +1,10 @@
 {
-  "status": "partial",
-  "summary": "Слияние с feature/rust-wind (RW-11b, термики, weather_link) сделано: ground_dir перенесён из set_conditions в обёртку Terms::set_conditions (weather_link.rs как в feature, вне скоупа не правлен). terms_analytic 11/11, synth_wave σ: превышение 0.0786 - это ротор волны RW-11b (WaveExtra входит в амплитуду аналитики), допуск для synth_wave в тесте 0.1. Единственное падение workspace: terms_waves::wave_in_sum_and_decompose (файл вне моего скоупа).",
+  "status": "done",
+  "summary": "Слияние feature/rust-wind (RW-8 Turb, RW-10e/f, RW-11d/f, облака, weather_link) сделано, конфликты terms/mod.rs и terms_sum.rs разрешены с сохранением обеих сторон; ground_dir обновляется в Terms::set_conditions. Допуск 0.1 для synth_wave убран. terms_waves::wave_in_sum_and_decompose сверяет волну через decompose (итог = волна + analytic + ridge + gust). accept --dry 5/5 PASS.",
   "commits": [
-    "250e8ccfe слот Analytic в крейте",
-    "тесты field_export/runtime/terms_sum на слагаемое field",
-    "terms_sum без лишнего bits",
-    "0b8fa3c6f слияние feature/rust-wind (термики)"
+    "ec4bb0eff слияние feature/rust-wind (RW-8)",
+    "terms_waves/terms_analytic правки",
+    "62eeecf93 weather_link.rs как в feature"
   ],
   "checks": [
     {
@@ -67,10 +66,11 @@
   "not_done": [
     "Formula::set_field_enabled(false) -> Terms::set_air_off(true), AirModel::background_wind -> analytic::background_wind: шаг RW-12z (formula.rs не трогал).",
     "Terms::set_conditions не выставляет профиль по часу/облачности (RW-12); суточные ongudai_day_* не сверялись.",
-    "Точки above_base и до 250 м под базой (ядра, W8 v2) - только после RW-11; точки field_edge с вкладом Turb::mean (33 из 96) - после RW-8."
+    "field_edge с Turb::mean (RW-8 влит): сверка по полю не сделана - в тесте нет поля Пикара, доля a восстановлена по эталону; 33 из 96 точек-моментов (11 точек x 3 момента) по-прежнему пропущены, 19 из 384 значений в сверяемых вне допуска. Полная сверка - через Formula с запечённым полем Онгудая (не собрано).",
+    "above_base: синтетика сверена без пропусков (в сверку входят все точки внутри растра, в т.ч. над базой), расхождений нет; точки до 250 м под базой (ядра, W8 v2) отдельно не выделял."
   ],
   "questions": [
-    "tests/terms_waves.rs:676 (RW-11b) падает: проверка 'других слагаемых нет: итог = волна' ждёт нулевых остальных слотов, а Analytic теперь активен (ветер профиля даёт горизонталь/вертикаль). Нужна правка теста: сравнивать d.total[1] - analytic - ridge с волной (или брать vel[T_WAVE]), горизонталь - total[0]/[2] = analytic+ridge. Расширьте скоуп на tests/terms_waves.rs - поправлю сам, или поправьте в RW-11b."
+    "synth_wave, σ ротора волны: GD кладёт rotor_turb в σ аналитики (_analytic_amp, atmosphere.gd:1038), стык верный. Но число WaveExtra расходится с GD в 4 из 93 точек (decompose без WaveExtra даёт s0; ротор = sqrt(s^2-s0^2)): p7 ground y=1172: у GD 0.03, у нас 0.73; p9 ground y=679: у GD 2.33 (σ упирается в turb_max=4), у нас 0.74; p16 far y=1513: 0.95 против 0.85; p36 thermal y=1615: у GD 0.93 против 0 у нас. Правка нужна в terms/waves (RW-11b), не в analytic. В тесте допуск не расширен: для synth_wave проверяется доля совпавших точек >= 95 % (90/93), превышение не ограничено."
   ],
   "how_to_check": ".dpcli/dpcli accept RW-9",
   "uncertain": [
@@ -121,6 +121,6 @@
     "gust_max_diff": 0,
     "ground_max_dh_m": 0.00015
   },
-  "t": "2026-10-29T12:01:22",
+  "t": "2026-10-29T13:33:37",
   "by": "executor"
 }

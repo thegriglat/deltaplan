@@ -7,7 +7,7 @@ use dp_air::{
 };
 use std::sync::{Arc, OnceLock};
 
-pub const WIND_API_VERSION: i64 = 3;
+pub const WIND_API_VERSION: i64 = 4;
 pub const OK: i64 = 0;
 pub const BAD_INPUT: i64 = 1;
 pub const NO_PLACE: i64 = 2;

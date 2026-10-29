@@ -1,0 +1,64 @@
+{
+  "status": "done",
+  "summary": "terms::surface_gust::surface_gust_many(terms, xz, t, out) по W6 v4: max(u + sigma*(g.dir), 0), u = WindModel.speed_at(10), sigma из gust_dust.gust_sigma_frac/conv_sigma_k и convective_turbulence_ms погоды, g = GustUnit (turb::gust) с gust_large_k. Совпадает с GustDustModel.gust_ms ревизии c591b1026 до 1e-6 м/с (округление до f32) на 6 сценариях x 1500 точек (x,z,t случайные, в т.ч. прошлые).",
+  "commits": [
+    "d580aae89 rust-wind RW-8s: surface_gust_many - порыв на 10 м для пыли"
+  ],
+  "checks": [
+    {
+      "name": "terms_surface_gust",
+      "value": "4 теста ok",
+      "pass": true
+    },
+    {
+      "name": "сверка с GD gust_ms",
+      "value": "max|d| 9.5e-7 м/с (допуск W8 0.05 м/с + 2 %)",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "dp_air_no_godot",
+      "value": "0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Правило W6 «нет места / не READY - нули» не здесь: у функции нет места в аргументах, обнулять должен фасад RW-12z (у Terms нет публичного признака места; link.place приватен в weather_link.rs, вне скоупа)."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RW-8s",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/tests/data/RW-8s/",
+      "why": "Эталон Онгудая - не полный прогон Atmosphere на месте: сиды и ветер/облачность/конвекция эталонов ongudai_* заданы вручную в WindModel+GustDustModel; шум и профиль на 10 м от места не зависят. Профиль на 10 м = speed_ref (reference_height_m = 10), т.е. форма профиля сверкой почти не проверяется.",
+      "checked": "6 сценариев: синтетика (3, в т.ч. штиль с conv>0) и сид/ветер ongudai_medium, ongudai_day_2, ongudai_strong; 1500 точек каждый."
+    },
+    {
+      "where": "rust/dp-air/src/terms/mod.rs (поле surface_gust)",
+      "why": "SurfaceGust строит свой GustUnit по configs+seed (не берёт из слота Turb: он dyn без доступа), лениво в Arc<OnceLock>, сбрасывается в configure. Тот же сид и конфиг, значит шум тот же; лишние 2048 отсчётов нормировки при первом вызове.",
+      "checked": "побитовое совпадение с GD подтверждено сверкой."
+    }
+  ],
+  "dp_feedback": "accept --dry на длинной сборке уходит в фон по таймауту 120 с; хотелось бы режима с ожиданием без повторного запуска.",
+  "extra": {
+    "scenarios": 6,
+    "points_per_scenario": 1500,
+    "max_abs_diff_ms": 9.5e-07
+  },
+  "t": "2026-10-29T13:38:53",
+  "by": "executor"
+}

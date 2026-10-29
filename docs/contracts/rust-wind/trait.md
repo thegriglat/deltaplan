@@ -6,15 +6,15 @@ area: "air"
 updated: "2026-10-29"
 summary: "W4 rust-wind: трейт AirModel крейта dp-air (без Godot) — типы, методы, порядок команд, структуры описаний, реализации Calm/Formula/Live."
 related: ["docs/contracts/rust-wind.md", "docs/plan/rust-wind.md"]
-contracts: [{"id": "W4", "version": 5}]
+contracts: [{"id": "W4", "version": 6}]
 ---
 
-# W4. Трейт `AirModel` (крейт `dp-air`, без Godot) (v5)
+# W4. Трейт `AirModel` (крейт `dp-air`, без Godot) (v6)
 
 Часть `docs/contracts/rust-wind.md` (версия — там, заголовок W4). Менять — только координатор.
 Владелец — RW-4 (трейт, заглушка `Calm`), RW-6…12 (`Formula`), будущий живой воздух (`Live`). Потребители — `dp-gd`, стенд RW-5, `cargo test`, `cargo bench`.
 ```rust
-pub const API_VERSION: u32 = 1;
+pub const API_VERSION: u32 = 4;                      // = версии W2 (W2 v4)
 pub enum State { Empty, Loading, Ready, Failed }
 pub enum Code { Ok, BadInput, NoPlace, NotReady }          // W1; Result<(), Error{code, msg}>
 pub enum SampleMode { Full, Mean }
@@ -64,3 +64,18 @@ pub trait AirModel: Send + Sync {
 - **v5 (2026-10-29, постановка RW-7):**
   - `fn set_field_enabled(&mut self, on: bool) -> Result<(), Error>` — по умолчанию `Ok(())` (`Calm`). Без места — запоминается, применяется при `load_place`; по умолчанию `true`. `Formula`: `false` — идущая задача поля отменяется (W11 v6), поле снимается сразу, без подмены (опросы — как без поля), новых расчётов нет, `state` не меняется (`Loading` из-за поля → `Ready`); `true` после `Ready` — подбор запечённого/кеша/расчёт фоном, как при загрузке, `state` остаётся `Ready`, ход — `stage`/`iters`, первое поле подаётся сразу (`blend_s = 0`); `true` до `Ready` — как обычная загрузка. Повтор того же значения — `Ok`, ничего. Уточнение без смены версии (ревью RW-7a): подготовка поля после включения не удалась — как ошибка загрузки: `Failed`, причина в `reason` (опросы — по запасному пути).
   - Переходное (W3 v4, до переноса GDScript-слагаемых, не позже RW-13): `fn field_export(&self) -> FieldExport` — по умолчанию пустой; `pub struct FieldExport { pub version: u64, pub blend_s: f64, pub blend_t0: f64, pub header_json: String, pub data: Vec<u8> }` — снимок последней подачи (целевой набор уровней), заголовок и тело — `field::baked::encode_baked` (без потерь, `parse_baked` читает обратно бит в бит); `version = 0` и пустые строки — поля нет. `fn field_version(&self) -> u64` — номер последней подачи без кодирования (по умолчанию 0). Номер растёт по правилу W3 v4.
+- **v6 (2026-10-29, переход фасада RW-12z):** `API_VERSION = 4`. `ObjRecord` переносится в корень крейта: `#[repr(C)] pub struct ObjRecord` (22 × `f32`, поля W6 v4, const-assert размера, как `Core`), `pub const OBJ_STRIDE: usize = 22`. Новые методы (по умолчанию — «ничего», `Calm`):
+  ```rust
+  fn cloud_objects(&self, center: [f32; 3], radius: f32, t: f64, out: &mut Vec<ObjRecord>) { out.clear() }
+  fn wave_info(&self) -> [f32; 2] { [0.0; 2] }                                        // [enabled, wavelength_m]
+  fn surface_gust_many(&self, xz: &[[f32; 2]], t: &[f64], out: &mut [f32]) { out.iter_mut().for_each(|o| *o = 0.0) }
+  ```
+  - `Formula` отдаёт все опросы из `Terms` (ядра, облака, плотность, растр, гребни, объекты, `wave_info`, `surface_gust_many`, погода, солнце, фон, кромка) вместо заглушек. Нет места или не `Ready`: `cores/clouds/cloud_objects/wave_crests` — пусто, `cloud_raster` — `None`, `cloud_density_many`/`surface_gust_many`/`background_wind` — нули, `wave_info` — `[0, 0]`, `weather_json` — `"{}"`, `sun_state` — нули.
+  - `cores`, `clouds` — на текущем `t`; `cloud_objects` — на заданном `t` в окне W6 v4 (вне окна — ближайшая граница); результат — детерминированная функция снимка и `t`.
+  - `sun_state`: `w` — прогрев (`AtmoDay.insolation`) 0..1; нет хода дня — 1.
+  - `weather_version()` `(мягкая, перестройка)`: мягкая растёт только при реальной смене выведенной погоды (квант — слот 0,1 с хода дня; величины изменились больше чем на `1e-3` отн.), иначе не растёт.
+  - `background_wind`: фоновый ветер по высоте MSL от опорной высоты земли, как `_ground_ref` GD (`atmosphere.gd`, `WeatherModel.ground_context`).
+  - `start_at` — по W2 v4. Режим поля `off` (`set_field_enabled(false)`) — аналитика без поля, остальные слагаемые включены (W2 v4).
+  - Кеши крейта по месту — по поколению `load_place`, не по адресу растра.
+  - Бюджет `advance_to` ≤ 0,5 мс главного потока (W3) — с термиками и облаками: тяжёлое (сборка термиков, шаг и разгон поля облаков) — фоном (single-flight, подмена `Arc`); в детерминированном режиме (`air.deterministic`) — синхронно, бюджет не действует.
+  - Переходное `field_export`/`field_version` (v5) — без изменений до RW-13.

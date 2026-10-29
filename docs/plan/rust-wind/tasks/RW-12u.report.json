@@ -1,0 +1,58 @@
+{
+  "status": "done",
+  "summary": "dp_air::API_VERSION = 4, WIND_API_VERSION dp-gd = 4 (тест api_version_is_4). ObjRecord (#[repr(C)], 22 f32, const-assert) и OBJ_STRIDE перенесены в корень крейта, terms::objects делает pub use. AirModel += cloud_objects/wave_info/surface_gust_many с умолчаниями W4 v6; Calm и Formula не менялись.",
+  "commits": [
+    "5095352c0 RW-12u: API_VERSION = 4, методы W4 v6 с умолчаниями, ObjRecord в корне крейта"
+  ],
+  "checks": [
+    {
+      "name": "contract_version",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "dp_gd_tests",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "dp_air_no_godot",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-12u",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/tests/terms_thermal_field.rs:68-85 (load)",
+      "why": "Два первых прогона accept упали в cargo_test на разных тестах ongudai_*/advance_builds_in_background (BadInput: EOF при разборе case / .bin 20480 байт вместо 26928). Причина, судя по коду: параллельные тесты одного процесса копируют одни и те же файлы в общий tmp rw10e_cases_<pid> (load(\"ongudai_medium\") в 4 тестах), гонка копирования. К моим правкам не относится (файл вне скоупа).",
+      "checked": "Бинарник отдельно 3 раза подряд - 10 passed; третий полный accept --dry - PASS 6/6. Исправление (уникальный tmp на вызов load) - отдельной задачей."
+    },
+    {
+      "where": "rust/dp-air/src/lib.rs (ObjRecord)",
+      "why": "Константы FLAG_STATIC/FLAG_CB/FOREVER остались в terms::objects (в корень перенесены только ObjRecord и OBJ_STRIDE; констант смещений OBJ_* в коде не было).",
+      "checked": "grep по rust/; сборка и тесты зелёные."
+    }
+  ],
+  "dp_feedback": "accept --dry печатает только tail лога job; хотелось бы сразу видеть имя упавшего теста. Дублирующий запуск 'lock cpu ... accept' уходит в фон с 180 с, ожидание неудобно.",
+  "t": "2026-10-29T14:16:20",
+  "by": "executor"
+}

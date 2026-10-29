@@ -1,0 +1,113 @@
+{
+  "id": "RW-12v",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Formula на Terms: место, поле, облака, слоты, ключ места, фон, методы трейта W4 v6 вместо заглушек",
+  "goal": "Formula (rust/dp-air/src/formula.rs) отдаёт все опросы W4 v6 из Terms: подключены set_place, set_thermal_place, set_air_field, set_cloud_inputs (входы облаков из Field + AirThermals), wind.ref_msl; методы cores/clouds/cloud_density_many/cloud_raster/cloud_objects/wave_crests/wave_info/surface_gust_many/weather_json/weather_version (с порогом)/sun_state/background_wind/cloudbase_msl — из terms::* вместо заглушек, без места/не Ready — по W4 v6; кеши по поколению load_place; advance_to ≤ 0,5 мс главного потока на ongudai_* (тяжёлое — фоном, детерминированный режим — синхронно). Режим off и слот Analytic — после слияния RW-9 (отдельной правкой этой же задачи).",
+  "plan_ref": "План переноса",
+  "contracts": [
+    {
+      "name": "W2",
+      "version": "4",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W3",
+      "version": "5",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W4",
+      "version": "6",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W5",
+      "version": "8",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W6",
+      "version": "4",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W7",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W10",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-12v",
+  "branch": "rust-wind/RW-12v",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/formula.rs",
+    "rust/dp-air/src/lib.rs",
+    "rust/dp-air/src/terms/mod.rs",
+    "rust/dp-air/src/terms/slots.rs",
+    "rust/dp-air/src/terms/waves/",
+    "rust/dp-air/src/terms/clouds/",
+    "rust/dp-air/src/terms/thermal/",
+    "rust/dp-air/src/terms/weather_link.rs",
+    "rust/dp-air/src/terms/surface_gust/",
+    "rust/dp-air/src/terms/objects/",
+    "rust/dp-air/src/terms/turb/",
+    "rust/dp-air/tests/formula_facade.rs",
+    "rust/dp-air/tests/data/RW-12v/",
+    "rust/dp-air/benches/formula.rs",
+    "rust/dp-air/tests/contract.rs",
+    "rust/dp-air/tests/runtime.rs",
+    "rust/dp-air/tests/field_export.rs",
+    "rust/dp-air/tests/acceptance.rs"
+  ],
+  "dont_touch": [
+    "rust/dp-air/src/field/",
+    "rust/dp-air/src/terms/analytic/",
+    "rust/picard_rs/",
+    "rust/dp-gd/",
+    "scripts/",
+    "tests/fixtures/",
+    "docs/contracts/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "formula_facade",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test formula_facade",
+      "expect": "num:test result: ok\\. (\\d+) >=8"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dp_air_no_godot",
+      "cmd": "cargo tree --manifest-path rust/Cargo.toml -p dp-air -e normal | grep -ci godot || true",
+      "expect": "num:^(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T14:21:30"
+}

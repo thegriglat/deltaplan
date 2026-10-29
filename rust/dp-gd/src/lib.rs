@@ -59,7 +59,7 @@ pub struct DpAir {
 #[godot_api]
 impl DpAir {
     #[constant]
-    pub const WIND_API_VERSION: i64 = 3;
+    pub const WIND_API_VERSION: i64 = 4;
     #[constant]
     pub const STATE_EMPTY: i64 = 0;
     #[constant]

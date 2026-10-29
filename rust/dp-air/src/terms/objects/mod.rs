@@ -16,90 +16,15 @@
 use super::Terms;
 use super::storm::{self, CloudCfg, CloudModel, StormCfg};
 use super::thermal::AtmoThermal;
+pub use crate::{OBJ_STRIDE, ObjRecord};
 use std::collections::HashSet;
 
-/// Число полей записи (`OBJ_STRIDE`).
-pub const OBJ_STRIDE: usize = 22;
 /// Бит 0 `flags`: статичный термик.
 pub const FLAG_STATIC: u32 = 1;
 /// Бит 2 `flags`: Cb.
 pub const FLAG_CB: u32 = 4;
 /// Для статичных: начало и конец жизни облака (`∓1e30`), начало сноса (`+1e30`).
 pub const FOREVER: f32 = 1.0e30;
-
-/// Запись объекта-облака (W4 v6: `#[repr(C)]`, 22 `f32`).
-#[repr(C)]
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
-pub struct ObjRecord {
-    /// `0` `id & 0xFFFFFF`, уникален в наборе.
-    pub id: f32,
-    /// `1` бит 0 - статичное, бит 2 - Cb.
-    pub flags: f32,
-    /// `2, 3` центр основания на `t`, м.
-    pub cx: f32,
-    pub cz: f32,
-    /// `4` основание, м MSL.
-    pub base_msl: f32,
-    /// `5, 6, 7` рост, распад, активность 0..1 (`CloudModel.stage`).
-    pub growth: f32,
-    pub decay: f32,
-    pub activity: f32,
-    /// `8, 9` полуоси по ветру и поперёк, м (`CloudModel.size`).
-    pub rx: f32,
-    pub rz: f32,
-    /// `10, 11` мощность и растекание верха, м.
-    pub depth: f32,
-    pub spread: f32,
-    /// `12` `noise_seed mod 9973`.
-    pub vis_seed: f32,
-    /// `13, 14` появление и конец облака, с атмосферы (статичное - `∓1e30`).
-    pub life_t0: f32,
-    pub life_t1: f32,
-    /// `15, 16` источник на земле, м.
-    pub src_x: f32,
-    pub src_z: f32,
-    /// `17, 18` скорость сноса, м/с (статичное - 0).
-    pub drift_vx: f32,
-    pub drift_vz: f32,
-    /// `19` начало сноса, с (статичное - `+1e30`).
-    pub drift_t0: f32,
-    /// `20` начало грозы, с (не Cb - 0).
-    pub storm_t0: f32,
-    /// `21` интенсивность грозы на `t`, 0..1 (не Cb - 0).
-    pub storm_k: f32,
-}
-
-const _: () = assert!(std::mem::size_of::<ObjRecord>() == OBJ_STRIDE * 4);
-
-impl ObjRecord {
-    /// Плоский вид (порядок полей W6 v4).
-    pub fn to_array(&self) -> [f32; OBJ_STRIDE] {
-        [
-            self.id,
-            self.flags,
-            self.cx,
-            self.cz,
-            self.base_msl,
-            self.growth,
-            self.decay,
-            self.activity,
-            self.rx,
-            self.rz,
-            self.depth,
-            self.spread,
-            self.vis_seed,
-            self.life_t0,
-            self.life_t1,
-            self.src_x,
-            self.src_z,
-            self.drift_vx,
-            self.drift_vz,
-            self.drift_t0,
-            self.storm_t0,
-            self.storm_k,
-        ]
-    }
-}
 
 /// Уникальные ключи `id & 0xFFFFFF` термиков набора в порядке возрастания исходных `id`:
 /// при совпадении - следующий свободный. Не зависит от `t` и охвата.

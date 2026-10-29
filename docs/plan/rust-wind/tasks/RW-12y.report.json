@@ -1,0 +1,63 @@
+{
+  "status": "done",
+  "summary": "docs/research/rust-wind-stage3/rw12z.md: готовый текст правок W2 v4 / W3 v5 / W4 v6 (API_VERSION 3 -> 4), разбиение RW-12z на 4 задачи (12za dp-air, 12zb dp-gd, 12zc atmosphere.gd, 12zd потребители и храповик чистоты) с красными тестами и порядком, таблица сомнений uncertain.md по задачам. Главная находка: Formula не вызывает Terms::set_place/set_thermal_place/set_air_field/set_cloud_inputs и не ставит wind.ref_msl, поэтому термики, облака и погода по часу в игре без 12za не заработают.",
+  "commits": [
+    "0c1306faf rust-wind RW-12y: проект перехода фасада"
+  ],
+  "checks": [
+    {
+      "name": "doc_exists",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "docs_check",
+      "value": "ошибок 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [
+    "RW-11e в прежнем виде невыполнима до 12zb (cloud_objects в GD появляется только с W3 v5): предлагаю влить RW-11e целиком в 12zd.",
+    "Бюджет advance_to 0,5 мс не выдерживают поле облаков (0,43 мс + клон) и разгон 56 мс: фон для облаков по образцу thermal_async; при неудаче 12za пишет contract.",
+    "Формулировка start_at в W2 v4: облачные величины - детерминизм и cover <= 0,1, не равенство прогону с 0 (как в GD). Нужно решение координатора.",
+    "debug_raster 'phase' (карта фаз) не переносить - оверлей отладки; подтвердить."
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-12y",
+  "uncertain": [
+    {
+      "where": "rw12z.md §2.3, таблица background_wind",
+      "why": "ground_ref (аналог GD _ground_ref) в Terms нет; mean_msl_m из PlaceLink предположительно совпадает, но не сверено",
+      "checked": "прочитан GD background_wind и frame.rs; числовой сверки не делал"
+    },
+    {
+      "where": "rw12z.md §2.3, wave_info",
+      "why": "WaveField::wavelength() не сверен с формулой W6 2*pi*max(u_ref,1)/max(N,1e-4)",
+      "checked": "только что функция существует; вынесено в красный тест 12za"
+    },
+    {
+      "where": "rw12z.md §4, оценки дней и охват RW-9",
+      "why": "RW-9 в доработке, слот Analytic в ветке отсутствует; оценка 12za зависит от его слияния",
+      "checked": "git log и ls terms/ на 387b2df18"
+    },
+    {
+      "where": "rw12z.md §2.1, состав ключей thermals_near",
+      "why": "ключи выведены из CORE_* и ThermalField.to_dict по чтению, не сверены с читателями terrain_wind.gd/world_link.gd/птицами",
+      "checked": "найдены читатели grep-ом, тела не читал"
+    }
+  ],
+  "dp_feedback": "task list отсутствует (есть только new|show|brief|set|note|sync); узнать статус соседних карточек (RW-9, RW-11e) нельзя, пришлось судить по git log.",
+  "extra": {
+    "tasks": [
+      "RW-12za",
+      "RW-12zb",
+      "RW-12zc",
+      "RW-12zd"
+    ],
+    "critical_path_days": "8-9",
+    "api_version": "3 -> 4"
+  },
+  "t": "2026-10-29T13:51:27",
+  "by": "executor"
+}
