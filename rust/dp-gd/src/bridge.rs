@@ -2,8 +2,8 @@
 //! Класс gdext в `lib.rs` только переводит типы Godot в срезы и обратно, поэтому всё здесь
 //! проверяется `cargo test` без запуска Godot.
 use dp_air::{
-    AirModel, Calm, Cloud, Conditions, Configs, Core, Crest, Focus, Place, PlaceHeader, SampleMode,
-    as_f32s,
+    AirModel, Calm, Cloud, Conditions, Configs, Core, Crest, FieldExport, Focus, Place,
+    PlaceHeader, SampleMode, as_f32s,
 };
 use std::sync::{Arc, OnceLock};
 
@@ -39,6 +39,8 @@ pub struct Bridge {
     model: Box<dyn AirModel>,
     last_error: String,
     seed_default: u64,
+    /// Закреплённый снимок поля (`field_export`, W3 v4) до следующего `field_export`.
+    export: Option<FieldExport>,
 }
 
 impl Default for Bridge {
@@ -57,6 +59,7 @@ impl Bridge {
             model,
             last_error: String::new(),
             seed_default: 0,
+            export: None,
         }
     }
 
@@ -150,6 +153,37 @@ impl Bridge {
     pub fn set_cache_dir(&mut self, path: &str) -> i64 {
         let r = self.model.set_cache_dir(path);
         self.done(r)
+    }
+
+    /// W3 v4: режим поля.
+    pub fn set_field_enabled(&mut self, on: bool) -> i64 {
+        let r = self.model.set_field_enabled(on);
+        self.done(r)
+    }
+
+    /// W3 v4: закрепляет снимок последней подачи поля; возвращает его номер (`0` — поля нет).
+    pub fn field_export(&mut self) -> i64 {
+        let e = self.model.field_export();
+        let v = e.version as i64;
+        self.export = Some(e);
+        v
+    }
+
+    /// Номер последней подачи без закрепления.
+    pub fn field_version(&self) -> i64 {
+        self.model.field_version() as i64
+    }
+
+    /// Заголовок закреплённого снимка: нет снимка или поля — `""`.
+    pub fn field_export_header(&self) -> String {
+        self.export
+            .as_ref()
+            .map_or_else(String::new, |e| e.header_json.clone())
+    }
+
+    /// Тело закреплённого снимка; нет — пусто.
+    pub fn field_export_data(&self) -> &[u8] {
+        self.export.as_ref().map_or(&[], |e| e.data.as_slice())
     }
 
     pub fn unload_place(&mut self) {
@@ -423,5 +457,20 @@ mod tests {
         let mut calm = Bridge::default();
         assert_eq!(calm.add_baked_field("мусор", &[]), OK);
         assert_eq!(calm.set_cache_dir("/x"), OK);
+    }
+
+    /// W3 v4: режим поля и выдача поля через мост (`Calm` — пусто, Ok).
+    #[test]
+    fn field_mode_and_export_bridge() {
+        let mut calm = Bridge::default();
+        assert_eq!(calm.set_field_enabled(false), OK);
+        assert_eq!(calm.field_version(), 0);
+        assert_eq!(calm.field_export(), 0);
+        assert_eq!(calm.field_export_header(), "");
+        assert!(calm.field_export_data().is_empty());
+        let mut f = Bridge::new(Box::new(Formula::new()));
+        assert_eq!(f.field_export(), 0);
+        assert_eq!(f.set_field_enabled(false), OK);
+        assert_eq!(f.set_field_enabled(true), OK);
     }
 }

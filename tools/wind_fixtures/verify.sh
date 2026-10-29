@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Пересъёмка эталонов ветра во временный каталог и побитное сравнение с tests/fixtures/wind/
 # (.bin, .desc.json, places/*; в cases/*.json поле generator — коммит — не сравнивается).
+# verify.sh [--only=имя,имя] — только эти случаи (и места, которые они пишут).
 # Случаи с полем Пикара идут на GPU (окно). Дневной случай (~5 мин) — отдельный прогон, набор 1 —
 # один: параллельно, иначе проверка не укладывается в 15 минут приёмки. exit 0 — совпало.
 set -uo pipefail
@@ -10,6 +11,13 @@ pg_backup="$tmp/project.godot.bak"
 cp project.godot "$pg_backup"
 trap 'cmp -s project.godot "$pg_backup" || cp "$pg_backup" project.godot; rm -rf "$tmp"' EXIT
 ref=tests/fixtures/wind
+only=""
+for a in "$@"; do
+	case "$a" in
+	--only=*) only="${a#--only=}" ;;
+	esac
+done
+in_only() { [ -z "$only" ] || case ",$only," in *",$1,"*) return 0 ;; *) return 1 ;; esac; }
 
 # импорт один раз (параллельные прогоны его не делают)
 profile="$tmp/profile"
@@ -23,6 +31,9 @@ for f in "$ref"/cases/*.json; do
 	n="$(basename "$f" .json)"
 	case "$n" in
 	*.desc) continue ;;
+	esac
+	in_only "$n" || continue
+	case "$n" in
 	ongudai_day_*) days+=("$n") ;;
 	*) rest="${rest:+$rest,}$n" ;;
 	esac
@@ -46,6 +57,12 @@ done
 
 # один каталог на файл: случай/место есть ровно в своей группе (places/ongudai — в нескольких: сравниваются все)
 for f in $(cd "$ref" && find places cases -type f | sort); do
+	if [ -n "$only" ]; then
+		case "$f" in
+		cases/*) in_only "$(basename "$f" | sed 's/\..*//')" || continue ;;
+		places/*) ls "$tmp"/g*/"$f" >/dev/null 2>&1 || continue ;;
+		esac
+	fi
 	found=0
 	for d in "$tmp"/g*; do
 		[ -e "$d/$f" ] || continue

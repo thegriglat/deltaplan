@@ -151,6 +151,31 @@ impl DpAir {
         self.bridge
             .add_baked_field(&header_json.to_string(), data.as_slice())
     }
+    /// Режим поля (W3 v4): `false` — поле снято, расчётов нет; `true` — вернуть фоном. Коды W1.
+    #[func]
+    fn set_field_enabled(&mut self, on: bool) -> i64 {
+        self.bridge.set_field_enabled(on)
+    }
+    /// Переходное (W3 v4): закрепить снимок последней подачи поля; номер подачи (`0` — поля нет).
+    #[func]
+    fn field_export(&mut self) -> i64 {
+        self.bridge.field_export()
+    }
+    /// Номер последней подачи поля без закрепления.
+    #[func]
+    fn field_version(&self) -> i64 {
+        self.bridge.field_version()
+    }
+    /// Заголовок закреплённого снимка (TI-К3 v3 + `field_version`, `blend_s`, `blend_t0`); нет — `""`.
+    #[func]
+    fn field_export_header(&self) -> GString {
+        gs(self.bridge.field_export_header())
+    }
+    /// Тело закреплённого снимка (zstd); нет — пусто.
+    #[func]
+    fn field_export_data(&self) -> PackedByteArray {
+        PackedByteArray::from(self.bridge.field_export_data())
+    }
     /// Каталог кеша полей (абсолютный путь); пусто — без кеша. Коды W1.
     #[func]
     fn set_cache_dir(&mut self, path: GString) -> i64 {

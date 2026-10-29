@@ -3,10 +3,10 @@ type: "contract"
 status: "active"
 module: "rust-wind"
 area: "air"
-updated: "2026-10-27"
+updated: "2026-10-29"
 summary: "Граница ветра в Rust: фасад Atmosphere, DpAir (gdext), трейт dp-air, место, описания, разложение, допуски, сборка, чистота."
-related: ["docs/plan/rust-wind.md", "docs/contracts/picard-rs.md", "docs/plan/rust-air-integration.md", "docs/plan/rust-ext.md", "docs/plan/air-cascade.md", "tools/research/rust_ext/gdext_probe/README.md", "docs/contracts/rust-wind/fixtures-tolerances.md", "docs/contracts/rust-wind/descriptions.md", "docs/contracts/rust-wind/solver.md", "docs/contracts/rust-wind/trait.md"]
-contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 3}, {"id": "W3", "version": 3}, {"id": "W4", "version": 4}, {"id": "W5", "version": 7}, {"id": "W6", "version": 3}, {"id": "W7", "version": 1}, {"id": "W8", "version": 1}, {"id": "W9", "version": 2}, {"id": "W10", "version": 2}, {"id": "W11", "version": 10}]
+related: ["docs/plan/rust-wind.md", "docs/contracts/picard-rs.md", "docs/plan/rust-air-integration.md", "docs/plan/rust-ext.md", "docs/plan/air-cascade.md", "tools/research/rust_ext/gdext_probe/README.md", "docs/contracts/rust-wind/fixtures-tolerances.md", "docs/contracts/rust-wind/descriptions.md", "docs/contracts/rust-wind/solver.md", "docs/contracts/rust-wind/trait.md", "docs/contracts/rust-wind/dpair.md"]
+contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 3}, {"id": "W3", "version": 4}, {"id": "W4", "version": 5}, {"id": "W5", "version": 8}, {"id": "W6", "version": 3}, {"id": "W7", "version": 1}, {"id": "W8", "version": 1}, {"id": "W9", "version": 2}, {"id": "W10", "version": 2}, {"id": "W11", "version": 10}]
 ---
 
 # Контракты модуля rust-wind
@@ -81,30 +81,17 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 3}, {"id": "W3",
 - Фокусы: индекс 0 — игрок; боты и игроки сети — по желанию игры, `gd` использует только индекс 0.
 - Переходное до RW-13 (в W3/W4 нет): `refresh_scale` (ускорение догона на экране ожидания), `start_at` без места — синхронно, `focus_node`/`set_focus`/`get_focus` и `configure(Variant, Variant)` — только для тестов и превью до RW-3c.
 
-**Переходное (только RW-2…RW-12, удаляется в RW-13; в W3/W4 нет):** реализация `gd` может держать прежние входы — `set_ground(height_fn, sun_fn, surface_fn)`, `set_day(AtmoDay)`, `set_wind(...)`, `set_weather(...)` — фасад сам выводит их из `load_place`/`set_conditions` (игра их больше не зовёт после RW-3). `air.backend` (RW-7) — ключ `configs/atmosphere.json` `air.backend: "gd" | "rust"`; нет бинарника расширения → `gd` и строка в журнале (W9).
+**Переходное (только RW-2…RW-12, удаляется в RW-13; в W3/W4 нет):** реализация `gd` может держать прежние входы — `set_ground(height_fn, sun_fn, surface_fn)`, `set_day(AtmoDay)`, `set_wind(...)`, `set_weather(...)` — фасад сам выводит их из `load_place`/`set_conditions` (игра их больше не зовёт после RW-3). Переключателя `air.backend` нет (W9 v2): поле — только из крейта (RW-7).
+- **Режим поля (уточнение 2026-10-29, без смены версии; RW-7):** прежний метод фасада `set_air_mode(mode: String)` (`"auto" | "on" | "off"`, пункт настроек «Эвристика») и ключ `air_model.enabled` в `configs/atmosphere.json` отображаются в `DpAir.set_field_enabled` (W3 v4): `off` → `false`; `on` → `true`; `auto` → `true`, кроме headless (`DisplayServer.get_name() == "headless"`) — там `false`, как сейчас: в headless-тестах поле не считается, тесты, которым оно нужно, ставят `on`.
 
-## W3. Класс `DpAir` (gdext, крейт `dp-gd`) (v3)
-Владелец — RW-4 (каркас, заглушка `Calm`), RW-6…12 (наполнение). Потребитель — фасад (реализация `rust`), контрактные тесты.
-- `class DpAir extends RefCounted` (один объект на игру; создаёт фасад). Методы — как W2 с теми же именами, кодами и семантикой, только типы Godot без `Dictionary`/`Object` в горячем пути:
-  - `api_version() -> int` (= версии W2, сейчас 3); `last_error() -> String`; `state() -> int`; `progress() -> float`; `time_s() -> float`;
-  - v3: `stage() -> String` (идентификатор этапа W4 v4; подпись для экрана — фасад), `iters() -> int` — как `status().iters` W2 v3.
-  - `configure(configs_json: PackedStringArray /* пары имя, текст */, seed: int) -> int` — имена: `atmosphere`, `weather_model`, `surface_heat`, `weather/<имя>`;
-  - `load_place(header_json: String, heights: PackedFloat32Array, water: PackedByteArray, surface_cls: PackedByteArray, surface_moist: PackedFloat32Array) -> int` (W5), `unload_place()`;
-  - v2: `add_baked_field(header_json: String, data: PackedByteArray) -> int` — запечённое поле места (W5 v4, формат TI-К3 v3) сразу после `load_place`, до READY (позже — BAD_INPUT); `set_cache_dir(path: String) -> int` — каталог кеша полей реализации (абсолютный путь; фасад даёт `ProjectSettings.globalize_path("user://air_cache")`), крейт сам читает и пишет туда свои файлы (запись — временный файл и переименование); пусто — без кеша;
-  - `set_conditions(json: String) -> int` (W5); `set_sun_direction(to_sun: Vector3)`; `set_static_thermals(list: PackedFloat32Array, mode: int) -> int`;
-  - `advance_to(t: float) -> int`; `start_at(t: float) -> int`;
-  - `set_focuses(points: PackedVector3Array, weights: PackedFloat32Array) -> int`;
-  - `sample_many(points: PackedVector3Array, mode: int) -> PackedFloat32Array`; `cloud_density_many(points) -> PackedFloat32Array`; `cloudbase_msl() -> float`; `background_wind(heights: PackedFloat32Array) -> PackedFloat32Array`; `weather_json() -> String`; `weather_version() -> int` (растёт при каждой смене; фасад по нему шлёт `weather_*`, полная перестройка — `weather_rebuild_version() -> int`); `sun_state() -> Vector4`;
-  - описания и отладка — W6, W7 с теми же именами; растры — `cloud_raster_header() -> String` (json) + `cloud_raster_channel(name: String) -> PackedFloat32Array`; `debug_raster_header(name) -> String` + `debug_raster_data(name) -> PackedFloat32Array`; `decompose(pos: Vector3) -> PackedFloat32Array` + `decompose_names() -> PackedStringArray`.
-- Вход — срез без копирования (`as_slice()`), выход — одно копирование. Рабочие потоки Rust не трогают объекты Godot.
-- **Главный поток не ждёт фон.** Опросы читают последний готовый снимок (подмена указателя, `Arc`), блокировки на время расчёта нет; `advance_to` на главном потоке ≤ 0,5 мс (без учёта фоновой работы). Фоновый пересчёт, подготовка места, `start_at` — в потоках крейта, один `rayon`-пул на процесс, размер — `air.threads` в `configs/atmosphere.json` (`0` — все ядра минус одно).
-- Жизненный цикл: выход из игры посреди фоновой работы — работа прерывается при `Drop`/`unload_place`, без зависания больше 1 с.
+## W3. Класс `DpAir` (gdext, крейт `dp-gd`) (v4)
+Владелец — RW-4 (каркас, заглушка `Calm`), RW-6…12 (наполнение), RW-7 (режим поля, выдача поля фасаду). Потребитель — фасад, контрактные тесты. Методы, потоки, жизненный цикл, история v2–v4 — `docs/contracts/rust-wind/dpair.md`.
 
-## W4. Трейт `AirModel` (крейт `dp-air`, без Godot) (v4)
+## W4. Трейт `AirModel` (крейт `dp-air`, без Godot) (v5)
 Владелец — RW-4 (трейт, `Calm`), RW-6…12 (`Formula`), живой воздух (`Live`). Потребители — `dp-gd`, стенд RW-5, `cargo test`, `cargo bench`. Трейт, типы, порядок команд, структуры описаний — `docs/contracts/rust-wind/trait.md`.
 
-## W5. Вход: место, конфиги, условия (v7)
-Владелец — RW-2 (сборка `AirPlaceData`), RW-4 (разбор в крейте). Потребители — W2–W4, фикстуры W8. `AirPlaceData`, конфиги, условия и история версий v2–v7 — `docs/contracts/rust-wind/input.md`.
+## W5. Вход: место, конфиги, условия (v8)
+Владелец — RW-2 (сборка `AirPlaceData`), RW-4 (разбор в крейте). Потребители — W2–W4, фикстуры W8. `AirPlaceData`, конфиги, условия и история версий v2–v8 — `docs/contracts/rust-wind/input.md`.
 
 ## W6. Описания — найденное, а не заданное (v3)
 Владелец — RW-2 (из текущего кода), RW-10/RW-11 (из крейта). Поля, шаги `CORE_STRIDE`/`CLOUD_STRIDE`/`CREST_STRIDE`, растр облаков, гребни и инвариант найденного ядра — `docs/contracts/rust-wind/descriptions.md`.
@@ -167,3 +154,5 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 3}, {"id": "W3",
 - W9 v2, уточнение W1 (2026-10-27, решение пользователя: переключатель `gd | rust` убран) — поле в игре только из крейта (RW-7); нет расширения — ветер без поля, не запасной GD-расчёт. Потребители: RW-7, RW-3a/3c (тесты фасада).
 - W2 v3, W3 v3, W4 v4, W10 v2 (2026-10-27, решения пользователя) — счётчик итераций этапа в статусе (`iters`, W3 `stage()`/`iters()`, W4 `Status.stage/iters`); `dp-air` без игрового. Версия API = 3. Потребители: RW-6y (крейт, dp-gd, константы версий и контрактные тесты), RW-3c (реализация `gd` и экран загрузки), RW-7.
 - W11 v10 (2026-10-27, итог RW-6y) — `SolveOpts.progress` (счётчик итераций по ходу решения) для `Status.iters` W4 v4. Потребители: RW-6y, RW-3c (через `DpAir.iters()`).
+- W3 v4, W4 v5, уточнение W2 без смены версии (2026-10-29, постановка RW-7) — режим поля `set_field_enabled` (W2 «Режим поля»: `auto` в headless — без поля), переходная выдача поля фасаду `field_export*`/`field_version` (TI-К3 v3 без потерь) для GDScript-слагаемых до их переноса. Версия API не меняется (= W2 v3). Потребители: RW-7a (крейт, `dp-gd`, контрактные тесты), RW-7b (фасад).
+- W5 v8 (2026-10-29, разбор RW-8a) — сырая ячейка климата `loc.climate_cell`/`climate_cell_lag` (поправки на высоту — в крейте), конфиг `world` в `configure`. Потребители: RW-12b (фасад `AirPlaceData`, крейт `derive`/`ClimateGrid.place`, места фикстур), RW-10c (правило скал, `surface.thermal.edge_*`), RW-12c (`AtmoDay`, часы 6…21).
