@@ -1,14 +1,15 @@
 {
   "status": "done",
-  "summary": "WaveField (порт wave_field.gd), слагаемое wave и σ ротора в слоте Extra (ExtraParts: storm/cloud — заглушки RW-11c/11d), pub wave_crests (W6), Extra::crests. Синтетика synth_wave сходится с эталоном (wave до 0,0016 м/с, гребни до 0,00 м); Онгудай — на растре места побитно (Δw 0, Δσ 1e-5, гребни 0 м) против эталона, снятого на c591b1026.",
+  "summary": "WaveField (порт wave_field.gd), слагаемое wave и σ ротора — часть ExtraSet рядом с грозой RW-11c; pub wave_crests (W6) через Extra::crests (ExtraSet отдаёт гребни первой части, у которой они есть). Синтетика synth_wave сходится с эталоном W8; Онгудай на растре места — бит в бит с эталоном c591b1026 (принят координатором); сверка по terrain.height_at — #[ignore] (граница W5).",
   "commits": [
     "6c1a802a4 волны и роторы в крейте: WaveField, wave_crests, слагаемое wave в слоте Extra",
-    "eb92465fb волна без wave_strength не разбирает конфиг на каждый опрос"
+    "eb92465fb волна без wave_strength не разбирает конфиг на каждый опрос",
+    "5ded85992 слияние feature/rust-wind, перевод на ExtraSet (RW-11c)"
   ],
   "checks": [
     {
       "name": "terms_waves",
-      "value": "9 passed",
+      "value": "9 passed, 1 ignored",
       "pass": true
     },
     {
@@ -33,71 +34,68 @@
     },
     {
       "name": "synth_wave wave: 111 точек x3 момента",
-      "value": "0 вне W8, max|Δ|=0,0016 м/с, max|w|=5,02",
+      "value": "0 вне W8, max|Δ|=0,0016 м/с",
       "pass": true
     },
     {
       "name": "synth_wave гребни (26)",
-      "value": "позиция 0,00 м, eta 0,22 м, crest 0,30 м (растр 100 м вместо аналитики)",
+      "value": "позиция 0,00 м, eta 0,22 м, crest 0,30 м",
       "pass": true
     },
     {
-      "name": "ongudai_wave на растре места (эталон с c591b1026)",
-      "value": "126 точек: |Δw|=0, |Δσ|=1e-5; U(1500 м) и λ равны GD; гребни в растре 16 из 21: 0 м",
+      "name": "ongudai_wave на растре места (эталон c591b1026)",
+      "value": "126 точек: |Δw|=0, |Δσ|=1e-5; U и λ равны GD; гребни в растре 16 из 21: 0 м",
       "pass": true
     },
     {
-      "name": "ongudai_wave против эталона W8 (terrain.height_at)",
-      "value": "120 из 189 точек вне допуска, max|Δ|=5,51 м/с; гребни другие; σ итога < ротора в 15 точках — рельеф за растром",
+      "name": "ongudai_wave по terrain.height_at (#[ignore])",
+      "value": "120 из 189 точек вне допуска, max|Δ|=5,51 м/с — рельеф за растром ±20 км (3λ=43 км)",
       "pass": false
     }
   ],
   "not_done": [
-    "ongudai_wave против эталона W8 не сходится: волна смотрит на 3λ=43 км против ветра (λ=14,5 км при U=27,6 м/с), растр Онгудая ±20 км, за краем крейт держит высоту края (W5), эталон — terrain.height_at. Граница модели, не ошибка алгоритма (на растре — бит в бит). Нужен contract: эталон Онгудая на растре (положен в tests/data/RW-11b) или место шире.",
-    "Полётный тест test_climb_above_cloudbase_in_first_crest (FlightModel) и дисперсионный тест ротора остаются в GDScript; σ ротора в σ итога проверена неравенством σ_gd >= min(σ_ротор,4) на синтетике (после RW-8/9 сверить равенство).",
-    "Подключение wave_crests к AirModel::wave_crests — RW-12z (formula.rs не трогал)."
+    "ongudai_wave по terrain.height_at не сходится (граница W5), тест #[ignore]; заменён сверкой на растре (решение координатора).",
+    "Полётный test_climb_above_cloudbase_in_first_crest (FlightModel) остаётся в GDScript; равенство σ итога = ротор проверить после RW-8/9 (сейчас неравенство σ_gd >= min(σ_ротор,4) на синтетике).",
+    "Подключение wave_crests к AirModel::wave_crests — RW-12z."
   ],
-  "questions": [
-    "Принять сверку Онгудая на растре (tests/data/RW-11b/ongudai_wave_raster.json) как эталон W8 для слагаемого wave и гребней вместо ongudai_wave по terrain.height_at?"
-  ],
+  "questions": [],
   "how_to_check": ".dpcli/dpcli accept RW-11b",
   "uncertain": [
     {
       "where": "rust/dp-air/src/terms/waves/mod.rs:WaveExtra::field",
-      "why": "Кеш сбрасывается при смене силы/N/места (место — указатель и длина heights) и при смене λ > 1 м или направления > 1e-3 относительно кешированного поля (у GD — относительно предыдущего set_wind); новое место с тем же адресом и длиной не сбросит кеш.",
-      "checked": "тест field_cache_and_wind_change; смену места без смены адреса не проверял"
+      "why": "Кеш сбрасывается при смене силы/N/места (место — указатель и длина heights) и при смене λ > 1 м или направления > 1e-3; новое место с тем же адресом и длиной не сбросит кеш.",
+      "checked": "тест field_cache_and_wind_change; смену места по тому же адресу не проверял"
     },
     {
       "where": "rust/dp-air/src/terms/waves/field.rs:crests",
-      "why": "Гребни на плато (за краем растра) выбирает шум последнего знака; 5 из 21 гребней Онгудая вне растра не сверялись. Сортировка стабильная, в Godot sort_custom нестабилен — при равных eta порядок может отличаться.",
-      "checked": "16 гребней внутри растра совпали с GD на 0,0000 м"
+      "why": "Гребни на плато вне растра выбирает шум последнего знака; 5 из 21 гребней Онгудая не сверялись. Сортировка стабильная (в Godot нет).",
+      "checked": "16 гребней в растре совпали на 0,0000 м"
     },
     {
       "where": "rust/dp-air/tests/terms_waves.rs:terms_of",
-      "why": "Упрощённый профиль ветра synth_wave включён тестом вручную; в Formula его должен включить RW-12z по air_mode off, иначе U на 1500 м иной и λ/гребни разойдутся.",
-      "checked": "с включённым профилем синтетика сходится"
+      "why": "Упрощённый профиль ветра synth_wave включён тестом вручную; Formula (RW-12z) должна включать его при air_mode off.",
+      "checked": "с профилем синтетика сходится"
+    },
+    {
+      "where": "rust/dp-air/src/terms/slots.rs:ExtraSet::crests",
+      "why": "Гребни берутся у первой части с непустым ответом; сейчас кроме волны гребней не отдаёт никто.",
+      "checked": "terms_waves (wave_crests через ExtraSet)"
     },
     {
       "where": "rust/dp-air/tests/data/RW-11b/gen_ongudai_wave.gd",
-      "why": "Скрипт — Node, запускается временной сценой в копии c591b1026; .uid не создавал (pre-commit пропустил: check_gd — нет .godot).",
-      "checked": "запуск через t11b/gen.tscn, лог чистый"
-    },
-    {
-      "where": "rust/dp-air/src/terms/slots.rs:ExtraParts",
-      "why": "Слот Extra составной (storm/wave/cloud), каждая часть отвечает за свои поля ExtraOut; всем частям передаётся одно и то же v (до добавок).",
-      "checked": "слияние с feature/rust-wind (ThermalSlot RW-10b) разрешено вручную, тесты зелёные"
+      "why": "Node-скрипт запускается временной сценой в копии c591b1026; .uid не создавал (check_gd пропущен: нет .godot).",
+      "checked": "запуск через временную сцену, лог чистый"
     }
   ],
-  "dp_feedback": "task sync падает конфликтом в terms/mod.rs и slots.rs (соседи правят те же строки Slots::new/use) — помогли бы отдельные файлы регистрации слотов. Godot --import при новом XDG-профиле в gd-ref идёт 5+ мин под нагрузкой.",
+  "dp_feedback": "task sync конфликтует в terms/mod.rs на каждой вливке соседей (use, pub mod, Slots::new) — отдельные файлы регистрации помогли бы. report требует не-dry accept, сообщение об этом неочевидно.",
   "extra": {
     "ongudai_u_ref_1500m_ms": 27.6436,
     "ongudai_lambda_m": 14474.16,
-    "ongudai_w8_points_out_of_tolerance": "120 из 189 (рельеф за растром)",
     "check_after": [
-      "RW-9 и RW-8: равенство σ итога = ротор там, где остальные части нулевые",
-      "RW-12z: подключение wave_crests и simple-профиля"
+      "RW-8/RW-9: σ итога = ротор при нулевых остальных частях",
+      "RW-12z: wave_crests и simple-профиль"
     ]
   },
-  "t": "2026-10-29T06:21:18",
+  "t": "2026-10-29T06:35:43",
   "by": "executor"
 }

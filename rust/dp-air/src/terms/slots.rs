@@ -7,7 +7,7 @@
 use super::sum::Mid;
 use super::thermal::ThermalSlot;
 use super::{Ctx, Terms};
-use crate::Core;
+use crate::{Core, Crest, Place};
 use std::sync::Arc;
 
 /// Аналитика: среднее (RW-9). Ветка `a < 1` (в `a = 0` — вся); `h = u·(1 − a)·(1 − 0,6·lee_a)` и
@@ -101,6 +101,20 @@ pub trait Extra: Send + Sync {
     fn chaos_noise(&self, _c: &Ctx) -> [f64; 3] {
         [0.0; 3]
     }
+    /// Гребни волн W6 (`wave_crests`); у слота без волн — пусто.
+    #[allow(clippy::too_many_arguments)]
+    fn crests(
+        &self,
+        _terms: &Terms,
+        _place: &Place,
+        _center: [f32; 2],
+        _radius: f32,
+        _min_eta: f32,
+        _spacing: f32,
+        out: &mut Vec<Crest>,
+    ) {
+        out.clear();
+    }
 }
 
 /// Поле: поправка среднего горизонтали (`-a·0,22·U_H·lee_f·danger·unres·…`, `dh` вдоль ветра).
@@ -174,6 +188,26 @@ impl Extra for ExtraSet {
             });
         }
         acc
+    }
+
+    /// Гребни волн — у первой части, что их отдала (волна).
+    fn crests(
+        &self,
+        terms: &Terms,
+        place: &Place,
+        center: [f32; 2],
+        radius: f32,
+        min_eta: f32,
+        spacing: f32,
+        out: &mut Vec<Crest>,
+    ) {
+        out.clear();
+        for p in &self.parts {
+            p.crests(terms, place, center, radius, min_eta, spacing, out);
+            if !out.is_empty() {
+                return;
+            }
+        }
     }
 
     fn chaos_noise(&self, c: &Ctx) -> [f64; 3] {
