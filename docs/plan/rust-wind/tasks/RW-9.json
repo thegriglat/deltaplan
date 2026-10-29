@@ -38,7 +38,16 @@
     "rust/dp-air/tests/data/RW-9/",
     "rust/dp-air/tests/field_export.rs",
     "rust/dp-air/tests/runtime.rs",
-    "rust/dp-air/tests/terms_sum.rs"
+    "rust/dp-air/tests/terms_sum.rs",
+    "rust/dp-air/tests/terms_waves.rs",
+    "rust/dp-air/tests/terms_clouds.rs",
+    "rust/dp-air/tests/terms_thermal.rs",
+    "rust/dp-air/tests/terms_thermal_field.rs",
+    "rust/dp-air/tests/terms_thermal_cloud.rs",
+    "rust/dp-air/tests/terms_turb.rs",
+    "rust/dp-air/tests/terms_objects.rs",
+    "rust/dp-air/tests/acceptance.rs",
+    "rust/dp-air/tests/clipmap.rs"
   ],
   "dont_touch": [
     "rust/dp-air/src/formula.rs",
@@ -80,5 +89,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-10-29T05:06:05",
-  "edited": "2026-10-29T05:56:18"
+  "edited": "2026-10-29T13:08:24"
 }
