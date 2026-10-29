@@ -1,0 +1,115 @@
+{
+  "id": "RW-13",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Удалить старый GD/GLSL-код ветра",
+  "goal": "В проекте нет GDScript/GLSL-реализации ветра (thermal_field, air_thermals, storm_field, wave_field, cloud_physics, gust_spectrum, GPU-путь air_gpu/air_runtime/air_picard_job и шейдеры air_*.glsl) и всего, что нужно только им; игра и тесты работают через фасад/DpAir; эталоны для cargo остаются файлами.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "W2",
+      "version": "6",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W5",
+      "version": "10",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W10",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-13",
+  "branch": "rust-wind/RW-13",
+  "base": "feature/rust-wind",
+  "scope": [
+    "scripts/",
+    "tests/",
+    "scenes/",
+    "tools/bench/",
+    "tools/shots/",
+    "tools/terrain/",
+    "tools/weather/",
+    "tools/wind_fixtures/",
+    "tools/check_gd.py",
+    "rust/dp-air/tests/data/",
+    "project.godot",
+    "docs/research/rust-wind-stage3/rw13-cleanup.md"
+  ],
+  "dont_touch": [
+    "rust/dp-air/src/",
+    "rust/dp-gd/",
+    "configs/",
+    "docs/contracts/",
+    "tools/research/",
+    "rust/dp-air/tests/data/RW-14b/",
+    "tools/wind_fixtures/weather_ref2.gd",
+    "scripts/atmosphere/weather_model.gd",
+    "scripts/atmosphere/atmo_day.gd",
+    "scripts/atmosphere/surface_heat.gd",
+    "scripts/atmosphere/surface_heating.gd",
+    "scripts/atmosphere/climate_grid.gd",
+    "scripts/atmosphere/air_place_data.gd",
+    "scripts/atmosphere/air_model/air_place.gd"
+  ],
+  "accept": [
+    {
+      "name": "rust_wind_contracts",
+      "tests": "rust_wind_contracts"
+    },
+    {
+      "name": "atmosphere",
+      "tests": "atmosphere"
+    },
+    {
+      "name": "debug_layers",
+      "tests": "debug_layers"
+    },
+    {
+      "name": "place_air_stage",
+      "tests": "place_air_stage"
+    },
+    {
+      "name": "old_files",
+      "cmd": "ls scripts/atmosphere/thermal_field.gd scripts/atmosphere/storm_field.gd scripts/atmosphere/wave_field.gd scripts/atmosphere/cloud_physics.gd scripts/atmosphere/gust_spectrum.gd scripts/atmosphere/air_model/air_thermals.gd scripts/atmosphere/air_model/air_gpu.gd scripts/atmosphere/air_model/air_gpu_job.gd scripts/atmosphere/air_model/air_runtime.gd scripts/atmosphere/air_model/air_picard_job.gd scripts/atmosphere/air_model/*.glsl 2>/dev/null | wc -l",
+      "expect": "num:^(\\d+) <=0"
+    },
+    {
+      "name": "old_refs",
+      "cmd": "grep -rlwE 'ThermalField|AirThermals|StormField|WaveField|CloudPhysics|GustSpectrum|AirGpu|AirGpuJob|AirRuntime|AirPicardJob' scripts tests scenes tools/bench tools/shots tools/terrain tools/weather tools/wind_fixtures --include=*.gd --include=*.tscn --include=*.tres | wc -l",
+      "expect": "num:^(\\d+) <=0"
+    },
+    {
+      "name": "fixtures_data",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "report_doc",
+      "cmd": "test -s docs/research/rust-wind-stage3/rw13-cleanup.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs_check",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    },
+    {
+      "name": "gd_check",
+      "cmd": "python3 tools/check_gd.py --timeout 600 $(git ls-files '*.gd' | grep -v '^tools/research/')",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-30T01:42:29",
+  "edited": "2026-10-30T01:42:48"
+}

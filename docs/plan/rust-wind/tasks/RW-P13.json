@@ -1,0 +1,99 @@
+{
+  "id": "RW-P13",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Экран загрузки: «Итерация: N» отдельной строкой и номер прогона",
+  "goal": "status() отдаёт run/runs (W2 v6, W3 v8, W4 v9, API 6); экран загрузки показывает подпись этапа своей строкой, ниже — «Итерация: N», при runs > 1 — «Прогон r из n · Итерация: N»; константы контрактного теста совпадают с документами.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "W2",
+      "version": "6",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W3",
+      "version": "9",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W4",
+      "version": "10",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W12",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-P13",
+  "branch": "rust-wind/RW-P13",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/",
+    "rust/dp-air/tests/",
+    "rust/dp-gd/src/",
+    "rust/dp-stand/",
+    "scripts/atmosphere/atmosphere.gd",
+    "scripts/game/calm_air.gd",
+    "scripts/game/game.gd",
+    "scripts/core/load_progress.gd",
+    "scripts/ui/",
+    "scenes/",
+    "locale/ui.csv",
+    "tests/contracts/test_rust_wind_contracts.gd",
+    "tests/game/"
+  ],
+  "dont_touch": [
+    "configs/",
+    "docs/contracts/",
+    "rust/picard_rs/",
+    "project.godot",
+    "scripts/atmosphere/air_model/"
+  ],
+  "accept": [
+    {
+      "name": "rust_wind_contracts",
+      "tests": "rust_wind_contracts"
+    },
+    {
+      "name": "run_runs_crate",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test stage_runs",
+      "expect": "exit=0"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "api6",
+      "cmd": "grep -c 'WIND_API_VERSION := 6' scripts/atmosphere/atmosphere.gd scripts/game/calm_air.gd | grep -c ':1'",
+      "expect": "num:^(\\d+) >=2"
+    },
+    {
+      "name": "contracts_const",
+      "cmd": "grep -cE 'W2 = 6, W3 = 9, W4 = 10, W5 = 10, .*W11 = 11, W12 = 1' tests/contracts/test_rust_wind_contracts.gd",
+      "expect": "num:^(\\d+) >=1"
+    },
+    {
+      "name": "locale",
+      "cmd": "grep -cE '^loading_wind_(iter|run_iter),' locale/ui.csv",
+      "expect": "num:^(\\d+) >=2"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-30T01:41:16"
+}
