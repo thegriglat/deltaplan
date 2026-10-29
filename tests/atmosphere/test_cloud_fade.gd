@@ -23,30 +23,30 @@ func _model() -> CloudModel:
 	return m
 
 
-func _thermal() -> AtmoThermal:
-	var th := AtmoThermal.new()
-	th.id = 11
-	th.top = 1800.0
-	th.strength = 3.0
-	th.t_grow = 200.0
-	th.t_mature = 600.0
-	th.t_decay = 200.0
-	th.has_cloud = true
-	th.cloud_depth = 700.0
-	return th
+## Объект-облако (запись cloud_objects) термика: рост 200 с, зрелость 600, распад 200, кромка 1800 м,
+## сила 3 м/с -> окно жизни облака 360…1240 с (появление через delay_factor, конец = распад + linger).
+func _obj() -> CloudModel.Obj:
+	var ob := CloudModel.Obj.new()
+	ob.id = 11
+	ob.base_msl = 1800.0
+	ob.stage = Vector3(1.0, 0.0, 1.0)
+	ob.size = Vector4(600.0, 600.0, 700.0, 0.0)
+	ob.life_t0 = 360.0
+	ob.life_t1 = 1240.0
+	return ob
 
 
 ## Конец жизни: к моменту, когда стадии облака больше нет, видимость уже ноль; по дороге —
 ## без скачков. Раньше на распаде оставалось ~20 % плотности, и облако выключалось целиком.
 func test_life_fade_reaches_zero_before_cloud_ends() -> void:
 	var m := _model()
-	var th := _thermal()
+	var th := _obj()
 	var prev := 0.0
 	var max_jump := 0.0
 	var last_alive := -1.0
 	for i in 3000:
 		var t := float(i)
-		var alive := m.stage(th, t).x >= 0.0
+		var alive := th.alive(t)
 		var v := m.life_fade(th, t) if alive else 0.0
 		max_jump = maxf(max_jump, absf(v - prev))
 		if alive:
@@ -98,20 +98,17 @@ func test_cap_prefers_shown() -> void:
 	m.setup(cfg)
 	var ths: Dictionary = {}
 	for k in 2:
-		var th := AtmoThermal.new()
+		var th := _obj()
 		th.id = 100 + k
 		th.is_static = true
-		th.has_cloud = true
-		th.strength = 3.0
-		th.cloud_depth = 700.0
-		th.top = 1500.0
-		th.src = Vector3(8000.0 + k * 400.0, 0.0, (k * 2 - 1) * 5000.0)
+		th.base_msl = 1500.0
+		th.c = Vector2(8000.0 + k * 400.0, (k * 2 - 1) * 5000.0)
 		ths[th.id] = th
 	var near: Array = m.select(ths, 0.0, Vector3.ZERO)
-	check(near.size() == 1 and (near[0][1] as AtmoThermal).id == 100, "без истории — ближнее")
+	check(near.size() == 1 and (near[0][1] as CloudModel.Obj).id == 100, "без истории — ближнее")
 	var keep: Array = m.select(ths, 0.0, Vector3.ZERO, {101: true})
 	check(
-		keep.size() == 1 and (keep[0][1] as AtmoThermal).id == 101,
+		keep.size() == 1 and (keep[0][1] as CloudModel.Obj).id == 101,
 		"нарисованное остаётся при почти равной дальности"
 	)
 
@@ -139,7 +136,7 @@ func _fly(weather: String, seconds: int) -> Dictionary:
 	a.set_focus(pos)
 	a.step(0.0)
 	var layer := CloudLayer.new()
-	layer.setup(a)
+	layer.setup(a, acfg)
 	var prev: Dictionary = {}
 	var events: Array = []
 	var faded := 0
@@ -151,13 +148,13 @@ func _fly(weather: String, seconds: int) -> Dictionary:
 		a.step(1.0)
 		var t := a.time_s
 		layer._select(t, pos)
-		for i in layer._slot_th.size():
-			if layer._slot_th[i] != null:
+		for i in layer._slot_obj.size():
+			if layer._slot_obj[i] != null:
 				layer._place(i, t, pos)
 		layer._update_fades(1.0)
 		var cur: Dictionary = {}
-		for i in layer._slot_th.size():
-			var th: AtmoThermal = layer._slot_th[i]
+		for i in layer._slot_obj.size():
+			var th: CloudModel.Obj = layer._slot_obj[i]
 			if th != null and not layer._rec[i].is_empty():
 				cur[th.id] = layer._rec[i][20]
 		for id in prev:

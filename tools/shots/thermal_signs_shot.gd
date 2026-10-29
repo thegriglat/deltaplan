@@ -30,24 +30,32 @@ func _run() -> void:
 	var cam := preview.get_node("Camera3D") as Camera3D
 	atmo.cfg.thermal_signs.swallow_chance = 1.0
 	atmo.cfg.thermal_signs.fluff_chance = 1.0
-	var id := atmo.add_static_thermal(0.0, -300.0, 3.0, 120.0)
-	atmo.step(1.0)
+	while not atmo.is_ready():  # стенд сам грузит место и ждёт READY
+		await get_tree().process_frame
+	atmo.set_static_thermals(PackedFloat32Array([0.0, -300.0, 3.0, 120.0]), 2)
+	atmo.advance_to(atmo.time_s + 1.0)
 	var signs := atmo.get_node("ThermalSigns") as ThermalSigns
-	var src: AtmoThermal = atmo.field.thermals[id]
+	# ядро статического термика (x = 0, z = -300) — из описаний W6
+	var cores := atmo.cores(Vector3(0.0, 0.0, -300.0), 50.0)
+	var src_y := 0.0
+	for k in cores.size() / Atmosphere.CORE_STRIDE:
+		var o := k * Atmosphere.CORE_STRIDE
+		if absf(cores[o + Atmosphere.CORE_X]) < 5.0 and absf(cores[o + Atmosphere.CORE_Z] + 300.0) < 5.0:
+			src_y = cores[o + Atmosphere.CORE_Y_SRC]
 	for i in 30:
 		await get_tree().process_frame
 	var out := String(_args.out)
 	var near := float(_args.get("dist", "140"))
 	var far := float(_args.get("far", "900"))
 	for pair in [["near", near, 40.0], ["far", far, 60.0]]:
-		cam.position = Vector3(0.0, src.src.y + float(pair[2]), -300.0 + float(pair[1]))
-		cam.look_at(Vector3(0.0, src.src.y + 70.0, -300.0))
+		cam.position = Vector3(0.0, src_y + float(pair[2]), -300.0 + float(pair[1]))
+		cam.look_at(Vector3(0.0, src_y + 70.0, -300.0))
 		preview._yaw = cam.rotation.y  # иначе preview каждый кадр возвращает свой поворот
 		preview._pitch = cam.rotation.x
-		atmo.set_focus(cam.position)
+		atmo.set_focuses(PackedVector3Array([cam.position]), PackedFloat32Array([1.0]))
 		signs.refresh(cam.position)
 		for i in 20:
-			atmo.step(0.1)
+			atmo.advance_to(atmo.time_s + 0.1)
 			await get_tree().process_frame
 		await get_tree().process_frame
 		get_viewport().get_texture().get_image().save_png("%s/%s.png" % [out, pair[0]])

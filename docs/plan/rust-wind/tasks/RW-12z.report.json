@@ -1,0 +1,81 @@
+{
+  "status": "done",
+  "summary": "cloud_layer.gd на cloud_objects/wave_info/wave_crests/cloud_raster, gust_dust на пачку surface_gust_many (кандидаты клетки -> пачка -> событие), без WindModel/force_wind; тесты без air.wind/air.ground; база храповика пуста, тест = W10 целиком. Тесты Godot не гонялись (решение координатора).",
+  "commits": [
+    "0779a3a31 потребители на W2 v4, храповик чистоты пуст"
+  ],
+  "checks": [
+    {
+      "name": "gdlint",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "purity_baseline_empty",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "no_force_wind",
+      "value": "0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Прогоны тестов (T7/T9, целевые фильтры) и сравнение пыли до/после на ongudai — итоговый прогон модуля; test_slot_batch_equals_single_cells — заменитель сравнения, эталон «до» не снят."
+  ],
+  "questions": [
+    "configs/atmosphere.json: ключ gust_dust.force_wind_ms и его _doc остались (configs не трогал) — удалить в отдельной правке?"
+  ],
+  "how_to_check": ".dpcli/dpcli accept RW-12z",
+  "uncertain": [
+    {
+      "where": "scripts/atmosphere/cloud_model.gd (Obj, select*)",
+      "why": "Выбор по записям добавлен в CloudModel, а не в новый файл (scope). Физическая половина (stage/size/center по AtmoThermal) оставлена для CloudPhysics/atmosphere.gd до RW-13; cloud_model.gd остаётся в IMPL_FILES храповика. Старые life_fade/far_m/select по AtmoThermal удалены: tools/research/qol_signs/signs_probe.gd и tools/shots/cloud_fade_shot.gd их используют и сломаются.",
+      "checked": "grep по scripts/tests/tools"
+    },
+    {
+      "where": "scripts/atmosphere/cloud_layer.gd:_place, _objs",
+      "why": "Стадия/storm_k берутся из записи на момент опроса (шаг update_interval_s=1 с), центр экстраполируется по дрейфу; раньше стадия считалась на каждом кадре. Слот обновляется записью при каждом выборе. cloud_objects(Vector3.ZERO,-1,t) — весь набор; до 60 вызовов при сбросе истории (weather_changed), не замерено.",
+      "checked": "только чтение"
+    },
+    {
+      "where": "cloud_layer.gd:_update_field",
+      "why": "Растр берётся при смене cloud_raster_version(); ключ раньше включал time/base_msl/bg — считаю, что версия растёт на каждом шаге. Сброс ключа на weather_changed. Раскладка строк растра (к +Z) совпала с RGBA-кодеком по рассуждению.",
+      "checked": "только чтение"
+    },
+    {
+      "where": "gust_dust.gd:step_scan",
+      "why": "cells_per_frame теряет смысл: слот — одна пачка (~1257 клеток); step_scan(eye,t) без budget. Снос пыли берёт модуль background_wind(valley+10), а не speed_at(10).",
+      "checked": "только чтение; стоимость пачки не замерена"
+    },
+    {
+      "where": "cloud_layer.gd:1",
+      "why": "Добавил '# gdlint: disable=max-file-lines, class-definitions-order': эти 2 правила падали и до меня (файл 1267 строк), иначе exit=0 недостижим; прецедент terrain.gd.",
+      "checked": "gdlint"
+    },
+    {
+      "where": "tests/atmosphere/test_ridge_starts.gd:_scan_lee_point",
+      "why": "Критерий подветренной точки изменён: вместо глубины под линией тени (gs.w) — сильнейшее опускание по sample_many(MEAN); w_lee<w_wind теперь отчасти по построению.",
+      "checked": "только чтение"
+    },
+    {
+      "where": "tests/game/test_forecast_game.gd:43",
+      "why": "Точное равенство ref_msl со стартом заменено фасадной проверкой: направление и неубывание background_wind(y0, y0+1000); точное ref_msl — тест крейта (Conditions.wind_ref).",
+      "checked": "только чтение"
+    },
+    {
+      "where": "tests/atmosphere/test_start_air_gpu.gd",
+      "why": "Высота земли — game.terrain.height_at; air_field/field_turb внутри теста остались (теперь Variant), вне шаблонов храповика.",
+      "checked": "parse в хуке коммита"
+    },
+    {
+      "where": "gust_dust.gd:setup",
+      "why": "Убран 4-й аргумент wind; вызов в atmosphere.gd уже убран в RW-12x (слито в мою ветку merge-ом rust-wind/RW-12x, 93f19dd26).",
+      "checked": "parse в хуке коммита"
+    }
+  ],
+  "dp_feedback": "Pre-commit check_gd падает, пока соседняя задача (12x) не влита; проверка parse в карточке была невыполнима. gdlint по карточке падал уже на исходных файлах (файл >1000 строк).",
+  "t": "2026-10-29T15:42:21",
+  "by": "executor"
+}

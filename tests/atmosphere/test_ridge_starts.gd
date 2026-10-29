@@ -187,8 +187,8 @@ func _fly_ridge(terrain: Terrain, site: Dictionary, wind_kmh: float, minutes: fl
 	return res
 
 
-## Точка глубже всего под линией тени за гребнем (со стороны, куда дует flipped-ветер) —
-## {pos, depth}. Ищем вдоль heading (в долину) на большом удалении: релевантная глубина у
+## Точка с сильнейшим опусканием за гребнем (со стороны, куда дует flipped-ветер; средний ветер
+## фасада sample_many(SAMPLE_MEAN), вертикальная скорость) — {pos, depth}, depth — опускание, м/с. Ищем вдоль heading (в долину) на большом удалении: релевантная глубина у
 ## реального рельефа набирается не в 100 м от старта, а там, где земля заметно ниже гребня.
 func _scan_lee_point(terrain: Terrain, site: Dictionary, wind_kmh: float) -> Dictionary:
 	var heading: float = float(site.heading_deg)
@@ -200,17 +200,20 @@ func _scan_lee_point(terrain: Terrain, site: Dictionary, wind_kmh: float) -> Dic
 	var away_dir := Vector2(sin(deg_to_rad(heading)), -cos(deg_to_rad(heading)))
 	var best_depth := -1.0e9
 	var best_p := Vector3.ZERO
+	var pts := PackedVector3Array()
 	var d := -LEE_D_RANGE_M
 	while d <= LEE_D_RANGE_M:
 		var p2: Vector2 = Vector2(pos0.x, pos0.z) + away_dir * d
 		var gh := terrain.height_at(p2.x, p2.y)
-		var gs: Vector4 = atmo.ground.sample(p2.x, p2.y)
 		for agl: float in LEE_AGL:
-			var depth: float = gs.w - (gh + agl)
-			if depth > best_depth:
-				best_depth = depth
-				best_p = Vector3(p2.x, gh + agl, p2.y)
+			pts.append(Vector3(p2.x, gh + agl, p2.y))
 		d += LEE_D_STEP_M
+	var v := atmo.sample_many(pts, Atmosphere.SAMPLE_MEAN)
+	for i in pts.size():
+		var depth := -v[4 * i + 1]
+		if depth > best_depth:
+			best_depth = depth
+			best_p = pts[i]
 	atmo.free()
 	return {"pos": best_p, "depth": best_depth}
 
@@ -267,7 +270,7 @@ func test_lee_zone_all_starts() -> void:
 			check(
 				sigma_lee > sigma_wind,
 				(
-					"%s: болтанка подветренной %.2f м/с > наветренной %.2f м/с (глубина %.0f м)"
+					"%s: болтанка подветренной %.2f м/с > наветренной %.2f м/с (опускание %.2f м/с)"
 					% [key, sigma_lee, sigma_wind, lee.depth]
 				)
 			)

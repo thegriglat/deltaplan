@@ -1,0 +1,65 @@
+{
+  "id": "RW-12t",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Игровые скрипты и рабочие инструменты — на W2 v4 (без удалённых членов фасада)",
+  "goal": "Ни один файл scripts/ (кроме скоупа RW-12z) и рабочих tools/ (flight, bench, shots, terrain, world, atmosphere, weather, wind_field, places, smoke, loading) не обращается к удалённым членам Atmosphere; обращения переведены на W2 v4 с тем же смыслом. tools/research/ и tools/wind_fixtures/ — не трогать (запускаются на опорной ревизии c591b1026, W8; удаление — RW-13); список их обращений — в отчёт.",
+  "plan_ref": "План переноса",
+  "contracts": [
+    {
+      "name": "W2",
+      "version": "4",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W10",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-12t",
+  "branch": "rust-wind/RW-12t",
+  "base": "feature/rust-wind",
+  "scope": [
+    "scripts/",
+    "tools/flight/",
+    "tools/bench/",
+    "tools/shots/",
+    "tools/terrain/",
+    "tools/world/",
+    "tools/atmosphere/",
+    "tools/weather/",
+    "tools/wind_field/",
+    "tools/places/",
+    "tools/smoke/",
+    "tools/loading/"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/atmosphere.gd",
+    "scripts/game/calm_air.gd",
+    "scripts/atmosphere/cloud_layer.gd",
+    "scripts/atmosphere/cloud_model.gd",
+    "scripts/atmosphere/gust_dust.gd",
+    "scripts/atmosphere/gust_dust_model.gd",
+    "scripts/atmosphere/atmosphere_preview.gd",
+    "scripts/atmosphere/thermal_signs.gd",
+    "scripts/atmosphere/bird_flock.gd",
+    "tools/research/",
+    "tools/wind_fixtures/",
+    "tests/",
+    "rust/",
+    "docs/contracts/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "no_removed_in_scripts",
+      "cmd": "grep -rnE '\\b(air|atmo|atmosphere|_air|_atmo)\\.(wind|ground|field|cloud_phys|storm|wave|field_turb|day|turbulence_enabled|refresh_budget_us|set_thermal_mode|set_cloudbase_msl|add_static_thermal|load_static_thermals|clear_static_thermals|set_day|set_wind|set_weather|set_ground|step|refresh_now|prefetch_air_sources|begin_load_refresh|load_refresh_step|lee_heat_wm2|phase_main_raster)\\b' scripts tools/flight tools/bench tools/shots tools/terrain tools/world tools/atmosphere tools/weather tools/wind_field tools/places tools/smoke tools/loading --include=*.gd | grep -vE 'scripts/atmosphere/(atmosphere|cloud_layer|cloud_model|gust_dust|gust_dust_model|atmosphere_preview|thermal_signs|bird_flock)\\.gd|scripts/game/calm_air\\.gd' | wc -l",
+      "expect": "num:^(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T15:32:38",
+  "edited": "2026-10-29T15:41:03"
+}
