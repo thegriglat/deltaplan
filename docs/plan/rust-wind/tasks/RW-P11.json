@@ -1,0 +1,56 @@
+{
+  "id": "RW-P11",
+  "module": "rust-wind",
+  "type": "dp-researcher",
+  "title": "Запечённые поля островов (data/locations/*/air, ~45 МБ): читаются ли на W2 v5 и проходят ли model_hash",
+  "goal": "Фактом ответить: передаёт ли фасад файлы data/locations/{training_island,volcano_island}/air в DpAir.add_baked_field и принимает ли их крейт (baked_lookup, model_hash/data_hash) при входе на стартовые места — или всегда отвергает и считает поле; итог — таблица файл → принят/отвергнут (причина).",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "W3",
+      "version": "6",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W4",
+      "version": "7",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W5",
+      "version": "8",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-P11",
+  "branch": "rust-wind/RW-P11",
+  "base": "feature/rust-wind",
+  "scope": [
+    "docs/research/rust-wind-stage3/baked-islands.md",
+    "rust/dp-air/tests/baked_islands_probe.rs"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "rust/dp-air/src/",
+    "rust/dp-gd/",
+    "data/",
+    "configs/",
+    "docs/contracts/",
+    "tests/"
+  ],
+  "accept": [
+    {
+      "name": "report_doc",
+      "cmd": "test -s docs/research/rust-wind-stage3/baked-islands.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs_check",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T22:43:38"
+}
