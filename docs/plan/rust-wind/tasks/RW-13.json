@@ -107,10 +107,14 @@
       "name": "old_refs",
       "cmd": "grep -rlwE 'ThermalField|AirThermals|StormField|WaveField|CloudPhysics|GustSpectrum|AirGpu|AirGpuJob|AirRuntime|AirPicardJob' scripts tests scenes tools/bench tools/shots tools/terrain tools/weather tools/wind_fixtures --include=*.gd --include=*.tscn --include=*.tres | grep -vE '(scripts/atmosphere/weather_model|scripts/atmosphere/air_model/air_place)\\.gd$' | wc -l",
       "expect": "num:^(\\d+) <=0"
+    },
+    {
+      "name": "air_field_contracts",
+      "tests": "air_field_contracts"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-30T01:42:29",
-  "edited": "2026-10-30T03:07:10"
+  "edited": "2026-10-30T04:19:35"
 }

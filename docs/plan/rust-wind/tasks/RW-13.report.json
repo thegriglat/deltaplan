@@ -1,11 +1,12 @@
 {
   "status": "done",
-  "summary": "Удалён старый GD/GLSL-код ветра (thermal_field, air_thermals, storm_field, wave_field, cloud_physics, gust_spectrum, GPU-путь air_gpu/air_runtime/air_picard_job и шейдеры) и всё, что нужно только им (air_clipmap, air_window_*, air_phase*, field_turbulence, air_field_cache, cloud_field*), вместе с тестами и генераторами эталонов на нём. gd_check, docs check, atmosphere (132/0 упало), debug_layers, place_air_stage — зелёные. Падают rust_wind_contracts (1) и cargo contract (1) из-за расхождения версии контракта W2 v6 и кода (API 5), не от удаления. old_refs по новой карточке = 0.",
+  "summary": "Удалён старый GD/GLSL-код ветра (thermal_field, air_thermals, storm_field, wave_field, cloud_physics, gust_spectrum, GPU-путь air_gpu/air_runtime/air_picard_job и шейдеры) и всё, что нужно только им (air_clipmap, air_window_*, air_phase*, field_turbulence, air_field_cache, cloud_field*), вместе с тестами и генераторами эталонов на нём. gd_check, docs check, atmosphere (132/0 упало), debug_layers, place_air_stage — зелёные. Падают rust_wind_contracts (1) и cargo contract (1) из-за расхождения версии контракта W2 v6 и кода (API 5), не от удаления. old_refs по новой карточке = 0. Доработка по ревью: manifest с generator_removed_at, удалены огрызки генераторов и air_check_run, живые контракты поля возвращены в tests/contracts/test_air_field_contracts.gd, документ по разделам карточки. Доработка 2: в runtime.rs возвращена сверка с air_case.gd и wind_profile.gd; порог вертикали 0.02 с обоснованием.",
   "commits": [
     "5e9ff0706 RW-13: удалён старый GD/GLSL-код ветра и тесты на нём",
     "e71ef2613 RW-13: отчёт, починка разбора, уборка генераторов",
     "game.gd: _wind_iter_line статическая — TranslationServer.translate вместо tr() (ошибка из RW-P13, ломала place_air_stage)",
-    "dp-air tests: сверка констант только с configs (GD-файлы удалены)"
+    "dp-air tests: сверка констант только с configs (GD-файлы удалены)",
+    "RW-13 доработка по ревью: manifest, генераторы, живые контракты поля, документ"
   ],
   "checks": [
     {
@@ -57,6 +58,11 @@
       "name": "fixtures_data",
       "value": "PASS",
       "pass": true
+    },
+    {
+      "name": "air_field_contracts",
+      "value": "18/18",
+      "pass": true
     }
   ],
   "not_done": [],
@@ -88,9 +94,14 @@
       "where": "addons/dp_air/bin",
       "why": "собственная сборка tune не дошла за разумное время (нагрузка), использована libdp_air_tune.so из копии RW-P13",
       "checked": "тесты Godot идут с расширением"
+    },
+    {
+      "where": "tests/contracts/test_air_field_contracts.gd:430",
+      "why": "вертикаль без поля -0.0072 м/с, источник (член крейта) не локализован",
+      "checked": "порог 0.02, измерение записано в комментарии и документе"
     }
   ],
   "dp_feedback": "Нужна проверка 'accept --dry' с частичным запуском и выводом по пунктам: полный прогон под нагрузкой >15 мин, вывод фоновой команды приходит только в конце. Для старых ссылок в dont_touch-файлах нужен механизм исключений в проверке old_refs.",
-  "t": "2026-10-30T03:20:02",
+  "t": "2026-10-30T04:31:31",
   "by": "executor"
 }

@@ -1,79 +1,41 @@
 {
-  "verdict": "rework",
-  "summary": "Удаление кода и тестов чистое, скоуп и dont_touch соблюдены, константы перенесены 1:1 (400/0.05/1.0/0.25), дешёвые проверки воспроизводятся. Но не выполнено решение координатора (1): manifest эталонов без generator_removed_at, а документ без обязательных разделов (ревизия, таблица, непокрытые проверки, изменённые manifest).",
+  "verdict": "accept",
+  "summary": "Доработка 2: major закрыт. В runtime.rs относительно базы убраны только сверки с удалёнными air_runtime.gd/air_picard_job.gd, сверка с air_case.gd/wind_profile.gd возвращена, тест зелёный. Из двух minor от координатора одно выполнено частично (порог обоснован измерением, источник не назван), второе не выполнено (версии разделов C1/C3/C4/C6/C8 не сверяются). Блокеров нет.",
   "issues": [
     {
-      "file": "rust/dp-air/tests/data/RW-10d/manifest.json",
-      "line": 4,
-      "severity": "blocker",
-      "what": "Решение (1) координатора: в manifest.json каждой папки, где удалён генератор, нужно дописать \"generator_removed_at\": <ревизия feature/rust-wind до удаления> и путь генератора. Это не сделано ни в одной папке (RW-10d, RW-10e, RW-10f, RW-11d, day_dump); у RW-11b, RW-11f и RW-12d manifest нет совсем. Отчёт заявляет done. Происхождение эталонов теперь прослеживается только раскопками git.",
-      "fix": "Дописать в эти manifest generator_removed_at=a5d9387c3 (база) и пути удалённых генераторов. Для папок без manifest записать то же самое в документ (или завести manifest, если это в скоупе)."
-    },
-    {
-      "file": "docs/research/rust-wind-stage3/rw13-cleanup.md",
-      "line": 1,
-      "severity": "major",
-      "what": "Нет разделов, которые требует карточка: ревизии до удаления; таблицы «файл — удалён/оставлен — почему (кто зовёт)» (сейчас там список без «кто зовёт»); списка удалённых тестов с проверками, которых нет в cargo; списка изменённых manifest. Ревизия GD дана ссылкой на fixtures-tolerances.md, а не числом.",
-      "fix": "Дописать ревизию a5d9387c3, таблицу по каждому файлу, построчный список непокрытых cargo проверок (минимум test_air_contracts c1–c9, test_load_order, test_air_place: домен Пикара, test_storm_rarity, test_subsidence, test_zi_terrain) и список manifest."
-    },
-    {
-      "file": "rust/dp-air/tests/data/RW-11f/run_dump.sh",
-      "line": 9,
-      "severity": "major",
-      "what": "Остались огрызки генераторов, которые ссылаются на удалённые .gd: RW-10d/run_dump.sh и dump_air_thermals.tscn, RW-10e/run_cases.sh и gen_cases_baked.tscn, RW-10f/run_cloud_cases.sh, RW-11d/run_dump.sh, RW-11f/run_dump.sh и dump_cloud_objects.tscn. Они копируют $here/*.gd, а этих файлов больше нет, так что пересъёмка ломается молча.",
-      "fix": "Удалить вместе с .gd по правилу (1) и записать в manifest путь и ревизию. Либо оставить, но в manifest указать, что .gd восстанавливается из a5d9387c3."
-    },
-    {
-      "file": "tests/contracts/test_air_contracts.gd",
-      "line": 636,
-      "severity": "major",
-      "what": "Файл удалён целиком, хотя примерно половина проверок касается живого кода: test_c3_* (WindField.from_arrays: оси, единицы, маска, sanitize), test_c4_* (AirFieldSet Vector4, turb_at, sample_dx, ключи lee/config), test_c6_field_version, test_c8_blend*, test_c1_* (формат эталона). По карточке такие проверки нужно перевести на фасад или перечислить в документе. Сделано ни то, ни другое. Покрывает ли их test_wind_field.gd или cargo, не проверено.",
-      "fix": "Тесты живых классов, которые не трогают удалённые (c3, c4 кроме turb_at при FieldTurbulence, c6, c8), вернуть в отдельный файл. Остальное перечислить в документе с пометкой, что покрывает cargo, а что нет."
-    },
-    {
-      "file": "scripts/atmosphere/air_model/air_baked_field.gd",
-      "line": 16,
+      "file": "tests/contracts/test_air_field_contracts.gd",
+      "line": 7,
       "severity": "minor",
-      "what": "DOMAIN_DX, WIND_TOL_MS, DIR_TOL_DEG и TMAX_TOL_C теперь дублируют константы dp-air/src/field/runtime.rs. Сверку с GD из runtime.rs убрали, поэтому дубль больше ничем не охраняется. Значения сейчас совпадают.",
-      "fix": "В документе отметить, что константы продублированы без сверки (для координатора: вернуть сверку с air_baked_field.gd или брать значения из DpAir)."
+      "what": "Координатор (04:19) велел вернуть проверку версий живых разделов air-model.md (C1 v2, C3 v2, C4 v4, C6 v1, C8 v2). Её нет: const DOC объявлена, но нигде не используется.",
+      "fix": "Добавить test_contract_versions по образцу старого test_air_contracts.gd:118 с CONTRACTS = {C1=2,C3=2,C4=4,C6=1,C8=2}, без проверки «лишних разделов» (в документе остаются C2/C5/C7/C9/C10)."
     },
     {
-      "file": "rust/dp-air/tests/weather_day.rs",
-      "line": 2,
+      "file": "tests/contracts/test_air_field_contracts.gd",
+      "line": 430,
       "severity": "minor",
-      "what": "weather_day.rs:2 и docs/contracts/rust-wind/fixtures-tolerances.md:25 ссылаются на удалённые tools/wind_fixtures/day_dump.sh и gen_fixtures.gd. Оба файла вне скоупа.",
-      "fix": "Записать в документ как хвост для координатора (правка контракта/крейта не в этой задаче)."
+      "what": "Порог 0.02 м/с взят по измерению (−0,0072, запас ×3), но физический источник вертикали, как просил координатор, не назван («член не локализован»). Подгонкой это не назвать: порог не на грани и записан в документе.",
+      "fix": "На усмотрение координатора: принять так или назвать член крейта (фоновое опускание/конвекция из moist=_sun?) в комментарии."
     },
     {
-      "file": "tools/terrain/island/air_check_run.gd",
-      "line": 83,
+      "file": "docs/plan/rust-wind (отчёт RW-13)",
+      "line": 0,
       "severity": "minor",
-      "what": "Узел 'AirRuntime' формально заменён на 'AirField', но инструмент от этого не заработал (так сказано в uncertain). Это мёртвый код с видимостью починки.",
-      "fix": "Удалить air_check_run (island/volcano), если он только про старый путь, либо в документе пометить «не рабочий»."
+      "what": "В summary отчёта до сих пор написано «падают rust_wind_contracts (1) и cargo contract (1)», а по accept в отчёте и журнале rust_wind_contracts=PASS (27/27) и fixtures_data=PASS. Отчёт расходится с фактом (видимо, текст до слияния RW-P13).",
+      "fix": "Поправить summary при следующем отчёте или учесть при приёмке."
     }
   ],
   "rerun": [
     {
-      "name": "old_refs",
-      "value": "0",
+      "name": "cargo test -p dp-air --test runtime constants_match_configs",
+      "value": "1 passed",
       "pass": true
     },
     {
-      "name": "old_files",
-      "value": "0",
-      "pass": true
-    },
-    {
-      "name": "report_doc",
-      "value": "exit=0",
-      "pass": true
-    },
-    {
-      "name": "scope",
-      "value": "124 файла в границах; dont_touch не тронут",
+      "name": "diff runtime.rs feature/rust-wind...RW-13: убраны только сверки с air_runtime.gd/air_picard_job.gd",
+      "value": "-30/+1, air_case/wind_profile на месте",
       "pass": true
     }
   ],
-  "t": "2026-10-30T03:33:04",
+  "t": "2026-10-30T04:45:50",
   "by": "reviewer"
 }
