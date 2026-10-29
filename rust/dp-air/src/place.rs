@@ -31,6 +31,15 @@ pub struct Loc {
     /// температуры воды. Обязателен, если есть `climate` (пара считается фасадом вместе).
     #[serde(default)]
     pub climate_lag: Option<LocClimate>,
+    /// W5 v8: сырая ячейка климата `ClimateGrid.at(center_lat, center_lon, month, day)` как json
+    /// (`td_c, td_sd_k, z_cell_m, t700_c, z700_m, tx_c, dtr_k, wr, trop_m, hcc, src{hh1,hh2,hh5,hh6}`);
+    /// поправки на высоту места считает крейт (`weather::climate_place`). Нет ключа — запасные
+    /// значения `weather_model.json`. Ключи только парой с `climate_cell_lag`.
+    #[serde(default)]
+    pub climate_cell: Option<serde_json::Value>,
+    /// W5 v8: то же на дату `month/day − round(water.lag_days)`.
+    #[serde(default)]
+    pub climate_cell_lag: Option<serde_json::Value>,
 }
 
 /// Сетка W1: узлы, `origin_*` — координаты узла (0, 0).
@@ -86,6 +95,13 @@ impl PlaceHeader {
         }
         if l.climate.is_some() && l.climate_lag.is_none() {
             return bad("loc.climate_lag is required with loc.climate");
+        }
+        if l.climate_cell.is_some() != l.climate_cell_lag.is_some() {
+            return bad(if l.climate_cell.is_some() {
+                "loc.climate_cell_lag is required with loc.climate_cell"
+            } else {
+                "loc.climate_cell is required with loc.climate_cell_lag"
+            });
         }
         let g = &self.grid;
         if !(g.origin_x.is_finite() && g.origin_z.is_finite()) {
