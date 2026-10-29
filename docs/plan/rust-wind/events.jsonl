@@ -709,3 +709,5 @@
 {"t": "2026-10-29T05:14:10", "by": "coordinator", "task": "RW-U2", "ev": "checked", "note": "3/3 no_code=ok:exit 0; findings=ok:7; docs=ok:ошибок 0; scope=FAIL:вне scope: r-RW-U2.json"}
 {"t": "2026-10-29T05:14:23", "by": "coordinator", "task": "RW-U2", "ev": "checked", "note": "3/3 no_code=ok:exit 0; findings=ok:7; docs=ok:ошибок 0"}
 {"t": "2026-10-29T05:14:31", "by": "coordinator", "task": "RW-U2", "ev": "accepted", "note": "по отчёту: аудит без правок, вывод подтверждён эмуляцией (Пикар max 1,454→0,069 м/с); дальнейшее — решение пользователя 2026-10-29 (GPU не чинить, ошибку не повторять, W11 по документам)"}
+{"t": "2026-10-29T05:14:42", "by": "coordinator", "task": "RW-U2", "ev": "checked", "commits": ["f56fc43"], "note": "2/3 no_code=ok:exit 0; findings=ok:7; docs=FAIL:нет совпадения"}
+{"t": "2026-10-29T05:14:42", "by": "coordinator", "task": "RW-U2", "ev": "merged"}
