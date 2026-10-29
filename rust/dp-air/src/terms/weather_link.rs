@@ -19,21 +19,20 @@ use super::{Terms, WeatherView, named_json, thermal_src};
 use crate::field::weather_core::{Ctx, WeatherModelCfg, context};
 use crate::place::Place;
 use crate::weather::{
-    AtmoDay, ClimatePlace, Coefficients, PlaceCtx, WeatherMap, WeatherState, WorldTime,
+    AtmoDay, ClimatePlace, Coefficients, PlaceCtx, Weather, WeatherMap, WeatherState, WorldTime,
     climate_place,
 };
 use crate::{Conditions, Source};
 
-/// Место для погоды: контекст `derive` (дата, координаты, пояс, долина и средняя высота) и сырая
-/// ячейка климата `loc.climate_cell` (W5 v8; нет — `Null`: запасные значения `weather_model.json`).
+/// Место для погоды: контекст `derive` (дата, координаты, пояс, долина и средняя высота). Климат
+/// ячейки берётся у [`Weather`] (W5 v10); `Weather` нет — запасные значения `weather_model.json`.
 #[derive(Clone, Debug, PartialEq)]
 pub struct PlaceLink {
     pub ctx: PlaceCtx,
-    pub cell: Value,
 }
 
 impl PlaceLink {
-    /// Из места (`AirPlace.context` + `loc.climate_cell`). `start_msl_m` не задан (NaN), как в
+    /// Из места (`AirPlace.context`). `start_msl_m` не задан (NaN), как в
     /// `Atmosphere._f_weather_ctx`: ветер прогноза на высоте старта задаёт `wind_ref` условий, а
     /// `derive` климат без высоты старта не использует.
     pub fn of(place: &Place) -> Self {
@@ -49,12 +48,6 @@ impl PlaceLink {
                 mean_msl_m: c.mean_msl_m,
                 start_msl_m: f64::NAN,
             },
-            cell: place
-                .header()
-                .loc
-                .climate_cell
-                .clone()
-                .unwrap_or(Value::Null),
         }
     }
 }
@@ -64,6 +57,8 @@ impl PlaceLink {
 pub(super) struct WeatherLink {
     state: Option<WeatherState>,
     place: Option<PlaceLink>,
+    /// Погода и климат (`set_weather`); нет — климат по `climate.fallback`.
+    weather: Option<Arc<Weather>>,
     /// `weather_model.json` (с ростом ветра из `atmosphere.json`); нет — вывода по часу нет.
     wm: Option<Arc<WeatherModelCfg>>,
     /// `atmosphere.json`; нет — условия профиля ветра остаются прежними.
@@ -116,6 +111,22 @@ impl Terms {
         }
     }
 
+    /// Погода с сетками климата (W4 v10): до `load_place`; уже заданные условия применяются заново.
+    pub fn set_weather(&mut self, w: Arc<Weather>) {
+        self.link.weather = Some(w);
+        if let Some(c) = self.cond.take() {
+            self.apply_conditions(&c, true);
+        }
+    }
+
+    /// Климат места на дату: у `Weather`, иначе запасные значения (ячейка без сеток).
+    fn place_climate(&self, ctx: &PlaceCtx, wm: &WeatherModelCfg) -> ClimatePlace {
+        match &self.link.weather {
+            Some(w) => w.climate_place(ctx),
+            None => climate_place(&Value::Null, ctx, wm),
+        }
+    }
+
     pub(super) fn weather_unload_place(&mut self) {
         self.link.place = None;
     }
@@ -161,7 +172,18 @@ impl Terms {
                 wind_ref: Some(w), ..
             } => {
                 self.wind.ref_msl = w.ref_msl;
-                self.wind.set_altitude_gain(w.gain_per_km);
+                // нет gain_per_km - из климата места на высоте старта (W5 v10)
+                let gain = w.gain_per_km.or_else(|| {
+                    let (pl, wx) = (self.link.place.as_ref()?, self.link.weather.as_ref()?);
+                    let ctx = PlaceCtx {
+                        start_msl_m: w.ref_msl,
+                        ..pl.ctx
+                    };
+                    Some(wx.climate_place(&ctx).gain_per_km)
+                });
+                if let Some(g) = gain {
+                    self.wind.set_altitude_gain(g);
+                }
             }
             _ => self.wind.ref_msl = f64::NAN,
         }
@@ -204,7 +226,7 @@ impl Terms {
                 ..
             } => match (&self.link.place, &self.link.wm) {
                 (Some(pl), Some(wm)) => {
-                    let climate: ClimatePlace = climate_place(&pl.cell, &pl.ctx, wm);
+                    let climate: ClimatePlace = self.place_climate(&pl.ctx, wm);
                     let day = AtmoDay::from_forecast(
                         forecast.clone(),
                         pl.ctx,

@@ -1,10 +1,13 @@
 //! RW-12d: погода в `Terms` (прогноз → derive по ходу дня, `WeatherState`, версии, рамка ветра) против
 //! эталона GDScript `cases/ongudai_day_*.weather.json` (W8 v2; допуск `1e-6 + 1e-5·|ref|`) и проверки
 //! поведения: зажим часов, версии, пресет без дня, мягкая смена, `sun_state`.
+mod common;
+
+use common::real_weather;
 use dp_air::field::weather_core::WeatherModelCfg;
 use dp_air::fixtures::{read_case, read_place};
 use dp_air::terms::{PlaceLink, Terms};
-use dp_air::weather::{climate_place, derive};
+use dp_air::weather::derive;
 use dp_air::{Conditions, Configs};
 use serde_json::{Value, json};
 use std::path::{Path, PathBuf};
@@ -40,6 +43,7 @@ fn terms_with(place: &str) -> (Terms, dp_air::Place) {
     let p = read_place(&wdir().join(format!("places/{place}.json"))).unwrap();
     let mut t = Terms::default();
     t.configure(&configs(), 1);
+    t.set_weather(real_weather());
     t.set_place(Some(&p));
     (t, p)
 }
@@ -112,7 +116,7 @@ fn check_case(name: &str) {
         .unwrap(),
     );
     let pl = PlaceLink::of(&place);
-    let climate = climate_place(&pl.cell, &pl.ctx, &wm);
+    let climate = real_weather().climate_place(&pl.ctx);
     let fc = match &case.conditions.source {
         dp_air::Source::Forecast { forecast, .. } => forecast.clone(),
         _ => panic!("прогноз"),

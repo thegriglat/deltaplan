@@ -24,7 +24,7 @@ pub use level::{
     Level, NestDst, NestSrc, Shift, ShiftDst, ShiftSrc, Stag, nest, prolong, prolong_state,
     shift_between, shift_warm,
 };
-pub use place::{Grid, Loc, LocClimate, Place, PlaceHeader, StartSite};
+pub use place::{Grid, Loc, Place, PlaceHeader, StartSite};
 pub use types::{
     Cloud, Configs, Core, Crest, Decomposition, F32Record, FieldExport, Focus, Raster, SampleMode,
     State, Status, as_f32s,
@@ -139,6 +139,14 @@ pub trait AirModel: Send + Sync {
     /// W4 v5: номер последней подачи без кодирования (`0` — подач не было).
     fn field_version(&self) -> u64 {
         0
+    }
+    /// W4 v10: погода с сетками климата (общая `Arc`, W12); до `load_place`. Климат места
+    /// (W5 v10) берётся у неё; не задана - запасные значения конфига. По умолчанию - ничего.
+    fn set_weather(&mut self, _w: std::sync::Arc<weather::Weather>) {}
+    /// W4 v10: контекст загруженного места (дата, положение, пояс, высоты долины и средней);
+    /// нет места - `None`. По умолчанию `None`.
+    fn place_context(&self) -> Option<weather::PlaceContext> {
+        None
     }
     fn status(&self) -> Status;
     fn sample_many(&self, pts: &[[f32; 3]], mode: SampleMode, out: &mut [[f32; 4]]);

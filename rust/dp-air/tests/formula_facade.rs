@@ -7,7 +7,7 @@ use dp_air::field::runtime::ground_height;
 use dp_air::fixtures::{read_case, read_place};
 use dp_air::terms::{self, Terms};
 use dp_air::{
-    AirModel, Cloud, Code, Conditions, Configs, Core, Crest, Focus, Formula, ObjRecord, Place,
+    AirModel, Cloud, Conditions, Configs, Core, Crest, Focus, Formula, ObjRecord, Place,
     SampleMode, State,
 };
 use serde_json::{Value, json};
@@ -174,23 +174,18 @@ fn no_place_answers_are_empty() {
 }
 
 #[test]
-fn forecast_needs_climate_cell() {
-    // у синтетики климат задан, а сырой ячейки (W5 v8) нет: прогноз невозможен
+fn forecast_without_weather_uses_fallback_climate() {
+    // W5 v10: климат места берёт Weather; не задана - запасные значения конфига, не ошибка
     let (c, _) = ongudai_day();
     let mut m = Formula::new();
     m.configure(&configs(true), 1).unwrap();
     m.load_place(place("synthetic")).unwrap();
-    assert_eq!(m.set_conditions(&c).unwrap_err().code, Code::BadInput);
-    // эталон-пресет ячейки не требует
-    m.set_conditions(&preset("medium")).unwrap();
+    m.set_conditions(&c).unwrap();
     // обратный порядок: условия раньше места
     let mut m = Formula::new();
     m.configure(&configs(true), 1).unwrap();
     m.set_conditions(&c).unwrap();
-    assert_eq!(
-        m.load_place(place("synthetic")).unwrap_err().code,
-        Code::BadInput
-    );
+    m.load_place(place("synthetic")).unwrap();
 }
 
 // ---------------------------------------------------------------- слагаемые вместо заглушек

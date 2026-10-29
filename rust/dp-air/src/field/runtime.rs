@@ -68,7 +68,8 @@ use super::weather_core::{
 use super::wind_field::{Field, FieldGrid, FieldMeta, Limits, Z0};
 use super::window::tcode;
 use crate::level::{Level, prolong_state};
-use crate::{Conditions, Configs, Error, InflowMode, Loc, LocClimate, Place, Raster};
+use crate::weather::Weather;
+use crate::{Conditions, Configs, Error, InflowMode, Place, Raster};
 use picard_rs::api::{Fallback, Freeze, NonConv, SolveOpts, Solved, StopReason, solve};
 use picard_rs::case::Case;
 use picard_rs::state::State;
@@ -129,45 +130,27 @@ impl Climate for TableClimate {
     }
 }
 
-/// Климат места: ячейка из заголовка (`loc.climate`, W5 v3), где есть сетка HH5 / HH1; иначе
-/// запасные таблицы (`ClimateGrid.place`: без HH5 `tx_c`/`dtr_k` — из `weather_model.json`).
-/// Для воды (W5 v7) — тем же правилом ячейка `loc.climate_lag`.
+/// Климат места: ячейка сеток климата [`Weather`] (W5 v10; `ClimateGrid.at` на дату и центр
+/// места), где есть сетка HH5 / HH1; иначе запасные таблицы (`ClimateGrid.place`: без HH5
+/// `tx_c`/`dtr_k` - из `weather_model.json`). Нет `Weather` - таблицы целиком. Для воды (W5 v7)
+/// дату сдвигает вызывающий (`water_mean_air_c`), ячейка берётся тем же правилом.
 pub struct PlaceClimate<'a> {
     pub table: &'a TableClimate,
-    pub loc: Option<LocClimate>,
-    pub lag: Option<LocClimate>,
+    pub weather: Option<&'a Weather>,
 }
 
 impl<'a> PlaceClimate<'a> {
-    pub fn of(table: &'a TableClimate, loc: &Loc) -> Self {
-        PlaceClimate {
-            table,
-            loc: loc.climate,
-            lag: loc.climate_lag,
-        }
-    }
-}
-
-fn merged(t: ClimateCell, c: Option<LocClimate>) -> ClimateCell {
-    match c {
-        None => t,
-        Some(c) => ClimateCell {
-            tx_c: if c.has_hh5 { c.tx_c } else { t.tx_c },
-            dtr_k: if c.has_hh5 { c.dtr_k } else { t.dtr_k },
-            z_cell_m: if c.has_hh1 { c.z_cell_m } else { 0.0 },
-            has_hh1: c.has_hh1,
-            has_hh5: c.has_hh5,
-        },
+    pub fn of(table: &'a TableClimate, weather: Option<&'a Weather>) -> Self {
+        PlaceClimate { table, weather }
     }
 }
 
 impl Climate for PlaceClimate<'_> {
     fn cell(&self, lat: f64, lon: f64, month: i64, day: i64) -> ClimateCell {
-        merged(self.table.cell(lat, lon, month, day), self.loc)
-    }
-
-    fn water_cell(&self, lat: f64, lon: f64, month: i64, day: i64) -> ClimateCell {
-        merged(self.table.cell(lat, lon, month, day), self.lag)
+        match self.weather {
+            Some(w) => w.cell(lat, lon, month, day),
+            None => self.table.cell(lat, lon, month, day),
+        }
     }
 }
 
@@ -746,6 +729,8 @@ pub struct JobIn {
     pub clip: Option<Arc<ClipMap>>,
     /// Подставные отказы окон (тесты): сколько ближайших расчётов окон должны не удаться.
     pub win_fail: Arc<AtomicUsize>,
+    /// Погода с сетками климата (`set_weather`); нет - климат по запасным таблицам.
+    pub weather: Option<Arc<Weather>>,
 }
 
 /// Итог задачи.
@@ -888,7 +873,7 @@ pub(crate) fn cancelled(cancel: &AtomicBool) -> Result<(), JobErr> {
 
 /// Погода поля для области `dom` и часа задачи (`field_weather`): общая у области и окон.
 pub(crate) fn weather_for(job: &JobIn, dom: &Domain) -> Result<FieldWeather, Error> {
-    let climate = PlaceClimate::of(&job.cfg.climate, &job.place.header().loc);
+    let climate = PlaceClimate::of(&job.cfg.climate, job.weather.as_deref());
     field_weather(
         &job.cond,
         &job.place,

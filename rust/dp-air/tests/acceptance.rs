@@ -26,6 +26,8 @@
 //! | T4a (5) отказ грубого → с фона | `t4a_failed_coarse_*` | `runtime.rs` |
 //! | T4a (6) грубый пропускается | `t4a_warm_pair_skips_coarse` | `runtime.rs` |
 //! | T8 один вход — одно поле, 2/4/20 | `t8_*` | `runtime.rs`, `clipmap.rs` |
+mod common;
+
 use dp_air::field::runtime::*;
 use dp_air::field::weather_core::{WeatherInputs, hour_at};
 use dp_air::fixtures::read_place;
@@ -194,6 +196,7 @@ fn job_in_at(
     let inputs = WeatherInputs::from_conditions(c, cfgs).unwrap();
     let rec = CondRec::new(&inputs, c, hour_at(c, 0.0));
     JobIn {
+        weather: Some(common::real_weather()),
         cfg: Arc::new(cfg),
         configs: Arc::new(cfgs.clone()),
         place: Arc::new(pl),
