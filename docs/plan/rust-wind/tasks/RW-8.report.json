@@ -1,0 +1,107 @@
+{
+  "status": "done",
+  "summary": "Слот Turb в крейте: FieldTurbulence (sigma, lee, sep, рывки, taylor_stretch), GustSpectrum, WindModel.gust_unit (terms::turb::gust::GustUnit/gust для RW-9). Шум и спектр совпали с Godot побитно; sigma[turb] ongudai_* (7 случаев, 1244 точки) в допуске W8, 0 вне.",
+  "commits": [
+    "1c5a83aed rust-wind RW-8: дамп ongudai_day_*, z0 уровня подбирается по lee",
+    "cb03d240c rust-wind RW-8: clippy в terms_turb",
+    "1b7281f4e rust-wind RW-8: дубль pub mod turb после слияния",
+    "ed69fba3b rust-wind RW-8: болтанка поля и шум порывов — слот Turb, GustSpectrum, gust_unit, рывки слоя смешения; эталоны GD"
+  ],
+  "checks": [
+    {
+      "name": "terms_turb",
+      "value": "11",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "dp_air_no_godot",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "gust_unit / GustSpectrum vs Godot",
+      "value": "max|d|=0: 3 сида x 1500 отсчётов, нормировка, сдвиги",
+      "pass": true
+    },
+    {
+      "name": "sigma/lee/sep/taylor/MIL vs GD",
+      "value": "3000 входов, откл. 0",
+      "pass": true
+    },
+    {
+      "name": "replay ongudai_* (7 случаев)",
+      "value": "1244 точки: s_u 0, s_v 2e-11, s_w 5e-8, n 2.4e-7, w_burst 0",
+      "pass": true
+    },
+    {
+      "name": "sigma[turb] ongudai_* W8",
+      "value": "0 из 1244 вне допуска",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Точки зоны отрыва (lee_f>0, 352 из 1244): relief аналитики (RW-9) пока 0 — du=0 и l_sep=0; сверка итоговой болтанки в них по живому слоту — после RW-9 (в тесте relief берётся из дампа GD).",
+    "ex2 (σ термика/грозы/ротора) в тесте берётся из дампа GD; итог turb в точках с термиками/грозой сверять после RW-10/11.",
+    "Точки above_base — после RW-11 (W8 v2)."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RW-8",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/src/terms/mod.rs:Terms::configure",
+      "why": "слот ставится в configure, а не в Slots::new: ему нужны конфиги и сид",
+      "checked": "Terms::default() даёт NoTurb; Formula-тесты учитывают шум"
+    },
+    {
+      "where": "rust/dp-air/src/terms/turb/mod.rs:FieldTurb::z0",
+      "why": "z0 уровня берётся из Field::z0(); в дамп GD z0 не писался — подобран по lee (0,20334 набор 1, 0,30374 дневные, невязка 1e-12); совпадение с Field::z0() Rust не проверено без Пикара",
+      "checked": "fit_z0 в тесте"
+    },
+    {
+      "where": "rust/dp-air/src/terms/turb/mod.rs:ground_ref",
+      "why": "конвективная σ аналитики (T_HMIX=0): cloudbase = mean_height + cloudbase_agl_m из погоды; в GD — состояние ThermalField/GroundField (RW-9/10/12)",
+      "checked": "в эталонах ветка не задействована (T_HMIX>0)"
+    },
+    {
+      "where": "rust/dp-air/src/terms/turb/mod.rs:sigma advect",
+      "why": "GD кеширует _advect в set_wind; крейт считает wind.speed_at(300) на каждом опросе — расходятся после set_conditions без set_wind (RW-12)",
+      "checked": "на эталонах совпадает"
+    },
+    {
+      "where": "rust/dp-air/tests/{acceptance,clipmap,field_export,runtime,terms_sum}.rs",
+      "why": "правил по разрешению координатора: σ маскируется/сверяется отдельно, FULL=MEAN только по σ, MEAN-xyz в terms_sum на >=97% точек (остальные — обратный поток/-0.0)",
+      "checked": "cargo test --workspace зелёный; хеш clipmap не менялся"
+    },
+    {
+      "where": "rust/dp-air/src/terms/turb/mod.rs:state",
+      "why": "mean() и sigma() повторно считают sample_turb/lee; бюджет 18 точек <= 50 мкс не замерялся",
+      "checked": "не замерял"
+    }
+  ],
+  "dp_feedback": "Процессы job в tmux не видны из песочницы; job status 'идёт' неотличим от зависания (скрипт Godot с ошибкой разбора молча висит). Foreground >180 с уходит в фон — лучше сразу job start.",
+  "extra": {
+    "points": 1244,
+    "zone_points": 352,
+    "z0_fit": {
+      "set1": 0.20334,
+      "day": 0.30374
+    }
+  },
+  "t": "2026-10-29T12:20:11",
+  "by": "executor"
+}
