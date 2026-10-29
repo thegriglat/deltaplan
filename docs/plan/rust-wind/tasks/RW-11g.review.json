@@ -1,0 +1,22 @@
+{
+  "verdict": "accept",
+  "summary": "Только тест, код terms/waves не менялся; диагноз (растр места ±10 км держит высоту края, GD — аналитическая) обоснован, широкий Place повторяет AtmoFingerprint.height один в один. Все точки synth_wave по W8, допуски не ослаблены.",
+  "issues": [
+    {
+      "file": "rust/dp-air/tests/terms_analytic.rs",
+      "line": 216,
+      "severity": "minor",
+      "what": "Формула высоты продублирована в третий раз (terms_clouds, terms_thermal, здесь); не замечание к приёмке, расхождение копий сверено с atmo_fingerprint.gd:48-54 — совпадает.",
+      "fix": "не требуется"
+    }
+  ],
+  "rerun": [
+    {
+      "name": "accept --only terms_analytic --dry",
+      "value": "PASS 11, scope ok",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-29T15:07:43",
+  "by": "reviewer"
+}
