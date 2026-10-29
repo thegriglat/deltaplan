@@ -267,7 +267,7 @@ impl Terms {
     /// Земля термиков из места W5: высота по растру, вода, сила источника по растрам
     /// (`thermal_src`) на час `hour` (нет — статичное солнце `world.json → sun`, без воды и ночи, как у случаев
     /// W8 без `AtmoDay`). Конфиги — те, что в `configure`.
-    pub fn set_place(
+    pub fn set_thermal_place(
         &mut self,
         place: Arc<crate::place::Place>,
         hour: Option<thermal_src::SourceHour>,

@@ -1,5 +1,5 @@
 //! RW-10e: термики из поля воздуха в жизни термиков (слот `Thermal` на реальном месте Онгудай):
-//! земля места (`Terms::set_place`), источники `AirThermals` (`_spawn_air`), пересборка по ключу,
+//! земля места (`Terms::set_thermal_place`), источники `AirThermals` (`_spawn_air`), пересборка по ключу,
 //! «между», охват `covers`, ядра вокруг фокусов; сверка с эталонами W8 v2 `ongudai_*`.
 //!
 //! Поле — запечённое GPU-поле RW-10d (`tests/data/RW-10d/<случай>/field.*`), то есть то, на
@@ -89,7 +89,7 @@ fn terms_for(o: &Ong) -> Terms {
     t.statics = o.case.static_thermals.clone();
     t.statics_mode = o.case.static_mode;
     t.focuses = o.case.focuses.clone();
-    t.set_place(o.place.clone(), None).unwrap();
+    t.set_thermal_place(o.place.clone(), None).unwrap();
     t.set_air_field(o.fs.levels(), None);
     t
 }
@@ -260,7 +260,7 @@ fn ongudai_strong_and_wave_thermal_and_cores() {
 }
 
 /// (3) Сила источника по растрам места против журнала вызовов `ground.sun` GD (RW-10d,
-/// `ongudai_medium`, 30 104 точки кандидатов): `Terms::set_place` берёт статичное солнце мира.
+/// `ongudai_medium`, 30 104 точки кандидатов): `Terms::set_thermal_place` берёт статичное солнце мира.
 #[test]
 fn place_source_matches_gd_call_log() {
     use dp_air::terms::thermal_src::{SourceCfg, SourceHour, source_strength};
