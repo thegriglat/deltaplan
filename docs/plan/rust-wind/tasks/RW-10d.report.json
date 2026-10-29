@@ -1,0 +1,94 @@
+{
+  "status": "done",
+  "summary": "AirThermals.build перенесён в rust/dp-air/src/terms/thermal_air/ (столбцы, плотность, выбор, водосборы, параметры, expected_net/up, pick_in_column, land_fraction, fill, sources_in/covers/near/mask_bytes). На ongudai_medium все массивы и скаляры совпадают с дампом GD побитно; параллельно = последовательно побитно; все 252/257/257 ядер desc.json t=0/900/3600 выводятся из источников.",
+  "commits": [
+    "b72043ae4 rust-wind RW-10d: источники термиков из поля в крейте",
+    "7c3fee76c clippy is_multiple_of в тесте"
+  ],
+  "checks": [
+    {
+      "name": "terms_thermal_air",
+      "value": "19 тестов ok",
+      "pass": true
+    },
+    {
+      "name": "источники против дампа GD (ongudai_medium)",
+      "value": "2842 источника, расхождение всех массивов 0 (побитно), скаляры ≤ 1e-15",
+      "pass": true
+    },
+    {
+      "name": "ядра desc.json",
+      "value": "766 ядер: y_src, радиус (≤0,23 %), потолок (≤7e-5 м), направление сноса cos ≥ 0,9999999",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "dp_air_no_godot",
+      "value": "0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Эталон только для ongudai_medium: strong (2420 источников) и wave (4002) сняты, но в репозиторий положены лишь счётчики/скаляры (manifest.json): поле f16 ≈ 2,2 МБ на случай, бюджет 5 МБ. Воспроизводятся run_dump.sh + recompress.py.",
+    "Из test_air_thermals.gd не перенесены (нужны ThermalField/Atmosphere, RW-10e): Монте-Карло потока ядер, test_two_clients, test_atmosphere_field_region_and_off, часть ceiling с атмосферой; из test_subsidence.gd — test_cloud_source_suppressed (CloudField, RW-11)."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RW-10d",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/tests/data/RW-10d/ongudai_medium/field.bin",
+      "why": "поле в репозитории — запечённое f16 (перечитанное), а не GPU-f32 без потерь; w_mech обнулён. Отклонение от указания lossless: f32 без потерь 6,9 МБ на случай не влезает в бюджет.",
+      "checked": "на всех трёх случаях источников по GPU-полю и по f16-полю поровну (2842/2420/4002); эталон пересчитан по перечитанному f16-полю, тест читает ровно его"
+    },
+    {
+      "where": "rust/dp-air/src/terms/thermal_air/pick.rs:20-60",
+      "why": "водная ветка pick_in_column/land_fraction не проверена против GD на реальных данных: на Онгудае все 3763 проверенных столбца имели источник, берег/вода почти не задеты",
+      "checked": "синтетические тесты воды (no_source_over_water_and_warm_sea); таблица land из GD совпала побитно"
+    },
+    {
+      "where": "rust/dp-air/src/terms/thermal_air/mod.rs (u10)",
+      "why": "u10 в FieldMeta нет — передаётся параметром BuildIn::u10 (GD: meta.u10 поля); RW-10e должен брать его из level_meta поля/условий",
+      "checked": "в дампе u10 из meta совпал, результат побитно"
+    },
+    {
+      "where": "тест desc_cores_of_fixture_come_from_sources",
+      "why": "сверка ядер косвенная (по y_src, радиусу, потолку, направлению сноса): точка ядра сдвинута возрастом, прямой проверки места ≤ max(25 м, 2 % r) нет; сила w ядра зависит от жизни (RW-10e)",
+      "checked": "все ядра трёх кадров нашли источник"
+    },
+    {
+      "where": "сверить после RW-10e/RW-11",
+      "why": "число живых ядер, w, возраст, подсос и тень облаков, точки above_base",
+      "checked": "не проверялось"
+    }
+  ],
+  "dp_feedback": "job wait сильнее 120 с блокирует Bash; accept --dry идёт >10 мин без прогресса по cargo_test; хотелось бы вывод прогресса. Диск 95 % — worktree gd-ref по 900 МБ у каждого исполнителя.",
+  "extra": {
+    "lossless_f32_field_bytes": {
+      "ongudai_medium": 6908012,
+      "ongudai_strong": 6898249,
+      "ongudai_wave": 6900320
+    },
+    "repo_data_bytes": 3040000,
+    "sources": {
+      "medium": 2842,
+      "strong": 2420,
+      "wave": 4002
+    }
+  },
+  "t": "2026-10-29T06:07:31",
+  "by": "executor"
+}

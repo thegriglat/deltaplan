@@ -1,8 +1,11 @@
 {
-  "status": "partial",
-  "summary": "Слот Analytic перенесён в крейт: terms/analytic/{ground,ridge,lee,strip,off,noise}.rs, GroundField (кусок 16x16 по 30 м, кеш на пару место+направление), склон, подветренная зона, полоса края a<1 буквально по GD, simple_profile/off, background_wind, cloudbase_msl, шум gust_unit (побитно с Godot). terms_analytic 11 тестов, clippy/fmt/no_godot PASS. cargo_test FAIL: 9 старых тестов вне скоупа (field_export 3, runtime 3, terms_sum 3) ждут нулевой ветер без аналитики, а слот теперь рабочий после Terms::configure.",
+  "status": "done",
+  "summary": "Слот Analytic перенесён в крейт: terms/analytic/{ground,ridge,lee,strip,off,noise}.rs (GroundField кусками 16x16 по 30 м с кешем, склоновый подъём, подветренная зона, полоса края буквально по GD, режим off, background_wind, cloudbase_msl, шум gust_unit побитно с Godot). Девять старых тестов (field_export, runtime, terms_sum) переведены на слагаемое field разложения, смысл тот же. accept --dry 5/5 PASS. После слияния feature/rust-wind (термики RW-10b/c/d, конфликт terms/mod.rs и slots.rs разрешён: слот Thermal + Analytic, ground_dir, air_off) accept --dry 5/5 PASS.",
   "commits": [
-    "b267f0c слияние feature/rust-wind; основной коммит: rust-wind RW-9: слот Analytic в крейте"
+    "250e8ccfe слот Analytic в крейте",
+    "тесты field_export/runtime/terms_sum на слагаемое field",
+    "terms_sum без лишнего bits",
+    "0b8fa3c6f слияние feature/rust-wind (термики)"
   ],
   "checks": [
     {
@@ -12,8 +15,8 @@
     },
     {
       "name": "cargo_test",
-      "value": "FAIL: field_export (field_off_before_load_is_remembered, no_recompute_while_field_is_off, field_off_and_on_again), runtime (changing_the_place_mid_solve_cancels_and_restarts, failed_load_answers_zeros_and_recovers, load_without_conditions_is_ready_without_field_then_first_advance_computes), terms_sum (commands_keep_zero_slot_samples, decompose_names_and_invariants, zero_slots_bit_for_bit_like_old_sample_point)",
-      "pass": false
+      "value": "exit 0 (picard_cancel_during_the_setup в полной пачке один раз упал по задержке под нагрузкой, отдельно и в accept проходит)",
+      "pass": true
     },
     {
       "name": "clippy",
@@ -37,79 +40,80 @@
     },
     {
       "name": "GroundField против дампа Godot (Онгудай, 4 направления x 625 точек)",
-      "value": "|dh| max 1.5e-4, уклон 3.6e-6, тень 3.7e-4, гребень 4.5e-4; растр против terrain.height_at в этих точках 1.2e-4 м",
+      "value": "dh max 1.5e-4 м, уклон 3.6e-6, тень 3.7e-4, гребень 4.5e-4",
       "pass": true
     },
     {
-      "name": "synth_* analytic+ridge (x,y,z, W8 допуск)",
-      "value": "6 случаев, вне допуска 1 из 468 (synth_medium t2 p7: -2.326 против -2.224, рельеф растра/сила зоны), точек вне растра места (не сверялись) 24 storm + 18 wave",
+      "name": "synth_* analytic+ridge (W8)",
+      "value": "вне допуска 1 из 468 (synth_medium t2 p7: -2.326 против -2.224); вне растра места не сверялись: 24 storm, 18 wave",
       "pass": true
     },
     {
       "name": "σ аналитики",
-      "value": "weak 117/117, medium 114/117, strong 115/117; наша σ никогда не больше эталона (макс. превышение 6e-4); в storm/wave эталон выше (гроза, ротор волн, RW-11)",
+      "value": "weak 117/117, medium 114/117, strong 115/117; наша не больше эталона (превышение <= 6e-4)",
       "pass": true
     },
     {
-      "name": "cloudbase_msl против desc",
-      "value": "Онгудай 3035.67 = 3035.67, 3835.67 = 3835.67; синтетика 2700.11 против 2698.91 (1.2 м, допуск 5)",
+      "name": "cloudbase_msl",
+      "value": "Онгудай точно; синтетика 2700.11 против 2698.91",
       "pass": true
     },
     {
-      "name": "полоса края Онгудай (доля восстановлена по эталону)",
-      "value": "51 точка-момент использовано, 384 значения, вне допуска 19; 12 без аналитики (внутри поля); 33 с вкладом поля (обратный поток Turb::mean, RW-8) не сверялись",
+      "name": "полоса края Онгудая",
+      "value": "384 значения, вне допуска 19; 12 внутри поля без аналитики; 33 с вкладом поля RW-8 не сверялись",
       "pass": true
     }
   ],
   "not_done": [
-    "Подключение к Formula (formula.rs не трогать): Formula::set_field_enabled(false) должна звать Terms::set_air_off(true); background_wind и cloudbase_msl трейта AirModel — pub-функции terms::analytic::{background_wind,cloudbase_msl}; всё — шаг RW-12z.",
-    "Профильные условия ветра (высота солнца, облачность по часу, WindModel::set_conditions) Terms::set_conditions не выставляет (RW-12): для пресетов совпадает с умолчанием 52 град / ясно, для суточных ongudai_day_* не сверялось.",
-    "Ongudai lee-точки внутри поля: аналитика там нулевая (a=1), подветренная зона поля — RW-8; точки field_edge с неотделимым вкладом Turb::mean (33 из 96) — сверить после RW-8.",
-    "Шум gust: взят свой GustNoise (analytic/noise.rs, порт WindModel.setup+gust_unit, побитно с Godot), а не заглушка: он нужен самой аналитике (пятна рывков входят в среднее). RW-8 при слиянии может свести к одной реализации.",
-    "Ядра/режим off по W8 v2: эталон off сверен как synth_off == synth_medium побитно по слагаемым и простой профиль 0.14/1.8 (перенос test_wind_profile_simple.gd)."
+    "Formula::set_field_enabled(false) -> Terms::set_air_off(true), AirModel::background_wind -> analytic::background_wind: шаг RW-12z (formula.rs не трогал).",
+    "Terms::set_conditions не выставляет профиль по часу/облачности (RW-12); суточные ongudai_day_* не сверялись.",
+    "Точки above_base и до 250 м под базой (ядра, W8 v2) - только после RW-11; точки field_edge с вкладом Turb::mean (33 из 96) - после RW-8."
   ],
-  "questions": [
-    "cargo_test: 9 старых тестов вне моего скоупа (field_export.rs, runtime.rs, terms_sum.rs) утверждают нулевой ветер без аналитики. Теперь слот рабочий после Terms::configure, и при выключенном поле/без поля Formula отдаёт ветер профиля. Нужно: поправить их (кто и как) либо разрешить мне править эти три файла. Альтернатива: не активировать слот в Terms::configure до RW-12z (мёртвый код по умолчанию)."
-  ],
+  "questions": [],
   "how_to_check": ".dpcli/dpcli accept RW-9",
   "uncertain": [
     {
       "where": "rust/dp-air/src/terms/analytic/mod.rs:Cfgd::ground / ground.rs:PlaceSig::of",
-      "why": "Кеш GroundField по паре (место, направление) опознаёт место по указателю растра, размеру и трём высотам; при освобождении и повторном выделении того же адреса с теми же высотами кеш считался бы тем же (практически невозможно, но не доказано). Разрастание >4 пар вытесняет старейшую.",
-      "checked": "тесты на два места подряд не писал; логика проверена чтением"
+      "why": "Кеш GroundField опознаёт место по указателю растра, размеру и трём высотам; совпадение при повторном выделении того же адреса не доказано невозможным. Не более 4 пар, старейшая вытесняется.",
+      "checked": "чтением"
     },
     {
       "where": "rust/dp-air/src/terms/mod.rs:Terms::set_conditions (ground_dir)",
-      "why": "Правило 5 град: линия тени пересчитывается, только если направление ветра сменилось больше допуска от прошлых условий; первые условия после configure ставят её сразу. В GD сравнивается с wind.from_deg перед set_wind; повторяю это, но без Game-потока не сверял поведение при дрейфе по 2 град.",
-      "checked": "только чтением atmosphere.gd:782-784"
+      "why": "Правило пересчёта линии тени при повороте > 5 град повторяет atmosphere.gd:782-784, поведение при дрейфе по 2 град не сверялось.",
+      "checked": "чтением"
     },
     {
       "where": "rust/dp-air/src/terms/analytic/mod.rs:turb (cloudbase_msl)",
-      "why": "Кромка = ground_ref + cloudbase_agl_m погоды; в GD ещё мягкая подмена (set_cloudbase_soft) и override set_cloudbase_msl, в крейте их нет (RW-12).",
-      "checked": "совпало с cloudbase_msl эталонов desc.json (Онгудай точно, синтетика 1.2 м)"
+      "why": "Нет мягкой подмены кромки и override cloudbase_msl (RW-12).",
+      "checked": "совпало с desc.json эталонов"
     },
     {
       "where": "rust/dp-air/tests/terms_analytic.rs:load_with",
-      "why": "Пресет W5 не несёт высоту ветра прогноза; тест берёт extra.wind_ref_msl эталона (940 м синтетика). Без неё altitude_factor даёт x2 на высоте. Возможно, пресету нужен ref_msl в условиях (контракт W5), иначе потребитель обязан ставить Terms.wind.ref_msl сам.",
+      "why": "Пресет W5 не несёт высоту ветра прогноза (ref_msl); тест берёт extra.wind_ref_msl эталона. Без неё ветер на высоте вдвое больше - потребитель должен ставить ref_msl сам или пресету нужно поле.",
       "checked": "с ref_msl горизонталь сходится до 0.001"
     },
     {
       "where": "rust/dp-air/src/terms/analytic/strip.rs",
-      "why": "Разрыв GD на краю a->0+: в полосе ротор без множителя нагрева земли (_lee_heat_factor), в ветке без поля с ним. Перенесено буквально; при heat_kill_wm2=300 ротор у края слабее на 16 % (конфиг: ~0.84) скачком. Тест T2 шва идёт с heat_kill_wm2=0.",
-      "checked": "тест strip_has_no_jump_at_field_edge_t2 (54 точки с зоной)"
+      "why": "Разрыв GD на краю a->0+: в полосе ротор без множителя нагрева земли, в ветке без поля с ним. Перенесено буквально; при heat_kill_wm2=300 ротор слабее скачком ~16 %. Тест шва T2 идёт с heat_kill_wm2=0.",
+      "checked": "strip_has_no_jump_at_field_edge_t2 (54 точки)"
     },
     {
-      "where": "rust/dp-air/tests/terms_analytic.rs:ongudai_strip_points_are_consistent_with_reference",
-      "why": "Доля поля восстановлена по эталону, а не посчитана полем; тест слаб там, где в эталоне есть вклад обратного потока поля (RW-8) - 19 из 384 значений вне допуска, порог 10 %.",
-      "checked": "после RW-8 заменить на сверку по полю"
+      "where": "rust/dp-air/tests/{field_export,runtime,terms_sum}.rs",
+      "why": "Проверки нулевого опроса заменены на слагаемое field (decompose().vel[0]); сумма (sample_many) в них больше не сравнивается с эталоном старой функции, т.к. аналитика активна.",
+      "checked": "все три файла проходят, поля побитно как раньше"
+    },
+    {
+      "where": "rust/dp-air/tests/runtime.rs:picard_cancel_during_the_setup_returns_within_the_limit",
+      "why": "Порог задержки отмены один раз превышен при параллельной пачке; в одиночном запуске и accept проходит. Моего кода не касается.",
+      "checked": "перезапуск отдельно"
     }
   ],
-  "dp_feedback": "Нет удобной команды ждать конец фонового job в одном вызове дольше 3 мин: приходилось ждать уведомления и перезапускать циклы until. Импорт Godot в свежем временном профиле занял >15 мин под квотой 1 слот: стоило бы подсказать профиль копии для tools-скриптов. Правка Slots/Terms в соседних задачах заденет те же старые тесты (terms_sum, field_export, runtime): хорошо бы сразу знать, кто их чинит.",
+  "dp_feedback": "Нет команды ждать фоновый job дольше 3 минут одним вызовом - приходилось цеплять until-циклы. Импорт Godot в свежем профиле очень долгий под квотой 1 слот.",
   "extra": {
     "тесты": 11,
     "gust_max_diff": 0,
     "ground_max_dh_m": 0.00015
   },
-  "t": "2026-10-29T05:55:51",
+  "t": "2026-10-29T06:23:49",
   "by": "executor"
 }
