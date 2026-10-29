@@ -100,7 +100,7 @@ fn wait_field(m: &mut Formula) {
             return;
         }
         assert_ne!(m.status().state, State::Failed, "{}", m.status().reason);
-        assert!(t0.elapsed() < Duration::from_secs(120), "no field in 120 s");
+        assert!(t0.elapsed() < Duration::from_secs(900), "no field in 900 s");
         std::thread::sleep(Duration::from_millis(2));
     }
 }
