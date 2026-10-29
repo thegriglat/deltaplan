@@ -165,24 +165,11 @@ func _update_phase() -> void:
 		_phase_dot.position = _phase_rect.position + px - _phase_dot.size * 0.5
 
 
-## Растр отладки по имени: фасад W2 (debug_raster); фасад «phase_*» пока не отдаёт — тогда прямо
-## из крейта (DpAir: заголовок json + слой data). Пусто — {}.
+## Растр отладки по имени: фасад W2/W10 (Atmosphere.debug_raster, в т. ч. «phase_*»). Пусто — {}.
 static func fetch_raster(air: Object, raster_name: String) -> Dictionary:
-	if air == null:
+	if air == null or not air.has_method("debug_raster"):
 		return {}
-	var r: Dictionary = air.call("debug_raster", raster_name) if air.has_method("debug_raster") else {}
-	if not r.is_empty():
-		return r
-	var dp: Object = air.get("_dp") as Object
-	if dp == null or not dp.has_method("debug_raster_header"):
-		return {}
-	var head: Variant = JSON.parse_string(String(dp.call("debug_raster_header", raster_name)))
-	if not (head is Dictionary) or int((head as Dictionary).get("version", 0)) <= 0:
-		return {}
-	var out: Dictionary = (head as Dictionary).duplicate()
-	out.erase("layers")
-	out.data = dp.call("debug_raster_data", raster_name)
-	return out
+	return air.call("debug_raster", raster_name)
 
 
 ## Подписи фаз растра: свои (labels) или порядок крейта.
