@@ -1,0 +1,85 @@
+{
+  "id": "RW-11g",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "σ ротора волны (WaveExtra) против GD: 4 из 93 точек synth_wave",
+  "goal": "σ ротора волны в σ аналитики совпадает с GD опорной ревизии (rotor_turb в _analytic_amp, atmosphere.gd ≈:1038; wave_field.gd) во всех точках synth_wave в допуске W8 v2: найти и исправить расхождение порта в terms/waves (p7 y=1172: GD 0,03 у нас 0,73; p9 y=679: 2,33 против 0,74 при turb_max=4; p16 y=1513: 0,95 против 0,85; p36 thermal y=1615: 0,93 против 0); тест terms_analytic synth_sigma_is_analytic_part_of_reference — по точкам W8 вместо доли ≥ 95 %.",
+  "plan_ref": "План переноса",
+  "contracts": [
+    {
+      "name": "W6",
+      "version": "4",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W7",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W10",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-11g",
+  "branch": "rust-wind/RW-11g",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/terms/waves/",
+    "rust/dp-air/tests/terms_waves.rs",
+    "rust/dp-air/tests/terms_analytic.rs",
+    "rust/dp-air/tests/data/RW-11g/"
+  ],
+  "dont_touch": [
+    "rust/dp-air/src/formula.rs",
+    "rust/dp-air/src/terms/analytic/",
+    "rust/dp-air/src/field/",
+    "rust/picard_rs/",
+    "rust/dp-gd/",
+    "scripts/",
+    "tests/fixtures/",
+    "docs/contracts/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "terms_analytic",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test terms_analytic",
+      "expect": "num:test result: ok\\. (\\d+) >=11"
+    },
+    {
+      "name": "terms_waves",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test terms_waves",
+      "expect": "num:test result: ok\\. (\\d+) >=9"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dp_air_no_godot",
+      "cmd": "cargo tree --manifest-path rust/Cargo.toml -p dp-air -e normal | grep -ci godot || true",
+      "expect": "num:^(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T14:50:49"
+}
