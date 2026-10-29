@@ -155,14 +155,7 @@ impl Terms {
         self.link.state = st;
         // ветер и опорная высота: как `Atmosphere.set_wind(speed, from, ref_msl, gain)`
         let wv = WeatherView::new(r.weather);
-        let (old_from, first) = (self.wind.from_deg, self.cond.is_none());
         self.wind.set_from_weather(&wv);
-        // Линия тени рельефа следует за ветром с отставанием: поворот не больше допуска её не
-        // перестраивает (`Atmosphere.set_wind`, RW-9); первые условия — как `configure`.
-        if first || super::angle_diff_deg(old_from, self.wind.from_deg).abs() > self.ground_tol_deg
-        {
-            self.ground_dir = super::norm_dir(self.wind.dir());
-        }
         match &c.source {
             Source::Forecast {
                 wind_ref: Some(w), ..
