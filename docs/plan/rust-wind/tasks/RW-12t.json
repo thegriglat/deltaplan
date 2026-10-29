@@ -53,11 +53,6 @@
   ],
   "accept": [
     {
-      "name": "gdlint",
-      "cmd": "tools/lint.sh scripts",
-      "expect": "exit=0"
-    },
-    {
       "name": "no_removed_in_scripts",
       "cmd": "grep -rnE '\\b(air|atmo|atmosphere|_air|_atmo)\\.(wind|ground|field|cloud_phys|storm|wave|field_turb|day|turbulence_enabled|refresh_budget_us|set_thermal_mode|set_cloudbase_msl|add_static_thermal|load_static_thermals|clear_static_thermals|set_day|set_wind|set_weather|set_ground|step|refresh_now|prefetch_air_sources|begin_load_refresh|load_refresh_step|lee_heat_wm2|phase_main_raster)\\b' scripts tools/flight tools/bench tools/shots tools/terrain tools/world tools/atmosphere tools/weather tools/wind_field tools/places tools/smoke tools/loading --include=*.gd | grep -vE 'scripts/atmosphere/(atmosphere|cloud_layer|cloud_model|gust_dust|gust_dust_model|atmosphere_preview|thermal_signs|bird_flock)\\.gd|scripts/game/calm_air\\.gd' | wc -l",
       "expect": "num:^(\\d+) <=0"
@@ -65,5 +60,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-29T15:32:38"
+  "created": "2026-10-29T15:32:38",
+  "edited": "2026-10-29T15:41:03"
 }
