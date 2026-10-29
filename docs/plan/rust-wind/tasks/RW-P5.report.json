@@ -1,9 +1,10 @@
 {
   "status": "done",
-  "summary": "Причина: Game._air_conditions не слал quantum_h, крейт отвергал set_conditions (BAD_INPUT), фасад код игнорировал: READY за 0.0 с, поля нет, этапа нет. Добавлен quantum_h; отказ set_conditions теперь FAILED с last_error. Тест игрового пути ждёт этап подготовки ветра. Доработка по ревью: отказ set_conditions на READY - BAD_INPUT без смены состояния и условий; push_error; фильтр phase* снят в фасаде; тест малого места 25 м доходит до READY с ветром.",
+  "summary": "Причина: Game._air_conditions не слал quantum_h, крейт отвергал set_conditions (BAD_INPUT), фасад код игнорировал: READY за 0.0 с, поля нет, этапа нет. Добавлен quantum_h; отказ set_conditions теперь FAILED с last_error. Тест игрового пути ждёт этап подготовки ветра. Доработка по ревью: отказ set_conditions на READY - BAD_INPUT без смены состояния и условий; push_error; фильтр phase* снят в фасаде; тест малого места 25 м доходит до READY с ветром. Доработка-2: wind_field_debug.fetch_raster только через Atmosphere.debug_raster; документ переписан.",
   "commits": [
     "37e3928d0 RW-P5: quantum_h в условиях игры, отказ set_conditions виден, тест place_air_stage",
-    "d5186d9b9 RW-P5 ревью: W1 при отказе на READY, push_error, снят фильтр phase, тест малого места"
+    "d5186d9b9 RW-P5 ревью: W1 при отказе на READY, push_error, снят фильтр phase, тест малого места",
+    "c3a6be4f1 fetch_raster через фасад, pilot-air-stage.md по факту"
   ],
   "checks": [
     {
@@ -35,6 +36,11 @@
       "name": "scope",
       "value": "PASS",
       "pass": true
+    },
+    {
+      "name": "no_private_dp",
+      "value": "PASS",
+      "pass": true
     }
   ],
   "not_done": [
@@ -58,6 +64,6 @@
     }
   ],
   "dp_feedback": "Устаревшая tune-библиотека в копии даёт ложные FAIL приёмки; хорошо бы accept предупреждал или собирал.",
-  "t": "2026-10-29T18:36:28",
+  "t": "2026-10-29T18:47:28",
   "by": "executor"
 }

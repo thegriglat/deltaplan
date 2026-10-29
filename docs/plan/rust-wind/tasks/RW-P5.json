@@ -64,10 +64,15 @@
     {
       "name": "debug_layers",
       "tests": "debug_layers"
+    },
+    {
+      "name": "no_private_dp",
+      "cmd": "grep -cE '\\._dp\\b' scripts/atmosphere/wind_field_debug.gd || true",
+      "expect": "num:^(\\d+) <=0"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-29T17:42:50",
-  "edited": "2026-10-29T17:52:44"
+  "edited": "2026-10-29T18:46:25"
 }
