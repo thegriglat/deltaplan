@@ -105,6 +105,8 @@ impl AirModel for Calm {
             reason: String::new(),
             stage: String::new(),
             iters: 0,
+            run: 0,
+            runs: 0,
         }
     }
 

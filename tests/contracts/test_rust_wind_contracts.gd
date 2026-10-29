@@ -11,7 +11,7 @@ extends TestCase
 
 ## Версии разделов — те же, что в заголовках docs/contracts/rust-wind.md и rust-wind/*.md.
 const CONTRACTS := {
-	W1 = 2, W2 = 5, W3 = 7, W4 = 8, W5 = 9, W6 = 4, W7 = 1, W8 = 3, W9 = 2, W10 = 2, W11 = 11
+	W1 = 2, W2 = 6, W3 = 9, W4 = 10, W5 = 10, W6 = 4, W7 = 1, W8 = 3, W9 = 2, W10 = 2, W11 = 11, W12 = 1
 }
 const DOCS: Array[String] = [
 	"res://docs/contracts/rust-wind.md",
@@ -488,6 +488,9 @@ func test_conditions_validation() -> void:
 func test_commands_before_place() -> void:
 	for impl in IMPLS:
 		var a := _make(impl)
+		var st0: Dictionary = a.status()
+		check(st0.has("run") and st0.has("runs"), "%s: status(): ключи run/runs (W2 v6)" % impl)
+		check(int(st0.run) == 0 and int(st0.runs) == 0, "%s: вне решателя run = runs = 0" % impl)
 		check(
 			a.set_conditions({"preset": _preset(), "start_hour": 12.0, "speed": 1.0}) == 0,
 			"%s: set_conditions до load_place — OK" % impl

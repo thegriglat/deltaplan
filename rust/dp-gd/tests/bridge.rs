@@ -23,7 +23,7 @@ fn loaded() -> Bridge {
 
 #[test]
 fn api_version_is_4() {
-    assert_eq!(WIND_API_VERSION, 5);
+    assert_eq!(WIND_API_VERSION, 6);
     assert_eq!(WIND_API_VERSION, i64::from(dp_air::API_VERSION));
 }
 

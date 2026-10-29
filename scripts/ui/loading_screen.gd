@@ -12,6 +12,7 @@ var _stage: Label
 var _bar: ProgressBar
 var _time: Label
 var _note: Label
+var _iter: Label
 var _counter: Label
 var _shown := 0.0
 var _anim := 0.0
@@ -105,6 +106,8 @@ func _build() -> void:
 	_net_label.visible = false
 	UiKit.separator(box)
 	_stage = UiKit.label(box, "", "HeaderLabel")
+	_iter = UiKit.label(box, "", "HintLabel")
+	_iter.visible = false
 	_note = UiKit.label(box, "", "HintLabel")
 	_note.visible = false
 	_counter = UiKit.label(box, "", "HintLabel")
@@ -151,6 +154,9 @@ func _process(dt: float) -> void:
 		base = tr("loading_getting_ready")
 	_stage.text = base + ".".repeat(1 + int(_anim * 2.5) % 3)
 	var note := _progress.note if _progress != null else ""
+	var il := _progress.iter_line if _progress != null else ""
+	_iter.text = il
+	_iter.visible = il != ""
 	_note.text = note
 	_note.visible = note != ""
 	_counter.text = counter_line()
