@@ -1,0 +1,70 @@
+{
+  "status": "done",
+  "summary": "terms::objects::cloud_objects(_into) отдаёт записи W6 v4 (ObjRecord, 22 f32) по state.all с облаком на t; Core.storm у Cb = StormField.intensity через Terms::thermal_cores (cores::cores_with). Записи совпадают с дампом GD (synth_storm, synth_medium; t=0/900/3600 и назад на 10 и 60 с) в 1e-4 отн.",
+  "commits": [
+    "757b37457 cloud_objects W6 v4, Core.storm, дамп GD",
+    "ce35abe39 тесты terms_objects",
+    "f2e14f402 псевдоним типа (clippy)"
+  ],
+  "checks": [
+    {
+      "name": "terms_objects",
+      "value": "6",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "dp_air_no_godot",
+      "value": "0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Зажим t в окно [now - fade_out_s, now] не сделан: крейт не знает now (State.t - время обновления набора); делает фасад RW-12z.",
+    "ObjRecord лежит в terms::objects (lib.rs вне скоупа); W4 v6 ожидает его рядом с Core - перенести в RW-12z."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RW-11f",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/src/terms/objects/mod.rs: unique_ids",
+      "why": "Уникальность id считается по всему state.all; Core.id ядер W6 не корректируется, при коллизии 24 бит id записи и ядра разойдутся. В дампе коллизий не было, ветка коллизии не покрыта тестом.",
+      "checked": "уникальность на реальных наборах (ids_unique_and_ordered)"
+    },
+    {
+      "where": "rust/dp-air/tests/data/RW-11f/cloud_objects.json",
+      "why": "Статичные термики синтетики без облака (has_cloud=false), поэтому флаг 1, life ∓1e30, drift_t0 +1e30 сверены только по контракту, не по дампу GD.",
+      "checked": "дамп записывает эти значения по контракту; статичных записей в дампе 0"
+    },
+    {
+      "where": "rust/dp-air/src/terms/objects/mod.rs: охват по радиусу",
+      "why": "Радиус по центру облака (как в контракте), а не по источнику; ThermalField в GD ограничен generation_radius_m, у state.all границы по радиусу нет отдельной проверки.",
+      "checked": "radius_filters_by_cloud_center"
+    },
+    {
+      "where": "Ongudai / поле Пикара",
+      "why": "Сверка только на синтетике; облака над источниками поля (RW-10d/e) - после слияния этих задач.",
+      "checked": "-"
+    }
+  ],
+  "dp_feedback": "job wait без имени задачи accept не находит фоновый accept --dry (пишет 'не запускался'); полезен вывод accept в файл с итогом в конце.",
+  "extra": {
+    "records_checked_vs_gd": "см. records_match_gd_dump"
+  },
+  "t": "2026-10-29T11:58:54",
+  "by": "executor"
+}

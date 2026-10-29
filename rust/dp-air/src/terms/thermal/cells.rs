@@ -4,14 +4,18 @@
 //! кромка берутся на момент рождения. Порядок `randf` в `spawn` значим и повторяет GDScript.
 //!
 //! Облачные зацепки (`shade_at`) — через [`CloudHooks`](super::CloudHooks), нулевые до RW-11;
-//! источники из поля (`_spawn_air`) — RW-10e.
+//! источники из поля (`_spawn_air`) — [`super::air`] (RW-10e): их «клетки» `ia ≥ AIR_IA`.
+use super::air::AirSrc;
 use super::cfg::ThermalCfg;
 use super::life::{AtmoThermal, cb_thermal_chance, pair};
 use super::{CloudHooks, GroundSource};
 use crate::compat::rng::Pcg32;
 use crate::terms::{Terms, WeatherView, WindModel};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
+
+/// «Клетка» источника поля: `ia = AIR_IA + j` столбца, `ic = i` (далеко за сеткой клеток), `1 << 19`.
+pub const AIR_IA: i64 = 1 << 19;
 
 /// Входы жизни термиков на момент сборки: конфиг, погода, ветер, система клеток, кромка.
 #[derive(Clone, Debug)]
@@ -37,6 +41,8 @@ pub struct Setup {
     /// Край термика для σ: `edge_factor · thermal_edge_k`, `edge_width`.
     pub edge_k: f64,
     pub edge_w: f64,
+    /// Источники из поля (RW-10e): нет — только сетка клеток, без охвата.
+    pub air: Option<AirSrc>,
 }
 
 /// Память о циклах клеток: чистые результаты, не физика (GD: `_cells`, `_empty_cycles`).
@@ -45,6 +51,8 @@ pub struct Memo {
     cells: HashMap<(i64, i64), (f32, f32)>,
     /// id цикла → (термик или `None`, до какого момента помнить).
     ids: HashMap<i64, (Option<Arc<AtmoThermal>>, f64)>,
+    /// id циклов клеток-источников поля (`_air_ids`).
+    air_ids: HashSet<i64>,
     prune_t: f64,
 }
 
@@ -63,6 +71,18 @@ impl Memo {
         }
         self.prune_t = t;
         self.ids.retain(|_, (_, forget)| t <= *forget);
+        let ids = &self.ids;
+        self.air_ids.retain(|id| ids.contains_key(id));
+    }
+
+    /// Забыть память о пустых циклах (`_clear_air_caches` при `air_only`, иначе
+    /// `_clear_dynamic_caches`): живые термики доживают, их циклы заново не рождаются.
+    pub fn clear_empty(&mut self, air_only: bool) {
+        let air = &self.air_ids;
+        self.ids
+            .retain(|id, (th, _)| th.is_some() || (air_only && !air.contains(id)));
+        let ids = &self.ids;
+        self.air_ids.retain(|id| ids.contains_key(id));
     }
 
     pub fn len(&self) -> usize {
@@ -87,6 +107,14 @@ impl Setup {
             && self.static_only == o.static_only
             && self.cloudbase_msl == o.cloudbase_msl
             && self.ins == o.ins
+            && self.sources_id() == o.sources_id()
+    }
+
+    /// Какими источниками поля пользуются (для `same_env`): адрес набора.
+    fn sources_id(&self) -> usize {
+        self.air
+            .as_ref()
+            .map_or(0, |a| Arc::as_ptr(&a.src) as usize)
     }
 
     /// Сборка из снимка слагаемых; `cfg` — разобранный конфиг, `ground_ref` — средняя высота
@@ -127,6 +155,7 @@ impl Setup {
             cfg,
             w,
             wind,
+            air: None,
         };
         s.update_wind_frame();
         s
@@ -216,29 +245,80 @@ impl Setup {
         period * if cb { self.cfg.cb_factor() } else { 1.0 } + self.cfg.cloud_linger_s
     }
 
-    /// Все клетки круга вокруг фокуса `(fx, fz)` на момент `t`: живые термики цикла (`_gen_cell`).
+    /// Все клетки кругов вокруг фокусов `focuses` на момент `t`: живые термики цикла (`_gen_cell`).
+    /// Охват — объединение кругов генерации всех фокусов: клетки сетки и источники поля (круг
+    /// радиуса `generation_radius_m`); живые термики прежних источников поля доживают.
+    #[allow(clippy::too_many_arguments)]
     pub fn generate(
         &self,
         memo: &mut Memo,
         ground: &dyn GroundSource,
         hooks: &dyn CloudHooks,
         t: f64,
-        focus: [f64; 2],
+        focuses: &[[f64; 2]],
         out: &mut Vec<Arc<AtmoThermal>>,
     ) {
-        if self.spacing <= 0.0 || !self.spacing.is_finite() {
-            return;
+        let grid_ok = self.spacing > 0.0 && self.spacing.is_finite();
+        let mut seen: HashSet<(i64, i64)> = HashSet::new();
+        let multi = focuses.len() > 1;
+        if grid_ok {
+            let r2 = self.circle_r2();
+            let n = (self.cfg.generation_radius_m / self.spacing).ceil() as i64;
+            for f in focuses {
+                let (fa, fc) = self.focus_cell(f[0], f[1]);
+                for dc in -n..=n {
+                    for da in -n..=n {
+                        if ((da * da + dc * dc) as f64) > r2 {
+                            continue;
+                        }
+                        let cell = (fa + da, fc + dc);
+                        if multi && !seen.insert(cell) {
+                            continue;
+                        }
+                        self.gen_cell(memo, ground, hooks, cell.0, cell.1, t, out);
+                    }
+                }
+            }
         }
-        let (fa, fc) = self.focus_cell(focus[0], focus[1]);
-        let r2 = self.circle_r2();
-        let n = (self.cfg.generation_radius_m / self.spacing).ceil() as i64;
-        for dc in -n..=n {
-            for da in -n..=n {
-                if ((da * da + dc * dc) as f64) > r2 {
+        // источники поля в круге генерации
+        let gen_r = self.cfg.generation_radius_m;
+        if let Some(air) = &self.air {
+            let nx = air.src.dims().0 as i64;
+            for f in focuses {
+                for s in air.src.sources_in(*f, gen_r, [0.0, 0.0]) {
+                    let c = air.src.col[s] as i64;
+                    let cell = (AIR_IA + c / nx, c % nx);
+                    if multi && !seen.insert(cell) {
+                        continue;
+                    }
+                    self.gen_cell(memo, ground, hooks, cell.0, cell.1, t, out);
+                }
+            }
+        }
+        // прежние источники: живые термики доживают, пока их источник в круге (`_job_erase`)
+        if !memo.air_ids.is_empty() {
+            let have: HashSet<i64> = out.iter().map(|th| th.id).collect();
+            let gr2 = (gen_r + self.spacing.max(0.0)) * (gen_r + self.spacing.max(0.0));
+            let linger = self.cfg.cloud_linger_s;
+            let mut extra: Vec<Arc<AtmoThermal>> = Vec::new();
+            for id in &memo.air_ids {
+                if have.contains(id) {
                     continue;
                 }
-                self.gen_cell(memo, ground, hooks, fa + da, fc + dc, t, out);
+                if let Some((Some(th), _)) = memo.ids.get(id)
+                    && t <= th.t_end() + linger
+                {
+                    let (sx, sz) = (f64::from(th.src[0]), f64::from(th.src[2]));
+                    if focuses
+                        .iter()
+                        .any(|f| (sx - f[0]) * (sx - f[0]) + (sz - f[1]) * (sz - f[1]) <= gr2)
+                    {
+                        extra.push(th.clone());
+                    }
+                }
             }
+            extra.sort_by_key(|th| th.id);
+            out.extend(extra);
         }
     }
 
@@ -304,6 +384,9 @@ impl Setup {
         if let Some(th) = th.as_mut() {
             th.cycle_forget = forget;
         }
+        if ia >= AIR_IA {
+            memo.air_ids.insert(id);
+        }
         let th = th.map(Arc::new);
         match &th {
             Some(a) if t <= a.t_end() + linger => {
@@ -328,6 +411,9 @@ impl Setup {
         t_start: f64,
         period: f64,
     ) -> Option<AtmoThermal> {
+        if ia >= AIR_IA {
+            return self.spawn_air(ia, ic, id, t_start, period, hooks);
+        }
         let cfg = &self.cfg;
         let w = &self.w;
         let mut rng = Pcg32::from_seed(id as u64);
@@ -367,6 +453,12 @@ impl Setup {
             }
         }
         let (bx, bz) = (f64::from(best[0]), f64::from(best[1]));
+        // там, где термики берутся из поля, свои источники: клетка не рождает
+        if let Some(a) = &self.air
+            && a.covers(bx, bz)
+        {
+            return None;
+        }
         // тень облака поля на источнике (RW-11; пока 0)
         let shade = hooks.shade_at(bx, bz, self.sun) * cfg.cloud_shade_factor;
         best_sun *= 1.0 - shade;

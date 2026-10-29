@@ -1,0 +1,117 @@
+{
+  "status": "done",
+  "summary": "Облака в крейте: terms/clouds (CloudField, sources::prepare, CloudPhysics с suck/density_at/sample/visible_clouds/shade_at, CloudSlot в Terms, CloudExtra в ExtraSet, pub cloud_raster/clouds/cloud_density_many, impl CloudHooks для RW-10f). Растр и физика совпадают с GD-дампом опорной ревизии побитно (поле) и до 1e-5 отн. (suck/плотность Cb, f32 Vector в GD).",
+  "commits": [
+    "RW-11d облака в крейте (CloudField, источники, CloudPhysics, слот cloud, описания W6)",
+    "RW-11d слот облаков в Terms (не в Slots), fmt",
+    "RW-11d advance публикует снимок только при шаге поля или наличии Cb"
+  ],
+  "checks": [
+    {
+      "name": "terms_clouds",
+      "value": "21 тест; растр vs GD: макс. расхождение cover/depth/stage/activity = 0 (Онгудай t=0/900/3600, шаги, разгон k=5..120, переход входов 60 с, синтетика x5, аналитика)",
+      "pass": true
+    },
+    {
+      "name": "sample/density_at/shade_at поля vs GD (Онгудай, 900 точек)",
+      "value": "sample 0, density 7e-9, shade 7e-9",
+      "pass": true
+    },
+    {
+      "name": "physics: suck/sample/density/visible_clouds vs GD",
+      "value": "suck отн. <1e-4 (1,9e-5), density 2,4e-6, visible совпадает",
+      "pass": true
+    },
+    {
+      "name": "слагаемое cloud vs эталоны W8 (synth_weak/medium/strong/storm, 516 точек, в т.ч. above_base)",
+      "value": "в допуске 0,05 м/с + 2 %; ненулевых 9",
+      "pass": true
+    },
+    {
+      "name": "clouds() vs desc.json (поле и Cb)",
+      "value": "30 облаков поля, 12 Cb: число равно, центр<=50, база/верх<=10, growth/decay<=0,05",
+      "pass": true
+    },
+    {
+      "name": "замер (release, Онгудай 96x96)",
+      "value": "шаг 20 с 0,43 мс; разгон 2400 с 56 мс; prepare 4 мс",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "exit=0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit=0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit=0",
+      "pass": true
+    },
+    {
+      "name": "dp_air_no_godot",
+      "value": "0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Бурление в облаке (chaos_noise = gust_unit ветровой рамки): в крейте нет gust_unit (RW-9) - возвращаются нули; σ бурления и поток к краю считаются",
+    "Сквозная проверка с полем Пикара и AirThermals из Terms (вход CloudInputs для пути поле+air): после RW-10e/RW-12z; сверено на тех же входах из запечённого поля RW-10d и синтетики",
+    "Подключение CloudHooks (suck, shade_at) к слоту термиков - RW-10f (Terms::cloud_physics() отдаёт Arc<CloudPhysics>)",
+    "Растр cloud_raster/clouds/cloud_density_many - pub-функции terms::clouds; методы AirModel подключает RW-12z"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RW-11d --dry",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/src/terms/clouds/mod.rs:AnalyticInputs",
+      "why": "Аналитический путь берёт кромку и ground_ref из Setup слота thermal (cloudbase_msl - cloudbase_agl_m); GD берёт env.cb и cloudbase_ref. Совпадение на synth_* в допуске, на местах с полем - не проверено",
+      "checked": "synth_weak/medium/strong/storm: cloud term и clouds desc"
+    },
+    {
+      "where": "rust/dp-air/src/terms/clouds/mod.rs:CloudSlot::advanced",
+      "why": "start_at(t) = reset(t) на входах момента t (как GD), а не история входов; от прогона с 0 шагом 1 с отличается (cover mean 0,0025 vs 0,0026, max 0,07). W2 'как после прогона с 0' выполняется только в смысле детерминизма и независимости от истории",
+      "checked": "тест start_at_deterministic_and_close_to_run_from_zero"
+    },
+    {
+      "where": "rust/dp-air/src/terms/clouds/physics.rs:build_objects",
+      "why": "Cb-объекты строятся на момент последнего advance (раз в 0,1 с), как _refresh_objects; порядок записей в ячейке сетки зависит от порядка State.all (в GD - порядок словаря thermals) и влияет только при равной плотности",
+      "checked": "clouds_desc_vs_w8, physics_*"
+    },
+    {
+      "where": "rust/dp-air/src/terms/mod.rs:Terms.clouds",
+      "why": "Слот облаков лежит в Terms.clouds, а не в Slots (в Slots литерал в terms_sum.rs вне скоупа сломался бы); регистрация CloudExtra - одна строка в Slots::new",
+      "checked": "cargo test --workspace"
+    },
+    {
+      "where": "rust/dp-air/tests/runtime.rs picard_cancel_during_the_setup_returns_within_the_limit",
+      "why": "Один раз упал по таймингу (305 мс) при параллельной нагрузке в accept; отдельно проходит; к облакам отношения не имеет",
+      "checked": "повторный прогон"
+    },
+    {
+      "where": "rust/dp-air/src/terms/clouds/field.rs:set_inputs",
+      "why": "Шаг поля 0,43 мс на грани бюджета advance_to 0,5 мс (W3) + клон поля 0,5 МБ при каждом шаге; разгон 56 мс и prepare 4 мс при смене ключа входов - в advance/start_at синхронно",
+      "checked": "тест timing_step_and_spinup (release)"
+    },
+    {
+      "where": "rust/dp-air/src/terms/mod.rs:advance_clouds",
+      "why": "advance() возвращает true только при шаге поля/наличии Cb-объектов (иначе ломался тест ритма термиков); пустое обновление объектов не публикуется",
+      "checked": "terms_thermal advance_cadence_and_inputs, cargo test --workspace"
+    }
+  ],
+  "dp_feedback": "task sync отказывает при грязной копии - удобно, но job wait accept --dry в foreground упирается в 120 с лимит Bash; полезен режим accept --dry --wait с выводом по мере выполнения.",
+  "extra": {
+    "reference": "tests/data/RW-11d (ref.json+ref.bin 1,2 МБ, dump_clouds.gd, run_dump.sh, manifest.json), ревизия c591b1026",
+    "list_after": [
+      "после RW-10e: сквозная сверка растра на Онгудае с AirThermals из Terms",
+      "после RW-9: chaos_noise (gust_unit)",
+      "RW-10f: подключить Terms::cloud_physics() как CloudHooks"
+    ]
+  },
+  "t": "2026-10-29T12:14:30",
+  "by": "executor"
+}

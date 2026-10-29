@@ -37,8 +37,10 @@
 //!   `simple_profile`) и `WeatherView` (словарь выведенной погоды, ключи как у GD; заполняет
 //!   RW-12b; пока — из условий: пресет или прогноз).
 pub mod analytic;
+pub mod clouds;
 mod decompose;
 mod frame;
+pub mod objects;
 mod slots;
 pub mod storm;
 mod sum;
@@ -49,6 +51,7 @@ pub mod waves;
 mod weather_link;
 
 use crate::field::field_set::FieldSet;
+use crate::field::wind_field::Field;
 use crate::place::Place;
 use crate::{Conditions, Configs, Focus, SampleMode};
 pub use decompose::{
@@ -126,10 +129,11 @@ impl Slots {
             analytic: Arc::new(analytic::AnalyticSlot::unconfigured()), // RW-9
             thermal: Arc::new(thermal::ThermalSlot::empty()),           // RW-10b
             extra: Arc::new(ExtraSet::new(vec![
-                Arc::new(storm::StormExtra::new()), // RW-11c
-                Arc::new(waves::WaveExtra::new()),  // RW-11b
-            ])), // RW-11d: облако — одна строка здесь
-            turb: Arc::new(NoTurb),                                     // RW-8
+                Arc::new(storm::StormExtra::new()),  // RW-11c
+                Arc::new(waves::WaveExtra::new()),   // RW-11b
+                Arc::new(clouds::CloudExtra::new()), // RW-11d
+            ])),
+            turb: Arc::new(NoTurb), // RW-8
         }
     }
 }
@@ -155,6 +159,13 @@ pub struct Terms {
     pub statics_mode: u8,
     /// Направление на солнце (`set_sun_direction`).
     pub sun: Option<[f32; 3]>,
+    /// Самый грубый уровень поля воздуха: по нему собираются источники термиков
+    /// (`set_air_field`); нет — термики только по клеткам.
+    pub air: Option<Arc<Field>>,
+    /// Ветер прогноза на 10 м для источников из поля, м/с (`None` — `wind_speed_kmh` погоды).
+    pub air_u10: Option<f64>,
+    /// Термики пересобираются в фоне (`advance` не ждёт): `true` при `air.deterministic = false`.
+    pub thermal_async: bool,
     pub slots: Slots,
     /// Направление ветра, по которому построена линия тени рельефа (единичный `(x, z)`, f32 как в
     /// GD). Меняется при повороте ветра больше `ground.wind_dir_tolerance_deg` (RW-9).
@@ -163,6 +174,8 @@ pub struct Terms {
     pub ground_tol_deg: f64,
     /// Режим `air_model.enabled = off`: упрощённый профиль ветра 0.8.0 (RW-9, `analytic::off`).
     pub air_off: bool,
+    /// Облака (RW-11d): снимок физики облаков, обновляет `advance`/`start_at`.
+    pub clouds: Arc<clouds::CloudSlot>,
     /// Погода во времени (RW-12d, `weather_link.rs`): состояние, место, версии.
     link: weather_link::WeatherLink,
 }
@@ -180,10 +193,14 @@ impl Default for Terms {
             statics: Vec::new(),
             statics_mode: 0,
             sun: None,
+            air: None,
+            air_u10: None,
+            thermal_async: false,
             slots: Slots::new(),
             ground_dir: [0.0, 1.0],
             ground_tol_deg: 5.0,
             air_off: false,
+            clouds: Arc::new(clouds::CloudSlot::analytic()),
             link: Default::default(),
         }
     }
@@ -194,6 +211,11 @@ impl Terms {
         self.configs = configs.clone();
         self.seed = seed;
         self.cfg = SumCfg::from_configs(configs);
+        // детерминированный режим (`air.deterministic`): фона нет, всё считается в `advance`
+        let det = named_json(configs, "atmosphere")
+            .and_then(|a| a.pointer("/air/deterministic").and_then(Value::as_bool))
+            .unwrap_or(false);
+        self.thermal_async = !det;
         self.weather_configure();
         let ref_msl = self.wind.ref_msl;
         self.wind = WindModel::new(WindCfg::from_configs(configs));
@@ -240,26 +262,64 @@ impl Terms {
     /// `floor(t / refresh_interval_s)`, условий, ветра, статичных.
     pub fn advance(&mut self, t: f64) -> bool {
         let w = self.advance_weather(t);
-        match self.slots.thermal.advanced(self, t, false) {
+        let th = match self.slots.thermal.advanced(self, t, false) {
             Some(n) => {
                 self.slots.thermal = n;
                 true
             }
-            None => w,
+            None => false,
+        };
+        let cl = self.advance_clouds(t, false);
+        // подсос видит облака этого шага (в GD `update_time` пишет параметры термиков по текущим
+        // облакам), порождение термиков - прежние (`refresh_now`: термики раньше облаков)
+        let sy = match self.slots.thermal.synced_with_clouds(self) {
+            Some(n) => {
+                self.slots.thermal = n;
+                true
+            }
+            None => false,
+        };
+        w || th || cl || sy
+    }
+
+    /// Обновить облака; `true` - публикация нужна: поле шагнуло или есть Cb-объекты (их центры
+    /// движутся). Пустое обновление объектов (облаков-объектов нет) снимок не публикует.
+    fn advance_clouds(&mut self, t: f64, force: bool) -> bool {
+        match self.clouds.advanced(self, t, force) {
+            Some(n) => {
+                let (a, b) = (self.clouds.physics(), n.physics());
+                let publish =
+                    force || a.version != b.version || a.objects.count > 0 || b.objects.count > 0;
+                self.clouds = n;
+                publish
+            }
+            None => false,
         }
+    }
+
+    /// Поставщик входов поля облаков (`Field` + `AirThermals` - RW-10e/RW-12z).
+    pub fn set_cloud_inputs(&mut self, inputs: Arc<dyn clouds::CloudInputs>) {
+        self.clouds = Arc::new(self.clouds.with_inputs(inputs));
+    }
+
+    /// Снимок физики облаков (крючки `CloudHooks` для термиков).
+    pub fn cloud_physics(&self) -> &Arc<clouds::CloudPhysics> {
+        self.clouds.physics()
     }
 
     /// Хук `start_at`: состояние слагаемых на `t` как после прогона с 0 (W2). Погода — ход дня на `t`
     /// (чистая функция времени); термики — чистая функция (клетка, цикл), набор строится на `t` сразу.
     pub fn start_at(&mut self, t: f64) -> bool {
         let w = self.advance_weather(t);
-        match self.slots.thermal.advanced(self, t, true) {
+        let th = match self.slots.thermal.advanced(self, t, true) {
             Some(n) => {
                 self.slots.thermal = n;
                 true
             }
-            None => w,
-        }
+            None => false,
+        };
+        let cl = self.advance_clouds(t, true);
+        w || th || cl
     }
 
     /// Земля для термиков (высота, вода, сила источника): `thermal::PlaceGround` или своя.
@@ -268,15 +328,63 @@ impl Terms {
         self.slots.thermal = Arc::new(thermal::ThermalSlot::new(g));
     }
 
+    /// Поле воздуха для источников термиков: берётся самый грубый (последний) уровень.
+    /// `u10` — ветер прогноза на 10 м (нет — из погоды). Источники пересоберутся при следующем
+    /// `advance`/`start_at`.
+    pub fn set_air_field(&mut self, levels: &[Arc<Field>], u10: Option<f64>) {
+        self.air = levels.last().cloned();
+        self.air_u10 = u10;
+    }
+
+    /// Ветер прогноза на 10 м, м/с: заданный или `wind_speed_kmh` погоды.
+    pub fn air_u10(&self) -> f64 {
+        self.air_u10
+            .unwrap_or_else(|| self.weather.f64_or("wind_speed_kmh", 0.0) / 3.6)
+    }
+
+    /// Земля термиков из места W5: высота по растру, вода, сила источника по растрам
+    /// (`thermal_src`) на час `hour` (нет — статичное солнце `world.json → sun`, без воды и ночи, как у случаев
+    /// W8 без `AtmoDay`). Конфиги — те, что в `configure`.
+    pub fn set_thermal_place(
+        &mut self,
+        place: Arc<crate::place::Place>,
+        hour: Option<thermal_src::SourceHour>,
+    ) -> Result<(), crate::Error> {
+        let cfg = thermal_src::SourceCfg::from_configs(&self.configs)?;
+        // без часа — статичное солнце мира (`world.json → sun`, `Terrain.refresh_sun`)
+        let hr = hour.unwrap_or_else(|| {
+            let w = named_json(&self.configs, "world").unwrap_or(Value::Null);
+            let g = |k: &str, d: f64| w.pointer(k).and_then(Value::as_f64).unwrap_or(d);
+            thermal_src::SourceHour::uniform(crate::field::sun::sun_direction(
+                g("/sun/azimuth_deg", 180.0),
+                g("/sun/elevation_deg", 45.0),
+            ))
+        });
+        let p2 = place.clone();
+        let src: Arc<thermal::SourceFn> =
+            Arc::new(move |x, z, _t| f64::from(thermal_src::source_strength(&p2, &cfg, &hr, x, z)));
+        self.set_thermal_ground(Arc::new(thermal::PlaceGround::new(place, src)));
+        Ok(())
+    }
+
     /// Ядра подъёма W6 (`AirModel::cores` подключит RW-12z): на момент `t`.
+    /// Поле `storm` ядра Cb - интенсивность грозы (`StormField.intensity`, RW-11f).
     pub fn thermal_cores(&self, center: [f32; 3], radius: f32, t: f64, out: &mut Vec<crate::Core>) {
-        self.slots.thermal.cores(center, radius, t, out);
+        match self.slots.thermal.as_slot().and_then(|s| s.state()) {
+            Some(st) => {
+                let f = storm::field_of(self, storm::StormCfg::from_configs(&self.configs));
+                thermal::cores::cores_with(st, center, radius, t, out, &|th, t| f.intensity(th, t));
+            }
+            None => self.slots.thermal.cores(center, radius, t, out),
+        }
     }
 
     /// Выгрузка места: условия и конфиги остаются, фокусы и статические термики — нет.
     pub fn unload_place(&mut self) {
         self.focuses.clear();
         self.statics.clear();
+        self.air = None;
+        self.slots.thermal = Arc::new(thermal::ThermalSlot::empty());
         self.weather_unload_place();
     }
 }

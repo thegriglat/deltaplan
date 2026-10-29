@@ -54,3 +54,15 @@ related: ["docs/research/rust-wind-stage3-path.md", "docs/plan/rust-wind.md"]
 | RW-12d | `terms/weather_link.rs` `PlaceLink::of`, `ref_msl` | start_msl_m и ref_msl = NaN (GD ставит h_msl старта для ref_msl); t0 хода дня = 0 как в GD `_f_build` | RW-12z: сверка фасада с Godot в итоговом прогоне |
 | RW-12d | `weather_link.rs` `advance_weather` | true на каждом слоте 0,1 с хода дня — фасад будет пересобирать часто | RW-12z: порог изменения |
 | RW-9 | `tests/terms_analytic.rs:248` после слияния с RW-11b | synth_wave: σ аналитики больше эталона на 0,079 (90/93) — волна попадает в σ аналитики? | RW-9 доработка (note) |
+| RW-10e | `terms/thermal/air.rs` `PickAdapter` / растр места W5 | на растровой силе 4,8 % ядер (81/1692) с другим местом: класс узла 25 м против маски 10 м у границ классов; на силе из журнала GD — в допуске W8 | итоговая проверка: маска 10 м в растре места (W5) или принять |
+| RW-10e | `tests/data/RW-10e` | 4,96 МиБ — у края бюджета 5 МБ; журнал силы strong/wave в f32 (GD — f64) | RW-12z/итог: не расти |
+| RW-10e | `terms/thermal/mod.rs` `advance_bg` | фоновая пересборка под нагрузкой не проверялась | итоговый прогон T1 |
+| RW-11d | `terms/clouds/mod.rs` `AnalyticInputs` | кромка и ground_ref аналитического пути — из Setup слота термиков, у GD env.cb/cloudbase_ref; на местах с полем не сверено | итоговый прогон |
+| RW-11d | `terms/clouds/mod.rs` `CloudSlot::advanced` | start_at(t) = reset на входах момента t (как GD), от прогона с 0 отличается (cover max 0,07) | W2 «как после прогона с 0» — в смысле детерминизма; итог |
+| RW-11d | `terms/clouds/field.rs` `set_inputs` | шаг поля 0,43 мс при бюджете advance_to 0,5 мс + клон 0,5 МБ на шаг; разгон 56 мс и prepare 4 мс синхронно при смене ключа | RW-12z: бенч W3, фон |
+| RW-11d | `terms/clouds` chaos_noise | бурление в облаке — нули (gust_unit ветровой рамки нет до RW-9) | после RW-9 |
+| RW-11d | `terms/mod.rs` `Terms.clouds` | слот облаков в Terms, не в Slots | RW-12z |
+| RW-11d | `tests/terms_clouds.rs:828`, `:1078` | assert «установилось» почти пуст (`|| q_full > 0.0`); слагаемое cloud против W8 — 9 ненулевых из 516 точек | RW-10f: сверка above_base шире |
+| RW-10f | `terms/thermal/mod.rs` `rebuild`, `Terms::advance` `synced_with_clouds` | порядок шага (порождение — облака до шага, подсос — после) выведен из GD refresh_now; T6 start_at ≠ прогон с 0 при облаках (и в GD) | RW-12z: W2 v4 формулировка start_at |
+| RW-10f | `terms/thermal/mod.rs` `cloud_changed` | смена только cloud_size_factor без шага поля подхватится при следующей version | итоговый прогон |
+| RW-10f | `tests/terms_thermal_cloud.rs` `AirInputs` | входы поля облаков собраны в тесте (аналог CloudFieldSources.prepare с air); в игре — RW-12z | RW-12z: подключить CloudInputs из Field+AirThermals в Terms |
