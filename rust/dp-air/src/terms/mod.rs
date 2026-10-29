@@ -39,6 +39,7 @@
 mod decompose;
 mod frame;
 mod slots;
+pub mod storm;
 mod sum;
 pub mod thermal;
 pub mod thermal_air;
@@ -55,7 +56,7 @@ pub use decompose::{
 pub use frame::{AIR_CASE_Z0, WeatherView, WindCfg, WindModel};
 use serde_json::{Map, Value};
 pub use slots::{
-    Analytic, AnalyticMean, AnalyticTurb, Extra, ExtraOut, ExtraParts, NoAnalytic, NoExtra,
+    Analytic, AnalyticMean, AnalyticTurb, Extra, ExtraOut, ExtraSet, NoAnalytic, NoExtra,
     NoThermal, NoTurb, Thermal, ThermalOut, Turb, TurbMean, TurbOut,
 };
 use std::sync::Arc;
@@ -121,12 +122,11 @@ impl Slots {
         Slots {
             analytic: Arc::new(NoAnalytic),                   // RW-9
             thermal: Arc::new(thermal::ThermalSlot::empty()), // RW-10b
-            extra: Arc::new(ExtraParts {
-                storm: Arc::new(NoExtra),                // RW-11c
-                wave: Arc::new(waves::WaveExtra::new()), // RW-11b
-                cloud: Arc::new(NoExtra),                // RW-11d
-            }),
-            turb: Arc::new(NoTurb), // RW-8
+            extra: Arc::new(ExtraSet::new(vec![
+                Arc::new(storm::StormExtra::new()), // RW-11c
+                Arc::new(waves::WaveExtra::new()),  // RW-11b
+            ])), // RW-11d: облако — одна строка здесь
+            turb: Arc::new(NoTurb),                           // RW-8
         }
     }
 }

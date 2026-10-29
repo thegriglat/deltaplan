@@ -117,58 +117,6 @@ pub trait Extra: Send + Sync {
     }
 }
 
-/// Слот `Extra` из трёх независимых частей: гроза (RW-11c), волна (RW-11b), облако (RW-11d).
-/// Каждая часть отвечает за свои поля `ExtraOut`: `storm`/`sigma_storm`, `wave`/`sigma_rotor`,
-/// `cloud`/`chaos`; поля других частей из ответа части игнорируются. Все `None` — `None`.
-/// Замена части — одна строка в `Slots::new`.
-#[derive(Clone)]
-pub struct ExtraParts {
-    pub storm: Arc<dyn Extra>,
-    pub wave: Arc<dyn Extra>,
-    pub cloud: Arc<dyn Extra>,
-}
-
-impl Extra for ExtraParts {
-    fn flow(&self, c: &Ctx, v: [f64; 3]) -> Option<ExtraOut> {
-        let s = self.storm.flow(c, v);
-        let w = self.wave.flow(c, v);
-        let cl = self.cloud.flow(c, v);
-        if s.is_none() && w.is_none() && cl.is_none() {
-            return None;
-        }
-        let mut o = ExtraOut::default();
-        if let Some(s) = s {
-            o.storm = s.storm;
-            o.sigma_storm = s.sigma_storm;
-        }
-        if let Some(w) = w {
-            o.wave = w.wave;
-            o.sigma_rotor = w.sigma_rotor;
-        }
-        if let Some(cl) = cl {
-            o.cloud = cl.cloud;
-            o.chaos = cl.chaos;
-        }
-        Some(o)
-    }
-    fn chaos_noise(&self, c: &Ctx) -> [f64; 3] {
-        self.cloud.chaos_noise(c)
-    }
-    fn crests(
-        &self,
-        terms: &Terms,
-        place: &Place,
-        center: [f32; 2],
-        radius: f32,
-        min_eta: f32,
-        spacing: f32,
-        out: &mut Vec<Crest>,
-    ) {
-        self.wave
-            .crests(terms, place, center, radius, min_eta, spacing, out);
-    }
-}
-
 /// Поле: поправка среднего горизонтали (`-a·0,22·U_H·lee_f·danger·unres·…`, `dh` вдоль ветра).
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct TurbMean {
@@ -208,5 +156,72 @@ pub struct NoThermal;
 impl Thermal for NoThermal {}
 pub struct NoExtra;
 impl Extra for NoExtra {}
+
+/// Составной слот `Extra`: гроза (RW-11c), волна (RW-11b), облако (RW-11d) - каждая часть
+/// заполняет свои поля `ExtraOut` (остальные нули), `flow` складывает выдачи частей. Новую часть
+/// добавляет одна строка в `Slots::new`.
+pub struct ExtraSet {
+    pub parts: Vec<Arc<dyn Extra>>,
+}
+
+impl ExtraSet {
+    pub fn new(parts: Vec<Arc<dyn Extra>>) -> Self {
+        ExtraSet { parts }
+    }
+}
+
+impl Extra for ExtraSet {
+    fn flow(&self, c: &Ctx, v: [f64; 3]) -> Option<ExtraOut> {
+        let mut acc: Option<ExtraOut> = None;
+        for p in &self.parts {
+            let Some(o) = p.flow(c, v) else { continue };
+            acc = Some(match acc {
+                None => o,
+                Some(a) => ExtraOut {
+                    storm: add3(a.storm, o.storm),
+                    wave: add3(a.wave, o.wave),
+                    cloud: add3(a.cloud, o.cloud),
+                    sigma_storm: a.sigma_storm + o.sigma_storm,
+                    sigma_rotor: a.sigma_rotor + o.sigma_rotor,
+                    chaos: a.chaos + o.chaos,
+                },
+            });
+        }
+        acc
+    }
+
+    /// Гребни волн — у первой части, что их отдала (волна).
+    fn crests(
+        &self,
+        terms: &Terms,
+        place: &Place,
+        center: [f32; 2],
+        radius: f32,
+        min_eta: f32,
+        spacing: f32,
+        out: &mut Vec<Crest>,
+    ) {
+        out.clear();
+        for p in &self.parts {
+            p.crests(terms, place, center, radius, min_eta, spacing, out);
+            if !out.is_empty() {
+                return;
+            }
+        }
+    }
+
+    fn chaos_noise(&self, c: &Ctx) -> [f64; 3] {
+        // шум бурления даёт часть, у которой есть `chaos` (облако); остальные возвращают нули
+        let mut n = [0.0; 3];
+        for p in &self.parts {
+            n = add3(n, p.chaos_noise(c));
+        }
+        n
+    }
+}
+
+fn add3(a: [f64; 3], b: [f64; 3]) -> [f64; 3] {
+    [a[0] + b[0], a[1] + b[1], a[2] + b[2]]
+}
 pub struct NoTurb;
 impl Turb for NoTurb {}
