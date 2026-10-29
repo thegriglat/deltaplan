@@ -584,7 +584,7 @@ fn empty_window_levels_means_no_windows_and_the_area_only_path() {
         "same field with or without a focus"
     );
     // побитно как до RW-6o (RW-6t): хеш FNV-1a от выборки, снятый на коммите 90fe2ff; с RW-6v
-    // (W11 v9: грубый старт обнуляет стенки и землю, как K_BC) — снят заново на коде v9
+    // (W11 v9: грубый старт обнуляет стенки и землю, как K_BC) и RW-U4 (W11 v11: θ′ = 0 во всех не-неизвестных клетках) — снят заново на коде v11
     // RW-8: σ слота Turb в хеш не входит (хеш снят при σ = 0)
     let h = a
         .chunks(4)
@@ -593,7 +593,7 @@ fn empty_window_levels_means_no_windows_and_the_area_only_path() {
         .fold(0xcbf2_9ce4_8422_2325u64, |h, b| {
             (h ^ u64::from(b)).wrapping_mul(0x0100_0000_01b3)
         });
-    assert_eq!(h, 0x0a1f_dff1_73cb_b395, "behaviour of RW-6t: {h:016x}");
+    assert_eq!(h, 0xa5ec_66d9_9d17_2394, "behaviour of RW-6t: {h:016x}");
 }
 
 // ---------------------------------------------------------------- (7) детерминизм

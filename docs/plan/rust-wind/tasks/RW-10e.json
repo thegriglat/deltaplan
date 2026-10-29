@@ -1,0 +1,93 @@
+{
+  "id": "RW-10e",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Термики из поля в жизни термиков: _spawn_air/_air_launch, пересборка источников по ключу, «между», охват по фокусам; земля места в слоте Thermal",
+  "goal": "Слот Thermal на реальном месте: земля места (сила источника RW-10c, вода, высота) подключена, источники из поля (RW-10d) рождают термики как _spawn_air/_air_launch GD, пересборка по ключу (кромка, thermal_duty, солнце) — фоном или с ограничением частоты, «между», охват covers и ядра вокруг фокусов; thermal и cores ongudai_* (кроме above_base) — в допуске W8 v2.",
+  "plan_ref": "План переноса",
+  "contracts": [
+    {
+      "name": "W4",
+      "version": "5",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W5",
+      "version": "8",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W6",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W7",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W10",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-10e",
+  "branch": "rust-wind/RW-10e",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/terms/thermal/",
+    "rust/dp-air/src/terms/thermal_air/",
+    "rust/dp-air/src/terms/thermal_src/",
+    "rust/dp-air/src/terms/mod.rs",
+    "rust/dp-air/src/terms/slots.rs",
+    "rust/dp-air/tests/terms_thermal_field.rs",
+    "rust/dp-air/tests/terms_thermal.rs",
+    "rust/dp-air/tests/data/RW-10e/"
+  ],
+  "dont_touch": [
+    "rust/dp-air/src/formula.rs",
+    "rust/dp-air/src/field/",
+    "rust/picard_rs/",
+    "rust/dp-gd/",
+    "scripts/",
+    "tests/fixtures/",
+    "docs/contracts/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "terms_thermal_field",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test terms_thermal_field",
+      "expect": "num:test result: ok\\. (\\d+) >=6"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dp_air_no_godot",
+      "cmd": "cargo tree --manifest-path rust/Cargo.toml -p dp-air -e normal | grep -ci godot || true",
+      "expect": "num:^(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T06:15:49"
+}
