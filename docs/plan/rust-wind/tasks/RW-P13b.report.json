@@ -1,0 +1,47 @@
+{
+  "status": "done",
+  "summary": "StageCounter::snapshot() читает этап, run, runs, iters одним согласованным снимком под счётчиком поколений (enter и plan теперь целиком внутри transfer); Formula::status() берёт его. Добавлены тест new_run_resets_iters и проверка монотонности iters в stage_runs.",
+  "commits": [
+    "93be06142 dp-air: status() — согласованный снимок этапа; тест сброса итераций"
+  ],
+  "checks": [
+    {
+      "name": "stage_runs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "exit 0 (полный accept; в dry field_export упал по таймауту 120 с при load ~30, не регрессия)",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RW-P13b (cargo_test — на незагруженной машине)",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/tests/field_export.rs:103",
+      "why": "no field in 120 s: тест на грани таймаута при перегрузке CPU (база 107 с, с правкой 100 с); моей правкой не вызвано",
+      "checked": "прогон на базе (HEAD~1) и с правкой — оба проходят за ~100 с, под нагрузкой падают"
+    },
+    {
+      "where": "rust/dp-air/src/field/runtime.rs:StageCounter::snapshot",
+      "why": "солверный cur пишется решателем вне seqlock, поэтому iters в снимке может отставать на шаг; этап/run/runs согласованы",
+      "checked": "тест new_run_resets_iters и опросный stage_runs"
+    }
+  ],
+  "dp_feedback": "accept под высокой нагрузкой даёт ложные красные из-за жёстких таймаутов тестов (120 с); нужен учёт load.",
+  "t": "2026-10-30T03:12:21",
+  "by": "executor"
+}

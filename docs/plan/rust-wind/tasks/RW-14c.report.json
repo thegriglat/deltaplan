@@ -1,0 +1,111 @@
+{
+  "status": "done",
+  "summary": "dp_air::weather: Weather::new(&Configs, ClimateGrids), ClimateGrids::from_bytes (чтение распакованных байт сеток ERA5, climate_at = ClimateGrid.at), все функции погоды W12 п.1 (typical_max_c, diurnal_*, sunrise/sunset, sky_params, derive, haze_k_rh, air_temp_c, water_temp_c, temp_at_altitude, reference_context, sun_direction, hour_at, valley_of, climate_place). weather_ref2 сверяет E1-E5, E7-E10 с эталонами GD в допуске W8 (≈ 90 тыс. проверок, расхождений 0). AirModel::set_weather/place_context (W4 v10); Formula берёт климат места из Weather вместо loc.climate* (W5 v10, поля из заголовка удалены), wind_ref.gain_per_km необязателен, зажим температуры из weather_model.limits.temperature_c.",
+  "commits": [
+    "RW-14c: погода в крейте — dp_air::weather::Weather (W12 v1), климат места из Weather (W5 v10), set_weather/place_context (W4 v10)"
+  ],
+  "checks": [
+    {
+      "name": "weather_ref2",
+      "value": "9 наборов E1-E5,E7-E10: расхождений 0",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "все бинарники зелёные (field_export падает по 120-секундному ожиданию поля только при нагрузке машины, load average 30+, и на базовой ветке тоже; одиночный прогон зелёный)",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "dp_air_no_godot",
+      "value": "0 (brotli-decompressor только dev-зависимость тестов)",
+      "pass": true
+    },
+    {
+      "name": "purity_not_worse",
+      "value": "400 (было 400)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "E6 (ground_context: функция рельефа против растра 25 м) — по контракту только замер, в weather_ref2 не сверяется; valley_of проверен только как алгоритм (тот же отбор, что у ground_context), без сверки с строками E6.",
+    "DpWeather/мост и обёртка GD — RW-14d/e; здесь только крейт."
+  ],
+  "questions": [
+    "Контракт W12 п.1: typical_max_c(month, day, lat, lon) без высоты долины. Эталон E4 (и GD) зависит от valley_msl_m (поправка Tx на высоту: ≈ -6.3 К/км), поэтому в крейте typical_max_c(month, day, lat, lon, valley_msl_m) с NaN = «не задана». DpWeather.typical_max_c(month, day, lat, lon) нужно дополнить аргументом valley_msl_m (или передавать NaN и получить значение на средней высоте ячейки — расходится с GD при заданной долине). Контракт не менялся.",
+    "sun_direction в W12 п.1 перечислена как sun_direction(lat, month, day, hour, utc_offset_h) — без долготы; для часового угла долгота нужна (E9 есть lon), реализовано sun_direction(lat, lon, month, day, hour, utc_offset_h).",
+    "ClimateGrids::from_bytes: формат — 64 байта заголовка исходных файлов + тело int16 без сжатия (размер тела в заголовке [48..52] сверяется с длиной; comp_size [52..56] игнорируется). Игра/DpWeather обязаны отдавать заголовок как есть и распакованное тело; при неудачной распаковке — отдавать только заголовок (будет none). Имена сеток: hh1 (dew_point_1deg), hh2 (upper_air_1deg), hh5 (surface_t_1deg), hh6 (upper_misc_1deg)."
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-14c",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/src/weather/api.rs:Weather::derive / typical_max_c / diurnal_range_k",
+      "why": "NaN в PlaceCtx трактуется как «не задано» с умолчаниями GD (lat 52°, lon 0°, valley 0 в derive; таблица без lat/lon в typical_max_c/diurnal_range_k). Различие GD-словарь «нет ключа» и «NaN» стёрто; E4/E5/E8 это покрывают, но потребители, передающие NaN вместо отсутствия ключа, получат умолчания.",
+      "checked": "E4 (typical_max_no_ctx, range_table, no_valley), E5, E8 зелёные"
+    },
+    {
+      "where": "rust/dp-air/src/terms/weather_link.rs: gain_per_km из климата",
+      "why": "wind_ref без gain_per_km берёт Weather::climate_place(ctx + start_msl_m = wind_ref.ref_msl).gain_per_km; Weather нет — остаётся запасное alt_gain. Прямого эталона этого пути нет (E2 проверяет climate_place с start_msl_m, но не связку с терминами).",
+      "checked": "E2 gain_per_km по сетке start_msl_m; ручных тестов связки не писал"
+    },
+    {
+      "where": "rust/dp-air/src/field/runtime.rs:PlaceClimate",
+      "why": "Климат поля теперь Weather::cell(центр места, дата) вместо loc.climate/climate_lag; поправки на высоту делают прежние функции. Поведение побитно совпало с прежним на синтетике (хеш clipmap RW-6t и rig-тест термиков сохранились при той же ячейке), на Онгудае сверено через weather_json/terms_weather.",
+      "checked": "clipmap, terms_weather (day_1..3 reference), zz_dynamic_thermals (сетка HH5 из констант 24/12 восстановила прежнюю ячейку)"
+    },
+    {
+      "where": "rust/dp-air/tests/*: Formula без set_weather",
+      "why": "Тесты, чьи места раньше несли loc.climate (clipmap, terms_weather, acceptance/runtime JobIn, zz_dynamic_thermals), теперь передают real_weather()/константную HH5; остальные Formula-тесты идут на запасных значениях (результаты не менялись — тесты зелёные), но они проверяют уже не реальный климат мест.",
+      "checked": "весь workspace зелёный"
+    },
+    {
+      "where": "rust/dp-air/src/weather/grids.rs:Grid::parse",
+      "why": "Заглушка hh6 определяется по маске u32@44 (в GD — тот же stub_mask), масштабы hh6 читаются из f32@32/36/40. comp_size игнорируется — не отличим «усечённый после распаковки» от нормального; такие варианты E1 (comp_size, trailing, cut_tail, garbage_body) эмулирует тестовая распаковка (отдаёт только заголовок).",
+      "checked": "E1: 30376 строк, включая stub/none варианты и ячейки с пропусками -32768"
+    }
+  ],
+  "dp_feedback": "accept --dry гоняет весь cargo test workspace ≈ 10+ минут и при нагрузке машины (load average 30+) field_export падает по 120 с ожидания поля — нужен отчёт только о упавших бинарниках сразу (cargo test --no-fail-fast) и хотя бы повторный запуск упавшего. Вывод rtk-обёртки скрывает FAIL-строки — трудно читать логи.",
+  "extra": {
+    "e_checks": {
+      "E1": 30376,
+      "E2": 4383,
+      "E3": 19008,
+      "E4": 7148,
+      "E5": 3030,
+      "E7": 690,
+      "E8": 15,
+      "E9": 8689,
+      "E10": 4954
+    },
+    "new_public": [
+      "weather::Weather",
+      "weather::ClimateGrids",
+      "weather::ClimateCell",
+      "weather::PlaceContext",
+      "weather::hour_at",
+      "weather::valley_of",
+      "AirModel::set_weather",
+      "AirModel::place_context"
+    ],
+    "removed": [
+      "Loc.climate",
+      "Loc.climate_lag",
+      "Loc.climate_cell",
+      "Loc.climate_cell_lag",
+      "LocClimate",
+      "PlaceLink.cell"
+    ]
+  },
+  "t": "2026-10-30T03:08:13",
+  "by": "executor"
+}

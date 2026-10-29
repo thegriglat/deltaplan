@@ -1,0 +1,49 @@
+{
+  "status": "done",
+  "summary": "Ожидание поля по часам в field_export, terms_sum и stage_runs поднято до 900 с (было 120/120/300): таймаут только страховка от зависания, ожидание по состоянию Ready. Результат и строгость проверок не менялись.",
+  "commits": [
+    "RW-18: ожидание поля 900 с (field_export, terms_sum)",
+    "RW-18: stage_runs 900 с"
+  ],
+  "checks": [
+    {
+      "name": "no_short_waits",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "cargo_test_loaded",
+      "value": "exit 0 (448 с под нагрузкой)",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-18",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/tests/field_export.rs:103",
+      "why": "выбран простой путь (длинный запас), а не меньшая область/кеш: при 900 с и ~120 с работы запас 7x",
+      "checked": "полный прогон и прогон с --test-threads=32 зелёные; stage_runs.rs пришёл из sync и тоже поправлен"
+    }
+  ],
+  "dp_feedback": "accept --dry идёт 10+ минут, вывод через tail пуст до конца; хотелось бы прогресс по проверкам. task sync отказывает в грязной копии (нужен коммит перед ним) - понятно, но стоит упомянуть в task show.",
+  "t": "2026-10-30T03:18:23",
+  "by": "executor"
+}
