@@ -93,3 +93,6 @@ related: ["docs/research/rust-wind-stage3-path.md", "docs/plan/rust-wind.md"]
 | RW-12z | `cloud_layer.gd` `_place`/`_objs`/`_update_field`, `gust_dust.gd` `step_scan` | стадия облака — из записи раз в 1 с (было каждый кадр), растр по cloud_raster_version, пыль — одной пачкой ~1257 клеток, снос по background_wind(valley+10) | визуал — тестовая сборка у главной; стоимость пачки — итоговый бенч |
 | RW-12z | `configs/atmosphere.json` `gust_dust.force_wind_ms` | ключ отладки остался (configs вне скоупа) | RW-13: удалить |
 | RW-12z | сравнение пыли до/после на ongudai | эталон «до» не снят; test_slot_batch_equals_single_cells — заменитель | итоговый прогон |
+| RW-12s | `tests/atmosphere/air_rig.gd` и ~42 тестов на нём | тесты GD переведены на фасад (место из функций, deterministic, эталон/прогноз); проверены только разбором типов — пороги на крейте не прогнаны; хребты на растре вместо функции, волна — пороги 0,45·max и λ ∈ [3, 20] км вместо 2πU/N | итоговый T7/T9 — главный риск итогового прогона |
+| RW-12s | удалены тесты внутренностей GD через фасад (таблица «тест → cargo» в RW-12s.report.json extra) и GPU-тесты GD AirRuntime | эквиваленты в cargo перечислены | итог: сверить, что таблица полна |
+| RW-12s | `docs/guide/air-model/runtime.md:22` | ссылка на удалённый test_air_warmstart_gpu.gd | RW-13 (документация) |
