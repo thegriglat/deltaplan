@@ -41,6 +41,7 @@ mod frame;
 mod slots;
 mod sum;
 pub mod thermal;
+pub mod thermal_src;
 
 use crate::field::field_set::FieldSet;
 use crate::place::Place;
