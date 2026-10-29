@@ -2,7 +2,7 @@
   "status": "partial",
   "summary": "Все обращения к удалённым членам Atmosphere в scripts/ и рабочих tools/ переведены на W2 v4 (grep=0). Инструменты записей поля GD (bake_air, часть wind_penetration) остаются завязаны на AirRuntime/WindField — их судьба RW-13.",
   "commits": [
-    "2343ffb38 Слияние rust-wind/RW-12x: RW-12x доработка: типиз"
+    "84a74c7bf rust-wind RW-12t: скрипты и рабочие инструменты на W2 v4"
   ],
   "checks": [
     {
@@ -70,6 +70,6 @@
       "tools/wind_fixtures/gen_fixtures.gd": 1
     }
   },
-  "t": "2026-10-29T15:40:39",
+  "t": "2026-10-29T15:44:00",
   "by": "executor"
 }
