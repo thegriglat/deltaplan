@@ -171,6 +171,11 @@ fn sample(m: &dyn AirModel, pts: &[[f32; 3]]) -> Vec<[f32; 4]> {
     out
 }
 
+/// Слагаемое `field` (первое в разложении): аналитика (RW-9) активна без поля и даёт свой ветер.
+fn field_part(m: &dyn AirModel, pts: &[[f32; 3]]) -> Vec<[f32; 3]> {
+    pts.iter().map(|p| m.decompose(*p).vel[0]).collect()
+}
+
 fn bits(v: &[[f32; 4]]) -> Vec<u32> {
     v.iter().flatten().map(|x| x.to_bits()).collect()
 }
@@ -245,7 +250,7 @@ fn field_off_and_on_again() {
     assert_eq!(m.status().state, State::Ready);
     assert!(m.field_version() > v0);
     assert!(
-        sample(&m, &pts).iter().flatten().all(|x| *x == 0.0),
+        field_part(&m, &pts).iter().flatten().all(|x| *x == 0.0),
         "поле снято сразу"
     );
     let off = m.field_export();
@@ -288,7 +293,12 @@ fn field_off_before_load_is_remembered() {
     m.advance_to(1.0).unwrap();
     assert_eq!(m.status().state, State::Ready);
     assert!(m.field_export().header_json.is_empty());
-    assert!(sample(&m, &probes(&pl)).iter().flatten().all(|x| *x == 0.0));
+    assert!(
+        field_part(&m, &probes(&pl))
+            .iter()
+            .flatten()
+            .all(|x| *x == 0.0)
+    );
     m.set_field_enabled(true).unwrap();
     wait_field(&mut m);
     assert!(!m.field_export().header_json.is_empty());
@@ -339,5 +349,10 @@ fn no_recompute_while_field_is_off() {
     assert!(m.wait_job(Duration::ZERO));
     assert_eq!(m.status().state, State::Ready);
     assert_eq!(m.field_version(), v);
-    assert!(sample(&m, &probes(&pl)).iter().flatten().all(|x| *x == 0.0));
+    assert!(
+        field_part(&m, &probes(&pl))
+            .iter()
+            .flatten()
+            .all(|x| *x == 0.0)
+    );
 }
