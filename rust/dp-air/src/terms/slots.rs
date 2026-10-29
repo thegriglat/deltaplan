@@ -142,5 +142,52 @@ pub struct NoThermal;
 impl Thermal for NoThermal {}
 pub struct NoExtra;
 impl Extra for NoExtra {}
+
+/// Составной слот `Extra`: гроза (RW-11c), волна (RW-11b), облако (RW-11d) - каждая часть
+/// заполняет свои поля `ExtraOut` (остальные нули), `flow` складывает выдачи частей. Новую часть
+/// добавляет одна строка в `Slots::new`.
+pub struct ExtraSet {
+    pub parts: Vec<Arc<dyn Extra>>,
+}
+
+impl ExtraSet {
+    pub fn new(parts: Vec<Arc<dyn Extra>>) -> Self {
+        ExtraSet { parts }
+    }
+}
+
+impl Extra for ExtraSet {
+    fn flow(&self, c: &Ctx, v: [f64; 3]) -> Option<ExtraOut> {
+        let mut acc: Option<ExtraOut> = None;
+        for p in &self.parts {
+            let Some(o) = p.flow(c, v) else { continue };
+            acc = Some(match acc {
+                None => o,
+                Some(a) => ExtraOut {
+                    storm: add3(a.storm, o.storm),
+                    wave: add3(a.wave, o.wave),
+                    cloud: add3(a.cloud, o.cloud),
+                    sigma_storm: a.sigma_storm + o.sigma_storm,
+                    sigma_rotor: a.sigma_rotor + o.sigma_rotor,
+                    chaos: a.chaos + o.chaos,
+                },
+            });
+        }
+        acc
+    }
+
+    fn chaos_noise(&self, c: &Ctx) -> [f64; 3] {
+        // шум бурления даёт часть, у которой есть `chaos` (облако); остальные возвращают нули
+        let mut n = [0.0; 3];
+        for p in &self.parts {
+            n = add3(n, p.chaos_noise(c));
+        }
+        n
+    }
+}
+
+fn add3(a: [f64; 3], b: [f64; 3]) -> [f64; 3] {
+    [a[0] + b[0], a[1] + b[1], a[2] + b[2]]
+}
 pub struct NoTurb;
 impl Turb for NoTurb {}
