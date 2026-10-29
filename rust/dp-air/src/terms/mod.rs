@@ -41,6 +41,7 @@ mod frame;
 mod slots;
 mod sum;
 pub mod thermal;
+pub mod thermal_air;
 pub mod thermal_src;
 pub mod waves;
 
