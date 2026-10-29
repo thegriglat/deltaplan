@@ -46,7 +46,8 @@
     "tests/fixtures/wind/cases/ongudai_day_1.weather.json",
     "tests/fixtures/wind/cases/ongudai_day_2.weather.json",
     "tests/fixtures/wind/cases/ongudai_day_3.weather.json",
-    "tests/fixtures/wind/README.md"
+    "tests/fixtures/wind/README.md",
+    "rust/dp-air/src/place.rs"
   ],
   "dont_touch": [
     "rust/dp-air/src/formula.rs",
@@ -91,5 +92,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-29T05:46:23"
+  "created": "2026-10-29T05:46:23",
+  "edited": "2026-10-29T06:33:39"
 }
