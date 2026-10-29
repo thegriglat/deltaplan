@@ -54,7 +54,6 @@ func test_game_path_shows_wind_stage() -> void:
 	var game: Game = main.get_node("Game")
 	var air: Node = game.air
 	check(air is Atmosphere, "воздух — Atmosphere")
-	air.call("set_air_mode", "on")
 	(main.get("opts") as LaunchOptions).autostart = true
 	_watch(air)
 	main.call("_fly", FlightSettings.defaults())
@@ -113,7 +112,6 @@ func test_small_place_ready_with_wind() -> void:
 	add_child(a)
 	a.configure(cfg)
 	a.configure(7)
-	a.set_air_mode("on")
 	var cond := {
 		"forecast": {"temperature_c": 26.0, "wind_speed_kmh": 14.4, "wind_from_deg": 270.0, "sky": "clear"},
 		"start_hour": 13.0,

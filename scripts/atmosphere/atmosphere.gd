@@ -24,7 +24,7 @@ signal weather_updated
 signal state_changed(state: int)
 
 # ---- Фасад W2 (docs/contracts/rust-wind/facade.md): константы ----
-const WIND_API_VERSION := 4
+const WIND_API_VERSION := 5
 const STATE_EMPTY := 0
 const STATE_LOADING := 1
 const STATE_READY := 2
@@ -138,9 +138,6 @@ var air_field: Variant:
 
 var _air_field: RefCounted
 var _air_field_wanted := false
-var _air_mode: String = "auto"
-## Режим задан командой set_air_mode — конфиг (air_model.enabled) его не перебивает.
-var _air_mode_set := false
 var _air_blend_s: float = 60.0
 var _focus: Vector3 = Vector3.ZERO
 ## Место и запомненные команды фасада.
@@ -174,8 +171,6 @@ var _dp_stage_logged := ""
 var _dp_state_logged := -1
 ## Номер подачи поля (field_version), уже принятый в air_field; −1 — ещё не принимали.
 var _dp_ver := -1
-## Режим поля, отправленный крейту (set_field_enabled): −1 — не слали, 0/1.
-var _dp_mode_sent := -1
 ## Поле в air_field пришло из крейта (выгрузка места его снимает).
 var _dp_fed := false
 ## Сборка уровней снимка в фоне (WorkerThreadPool): id задачи и её задание {head, data, fs}.
@@ -234,17 +229,10 @@ func configure(a: Variant, weather_cfg: Variant = null) -> int:
 	return _fail(BAD_INPUT, "configure: ожидается seed (int)")
 
 
-## Режим поля воздуха: "auto" | "on" | "off" (W2 «Режим поля»). Крейту уходит set_field_enabled.
-func set_air_mode(mode: String) -> void:
-	_air_mode = mode
-	_air_mode_set = true
-	_dp_sync_mode()
-	_dp_feed()
-
-
-## Поле Пикара ведёт крейт и оно включено (режим поля и READY).
+## Поле Пикара на месте считает крейт всегда, когда заданы условия с прогнозом (эталон погоды —
+## превью и тесты — без прогноза и без поля); готово при READY.
 func is_air_field_on() -> bool:
-	return _dp_mode_sent == 1 and _f_state == STATE_READY
+	return _f_state == STATE_READY and _dp_field_wanted()
 
 
 ## Подавать снимок поля крейта в air_field (отладка, превью): по умолчанию выключено.
@@ -384,7 +372,6 @@ func set_conditions(cond: Dictionary) -> int:
 		var msg := "set_conditions: %s" % _dp.last_error()
 		push_error("dp_air: " + msg)
 		return _fail(BAD_INPUT, msg)
-	_dp_sync_mode()
 	_dp_poll()
 	return OK
 
@@ -971,27 +958,12 @@ func _dp_cond_json() -> String:
 	return JSON.stringify(c)
 
 
-## Поле нужно крейту (W2 «Режим поля»): off — нет; on — да; auto — да, кроме headless. Расчёт
-## нужен только для прогноза (эталон погоды — превью и тесты — без поля).
+## Поле считается для прогноза; эталон погоды (пресет — превью и тесты) идёт без поля.
 func _dp_field_wanted() -> bool:
-	var mode := _air_mode
-	if not _air_mode_set:
-		mode = String(_conf("atmosphere").get("air_model", {}).get("enabled", "auto"))
-	if mode == "off" or not (_f_cond_set and _f_cond.has("forecast")):
-		return false
-	return mode == "on" or DisplayServer.get_name() != "headless"
+	return _f_cond_set and _f_cond.has("forecast")
 
 
-func _dp_sync_mode() -> void:
-	if _dp == null:
-		return
-	var want := 1 if _dp_field_wanted() else 0
-	if want != _dp_mode_sent:
-		_dp_mode_sent = want
-		_dp.set_field_enabled(want == 1)
-
-
-## Подготовка места у крейта: конфиги, условия, режим поля, солнце, статические термики, фокус,
+## Подготовка места у крейта: конфиги, условия, солнце, статические термики, фокус,
 ## место и запечённые поля. Повторный вызов (rebuild) — выгрузка и загрузка заново.
 func _dp_start() -> void:
 	var dp := _dp_object()
@@ -1019,8 +991,6 @@ func _dp_start() -> void:
 	if dp.set_conditions(_dp_cond_json()) != 0:
 		_dp_failed_with("set_conditions")  # раньше молча: погода пуста, поле не считалось (RW-P5)
 		return
-	_dp_mode_sent = -1
-	_dp_sync_mode()
 	if _f_sun_set:
 		dp.set_sun_direction(_f_sun)
 	if _f_statics_set:
@@ -1049,8 +1019,8 @@ func _dp_start() -> void:
 	_dp_state_logged = -1
 	_dp_log(
 		(
-			"dp_air: подготовка места начата, поле %s, место %s"
-			% ["включено" if _dp_mode_sent == 1 else "выключено", str(place.get("header").get("loc", {}).get("id", "?"))]
+			"dp_air: подготовка места начата, место %s"
+			% str(place.get("header").get("loc", {}).get("id", "?"))
 		)
 	)
 
@@ -1087,7 +1057,6 @@ func _dp_unload() -> void:
 	_dp_placed = false
 	_dp_failed = false
 	_dp_ver = -1
-	_dp_mode_sent = -1
 	_dp_focus_sent = Vector3(INF, INF, INF)
 	if _dp_fed and _air_field != null:
 		set_air_field(null, 0.0)

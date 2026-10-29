@@ -33,8 +33,8 @@
 //! - **`decompose`** — `sum` с записью `Rec`: имена W7 (`field, analytic, ridge, thermal, storm,
 //!   wave, cloud, turb, gust`), запись не меняет счёта: `total` = `sample(Full)` побитно,
 //!   `Σ vel = total.xyz`. Слот, пишущий вклад, добавляет его в `Rec` в `sum` (не в слоте).
-//! - **`frame`** — `WindModel` (профиль, `speed_at`, `altitude_factor`, `vec2_at`, `dir`,
-//!   `simple_profile`) и `WeatherView` (словарь выведенной погоды, ключи как у GD; заполняет
+//! - **`frame`** — `WindModel` (профиль, `speed_at`, `altitude_factor`, `vec2_at`, `dir`) и
+//!   `WeatherView` (словарь выведенной погоды, ключи как у GD; заполняет
 //!   RW-12b; пока — из условий: пресет или прогноз).
 pub mod analytic;
 pub mod clouds;
@@ -183,8 +183,6 @@ pub struct Terms {
     pub ground_dir: [f32; 2],
     /// `ground.wind_dir_tolerance_deg`.
     pub ground_tol_deg: f64,
-    /// Режим `air_model.enabled = off`: упрощённый профиль ветра 0.8.0 (RW-9, `analytic::off`).
-    pub air_off: bool,
     /// Облака (RW-11d): снимок физики облаков, обновляет `advance`/`start_at`.
     pub clouds: Arc<clouds::CloudSlot>,
     /// Шум и константы поверхностного порыва (RW-8s): строится при первом вызове, `configure` сбрасывает.
@@ -214,7 +212,6 @@ impl Default for Terms {
             slots: Slots::new(),
             ground_dir: [0.0, 1.0],
             ground_tol_deg: 5.0,
-            air_off: false,
             clouds: Arc::new(clouds::CloudSlot::analytic()),
             surface_gust: Default::default(),
             link: Default::default(),
@@ -246,7 +243,6 @@ impl Terms {
             })
             .unwrap_or(5.0);
         self.ground_dir = norm_dir(self.wind.dir());
-        analytic::off::apply(self, analytic::off::config_is_off(configs));
         if let Some(a) = self.slots.analytic.configured(configs, seed) {
             self.slots.analytic = a;
         }
@@ -273,12 +269,6 @@ impl Terms {
         if first || angle_diff_deg(old_from, self.wind.from_deg).abs() > self.ground_tol_deg {
             self.ground_dir = norm_dir(self.wind.dir());
         }
-    }
-
-    /// Режим `air_model.enabled = off` (`set_air_mode`): упрощённый профиль ветра 0.8.0. Из
-    /// `Formula::set_field_enabled` зовут `set_air_off(!on)` (подключение — RW-12z).
-    pub fn set_air_off(&mut self, off: bool) {
-        analytic::off::apply(self, off);
     }
 
     /// Хук времени (`advance_to`): обновить слагаемые, которым нужен шаг (термики раз в 1 с

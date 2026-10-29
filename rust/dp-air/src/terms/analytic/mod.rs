@@ -1,11 +1,11 @@
 //! Слот `Analytic` (RW-9): аналитика ветра без поля и в полосе края поля `a < 1`, склоновый
-//! подъём, подветренная зона, фоновый ветер, режим `off`. Перенос из `atmosphere.gd`
+//! подъём, подветренная зона, фоновый ветер. Перенос из `atmosphere.gd`
 //! (`air_velocity_at` 921–988, `_air_velocity_field` 1075–1131, `_analytic_amp` 1031,
 //! `_analytic_turb` 1047), `ground_field.gd`, `wind_model.gd`.
 //!
 //! - `ground` — `GroundField`: склон, линия тени, превышение гребня (кеш кусков 30 м).
 //! - `ridge` — склоновый подъём; `lee` — подветренная зона (опускание, рывки, ротор, опасность);
-//!   `strip` — доля аналитики в полосе края поля; `off` — режим `air_model.enabled = off`.
+//!   `strip` — доля аналитики в полосе края поля.
 //! - `noise` — `gust_unit` (шум пятен рывков и пульсаций аналитики).
 //!
 //! Слот создаётся незаданным (`AnalyticSlot::unconfigured`, всё `None`) и становится рабочим в
@@ -18,7 +18,6 @@
 pub mod ground;
 pub mod lee;
 pub mod noise;
-pub mod off;
 pub mod ridge;
 mod strip;
 

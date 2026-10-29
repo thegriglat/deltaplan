@@ -38,8 +38,8 @@ fn cases() -> PathBuf {
     repo().join("tests/fixtures/wind/cases")
 }
 
-/// `Terms` случая: конфиги игры, условия случая; синтетика идёт с `air_model.enabled = off`
-/// (упрощённый профиль ветра, как в генераторе).
+/// `Terms` случая: конфиги игры, условия случая; эталоны synth_* сняты
+/// с упрощённым профилем ветра 0.8.0.
 fn terms_of(cond: &Conditions, simple: bool) -> terms::Terms {
     let cfgs = game_configs();
     let mut t = terms::Terms::default();

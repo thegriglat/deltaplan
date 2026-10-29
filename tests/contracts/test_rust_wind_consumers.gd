@@ -20,6 +20,7 @@ func _forecast(wind_from: float = 270.0) -> Dictionary:
 		{"temperature_c": 26.0, "wind_speed_kmh": 14.0, "wind_from_deg": wind_from, "sky": "clear"},
 		"start_hour": 12.0,
 		"speed": 1.0,
+		"quantum_h": 1.0,
 		"wind_ref": {"ref_msl": 1000.0, "gain_per_km": 1.0},
 		"inflow_mode": "start",
 	}
@@ -95,7 +96,7 @@ func test_status_stage_field_iters() -> void:
 		41
 	)
 	check(a.configure(5) == 0, "configure")
-	check(a.set_conditions({"preset": "weather/medium"}) == 0, "set_conditions")
+	check(a.set_conditions({"preset": "weather/medium", "start_hour": 12.0, "speed": 1.0}) == 0, "set_conditions")
 	check(a.load_place(place) == 0, "load_place")
 	check(a.start_at(0.0) in [0, 3], "start_at")
 	var last := 0
@@ -125,6 +126,10 @@ func test_place_from_terrain_and_field_in_facade() -> void:
 	_root().add_child(host)
 	var a := Atmosphere.new()
 	a.visuals_enabled = false
+	# поле Пикара считается всегда (и в headless): область поменьше, чтобы тест не ждал минуты
+	var small: Dictionary = Config.get_config("atmosphere").duplicate(true)
+	small.air.domain_l_m = 9600.0
+	a.cfg_override = small
 	host.add_child(a)
 	# место без остановки кадров — те же растры, что у AirPlaceData.from_terrain
 	var p: AirPlaceData = await a.place_from_terrain(t, utc, 7, 15)
@@ -144,7 +149,7 @@ func test_place_from_terrain_and_field_in_facade() -> void:
 		host.queue_free()
 		t.free()
 		return
-	# условия-прогноз + место из рельефа → поле Пикара внутри фасада (в headless: аналитика)
+	# условия-прогноз + место из рельефа → поле Пикара внутри фасада (область уменьшена)
 	check(a.configure(77) == 0, "configure(seed)")
 	var cond := _forecast()
 	cond["overrides"] = {"wind_from_deg": 123.0}  # «встречный»: румб игры поверх прогноза
@@ -161,14 +166,12 @@ func test_place_from_terrain_and_field_in_facade() -> void:
 	var st: Dictionary = a.status()
 	check(a.get("runtime") == null, "AirRuntime фасад не создаёт (RW-7b): поле ведёт крейт")
 	if ClassDB.class_exists("DpAir"):
-		check(a.get("_dp") != null, "место и прогноз отданы DpAir (поле в headless выключено)")
+		check(a.get("_dp") != null, "место и прогноз отданы DpAir")
 	check(
 		float(st.progress) >= 1.0 and String(st.stage) == "",
 		"готов: прогресс 1, этапа нет: %s" % str(st)
 	)
-	check(
-		not bool(st.field_on) and int(st.iters) == 0, "headless: поля нет (аналитика), итераций 0"
-	)
+	check(bool(st.field_on) and int(st.iters) == 0, "поле Пикара есть, этапа нет — итераций 0")
 	var w: Dictionary = a.weather()
 	check(
 		absf(float(w.wind_from_deg) - 123.0) < 1.0e-6,

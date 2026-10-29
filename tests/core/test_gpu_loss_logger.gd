@@ -81,7 +81,7 @@ func test_gpu_safety() -> void:
 	var g := UserSettings.read_json(UserSettings.local_dir(dir).path_join("game.json"))
 	check(g.display.safe_reason == "crash" and g.display.gpu.sun_shadows == false, str(g))
 	var a := UserSettings.read_json(UserSettings.local_dir(dir).path_join("atmosphere.json"))
-	check(a.clouds.renderer == "boxes" and a.air_model.enabled == "off", str(a))
+	check(a.clouds.renderer == "boxes" and not a.has("air_model"), str(a))
 	check(GpuSafety.restore(dir), "restore")
 	g = UserSettings.read_json(UserSettings.local_dir(dir).path_join("game.json"))
 	check(not g.display.has("safe_reason") and g.display.gpu.sun_shadows == true, str(g))

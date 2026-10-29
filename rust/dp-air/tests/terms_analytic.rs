@@ -49,7 +49,7 @@ fn configs_with(patch: impl Fn(&mut Value)) -> Arc<Configs> {
     Arc::new(Configs::new(files))
 }
 
-/// Правка по ключам вида `atmosphere.air_model.enabled` (`extra.config_overrides` случая).
+/// Правка по ключам вида `atmosphere.thermal.generation_radius_m` (`extra.config_overrides` случая).
 fn apply_overrides(v: &mut Value, over: Option<&Value>) {
     if let Some(Value::Object(o)) = over {
         for (k, x) in o {
@@ -93,6 +93,10 @@ fn load_with(name: &str, extra_patch: impl Fn(&mut Value)) -> Fx {
     let mut terms = Terms::default();
     terms.configure(&cfg, case.seed);
     terms.set_conditions(&case.conditions);
+    // эталоны synth_* сняты с упрощённым профилем 0.8.0 (README фикстур); в игре его нет
+    if name.starts_with("synth_") {
+        terms.wind.set_simple_profile(true, None);
+    }
     // Пресет W5 не несёт высоты ветра прогноза; генератор ставил её явно (`extra.wind_ref_msl`)
     if let Some(r) = raw.pointer("/extra/wind_ref_msl").and_then(Value::as_f64) {
         terms.wind.ref_msl = r;
@@ -204,7 +208,6 @@ fn synth_horizontal_and_ridge_match() {
         "synth_strong",
         "synth_storm",
         "synth_wave",
-        "synth_off",
     ] {
         let (n, bad, _) = check_synth(name);
         assert!(n > 150, "{name}: сверено лишь {n}");
@@ -297,35 +300,15 @@ fn synth_sigma_is_analytic_part_of_reference() {
 }
 
 #[test]
-fn off_mode_case_equals_medium_and_uses_simple_profile() {
-    let off = load("synth_off");
-    assert!(off.terms.air_off && off.terms.wind.is_simple());
-    let (a, b) = (off.terms.wind.profile_params(), (0.14, 1.8));
-    assert_eq!(a, b);
-    // synth_off побитно равен synth_medium (README эталонов): те же слагаемые
-    let med = load("synth_medium");
-    for ti in 0..off.case.times_s.len() {
-        let t = off.case.times_s[ti];
-        for p in &off.case.points {
-            let (a, ra, sa) = mine(&off, *p, t);
-            let (b, rb, sb) = mine(&med, *p, t);
-            assert_eq!((a, ra, sa), (b, rb, sb));
-        }
-    }
-    // Ongudai (auto): WindProfile, не простой
-    let au = load("ongudai_medium");
-    assert!(!au.terms.air_off && !au.terms.wind.is_simple());
-}
-
-#[test]
 fn simple_profile_matches_080_any_hour_and_sky() {
-    // перенос tests/atmosphere/test_wind_profile_simple.gd
+    // профиль 0.8.0, которым сняты эталоны synth_*: α = 0,14, предел ×1,8, от погоды не зависит
     let v080 = |agl: f64| ((agl.max(1.0) / 10.0).powf(0.14)).min(1.8);
-    let cfg = configs_with(|v| v["air_model"]["enabled"] = json!("off"));
+    let cfg = configs_with(|_| {});
     let mut t = Terms::default();
     t.configure(&cfg, 1);
+    t.wind.set_simple_profile(true, None);
     t.wind.set_wind(10.8 / 3.6, 270.0);
-    assert!(t.wind.is_simple() && t.air_off);
+    assert!(t.wind.is_simple());
     for sun in [-10.0, 5.0, 30.0, 52.0, 70.0] {
         for cover in [0.0, 0.5, 1.0] {
             t.wind.set_conditions(sun, cover);
@@ -336,16 +319,6 @@ fn simple_profile_matches_080_any_hour_and_sky() {
         }
     }
     assert!((v080(1000.0) - 1.8).abs() < 1e-9);
-    // auto: WindProfile (α не 0,14); переключение в off и обратно
-    let cfg = configs_with(|_| {});
-    let mut a = Terms::default();
-    a.configure(&cfg, 1);
-    a.wind.set_wind(10.8 / 3.6, 270.0);
-    assert!(!a.wind.is_simple() && (a.wind.profile_params().0 - 0.14).abs() > 0.02);
-    a.set_air_off(true);
-    assert!((a.wind.profile_params().0 - 0.14).abs() < 1e-9);
-    a.set_air_off(false);
-    assert!(!a.wind.is_simple() && (a.wind.profile_params().0 - 0.14).abs() > 0.02);
 }
 
 // ---------------------------------------------------------------- шум и GroundField по дампу Godot

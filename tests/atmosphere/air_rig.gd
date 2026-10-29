@@ -5,10 +5,10 @@ extends RefCounted
 ## (удалены в RW-12x). Без поля Пикара: условия — эталон погоды, не прогноз.
 ##
 ## Параметры make(o): loc (место и дата: id, center_lat, center_lon, utc_offset_h, month, day),
-## air_mode (режим поля), deterministic (true; false — как в игре), cond (условия W5 целиком,
+## deterministic (true; false — как в игре), cond (условия W5 целиком,
 ## вместо preset/over — например прогноз), preset ("weather/medium"), over (ключи пресета поверх),
 ## ground (x, z -> высота,
-## по умолчанию 0), moist (x, z -> 0..1, по умолчанию 1), half (полуразмер места, м), spacing (шаг, м),
+## по умолчанию 0), moist (x, z -> 0..1, по умолчанию 1), half (полуразмер места, м), spacing (шаг, м; крейт принимает поле только на 25 м),
 ## start_at (с: состояние на этот момент, W2 start_at), statics (Array из [x, z, сила, радиус]), mode (0 dynamic, 1 static, 2 both; по умолчанию 1 при
 ## statics, иначе 0), seed, focus (Vector3), advance (с игрового времени после READY, по умолчанию 1).
 
@@ -42,13 +42,15 @@ static func make(o: Dictionary = {}) -> Atmosphere:
 	a.deterministic = bool(o.get("deterministic", true))
 	a.configure(Config.get_config("atmosphere"))  # конфиг визуальных слоёв (cfg)
 	a.configure(int(o.get("seed", 7)))
-	if o.has("air_mode"):
-		a.set_air_mode(String(o.air_mode))  # "auto" | "on" | "off" (режим поля, W2)
 	var cond: Dictionary = o.get("cond", {})
 	if cond.is_empty():
 		cond = {"preset": preset(String(o.get("preset", "weather/medium")), o.get("over", {}))}
-	if o.has("start_hour"):
-		cond["start_hour"] = float(o.start_hour)
+	# условия W5 целиком: крейт отвергает пресет без start_hour и speed (BAD_INPUT, воздух пуст)
+	cond["start_hour"] = float(o.get("start_hour", cond.get("start_hour", 12.0)))
+	if not cond.has("speed"):
+		cond["speed"] = 1.0
+	if cond.has("forecast") and not cond.has("quantum_h"):
+		cond["quantum_h"] = 1.0
 	a.set_conditions(cond)
 	var statics := PackedFloat32Array()
 	for s: Array in o.get("statics", []):
@@ -58,8 +60,8 @@ static func make(o: Dictionary = {}) -> Atmosphere:
 	a.set_static_thermals(statics, mode)
 	var focus: Vector3 = o.get("focus", Vector3(0.0, 300.0, 0.0))
 	a.set_focuses(PackedVector3Array([focus]), PackedFloat32Array([1.0]))
-	var half := float(o.get("half", 5000.0))
-	var spacing := float(o.get("spacing", 100.0))
+	var half := float(o.get("half", 1500.0))
+	var spacing := float(o.get("spacing", 25.0))
 	var n := int(round(2.0 * half / spacing)) + 1
 	var place := AirPlaceData.from_functions(
 		o.get("ground", flat), o.get("moist", one), o.get("loc", LOC), -half, -half, spacing, n, n

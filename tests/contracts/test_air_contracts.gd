@@ -827,7 +827,7 @@ func test_c4_atmosphere_analytic_direction() -> void:
 	a.free()
 
 
-# test_c4_atmosphere_api_and_analytic (set_air_mode off = аналитика побитно) и
+# test_c4_atmosphere_api_and_analytic (режим поля удалён в RW-P3) и
 # test_c4_atmosphere_field_rule
 # (внутри поля mean_wind_at = горизонталь поля + w_mech; w_conv пилоту не идёт) — поле и аналитику
 # в игре
@@ -933,14 +933,12 @@ func test_c4_lee_keys() -> void:
 func test_c4_config_keys() -> void:
 	var ac: Dictionary = Config.get_config("atmosphere").get("air_model", {})
 	var keys := [
-		"enabled", "edge_blend_cells", "blend_s", "recompute_game_min", "max_speed_ms", "max_w_ms"
+		"edge_blend_cells", "blend_s", "recompute_game_min", "max_speed_ms", "max_w_ms"
 	]
 	for key in keys:
 		check(ac.has(key), "air_model." + key)
-		check(
-			ac.has(key + "_doc") or key == "enabled" and ac.has("enabled_doc"), "air_model.%s_doc" % key
-		)
-	check(String(ac.get("enabled", "")) in ["auto", "on", "off"], "enabled ∈ auto/on/off")
+		check(ac.has(key + "_doc"), "air_model.%s_doc" % key)
+	check(not ac.has("enabled"), "режима поля в конфиге нет")
 
 
 # ------------------------------------------------------------------ C5

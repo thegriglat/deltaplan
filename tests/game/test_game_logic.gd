@@ -201,7 +201,7 @@ func test_user_settings_merge() -> void:
 func test_calm_air_contract() -> void:
 	# Запасной воздух = Calm из W4: ветер, вертикаль и σ — нули, описаний нет (RW-3c).
 	var a := CalmAir.new()
-	check(a.set_conditions({"preset": {"wind_speed_kmh": 18.0, "wind_from_deg": 270.0}}) == 0, "условия")
+	check(a.set_conditions({"preset": {"wind_speed_kmh": 18.0, "wind_from_deg": 270.0}, "start_hour": 12.0, "speed": 1.0}) == 0, "условия")
 	var p := Vector3(5000, 600, 5000)
 	check(a.air_velocity_at(p) == Vector3.ZERO, "ветер 0 и при заданном пресете")
 	check(a.mean_wind_at(p) == Vector3.ZERO, "средний ветер 0")

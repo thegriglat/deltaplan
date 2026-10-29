@@ -133,7 +133,7 @@ func test_logs_summary() -> void:
 
 func test_switches_snapshot_in_lock_and_report() -> void:
 	var sw := CrashDiag.gpu_switches()
-	check(sw.has("clouds.renderer") and sw.has("air_model.enabled"), "ключи CR-К4: " + str(sw.keys()))
+	check(sw.has("clouds.renderer") and not sw.has("air_model"), "ключи CR-К4: " + str(sw.keys()))
 	check(sw.has("rendering_driver") and sw.has("safe_reason"), "драйвер и причина безопасного набора")
 	var lock := {"version": "1.5.22", "settings": {"graphics": "low"}}
 	lock["settings"].merge({"gpu.sun_shadows": false, "clouds.renderer": "boxes"}, true)

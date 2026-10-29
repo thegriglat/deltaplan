@@ -7,7 +7,7 @@ use dp_air::{
 };
 use std::sync::{Arc, OnceLock};
 
-pub const WIND_API_VERSION: i64 = 4;
+pub const WIND_API_VERSION: i64 = 5;
 pub const OK: i64 = 0;
 pub const BAD_INPUT: i64 = 1;
 pub const NO_PLACE: i64 = 2;
@@ -152,12 +152,6 @@ impl Bridge {
     /// W3 v2: каталог кеша полей; пусто — без кеша.
     pub fn set_cache_dir(&mut self, path: &str) -> i64 {
         let r = self.model.set_cache_dir(path);
-        self.done(r)
-    }
-
-    /// W3 v4: режим поля.
-    pub fn set_field_enabled(&mut self, on: bool) -> i64 {
-        let r = self.model.set_field_enabled(on);
         self.done(r)
     }
 
@@ -510,18 +504,15 @@ mod tests {
         assert_eq!(calm.set_cache_dir("/x"), OK);
     }
 
-    /// W3 v4: режим поля и выдача поля через мост (`Calm` — пусто, Ok).
+    /// W3 v4: выдача поля через мост (`Calm` — пусто, Ok).
     #[test]
-    fn field_mode_and_export_bridge() {
+    fn field_export_bridge() {
         let mut calm = Bridge::new(Box::new(dp_air::Calm::new()));
-        assert_eq!(calm.set_field_enabled(false), OK);
         assert_eq!(calm.field_version(), 0);
         assert_eq!(calm.field_export(), 0);
         assert_eq!(calm.field_export_header(), "");
         assert!(calm.field_export_data().is_empty());
         let mut f = Bridge::new(Box::new(Formula::new()));
         assert_eq!(f.field_export(), 0);
-        assert_eq!(f.set_field_enabled(false), OK);
-        assert_eq!(f.set_field_enabled(true), OK);
     }
 }

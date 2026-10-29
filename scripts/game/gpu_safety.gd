@@ -2,7 +2,7 @@ class_name GpuSafety
 extends RefCounted
 ## «Безопасная графика» (контракт CR-К4): один переключатель выключает всю тяжёлую GPU-нагрузку —
 ## display.gpu.* (рубильники эффектов, перечень — configs/game.json → display.gpu), простые облака
-## (atmosphere.clouds.renderer = boxes) и расчёт ветра на видеокарте (atmosphere.air_model.enabled = off).
+## (atmosphere.clouds.renderer = boxes).
 ## Включает окно после обрыва (GpuFailureDialog); display.safe_reason = "crash" — пометка в стартовом
 ## меню и кнопка «Вернуть». Все ключи машинные (user://local/configs). Действует со следующей
 ## загрузки места (или сразу, если эффект это умеет).
@@ -32,11 +32,7 @@ static func _patch(on: bool) -> Dictionary:
 		gpu[k] = on
 	return {
 		"game": {"display": {"gpu": gpu}},
-		"atmosphere":
-		{
-			"clouds": {"renderer": "auto" if on else "boxes"},
-			"air_model": {"enabled": "auto" if on else "off"},
-		},
+		"atmosphere": {"clouds": {"renderer": "auto" if on else "boxes"}},
 	}
 
 

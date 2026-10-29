@@ -66,7 +66,7 @@ pub struct DpAir {
 #[godot_api]
 impl DpAir {
     #[constant]
-    pub const WIND_API_VERSION: i64 = 4;
+    pub const WIND_API_VERSION: i64 = 5;
     #[constant]
     pub const STATE_EMPTY: i64 = 0;
     #[constant]
@@ -161,11 +161,6 @@ impl DpAir {
     fn add_baked_field(&mut self, header_json: GString, data: PackedByteArray) -> i64 {
         self.bridge
             .add_baked_field(&header_json.to_string(), data.as_slice())
-    }
-    /// Режим поля (W3 v4): `false` — поле снято, расчётов нет; `true` — вернуть фоном. Коды W1.
-    #[func]
-    fn set_field_enabled(&mut self, on: bool) -> i64 {
-        self.bridge.set_field_enabled(on)
     }
     /// Переходное (W3 v4): закрепить снимок последней подачи поля; номер подачи (`0` — поля нет).
     #[func]

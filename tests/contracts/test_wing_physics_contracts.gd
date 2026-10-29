@@ -115,14 +115,13 @@ func test_k4_k6_csv_headers() -> void:
 		check(f.get_line().strip_edges() == pair[1], "заголовок " + pair[0])
 
 
-## Воздух через фасад W2 v4: ветер меню 21,6 км/ч (6 м/с) с from_deg, ровная земля, упрощённый ветер
-## (режим поля off), без термиков и болтанки (mean_wind_at).
+## Воздух через фасад W2 v5: ветер меню 21,6 км/ч (6 м/с) с from_deg, ровная земля, условия-эталон
+## (пресет, без прогноза — поля нет), без термиков и болтанки (mean_wind_at).
 func _atmo(from_deg: float) -> Atmosphere:
 	return Rig.make(
 		{
 			"over": {"wind_speed_kmh": 21.6, "wind_from_deg": from_deg},
 			"mode": 1,
-			"air_mode": "off",
 			"advance": 0.01,
 		}
 	)

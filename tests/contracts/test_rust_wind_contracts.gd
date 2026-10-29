@@ -11,7 +11,7 @@ extends TestCase
 
 ## Версии разделов — те же, что в заголовках docs/contracts/rust-wind.md и rust-wind/*.md.
 const CONTRACTS := {
-	W1 = 2, W2 = 4, W3 = 5, W4 = 6, W5 = 8, W6 = 4, W7 = 1, W8 = 2, W9 = 2, W10 = 2, W11 = 11
+	W1 = 2, W2 = 5, W3 = 6, W4 = 7, W5 = 8, W6 = 4, W7 = 1, W8 = 3, W9 = 2, W10 = 2, W11 = 11
 }
 const DOCS: Array[String] = [
 	"res://docs/contracts/rust-wind.md",
@@ -46,6 +46,11 @@ func _make(impl: String) -> Node:
 		return CalmAir.new()
 	var a := Atmosphere.new()
 	a.visuals_enabled = false
+	# поле Пикара считается всегда: область поменьше, чтобы тесты не ждали минуты
+	var small: Dictionary = Config.get_config("atmosphere").duplicate(true)
+	small.air.domain_l_m = 9600.0
+	a.cfg_override = small
+	a.air_cache_enabled = true  # одинаковые поля берутся из кеша, а не считаются заново
 	return a
 
 
@@ -55,6 +60,10 @@ static func _synthetic() -> AirPlaceData:
 	var h: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(PLACE + ".json"))
 	var bin := FileAccess.get_file_as_bytes(PLACE + ".bin")
 	var g: Dictionary = h.grid
+	g.width = int(g.width)  # JSON даёт float, крейт ждёт целое
+	g.height = int(g.height)
+	h.loc.month = int(h.loc.month)
+	h.loc.day = int(h.loc.day)
 	var n := int(g.width) * int(g.height)
 	var heights := PackedFloat32Array()
 	heights.resize(n)
@@ -84,12 +93,14 @@ static func _preset(kmh: float = 14.0, from_deg: float = 230.0) -> Dictionary:
 	return w
 
 
-## До READY: pump с бюджетом, не больше max_iter кадров.
-func _pump(a: Node, max_iter: int = 5000) -> bool:
-	for i in max_iter:
+## До READY: pump с бюджетом, не больше 120 с (поле Пикара крейт считает в фоне).
+func _pump(a: Node, _max_iter: int = 0) -> bool:
+	var t0 := Time.get_ticks_msec()
+	while Time.get_ticks_msec() - t0 < 120000:
 		if int(a.status().state) == 2:
 			return true
 		a.pump(4000)
+		OS.delay_msec(2)
 	return int(a.status().state) == 2
 
 
@@ -98,7 +109,13 @@ func _up(impl: String, preset: Dictionary = {}, seed: int = 4242) -> Node:
 	var a := _make(impl)
 	check(a.configure(seed) == 0, "%s: configure(seed) = OK" % impl)
 	check(
-		a.set_conditions({"preset": preset if not preset.is_empty() else _preset()}) == 0,
+		a.set_conditions(
+			{
+				"preset": preset if not preset.is_empty() else _preset(),
+				"start_hour": 12.0,
+				"speed": 1.0
+			}
+		) == 0,
 		"%s: set_conditions" % impl
 	)
 	check(a.load_place(_synthetic()) == 0, "%s: load_place" % impl)
@@ -382,7 +399,7 @@ func test_conditions_validation() -> void:
 				"inflow_mode вне списка — BAD_INPUT"
 			)
 			check(
-				a.set_conditions({"preset": _preset(), "inflow_mode": "inflow"}) == 0,
+				a.set_conditions({"preset": _preset(), "inflow_mode": "inflow", "start_hour": 12.0, "speed": 1.0}) == 0,
 				"inflow_mode inflow — OK"
 			)
 			check(
@@ -442,7 +459,7 @@ func test_commands_before_place() -> void:
 	for impl in IMPLS:
 		var a := _make(impl)
 		check(
-			a.set_conditions({"preset": _preset()}) == 0,
+			a.set_conditions({"preset": _preset(), "start_hour": 12.0, "speed": 1.0}) == 0,
 			"%s: set_conditions до load_place — OK" % impl
 		)
 		a.set_sun_direction(Vector3(0.3, 0.8, 0.5).normalized())
@@ -650,7 +667,7 @@ func test_polls_equal_and_advance() -> void:
 func test_start_at_async_and_determinism() -> void:
 	var a := _make("gd")
 	check(a.configure(77) == 0, "configure")
-	check(a.set_conditions({"preset": _preset()}) == 0, "set_conditions")
+	check(a.set_conditions({"preset": _preset(), "start_hour": 12.0, "speed": 1.0}) == 0, "set_conditions")
 	check(a.load_place(_synthetic()) == 0, "load_place возвращает сразу")
 	check(int(a.status().state) == 1, "после load_place state = LOADING")
 	var pts := _pts_around([30.0, 600.0])
@@ -676,7 +693,7 @@ func test_start_at_async_and_determinism() -> void:
 	# детерминизм W1: тот же вход — тот же выход
 	var b := _make("gd")
 	b.configure(77)
-	b.set_conditions({"preset": _preset()})
+	b.set_conditions({"preset": _preset(), "start_hour": 12.0, "speed": 1.0})
 	b.load_place(_synthetic())
 	_pump(b)
 	b.start_at(900.0)
@@ -686,7 +703,7 @@ func test_start_at_async_and_determinism() -> void:
 	# сид влияет
 	var c := _make("gd")
 	c.configure(78)
-	c.set_conditions({"preset": _preset()})
+	c.set_conditions({"preset": _preset(), "start_hour": 12.0, "speed": 1.0})
 	c.load_place(_synthetic())
 	_pump(c)
 	c.start_at(900.0)
@@ -710,7 +727,7 @@ func test_signals() -> void:
 	a.state_changed.connect(func(s: int) -> void: states.append(s))
 	a.weather_changed.connect(func() -> void: rebuilt[0] += 1)
 	a.configure(5)
-	a.set_conditions({"preset": _preset()})
+	a.set_conditions({"preset": _preset(), "start_hour": 12.0, "speed": 1.0})
 	a.load_place(_synthetic())
 	_pump(a)
 	check(states == [1, 2], "state_changed: LOADING, READY (получено %s)" % [states])
@@ -727,12 +744,12 @@ func test_conditions_soft_and_rebuild() -> void:
 	var changed := [0]
 	a.weather_changed.connect(func() -> void: changed[0] += 1)
 	check(
-		a.set_conditions({"preset": _preset(20.0, 200.0), "blend_s": 10.0}) == 0,
+		a.set_conditions({"preset": _preset(20.0, 200.0), "start_hour": 12.0, "speed": 1.0, "blend_s": 10.0}) == 0,
 		"мягкая смена погоды — OK"
 	)
 	check(updated[0] >= 1, "мягкая смена шлёт weather_updated")
 	check(int(a.status().state) == 2, "мягкая смена не уводит в LOADING")
-	check(a.set_conditions({"preset": _preset(20.0, 200.0), "rebuild": true}) == 0, "rebuild — OK")
+	check(a.set_conditions({"preset": _preset(20.0, 200.0), "start_hour": 12.0, "speed": 1.0, "rebuild": true}) == 0, "rebuild — OK")
 	check(int(a.status().state) == 1, "rebuild — LOADING")
 	check(_pump(a), "после rebuild снова READY")
 	check(changed[0] >= 1, "rebuild шлёт weather_changed")
@@ -1155,21 +1172,6 @@ func test_pump_is_noop_when_ready() -> void:
 	a.free()
 
 
-## Режим поля auto в headless — выключено (W2 «Режим поля»): field_on = false, прогноз или нет.
-func test_field_off_in_headless_auto() -> void:
-	if DisplayServer.get_name() != "headless":
-		return
-	var a := _make("gd")
-	var fc := {"temperature_c": 25.0, "wind_speed_kmh": 10.0, "wind_from_deg": 90.0, "sky": "clear"}
-	check(a.set_conditions({"forecast": fc, "start_hour": 12.0}) == 0, "set_conditions прогноз")
-	check(a.load_place(_synthetic()) == 0, "load_place")
-	check(_pump(a), "READY")
-	check(
-		not bool(a.status().field_on) and not a.is_air_field_on(), "headless auto — поле выключено"
-	)
-	a.free()
-
-
 ## start_at (W2 v4): без облачной петли (cloud_field.enabled = false) равен прогону с 0.
 func test_start_at_vs_run_from_zero() -> void:
 	var c: Dictionary = Config.get_config("atmosphere").duplicate(true)
@@ -1178,14 +1180,14 @@ func test_start_at_vs_run_from_zero() -> void:
 	var a := _make("gd")
 	a.cfg_override = c
 	a.configure(4242)
-	a.set_conditions({"preset": _preset(14.0, 230.0)})
+	a.set_conditions({"preset": _preset(14.0, 230.0), "start_hour": 12.0, "speed": 1.0})
 	a.load_place(_synthetic())
 	check(a.start_at(300.0) == 0, "start_at(300)")
 	check(_pump(a), "start_at: READY")
 	var b := _make("gd")
 	b.cfg_override = c
 	b.configure(4242)
-	b.set_conditions({"preset": _preset(14.0, 230.0)})
+	b.set_conditions({"preset": _preset(14.0, 230.0), "start_hour": 12.0, "speed": 1.0})
 	b.load_place(_synthetic())
 	check(_pump(b), "прогон с 0: READY")
 	var t := 0.0

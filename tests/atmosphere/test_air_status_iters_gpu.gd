@@ -32,7 +32,6 @@ func test_iters_grow_during_solver_stage() -> void:
 	if p == null:
 		host.queue_free()
 		return
-	a.set_air_mode("on")
 	check(a.configure(77) == 0, "configure")
 	# ветер, которого нет среди запечённых полей старта: решатель считает поле с нуля
 	var cond := {
