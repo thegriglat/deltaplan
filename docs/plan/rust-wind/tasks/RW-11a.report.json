@@ -1,0 +1,65 @@
+{
+  "status": "done",
+  "summary": "docs/research/rust-wind-stage3/w6v4.md: проект W6 v4 из трёх новых вызовов (cloud_objects с шагом 22 и моментом t, wave_info, surface_gust_many) с полями по читателям (файл:строка), единицам и источникам в крейте; состав weather_json по читателям. Только разбор, код не менялся.",
+  "commits": [
+    "rust-wind RW-11a: проект W6 v4 и поверхностного порыва (записи Cb, волны, история, weather_json)"
+  ],
+  "checks": [
+    {
+      "name": "sections",
+      "value": "sections ok",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "2 файла в границах",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Стоимость вызовов (crests, surface_gust_many, cloud_objects) не измерялась; код не запускался, разбор по чтению feature/rust-wind"
+  ],
+  "questions": [
+    "WeatherModel (derive, config, monthly, sky_params, ground_context) вызывается из UI, goal_estimator, game.gd и achievement_feed напрямую: оставить в GDScript после RW-13 или выносить?",
+    "gust_dust: wet_skies (overcast) сейчас не срабатывает - модель читает weather.sky, а derive кладёт sky только в _derived.sky. Сохранить поведение или чинить (читать _derived.sky)?",
+    "force_u10 в surface_gust_many (отладка --gust-dust-wind): оставить или убрать флаг?",
+    "cloud_layer.gd: читать конфиг через Config.get_config(\"atmosphere\") вместо atmo.cfg - согласовать до RW-11e"
+  ],
+  "how_to_check": ".dpcli/dpcli accept RW-11a",
+  "uncertain": [
+    {
+      "where": "docs/research/rust-wind-stage3/w6v4.md, раздел Предложение/Допущения (id & 0xFFFFFF)",
+      "why": "коллизия 24-битных id объектов-облаков ломает слоты CloudLayer; вероятность порядка n^2/2^25",
+      "checked": "как формируются id в thermal_field.gd:733,794 не проверял"
+    },
+    {
+      "where": "rust/dp-air/src/terms/thermal/life.rs:191 (apply_wind)",
+      "why": "допущение, что drift_vel не меняется после рождения; на нём держится экстраполяция центра облака в Godot",
+      "checked": "вызов найден в cells.rs:414; повторные вызовы при смене ветра не проверял"
+    },
+    {
+      "where": "w6v4.md, История (Live)",
+      "why": "для Live t<now не поддерживается, CloudLayer копит окно сам; заметность мерцания на weather_changed не оценена",
+      "checked": "только чтение cloud_layer.gd:870-886"
+    },
+    {
+      "where": "w6v4.md, Поверхностный порыв (скорость дрейфа пыли)",
+      "why": "замена speed_at(10) на модуль background_wind(valley+10) даёт отличие на altitude_factor",
+      "checked": "только чтение wind_model.gd:164"
+    }
+  ],
+  "dp_feedback": "grep через rtk режет вывод; для списков вхождений пришлось rtk proxy. Пустых замечаний к dpcli больше нет.",
+  "extra": {
+    "новые_вызовы": 3,
+    "OBJ_STRIDE": 22,
+    "WAVE_INFO_STRIDE": 2,
+    "читателей_weather_json": 9
+  },
+  "t": "2026-10-29T06:24:26",
+  "by": "executor"
+}

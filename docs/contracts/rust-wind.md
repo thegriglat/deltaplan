@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-10-29"
 summary: "Граница ветра в Rust: фасад Atmosphere, DpAir (gdext), трейт dp-air, место, описания, разложение, допуски, сборка, чистота."
 related: ["docs/plan/rust-wind.md", "docs/contracts/picard-rs.md", "docs/plan/rust-air-integration.md", "docs/plan/rust-ext.md", "docs/plan/air-cascade.md", "tools/research/rust_ext/gdext_probe/README.md", "docs/contracts/rust-wind/fixtures-tolerances.md", "docs/contracts/rust-wind/descriptions.md", "docs/contracts/rust-wind/solver.md", "docs/contracts/rust-wind/trait.md", "docs/contracts/rust-wind/dpair.md"]
-contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 3}, {"id": "W3", "version": 4}, {"id": "W4", "version": 5}, {"id": "W5", "version": 8}, {"id": "W6", "version": 3}, {"id": "W7", "version": 1}, {"id": "W8", "version": 2}, {"id": "W9", "version": 2}, {"id": "W10", "version": 2}, {"id": "W11", "version": 11}]
+contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 3}, {"id": "W3", "version": 4}, {"id": "W4", "version": 5}, {"id": "W5", "version": 8}, {"id": "W6", "version": 4}, {"id": "W7", "version": 1}, {"id": "W8", "version": 2}, {"id": "W9", "version": 2}, {"id": "W10", "version": 2}, {"id": "W11", "version": 11}]
 ---
 
 # Контракты модуля rust-wind
@@ -93,7 +93,7 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 3}, {"id": "W3",
 ## W5. Вход: место, конфиги, условия (v8)
 Владелец — RW-2 (сборка `AirPlaceData`), RW-4 (разбор в крейте). Потребители — W2–W4, фикстуры W8. `AirPlaceData`, конфиги, условия и история версий v2–v8 — `docs/contracts/rust-wind/input.md`.
 
-## W6. Описания — найденное, а не заданное (v3)
+## W6. Описания — найденное, а не заданное (v4)
 Владелец — RW-2 (из текущего кода), RW-10/RW-11 (из крейта). Поля, шаги `CORE_STRIDE`/`CLOUD_STRIDE`/`CREST_STRIDE`, растр облаков, гребни и инвариант найденного ядра — `docs/contracts/rust-wind/descriptions.md`.
 
 ## W7. Разложение для отладки (v1)
@@ -158,3 +158,4 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 3}, {"id": "W3",
 - W5 v8 (2026-10-29, разбор RW-8a) — сырая ячейка климата `loc.climate_cell`/`climate_cell_lag` (поправки на высоту — в крейте), конфиг `world` в `configure`. Потребители: RW-12b (фасад `AirPlaceData`, крейт `derive`/`ClimateGrid.place`, места фикстур), RW-10c (правило скал, `surface.thermal.edge_*`), RW-12c (`AtmoDay`, часы 6…21).
 - W11 v11 (2026-10-29, итог RW-U2) — θ′_d замороженных колонн решения с нагревом := θ′ механизма (`thd = Some(th)`), K — своего случая; θ′, θ′_d во всех не-неизвестных клетках — как `K_BC`. Потребители: RW-U4 (`dp-air` assembly, `picard_rs` граница, тесты), RW-7 (без изменений интерфейса).
 - W8 v2 (2026-10-29, ответ пользователя на Q1, итоги RW-6z/U1/U2, предложения RW-8a) — допуск T1 поля по классам клеток (`mech` 1 % |U| + 0,01 м/с, `conv` как v1, `nonconv` 15 %), статус решателя эталона `meta.solver`, эталоны с ошибкой GPU (landing_hill, thermal_slope); число ядер ≤ 2 на момент и ≤ 3 %, `above_base` после RW-11, случай `off`, `cases/<имя>.weather.json`. Потребители: RW-6u (T1 по классам, перепечатка landing_hill), RW-2c, RW-10*, RW-11*, RW-12* (эталоны этапа 3).
+- W6 v4 (2026-10-29, проект RW-11a) — объекты-облака `cloud_objects` (шаг 22, момент `t`), `wave_info`, `surface_gust_many`, `Core.storm`; методы W2–W4 — с RW-12z. Потребители: RW-11d, RW-11e, RW-8/9, RW-12z; `tests/contracts/test_rust_wind_contracts.gd` `CONTRACTS.W6 = 4` — первая задача, трогающая файл (RW-11e).

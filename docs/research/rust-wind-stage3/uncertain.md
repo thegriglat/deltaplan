@@ -47,3 +47,4 @@ related: ["docs/research/rust-wind-stage3-path.md", "docs/plan/rust-wind.md"]
 | RW-10d | `rust/dp-air/tests/data/RW-10d/ongudai_medium/field.bin` | эталон поля — f16 (запечённое, w_mech обнулён), не f32 без потерь (бюджет 5 МБ); strong/wave — только счётчики, тестом не читаются | итоговый прогон: источники strong/wave по дампу из опорной ревизии |
 | RW-10d | `terms/thermal_air/pick.rs:20-60` | водная ветка `pick_in_column`/`land_fraction` не сверена с GD на реальных данных | RW-10e: острова |
 | RW-10d | `terms/thermal_air/mod.rs` `BuildIn::u10` | `u10` параметром (GD — `level.meta.u10`) | RW-10e |
+| RW-11b | `terms/waves/` на `ongudai_wave` | волна смотрит на 3λ ≈ 43 км против ветра, растр места ±20 км: за краем — высота края; с эталоном по terrain.height_at расходится до 5,5 м/с (120/189 точек) | вопрос к итоговой проверке: дальний грубый рельеф для волн (W5) |

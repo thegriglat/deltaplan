@@ -1,0 +1,79 @@
+{
+  "status": "done",
+  "summary": "StormField (интенсивность, радиусы, ливень, растекание, фронт, σ), CloudModel (stage, life_window, center, size) и StormExtra в составном слоте Extra (ExtraSet в slots.rs; волна RW-11b и облако RW-11d добавляются одной строкой). storm vel совпадает с synth_storm в допуске W8 по всем точкам растра; Cb-облака дампа и интенсивность ядра совпадают.",
+  "commits": [
+    "rust-wind RW-11c: гроза StormField, физика Cb (stage/size/center/life_window), слагаемое storm в составном Extra"
+  ],
+  "checks": [
+    {
+      "name": "terms_storm",
+      "value": "11 тестов",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "dp_air_no_godot",
+      "value": "0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "ongudai_storm: Cb рождаются из источников поля Пикара (_spawn_air, RW-10d/e) - сверить storm vel после RW-10e (в тесте только проверка, что эталон содержит грозу, а крейт без термиков даёт 0)",
+    "ongudai_day_2 (10 ненулевых точек-моментов storm): после RW-10e и RW-12d (погода дня, термики из поля)",
+    "σ грозы по слагаемому в эталоне не записана (decompose пишет σ только turb/gust): проверена односторонне против итоговой σ; точная сверка σ - после сборки всей суммы (RW-12z)",
+    "Core.storm (поле 14 W6): функция storm::core_intensity готова и сверена с дампом cores, но подставить её в cores.rs нельзя - thermal/ вне скоупа; нужно в RW-12z/через координатора",
+    "tests/atmosphere/test_storm_rarity.gd: перенесён только test_overlapping_outflows_do_not_add; остальное (частота Cb по температуре) зависит от WeatherModel.derive/cb_thermal_chance - RW-12",
+    "test_hazards.gd: перенесён test_cb_downdraft_and_outflow на синтетическом Cb; test_cb_suck_under_base - подсос, RW-11d"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-11c",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/src/terms/slots.rs: ExtraSet; rust/dp-air/src/terms/mod.rs: Slots::new",
+      "why": "RW-11b параллельно может сделать Extra составным по-своему; при слиянии будет конфликт в Slots::new и slots.rs - свести (оставить один составной слот, части: StormExtra, WaveExtra, CloudExtra)",
+      "checked": "task sync: feature/rust-wind ещё без RW-11b; ExtraSet складывает поля ExtraOut (каждая часть заполняет свои, остальные нули) и chaos_noise"
+    },
+    {
+      "where": "rust/dp-air/src/terms/storm/mod.rs: field_of / StormExtra::flow",
+      "why": "cloud_size_factor читается из погоды на каждом опросе; в GD StormField.setup берёт его один раз при сборке атмосферы (мягкое обновление погоды ходом дня в storm не доходит, а в thermal/CloudModel доходит). При смене factor в ходе дня расхождение с GD",
+      "checked": "atmosphere.gd:379, 411, 462; в эталонах пресет постоянный (factor 1)"
+    },
+    {
+      "where": "rust/dp-air/src/terms/storm/mod.rs: cells()",
+      "why": "ячейки = все термики набора (state.all) с is_cb - аналог storm.refresh(field.thermals) при каждом обновлении набора; в GD список обновляется внутри refresh, в Rust - с каждым снимком слота (тот же момент)",
+      "checked": "число Cb-облаков и интенсивность ядер совпали с дампом на 3 момента synth_storm/medium/strong"
+    },
+    {
+      "where": "rust/dp-air/src/terms/storm/field.rs: sample",
+      "why": "GD копит out (Vector4) в f32, Rust - в f64 с округлением итога до f32; расхождения порядка 1e-6 м/с",
+      "checked": "synth_storm в допуске W8 (0,05 м/с + 2 %) на всех on_grid точках; точки вне растра места пропущены (высота земли там у GD аналитическая)"
+    },
+    {
+      "where": "rust/dp-air/src/terms/storm/cloud_model.rs: stage",
+      "why": "stage_override (тестовая сцена) не перенесён; life_fade/range_fade/far_m/step_fade/select*/merge_winners остаются в Godot по границе RW-8a",
+      "checked": "stage/центр/полуось/верх Cb сверены с записями clouds (флаг 4) дампа: центр < 0,5 м, рост/распад 1e-4, полуось 0,2 %, верх 1 м"
+    }
+  ],
+  "dp_feedback": "dpcli lock cpu отдаёт управление сразу (фон), приходится отдельно job wait; не очевидно из справки. accept --dry идёт ~7 минут из-за cargo test --workspace: хотелось бы видеть прогресс.",
+  "extra": {
+    "pub_api": "terms::storm::{StormCfg, StormField, CloudCfg, CloudModel, NO_CLOUD, Stage, cloud_center, cells, field_of, core_intensity, StormExtra}",
+    "synth_storm_points_checked": ">600 on_grid, >=20 с тегом storm, >=20 с потоком >1 м/с"
+  },
+  "t": "2026-10-29T06:23:15",
+  "by": "executor"
+}
