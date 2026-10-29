@@ -1,0 +1,73 @@
+{
+  "id": "RW-12y",
+  "module": "rust-wind",
+  "type": "dp-researcher",
+  "title": "Проект перехода фасада: W2 v4 / W3 v5 / W4 v6 и разбиение RW-12z",
+  "goal": "Документ docs/research/rust-wind-stage3/rw12z.md: (1) правки контрактов W2 v4 (facade), W3 v5 (dpair.md), W4 v6 (trait.md) — точный текст новых/изменённых методов, констант, гарантий, со ссылками на код крейта terms/* (что уже есть как pub-функция) и потребителей GD; (2) разбиение RW-12z на 2–4 задачи с непересекающимся скоупом (Rust Formula/трейт, dp-gd DpAir, GDScript atmosphere.gd и потребители), порядок, красные тесты, проверки; (3) список сомнений из docs/research/rust-wind-stage3/uncertain.md с пометкой RW-12z — какой задаче каждое.",
+  "plan_ref": "План переноса",
+  "contracts": [
+    {
+      "name": "W2",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W3",
+      "version": "4",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W4",
+      "version": "5",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W5",
+      "version": "8",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W6",
+      "version": "4",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W7",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-12y",
+  "branch": "rust-wind/RW-12y",
+  "base": "feature/rust-wind",
+  "scope": [
+    "docs/research/rust-wind-stage3/rw12z.md"
+  ],
+  "dont_touch": [
+    "rust/",
+    "scripts/",
+    "docs/contracts/",
+    "tests/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "doc_exists",
+      "cmd": "test -s docs/research/rust-wind-stage3/rw12z.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs_check",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T13:43:49"
+}
