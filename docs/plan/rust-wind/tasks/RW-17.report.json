@@ -1,0 +1,63 @@
+{
+  "status": "done",
+  "summary": "Оценка четырёх крейтов по коду dp-air и микропробе: arc-swap, glam, rand_pcg, jiff — все «не нужен». Снимок поля берётся раз на пакет (37 нс при 3300 нс на 18 точек), векторы скалярные f64, rand_pcg даёт ту же последовательность, но randf остаётся своим, день года — 5 нс.",
+  "commits": [
+    "RW-17: оценка крейтов arc-swap, glam, rand_pcg, jiff — ни один не нужен"
+  ],
+  "checks": [
+    {
+      "name": "report_doc",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "verdicts",
+      "value": "4",
+      "pass": true
+    },
+    {
+      "name": "docs_check",
+      "value": "ошибок 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-17; cargo run --release -p dp-air --example rw17_probe",
+  "uncertain": [
+    {
+      "where": "docs/research/rust-wind-stage3/rw17-crates.md (arc-swap, glam)",
+      "why": "Замер крейтов-кандидатов сделан во временном крейте вне репозитория (Cargo.toml dp-air трогать нельзя); в кадре игры целиком выигрыш не мерили, оценка по доле в профиле baseline.json",
+      "checked": "Микропроба rw17_probe воспроизводит сторону RwLock/PCG/дней; rand_pcg::Lcg64Xsh32::new(seed, 1442695040888963407) побитно совпал с compat Pcg32::randi на 5 сидах x 1000"
+    }
+  ],
+  "dp_feedback": "Пути скоупа в карточке расходились (benches/ vs examples/): поправка пришла дополнением; accept проверяет scope, но не предупреждает заранее.",
+  "extra": {
+    "arc_swap_ns_1_reader": {
+      "rwlock_arc": 32.5,
+      "load_full": 40.5,
+      "load_guard": 22.1
+    },
+    "arc_swap_ns_8_readers": {
+      "rwlock_arc": 1406,
+      "load_full": 593,
+      "load_guard": 31
+    },
+    "sample_many_18_us": 3.28,
+    "pcg_ns": {
+      "own": 2.05,
+      "rand_pcg": 1.87
+    },
+    "day_of_year_ns": {
+      "own": 5.3,
+      "jiff": 2.1
+    },
+    "normalize_vec3_ns": {
+      "array": 4.5,
+      "glam": 4.6
+    }
+  },
+  "t": "2026-10-30T02:03:13",
+  "by": "executor"
+}

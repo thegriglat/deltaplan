@@ -1,0 +1,62 @@
+{
+  "id": "RW-17",
+  "module": "rust-wind",
+  "type": "dp-researcher",
+  "title": "Нужны ли крейты arc-swap, glam, rand_pcg, jiff",
+  "goal": "По коду и профилю dp-air оценить для каждого из arc-swap (снимок поля без замка для sample), glam (SIMD-векторы в выборках), rand_pcg (замена compat ГСЧ), jiff (даты/день года для погоды): где пригодится (файл:функция), ожидаемый выигрыш (замер или обоснованная оценка), цена (зависимости, размер, сборка Win/Linux, чистота dp-air), вывод «нужен/не нужен»; код крейта не менять.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "W4",
+      "version": "10",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W9",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W12",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-17",
+  "branch": "rust-wind/RW-17",
+  "base": "feature/rust-wind",
+  "scope": [
+    "docs/research/rust-wind-stage3/rw17-crates.md",
+    "rust/dp-air/examples/rw17_probe.rs"
+  ],
+  "dont_touch": [
+    "rust/dp-air/src/",
+    "rust/dp-gd/",
+    "rust/Cargo.toml",
+    "rust/dp-air/Cargo.toml",
+    "scripts/",
+    "configs/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "report_doc",
+      "cmd": "test -s docs/research/rust-wind-stage3/rw17-crates.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "verdicts",
+      "cmd": "grep -cE '^\\*\\*Вывод (arc-swap|glam|rand_pcg|jiff)\\*\\*: (нужен|не нужен)' docs/research/rust-wind-stage3/rw17-crates.md",
+      "expect": "num:^(\\d+) >=4"
+    },
+    {
+      "name": "docs_check",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-30T01:58:32",
+  "edited": "2026-10-30T01:58:46"
+}
