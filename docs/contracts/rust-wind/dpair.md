@@ -6,10 +6,10 @@ area: "air"
 updated: "2026-10-30"
 summary: "W3 rust-wind: класс DpAir (gdext, dp-gd) — методы W2 в типах Godot, потоки, жизненный цикл, описания W6; v6 — без режима поля."
 related: ["docs/contracts/rust-wind.md", "docs/contracts/rust-wind/trait.md", "docs/plan/rust-wind.md"]
-contracts: [{"id": "W3", "version": 8}]
+contracts: [{"id": "W3", "version": 9}]
 ---
 
-# W3. Класс `DpAir` (gdext, крейт `dp-gd`) (v8)
+# W3. Класс `DpAir` (gdext, крейт `dp-gd`) (v9)
 
 Часть `docs/contracts/rust-wind.md` (версия — там, заголовок W3). Менять — только координатор.
 Владелец — RW-4 (каркас, заглушка `Calm`), RW-6…12 (наполнение). Потребитель — фасад (реализация `rust`), контрактные тесты.
@@ -41,3 +41,4 @@ contracts: [{"id": "W3", "version": 8}]
 - **v6 (2026-10-29, решение пользователя: упрощённый режим ветра убрать):** `api_version() = 5`. `set_field_enabled` удалён (W4 v7); номер подачи по `set_field_enabled(false)` больше не растёт — такого вызова нет. Поле на месте считается всегда.
 - **v7 (2026-10-29, итог RW-P11):** `add_baked_field` удалён (W5 v9). `set_cache_dir` и кеш полей — без изменений. `api_version()` не меняется (= W2 v5).
 - **v8 (2026-10-30, решение пользователя: экран загрузки):** `api_version() = 6`. Добавлено `run() -> int`, `runs() -> int` — как `status().run/runs` W2 v6 (из `Status::run/runs` W4 v9), читаются из главного потока без блокировок, как `iters()`.
+- **v9 (2026-10-30, погода в крейт, W12 v1):** `api_version()` не меняется (= 6). Добавлено: `attach_weather(w: DpWeather) -> int` — до `load_place`; передаёт общий `Arc<Weather>` (W12); не задан — климат места по `climate.fallback` (как нет сетки), не ошибка; `null` → `BAD_INPUT`. `place_context() -> String` — JSON `{valley_msl_m, mean_msl_m, month, day, lat, lon, utc_offset_h}` места после `load_place` (EMPTY → `"{}"`), единый источник контекста погоды для игры (`game.gd` `_weather_ctx`).

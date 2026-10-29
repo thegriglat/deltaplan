@@ -6,10 +6,10 @@ area: "air"
 updated: "2026-10-30"
 summary: "W4 rust-wind: трейт AirModel крейта dp-air (без Godot) — типы, методы, порядок команд, структуры описаний, реализации Calm/Formula/Live."
 related: ["docs/contracts/rust-wind.md", "docs/plan/rust-wind.md"]
-contracts: [{"id": "W4", "version": 9}]
+contracts: [{"id": "W4", "version": 10}]
 ---
 
-# W4. Трейт `AirModel` (крейт `dp-air`, без Godot) (v9)
+# W4. Трейт `AirModel` (крейт `dp-air`, без Godot) (v10)
 
 Часть `docs/contracts/rust-wind.md` (версия — там, заголовок W4). Менять — только координатор.
 Владелец — RW-4 (трейт, заглушка `Calm`), RW-6…12 (`Formula`), будущий живой воздух (`Live`). Потребители — `dp-gd`, стенд RW-5, `cargo test`, `cargo bench`.
@@ -83,3 +83,4 @@ pub trait AirModel: Send + Sync {
 - **v7 (2026-10-29, решение пользователя: упрощённый режим ветра убрать):** `API_VERSION = 5`. `set_field_enabled` (v5) удалён из трейта, `Calm`, `Formula` и стенда; ветка `off` в `Formula` (аналитика без поля по выключателю) удалена вместе с её тестами. Поле считается всегда; ответ без поля остаётся только при `Failed` (W1) и до готовности поля — как прежде.
 - **v8 (2026-10-29, итог RW-P11):** `add_baked_field` удалён из трейта, `Calm`, `Formula`, стенда. Разбор/ключ `field::baked` (`parse_baked`, `encode_baked`, `baked_lookup`) остаётся, пока им пользуется кеш полей и переходная выдача поля `field_export*`; иначе удаляется. `API_VERSION` не меняется (= 5).
 - **v9 (2026-10-30, решение пользователя: экран загрузки):** `API_VERSION = 6`. `Status` += `run: u32`, `runs: u32`: прогон — вход задачи поля в этап с итерациями решателя (`coarse`, `solve_mech`, `solve_heat`, в каждом проходе `max_passes`); `iters` при каждом входе считается с нуля. `run` — номер текущего прогона с 1 (0 — нет этапа с итерациями); `runs` — прогонов по текущему плану задачи (`runs ≥ run`, растёт, когда нужен следующий проход). Счёт — в `field::runtime` (рядом с `StageCounter`), без блокировок. `Calm`: 0, 0. Тест: прогон поля малого места — `run` не убывает, `1 ≤ run ≤ runs` на этапах с итерациями, при смене этапа `iters` с нуля.
+- **v10 (2026-10-30, погода в крейт, W12 v1):** `API_VERSION` не меняется (= 6). Трейт += `fn set_weather(&mut self, w: Arc<weather::Weather>)` (по умолчанию — ничего; `Calm` — ничего) и `fn place_context(&self) -> Option<PlaceContext>` (по умолчанию `None`); `Formula` берёт климат места из `Weather::climate_at` на дату места и на дату − `round(lag_days)` вместо `loc.climate*` (W5 v10).
