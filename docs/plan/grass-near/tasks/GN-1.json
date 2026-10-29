@@ -28,12 +28,16 @@
     "scripts/terrain/terrain_wind.gdshaderinc",
     "scripts/terrain/cloud_shadow.gdshaderinc",
     "scripts/terrain/scene_look.gdshaderinc",
+    "scripts/terrain/grass_mid_shell.gd",
+    "scripts/terrain/grass_mid_cards.gd",
     "scripts/terrain/terrain.gd",
+    "scenes/main.gd",
     "scripts/game/world_link.gd",
     "scripts/world_objects/trample_mask.gd",
     "scripts/flight/sky_shade.gd",
     "configs/vegetation.json",
     "tests/vegetation/",
+    "tests/game/test_gameplay.gd",
     "tests/flight/test_sky_shade_grass.gd",
     "tests/flight/test_sky_shade_grass_gpu.gd",
     "docs/guide/vegetation.md",
@@ -42,9 +46,7 @@
   ],
   "dont_touch": [
     "project.godot",
-    "scripts/terrain/grass_mid_shell.gd",
     "scripts/terrain/grass_mid_shell.gdshader",
-    "scripts/terrain/grass_mid_cards.gd",
     "scripts/terrain/grass_mid_cards.gdshader",
     "scripts/terrain/terrain.gdshader",
     "scripts/terrain/terrain_main.gdshaderinc",
@@ -70,10 +72,14 @@
     {
       "name": "sky_shade",
       "tests": "sky_shade"
+    },
+    {
+      "name": "pause_look_around",
+      "tests": "pause_look_around"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-29T17:46:17",
-  "edited": "2026-10-29T17:47:50"
+  "edited": "2026-10-29T19:20:10"
 }
