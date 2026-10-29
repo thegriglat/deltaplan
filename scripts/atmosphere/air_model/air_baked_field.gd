@@ -186,10 +186,21 @@ static func load_file(path: String, key: Variant = null) -> AirFieldSet:
 	if comp.is_empty():
 		push_warning("AirBakedField: нет %s.bin" % base)
 		return null
+	return load_bytes(h, comp, base)
+
+
+## Набор уровней из заголовка и тела в памяти (W3 v4: снимок поля крейта, DpAir.field_export_header/
+## field_export_data; тот же разбор уровней, что у load_file, без чтения файла и без проверки
+## key/model_hash). comp — тело как в .bin (zstd). Рабочий поток допустим (сцену не трогает).
+## null — тело не распаковалось или уровень не собрался; base — подпись для сообщений.
+static func load_bytes(h: Dictionary, comp: PackedByteArray, base := "снимок") -> AirFieldSet:
 	var raw_n := int(h.get("raw_bytes", 0))
+	if comp.is_empty() or raw_n <= 0:
+		push_warning("AirBakedField: %s — тело пусто" % base)
+		return null
 	var body := comp.decompress(raw_n, FileAccess.COMPRESSION_ZSTD)
-	if body.size() != raw_n or raw_n <= 0:
-		push_warning("AirBakedField: %s.bin не распаковался" % base)
+	if body.size() != raw_n:
+		push_warning("AirBakedField: %s — тело не распаковалось" % base)
 		return null
 	# уровни собираются параллельно (WindField.from_arrays — столбцы и пограничный слой, сотни мс на
 	# уровень): чтение из кеша/файла за ~1 с, а не за сумму уровней (FL-2)

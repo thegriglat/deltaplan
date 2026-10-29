@@ -1,0 +1,80 @@
+{
+  "id": "RW-10c",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Сила источников термиков из растров места в крейте: thermal_source_strength (вода, лес, скалы, кромки) — для RW-10b/10d",
+  "goal": "Модуль считает силу источника термика в точке из растров W5 (cls, moist, water, высоты → нормаль) и конфига world (rock_slope_deg, surface.thermal.edge_*) как GD; дамп GD на сетках Онгудая, островов и синтетики сверяется; доля точек, где сила по растру 25 м отличается от GD (слои 10 м) > 0,05, измерена и записана.",
+  "plan_ref": "План переноса",
+  "contracts": [
+    {
+      "name": "W4",
+      "version": "5",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W7",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W10",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-10c",
+  "branch": "rust-wind/RW-10c",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/terms/thermal_src/",
+    "rust/dp-air/src/terms/mod.rs",
+    "rust/dp-air/src/terms/slots.rs",
+    "rust/dp-air/tests/terms_thermal_src.rs",
+    "rust/dp-air/tests/data/RW-10c/"
+  ],
+  "dont_touch": [
+    "rust/dp-air/src/formula.rs",
+    "rust/dp-air/src/field/",
+    "rust/picard_rs/",
+    "rust/dp-gd/",
+    "scripts/",
+    "tests/fixtures/",
+    "docs/contracts/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "terms_thermal_src",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test terms_thermal_src",
+      "expect": "num:test result: ok\\. (\\d+) >=5"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dp_air_no_godot",
+      "cmd": "cargo tree --manifest-path rust/Cargo.toml -p dp-air -e normal | grep -ci godot || true",
+      "expect": "num:^(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T05:06:13"
+}

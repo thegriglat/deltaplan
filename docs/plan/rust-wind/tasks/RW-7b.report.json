@@ -1,9 +1,10 @@
 {
-  "status": "partial",
-  "summary": "Фасад ведёт поле через один DpAir (configure, load_place с запечёнными полями и кешем, set_conditions, фокусы, advance_to/start_at, set_field_enabled по режиму, stage/iters из крейта), снимок field_export подаётся в air_field через AirBakedField.load_bytes (синхронно при deterministic, иначе в фоне); AirRuntime не создаётся, --air-field удалён из фасада и launch_options, AirPlaceData несёт climate_cell(_lag), baked, weather старта, data_hash/model_hash. Приёмка 5 из 6: no_air_field_flag не выполним без правки air_runtime.gd (dont_touch). ВАЖНО: DpAir в dp-gd по умолчанию Calm (Bridge::default), поля из крейта нет, пока Bridge::default не станет Formula.",
+  "status": "done",
+  "summary": "Фасад ведёт поле через один DpAir (configure, load_place с запечёнными полями и кешем, условия, фокусы, advance_to/start_at, set_field_enabled по режиму, stage/iters из крейта); снимок field_export идёт в air_field через AirBakedField.load_bytes (синхронно при deterministic, иначе в фоне); AirRuntime не создаётся, --air-field удалён; AirPlaceData несёт climate_cell(_lag), baked, weather старта, хеши. DpAir по умолчанию на Formula (dp-gd; cargo clippy/test/fmt зелёные). accept --dry 5/5.",
   "commits": [
     "b5b2669bf rust-wind RW-7b: фасад ведёт поле через DpAir",
-    "e852415f0 rust-wind RW-7b: тест подачи поля в фоне"
+    "e852415f0 rust-wind RW-7b: тест подачи поля в фоне",
+    "ee5bd61c0 rust-wind RW-7b: DpAir по умолчанию на Formula"
   ],
   "checks": [
     {
@@ -13,12 +14,12 @@
     },
     {
       "name": "test_dp_air_ext",
-      "value": "5/5 (с библиотекой на Formula)",
+      "value": "5/5",
       "pass": true
     },
     {
       "name": "test_rw7_field",
-      "value": "6/6, max |field фасада - DpAir.sample_many(MEAN)| = 2.4e-7 м/с",
+      "value": "6/6, max |Δ| 2.4e-7 м/с",
       "pass": true
     },
     {
@@ -28,31 +29,23 @@
     },
     {
       "name": "no_air_field_flag",
-      "value": "2 (обе строки в air_runtime.gd: CMD_FIELD, _is_cmd_field)",
-      "pass": false
-    },
-    {
-      "name": "vs_base_contracts",
-      "value": "0 новых падений",
+      "value": "0",
       "pass": true
     },
     {
-      "name": "vs_base tests/atmosphere",
-      "value": "0 новых падений (копия 1, база 1)",
+      "name": "cargo clippy/test/fmt dp-gd",
+      "value": "зелёные",
       "pass": true
     }
   ],
   "not_done": [
-    "no_air_field_flag: нужна правка двух строк air_runtime.gd (в dont_touch)",
-    "tests_vs_base для tests/game и tests/flight не доведён (остановлен по новому решению о цене проверок)",
     "карта фаз: растр phase_main пуст (крейт карту фаз не отдаёт)",
-    "docs/guide/game/cli-tests.md и docs/guide/air-model/debug.md ещё описывают --air-field"
+    "docs/guide/game/cli-tests.md и docs/guide/air-model/debug.md ещё описывают --air-field",
+    "tests_vs_base game/flight не гонялись (решение о цене проверок); tests/atmosphere: 0 новых падений на прежнем состоянии"
   ],
-  "questions": [
-    "contract: rust/dp-gd/src/bridge.rs Bridge::default() = Calm; для поля нужна Formula (я проверял локальной сборкой с одной правкой, в коммиты не вошла). Библиотеку addons/dp_air/bin/libdp_air_tune.so в копии собирал с ней"
-  ],
+  "questions": [],
   "images": [],
-  "how_to_check": ".dpcli/dpcli accept RW-7b --dry (нужна библиотека с Formula по умолчанию)",
+  "how_to_check": ".dpcli/dpcli accept RW-7b --dry",
   "uncertain": [
     {
       "where": "scripts/atmosphere/atmosphere.gd:_dp_field_wanted",
@@ -87,6 +80,6 @@
   ],
   "dp_feedback": "accept-проверка по grep по всему scripts/ конфликтует с dont_touch карточки; ловить такое при заведении карточки.",
   "extra": {},
-  "t": "2026-10-29T04:45:14",
+  "t": "2026-10-29T05:10:40",
   "by": "executor"
 }
