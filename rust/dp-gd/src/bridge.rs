@@ -149,6 +149,29 @@ impl Bridge {
         self.done(r)
     }
 
+    /// W3 v9: общая погода (W12) до `load_place`; нет погоды (`None`) — `BAD_INPUT`.
+    pub fn attach_weather(&mut self, w: Option<Arc<dp_air::weather::Weather>>) -> i64 {
+        match w {
+            Some(w) => {
+                self.model.set_weather(w);
+                self.last_error.clear();
+                OK
+            }
+            None => self.fail(
+                BAD_INPUT,
+                "attach_weather: DpWeather is null or not configured",
+            ),
+        }
+    }
+
+    /// W3 v9: контекст загруженного места json; места нет — `{}`.
+    pub fn place_context(&self) -> String {
+        self.model
+            .place_context()
+            .and_then(|c| serde_json::to_string(&c).ok())
+            .unwrap_or_else(|| "{}".into())
+    }
+
     /// W3 v4: закрепляет снимок последней подачи поля; возвращает его номер (`0` — поля нет).
     pub fn field_export(&mut self) -> i64 {
         let e = self.model.field_export();

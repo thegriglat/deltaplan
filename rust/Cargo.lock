@@ -323,10 +323,12 @@ dependencies = [
 name = "dp-gd"
 version = "0.1.0"
 dependencies = [
+ "brotli-decompressor",
  "dp-air",
  "godot",
  "rayon",
  "serde_json",
+ "zstd",
 ]
 
 [[package]]

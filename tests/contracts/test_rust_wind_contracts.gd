@@ -11,7 +11,7 @@ extends TestCase
 
 ## Версии разделов — те же, что в заголовках docs/contracts/rust-wind.md и rust-wind/*.md.
 const CONTRACTS := {
-	W1 = 2, W2 = 6, W3 = 9, W4 = 10, W5 = 10, W6 = 4, W7 = 1, W8 = 3, W9 = 2, W10 = 2, W11 = 11, W12 = 1
+	W1 = 2, W2 = 6, W3 = 9, W4 = 10, W5 = 10, W6 = 4, W7 = 1, W8 = 3, W9 = 2, W10 = 2, W11 = 11, W12 = 2
 }
 const DOCS: Array[String] = [
 	"res://docs/contracts/rust-wind.md",
@@ -1280,3 +1280,41 @@ func test_start_at_vs_run_from_zero() -> void:
 	check(a.cores(CENTER, 8000.0) == b.cores(CENTER, 8000.0), "ядра после start_at = прогону с 0")
 	a.free()
 	b.free()
+
+
+## W3 v9 / W12 v2: класс DpAir несёт attach_weather и place_context, класс DpWeather — методы п. 2.
+func test_dp_weather_and_dp_air_weather_methods() -> void:
+	check(ClassDB.class_exists("DpWeather"), "класс DpWeather есть (W12)")
+	check(ClassDB.class_exists("DpAir"), "класс DpAir есть (W3)")
+	var weather_methods: Array[String] = [
+		"configure",
+		"typical_max_c",
+		"diurnal_state",
+		"sunrise_h",
+		"sunset_h",
+		"sky_params",
+		"derive",
+		"air_temp_c",
+		"water_temp_c",
+		"temp_at_altitude",
+		"climate_cell",
+		"reference_context",
+		"quantum_h",
+		"hour_at",
+		"valley_of",
+	]
+	var w: Object = ClassDB.instantiate("DpWeather")
+	check(w != null, "DpWeather создаётся")
+	if w != null:
+		for m in weather_methods:
+			check(w.has_method(m), "DpWeather: есть метод %s" % m)
+		check(is_nan(w.quantum_h()), "до configure quantum_h = NaN")
+		check(w.derive("{}", "{}", 12.0) == "{}", "до configure derive = {}")
+		check(w.diurnal_state(20.0, 12.0, "{}") == "{}", "до configure diurnal_state = {}")
+	var air: Object = ClassDB.instantiate("DpAir")
+	check(air != null, "DpAir создаётся")
+	if air != null:
+		for m in ["attach_weather", "place_context"]:
+			check(air.has_method(m), "DpAir: есть метод %s" % m)
+		check(air.place_context() == "{}", "DpAir.place_context без места = {}")
+		check(air.attach_weather(null) == 1, "attach_weather(null) = BAD_INPUT")
