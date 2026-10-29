@@ -1,0 +1,85 @@
+{
+  "id": "RW-14c",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Погода в крейте: dp_air::weather (W12 v1)",
+  "goal": "Модуль dp_air::weather по W12 v1: Weather/ClimateGrids из распакованных байтов, все функции погоды из W12 п. 1, совпадающие с эталонами RW-14b E1–E5, E7–E10 в допуске W8; трейт set_weather/place_context (W4 v10); климат места из Weather вместо loc.climate* (W5 v10).",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "W12",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W4",
+      "version": "10",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W5",
+      "version": "10",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-14c",
+  "branch": "rust-wind/RW-14c",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/",
+    "rust/dp-air/tests/weather_ref2.rs",
+    "rust/dp-air/tests/",
+    "rust/dp-air/Cargo.toml",
+    "rust/dp-stand/",
+    "rust/Cargo.lock",
+    "configs/weather_model.json"
+  ],
+  "dont_touch": [
+    "rust/dp-air/tests/data/",
+    "rust/dp-gd/",
+    "scripts/",
+    "docs/contracts/",
+    "rust/picard_rs/",
+    "tools/"
+  ],
+  "accept": [
+    {
+      "name": "weather_ref2",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test weather_ref2",
+      "expect": "exit=0"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace -- --skip api_version_matches_contract_header",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dp_air_no_godot",
+      "cmd": "cargo tree --manifest-path rust/Cargo.toml -p dp-air -e normal | grep -ciE 'godot|brotli' || true",
+      "expect": "num:^(\\d+) <=0"
+    },
+    {
+      "name": "purity_not_worse",
+      "cmd": "bash tools/dp_air_purity.sh | tail -1",
+      "expect": "num:нарушений: (\\d+) <=458"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-30T01:52:52"
+}
