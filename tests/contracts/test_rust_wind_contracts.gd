@@ -48,8 +48,9 @@ func _make(impl: String) -> Node:
 	a.visuals_enabled = false
 	# поле Пикара считается всегда: область поменьше, чтобы тесты не ждали минуты
 	var small: Dictionary = Config.get_config("atmosphere").duplicate(true)
-	small.air.domain_l_m = 2400.0
+	small.air.domain_l_m = 9600.0
 	a.cfg_override = small
+	a.air_cache_enabled = true  # одинаковые поля берутся из кеша, а не считаются заново
 	return a
 
 
