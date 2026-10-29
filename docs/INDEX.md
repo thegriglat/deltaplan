@@ -57,7 +57,7 @@ generated: true
   - [docs/research/rust-wind-field-path.md](research/rust-wind-field-path.md) — RW-6a: путь поля Пикара в игре от места до опроса точки, что есть в picard_rs, разбиение RW-6 на задачи, окна 100/50 м на CPU
   - [docs/research/rust-wind-k-passes.md](research/rust-wind-k-passes.md) — RW-6w: почему k второго прохода у start-полей расходился с запечённым, что исправлено, числа до и после
   - [docs/research/rust-wind-rw6-acceptance.md](research/rust-wind-rw6-acceptance.md) — RW-6q: T1 по 8 запечённым полям после RW-6v, T2/T4/T4a/T8, бенч Formula, загрузка Онгудая против GPU
-  - [docs/research/rust-wind-t1-audit-thermal-slope.md](research/rust-wind-t1-audit-thermal-slope.md) — RW-U2: расхождение thermal_slope — решение с нагревом при замороженных колоннах: GPU берёт θ′_d и K заморозки от решения без нагрева (снимок один раз), крейт — свои
+  - [docs/research/rust-wind-t1-audit-thermal-slope.md](research/rust-wind-t1-audit-thermal-slope.md) — RW-U2: thermal_slope расходится из-за GPU — θ′_d и K заморозки решения с нагревом взяты от решения без нагрева; эмуляция в крейте даёт 0,07 м/с
   - [docs/research/rust-wind-t1-stability.md](research/rust-wind-t1-stability.md) — RW-6z: крейт сходится и не чувствителен к CHUNK и возмущению 1e-6 (R ≤ 2,6e-3) — расхождение T1 не от неустойчивости крейта
   - [tools/research/rust_wind/README.md](../tools/research/rust_wind/README.md) — RW-6a: расчёт размера окон 100/50 м и времени picard_rs на CPU, приложение с таблицами шагов и задач RW-6
   - [tools/research/rust_wind_t1_stability/README.md](../tools/research/rust_wind_t1_stability/README.md) — RW-6z: команды воспроизведения опыта устойчивости открытых полей T1 (варианты CHUNK и возмущения), определения R и классов клеток
