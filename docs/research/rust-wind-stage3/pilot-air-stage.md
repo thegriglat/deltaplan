@@ -21,16 +21,16 @@ related: ["docs/research/rust-wind-stage3/pilot-air.md"]
 
 ## Причина
 
-`Game._air_conditions()` не клал `quantum_h` (контракт input.md: обязателен в прогнозе). Крейт отвергал условия,
-`Atmosphere._dp_start` код не проверял: условий в крейте нет, `start_at` не запускает расчёт поля, load_place даёт Ready.
-Итог — ни этапа, ни итераций, ветер 0. Упрощённый режим тут ни при чём (в headless `auto` поле выключено — это
+`Game._air_conditions()` (game.gd:555-575, до правки без `quantum_h`; теперь строка 568) не клал `quantum_h` (контракт input.md: обязателен в прогнозе). Крейт отвергал условия,
+`Atmosphere._dp_start` (на 70e491dcb atmosphere.gd:980 `dp.set_conditions(...)` без проверки кода; сейчас :1019) код не проверял: условий в крейте нет, `start_at` не запускает расчёт поля, load_place даёт Ready.
+Итог — ни этапа, ни итераций, ветер 0. Режим `auto` из пользовательского atmosphere.json: на 70e491dcb `_dp_field_wanted` (atmosphere.gd:937-943) в окне даёт true (off — только строка "off"; headless — false), т.е. поле было включено, это подтвердил пробник (`поле включено`). Упрощённый режим тут ни при чём (в headless `auto` поле выключено — это
 отдельно и не ошибка).
 
 ## Починка
 
 - `scripts/game/game.gd`: в условия добавлен `quantum_h` (как у `AtmoDay`).
 - `scripts/atmosphere/atmosphere.gd`: код `set_conditions` крейта проверяется в `_dp_start` и в `set_conditions`;
-  отказ — FAILED с `last_error` в журнале, не молчание.
+  отказ в `_dp_start` — FAILED + push_error; отказ при смене условий на загруженном месте — BAD_INPUT, состояние и прежние условия сохраняются (W1); строгая проверка quantum_h на границе фасада не включена: условия без него есть в tests/atmosphere (weather_day, wind_profile_simple, rust_wind_consumers) и теперь видны как отказ - их правка вне скоупа; снят фильтр phase* в debug_raster_names/debug_raster.
 - Тест `tests/game/test_place_air_stage.gd`: игровой путь Main._fly, этап подготовки ветра виден (полный счёт Пикара на Онгудае — минуты, тест ждёт этап, не READY).
 
 ## Где не уверен

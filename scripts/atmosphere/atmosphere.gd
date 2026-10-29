@@ -365,6 +365,8 @@ func set_conditions(cond: Dictionary) -> int:
 	var why := _check_conditions(cond)
 	if why != "":
 		return _fail(BAD_INPUT, "set_conditions: " + why)
+	var prev_cond := _f_cond
+	var prev_set := _f_cond_set
 	_f_cond = cond.duplicate(true)
 	_f_cond_set = true
 	if not _dp_placed:
@@ -376,9 +378,12 @@ func set_conditions(cond: Dictionary) -> int:
 		_set_state(STATE_LOADING)
 		return OK
 	if _dp.set_conditions(_dp_cond_json()) != 0:
-		_dp_failed_with("set_conditions")
-		_set_state(STATE_FAILED)
-		return _fail(BAD_INPUT, _f_err)
+		# W1: BAD_INPUT — вход отвергнут, состояние не меняется; прежние условия остаются
+		_f_cond = prev_cond
+		_f_cond_set = prev_set
+		var msg := "set_conditions: %s" % _dp.last_error()
+		push_error("dp_air: " + msg)
+		return _fail(BAD_INPUT, msg)
 	_dp_sync_mode()
 	_dp_poll()
 	return OK
@@ -693,8 +698,7 @@ func debug_raster_names() -> PackedStringArray:
 		names.append("terrain_height")
 	if _dp_has():
 		for n in _dp.debug_raster_names():
-			if not String(n).begins_with("phase"):
-				names.append(n)
+			names.append(n)
 	return names
 
 
@@ -710,7 +714,7 @@ func debug_raster(raster_name: String) -> Dictionary:
 			"z0": float(g.origin_z),
 			"data": _f_place.get("heights"),
 		}
-	if not _dp_has() or raster_name.begins_with("phase"):
+	if not _dp_has():
 		return {}
 	var head := _raster_head(false, raster_name)
 	if int(head.get("version", 0)) <= 0:
@@ -910,6 +914,7 @@ func _dp_failed_with(what: String) -> void:
 	_dp_placed = false
 	_f_err = "dp_air: %s: %s" % [what, _dp.last_error()]
 	_dp_log(_f_err)
+	push_error(_f_err)
 
 
 ## Конфиг по имени (слитый словарь Config).
