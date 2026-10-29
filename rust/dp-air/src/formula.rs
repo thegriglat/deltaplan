@@ -1455,7 +1455,10 @@ impl AirModel for Formula {
     }
 
     fn status(&self) -> Status {
+        let (run, runs) = self.sh.stage.run_runs();
         Status {
+            run,
+            runs,
             state: self.sh.state(),
             progress: f32::from_bits(self.sh.progress.load(Ordering::Relaxed)),
             time_s: f64::from_bits(self.sh.time_bits.load(Ordering::SeqCst)),

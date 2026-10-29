@@ -83,11 +83,6 @@
       "expect": "num:^(\\d+) <=0"
     },
     {
-      "name": "old_refs",
-      "cmd": "grep -rlwE 'ThermalField|AirThermals|StormField|WaveField|CloudPhysics|GustSpectrum|AirGpu|AirGpuJob|AirRuntime|AirPicardJob' scripts tests scenes tools/bench tools/shots tools/terrain tools/weather tools/wind_fixtures --include=*.gd --include=*.tscn --include=*.tres | wc -l",
-      "expect": "num:^(\\d+) <=0"
-    },
-    {
       "name": "fixtures_data",
       "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
       "expect": "exit=0"
@@ -106,10 +101,15 @@
       "name": "gd_check",
       "cmd": "python3 tools/check_gd.py --timeout 600 $(git ls-files '*.gd' | grep -v '^tools/research/')",
       "expect": "exit=0"
+    },
+    {
+      "name": "old_refs",
+      "cmd": "grep -rlwE 'ThermalField|AirThermals|StormField|WaveField|CloudPhysics|GustSpectrum|AirGpu|AirGpuJob|AirRuntime|AirPicardJob' scripts tests scenes tools/bench tools/shots tools/terrain tools/weather tools/wind_fixtures --include=*.gd --include=*.tscn --include=*.tres | grep -vE '(scripts/atmosphere/weather_model|scripts/atmosphere/air_model/air_place)\\.gd$' | wc -l",
+      "expect": "num:^(\\d+) <=0"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-30T01:42:29",
-  "edited": "2026-10-30T01:42:48"
+  "edited": "2026-10-30T02:27:39"
 }

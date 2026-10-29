@@ -135,7 +135,8 @@ loading_weather,Погода и термики…,Weather and thermals…
 loading_objects,"Камни, кусты и дороги…","Rocks, bushes and roads…"
 loading_wind,Рассчитываем ветер по рельефу…,Computing wind from terrain…
 loading_wind_simple,Ветер: упрощённая модель,Wind: simplified model
-loading_wind_iters,%s · итераций: %d,%s · %d iterations
+loading_wind_iter,Итерация: %d,Iteration: %d
+loading_wind_run_iter,Прогон %d из %d · Итерация: %d,Run %d of %d · Iteration: %d
 loading_almost,Почти готово…,Almost ready…
 err_sea,Здесь море — выберите точку на суше.,That's the sea — pick a point on land.
 err_no_terrain_data,Для этого места нет данных рельефа.,There is no terrain data for this place.
