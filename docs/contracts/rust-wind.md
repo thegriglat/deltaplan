@@ -5,8 +5,8 @@ module: "rust-wind"
 area: "air"
 updated: "2026-10-29"
 summary: "Граница ветра в Rust: фасад Atmosphere, DpAir (gdext), трейт dp-air, место, описания, разложение, допуски, сборка, чистота."
-related: ["docs/plan/rust-wind.md", "docs/contracts/picard-rs.md", "docs/plan/rust-air-integration.md", "docs/plan/rust-ext.md", "docs/plan/air-cascade.md", "tools/research/rust_ext/gdext_probe/README.md", "docs/contracts/rust-wind/fixtures-tolerances.md", "docs/contracts/rust-wind/descriptions.md", "docs/contracts/rust-wind/solver.md", "docs/contracts/rust-wind/trait.md", "docs/contracts/rust-wind/dpair.md"]
-contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 3}, {"id": "W3", "version": 4}, {"id": "W4", "version": 5}, {"id": "W5", "version": 8}, {"id": "W6", "version": 4}, {"id": "W7", "version": 1}, {"id": "W8", "version": 2}, {"id": "W9", "version": 2}, {"id": "W10", "version": 2}, {"id": "W11", "version": 11}]
+related: ["docs/plan/rust-wind.md", "docs/contracts/picard-rs.md", "docs/plan/rust-air-integration.md", "docs/plan/rust-ext.md", "docs/plan/air-cascade.md", "tools/research/rust_ext/gdext_probe/README.md", "docs/contracts/rust-wind/fixtures-tolerances.md", "docs/contracts/rust-wind/descriptions.md", "docs/contracts/rust-wind/solver.md", "docs/contracts/rust-wind/trait.md", "docs/contracts/rust-wind/dpair.md", "docs/contracts/rust-wind/facade.md"]
+contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 4}, {"id": "W3", "version": 5}, {"id": "W4", "version": 6}, {"id": "W5", "version": 8}, {"id": "W6", "version": 4}, {"id": "W7", "version": 1}, {"id": "W8", "version": 2}, {"id": "W9", "version": 2}, {"id": "W10", "version": 2}, {"id": "W11", "version": 11}]
 ---
 
 # Контракты модуля rust-wind
@@ -18,7 +18,7 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 3}, {"id": "W3",
 Контрактные тесты (пишутся первыми, красные до кода):
 - GDScript — `tests/contracts/test_rust_wind_contracts.gd` (T5, T6 уровня фасада; T7 — чистота W10) — первым шагом RW-2; с RW-7 он идёт на реализации с полем из крейта (второго прогона нет).
 - Rust — `rust/dp-air/tests/contract.rs` (T5, T6 на трейте, на заглушке и на `Formula`) и `rust/dp-gd/tests/` (версия, разбор массивов) — первым шагом RW-4.
-- Версия: константа `Atmosphere.WIND_API_VERSION`, `DpAir.api_version()` и `dp_air::API_VERSION` равны версии W2 здесь (сейчас 3); тест сверяет с заголовками этого файла (как `test_air_contracts.gd`: `CONTRACTS` против заголовков `## Wn … (vK)`).
+- Версия: константа `Atmosphere.WIND_API_VERSION`, `DpAir.api_version()` и `dp_air::API_VERSION` равны версии W2 здесь (с W2 v4 — 4); тест сверяет с заголовками этого файла (как `test_air_contracts.gd`: `CONTRACTS` против заголовков `## Wn … (vK)`).
 
 ## W1. Соглашения (v2)
 Владелец — координатор. Потребители — все слои.
@@ -36,58 +36,13 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 3}, {"id": "W3",
 - **Сеть — не цель** (решение пользователя 2026-10-25): у каждого клиента свой воздух от общей погоды и сида; выгрузки/загрузки состояния воздуха и синхронизации нет. Нынешняя синхронизация термиков и `CloudField` в `net_flight.gd` (`air_forced_sig`, `set_air_forced`, `air_sources_mask`, `apply_net_snapshot`) удаляется в RW-3, не переносится.
 - **Колбэков из крейта в Godot нет.** `height_fn`, `surface_fn`, `sun_fn`, `AtmoDay.weather_fn/sun_fn/source_fn` — не часть W3/W4; всё нужное — данными (W5).
 
-## W2. Фасад `Atmosphere` (GDScript) (v3)
-Владелец — RW-2 (фасад на текущем коде), RW-7 (выбор реализации). Потребители — `scripts/game/*`, `scripts/glider/*`, визуальные и отладочные потребители из W10, `CalmAir` (`scripts/game/calm_air.gd` реализует тот же набор, ветер 0, состояние READY сразу). Узел игры `air` остаётся `Atmosphere`; всё, что не перечислено ниже, — внутренность реализации (W10).
+## W2. Фасад `Atmosphere` (GDScript) (v4)
+Владелец — RW-2 (фасад), RW-7 (режим поля), RW-12z (переход на `DpAir`). Потребители — `scripts/game/*`, `scripts/glider/*`, визуальные и отладочные потребители (W10), `CalmAir`. Методы, константы, сигналы, история v2–v4 — `docs/contracts/rust-wind/facade.md`.
 
-Константы: `WIND_API_VERSION := 1`; `STATE_EMPTY/LOADING/READY/FAILED`, коды `OK/BAD_INPUT/NO_PLACE/NOT_READY` (W1); `SAMPLE_FULL := 0`, `SAMPLE_MEAN := 1`; смещения полей описаний `CORE_*`, `CLOUD_*`, `CREST_*` и шаги `CORE_STRIDE`, `CLOUD_STRIDE`, `CREST_STRIDE` (W6).
+## W3. Класс `DpAir` (gdext, крейт `dp-gd`) (v5)
+Владелец — RW-4 (каркас, заглушка `Calm`), RW-6…12 (наполнение), RW-7 (режим поля, выдача поля фасаду), RW-12z (описания W6 v4 на фасаде). Потребитель — фасад, контрактные тесты. Методы, потоки, жизненный цикл, история v2–v4 — `docs/contracts/rust-wind/dpair.md`.
 
-**Настройка и место**
-- `configure(seed: int) -> int` — до первого `load_place`. Фасад сам читает конфиги ветра (`configs/atmosphere.json`, `configs/weather_model.json`, `configs/surface_heat.json`, `configs/weather/*.json`) как текст и передаёт реализации как есть (W5). `seed < 0` → `seed` из `configs/atmosphere.json`.
-- `load_place(place: AirPlaceData) -> int` — растры места один раз (W5). Возвращает сразу; тяжёлая подготовка (вход поля, грубый старт, источники термиков) — асинхронно, `state` = LOADING. Повторный вызов = `unload_place()` + загрузка.
-- `unload_place() -> void` — сброс всего, что связано с местом (поле, кэши, термики, облака); `state` = EMPTY. Ссылок на данные старого места после вызова нет (класс вылета CR-17).
-- `set_conditions(cond: Dictionary) -> int` — погода и ход дня (W5, ключи строго по списку). Не горячий путь. Меняет погоду мягко (подмена за `blend_s` реализации), если место загружено; полная перестройка — только при новом `load_place` или ключе `rebuild: true`.
-- `set_sun_direction(to_sun: Vector3) -> void` — единичный вектор на солнце (осей W1); игра зовёт при `sky.clock.sun_changed`. Не задан — реализация считает солнце сама по дате, месту и часу.
-- `set_static_thermals(list: PackedFloat32Array, mode: int) -> int` — шаг 4: `[x_m, z_m, strength_ms, radius_m]`; `mode`: `0` dynamic, `1` static, `2` both (как `set_thermal_mode`). Пустой список + `mode = 0` — только динамические.
-
-**Время и готовность**
-- `advance_to(t: float) -> int` — продвинуть воздух до `t`. `t` < текущего → BAD_INPUT, состояние не меняется; `t` = текущему → OK, ничего не меняется. Зовётся раз в тик игры (сейчас `air.step(wdt)` в `Game.tick`, `game.gd:272`; сеть — `net.world_dt`). Скачки (ожидание часа, догон по сети) — не через `advance_to`, а `start_at`.
-- `start_at(t: float) -> int` — состояние на момент `t`, равное прогону с 0 (`Atmosphere.start_at` сейчас). Асинхронно: `state` = LOADING до готовности; игра ждёт READY на экране загрузки. Допустим в любой момент после `load_place`.
-- `pump(budget_us: int) -> void` — дать реализации время главного потока (реализация `gd`: шаги `load_refresh_step` и т. п.; `rust` — ничего не делает). Игра зовёт каждый кадр, пока `state` = LOADING.
-- `status() -> Dictionary` — `{state: int, progress: float 0..1, time_s: float, reason: String}`; `is_ready() -> bool` = `state == READY`.
-- До READY опросы дают определённый ответ: EMPTY — нули; LOADING — конечный ответ без поля (у `Formula` — аналитика и термики, если готовы); два опроса на одном `t` равны всегда.
-- Сигналы: `state_changed(state: int)`; `weather_changed()` — полная перестройка (новое место, `rebuild`); `weather_updated()` — мягкая смена погоды (то, что сейчас ловят `game.gd:178`, `dust_devils.gd`, `gust_dust.gd`).
-
-**Фокусы**
-- `set_focuses(points: PackedVector3Array, weights: PackedFloat32Array) -> int` — точки внимания (пилот, боты, другие игроки) с весом > 0; индекс 0 — игрок; размеры равны, иначе BAD_INPUT. Игра зовёт перед `advance_to`, если фокусы сдвинулись. Детализацию у точки выбирает реализация (окна, генерация термиков вокруг, коробки живого воздуха). Пусто — фокус в (0, 0) места. `focus_node`/`set_focus(node)` и `AirRuntime.set_focus` уходят (RW-3).
-
-**Опрос**
-- `sample_many(points: PackedVector3Array, mode: int = SAMPLE_FULL) -> PackedFloat32Array` — длина 4N: `[vx, vy, vz, σ]` на точку, в порядке входа. `SAMPLE_FULL` — полный ветер (поле, аналитика, термики, гроза/волны/облака, болтанка и порывы). `SAMPLE_MEAN` — без неразрешённой болтанки и порывов (σ всё равно отдаётся); то же, что `SAMPLE_FULL` при выключенных болтанке и порывах (у `gd` — `air_velocity_at` при `turbulence_enabled = false`; так сняты фикстуры RW-1); прежние `mean_wind_at` + вертикаль (`debug_overlays.gd:282`, `terrain_wind.gd`) переходят на него. Пустая пачка → пустой массив.
-- `sample(pos: Vector3, mode: int = SAMPLE_FULL) -> Vector4` — одна точка, `(vx, vy, vz, σ)`; для редких вызовов.
-- Обёртки фасада (без пары в W3): `air_velocity_at(pos) -> Vector3` = `sample(pos).xyz` (на нём `air_fn` модели полёта и прочих, `game.gd:409`); `mean_wind_at(pos) -> Vector3` = `sample(pos, SAMPLE_MEAN).xyz`; `turbulence_intensity_at(pos) -> float` = `sample(pos).w`; `thermals_near(pos, radius) -> Array[Dictionary]` — из `cores` (W6) в прежнем виде (`terrain_wind.gd:158`).
-- `cloud_density_many(points: PackedVector3Array) -> PackedFloat32Array` (0..1 на точку) и обёртка `cloud_density_at(pos) -> float` (`game.gd:232`, `sun_glare.gd`, `cloud_whiteout`).
-- `cloudbase_msl() -> float` (м MSL; обёртка `get_cloudbase_msl()`).
-- `background_wind(heights_msl: PackedFloat32Array) -> PackedFloat32Array` — длина 2N `[vx, vz]`: фоновый (синоптический) ветер по высоте без рельефа и термиков; для визуальных потребителей (`cirrus_layer.gd`, дрейф облаков, `gust_dust.gd`, `bird_flock.gd`) вместо `wind.vec2_at(h)`/`wind.dir`/`speed_at`.
-- `weather() -> Dictionary` — выведенная погода (ключи пресета + `_derived`, как сейчас `atmo.weather`; копия, только чтение); меняется только с сигналами `weather_*`. Видимое: `cirrus_cover`, `haze_k`, `_derived.valley_msl_m`, `lens_level_above_crest_m` и т. п.
-- `sun_state() -> Vector4` — `(to_sun.x, to_sun.y, to_sun.z, insolation 0..1)` на текущий `t` (вместо `get_insolation`).
-
-**Описания и отладка** — W6, W7 (методы фасада: `cores`, `clouds`, `cloud_raster`, `cloud_raster_version`, `wave_crests`, `decompose`, `debug_raster`, `debug_raster_names`).
-
-**v2 (итог RW-3a):**
-- `status()` += `stage: String` (подпись этапа для экрана загрузки, «» — нет) и `field_on: bool` (реализация ведёт поле Пикара; вместо `is_air_field_on()`); прежние ключи RW-3a `wind`/`wind_progress` → `stage`/`progress` (RW-3c).
-- **v3 (решение пользователя 2026-10-27):** `status()` += `iters: int` — число итераций решателя поля, выполненных в текущем этапе `stage` (с начала этапа; этап без итераций — 0); в пределах этапа не убывает, обновляется не реже чем через 10 итераций; новый этап — с 0. Экран подготовки воздуха показывает его рядом с этапом (хотя бы десятками): на медленном CPU видно, что расчёт идёт; `progress` у итерационного решателя заранее не известен.
-- `static place_from_terrain(terrain, …) -> AirPlaceData` — сборка входа W5 корутиной по кадрам (`await`), без второго снимка поверхности; единственный путь игры к `AirPlaceData`.
-- `weather()` — до RW-3c рядом живёт поле `weather` и переходный `get_weather()`; RW-3c последним шагом делает поле внутренним, `get_weather()` → `weather()` у всех читателей.
-- `mean_wind_at(pos)` = `sample(pos, SAMPLE_MEAN).xyz` (с вертикалью), как в v1; кому нужна горизонталь — берёт x, z сам.
-- Фокусы: индекс 0 — игрок; боты и игроки сети — по желанию игры, `gd` использует только индекс 0.
-- Переходное до RW-13 (в W3/W4 нет): `refresh_scale` (ускорение догона на экране ожидания), `start_at` без места — синхронно, `focus_node`/`set_focus`/`get_focus` и `configure(Variant, Variant)` — только для тестов и превью до RW-3c.
-
-**Переходное (только RW-2…RW-12, удаляется в RW-13; в W3/W4 нет):** реализация `gd` может держать прежние входы — `set_ground(height_fn, sun_fn, surface_fn)`, `set_day(AtmoDay)`, `set_wind(...)`, `set_weather(...)` — фасад сам выводит их из `load_place`/`set_conditions` (игра их больше не зовёт после RW-3). Переключателя `air.backend` нет (W9 v2): поле — только из крейта (RW-7).
-- **Режим поля (уточнение 2026-10-29, без смены версии; RW-7):** прежний метод фасада `set_air_mode(mode: String)` (`"auto" | "on" | "off"`, пункт настроек «Эвристика») и ключ `air_model.enabled` в `configs/atmosphere.json` отображаются в `DpAir.set_field_enabled` (W3 v4): `off` → `false`; `on` → `true`; `auto` → `true`, кроме headless (`DisplayServer.get_name() == "headless"`) — там `false`, как сейчас: в headless-тестах поле не считается, тесты, которым оно нужно, ставят `on`.
-
-## W3. Класс `DpAir` (gdext, крейт `dp-gd`) (v4)
-Владелец — RW-4 (каркас, заглушка `Calm`), RW-6…12 (наполнение), RW-7 (режим поля, выдача поля фасаду). Потребитель — фасад, контрактные тесты. Методы, потоки, жизненный цикл, история v2–v4 — `docs/contracts/rust-wind/dpair.md`.
-
-## W4. Трейт `AirModel` (крейт `dp-air`, без Godot) (v5)
+## W4. Трейт `AirModel` (крейт `dp-air`, без Godot) (v6)
 Владелец — RW-4 (трейт, `Calm`), RW-6…12 (`Formula`), живой воздух (`Live`). Потребители — `dp-gd`, стенд RW-5, `cargo test`, `cargo bench`. Трейт, типы, порядок команд, структуры описаний — `docs/contracts/rust-wind/trait.md`.
 
 ## W5. Вход: место, конфиги, условия (v8)
@@ -159,3 +114,4 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 3}, {"id": "W3",
 - W11 v11 (2026-10-29, итог RW-U2) — θ′_d замороженных колонн решения с нагревом := θ′ механизма (`thd = Some(th)`), K — своего случая; θ′, θ′_d во всех не-неизвестных клетках — как `K_BC`. Потребители: RW-U4 (`dp-air` assembly, `picard_rs` граница, тесты), RW-7 (без изменений интерфейса).
 - W8 v2 (2026-10-29, ответ пользователя на Q1, итоги RW-6z/U1/U2, предложения RW-8a) — допуск T1 поля по классам клеток (`mech` 1 % |U| + 0,01 м/с, `conv` как v1, `nonconv` 15 %), статус решателя эталона `meta.solver`, эталоны с ошибкой GPU (landing_hill, thermal_slope); число ядер ≤ 2 на момент и ≤ 3 %, `above_base` после RW-11, случай `off`, `cases/<имя>.weather.json`. Потребители: RW-6u (T1 по классам, перепечатка landing_hill), RW-2c, RW-10*, RW-11*, RW-12* (эталоны этапа 3).
 - W6 v4 (2026-10-29, проект RW-11a) — объекты-облака `cloud_objects` (шаг 22, момент `t`), `wave_info`, `surface_gust_many`, `Core.storm`; методы W2–W4 — с RW-12z. Потребители: RW-11d, RW-11e, RW-8/9, RW-12z; `tests/contracts/test_rust_wind_contracts.gd` `CONTRACTS.W6 = 4` — первая задача, трогающая файл (RW-11e).
+- W2 v4, W3 v5, W4 v6 (2026-10-29, переход фасада RW-12z; проект RW-12y — `docs/research/rust-wind-stage3/rw12z.md`) — W2 вынесен в `rust-wind/facade.md`; методы W6 v4 `cloud_objects`/`wave_info`/`surface_gust_many` во всех трёх слоях, `ObjRecord` в корне крейта, `thermals_near` из `cores`, формулировка `start_at` (как GD, равенство прогону с 0 — без облачной петли), режим `off` в крейте, порог `weather_version`, реализация фасада — `DpAir` целиком. Версия API = 4. Потребители: RW-12za (трейт, `Formula`), RW-12zb (`dp-gd`), RW-12zc (фасад, `test_rust_wind_contracts.gd`), RW-12zd (`cloud_layer.gd`, `gust_dust*.gd`, храповик; RW-11e влита сюда).

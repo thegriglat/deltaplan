@@ -50,7 +50,8 @@ generated: true
 - **rust-wind-state** — rust-wind 2026-10-27: этап 1–2 доведён (кроме RW-6u, RW-7); что влито, что открыто, порядок продолжения [postponed 2026-10-27] — [план](plan/rust-wind-state.md)
 - **rust-wind** — Весь ветер — в Rust-крейте за одной границей; пауза 2026-10-26: поле Пикара в крейте, сверка T1 сильного ветра не сходится [active 2026-10-29] — [план](plan/rust-wind.md) · [контракты](contracts/rust-wind.md)
   - [docs/contracts/rust-wind/descriptions.md](contracts/rust-wind/descriptions.md) — W6 rust-wind: описания — ядра подъёма, облака, растр облаков, гребни волн; поля, шаги, инвариант найденного ядра.
-  - [docs/contracts/rust-wind/dpair.md](contracts/rust-wind/dpair.md) — W3 rust-wind: класс DpAir (gdext, dp-gd) — методы как W2 в типах Godot, потоки, жизненный цикл, режим поля и выдача поля фасаду (v4).
+  - [docs/contracts/rust-wind/dpair.md](contracts/rust-wind/dpair.md) — W3 rust-wind: класс DpAir (gdext, dp-gd) — методы W2 в типах Godot, потоки, жизненный цикл, режим поля, описания W6 (v5).
+  - [docs/contracts/rust-wind/facade.md](contracts/rust-wind/facade.md) — W2 rust-wind: фасад Atmosphere (GDScript) — настройка, место, время, фокусы, опрос, описания; v4 — переход фасада на DpAir (RW-12z).
   - [docs/contracts/rust-wind/fixtures-tolerances.md](contracts/rust-wind/fixtures-tolerances.md) — W8 rust-wind: формат фикстур T1 (json + f32), допуски сверки Rust против GDScript, пороги скорости.
   - [docs/contracts/rust-wind/input.md](contracts/rust-wind/input.md) — W5 rust-wind: вход реализации — AirPlaceData (место, растры, климат, запечённые поля, хеши), конфиги, условия
   - [docs/contracts/rust-wind/solver.md](contracts/rust-wind/solver.md) — W11 rust-wind: решатель Пикара в крейте — R6 v3 + заморозка колонн, отмена, новые причины остановки; пустая маска — побитно R6 v3.
@@ -67,14 +68,16 @@ generated: true
   - [docs/research/rust-wind-stage3/rw10-thermals.md](research/rust-wind-stage3/rw10-thermals.md) — RW-8a: разбор RW-10 (термики, фон, AirThermals, ядра): исходники, жизнь термика, петля с облаками, разбиение на 4 подзадачи.
   - [docs/research/rust-wind-stage3/rw11-clouds.md](research/rust-wind-stage3/rw11-clouds.md) — RW-8a: подробный разбор RW-11 (_extra_flow: гроза, волны и роторы, выброс из облака) и граница «физика облаков в крейте, отрисовка в Godot».
   - [docs/research/rust-wind-stage3/rw12-weather.md](research/rust-wind-stage3/rw12-weather.md) — RW-8a: разбор RW-12 (погода из прогноза, AtmoDay, коэффициенты): что есть в крейте, чего нет, климат места, эталоны.
+  - [docs/research/rust-wind-stage3/rw12z.md](research/rust-wind-stage3/rw12z.md) — RW-12y: правки W2 v4 / W3 v5 / W4 v6, разбиение RW-12z на 4 задачи, красные тесты, сомнения по задачам.
   - [docs/research/rust-wind-stage3/rw8-rw9.md](research/rust-wind-stage3/rw8-rw9.md) — RW-8a: разбор RW-8 (болтанка поля, шум порывов) и RW-9 (аналитика, полоса края, off): входы, выходы, крейт, тесты.
   - [docs/research/rust-wind-stage3/uncertain.md](research/rust-wind-stage3/uncertain.md) — Сводный список сомнений исполнителей RW-7 и этапа 3 для итоговой сверки перед RW-12z и сдачей модуля (решение пользователя 2026-10-29).
-  - [docs/research/rust-wind-stage3/w6v4.md](research/rust-wind-stage3/w6v4.md) — RW-11a: проект W6 v4 и поверхностного порыва — записи объект-облако (Cb), волны, гроза, момент t для истории, состав weather_json по читателям.
+  - [docs/research/rust-wind-stage3/w6v4.md](research/rust-wind-stage3/w6v4.md) — RW-11a: проект W6 v4 и поверхностного порыва — поля записей, читатели, источники в крейте, состав weather_json.
   - [docs/research/rust-wind-stage3-path.md](research/rust-wind-stage3-path.md) — RW-8a: слагаемые ветра на GDScript → крейт (RW-8…12): сумма air_velocity_at, разбор задач, порядок, пробелы контракта, переход фасада.
   - [docs/research/rust-wind-t1-audit-landing-hill.md](research/rust-wind-t1-audit-landing-hill.md) — RW-U1: расхождение landing_hill — ошибка GPU: вес F в float32 ровно 1, механические веса 0, смесь даёт u = v = 0 над сушей; Rust прав
   - [docs/research/rust-wind-t1-audit-thermal-slope.md](research/rust-wind-t1-audit-thermal-slope.md) — RW-U2: thermal_slope расходится из-за GPU — θ′_d и K заморозки решения с нагревом взяты от решения без нагрева; эмуляция в крейте: 0,07 м/с
   - [docs/research/rust-wind-t1-stability.md](research/rust-wind-t1-stability.md) — RW-6z: крейт сходится и не чувствителен к CHUNK и возмущению 1e-6 (R ≤ 2,6e-3) — расхождение T1 не от неустойчивости крейта
   - [tools/research/rust_wind/README.md](../tools/research/rust_wind/README.md) — RW-6a: расчёт размера окон 100/50 м и времени picard_rs на CPU, приложение с таблицами шагов и задач RW-6
+  - [tools/research/rust_wind_t1_ref/README.md](../tools/research/rust_wind_t1_ref/README.md) — RW-6u: эталон training_island/landing_hill, перепечатанный CPU-путём фаз (f64) на c591b1026; сравнение с крейтом по классам W8 v2
   - [tools/research/rust_wind_t1_stability/README.md](../tools/research/rust_wind_t1_stability/README.md) — RW-6z: команды воспроизведения опыта устойчивости открытых полей T1 (варианты CHUNK и возмущения), определения R и классов клеток
   - [tools/research/rust_wind/summary.md](../tools/research/rust_wind/summary.md) — RW-6a вывод: в крейте нет сборщика случая, грубого старта, заморозки и фаз; окна переносить последним отключаемым хвостом
 - **rust-wind-tests** — Тесты rust-wind T1–T10: что проверяют, где лежат, кто пишет (вынесено из docs/plan/rust-wind.md) [active 2026-10-29] — [план](plan/rust-wind-tests.md)

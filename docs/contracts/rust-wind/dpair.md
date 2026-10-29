@@ -4,17 +4,17 @@ status: "active"
 module: "rust-wind"
 area: "air"
 updated: "2026-10-29"
-summary: "W3 rust-wind: класс DpAir (gdext, dp-gd) — методы как W2 в типах Godot, потоки, жизненный цикл, режим поля и выдача поля фасаду (v4)."
+summary: "W3 rust-wind: класс DpAir (gdext, dp-gd) — методы W2 в типах Godot, потоки, жизненный цикл, режим поля, описания W6 (v5)."
 related: ["docs/contracts/rust-wind.md", "docs/contracts/rust-wind/trait.md", "docs/plan/rust-wind.md"]
-contracts: [{"id": "W3", "version": 4}]
+contracts: [{"id": "W3", "version": 5}]
 ---
 
-# W3. Класс `DpAir` (gdext, крейт `dp-gd`) (v4)
+# W3. Класс `DpAir` (gdext, крейт `dp-gd`) (v5)
 
 Часть `docs/contracts/rust-wind.md` (версия — там, заголовок W3). Менять — только координатор.
 Владелец — RW-4 (каркас, заглушка `Calm`), RW-6…12 (наполнение). Потребитель — фасад (реализация `rust`), контрактные тесты.
 - `class DpAir extends RefCounted` (один объект на игру; создаёт фасад). Методы — как W2 с теми же именами, кодами и семантикой, только типы Godot без `Dictionary`/`Object` в горячем пути:
-  - `api_version() -> int` (= версии W2, сейчас 3); `last_error() -> String`; `state() -> int`; `progress() -> float`; `time_s() -> float`;
+  - `api_version() -> int` (= версии W2; с v5 — 4); `last_error() -> String`; `state() -> int`; `progress() -> float`; `time_s() -> float`;
   - v3: `stage() -> String` (идентификатор этапа W4 v4; подпись для экрана — фасад), `iters() -> int` — как `status().iters` W2 v3.
   - `configure(configs_json: PackedStringArray /* пары имя, текст */, seed: int) -> int` — имена: `atmosphere`, `weather_model`, `surface_heat`, `weather/<имя>`;
   - `load_place(header_json: String, heights: PackedFloat32Array, water: PackedByteArray, surface_cls: PackedByteArray, surface_moist: PackedFloat32Array) -> int` (W5), `unload_place()`;
@@ -31,3 +31,9 @@ contracts: [{"id": "W3", "version": 4}]
   - `set_field_enabled(on: bool) -> int` — как W4 v5 (режим поля, W2 «Режим поля»).
   - **Выдача поля фасаду (переходное: пока термики, болтанка и прочие слагаемые на GDScript читают каналы поля; удаляется, когда последний такой потребитель уйдёт в крейт, не позже RW-13).** `field_export() -> int` закрепляет снимок последней подачи поля (целевой набор уровней, к которому идёт подмена, — не смесь на середине подмены) и возвращает его номер `field_version` (`0` — поля нет). `field_export_header() -> String` — заголовок TI-К3 v3 этого снимка (как `field::baked::encode_baked`: каналы `f32` без потерь, все уровни набора — область и окна 100/50 м) плюс поля верхнего уровня `field_version: int`, `blend_s: float` (за сколько подменить прежнее поле; `0` — сразу: первое поле после загрузки, `start_at`, включение), `blend_t0: float` (`t` начала подмены в крейте); снимка нет — `""`. `field_export_data() -> PackedByteArray` — тело снимка (`zstd`, как `encode_baked`); снимка нет — пусто. Заголовок и тело — одного снимка до следующего `field_export()`. Не горячий путь (зовётся, когда номер подачи сменился; номер — `field_version() -> int` без закрепления, дёшево).
   - Номер подачи растёт при каждой подаче поля: `load_place` (снимок пуст), загрузка (расчёт, запечённое, кеш), `start_at`, пересчёт на сроке, смена условий, сдвиг окон, а также `set_field_enabled(false)` (снимок пуст) и `unload_place` (пуст).
+- **v5 (RW-12z, 2026-10-29):** `api_version() = 4`. Добавлено:
+  - `cloud_objects(center: Vector3, radius: float, t: float) -> PackedFloat32Array` — `OBJ_STRIDE = 22` `f32` на запись (W6 v4); одно копирование из `Vec<ObjRecord>` (W4 v6); `radius < 0` — без ограничения; `t` не конечно — как текущее `t`.
+  - `wave_info() -> PackedFloat32Array` — два числа `[enabled, wavelength_m]`.
+  - `surface_gust_many(xz: PackedVector2Array, t: PackedFloat64Array) -> PackedFloat32Array` — длина `min`; вход — срезами без копирования.
+  - Все три читают последний снимок и не ждут фон (как `sample_many`).
+  - Переходное `field_export*`/`field_version` (v4) остаётся до RW-13: после RW-12z фасад берёт снимок только для отладки и превью (`air_field`), горячий путь его не читает.
