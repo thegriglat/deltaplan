@@ -1,0 +1,46 @@
+{
+  "verdict": "accept",
+  "summary": "WaveField — построчный порт wave_field.gd (build/fields/sample/crests, set_wind-порог λ>1 м, dir>1e-3, параметры из atmosphere.json/wave, вход U на wind_reference_agl как atmosphere.gd:1012). Скоуп чист (7 файлов), контракты W4/W6/W8 не тронуты, Extra::crests добавлен в трейт с пустым умолчанием — не ломает соседей. Допуски в тестах = W8 (0,05+2 %, σ 0,02+5 %), Онгудай по height_at — #[ignore] по решению координатора, числа в отчёте.",
+  "issues": [
+    {
+      "file": "rust/dp-air/src/terms/waves/mod.rs",
+      "line": 50,
+      "severity": "minor",
+      "what": "WaveExtra::field на каждый flow: lock глобального Mutex кеша, f64_or по погоде, WaveField::new для сравнения; плюс второй Mutex на кусках в fields. При параллельном sample_many — сериализация; бенч W8 (1000 точек ≤ 2 мс) не прогонялся.",
+      "fix": "В RW-12z при подключении к Formula замерить cargo bench с wave_strength>0; при регрессии — держать поле в состоянии кадра (advance_to), а не в кеше на вызов."
+    },
+    {
+      "file": "rust/dp-air/src/terms/waves/mod.rs",
+      "line": 40,
+      "severity": "minor",
+      "what": "Ключ места — адрес и длина heights: новое место того же размера по освобождённому адресу даст устаревшее поле (исполнитель указал в uncertain).",
+      "fix": "Взять идентификатор места (имя/хеш W5) вместо указателя, когда он появится в Place; до того — пометка в RW-12z."
+    },
+    {
+      "file": "rust/dp-air/tests/terms_waves.rs",
+      "line": 277,
+      "severity": "minor",
+      "what": "crests_match_desc считает гребни один раз (focus[0], погода из conditions) и сравнивает со всеми кадрами desc; если погода волны менялась бы по времени, это бы маскировалось. На synth_wave сходится на всех трёх кадрах.",
+      "fix": "Не требуется сейчас; при случаях с ходом погоды — считать на кадр."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "terms_waves (accept --only --dry, HEAD 1843d2906)",
+      "value": "9 passed",
+      "pass": true
+    },
+    {
+      "name": "clippy (accept --only --dry)",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt (accept --only --dry)",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-29T06:37:51",
+  "by": "reviewer"
+}

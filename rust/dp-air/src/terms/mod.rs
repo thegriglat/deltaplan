@@ -45,6 +45,7 @@ mod sum;
 pub mod thermal;
 pub mod thermal_air;
 pub mod thermal_src;
+pub mod waves;
 
 use crate::field::field_set::FieldSet;
 use crate::place::Place;
@@ -124,7 +125,8 @@ impl Slots {
             thermal: Arc::new(thermal::ThermalSlot::empty()),           // RW-10b
             extra: Arc::new(ExtraSet::new(vec![
                 Arc::new(storm::StormExtra::new()), // RW-11c
-            ])), // RW-11: гроза, волна (RW-11b), облако (RW-11d)
+                Arc::new(waves::WaveExtra::new()),  // RW-11b
+            ])), // RW-11d: облако — одна строка здесь
             turb: Arc::new(NoTurb),                                     // RW-8
         }
     }
