@@ -52,16 +52,16 @@ func test_full_pull_target_and_over() -> void:
 
 func test_pitch_nonneg_and_ground_unchanged() -> void:
 	for p: float in [0.0, 0.6, 1.0]:
-		var a := S.make(WING)
-		var b := S.make(WING)
-		S.reset(a)
-		S.reset(b)
+		var ma := S.make(WING)
+		var mb := S.make(WING)
+		S.reset(ma)
+		S.reset(mb)
 		for i in int(round(6.0 / S.DT)):
-			a.step(S.DT, _inp(p, false), Callable(), Callable())
-			b.step(S.DT, _inp(p, true), Callable(), Callable())
-		check(a.pilot_position == b.pilot_position and a.velocity == b.velocity,
+			ma.step(S.DT, _inp(p, false), Callable(), Callable())
+			mb.step(S.DT, _inp(p, true), Callable(), Callable())
+		check(ma.pilot_position == mb.pilot_position and ma.velocity == mb.velocity,
 				"pitch %.1f: модификатор ничего не меняет" % p)
-		check(b.telemetry.pull_over == 0.0, "pitch %.1f: pull_over = 0" % p)
+		check(mb.telemetry.pull_over == 0.0, "pitch %.1f: pull_over = 0" % p)
 	var flat := func(_x: float, _z: float) -> float: return 0.0
 	var g1 := S.make(WING)
 	var g2 := S.make(WING)

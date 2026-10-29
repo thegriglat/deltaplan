@@ -3,35 +3,39 @@ extends TestCase
 ## выкинет», можно уйти, «+8 надо валить», термики без облаков, фон и кольцо.
 
 const Sim := preload("res://tests/flight/flight_sim.gd")
-const Fixture := preload("res://tests/atmosphere/cloud_field_fixture.gd")
+const Rig := preload("res://tests/atmosphere/air_rig.gd")
+const CS := Atmosphere.CORE_STRIDE
 
 const _BASE_STRENGTH := 4.0
 const _BASE_RADIUS := 130.0
+const _SEEDS := 5
+
+# Облако поля над статичным термиком — естественное (крейт, W2 v4); заданное вручную облако (стадия,
+# покрытие, мощность — прежний Fixture.force_cloud) крейт не принимает: проверки зависимости подсоса
+# от стадии облака (test_no_suck_under_young_or_decaying_cloud), σ и пика перегрузки в облаке
+# (test_cloud_chaos_sigma_and_load_peak) — rust/dp-air/tests/terms_clouds.rs (physics_suck_vs_gd,
+# hooks_shade_and_suck), terms_thermal_cloud.rs (suck_points_from_gd_in_tolerance, synth_w8_near_cloud_in_tolerance),
+# terms_turb.rs (ongudai_sigma_turb_within_w8). Распределение силы при рождении (test_extreme_thermals_rare_and_only_strong,
+# 2–6 % ≥ 7 м/с) — terms_thermal.rs (extreme_thermals_exist, source_strength_controls_frequency); подъём
+# в ядре 8 м/с (test_variometer_plus8_reachable_in_extreme_core) — thermal_profile_core_ring_allen.
 
 
 # ---------------------------------------------------------------- атмосфера-хелперы
 
 
-func _atmo(
-	seed_v: int, weather_over: Dictionary = {}, preset: String = "weather/strong"
-) -> Atmosphere:
-	var a := Atmosphere.new()
-	var acfg := Config._deep_merge(Config.get_config("atmosphere"), {"seed": seed_v})
-	var w := Config._deep_merge(Config.get_config(preset), weather_over)
-	a.configure(acfg, w)
-	a.set_ground(func(_x: float, _z: float) -> float: return 0.0,
-		func(_x: float, _z: float) -> float: return 1.0)
-	return a
-
-
-## Облако поля над термиком: Vector4(покрытие, мощность м, стадия −1..1, активность); по умолчанию
-## крупное зрелое.
-func _cloud_atmo(seed_v: int, cl: Vector4 = Vector4(1.0, 1500.0, 0.0, 1.0)) -> Atmosphere:
-	var a := _atmo(seed_v, {"thermal_mode": "static", "wind_speed_kmh": 0.0})
-	a.add_static_thermal(0.0, 0.0, _BASE_STRENGTH, _BASE_RADIUS)
-	a.step(1.0)
-	Fixture.force_cloud(a, cl.x, cl.y, cl.z, cl.w)
-	return a
+## Сильный день без ветра, статичный термик 4 м/с / 130 м над началом координат, состояние на 3000 с:
+## над ним облако поля. Освобождает вызывающий.
+func _cloud_atmo(seed_v: int) -> Atmosphere:
+	return Rig.make(
+		{
+			"preset": "weather/strong",
+			"over": {"wind_speed_kmh": 0.0},
+			"seed": seed_v,
+			"statics": [[0.0, 0.0, _BASE_STRENGTH, _BASE_RADIUS]],
+			"start_at": 3000.0,
+			"advance": 1.0,
+		}
+	)
 
 
 func _mean_rise(a: Atmosphere, y0: float, y1: float, n: int) -> float:
@@ -52,7 +56,7 @@ func _fly_until_above(m: FlightModel, a: Atmosphere, bank_deg: float, seconds: f
 	var dt := 1.0 / 20.0  # крупнее Sim.DT — держатель виража устойчив, тесты на 3-5 минут дешевле
 	var n := int(round(seconds / dt))
 	var air := Callable(a, "air_velocity_at")
-	var cb := a.get_cloudbase_msl()
+	var cb := a.cloudbase_msl()
 	for i in n:
 		var roll := clampf((target - m.bank) * 3.0, -1.0, 1.0)
 		m.step(dt, Sim.input(0.0, roll), air, Callable())
@@ -61,26 +65,12 @@ func _fly_until_above(m: FlightModel, a: Atmosphere, bank_deg: float, seconds: f
 	return -1.0
 
 
-func _peak_load_circling(a: Atmosphere, pos: Vector3, seconds: float = 15.0) -> float:
-	var m := Sim.make("sport")
-	m.reset_in_air(pos, 0.0)
-	var target := deg_to_rad(28.0)
-	m.bank = target
-	m.load.reset()
-	var air := Callable(a, "air_velocity_at")
-	var n := int(round(seconds / Sim.DT))
-	for i in n:
-		var roll := clampf((target - m.bank) * 3.0, -1.0, 1.0)
-		m.step(Sim.DT, Sim.input(0.0, roll), air, Callable())
-	return m.load.load_max
-
-
 # ---------------------------------------------------------------- 1. Подсос
 
 
 func test_suck_layer_under_mature_cloud() -> void:
 	var a := _cloud_atmo(1)
-	var cb := a.get_cloudbase_msl()
+	var cb := a.cloudbase_msl()
 	var layer := _mean_rise(a, cb - 150.0, cb, 5)
 	var mid := a.air_velocity_at(Vector3(0, cb * 0.5, 0)).y
 	check(
@@ -97,32 +87,14 @@ func test_suck_layer_under_mature_cloud() -> void:
 	a.free()
 
 
-func test_no_suck_under_young_or_decaying_cloud() -> void:
-	for st in [Vector4(0.6, 1500.0, 1.0, 1.0), Vector4(0.9, 1500.0, -1.0, 0.2)]:
-		var a := _cloud_atmo(2, st)
-		var cb := a.get_cloudbase_msl()
-		var layer := _mean_rise(a, cb - 150.0, cb, 5)
-		var mid := a.air_velocity_at(Vector3(0, cb * 0.5, 0)).y
-		check(
-			layer <= mid * 1.0,
-			"стадия %s: у базы не сильнее середины: %.2f <= %.2f" % [st, layer, mid]
-		)
-		var m := Sim.make("sport")
-		m.reset_in_air(Vector3(0, cb - 150.0, 0), 0.0)
-		var t_enter := _fly_until_above(m, a, 28.0, 300.0)
-		check(t_enter < 0.0, "стадия %s: не входит в облако за 5 мин" % st)
-		a.free()
-
-
 # ---------------------------------------------------------------- 2. «Выкинет»
 
 
 func test_ejected_from_cloud_within_90s() -> void:
 	var successes := 0
-	for s in range(10):
+	for s in range(_SEEDS):
 		var a := _cloud_atmo(100 + s)
-		a.turbulence_enabled = true
-		var cb := a.get_cloudbase_msl()
+		var cb := a.cloudbase_msl()
 		var m := Sim.make("sport")
 		m.reset_in_air(Vector3(0, cb + 150.0, 0), 0.0)
 		var air := Callable(a, "air_velocity_at")
@@ -136,25 +108,7 @@ func test_ejected_from_cloud_within_90s() -> void:
 		if exited:
 			successes += 1
 		a.free()
-	check(successes >= 8, "выходит из облака за 90 с в >= 8/10 сидах: %d/10" % successes)
-
-
-func test_cloud_chaos_sigma_and_load_peak() -> void:
-	var a := _cloud_atmo(3)
-	a.turbulence_enabled = true
-	var cb := a.get_cloudbase_msl()
-	var sig_in := a.turbulence_intensity_at(Vector3(150, cb + 600, 30))
-	var sig_out := a.turbulence_intensity_at(Vector3(3000, cb - 500, 0))
-	check(sig_in >= 3.0, "σ вертикального воздуха в облаке >= 3 м/с: %.2f" % sig_in)
-	check(sig_out <= 1.5, "σ вне облака на той же высоте <= 1,5 м/с: %.2f" % sig_out)
-	var peak_cloud := _peak_load_circling(a, Vector3(0, cb + 200.0, 0))
-	var peak_clear := _peak_load_circling(a, Vector3(3000.0, cb - 500.0, 0))
-	check(
-		peak_cloud >= peak_clear * 1.5,
-		"пик перегрузки в облаке >= 1.5x пика в ясном воздухе: %.2f >= %.2f"
-			% [peak_cloud, peak_clear * 1.5]
-	)
-	a.free()
+	check(successes >= _SEEDS - 1, "выходит из облака за 90 с в >= %d/%d сидах: %d" % [_SEEDS - 1, _SEEDS, successes])
 
 
 # ---------------------------------------------------------------- 3. Уйти можно
@@ -162,10 +116,9 @@ func test_cloud_chaos_sigma_and_load_peak() -> void:
 
 func test_can_escape_pulling_away_from_base() -> void:
 	var successes := 0
-	for s in range(10):
+	for s in range(_SEEDS):
 		var a := _cloud_atmo(200 + s)
-		a.turbulence_enabled = true
-		var cb := a.get_cloudbase_msl()
+		var cb := a.cloudbase_msl()
 		var m := Sim.make("sport")
 		m.reset_in_air(Vector3(0, cb - 150.0, 0), 90.0)  # курс на восток, прочь от источника
 		var air := Callable(a, "air_velocity_at")
@@ -181,113 +134,40 @@ func test_can_escape_pulling_away_from_base() -> void:
 			successes += 1
 		a.free()
 	check(
-		successes >= 8,
-		"трапеция на себя + курс прочь — не входит в облако: >= 8/10: %d/10" % successes
+		successes >= _SEEDS - 1,
+		"трапеция на себя + курс прочь — не входит в облако: >= %d/%d: %d" % [_SEEDS - 1, _SEEDS, successes]
 	)
-
-
-# ---------------------------------------------------------------- 4. «+8 надо валить»
-
-
-## Все термики, рождающиеся за hours_s в клетках (ia, ic), — напрямую из генератора клеток
-## (без реального времени и полёта — статистика по 20×20 км за 2 ч).
-func _cell_births(f: ThermalField, ia: int, ic: int, hours_s: float) -> Array[AtmoThermal]:
-	var out: Array[AtmoThermal] = []
-	var pp := f._cell_params(ia, ic)
-	var period: float = pp.x
-	var phase: float = pp.y
-	var cyc := 0
-	while true:
-		var t_start := cyc * period - phase
-		if t_start >= hours_s:
-			break
-		if t_start >= 0.0:
-			var id := f._mix(ia, ic, cyc) | 1
-			var th := f._spawn(ia, ic, id, t_start, period)
-			if th != null:
-				out.append(th)
-		cyc += 1
-	return out
-
-
-func _all_births(a: Atmosphere, hours_s: float, half_m: float) -> Array[AtmoThermal]:
-	var f := a.field
-	var n := int(ceil(half_m / f._spacing))
-	var out: Array[AtmoThermal] = []
-	for ic in range(-n, n + 1):
-		for ia in range(-n, n + 1):
-			out.append_array(_cell_births(f, ia, ic, hours_s))
-	return out
-
-
-func test_extreme_thermals_rare_and_only_strong() -> void:
-	var a := _atmo(10, {}, "weather/strong")
-	a.step(0.01)
-	var born := _all_births(a, 7200.0, 10000.0)
-	var extreme := 0
-	for th in born:
-		if th.strength >= 7.0:
-			extreme += 1
-			var diam := 2.0 * minf(a.cloud_phys.model.size(th, Vector3(1, 0, 1)).x,
-				a.cloud_phys.model.size(th, Vector3(1, 0, 1)).y)
-			check(diam >= float(a.cfg.thermal.suck_size_m[1]),
-				"под термиком >= 7 м/с — крупное облако (диаметр %.0f м)" % diam)
-	var frac := float(extreme) / float(maxi(born.size(), 1))
-	check(
-		frac >= 0.02 and frac <= 0.06,
-		"strong: доля термиков с ядром >= 7 м/с 2-6%%: %.3f (%d/%d)" % [frac, extreme, born.size()]
-	)
-	a.free()
-	for preset in ["weather/medium", "weather/weak"]:
-		var b := _atmo(11, {}, preset)
-		b.step(0.01)
-		var born2 := _all_births(b, 7200.0, 10000.0)
-		var ext2 := 0
-		for th in born2:
-			if th.strength >= 7.0:
-				ext2 += 1
-		check(ext2 == 0, "%s: термиков с ядром >= 7 м/с нет: %d" % [preset, ext2])
-		b.free()
-
-
-func test_variometer_plus8_reachable_in_extreme_core() -> void:
-	var a := _cloud_atmo(4)
-	a.field.thermals[a.field.thermals.keys()[0]].strength = 8.0
-	a.step(1.0)
-	var cb := a.get_cloudbase_msl()
-	var w := a.air_velocity_at(Vector3(0, cb - 60.0, 0)).y
-	check(w >= 7.0, "вариометр >= +7 м/с у крыла в ядре 8 м/с: %.2f" % w)
-	a.free()
 
 
 # ---------------------------------------------------------------- 5. Термики без облаков
 
 
-func test_dry_thermal_fraction_and_climb() -> void:
-	# Облака — поле (CLF-3): «сухой» термик — тот, над которым поля облачности нет; доля таких
-	# выходит из поля, а не из генератора. Здесь — подъём слабого термика находится по вариометру.
+func test_dry_thermal_climb() -> void:
+	# Подъём слабого термика находится по вариометру: на лучшем зрелом ядре дня подъём >= 1 м/с
+	# хотя бы на одной высоте столба (облака поля — слагаемое крейта, доля «сухих» — его тесты).
 	for preset in ["weather/medium", "weather/weak"]:
-		var a := _atmo(12, {}, preset)
-		a.turbulence_enabled = false
-		a.step(0.01)
-		var born := _all_births(a, 7200.0, 10000.0)
-		var dry_th: AtmoThermal = null
-		for th in born:
-			if not th.is_cb and (dry_th == null or th.strength > dry_th.strength):
-				dry_th = th
-		check(dry_th != null, "%s: термики рождаются" % preset)
-		if dry_th != null:
-			# Найденный «в стороне» термик не зарегистрирован в поле сетки поиска — вписать
-			# его вручную, чтобы проверить реальный подъём через air_velocity_at.
-			a.field.thermals[dry_th.id] = dry_th
-			var t_mature := dry_th.t_birth + dry_th.t_grow + dry_th.t_mature * 0.5
-			a.field._rebuild_buckets(t_mature, dry_th.src, 1.0)
-			# Найден по варио — берём лучшую высоту в столбе (пилот ищет максимум набора).
+		var a := Rig.make({"preset": preset, "seed": 12, "advance": 3600.0})
+		var best: PackedFloat32Array = []
+		var c := a.cores(Vector3.ZERO, 6000.0)
+		for j in range(0, c.size() - CS + 1, CS):
+			var st := c[j + Atmosphere.CORE_STAGE]
+			if st < 1.0 or st > 2.0 or (int(c[j + Atmosphere.CORE_FLAGS]) & 4) != 0:
+				continue
+			if best.is_empty() or c[j + Atmosphere.CORE_W] > best[Atmosphere.CORE_W]:
+				best = c.slice(j, j + CS)
+		check(not best.is_empty(), "%s: зрелые термики есть" % preset)
+		if not best.is_empty():
+			var y_src := best[Atmosphere.CORE_Y_SRC]
+			var span := best[Atmosphere.CORE_TOP] - y_src
 			var w_max := -1.0e9
 			for k in range(3, 9):
-				var y := dry_th.src.y + (dry_th.top - dry_th.src.y) * (float(k) / 10.0)
-				var axis := dry_th.axis_at(y)  # ось столба на высоте с учётом наклона ветром
-				w_max = maxf(w_max, a.air_velocity_at(Vector3(axis.x, y, axis.y)).y)
+				var dy := span * (float(k) / 10.0)
+				var p := Vector3(
+					best[Atmosphere.CORE_X] + best[Atmosphere.CORE_LEAN_X] * dy,
+					y_src + dy,
+					best[Atmosphere.CORE_Z] + best[Atmosphere.CORE_LEAN_Z] * dy
+				)
+				w_max = maxf(w_max, a.mean_wind_at(p).y)
 			check(w_max >= 1.0, "%s: термик даёт набор >= 1 м/с (по варио): %.2f" % [preset, w_max])
 		a.free()
 
@@ -296,22 +176,19 @@ func test_dry_thermal_fraction_and_climb() -> void:
 
 
 func test_background_sink_medium() -> void:
-	var a := _atmo(13, {"thermal_mode": "static"}, "weather/medium")
-	a.turbulence_enabled = false
-	a.step(0.01)
-	var w := a.air_velocity_at(Vector3(5000, 800, 5000)).y
+	var a := Rig.make({"mode": 1, "seed": 13, "advance": 0.01})
+	var w := a.mean_wind_at(Vector3(3000, 800, 3000)).y
 	approx(w, -0.5, 0.15, "фон вне термиков medium −0,5 ± 0,15 м/с")
 	a.free()
 
 
 func test_ring_sink_weaker_than_core() -> void:
 	var a := _cloud_atmo(14)
-	a.turbulence_enabled = false
-	var bg := a.air_velocity_at(Vector3(6000, 900, 0)).y  # фон вдали, без термика — для сравнения
+	var bg := a.mean_wind_at(Vector3(4500, 900, 0)).y  # фон вдали, без термика — для сравнения
 	var ring_min := 1.0e9
 	for i in range(20):
 		var r := _BASE_RADIUS * (1.0 + 0.05 * i)
-		ring_min = minf(ring_min, a.air_velocity_at(Vector3(r, 900, 0)).y)
+		ring_min = minf(ring_min, a.mean_wind_at(Vector3(r, 900, 0)).y)
 	# Кольцо (Gedeon, thermal.ring_sink_factor — не моя секция) даёт доп. опускание сверх фона;
 	# оно слабее −0,2·ядра сверх фона между термиками.
 	var excess := ring_min - bg

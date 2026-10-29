@@ -261,33 +261,8 @@ func test_sea_none_class_and_terrain_object() -> void:
 	check(n_sea == 0 and s.count() > 0, "над морем NONE источников нет (%d из %d)" % [n_sea, s.count()])
 
 
-## Термики клеток (аналитика, поля нет) тоже не над водой.
-func test_cell_thermals_not_over_water() -> void:
-	var t := _TerrainStub.new()
-	var w: Dictionary = Config.get_config("weather/medium").duplicate(true)
-	w.wind_speed_kmh = 0.0
-	var a := Atmosphere.new()
-	a.visuals_enabled = false
-	a.seed_value = 7
-	a.configure(Config.get_config("atmosphere"), w)
-	a.set_ground(t.height_at, t.thermal_source_strength_at)
-	a.turbulence_enabled = false
-	a.wave.enabled = false
-	a.set_focus(Vector3(0.0, 600.0, 0.0))
-	a.start_at(2000.0)
-	var n_sea := 0
-	var n_land := 0
-	for id in a.field.thermals:
-		var th: AtmoThermal = a.field.thermals[id]
-		if th.is_static:
-			continue
-		if th.src.x >= 0.0:
-			n_sea += 1
-		else:
-			n_land += 1
-	check(n_sea == 0, "термиков клеток над морем нет (%d)" % n_sea)
-	check(n_land > 0, "на суше есть (%d)" % n_land)
-	a.free()
+# test_cell_thermals_not_over_water (термики клеток не над водой) — rust/dp-air/tests/terms_thermal_air.rs
+# (no_source_over_water_and_warm_sea) и terms_thermal_src.rs (water_day_night_ice).
 
 
 ## Рельеф для GroundField: восток — море (высота 0, класс NONE — как у океана без WorldCover),
@@ -334,34 +309,8 @@ func test_ceiling_inversion_and_cloudbase() -> void:
 	s3.build(f3, _cfg())
 	print("    тёплый слой θ′ +2 К с 800 м: потолок %.0f м" % s3.top[0])
 	check(s3.top[0] < GROUND + 900.0, "θ′ поля гасит частицу (инверсия «сама»)")
-	# В атмосфере: потолок термика = min(частица, кромка); частица ниже кромки — сухой термик.
-	var a := _atmo(f)
-	a.set_cloudbase_msl(2600.0)
-	a.set_air_field(f, 0.0)
-	_run(a, 1200.0)
-	var n := 0
-	var ok := true
-	var dry := true
-	for id in a.field.thermals:
-		var th: AtmoThermal = a.field.thermals[id]
-		if th.cell.x >= 1 << 19:
-			n += 1
-			ok = ok and absf(th.top - s.top[0]) < 60.0
-			dry = dry and not th.has_cloud
-	check(n > 0 and ok, "термики поля — до инверсии, не до кромки 2600 (%d)" % n)
-	check(dry, "не дошли до кромки — без облака")
-	a.free()
-	var b := _atmo(f2)
-	b.set_cloudbase_msl(2100.0)
-	b.set_air_field(f2, 0.0)
-	_run(b, 1200.0)
-	var tops := []
-	for id in b.field.thermals:
-		var th: AtmoThermal = b.field.thermals[id]
-		if th.cell.x >= 1 << 19:
-			tops.append(th.top)
-	check(not tops.is_empty() and tops.max() <= 2100.0 + 1e-3, "частица выше кромки — до кромки")
-	b.free()
+	# Потолок термика в атмосфере (min(частица, кромка), сухой термик) — rust/dp-air/tests/terms_thermal_air.rs
+	# (ceiling_inversion_cloudbase_and_warm_lid).
 
 
 static func _warm_lid(agl: float) -> float:
@@ -388,44 +337,8 @@ func test_mass_flux_matches_field() -> void:
 		absf(m_sum + s.lost_flux - s.total_flux) < 1.0e-3 * s.total_flux, "поток распределён весь"
 	)
 	check(s.lost_flux < 0.05 * s.total_flux, "почти весь — водосборам источников")
-	# Монте-Карло: средний поток ядер пузырей (w > 0) на ξ = 0,5 в середине окна за 40 мин
-	# против Φ поля (F̄ + W̄⁺), штиль — без сноса за край.
-	var a := _atmo(f)
-	a.set_air_field(f, 0.0)
-	var got := 0.0
-	var want := 0.0
-	var n := 0
-	var tf := a.field
-	for step in 48:
-		_run(a, 50.0)
-		var keep := tf.air_src
-		for j in range(-12, 13):
-			for i in range(-12, 13):
-				var x := i * 80.0
-				var z := j * 80.0
-				var c := s.level
-				var ci := int(floor((x - c.x0) / DX))
-				var cj := int(floor((-z - c.y0) / DX))
-				var col := cj * N + ci
-				var owner := keep.owner[col]
-				if owner < 0:
-					continue
-				var d := keep.depth[owner]
-				var p := Vector3(x, GROUND + 0.5 * d, z)
-				tf.air_src = null
-				got += maxf(tf.sample(p).x, 0.0)
-				tf.air_src = keep
-				want += keep.expected_up(p)
-				n += 1
-	var r := got / maxf(want, 1.0e-9)
-	print(
-		(
-			"    Монте-Карло (ξ = 0,5, %d точек): ядра %.3f м/с, ожидание поля %.3f — %.2f"
-			% [n, got / n, want / n, r]
-		)
-	)
-	check(r > 0.8 and r < 1.2, "поток ядер = потоку поля ±20 %% (%.2f)" % r)
-	a.free()
+	# Монте-Карло потока ядер против Φ поля — rust/dp-air/tests/terms_thermal_field.rs
+	# (monte_carlo_core_flux_matches_field).
 
 
 # ---------------------------------------------------------------- сеть
@@ -486,87 +399,9 @@ static func _noisy(f: WindField, amp: float) -> WindField:
 	return WindField.from_arrays(f.meta.duplicate(), u, v, wm, wc, th, f.raw_hc())
 
 
-func test_two_clients_same_thermals() -> void:
-	var f := _flat(_sun_half, _conv_line)
-	var g := _noisy(f, 3.0e-3)
-	var host := _atmo(f)
-	host.set_air_field(f, 0.0)
-	_run(host, 1.0)
-	var mask := host.field.air_sources_mask()
-	var cl := _atmo(g)
-	cl.set_air_field(g, 0.0)
-	cl.field.set_air_forced(String(mask.sig), mask.mask)
-	for a: Atmosphere in [host, cl]:
-		a.start_at(3000.0)
-	var ids_h: Array = host.field.thermals.keys()
-	var ids_c: Array = cl.field.thermals.keys()
-	ids_h.sort()
-	ids_c.sort()
-	check(ids_h == ids_c, "те же термики (%d / %d)" % [ids_h.size(), ids_c.size()])
-	var dp := 0.0
-	var ds := 0.0
-	for id in ids_h:
-		if not cl.field.thermals.has(id):
-			continue
-		var a: AtmoThermal = host.field.thermals[id]
-		var b: AtmoThermal = cl.field.thermals[id]
-		dp = maxf(dp, (a.axis_at(1500.0) - b.axis_at(1500.0)).length())
-		ds = maxf(ds, absf(a.strength - b.strength))
-	print(
-		(
-			"    два клиента (шум поля 3e-3): термиков %d, |Δось| ≤ %.2f м, |Δсила| ≤ %.3f м/с"
-			% [ids_h.size(), dp, ds]
-		)
-	)
-	check(dp < 20.0 and ds < 0.05, "позиции и сила совпадают в пределах шума")
-	host.free()
-	cl.free()
-
-
-# ---------------------------------------------------------------- атмосфера
-
-
-func test_atmosphere_field_region_and_off() -> void:
-	var f := _flat(_heat300, _zero3)
-	var a := _atmo(f)
-	var ref := _atmo(f)
-	a.set_air_field(f, 0.0)
-	for x: Atmosphere in [a, ref]:
-		x.start_at(2000.0)
-	var n_air := 0
-	var n_grid_in := 0
-	var n_grid_out := 0
-	for id in a.field.thermals:
-		var th: AtmoThermal = a.field.thermals[id]
-		var inside := f.edge_weight(Vector3(th.src.x, GROUND + 10.0, th.src.z)) >= 0.5
-		if th.cell.x >= 1 << 19:
-			n_air += 1
-		elif inside:
-			n_grid_in += 1
-		else:
-			n_grid_out += 1
-	print(
-		"    термики: поля %d, сетки в поле %d, сетки вне поля %d" % [n_air, n_grid_in, n_grid_out]
-	)
-	check(n_air > 0, "в поле — термики поля")
-	check(n_grid_in == 0, "в поле — нет термиков сетки")
-	check(n_grid_out > 0, "вне поля — аналитика")
-	# Выключенное поле — как без поля (те же термики).
-	a.set_air_mode("off")
-	a.start_at(2000.0)
-	var k1: Array = a.field.thermals.keys()
-	var k2: Array = ref.field.thermals.keys()
-	k1.sort()
-	k2.sort()
-	check(k1 == k2, "поле выключено — термики как без поля")
-	# «Между» в поле: фоновое опускание не действует, вместо него w_conv − поток пузырей.
-	a.set_air_mode("auto")
-	a.start_at(2000.0)
-	var p := Vector3(-300.0, GROUND + 600.0, 700.0)
-	var th := a.field.sample(p)
-	check(th.y > 0.99 or th.x != 0.0, "в поле маска фона ≈ 1 (%.3f)" % th.y)
-	a.free()
-	ref.free()
+# Сеть (маска ведущего, два клиента) удалена вместе с синхронизацией воздуха (W1: сеть — не цель);
+# поле и термики вне окна/при выключенном поле — rust/dp-air/tests/terms_thermal_field.rs
+# (field_region_covers_and_off).
 
 
 func test_real_kayancha_fixture() -> void:
@@ -608,37 +443,3 @@ func test_real_kayancha_fixture() -> void:
 			% [s.total_flux, s.carried_flux, 100.0 * s.carried_flux / s.total_flux]
 		)
 	)
-
-
-# ---------------------------------------------------------------- помощники
-
-
-static func _atmo(f: WindField) -> Atmosphere:
-	var w: Dictionary = Config.get_config("weather/medium").duplicate(true)
-	w.wind_speed_kmh = 0.0
-	w.thermal_extreme_chance = 0.0
-	var a := Atmosphere.new()
-	a.visuals_enabled = false
-	a.seed_value = 7
-	a.configure(Config.get_config("atmosphere"), w)
-	a.field.air_async = false  # тесты — синхронно (поток = синхронно: PF-К4)
-	# Тень поля облачности (CLF-3) зависит от истории поля — здесь проверяются источники поля
-	a.field._cfg = a.field._cfg.duplicate()
-	a.field._cfg.cloud_shade_factor = 0.0
-	a.set_ground(f.ground_height, _sun_one)
-	a.turbulence_enabled = false
-	a.wave.enabled = false
-	a.set_focus(Vector3(0.0, GROUND + 500.0, 0.0))
-	a.step(0.01)
-	return a
-
-
-static func _sun_one(_x: float, _z: float) -> float:
-	return 1.0
-
-
-static func _run(a: Atmosphere, secs: float) -> void:
-	var t := 0.0
-	while t < secs:
-		a.step(1.0)
-		t += 1.0

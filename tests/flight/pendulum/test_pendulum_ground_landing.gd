@@ -63,9 +63,9 @@ func test_soft_with_flare() -> void:
 		var best := {}
 		var best_h := NAN
 		for h: float in FLARE_HEIGHTS:
-			var a := approach(c[0], c[1], h)
-			var r: Dictionary = a.result
-			check(a.flare > 0.99, "%s: flare_amount у земли = 1 (%.2f)" % [c[0], a.flare])
+			var ap := approach(c[0], c[1], h)
+			var r: Dictionary = ap.result
+			check(ap.flare > 0.99, "%s: flare_amount у земли = 1 (%.2f)" % [c[0], ap.flare])
 			if not OS.get_environment("PD35_ALL").is_empty():
 				print("      %s, ветер %.0f, с %.2f м — %s" % [c[0], c[1], h, fmt(r)])
 			if r.get("grade", "") == "soft":
@@ -100,14 +100,14 @@ func test_calm_near_limit() -> void:
 ## Без выравнивания (прямо на триме) — жёсткая: горизонтальная больше выбегаемой (touchdown.run_max_ms).
 func test_hard_without_flare() -> void:
 	for w: String in WINGS:
-		var a := approach(w, 0.0, -1.0)
-		var r: Dictionary = a.result
-		var m: PendulumModel = a.model
+		var ap := approach(w, 0.0, -1.0)
+		var r: Dictionary = ap.result
+		var m: PendulumModel = ap.model
 		print("    без выравнивания %s — %s" % [w, fmt(r)])
 		check(r.get("grade", "") == "hard", "%s: без выравнивания — жёсткая (%s)" % [w, fmt(r)])
 		check(float(r.horizontal_speed_ms) > m.touchdown.run_max, "%s: жёсткая по горизонтальной" % w)
 		check(m.mode == FlightModel.Mode.LANDED and m.phase() == "landed", "%s: LANDED" % w)
-		check(a.signals.size() == 1, "%s: сигнал landed один раз" % w)
+		check(ap.signals.size() == 1, "%s: сигнал landed один раз" % w)
 		check(r.has("position") and r.has("flight_time_s"), "%s: position и flight_time_s" % w)
 		var feet: Vector3 = r.position
 		check(absf(feet.y) < 0.01, "%s: точка касания на земле" % w)
@@ -135,17 +135,17 @@ func test_hard_flare_too_high() -> void:
 func test_crash_dive() -> void:
 	var lc: Dictionary = Config.get_config("flight").landing
 	for w: String in WINGS:
-		var a := approach(w, 0.0, -1.0, -1.0, 0.0, 20.0)
-		var r: Dictionary = a.result
-		var m: PendulumModel = a.model
+		var ap := approach(w, 0.0, -1.0, -1.0, 0.0, 20.0)
+		var r: Dictionary = ap.result
+		var m: PendulumModel = ap.model
 		print("    пикирование %s — %s" % [w, fmt(r)])
 		check(r.get("grade", "") == "crash", "%s: пикирование в землю — авария" % w)
 		check(float(r.horizontal_speed_ms) > float(lc.crash_horizontal_ms), "%s: по горизонтальной" % w)
 		# PD-К6 v2: скорость гасится с crash_decel_g (≈ 20 g), а не за шаг; через 0,5 с всё стоит
 		for i in 60:
-			m.step(S.DT, S.input(), a.air, a.ground)
+			m.step(S.DT, S.input(), ap.air, ap.ground)
 		var p := m.position
-		m.step(S.DT, S.input(), a.air, a.ground)
+		m.step(S.DT, S.input(), ap.air, ap.ground)
 		check(m.position.is_equal_approx(p), "%s: после аварии всё стоит" % w)
 		check(m.pilot_velocity.length() < 0.01, "%s: скорость погашена" % w)
 
@@ -153,8 +153,8 @@ func test_crash_dive() -> void:
 ## Крен до упора у земли — консоль касается раньше ступней: авария.
 func test_crash_wingtip() -> void:
 	for w: String in WINGS:
-		var a := approach(w, 0.0, -1.0, 0.0, 1.0, 8.0)
-		var r: Dictionary = a.result
+		var ap := approach(w, 0.0, -1.0, 0.0, 1.0, 8.0)
+		var r: Dictionary = ap.result
 		print("    крен у земли %s — %s" % [w, fmt(r)])
 		check(r.get("grade", "") == "crash", "%s: консоль в землю — авария" % w)
 		check(r.get("contact", "") == "wingtip", "%s: касание консолью (%s)" % [w, r.get("contact")])
@@ -162,12 +162,12 @@ func test_crash_wingtip() -> void:
 
 ## После посадки без аварии: пилот на ногах, пробежка гасит скорость; пошёл — снова на земле.
 func test_after_landing() -> void:
-	var a := approach("training", 0.0, -1.0)
-	var m: PendulumModel = a.model
+	var ap := approach("training", 0.0, -1.0)
+	var m: PendulumModel = ap.model
 	check(m.landing_result.grade == "hard", "жёсткая посадка")
 	var inp := S.input()
 	for i in 600:
-		m.step(S.DT, inp, a.air, a.ground)
+		m.step(S.DT, inp, ap.air, ap.ground)
 	check(S.finite(m), "без NaN")
 	check(m.mode == FlightModel.Mode.LANDED and m.phase() == "landed", "стоит после посадки")
 	check(m.pilot_velocity.length() < 0.1, "остановился (%.2f м/с)" % m.pilot_velocity.length())
@@ -175,6 +175,6 @@ func test_after_landing() -> void:
 	check(absf(feet) < 0.1, "на ногах (ступни %.2f м)" % feet)
 	check(m.telemetry.on_ground, "телеметрия — на земле")
 	inp.walk = 1.0
-	m.step(S.DT, inp, a.air, a.ground)
+	m.step(S.DT, inp, ap.air, ap.ground)
 	check(m.mode == FlightModel.Mode.GROUND and m.phase() == "walking", "пошёл — на земле (%s)" % m.phase())
 	check(m.landing_result.is_empty(), "результат посадки сброшен")
