@@ -11,7 +11,7 @@
   `sep_sigma`, `reverse_unresolved`, `taylor_stretch`, `mil_lw/lu` на 3000 случайных входах). Входы пишутся
   вместе с результатами — Rust ничего не пересчитывает по генератору GD.
 - `dbg_ongudai_<случай>.f64` — внутренние величины `_air_velocity_field` в точках эталонов `ongudai_*`
-  (4 случая набора 1: medium, strong, wave, storm; для дневных `ongudai_day_*` — если есть файл). По
+  (набор 1: medium, strong, wave, storm; набор 2: ongudai_day_1..3). По
   64 числа на запись, порядок записей — `[момент][точка]` как в `tests/fixtures/wind/cases/<имя>.bin`; точка вне
   поля (доля `a = 0`) — запись из NaN. Поля записи — модуль `rec` в `terms_turb.rs`.
   Дамп снят на том же прогоне, что файлы случая: `.bin` пересъёмки совпадает с `tests/fixtures/wind/cases`
@@ -26,7 +26,7 @@ git worktree add <scratch>/gd-ref c591b1026 && cd <scratch>/gd-ref
 git apply <это>/atmo_dump.patch
 cp <это>/rw8_dump.gd.txt tools/wind_fixtures/rw8_dump.gd; cp <это>/rw8_dump.tscn.txt tools/wind_fixtures/rw8_dump.tscn
 # ongudai_* (GPU, окно, ~4 мин на случай): под замком gpu
-.dpcli/dpcli job --lock gpu start rw8dump 2400 tools/wind_fixtures/run.sh --out=<dir> --only=ongudai_medium,ongudai_strong,ongudai_wave,ongudai_storm
+.dpcli/dpcli job --lock gpu start rw8dump 2400 tools/wind_fixtures/run.sh --out=<dir> --only=ongudai_medium,ongudai_strong,ongudai_wave,ongudai_storm,ongudai_day_1,ongudai_day_2,ongudai_day_3
 # шум, спектр, FieldTurbulence (headless, под замком cpu)
 godot --headless --path . res://tools/wind_fixtures/rw8_dump.tscn -- --out=<dir>
 ```

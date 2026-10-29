@@ -315,15 +315,60 @@ mod rec {
     pub const UNRES: usize = 63;
 }
 
-/// Шероховатость уровня поля Онгудая 400 м (`levels[0].z0` GD): в дамп не писалась, подобрана по
-/// записанному признаку отрыва (`lee`) — 0,2033 м, невязка 1e-6 по всем 700 точкам четырёх случаев.
-const ONGUDAI_Z0: f64 = 0.20334;
+/// Шероховатость уровня поля (`levels[0].z0` GD) в дамп не писалась: подбирается по записанному
+/// признаку отрыва `lee` (он зависит от z0 монотонно; у `ongudai_{medium,strong,wave,storm}` ≈ 0,2033,
+/// у дневных ≈ 0,304 — другая погода/поверхность). Невязка подбора — в отчёте теста.
+fn fit_z0(buf: &[f64]) -> f64 {
+    let ft = TurbCfg::default();
+    let recs: Vec<&[f64]> = buf
+        .chunks_exact(rec::LEN)
+        .filter(|r| !r[0].is_nan())
+        .collect();
+    let err = |z: f64| {
+        recs.iter()
+            .map(|r| {
+                let mut tb = [0f32; 8];
+                for (q, t) in tb.iter_mut().enumerate() {
+                    *t = r[rec::TB + q] as f32;
+                }
+                (sep::lee(&ft, z, r[rec::UF], r[rec::AGL], &tb) - r[rec::LEE_F]).abs()
+            })
+            .fold(0.0, f64::max)
+    };
+    let mut best = (f64::MAX, 0.1);
+    for i in 0..3000 {
+        let z = 0.02 + 0.0002 * f64::from(i);
+        let e = err(z);
+        if e < best.0 {
+            best = (e, z);
+        }
+    }
+    // уточнение вокруг найденного
+    let (mut lo, mut hi) = (best.1 - 0.0002, best.1 + 0.0002);
+    for _ in 0..40 {
+        let (m1, m2) = (lo + (hi - lo) / 3.0, hi - (hi - lo) / 3.0);
+        if err(m1) < err(m2) {
+            hi = m2;
+        } else {
+            lo = m1;
+        }
+    }
+    let z = (lo + hi) / 2.0;
+    println!(
+        "z0 уровня (подбор по lee): {z:.5}, невязка lee {:.2e}",
+        err(z)
+    );
+    z
+}
 
-const CASES: [&str; 4] = [
+const CASES: [&str; 7] = [
     "ongudai_medium",
     "ongudai_strong",
     "ongudai_wave",
     "ongudai_storm",
+    "ongudai_day_1",
+    "ongudai_day_2",
+    "ongudai_day_3",
 ];
 
 fn atmosphere_sum_cfg() -> SumCfg {
@@ -331,7 +376,7 @@ fn atmosphere_sum_cfg() -> SumCfg {
 }
 
 /// Пересчёт болтанки слота по записи GD: те же входы, что видел `_air_velocity_field`.
-fn replay(ft: &FieldTurb, r: &[f64]) -> (FieldState, dp_air::terms::TurbOut) {
+fn replay(ft: &FieldTurb, z0: f64, r: &[f64]) -> (FieldState, dp_air::terms::TurbOut) {
     let mut tb = [0f32; 8];
     for (q, t) in tb.iter_mut().enumerate() {
         *t = r[rec::TB + q] as f32;
@@ -339,7 +384,7 @@ fn replay(ft: &FieldTurb, r: &[f64]) -> (FieldState, dp_air::terms::TurbOut) {
     let st = FieldState {
         tb,
         uf: r[rec::UF],
-        lee_f: sep::lee(ft.cfg(), ONGUDAI_Z0, r[rec::UF], r[rec::AGL], &tb),
+        lee_f: sep::lee(ft.cfg(), z0, r[rec::UF], r[rec::AGL], &tb),
         relief: r[rec::RELIEF].max(0.0),
         danger: r[rec::DANGER],
         u_h: r[rec::U_H],
@@ -350,7 +395,7 @@ fn replay(ft: &FieldTurb, r: &[f64]) -> (FieldState, dp_air::terms::TurbOut) {
         t: r[rec::T],
         agl: r[rec::AGL],
         u: r[rec::U],
-        z0: ONGUDAI_Z0,
+        z0,
         mh: [r[rec::MH], r[rec::MH + 1]],
         conv_a: r[rec::CONV_A],
         full: true,
@@ -380,6 +425,7 @@ fn ongudai_replay_matches_air_velocity_field() {
     let (mut n_all, mut n_noise, mut n_burst, mut n_rev) = (0, 0, 0, 0);
     let mut worst = [0.0f64; 5];
     for (name, buf) in &cases {
+        let z0 = fit_z0(buf);
         for (i, r) in buf.chunks_exact(rec::LEN).enumerate() {
             if r[0].is_nan() {
                 continue;
@@ -391,7 +437,7 @@ fn ongudai_replay_matches_air_velocity_field() {
             } else {
                 &FieldTurb::new(&atmosphere(), seed)
             };
-            let (st, o) = replay(ftc, r);
+            let (st, o) = replay(ftc, z0, r);
             n_all += 1;
             let tag = format!("{name} #{i}");
             assert!(
@@ -474,6 +520,7 @@ fn ongudai_sigma_turb_within_w8() {
             .iter()
             .position(|t| t == "turb")
             .unwrap();
+        let z0 = fit_z0(buf);
         let seed = case.seed;
         let ft = FieldTurb::new(&atmosphere(), seed);
         let mut want = Vec::new();
@@ -492,7 +539,7 @@ fn ongudai_sigma_turb_within_w8() {
                 r[rec::S_U],
                 want[i]
             );
-            let (_, o) = replay(&ft, r);
+            let (_, o) = replay(&ft, z0, r);
             let cap = sc.turb_max_ms.max(o.sep[0].min(sc.rotor_max_ms));
             let mine = (o.s_u * o.s_u + r[rec::EX2]).sqrt().min(cap);
             let tol = 0.02 + 0.05 * want[i].abs();
