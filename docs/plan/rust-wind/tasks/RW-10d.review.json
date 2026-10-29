@@ -1,0 +1,55 @@
+{
+  "verdict": "accept",
+  "summary": "Перенос AirThermals.build в thermal_air/ в скоупе, без правок formula.rs/field/контрактов. На ongudai_medium источники, водосборы, land и pick_in_column сверены с дампом GD побитно, перезапуск 19/19 ok. pick_in_column, land_fraction и fill (порядок RNG, randf_range в f32) построчно совпадают с c591b1026. Замечания некритичные: сверка ядер косвенная, strong/wave тестом не проверяются, при слиянии будет однострочный конфликт в terms/mod.rs.",
+  "issues": [
+    {
+      "file": "rust/dp-air/tests/terms_thermal_air.rs",
+      "line": 1241,
+      "severity": "minor",
+      "what": "desc_cores_of_fixture_come_from_sources ищет источник по y_src, радиусу (допуск 0,5 %), потолку и cos сноса > 0,98. Место ядра по W8 (≤ max(25 м, 2 % r)) не проверено, как и смещение вдоль сноса по возрасту. Исполнитель сам отметил это в uncertain",
+      "fix": "Сверить место ядра (источник + снос·возраст) в RW-10e, когда появится жизнь ядер; добавить пункт в список «сверить после RW-10e»"
+    },
+    {
+      "file": "rust/dp-air/tests/data/RW-10d/manifest.json",
+      "line": 1,
+      "severity": "minor",
+      "what": "По strong и wave в manifest лежат только счётчики и скаляры (2420/4002), но ни один cargo-тест их не читает. Против дампа в тесте сверяется только ongudai_medium, хотя в цели сказано «источники ongudai_*». Отступление разрешено координатором (> 5 МБ), но счётчики сейчас только для справки",
+      "fix": "Понимать так: эталон сверки — один medium. strong и wave воспроизводятся через run_dump.sh"
+    },
+    {
+      "file": "rust/dp-air/tests/data/RW-10d/ongudai_medium/field.bin",
+      "line": 1,
+      "severity": "minor",
+      "what": "В репозитории лежит поле f16, перечитанное в GD, а не f32 без потерь, как было указано (f32 без потерь занимает 6,9 МБ). w_mech обнулён после дампа. В c591b1026 build не читает w_mech (в air_thermals.gd совпадений grep нет), эталон GD снят по тому же f16-полю, а по GPU-полю число источников то же на всех трёх случаях. Отступление обосновано",
+      "fix": "Ничего; координатору принять к сведению"
+    },
+    {
+      "file": "rust/dp-air/src/terms/mod.rs",
+      "line": 43,
+      "severity": "minor",
+      "what": "После слияния RW-10b/RW-10c ветка отстаёт от feature/rust-wind. git merge-tree даёт конфликт в terms/mod.rs (соседние строки pub mod)",
+      "fix": "При слиянии оставить обе строки pub mod (thermal, thermal_src, thermal_air)"
+    },
+    {
+      "file": "rust/dp-air/src/terms/thermal_air/pick.rs",
+      "line": 11,
+      "severity": "minor",
+      "what": "В карточке силу источника задаёт fn(x, z) -> f32, здесь вместо этого трейт PickGround {sun -> f64, is_water}. RW-10c отдаёт thermal_src::source_strength(place, cfg, hr, x, z) -> f32, а функция воды не назначена ни одной задаче. u10 передаётся параметром BuildIn (FieldMeta его не несёт)",
+      "fix": "В RW-10e: адаптер PickGround над source_strength и вода места, u10 из условий случая. Записать как стык для RW-10e"
+    }
+  ],
+  "rerun": [
+    {
+      "name": "terms_thermal_air (cargo test --release, под замком cpu)",
+      "value": "19 passed; 0 failed",
+      "pass": true
+    },
+    {
+      "name": "свежесть ветки против feature/rust-wind",
+      "value": "отстаёт на RW-10b/RW-10c; конфликт в terms/mod.rs (одна строка)",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-29T06:10:48",
+  "by": "reviewer"
+}
