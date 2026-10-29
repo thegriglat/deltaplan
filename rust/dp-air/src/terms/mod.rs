@@ -36,6 +36,7 @@
 //! - **`frame`** — `WindModel` (профиль, `speed_at`, `altitude_factor`, `vec2_at`, `dir`,
 //!   `simple_profile`) и `WeatherView` (словарь выведенной погоды, ключи как у GD; заполняет
 //!   RW-12b; пока — из условий: пресет или прогноз).
+pub mod analytic;
 mod decompose;
 mod frame;
 mod slots;
@@ -115,10 +116,10 @@ pub struct Slots {
 impl Slots {
     pub fn new() -> Self {
         Slots {
-            analytic: Arc::new(NoAnalytic), // RW-9
-            thermal: Arc::new(NoThermal),   // RW-10
-            extra: Arc::new(NoExtra),       // RW-11
-            turb: Arc::new(NoTurb),         // RW-8
+            analytic: Arc::new(analytic::AnalyticSlot::unconfigured()), // RW-9
+            thermal: Arc::new(NoThermal),                               // RW-10
+            extra: Arc::new(NoExtra),                                   // RW-11
+            turb: Arc::new(NoTurb),                                     // RW-8
         }
     }
 }
@@ -145,6 +146,13 @@ pub struct Terms {
     /// Направление на солнце (`set_sun_direction`).
     pub sun: Option<[f32; 3]>,
     pub slots: Slots,
+    /// Направление ветра, по которому построена линия тени рельефа (единичный `(x, z)`, f32 как в
+    /// GD). Меняется при повороте ветра больше `ground.wind_dir_tolerance_deg` (RW-9).
+    pub ground_dir: [f32; 2],
+    /// `ground.wind_dir_tolerance_deg`.
+    pub ground_tol_deg: f64,
+    /// Режим `air_model.enabled = off`: упрощённый профиль ветра 0.8.0 (RW-9, `analytic::off`).
+    pub air_off: bool,
 }
 
 impl Default for Terms {
@@ -161,6 +169,9 @@ impl Default for Terms {
             statics_mode: 0,
             sun: None,
             slots: Slots::new(),
+            ground_dir: [0.0, 1.0],
+            ground_tol_deg: 5.0,
+            air_off: false,
         }
     }
 }
@@ -173,6 +184,17 @@ impl Terms {
         let ref_msl = self.wind.ref_msl;
         self.wind = WindModel::new(WindCfg::from_configs(configs));
         self.wind.ref_msl = ref_msl;
+        self.ground_tol_deg = named_json(configs, "atmosphere")
+            .and_then(|v| {
+                v.pointer("/ground/wind_dir_tolerance_deg")
+                    .and_then(Value::as_f64)
+            })
+            .unwrap_or(5.0);
+        self.ground_dir = norm_dir(self.wind.dir());
+        analytic::off::apply(self, analytic::off::config_is_off(configs));
+        if let Some(a) = self.slots.analytic.configured(configs, seed) {
+            self.slots.analytic = a;
+        }
         let cond = self.cond.take();
         if let Some(c) = cond {
             self.set_conditions(&c);
@@ -219,8 +241,20 @@ impl Terms {
             }
         }
         self.weather = WeatherView::new(map);
+        let (old_from, first) = (self.wind.from_deg, self.cond.is_none());
         self.wind.set_from_weather(&self.weather);
+        // Линия тени рельефа следует за ветром с отставанием: поворот не больше допуска её не
+        // перестраивает (`Atmosphere.set_wind`). Первые условия после `configure` — как `configure`.
+        if first || angle_diff_deg(old_from, self.wind.from_deg).abs() > self.ground_tol_deg {
+            self.ground_dir = norm_dir(self.wind.dir());
+        }
         self.cond = Some(c.clone());
+    }
+
+    /// Режим `air_model.enabled = off` (`set_air_mode`): упрощённый профиль ветра 0.8.0. Из
+    /// `Formula::set_field_enabled` зовут `set_air_off(!on)` (подключение — RW-12z).
+    pub fn set_air_off(&mut self, off: bool) {
+        analytic::off::apply(self, off);
     }
 
     /// Хук времени (`advance_to`): обновить слагаемые, которым нужен шаг (термики раз в 1 с
@@ -239,6 +273,19 @@ impl Terms {
         self.focuses.clear();
         self.statics.clear();
     }
+}
+
+/// Единичное направление `(x, z)` в f32 (`Vector2.normalized()`); нулевое — прежнее по умолчанию.
+fn norm_dir(d: [f64; 2]) -> [f32; 2] {
+    let (x, z) = (d[0] as f32, d[1] as f32);
+    let l = (x * x + z * z).sqrt();
+    if l > 0.0 { [x / l, z / l] } else { [0.0, 1.0] }
+}
+
+/// `angle_difference` Godot для углов в градусах: разность `b − a` в (−180, 180].
+fn angle_diff_deg(a: f64, b: f64) -> f64 {
+    let d = (b - a).rem_euclid(360.0);
+    if d > 180.0 { d - 360.0 } else { d }
 }
 
 /// Точка опроса суммы (см. «Стык слагаемых»).

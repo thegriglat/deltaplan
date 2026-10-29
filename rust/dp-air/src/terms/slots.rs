@@ -4,8 +4,11 @@
 //! Правило выдачи: `None` — слагаемого в точке нет, `sum` его пропускает (не прибавляет нули:
 //! `-0.0 + 0.0` меняет бит). Все вклады слотов приходят уже со своими весами (в т. ч. `(1 − a)`
 //! полосы края), горизонтальный вклад аналитики — скаляр `h` вдоль ветра `wind.dir()`.
-use super::Ctx;
 use super::sum::Mid;
+use super::{Ctx, Terms};
+use crate::Configs;
+use crate::place::Place;
+use std::sync::Arc;
 
 /// Аналитика: среднее (RW-9). Ветка `a < 1` (в `a = 0` — вся); `h = u·(1 − a)·(1 − 0,6·lee_a)` и
 /// добавки подветренной зоны вдоль ветра, `w_ridge` — склоновый подъём (`ridge`), `w_lee` —
@@ -46,6 +49,27 @@ pub trait Analytic: Send + Sync {
     /// Шум аналитики `gust_unit·amp` (вертикаль × 0,7 × fade); только в FULL.
     fn gust(&self, _c: &Ctx, _amp: f64, _fade: f64) -> [f64; 3] {
         [0.0; 3]
+    }
+    /// Слот, заданный конфигами и сидом (`Terms::configure`); `None` — слот остаётся как есть
+    /// (заглушки и пробники тестов).
+    fn configured(&self, _configs: &Configs, _seed: u64) -> Option<Arc<dyn Analytic>> {
+        None
+    }
+    /// Опасность подветренной зоны 0..1 в точке (болтанка поля, RW-8): `None` — слот не задан.
+    fn lee_danger(&self, _c: &Ctx) -> Option<f64> {
+        None
+    }
+    /// Превышение гребня против ветра над землёй в точке, м.
+    fn relief(&self, _c: &Ctx) -> Option<f64> {
+        None
+    }
+    /// Нижняя кромка облаков, м MSL (средняя высота земли у центра + `cloudbase_agl_m`).
+    fn cloudbase_msl(&self, _t: &Terms, _place: &Place) -> Option<f64> {
+        None
+    }
+    /// Фоновый ветер по высотам MSL (`[vx, vz]`), профиль без рельефа.
+    fn background_wind(&self, _t: &Terms, _place: &Place, _heights: &[f32], out: &mut [[f32; 2]]) {
+        out.iter_mut().for_each(|o| *o = [0.0; 2]);
     }
 }
 
