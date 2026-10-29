@@ -35,7 +35,7 @@ func _load(a: Object) -> int:
 
 func test_api_version_and_constants() -> void:
 	var a := _new()
-	check(a.api_version() == 3, "api_version")
+	check(a.api_version() == 4, "api_version")
 	check(a.get_class() == "DpAir", "class")
 	check(a.state() == 0, "EMPTY")
 	check(a.stage() == "" and a.iters() == 0, "W3 v3: stage()/iters() пусты без задачи")
@@ -44,6 +44,8 @@ func test_api_version_and_constants() -> void:
 	c += ClassDB.class_get_integer_constant("DpAir", "CLOUD_STRIDE")
 	c += ClassDB.class_get_integer_constant("DpAir", "CREST_STRIDE")
 	check(c == 29, "strides 15+10+4")
+	check(ClassDB.class_get_integer_constant("DpAir", "OBJ_STRIDE") == 22, "W6 v4: OBJ_STRIDE")
+	check(ClassDB.class_get_integer_constant("DpAir", "WAVE_INFO_SIZE") == 2, "WAVE_INFO_SIZE")
 	check(ClassDB.class_get_integer_constant("DpAir", "STATE_READY") == 2, "STATE_READY")
 
 
@@ -113,3 +115,23 @@ func test_field_mode_and_export_v4() -> void:
 	a.field_export()  # номер подачи (Formula растит его и при выключении); снимок пуст
 	check(a.field_export_header() == "", "поле выключено: заголовок снимка пуст")
 	check(a.field_export_data().size() == 0, "поле выключено: тело пусто")
+
+
+func test_w3_v5_methods_on_empty_object() -> void:
+	var a := _new()
+	for m in ["cloud_objects", "wave_info", "surface_gust_many"]:
+		check(a.has_method(m), "W3 v5: метод " + m)
+	check(a.cloud_objects(Vector3.ZERO, 1000.0, 0.0).size() == 0, "нет места: нет объектов")
+	check(a.cloud_objects(Vector3.ZERO, -1.0, NAN).size() == 0, "radius < 0, t=NaN: пусто")
+	var w: PackedFloat32Array = a.wave_info()
+	check(w.size() == 2 and w[0] == 0.0 and w[1] == 0.0, "wave_info: нули")
+	var xz := PackedVector2Array([Vector2(0, 0), Vector2(10, 5), Vector2(NAN, 0)])
+	var ts := PackedFloat64Array([0.0, 1.0, 2.0, 3.0])
+	var g: PackedFloat32Array = a.surface_gust_many(xz, ts)
+	check(g.size() == 3, "длина — min(xz, t)")
+	for v in g:
+		check(v == 0.0, "нет места: порыв 0")
+	check(a.surface_gust_many(PackedVector2Array(), ts).size() == 0, "пустой xz")
+	check(_load(a) == 0, "load_place")
+	check(a.wave_info().size() == 2, "wave_info на месте")
+	check(a.surface_gust_many(xz, PackedFloat64Array([0.0])).size() == 1, "min длин на месте")

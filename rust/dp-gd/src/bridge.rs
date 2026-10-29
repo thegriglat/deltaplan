@@ -2,8 +2,8 @@
 //! Класс gdext в `lib.rs` только переводит типы Godot в срезы и обратно, поэтому всё здесь
 //! проверяется `cargo test` без запуска Godot.
 use dp_air::{
-    AirModel, Cloud, Conditions, Configs, Core, Crest, FieldExport, Focus, Place, PlaceHeader,
-    SampleMode, as_f32s,
+    AirModel, Cloud, Conditions, Configs, Core, Crest, FieldExport, Focus, OBJ_STRIDE, ObjRecord,
+    Place, PlaceHeader, SampleMode, as_f32s,
 };
 use std::sync::{Arc, OnceLock};
 
@@ -343,6 +343,45 @@ impl Bridge {
         as_f32s(buf)
     }
 
+    /// Объекты-облака W6 v4, шаг `OBJ_STRIDE`: `radius < 0` - без ограничения, `t` не конечно -
+    /// текущее время модели; центр или радиус не числа - пусто.
+    pub fn cloud_objects<'a>(
+        &self,
+        center: [f32; 3],
+        radius: f32,
+        t: f64,
+        buf: &'a mut Vec<ObjRecord>,
+    ) -> &'a [f32] {
+        if !finite3(&center) || radius.is_nan() {
+            buf.clear();
+            return &[];
+        }
+        let t = if t.is_finite() { t } else { self.time_s() };
+        self.model.cloud_objects(center, radius, t, buf);
+        obj_f32s(buf)
+    }
+
+    /// `[enabled, wavelength_m]`; нечисло в ответе модели - 0.
+    pub fn wave_info(&self) -> [f32; 2] {
+        self.model
+            .wave_info()
+            .map(|v| if v.is_finite() { v } else { 0.0 })
+    }
+
+    /// Порыв у поверхности: длина результата - минимум длин `xz` и `t`; нечисловой вход
+    /// (точка или момент) даёт 0. Входы - срезы без копирования.
+    pub fn surface_gust_many(&self, xz: &[[f32; 2]], t: &[f64], out: &mut Vec<f32>) {
+        let n = xz.len().min(t.len());
+        out.clear();
+        out.resize(n, 0.0);
+        self.model.surface_gust_many(&xz[..n], &t[..n], out);
+        for ((o, p), &ti) in out.iter_mut().zip(xz).zip(t) {
+            if !(p[0].is_finite() && p[1].is_finite() && ti.is_finite() && o.is_finite()) {
+                *o = 0.0;
+            }
+        }
+    }
+
     /// Заголовок растра облаков (json): `{version, nx, ny, dx, x0, z0, base_msl, time_s, layers}`;
     /// нет растра — `{"version":0}`.
     pub fn cloud_raster_header(&self) -> String {
@@ -473,4 +512,11 @@ mod tests {
         assert_eq!(f.set_field_enabled(false), OK);
         assert_eq!(f.set_field_enabled(true), OK);
     }
+}
+
+/// Записи объектов как плоский `&[f32]` без копирования.
+fn obj_f32s(v: &[ObjRecord]) -> &[f32] {
+    const { assert!(size_of::<ObjRecord>() == OBJ_STRIDE * 4 && align_of::<ObjRecord>() == 4) };
+    // SAFETY: ObjRecord - repr(C) из 22 f32 без отступов (const-assert здесь и в dp-air).
+    unsafe { std::slice::from_raw_parts(v.as_ptr().cast::<f32>(), v.len() * OBJ_STRIDE) }
 }
