@@ -1,0 +1,36 @@
+{
+	"godot": "4.7.2-stable (official)",
+	"n": 1500,
+	"scenarios": [
+		{
+			"name": "synth_medium",
+			"offset": 0,
+			"u10": 4.0
+		},
+		{
+			"name": "synth_strong",
+			"offset": 6006,
+			"u10": 12.0
+		},
+		{
+			"name": "synth_calm",
+			"offset": 12012,
+			"u10": 0.0
+		},
+		{
+			"name": "ongudai_medium",
+			"offset": 18018,
+			"u10": 3.05555555555556
+		},
+		{
+			"name": "ongudai_day_2",
+			"offset": 24024,
+			"u10": 6.94444444444444
+		},
+		{
+			"name": "ongudai_strong",
+			"offset": 30030,
+			"u10": 9.72222222222222
+		}
+	]
+}
