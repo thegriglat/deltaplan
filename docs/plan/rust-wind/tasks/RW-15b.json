@@ -1,0 +1,53 @@
+{
+  "id": "RW-15b",
+  "module": "rust-wind",
+  "type": "dp-researcher",
+  "title": "Профиль шага воздуха в игре: где 1,5 с на 3041² вне крейта",
+  "goal": "Профилем Godot-процесса на T9 synthetic (места 1041² и 3041² узлов) найти, какая работа на тике растёт с размером места (крейт сам — нет, RW-15): мост dp-gd, фасад atmosphere.gd, потребители (облака, пыль, птицы, отладка), бот xc; таблица времени по частям и причина файл:функция с предложением починки; код игры не менять.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "W2",
+      "version": "6",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W3",
+      "version": "9",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-15b",
+  "branch": "rust-wind/RW-15b",
+  "base": "feature/rust-wind",
+  "scope": [
+    "docs/research/rust-wind-stage3/rw15b-game-profile.md",
+    "tools/profile/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "rust/",
+    "configs/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "report_doc",
+      "cmd": "test -s docs/research/rust-wind-stage3/rw15b-game-profile.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "table",
+      "cmd": "grep -cE '^\\| *(1041|3041)' docs/research/rust-wind-stage3/rw15b-game-profile.md",
+      "expect": "num:^(\\d+) >=2"
+    },
+    {
+      "name": "docs_check",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-30T04:47:08"
+}

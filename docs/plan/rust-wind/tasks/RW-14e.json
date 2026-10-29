@@ -1,0 +1,123 @@
+{
+  "id": "RW-14e",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Погода: потребители на DpWeather, удаление погоды на GDScript",
+  "goal": "Одна реализация погоды — в крейте: тонкая обёртка scripts/atmosphere/weather.gd над DpWeather (W12 п. 3), все потребители WeatherModel/AtmoDay/SurfaceHeat/ClimateGrid переведены на неё или на фасад; weather_model.gd, atmo_day.gd, surface_heat.gd, surface_heating.gd, climate_grid.gd, air_model/air_place.gd и их тесты удалены, AirPlaceData без fill_climate.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "W12",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W5",
+      "version": "11",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W3",
+      "version": "9",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W2",
+      "version": "6",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-14e",
+  "branch": "rust-wind/RW-14e",
+  "base": "feature/rust-wind",
+  "scope": [
+    "scripts/",
+    "tests/",
+    "scenes/",
+    "tools/weather/",
+    "tools/wind_fixtures/",
+    "tools/bench/",
+    "rust/dp-air/tests/data/",
+    "project.godot",
+    "docs/research/rust-wind-stage3/rw14e-consumers.md"
+  ],
+  "dont_touch": [
+    "rust/dp-air/src/",
+    "rust/dp-gd/",
+    "configs/",
+    "docs/contracts/",
+    "tools/research/"
+  ],
+  "accept": [
+    {
+      "name": "rust_wind_contracts",
+      "tests": "rust_wind_contracts"
+    },
+    {
+      "name": "air_field_contracts",
+      "tests": "air_field_contracts"
+    },
+    {
+      "name": "atmosphere",
+      "tests": "atmosphere"
+    },
+    {
+      "name": "place_air_stage",
+      "tests": "place_air_stage"
+    },
+    {
+      "name": "forecast_game",
+      "tests": "forecast_game"
+    },
+    {
+      "name": "goal_estimator",
+      "tests": "goal_estimator"
+    },
+    {
+      "name": "achievement_feed",
+      "tests": "achievement_feed"
+    },
+    {
+      "name": "game_logic",
+      "tests": "game_logic"
+    },
+    {
+      "name": "gd_weather_gone",
+      "cmd": "ls scripts/atmosphere/weather_model.gd scripts/atmosphere/atmo_day.gd scripts/atmosphere/surface_heat.gd scripts/atmosphere/surface_heating.gd scripts/atmosphere/climate_grid.gd scripts/atmosphere/air_model/air_place.gd 2>/dev/null | wc -l",
+      "expect": "num:^(\\d+) <=0"
+    },
+    {
+      "name": "gd_weather_refs",
+      "cmd": "grep -rlwE 'WeatherModel|AtmoDay|SurfaceHeat|SurfaceHeating|ClimateGrid|AirPlace|fill_climate' scripts tests scenes tools/weather tools/bench tools/wind_fixtures --include=*.gd --include=*.tscn --include=*.tres | wc -l",
+      "expect": "num:^(\\d+) <=0"
+    },
+    {
+      "name": "wrapper",
+      "cmd": "test -s scripts/atmosphere/weather.gd && grep -c 'DpWeather' scripts/atmosphere/weather.gd",
+      "expect": "num:^(\\d+) >=1"
+    },
+    {
+      "name": "gd_check",
+      "cmd": "python3 tools/check_gd.py --timeout 600 $(git ls-files '*.gd' | grep -v '^tools/research/')",
+      "expect": "exit=0"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "report_doc",
+      "cmd": "test -s docs/research/rust-wind-stage3/rw14e-consumers.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs_check",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-30T04:46:14"
+}
