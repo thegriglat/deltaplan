@@ -17,7 +17,7 @@ var height_fn: Callable
 var sun_fn: Callable
 ## Класс поверхности (x, z) -> int (у terrain — surface_at); пусто — неизвестно.
 var surface_fn: Callable
-## Доля суши по столбцам сетки уровня поля (AirThermals.land) — по подписи сетки; считается раз
+## Доля суши по столбцам сетки уровня поля (land поля) — по подписи сетки; считается раз
 ## на место (сбрасывается со сменой функций рельефа).
 var land_cache: Dictionary = {}
 

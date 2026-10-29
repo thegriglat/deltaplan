@@ -169,12 +169,12 @@ func test_field_term_equals_crate_sample() -> void:
 	a.free()
 
 
-## (2) У фасада нет AirRuntime: ни дочернего узла, ни поля.
+## (2) У фасада нет узла рантайма воздуха: ни дочернего узла, ни поля.
 func test_no_air_runtime_in_facade() -> void:
 	var h := _baked_header()
 	var a := _facade(h)
 	for c in a.get_children():
-		check(not c is AirRuntime, "дочерний AirRuntime: " + c.name)
+		check(c.name != "AirRuntime", "дочерний AirRuntime: " + c.name)
 	check(a.get("runtime") == null, "поля runtime нет")
 	a.free()
 

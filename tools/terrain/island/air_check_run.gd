@@ -1,6 +1,6 @@
 extends Node
 ## TI-5: проверка воздуха учебного острова в игре как есть — главная сцена (--autostart, старт с фиксированной
-## погодой TI-К2 из конфига места), поле воздуха GPU, термики ThermalField/AirThermals, затем пауза и
+## погодой TI-К2 из конфига места), поле воздуха GPU, термики, затем пауза и
 ## замер в точках с ручным шагом атмосферы (Atmosphere.step). Запуск — из air_check.py (окно, DISPLAY=:0).
 ## Аргументы после --:
 ##   --site=<id старта>  --mode=ridge|rotor|thermal|landing  --out=<json>
@@ -80,7 +80,7 @@ func _run() -> void:
 		"info": {"load_s": (Time.get_ticks_msec() - t0) / 1000.0, "air_field_on": _air.call("is_air_field_on"),
 			"weather": _weather_brief(_air.call("weather")), "cloudbase_msl": _air.call("get_cloudbase_msl")},
 	}
-	var rt: Node = _game.get_node_or_null("AirRuntime")
+	var rt: Node = _game.get_node_or_null("AirField")
 	if rt == null:
 		for c in _game.get_children():
 			if c.get_script() != null and String(c.get_script().resource_path).ends_with("air_runtime.gd"):
@@ -248,7 +248,7 @@ func _th_info(th: Object, start: Vector3) -> Dictionary:
 	var out := {"id": th.get("id"), "src": [src.x, src.y, src.z], "cls": int(_terrain.call("surface_at", src.x, src.z)),
 		"strength": th.get("strength"), "radius": th.get("radius"), "top": th.get("top"), "env": th.get("env"),
 		"static": th.get("is_static"), "d_start": Vector2(src.x - start.x, src.z - start.z).length(), "air": false}
-	# Термик из поля (AirThermals): столбец источника, поток тепла столбца и шаг уровня.
+	# Термик из поля (поле): столбец источника, поток тепла столбца и шаг уровня.
 	var f := _field()
 	var air_ia := int(f.get_script().get_script_constant_map().get("_AIR_IA", 1 << 20))
 	var cell: Vector2i = th.get("cell")

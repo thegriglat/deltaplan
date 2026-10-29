@@ -208,10 +208,6 @@ func test_k2_field_date() -> void:
 	var rc := WeatherModel.reference_context()
 	var ctx2 := AirPlace.context(layer, loc, WeatherModel.config())
 	check(int(ctx2.month) == int(rc.month), "без даты — опорная")
-	# ключ места различает даты (новый полёт в другой день — новое поле)
-	var k1 := AirRuntime._key_of({detail = layer, loc = {id = "x", month = 10, day = 15}})
-	var k2 := AirRuntime._key_of({detail = layer, loc = {id = "x", month = 7, day = 15}})
-	check(k1 != k2, "ключ места с датой")
 
 
 # ---- рождения: атмосфера с ходом дня (погода, солнце, источники по SurfaceHeating), ровная земля
