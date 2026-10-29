@@ -454,6 +454,13 @@ fn layer(r: Option<Arc<dp_air::Raster>>, name: &str) -> Vec<f32> {
     .unwrap_or_default()
 }
 
+/// Записи объектов как плоский `&[f32]` без копирования.
+fn obj_f32s(v: &[ObjRecord]) -> &[f32] {
+    const { assert!(size_of::<ObjRecord>() == OBJ_STRIDE * 4 && align_of::<ObjRecord>() == 4) };
+    // SAFETY: ObjRecord - repr(C) из 22 f32 без отступов (const-assert здесь и в dp-air).
+    unsafe { std::slice::from_raw_parts(v.as_ptr().cast::<f32>(), v.len() * OBJ_STRIDE) }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -517,11 +524,4 @@ mod tests {
         assert_eq!(f.set_field_enabled(false), OK);
         assert_eq!(f.set_field_enabled(true), OK);
     }
-}
-
-/// Записи объектов как плоский `&[f32]` без копирования.
-fn obj_f32s(v: &[ObjRecord]) -> &[f32] {
-    const { assert!(size_of::<ObjRecord>() == OBJ_STRIDE * 4 && align_of::<ObjRecord>() == 4) };
-    // SAFETY: ObjRecord - repr(C) из 22 f32 без отступов (const-assert здесь и в dp-air).
-    unsafe { std::slice::from_raw_parts(v.as_ptr().cast::<f32>(), v.len() * OBJ_STRIDE) }
 }
