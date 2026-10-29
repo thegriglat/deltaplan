@@ -48,3 +48,9 @@ related: ["docs/research/rust-wind-stage3-path.md", "docs/plan/rust-wind.md"]
 | RW-10d | `terms/thermal_air/pick.rs:20-60` | водная ветка `pick_in_column`/`land_fraction` не сверена с GD на реальных данных | RW-10e: острова |
 | RW-10d | `terms/thermal_air/mod.rs` `BuildIn::u10` | `u10` параметром (GD — `level.meta.u10`) | RW-10e |
 | RW-11b | `terms/waves/` на `ongudai_wave` | волна смотрит на 3λ ≈ 43 км против ветра, растр места ±20 км: за краем — высота края; с эталоном по terrain.height_at расходится до 5,5 м/с (120/189 точек) | вопрос к итоговой проверке: дальний грубый рельеф для волн (W5) |
+| RW-11b | `terms/waves/mod.rs:50` `WaveExtra::flow` | Mutex на каждый вызов flow и на кусках поля (ревью, minor) | RW-12z: бенч W8 с волной |
+| RW-11b, RW-9 | `WaveExtra::field`, `analytic/ground.rs:PlaceSig::of` | кеш места по указателю и длине растра — новое место по освобождённому адресу не сбросит кеш | RW-12z: ключ места — версия `set_place` |
+| RW-11b | `tests/terms_waves.rs:terms_of` | упрощённый профиль synth_wave включён тестом вручную; Formula при air_mode off должна включать сама | RW-12z |
+| RW-12d | `terms/weather_link.rs` `PlaceLink::of`, `ref_msl` | start_msl_m и ref_msl = NaN (GD ставит h_msl старта для ref_msl); t0 хода дня = 0 как в GD `_f_build` | RW-12z: сверка фасада с Godot в итоговом прогоне |
+| RW-12d | `weather_link.rs` `advance_weather` | true на каждом слоте 0,1 с хода дня — фасад будет пересобирать часто | RW-12z: порог изменения |
+| RW-9 | `tests/terms_analytic.rs:248` после слияния с RW-11b | synth_wave: σ аналитики больше эталона на 0,079 (90/93) — волна попадает в σ аналитики? | RW-9 доработка (note) |
