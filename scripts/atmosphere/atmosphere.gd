@@ -25,7 +25,7 @@ signal weather_updated
 signal state_changed(state: int)
 
 # ---- Фасад W2 (docs/contracts/rust-wind.md): константы ----
-const WIND_API_VERSION := 3
+const WIND_API_VERSION := 4
 const STATE_EMPTY := 0
 const STATE_LOADING := 1
 const STATE_READY := 2
@@ -69,6 +69,33 @@ const CREST_Z := 1
 const CREST_ETA := 2
 const CREST_CREST := 3
 const CREST_STRIDE := 4
+## Объекты-облака W6 v4 (cloud_objects): смещения полей и шаг.
+const OBJ_ID := 0
+const OBJ_FLAGS := 1
+const OBJ_CX := 2
+const OBJ_CZ := 3
+const OBJ_BASE := 4
+const OBJ_GROWTH := 5
+const OBJ_DECAY := 6
+const OBJ_ACTIVITY := 7
+const OBJ_RX := 8
+const OBJ_RZ := 9
+const OBJ_DEPTH := 10
+const OBJ_SPREAD := 11
+const OBJ_VIS_SEED := 12
+const OBJ_LIFE_T0 := 13
+const OBJ_LIFE_T1 := 14
+const OBJ_SRC_X := 15
+const OBJ_SRC_Z := 16
+const OBJ_DRIFT_VX := 17
+const OBJ_DRIFT_VZ := 18
+const OBJ_DRIFT_T0 := 19
+const OBJ_STORM_T0 := 20
+const OBJ_STORM_K := 21
+const OBJ_STRIDE := 22
+## wave_info (W6 v4): [enabled, wavelength_m].
+const WAVE_INFO_ENABLED := 0
+const WAVE_INFO_LENGTH := 1
 ## Ключи set_conditions (W5): общие, прогноз, эталон.
 const COND_KEYS_COMMON: Array[String] = [
 	"start_hour", "speed", "blend_s", "rebuild", "inflow_mode"
@@ -2233,6 +2260,37 @@ func sun_state() -> Vector4:
 		return Vector4(0.0, 0.0, 0.0, 0.0)
 	var s := field.sun_dir
 	return Vector4(s.x, s.y, s.z, clampf(field.insolation, 0.0, 1.0))
+
+
+# ---- W2 v4: объекты-облака, волны, порыв у поверхности (из крейта) ----
+
+
+## Объекты-облака для рисования (W6 v4), шаг OBJ_STRIDE. Нет места или не READY — пусто.
+func cloud_objects(center: Vector3, radius: float, t: float) -> PackedFloat32Array:
+	if not _dp_queryable():
+		return PackedFloat32Array()
+	return _dp.cloud_objects(center, radius, t)
+
+
+## [enabled, wavelength_m] (W6 v4). Нет места или не READY — [0, 0].
+func wave_info() -> PackedFloat32Array:
+	if not _dp_queryable():
+		return PackedFloat32Array([0.0, 0.0])
+	return _dp.wave_info()
+
+
+## Порыв на 10 м, м/с, длина min(len(xz), len(t)) (W6 v4). Не READY — нули. Пачками.
+func surface_gust_many(xz: PackedVector2Array, t: PackedFloat64Array) -> PackedFloat32Array:
+	if not _dp_queryable():
+		var z := PackedFloat32Array()
+		z.resize(mini(xz.size(), t.size()))
+		return z
+	return _dp.surface_gust_many(xz, t)
+
+
+## Крейт держит место и готов отвечать (state READY).
+func _dp_queryable() -> bool:
+	return _dp != null and _dp_placed and _f_state_eff() == STATE_READY
 
 
 # ---- описания W6 ----

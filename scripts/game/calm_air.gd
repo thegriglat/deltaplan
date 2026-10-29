@@ -1,3 +1,4 @@
+# gdlint: disable=max-public-methods
 class_name CalmAir
 extends Node3D
 ## Запасная модель воздуха, если основная атмосфера (scripts/atmosphere) не загрузилась.
@@ -11,7 +12,7 @@ signal state_changed(state: int)
 
 # Фасад W2 (docs/contracts/rust-wind.md): те же константы, что у Atmosphere (копия — запасной
 # воздух не должен зависеть от основной атмосферы).
-const WIND_API_VERSION := 3
+const WIND_API_VERSION := 4
 const STATE_EMPTY := 0
 const STATE_LOADING := 1
 const STATE_READY := 2
@@ -25,6 +26,9 @@ const SAMPLE_MEAN := 1
 const CORE_STRIDE := 15
 const CLOUD_STRIDE := 10
 const CREST_STRIDE := 4
+const OBJ_STRIDE := 22
+const WAVE_INFO_ENABLED := 0
+const WAVE_INFO_LENGTH := 1
 
 var time_s: float = 0.0
 
@@ -241,3 +245,17 @@ func debug_raster_names() -> PackedStringArray:
 
 func debug_raster(_raster_name: String) -> Dictionary:
 	return {}
+
+
+func cloud_objects(_center: Vector3, _radius: float, _t: float) -> PackedFloat32Array:
+	return PackedFloat32Array()
+
+
+func wave_info() -> PackedFloat32Array:
+	return PackedFloat32Array([0.0, 0.0])
+
+
+func surface_gust_many(xz: PackedVector2Array, t: PackedFloat64Array) -> PackedFloat32Array:
+	var out := PackedFloat32Array()
+	out.resize(mini(xz.size(), t.size()))
+	return out
