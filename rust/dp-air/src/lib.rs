@@ -11,7 +11,9 @@ pub mod fixtures;
 mod formula;
 mod level;
 mod place;
+pub mod terms;
 mod types;
+pub mod weather;
 
 pub use calm::Calm;
 pub use conditions::{Conditions, Forecast, InflowMode, Source, WindRef};

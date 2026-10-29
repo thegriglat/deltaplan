@@ -13,6 +13,8 @@ contracts: [{"id": "W8", "version": 1}]
 
 Часть `docs/contracts/rust-wind.md` (версия — там, заголовок W8). Менять — только координатор.
 Владелец — RW-1 (снимает на текущем коде до правок атмосферы), RW-2 (второй набор — по слагаемым W7). Потребители — `cargo test` (RW-6…12), GDScript-тесты T7.
+**Опорная ревизия GD-ветра** (решение пользователя 2026-10-29, без смены версии): `feature/rust-wind` `c591b1026` — последняя ревизия с полем Пикара на GPU и всеми слагаемыми на GDScript до выноса в крейт (RW-7b отключает GPU-путь). Недостающие эталоны (новые случаи, дампы внутренних величин) снимаются по мере нужды из рабочей копии на этой ревизии (`git worktree add <путь> c591b1026`), генератором `tools/wind_fixtures/` той же ревизии или скриптом задачи; заранее не добираются. Ревизия — в `generator`/`manifest` эталона.
+
 **Формат** (`tests/fixtures/wind/`, json + двоичный f32 LE, как R1 picard-rs: GDScript пишет, Rust читает без зависимостей; запись — во временный файл и переименование):
 - `places/<имя>.json` + `.bin` — `AirPlaceData` (W5): заголовок; в `.bin` подряд `heights` (int16 со смещением `h_offset` и шагом `h_scale` из заголовка, ≤ 0,1 м), `water` u8, `cls` u8, `moist` u8 (×1/255). Мест — 2: синтетическое (аналитический мир `atmo_fingerprint.gd`) и одно реальное с полем (предложение — Онгудай, как в air-cascade). Всё в git ≤ 20 МБ; больше — локально, путь и команда пересъёмки в `tests/fixtures/wind/README.md`.
 - `cases/<имя>.json` — `{version: 1, place, conditions (W5), seed, static_thermals, configs_sha1: {имя: sha1}, times_s: [..], focuses: [[x,y,z,w]..], points: [[x,y,z]..], point_tags: [..], terms: [..] | null, generator: "<коммит>"}`; `point_tags` из набора `ground, lee, thermal, field_edge, above_base, storm, wave, far`.

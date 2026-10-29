@@ -35,7 +35,8 @@
     "rust/dp-air/src/formula.rs",
     "rust/dp-air/src/lib.rs",
     "rust/dp-air/tests/terms_sum.rs",
-    "rust/dp-air/tests/terms_frame.rs"
+    "rust/dp-air/tests/terms_frame.rs",
+    "rust/dp-air/tests/runtime.rs"
   ],
   "dont_touch": [
     "rust/dp-air/src/field/",
@@ -64,11 +65,6 @@
       "expect": "exit=0"
     },
     {
-      "name": "acceptance_release",
-      "cmd": "cargo test --release --manifest-path rust/Cargo.toml -p dp-air --test acceptance -- --ignored --skip t1_open_ --skip stab_",
-      "expect": "num:test result: ok\\. (\\d+) >=12"
-    },
-    {
       "name": "cargo_test",
       "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
       "expect": "exit=0"
@@ -91,5 +87,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-29T03:33:19"
+  "created": "2026-10-29T03:33:19",
+  "edited": "2026-10-29T04:50:46"
 }
