@@ -832,3 +832,6 @@
 {"t": "2026-10-29T06:24:37", "by": "coordinator", "task": "RW-11a", "ev": "checked", "note": "2/2 sections=ok:sections ok; docs=ok:ошибок 0"}
 {"t": "2026-10-29T06:24:42", "by": "reviewer", "task": "RW-11c", "ev": "reviewed", "note": "StormField и CloudModel (stage/_life_window/center/size) перенесены построчно с storm_field.gd и cloud_model.gd на c591b1026: коэффициенты, запасные значения, …", "verdict": "accept", "issues": {"minor": 2}, "review": "docs/plan/rust-wind/tasks/RW-11c.review.json"}
 {"t": "2026-10-29T06:24:47", "by": "coordinator", "task": "RW-11a", "ev": "accepted", "note": "по отчёту (документ-предложение)"}
+{"t": "2026-10-29T06:24:48", "by": "coordinator", "task": "RW-11a", "ev": "merged", "note": "97dff2a3f"}
+{"t": "2026-10-29T06:28:16", "by": "executor", "task": "RW-11b", "ev": "checked", "note": "5/5 terms_waves=ok:9; cargo_test=ok:exit 0; clippy=ok:exit 0; fmt=ok:exit 0; dp_air_no_godot=ok:0"}
+{"t": "2026-10-29T06:29:06", "by": "coordinator", "task": "RW-11c", "ev": "checked", "note": "5/5 terms_storm=ok:11; cargo_test=ok:exit 0; clippy=ok:exit 0; fmt=ok:exit 0; dp_air_no_godot=ok:0"}
