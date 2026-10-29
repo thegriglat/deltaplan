@@ -362,6 +362,11 @@ impl Bridge {
     }
 
     /// `[enabled, wavelength_m]`; нечисло в ответе модели - 0.
+    ///
+    /// ```
+    /// let b = dp_gd::bridge::Bridge::new(Box::new(dp_air::Calm::new()));
+    /// assert_eq!(b.wave_info(), [0.0, 0.0]);
+    /// ```
     pub fn wave_info(&self) -> [f32; 2] {
         self.model
             .wave_info()
