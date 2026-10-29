@@ -1010,7 +1010,7 @@ fn floor_zi_min_and_no_zi_day() {
 
 fn pick_det(i: usize, j: usize) -> Option<[f32; 2]> {
     // test_air_thermals_parallel.gd::_pick: каждый седьмой — «вода»
-    if (i * 31 + j * 17) % 7 == 0 {
+    if (i * 31 + j * 17).is_multiple_of(7) {
         return None;
     }
     let mut rng = Pcg32::from_seed(dp_air::compat::hash::hash_v3i(5, i as i32, j as i32) as u64);
