@@ -1,0 +1,63 @@
+{
+  "status": "done",
+  "summary": "Генератор tools/wind_fixtures/weather_ref2.gd/.sh/.tscn снимает эталоны E1–E10 с живого GD (логика не менялась): 10 наборов e*.jsonl.zst + manifest.json в rust/dp-air/tests/data/RW-14b/ (1.9 МБ), повторный запуск побитно тот же (--check: repro OK). Добавлены синтетические сетки климата с дырами -32768 (grids/*_nodata.bin, ~12 КБ), т.к. в настоящих данных их нет.",
+  "commits": [
+    "275427df9 RW-14b: эталоны погоды E1–E10 с GD-кода"
+  ],
+  "checks": [
+    {
+      "name": "manifest",
+      "value": "10",
+      "pass": true
+    },
+    {
+      "name": "size",
+      "value": "1892",
+      "pass": true
+    },
+    {
+      "name": "repro",
+      "value": "repro: OK (10 наборов, побитно)",
+      "pass": true
+    },
+    {
+      "name": "docs_check",
+      "value": "ошибок 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "E6 для Онгудая: terrain.height_at недоступен (место не bundled, собирается из сети) — записан только растр, source=no_terrain"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-14b",
+  "uncertain": [
+    {
+      "where": "tools/wind_fixtures/weather_ref2.gd:_e1_variants",
+      "why": "варианты сеток stub/none — копии data/climate/*.bin с правкой заголовка (описание правки в строке: patch/truncate/...); Rust-тест должен повторить правку сам, файлов вариантов в репозитории нет",
+      "checked": "строки variant содержат patch; GD дал ожидаемые state stub/none"
+    },
+    {
+      "where": "rust/dp-air/tests/data/RW-14b/grids/*.bin",
+      "why": "синтетические сетки (дыры NODATA) созданы python+brotli из weather_ref2.sh --regrid; их содержимое — формула в sh; сверка NODATA-ветки идёт только на них",
+      "checked": "регенерация даёт побитно те же файлы"
+    },
+    {
+      "where": "e3_surface_temp, e4, e10",
+      "why": "наборы входов выбраны мной по таблице E (8 мест: 4 фикстуры + reference/cairns/svalbard/no_valley); полнота относительно будущих потребностей Rust не проверена",
+      "checked": "прогон без ошибок сценария, числа конечные либо null"
+    },
+    {
+      "where": "формат",
+      "why": "числа как в weather_dump (JSON полная точность, NaN/inf -> null), а не str с 17 знаками; inf (cap_agl_m) становится null",
+      "checked": "согласовано с координатором"
+    }
+  ],
+  "dp_feedback": "dpcli lock cpu отсоединяет задачу: вывод команды идёт в лог job, а не в stdout — для скриптов с --check неудобно.",
+  "extra": {
+    "rows": 56503
+  },
+  "t": "2026-10-30T01:51:17",
+  "by": "executor"
+}
