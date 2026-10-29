@@ -2,8 +2,8 @@
 //! Класс gdext в `lib.rs` только переводит типы Godot в срезы и обратно, поэтому всё здесь
 //! проверяется `cargo test` без запуска Godot.
 use dp_air::{
-    AirModel, Calm, Cloud, Conditions, Configs, Core, Crest, FieldExport, Focus, Place,
-    PlaceHeader, SampleMode, as_f32s,
+    AirModel, Cloud, Conditions, Configs, Core, Crest, FieldExport, Focus, Place, PlaceHeader,
+    SampleMode, as_f32s,
 };
 use std::sync::{Arc, OnceLock};
 
@@ -45,7 +45,7 @@ pub struct Bridge {
 
 impl Default for Bridge {
     fn default() -> Self {
-        Self::new(Box::new(Calm::new()))
+        Self::new(Box::new(dp_air::Formula::new()))
     }
 }
 
@@ -454,7 +454,7 @@ mod tests {
         assert!(!b.last_error().is_empty());
         assert_eq!(b.add_baked_field(&h, &d), OK);
         assert_eq!(b.last_error(), "");
-        let mut calm = Bridge::default();
+        let mut calm = Bridge::new(Box::new(dp_air::Calm::new()));
         assert_eq!(calm.add_baked_field("мусор", &[]), OK);
         assert_eq!(calm.set_cache_dir("/x"), OK);
     }
@@ -462,7 +462,7 @@ mod tests {
     /// W3 v4: режим поля и выдача поля через мост (`Calm` — пусто, Ok).
     #[test]
     fn field_mode_and_export_bridge() {
-        let mut calm = Bridge::default();
+        let mut calm = Bridge::new(Box::new(dp_air::Calm::new()));
         assert_eq!(calm.set_field_enabled(false), OK);
         assert_eq!(calm.field_version(), 0);
         assert_eq!(calm.field_export(), 0);

@@ -1,0 +1,81 @@
+{
+  "id": "RW-9",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Аналитика в крейте: GroundField (склон, линия тени, превышение гребня), профиль, склоновый подъём, подветренная зона, полоса края a < 1, режим off, background_wind — слот Analytic",
+  "goal": "Слот Analytic воспроизводит аналитику GD (ветка без поля и полоса края поля), GroundField строится из растров места; слагаемые analytic и ridge совпадают с synth_* и ongudai_* (точки lee, field_edge) в допуске W8; режим off (упрощённый профиль) и background_wind — функциями модуля.",
+  "plan_ref": "План переноса",
+  "contracts": [
+    {
+      "name": "W4",
+      "version": "5",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W7",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W10",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-9",
+  "branch": "rust-wind/RW-9",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/terms/analytic/",
+    "rust/dp-air/src/terms/mod.rs",
+    "rust/dp-air/src/terms/slots.rs",
+    "rust/dp-air/tests/terms_analytic.rs",
+    "rust/dp-air/tests/data/RW-9/"
+  ],
+  "dont_touch": [
+    "rust/dp-air/src/formula.rs",
+    "rust/dp-air/src/field/",
+    "rust/picard_rs/",
+    "rust/dp-gd/",
+    "scripts/",
+    "tests/fixtures/",
+    "docs/contracts/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "terms_analytic",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test terms_analytic",
+      "expect": "num:test result: ok\\. (\\d+) >=8"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dp_air_no_godot",
+      "cmd": "cargo tree --manifest-path rust/Cargo.toml -p dp-air -e normal | grep -ci godot || true",
+      "expect": "num:^(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T05:06:05",
+  "edited": "2026-10-29T05:29:09"
+}

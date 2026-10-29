@@ -1,0 +1,64 @@
+{
+  "id": "RW-U4",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "W11 v11 в крейте: θ′_d заморозки решения с нагревом := θ′ механизма; θ′, θ′_d в клетках типа 2 как K_BC",
+  "goal": "Крейт следует W11 v11: поле заморозки решения с нагревом несёт thd = Some(th) (θ′_d := θ′ механизма), K замороженных — своего случая (без изменений, закрепить тестом); граничное условие решателя и тёплые старты ставят θ′, θ′_d во всех не-неизвестных клетках (без nest — 0, с nest — thb/thbd), как K_BC; тесты на оба правила.",
+  "plan_ref": "Решения пользователя (2026-10-29: итог RW-U2, W11 v11)",
+  "contracts": [
+    {
+      "name": "W11",
+      "version": "11",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-U4",
+  "branch": "rust-wind/RW-U4",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/field/phase/assembly.rs",
+    "rust/picard_rs/src/solver.rs",
+    "rust/picard_rs/src/",
+    "rust/picard_rs/tests/bc_type2_v11.rs",
+    "rust/dp-air/tests/freeze_thd_v11.rs",
+    "rust/dp-air/tests/phase_assembly.rs",
+    "rust/dp-air/tests/",
+    "rust/picard_rs/tests/"
+  ],
+  "dont_touch": [
+    "rust/dp-air/src/field/phase/calm.rs",
+    "rust/dp-air/src/field/phase/classifier.rs",
+    "rust/dp-gd/",
+    "scripts/",
+    "tests/",
+    "data/",
+    "configs/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "v11_tests",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p picard_rs --test bc_type2_v11 && cargo test --manifest-path rust/Cargo.toml -p dp-air --test freeze_thd_v11",
+      "expect": "exit=0"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T05:16:31",
+  "edited": "2026-10-29T05:28:25"
+}

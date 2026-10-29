@@ -1,0 +1,63 @@
+{
+  "id": "RW-U3",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Явное правило базового ветра колонны F в смеси механизмов (Σ механических весов → 0)",
+  "goal": "Смесь механических полей в крейте (calm.rs mix) не уходит в 0, когда механические веса колонны обнулились (вес F → 1 при сильном нагреве и слабом ветре, −z_i/L > ~1e7 в f64): базовый ветер колонны F задан явным правилом, поле всюду, где Σ не мала, побитно прежнее; правило описано в docs/guide/air-model/phases.md; тест слабого ветра с сильным нагревом.",
+  "plan_ref": "Решения пользователя (2026-10-29: находка 2 RW-U1)",
+  "contracts": [
+    {
+      "name": "W11",
+      "version": "10",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-U3",
+  "branch": "rust-wind/RW-U3",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/field/phase/",
+    "rust/dp-air/tests/phase_f_base_wind.rs",
+    "docs/guide/air-model/phases.md"
+  ],
+  "dont_touch": [
+    "rust/picard_rs/",
+    "rust/dp-gd/",
+    "scripts/",
+    "tests/",
+    "data/",
+    "configs/",
+    "docs/contracts/",
+    "rust/dp-air/src/field/runtime.rs"
+  ],
+  "accept": [
+    {
+      "name": "f_base_wind",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test phase_f_base_wind",
+      "expect": "re:test result: ok\\. [1-9]"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": "python3 -c 'import sys' && .dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T05:06:12"
+}
