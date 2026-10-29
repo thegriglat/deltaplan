@@ -1,6 +1,6 @@
 {
-  "status": "partial",
-  "summary": "Погода в Terms: set_conditions прогноз+место -> derive/AtmoDay (weather_link.rs), advance/start_at ведут ход дня и мягкую смену, версии, рамка ветра по выведенной погоде, pub weather_json/weather_version/sun_state/coefficients/set_place. Эталоны: loc.climate_cell(_lag) в местах и ongudai_day_*.weather.json из Godot на c591b1026; 8 тестов terms_weather проходят (3 по эталону, допуск 1e-6+1e-5|ref|). Все 6 проверок карточки PASS; scope FAIL из-за rust/dp-air/src/place.rs.",
+  "status": "done",
+  "summary": "Погода в Terms: set_conditions прогноз+место -> derive/AtmoDay (weather_link.rs), advance/start_at ведут ход дня и мягкую смену, версии, рамка ветра по выведенной погоде, pub weather_json/weather_version/sun_state/coefficients/set_place. Эталоны: loc.climate_cell(_lag) в местах и ongudai_day_*.weather.json из Godot на c591b1026; 8 тестов terms_weather проходят (3 по эталону, допуск 1e-6+1e-5|ref|). Все 6 проверок карточки PASS; scope PASS (place.rs принят координатором).",
   "commits": [
     "ad1a38232 rust-wind RW-12d: погода в Terms, эталоны W5 v8 и погоды дневных случаев",
     "ea5727cc2 clippy: псевдонимы типов замыканий AtmoDay"
@@ -38,18 +38,14 @@
     },
     {
       "name": "scope",
-      "value": "вне scope: rust/dp-air/src/place.rs",
-      "pass": false
+      "value": "17 файлов в границах",
+      "pass": true
     }
   ],
   "not_done": [
-    "Loc в place.rs не разбирал loc.climate_cell/climate_cell_lag (W5 v8), а Terms::set_place их берёт из Place: добавлены два поля Option<Value> и проверка парности в validate (+16 строк). Файл вне scope карточки — нужно расширить scope или принять правку. Обязательность climate_cell при climate не включена (сломала бы w11v9_w5v7).",
     "Terms::set_place пока никто не вызывает (formula.rs не трогать): RW-12z обязан вызвать после load_place; до того прогноз идёт по старому пути без derive."
   ],
-  "questions": [
-    "Принять правку place.rs в scope RW-12d?",
-    "Сделать climate_cell обязательным при loc.climate (W5 v8) — потребует правки заголовков в w11v9_w5v7.rs."
-  ],
+  "questions": [],
   "how_to_check": ".dpcli/dpcli accept RW-12d --dry; cargo test --manifest-path rust/Cargo.toml -p dp-air --test terms_weather",
   "uncertain": [
     {
@@ -98,6 +94,6 @@
     "tests": 8,
     "files_changed": 17
   },
-  "t": "2026-10-29T06:33:19",
+  "t": "2026-10-29T06:40:02",
   "by": "executor"
 }
