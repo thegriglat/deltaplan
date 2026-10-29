@@ -31,6 +31,7 @@ static func _world(max_clouds: int) -> Atmosphere:
 	a.seed_value = 4242
 	var w := Config._deep_merge(Config.get_config("weather/storm"), {"wind_speed_kmh": 12.0})
 	a.configure(cfg, w)
+	a.set_meta("acfg", cfg)
 	a.turbulence_enabled = false
 	a.set_ground(_flat, _sun)
 	a.set_focus(AtmoFingerprint.CENTER)
@@ -40,7 +41,7 @@ static func _world(max_clouds: int) -> Atmosphere:
 static func _layer(a: Atmosphere) -> CloudLayer:
 	var layer := CloudLayer.new()
 	layer.history_free = true
-	layer.setup(a)
+	layer.setup(a, a.get_meta("acfg"))
 	layer._select(a.time_s, EYE)
 	return layer
 
@@ -49,12 +50,12 @@ static func _layer(a: Atmosphere) -> CloudLayer:
 static func _state(layer: CloudLayer, t: float) -> Dictionary:
 	layer._select(t, EYE)
 	var out: Dictionary = {}
-	for i in layer._slot_th.size():
-		var th: AtmoThermal = layer._slot_th[i]
+	for i in layer._slot_obj.size():
+		var th: CloudModel.Obj = layer._slot_obj[i]
 		if th == null:
 			continue
 		layer._place(i, t, EYE)
-		if layer._slot_th[i] != null:
+		if layer._slot_obj[i] != null:
 			out[th.id] = [layer._sel[i], layer._rec[i][20], th.is_cb]
 	return out
 

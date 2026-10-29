@@ -1,10 +1,8 @@
 extends TestCase
-## Храповик чистоты границы ветра (rust-wind W10, T7): вне файлов реализации запрещены обращения к
-## внутренностям воздуха (список ниже = W10). Нынешние обращения зафиксированы в
-## rust_wind_purity_baseline.txt (строка «файл:шаблон<TAB>число»); новое или выросшее — FAIL,
-## исчезнувшее — подсказка обновить базу. RW-3 доведёт базу до пустой — тогда тест = W10 целиком.
-## Обновить базу: godot --headless --path . res://tests/run_tests.tscn -- --filter=rust_wind_purity
-## с переменной среды DP_PURITY_WRITE=1.
+## Чистота границы ветра (rust-wind W10, T7): вне файлов реализации запрещены обращения к
+## внутренностям воздуха (список ниже = W10). База rust_wind_purity_baseline.txt (строка
+## «файл:шаблон<TAB>число») пуста с RW-12z: любое обращение — FAIL, тест = W10 целиком.
+## Посмотреть найденное: godot --headless --path . res://tests/run_tests.tscn -- --filter=rust_wind_purity
 
 const BASELINE := "res://tests/contracts/rust_wind_purity_baseline.txt"
 const ROOT := "res://scripts"
@@ -31,6 +29,7 @@ const PATTERNS: Array[String] = [
 const CONSUMERS: Array[String] = [
 	"cloud_layer.gd", "cloud_shadow_map.gd", "cirrus_layer.gd", "gust_dust.gd", "dust_devils.gd",
 	"bird_flock.gd", "thermal_signs.gd", "atmo_fingerprint.gd", "atmosphere_preview.gd",
+	"gust_dust_model.gd",
 	"wind_field_debug.gd", "debug_overlays.gd", "atmo_fingerprint_cli.gd", "atmo_fingerprint_main.gd",
 ]
 ## Файлы реализации (явный список): scripts/atmosphere/*.gd, не потребители. Новый файл — правка
@@ -51,7 +50,6 @@ const IMPL_FILES: Array[String] = [
 	"res://scripts/atmosphere/dust_model.gd",
 	"res://scripts/atmosphere/field_turbulence.gd",
 	"res://scripts/atmosphere/ground_field.gd",
-	"res://scripts/atmosphere/gust_dust_model.gd",
 	"res://scripts/atmosphere/gust_spectrum.gd",
 	"res://scripts/atmosphere/storm_field.gd",
 	"res://scripts/atmosphere/sun_transmission.gd",
@@ -113,15 +111,6 @@ static func _read_baseline() -> Dictionary:
 	return out
 
 
-static func _baseline_text(snap: Dictionary) -> String:
-	var keys: Array = snap.keys()
-	keys.sort()
-	var s := "# Храповик чистоты W10: файл:шаблон<TAB>число вхождений. Только вниз; обновление — см. test_rust_wind_purity.gd\n"
-	for k: String in keys:
-		s += "%s\t%d\n" % [k, snap[k]]
-	return s
-
-
 func test_atmosphere_files_classified() -> void:
 	var files := PackedStringArray()
 	_gd_files(ATMO_DIR, files)
@@ -138,21 +127,6 @@ func test_atmosphere_files_classified() -> void:
 
 func test_no_new_internal_access() -> void:
 	var snap := scan()
-	if OS.get_environment("DP_PURITY_WRITE") == "1":
-		var fa := FileAccess.open(ProjectSettings.globalize_path(BASELINE), FileAccess.WRITE)
-		fa.store_string(_baseline_text(snap))
-		fa.close()
-		return
-	var base := _read_baseline()
-	var worse := 0
-	var better := 0
 	for k: String in snap:
-		var was := int(base.get(k, 0))
-		if int(snap[k]) > was:
-			worse += 1
-			check(false, "новое обращение во внутренности воздуха (W10): %s — %d, было %d. Используйте фасад Atmosphere (W2)" % [k, snap[k], was])
-	for k: String in base:
-		if int(snap.get(k, 0)) < int(base[k]):
-			better += 1
-	if better > 0 and worse == 0:
-		print("rust_wind_purity: обращений стало меньше (%d записей) — обновите базу: DP_PURITY_WRITE=1" % better)
+		check(false, "обращение во внутренности воздуха (W10): %s — %d. Используйте фасад Atmosphere (W2)" % [k, snap[k]])
+	check(_read_baseline().is_empty(), "база храповика пуста (RW-12z): записей %d" % _read_baseline().size())
