@@ -72,3 +72,5 @@ related: ["docs/research/rust-wind-stage3-path.md", "docs/plan/rust-wind.md"]
 | RW-8 | точки отрыва (lee_f>0, 352/1244), ex2 термика/грозы | в тесте relief и ex2 из дампа GD | после RW-9: сверка живого слота |
 | RW-9 | `terms/analytic/strip.rs` | разрыв GD на краю a→0+ (ротор без множителя нагрева в полосе) перенесён буквально, скачок ~16 % | после модуля: исправление отдельно |
 | RW-9 | `tests/terms_analytic.rs` `load_with` | пресет W5 не несёт ref_msl ветра прогноза — тест берёт из эталона; без него ветер вдвое | RW-12z: ref_msl в пресете/фасаде (связано с RW-12d) |
+| RW-8s | `terms/surface_gust` | «нет места / не READY — нули» (W6) — не в функции, у Terms нет признака места; свой GustUnit по configs+seed (не из слота Turb) | RW-12z: обнуление в фасаде; общий GustUnit |
+| RW-8s | `tests/data/RW-8s/` | эталон Онгудая — WindModel+GustDustModel с ручными сидами/ветром, не полный прогон Atmosphere на месте | итоговый прогон |
