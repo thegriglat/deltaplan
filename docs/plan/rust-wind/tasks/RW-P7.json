@@ -1,0 +1,108 @@
+{
+  "id": "RW-P7",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Тесты при поле «всегда»: контрактные тесты фасада без таймаутов, физика слагаемых больших мест — в cargo, Godot — потребители на малом месте 25 м",
+  "goal": "После удаления упрощённого режима (RW-P3) все GDScript-тесты atmosphere и контрактные тесты фасада зелёные и быстрые: поле считается один раз на файл (общий кеш/запечённое малое место), физика слагаемых на больших местах проверяется в cargo, в Godot — только потребители через фасад на малом месте шага 25 м.",
+  "plan_ref": "Тесты (TDD)",
+  "contracts": [
+    {
+      "name": "W2",
+      "version": "5",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W3",
+      "version": "6",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W4",
+      "version": "7",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W5",
+      "version": "8",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W10",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-P7",
+  "branch": "rust-wind/RW-P7",
+  "base": "feature/rust-wind",
+  "scope": [
+    "tests/",
+    "rust/dp-air/tests/",
+    "docs/research/rust-wind-stage3/tests-field-always.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "rust/dp-air/src/",
+    "rust/dp-gd/src/",
+    "rust/picard_rs/",
+    "configs/",
+    "docs/contracts/",
+    "tools/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "rust_wind_contracts",
+      "tests": "rust_wind_contracts"
+    },
+    {
+      "name": "atmosphere",
+      "tests": "atmosphere"
+    },
+    {
+      "name": "determinism",
+      "tests": "determinism"
+    },
+    {
+      "name": "place_air_stage",
+      "tests": "place_air_stage"
+    },
+    {
+      "name": "debug_layers",
+      "tests": "debug_layers"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "report_doc",
+      "cmd": "test -s docs/research/rust-wind-stage3/tests-field-always.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs_check",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T19:57:01"
+}
