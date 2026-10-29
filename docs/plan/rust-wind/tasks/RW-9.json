@@ -35,7 +35,10 @@
     "rust/dp-air/src/terms/mod.rs",
     "rust/dp-air/src/terms/slots.rs",
     "rust/dp-air/tests/terms_analytic.rs",
-    "rust/dp-air/tests/data/RW-9/"
+    "rust/dp-air/tests/data/RW-9/",
+    "rust/dp-air/tests/field_export.rs",
+    "rust/dp-air/tests/runtime.rs",
+    "rust/dp-air/tests/terms_sum.rs"
   ],
   "dont_touch": [
     "rust/dp-air/src/formula.rs",
@@ -77,5 +80,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-10-29T05:06:05",
-  "edited": "2026-10-29T05:29:09"
+  "edited": "2026-10-29T05:56:18"
 }
