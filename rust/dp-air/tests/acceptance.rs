@@ -340,7 +340,9 @@ fn t2_two_queries_at_one_time_are_bitwise_equal() {
     assert_eq!(bits(&a), bits(&sample(&m, &pts)));
     let mut full = vec![[0.0f32; 4]; pts.len()];
     m.sample_many(&pts, SampleMode::Full, &mut full);
-    assert_eq!(bits(&a), bits(&full), "FULL = MEAN");
+    // RW-8: FULL несёт шум болтанки поля (слот Turb), σ в MEAN и FULL одна
+    let sig = |v: &[[f32; 4]]| v.iter().map(|x| x[3].to_bits()).collect::<Vec<_>>();
+    assert_eq!(sig(&a), sig(&full), "σ: FULL = MEAN");
 }
 
 // ---------------------------------------------------------------- T4
