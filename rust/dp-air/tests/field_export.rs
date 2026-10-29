@@ -195,7 +195,11 @@ fn export_parses_back_and_samples_bit_for_bit() {
     let rt = RtCfg::from_configs(&configs()).unwrap();
     let mut fs = FieldSet::new(rt.limits, rt.edge_blend_cells);
     fs.set_field(b.levels, 0.0);
-    let want = sample(&m, &pts);
+    // RW-8: σ слота Turb здесь не сверяется (поле ↔ выборка поля)
+    let want: Vec<[f32; 4]> = sample(&m, &pts)
+        .iter()
+        .map(|v| [v[0], v[1], v[2], 0.0])
+        .collect();
     assert!(want.iter().flatten().any(|x| *x != 0.0));
     let got: Vec<[f32; 4]> = pts
         .iter()

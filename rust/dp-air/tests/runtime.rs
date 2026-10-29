@@ -240,19 +240,19 @@ fn load_synthetic_reaches_ready_with_finite_field() {
     let speed = |o: &[f32; 4]| (o[0] * o[0] + o[2] * o[2]).sqrt();
     let mean = out.iter().map(speed).sum::<f32>() / out.len() as f32;
     assert!(mean > 0.5, "mean wind {mean} m/s near the centre");
-    assert!(out.iter().all(|o| o[3] == 0.0), "sigma is 0 until RW-8");
-    // FULL = MEAN
+    // RW-8: σ даёт слот Turb; FULL несёт шум, σ та же, что в MEAN
     let mut full = vec![[0.0f32; 4]; pts.len()];
     m.sample_many(&pts, SampleMode::Full, &mut full);
-    assert_eq!(bits(&full), bits(&out));
+    let sig = |v: &[[f32; 4]]| v.iter().map(|x| x[3].to_bits()).collect::<Vec<_>>();
+    assert_eq!(sig(&full), sig(&out));
     // decompose: имена W7 (RW-8b), слагаемое field, итог побитно как sample_many
     let d = m.decompose(pts[7]);
     assert_eq!(d.names.len(), 9);
     assert_eq!(d.names[0], "field");
-    assert_eq!(d.total, out[7]);
+    assert_eq!(d.total[3], out[7][3]); // RW-8: итог FULL несёт шум, σ та же
     assert_eq!(d.vel.len(), 9);
     assert_eq!(d.vel[0], [out[7][0], out[7][1], out[7][2]]);
-    assert_eq!(d.sigma, vec![0.0; 9]);
+    assert_eq!(d.sigma[0], 0.0);
     m.unload_place();
     assert_eq!(m.status().state, State::Empty);
 }
@@ -1634,11 +1634,11 @@ fn baked_field_is_taken_without_picard() {
         "inflow_k of the file: {}",
         m.inflow_k()
     );
-    assert_eq!(
-        bits(&sample(&m, &pts)),
-        bits(&expect),
-        "sample = parse_baked"
-    );
+    let no_sigma: Vec<[f32; 4]> = sample(&m, &pts)
+        .iter()
+        .map(|v| [v[0], v[1], v[2], 0.0])
+        .collect();
+    assert_eq!(bits(&no_sigma), bits(&expect), "sample = parse_baked");
     assert_eq!(n_levels, 3, "windows 50/100 m and the 400 m area");
 
     // порядок до условий: файлы, потом условия и фокус — тот же результат
@@ -1651,7 +1651,11 @@ fn baked_field_is_taken_without_picard() {
     m2.advance_to(1.0).unwrap();
     wait_ready(&m2, 60.0);
     assert_eq!(m2.report().unwrap().source, Source::Baked);
-    assert_eq!(bits(&sample(&m2, &pts)), bits(&expect));
+    let no_sigma2: Vec<[f32; 4]> = sample(&m2, &pts)
+        .iter()
+        .map(|v| [v[0], v[1], v[2], 0.0])
+        .collect();
+    assert_eq!(bits(&no_sigma2), bits(&expect));
 
     // поле принято — в игре оно же остаётся на сроке: пересчёта нет
     m.advance_to(60.0).unwrap();

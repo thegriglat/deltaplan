@@ -47,6 +47,7 @@ mod sum;
 pub mod thermal;
 pub mod thermal_air;
 pub mod thermal_src;
+pub mod turb;
 pub mod waves;
 mod weather_link;
 
@@ -217,6 +218,8 @@ impl Terms {
             .unwrap_or(false);
         self.thermal_async = !det;
         self.weather_configure();
+        // RW-8: слот Turb зависит от конфигов и сида (шум, таблицы), поэтому ставится здесь
+        self.slots.turb = turb::FieldTurb::slot(configs, seed);
         let ref_msl = self.wind.ref_msl;
         self.wind = WindModel::new(WindCfg::from_configs(configs));
         self.wind.ref_msl = ref_msl;

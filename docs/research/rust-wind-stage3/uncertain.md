@@ -66,3 +66,9 @@ related: ["docs/research/rust-wind-stage3-path.md", "docs/plan/rust-wind.md"]
 | RW-10f | `terms/thermal/mod.rs` `rebuild`, `Terms::advance` `synced_with_clouds` | порядок шага (порождение — облака до шага, подсос — после) выведен из GD refresh_now; T6 start_at ≠ прогон с 0 при облаках (и в GD) | RW-12z: W2 v4 формулировка start_at |
 | RW-10f | `terms/thermal/mod.rs` `cloud_changed` | смена только cloud_size_factor без шага поля подхватится при следующей version | итоговый прогон |
 | RW-10f | `tests/terms_thermal_cloud.rs` `AirInputs` | входы поля облаков собраны в тесте (аналог CloudFieldSources.prepare с air); в игре — RW-12z | RW-12z: подключить CloudInputs из Field+AirThermals в Terms |
+| RW-8 | `terms/turb/mod.rs` `FieldTurb::z0` | z0 уровня подобран по lee (в дампе GD нет), совпадение с Field::z0() Rust без Пикара не проверено | итоговый прогон T1 |
+| RW-8 | `terms/turb/mod.rs` `sigma advect`, `ground_ref` | крейт считает wind.speed_at(300) на каждом опросе (GD кеширует в set_wind); cloudbase для конвективной σ — из погоды, в GD — ThermalField/GroundField | RW-12z |
+| RW-8 | `terms/turb/mod.rs` `state` | mean()/sigma() повторно считают sample_turb/lee; бюджет 18 точек ≤ 50 мкс не замерен | RW-12z: бенч W8 |
+| RW-8 | точки отрыва (lee_f>0, 352/1244), ex2 термика/грозы | в тесте relief и ex2 из дампа GD | после RW-9: сверка живого слота |
+| RW-9 | `terms/analytic/strip.rs` | разрыв GD на краю a→0+ (ротор без множителя нагрева в полосе) перенесён буквально, скачок ~16 % | после модуля: исправление отдельно |
+| RW-9 | `tests/terms_analytic.rs` `load_with` | пресет W5 не несёт ref_msl ветра прогноза — тест берёт из эталона; без него ветер вдвое | RW-12z: ref_msl в пресете/фасаде (связано с RW-12d) |

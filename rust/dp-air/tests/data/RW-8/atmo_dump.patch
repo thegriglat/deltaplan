@@ -1,0 +1,100 @@
+diff --git a/scripts/atmosphere/atmosphere.gd b/scripts/atmosphere/atmosphere.gd
+index d05800169..57aa19be7 100644
+--- a/scripts/atmosphere/atmosphere.gd
++++ b/scripts/atmosphere/atmosphere.gd
+@@ -113,6 +113,9 @@ var field_turb: FieldTurbulence
+ var time_s: float = 0.0
+ ## Пульсации (турбулентность) — можно выключить для тестов.
+ var turbulence_enabled: bool = true
++## RW-8 дамп: запись внутренних величин болтанки поля (только отладка, ветка не коммитится).
++var dbg_on: bool = false
++var dbg_rec: PackedFloat64Array = PackedFloat64Array()
+ ## Запись слагаемых для decompose (W7): только в decompose, в горячем пути выключена. Вклады уже
+ ## со своими весами; индексы — T_*. Физику не меняет.
+ var _rec_on: bool = false
+@@ -1185,6 +1188,7 @@ func _air_velocity_field(pos: Vector3, gs: Vector4, agl: float, u: float, fw: Ve
+ 	var tv := Vector3(
+ 		e.x * n.x * s_u - e.y * n.z * s_v, n.y * s_w + a * w_burst, e.y * n.x * s_u + e.x * n.z * s_v
+ 	)
++	var tv0 := tv
+ 	var sig := s_u
+ 	if _rec_on:
+ 		_rec[T_TURB] = tv
+@@ -1201,6 +1205,26 @@ func _air_velocity_field(pos: Vector3, gs: Vector4, agl: float, u: float, fw: Ve
+ 			_rec_sig[T_GUST] = amp
+ 		tv = (tv * a + ta * (1.0 - a)) * k
+ 		sig = sqrt(a * s_u * s_u + (1.0 - a) * amp * amp)
++	if dbg_on:
++		var dx_d := air_field.sample_dx(pos, gs.x)
++		var unres_d := field_turb.reverse_unresolved(relief, dx_d)
++		var dh_d := 0.0
++		if lee_f > 0.0 and danger > 0.0:
++			dh_d = (a * field_turb.reverse * u_h * lee_f * danger * unres_d
++				* exp(-agl / maxf(_lee_rotor_h * relief, 1.0)))
++		var nb_d := wind.gust_unit(pos * _lee_burst_k, time_s, u * _lee_burst_k, 0.0).x
++		var gm_d := field_turb.burst_mean(wind, _lee_burst_k, _lee_burst_thr, _lee_burst_width)
++		var gsd_d := field_turb.burst_std(wind, _lee_burst_k, _lee_burst_thr, _lee_burst_width)
++		dbg_rec.append_array(PackedFloat64Array([
++			pos.x, pos.y, pos.z, time_s, a, agl, u, uf, fw.x, fw.y, fw.z,
++			tb[0], tb[1], tb[2], tb[3], tb[4], tb[5], tb[6], tb[7],
++			dx_d, lee_f, relief, danger, u_h, du, gs.x, mh.x, mh.y, conv_a,
++			sg.x, sg.y, sg.z, sg.w, field_turb.last_sv, field_turb.last_fu_c,
++			field_turb.last_fv_c, field_turb.last_l_c, s_sep.x, s_sep.y, w_burst,
++			s_u, s_v, s_w, ex2, stretch, l_sep, n.x, n.y, n.z, tv0.x, tv0.y, tv0.z, sig,
++			lee_a, hard_f, _advect, wd.x, wd.z, gm_d, gsd_d, nb_d, dh_d,
++			1.0 if above_base else 0.0, unres_d,
++		]))
+ 	var chaos := _in_cloud_turb * _cin.x
+ 	_last_sigma = sqrt(sig * sig + chaos * chaos)
+ 	if chaos > 1.0e-3:
+diff --git a/tools/wind_fixtures/gen_fixtures.gd b/tools/wind_fixtures/gen_fixtures.gd
+index 09037f13b..10d3957a7 100644
+--- a/tools/wind_fixtures/gen_fixtures.gd
++++ b/tools/wind_fixtures/gen_fixtures.gd
+@@ -93,6 +93,7 @@ var _git_rev := "unknown"
+ var _tags_seen: Dictionary = {}
+ var _terrain: Terrain
+ var _ongudai: Dictionary = {}
++var _dbg_all := PackedFloat64Array()
+ 
+ 
+ func _ready() -> void:
+@@ -530,6 +531,10 @@ func _run_case(c: Dictionary, ctx: Dictionary) -> bool:
+ 			for m in K_N * 4:
+ 				data[o + m] = r[m]
+ 		descs.append(_describe(a, ctx, TIMES[k]))
++	var fdbg := FileAccess.open(_out.path_join("dbg_%s.f64" % String(c.name)), FileAccess.WRITE)
++	fdbg.store_buffer(_dbg_all.to_byte_array())
++	fdbg.close()
++	_dbg_all = PackedFloat64Array()
+ 	var focus: Vector3 = ctx.focus
+ 	var extra_mode := {}
+ 	if c.has("air_mode"):
+@@ -637,7 +642,16 @@ func _solve_field(c: Dictionary, ctx: Dictionary, weather: Dictionary) -> Array:
+ 
+ func _sample_both(a: Atmosphere, p: Vector3) -> Array:
+ 	a.turbulence_enabled = true
++	a.dbg_on = true
++	a.dbg_rec = PackedFloat64Array()
+ 	var v := a.air_velocity_at(p)
++	a.dbg_on = false
++	var rec := a.dbg_rec
++	if rec.size() != 64:
++		rec = PackedFloat64Array()
++		rec.resize(64)
++		rec.fill(NAN)
++	_dbg_all.append_array(rec)
+ 	var sig := a._last_sigma
+ 	# MEAN — тот же воздух без неразрешённой болтанки и порывов (turbulence_enabled = false):
+ 	# mean_wind_at + вертикаль из debug_overlays.mean_air_at с полем даёт вертикаль только поля
+@@ -997,6 +1011,10 @@ func _run_day_case(c: Dictionary, ctx: Dictionary) -> bool:
+ 	}
+ 	_write_text(_out.path_join("cases/%s.json" % c.name), JSON.stringify(cfg) + "\n")
+ 	_write_bytes(_out.path_join("cases/%s.bin" % c.name), (r2.data as PackedFloat32Array).to_byte_array())
++	var fdbg2 := FileAccess.open(_out.path_join("dbg_%s.f64" % String(c.name)), FileAccess.WRITE)
++	fdbg2.store_buffer(_dbg_all.to_byte_array())
++	fdbg2.close()
++	_dbg_all = PackedFloat64Array()
+ 	_write_text(
+ 		_out.path_join("cases/%s.desc.json" % c.name),
+ 		JSON.stringify({
