@@ -910,45 +910,12 @@ mod island {
         Configs::new(files)
     }
 
-    fn island_files() -> Vec<(String, Vec<u8>)> {
-        let dir = repo().join("data/locations/training_island/air");
-        let mut names: Vec<_> = std::fs::read_dir(&dir)
-            .unwrap()
-            .map(|e| e.unwrap().path())
-            .filter(|p| p.extension().is_some_and(|x| x == "json"))
-            .collect();
-        names.sort();
-        names
-            .into_iter()
-            .map(|p| {
-                (
-                    std::fs::read_to_string(&p).unwrap(),
-                    std::fs::read(p.with_extension("bin")).unwrap(),
-                )
-            })
-            .collect()
-    }
-
     fn island_place() -> Place {
-        let files = island_files();
-        let v: Value = serde_json::from_str(&files[0].0).unwrap();
-        let hash = v["model_hash"].as_str().unwrap().to_string();
-        let sites: Vec<String> = files
-            .iter()
-            .map(|(h, _)| {
-                let v: Value = serde_json::from_str(h).unwrap();
-                let st = &v["key"]["start"];
-                format!(r#"{{"x":{},"z":{},"h_msl":100.0}}"#, st[0], st[1])
-            })
-            .collect();
-        let header = format!(
-            r#"{{"version":1,"loc":{{"id":"training_island","center_lat":43.2,"center_lon":34.0,
-"utc_offset_h":2.0,"month":7,"day":15}},"grid":{{"origin_x":-10000,"origin_z":-10000,"spacing":25,
-"width":801,"height":801}},"surface_classes":{{"grass":1}},"start_sites":[{}],
-"model_hash":"{hash}"}}"#,
-            sites.join(",")
-        );
-        let h = dp_air::PlaceHeader::from_json(&header).unwrap();
+        let header = r#"{"version":1,"loc":{"id":"training_island","center_lat":43.2,"center_lon":34.0,
+"utc_offset_h":2.0,"month":7,"day":15},"grid":{"origin_x":-10000,"origin_z":-10000,"spacing":25,
+"width":801,"height":801},"surface_classes":{"grass":1},
+"start_sites":[{"x":3510.0,"z":-1510.0,"h_msl":100.0}]}"#;
+        let h = dp_air::PlaceHeader::from_json(header).unwrap();
         let n = h.cells();
         Place::new(
             h,
@@ -984,9 +951,6 @@ mod island {
         }])
         .unwrap();
         m.load_place(pl.clone()).unwrap();
-        for (h, b) in island_files() {
-            m.add_baked_field(&h, &b).unwrap();
-        }
         let t0 = Instant::now();
         loop {
             m.poll();

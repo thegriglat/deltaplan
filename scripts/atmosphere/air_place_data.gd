@@ -24,9 +24,6 @@ var heights := PackedFloat32Array()
 var water := PackedByteArray()
 var surface_cls := PackedByteArray()
 var surface_moist := PackedFloat32Array()
-## Запечённые поля места (W5 v4): [{header_json: String, data: PackedByteArray}] — файлы
-## data/locations/<id>/air/<старт>.json и .bin как есть (fill_crate_inputs); нет — пусто.
-var baked: Array = []
 ## Рельеф игры (gd, переходное); null — место задано одними растрами.
 var terrain: Node = null
 
@@ -301,46 +298,11 @@ static func _climate_cell(ctx: Dictionary) -> Dictionary:
 	}
 
 
-## Входы крейта, которых нет в растрах (W5 v4, v5, v6): start_sites[i].id и weather (набор погоды
-## старта, TI-К2: из места, иначе из конфига места), header.data_hash (хеш данных места),
-## header.model_hash (хеш GD-модели воздуха — запечённое поле и кеш берутся при совпадении) и
-## baked — файлы запечённых полей по стартам места. Уже заданное не перезаписывается. Нет данных
-## места на диске (синтетика тестов) — хеши пустые, baked пуст: расчёт.
+## Входы крейта, которых нет в растрах (W5 v5, v9): header.model_hash (хеш GD-модели воздуха — нужен
+## только ключу кеша полей; пусто — кеша нет). Уже заданное не перезаписывается.
 func fill_crate_inputs() -> void:
-	var loc: Dictionary = header.loc
-	var lid := String(loc.get("id", ""))
-	var cfg_sites: Array = Locations.config(lid).get("start_sites", [])
-	var sites: Array = (header.start_sites as Array).duplicate(true)
-	header.start_sites = sites
-	for i in sites.size():
-		var st: Dictionary = sites[i]
-		var sid := String(st.get("id", ""))
-		if sid == "" or not (st.get("weather", {}) as Dictionary).is_empty():
-			continue
-		for cs: Dictionary in cfg_sites:
-			if String(cs.get("id", "")) == sid and cs.get("weather") is Dictionary:
-				st["weather"] = cs.weather
-	if not header.has("data_hash"):
-		header["data_hash"] = AirBakedField.place_hash(Locations.data_dir(lid)) if lid != "" else ""
 	if not header.has("model_hash"):
 		header["model_hash"] = AirBakedField.model_hash()
-	baked = []
-	if lid == "":
-		return
-	for st: Dictionary in sites:
-		var sid := String(st.get("id", ""))
-		if sid == "":
-			continue
-		var path := AirBakedField.path_of(lid, sid)
-		var base := path.trim_suffix(".json")
-		if not FileAccess.file_exists(base + ".json") or not FileAccess.file_exists(base + ".bin"):
-			continue
-		baked.append(
-			{
-				"header_json": FileAccess.get_file_as_string(base + ".json"),
-				"data": FileAccess.get_file_as_bytes(base + ".bin"),
-			}
-		)
 
 
 ## Заголовок для load_place крейта (W5, json): utc_offset_h = NAN (солнечное время часов) крейту

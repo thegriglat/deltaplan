@@ -26,7 +26,7 @@
 //! окна, когда первый фокус ушёл от центра окна дальше `window_shift_frac` стороны (фоном,
 //! подмена за `blend_s`; в детерминированном режиме — в этом же `advance_to`). Ошибка окон — подаётся
 //! область без окон, причина в `Status.reason`, новая попытка — при следующем сдвиге не раньше
-//! чем через `SHIFT_RETRY_S` времени атмосферы. Запечённое поле и кеш несут окна в файле:
+//! чем через `SHIFT_RETRY_S` времени атмосферы. Кеш несёт окна в файле:
 //! пересчёт окон — когда фокус ушёл из окон файла.
 //!
 //! ## Границы модели
@@ -38,9 +38,7 @@
 //!   `set_conditions` (режим «нет поля»: `Loading`).
 //! - Проходы `k` — без окон 100/50 м (см. `field::runtime`).
 //!
-//! ## Запечённые поля и кеш (W3 v2/W4 v3)
-//! `add_baked_field` — сразу после `load_place`, пока поле не готово: идущая загрузка
-//! перезапускается (подбор поля — первое, что делает задача), после готового поля — `BadInput`.
+//! ## Кеш полей (W3 v2/W4 v3)
 //! `set_cache_dir` — до `load_place` (или до первой загрузки): каталог читает и пишет задача
 //! загрузки (`field::runtime`); пусто — без кеша. Нужен `header.model_hash` места.
 use crate::field::baked::{BakedField, encode_baked};
@@ -48,8 +46,8 @@ use crate::field::clipmap::{ClipMap, WinReport, run_shift};
 use crate::field::field_cache::FieldCache;
 use crate::field::field_set::FieldSet;
 use crate::field::runtime::{
-    BakedEntry, CondRec, Faults, JobErr, JobIn, JobOut, JobReport, Pair, RtCfg, Source,
-    StageCounter, dir_key, needs_recompute, run_job, slot, slot_hour,
+    CondRec, Faults, JobErr, JobIn, JobOut, JobReport, Pair, RtCfg, Source, StageCounter, dir_key,
+    needs_recompute, run_job, slot, slot_hour,
 };
 use crate::field::weather_core::{WeatherInputs, hour_at};
 use crate::field::wind_field::{Field, Limits};
@@ -512,8 +510,6 @@ pub struct Formula {
     force_recompute: bool,
     /// Первое поле не посчиталось: новых попыток нет до `load_place`.
     failed: bool,
-    /// Запечённые поля места (`add_baked_field`).
-    baked: Arc<Vec<BakedEntry>>,
     /// Каталог кеша полей (`set_cache_dir`).
     cache_dir: Option<PathBuf>,
     /// Хеш места для ключа кеша (считается задачей при первой надобности).
@@ -609,7 +605,6 @@ impl Formula {
             cond_t: 0.0,
             force_recompute: false,
             failed: false,
-            baked: Arc::new(Vec::new()),
             cache_dir: None,
             place_hash: Arc::new(OnceLock::new()),
             clip: None,
@@ -1015,7 +1010,6 @@ impl Formula {
             cancel: cancel.clone(),
             progress,
             stage,
-            baked: self.baked.clone(),
             cache: self.cache_dir.as_ref().map(|d| FieldCache {
                 dir: d.clone(),
                 max_bytes: cfg.cache_max_bytes,
@@ -1276,7 +1270,6 @@ impl AirModel for Formula {
         self.k_mem.clear();
         self.failed = false;
         self.reset_clip();
-        self.baked = Arc::new(Vec::new());
         self.place_hash = Arc::new(OnceLock::new());
         *lock(&self.sh.report) = None;
         self.cond_t = 0.0;
@@ -1320,7 +1313,6 @@ impl AirModel for Formula {
         self.k_mem.clear();
         self.failed = false;
         self.reset_clip();
-        self.baked = Arc::new(Vec::new());
         self.place_hash = Arc::new(OnceLock::new());
         *lock(&self.sh.report) = None;
         self.thermals.clear();
@@ -1442,32 +1434,6 @@ impl AirModel for Formula {
                 ..want
             };
             self.launch(Kind::Start, rec, t);
-        }
-        Ok(())
-    }
-
-    fn add_baked_field(&mut self, header_json: &str, data: &[u8]) -> Result<(), Error> {
-        self.need_place()?;
-        self.reap();
-        let e = BakedEntry::new(header_json, data)?;
-        if self.cur.is_some()
-            || self.failed
-            || self.job.as_ref().is_some_and(|j| j.kind != Kind::Load)
-        {
-            return Err(Error::bad_input(
-                "add_baked_field: the field is already loaded (call it right after load_place)",
-            ));
-        }
-        let mut list: Vec<BakedEntry> = self.baked.as_ref().clone();
-        list.retain(|x| !(x.location == e.location && x.site == e.site));
-        list.push(e);
-        self.baked = Arc::new(list);
-        // идущая загрузка о новом файле не знает: перезапуск (подбор поля — её первый шаг);
-        // прежняя доходит до ближайшей проверки отмены сама, подать ей нечего (поколение)
-        if let Some(job) = self.job.take() {
-            job.cancel.store(true, Ordering::SeqCst);
-            self.sh.epoch.fetch_add(1, Ordering::SeqCst);
-            self.launch(Kind::Load, job.rec, job.deliver_t);
         }
         Ok(())
     }

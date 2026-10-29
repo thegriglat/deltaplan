@@ -28,13 +28,10 @@
 //! грубый шаг пропускается (`all_mech`), Пикар возвращает поле заморозки без итераций. Отказ фаз —
 //! заметка и Пикар без них.
 //!
-//! ## Запечённые поля и кеш (RW-6t, `load_field`)
-//! Только загрузка (`loading`), порядок как в игре: запечённое (`add_baked_field`) → кеш
-//! (`set_cache_dir`) → расчёт; запись в кеш — после готового поля, в пуле, после подачи. Нужен
-//! `header.model_hash` места (пусто — ни то ни другое). Площадка старта — из `start_sites` в
-//! пределах 1 м от первого фокуса; набор погоды и хеш данных места берутся из `key` самого файла
-//! (в W5 у `StartSite` нет id и погоды, хеш данных — дело фасада). Попадание — уровни из файла,
-//! `Ready` без Пикара; промах — причина в `JobReport.notes`.
+//! ## Кеш полей (RW-6t, `load_field`)
+//! Только загрузка (`loading`): кеш (`set_cache_dir`) → расчёт; запись в кеш — после готового поля,
+//! в пуле, после подачи. Нужен `header.model_hash` места (пусто — без кеша). Попадание — уровни из
+//! файла кеша, `Ready` без Пикара; промах — причина в `JobReport.notes`.
 //!
 //! ## Отмена (W11 v6, W1 «≤ 1 с»)
 //! Флаг отмены проверяется между стадиями подготовки ([`build_level`]: погода, вход области, случай,
@@ -54,7 +51,7 @@
 //! - Климат места — из `weather_model.json` (`typical_max_c`, `diurnal.range_k`), как GD без
 //!   сеток ERA5: `Loc.climate` (W5 v3) в заголовке пока не разбирается (`place.rs`).
 //! - Время решения не ограничено (W5 v7): остановка — только отмена и ошибки.
-use super::baked::{BakedField, BakedQuery, Cond, FORMAT, VERSION, baked_lookup, parse_baked};
+use super::baked::BakedField;
 use super::case_build::{SolverCfg, build_solver_case};
 use super::case_prepare::{AirCaseRs, CaseOpts, PreparedPlanes, build_case};
 use super::clipmap::{ClipMap, ParentArea, Plan, WinReport, ZiArea, solve_windows};
@@ -560,54 +557,6 @@ pub fn coarse_domain(fine: &Domain, factor: usize) -> Domain {
 
 // ---------------------------------------------------------------- запечённые поля
 
-/// Запечённое поле места, принятое `add_baked_field`: данные как есть, из заголовка прочитано
-/// только то, по чему выбирают файл (полный разбор — когда поле подошло).
-#[derive(Clone, Debug)]
-pub struct BakedEntry {
-    pub location: String,
-    pub site: String,
-    pub model_hash: String,
-    pub key: Value,
-    pub header: String,
-    pub data: Arc<Vec<u8>>,
-}
-
-impl BakedEntry {
-    /// Заголовок TI-К3 v3 и тело `.bin`; неразборчивый заголовок, чужой формат — `BadInput`.
-    pub fn new(header_json: &str, data: &[u8]) -> Result<Self, Error> {
-        let bad = |m: String| Error::bad_input(format!("baked field: {m}"));
-        let v: Value = serde_json::from_str(header_json).map_err(|e| bad(e.to_string()))?;
-        if v.get("format").and_then(Value::as_str) != Some(FORMAT)
-            || v.get("version").and_then(Value::as_f64) != Some(VERSION as f64)
-        {
-            return Err(bad("not a dp-air-baked v1 header".into()));
-        }
-        let text = |k: &str| {
-            v.get(k)
-                .and_then(Value::as_str)
-                .unwrap_or_default()
-                .to_string()
-        };
-        if data.is_empty() {
-            return Err(bad("empty data".into()));
-        }
-        Ok(BakedEntry {
-            location: text("location"),
-            site: text("site"),
-            model_hash: text("model_hash"),
-            key: v.get("key").cloned().unwrap_or(Value::Null),
-            header: header_json.to_string(),
-            data: Arc::new(data.to_vec()),
-        })
-    }
-
-    /// Начало старта из `key.start` (x, z).
-    fn start(&self) -> Option<[f64; 2]> {
-        let a = self.key.get("start")?.as_array()?;
-        Some([a.first()?.as_f64()?, a.get(1)?.as_f64()?])
-    }
-}
-
 /// Запись для кеша: делается в пуле после подачи поля.
 #[derive(Debug)]
 pub struct CachePut {
@@ -632,95 +581,7 @@ impl CachePut {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Source {
     Computed,
-    Baked,
     Cache,
-}
-
-fn hypot2(a: [f64; 2], b: [f64; 2]) -> f64 {
-    (a[0] - b[0]).hypot(a[1] - b[1])
-}
-
-/// Выбор запечённого поля под условия (`baked_lookup` GDScript): `Ok(Some)` — подошло, `Err` — причина.
-fn pick_baked(job: &JobIn) -> Result<BakedField, String> {
-    let h = job.place.header();
-    if job.baked.is_empty() {
-        return Err(String::new());
-    }
-    if h.model_hash.is_empty() {
-        return Err("у места нет model_hash".into());
-    }
-    let Some(f) = job.focus else {
-        return Err("нет точки старта".into());
-    };
-    let f = [f[0] as f64, f[1] as f64];
-    let Some(site) = h
-        .start_sites
-        .iter()
-        .find(|s| hypot2([s.x, s.z], f) <= 1.0)
-        .map(|s| [s.x, s.z])
-    else {
-        return Err("у точки старта нет площадки".into());
-    };
-    let cands: Vec<&BakedEntry> = job
-        .baked
-        .iter()
-        .filter(|e| e.location == h.loc.id && e.start().is_some_and(|p| hypot2(p, site) <= 1.0))
-        .collect();
-    if cands.is_empty() {
-        return Err(format!("нет файла запечённого поля места {}", h.loc.id));
-    }
-    let mut why = Vec::new();
-    for e in cands {
-        let no_weather = Value::Null;
-        let weather = e.key.get("weather").unwrap_or(&no_weather);
-        let rec = &job.rec;
-        let wind_ref = match rec.inflow {
-            InflowMode::Start => "start",
-            InflowMode::Inflow => "inflow",
-        };
-        let q = BakedQuery {
-            location: &h.loc.id,
-            center_lat: h.loc.center_lat,
-            center_lon: h.loc.center_lon,
-            site: &e.site,
-            start: site,
-            weather,
-            month: i64::from(h.loc.month),
-            day: i64::from(h.loc.day),
-            window_dx: &job.cfg.window_dx,
-            data_hash: e.key.get("data_hash").and_then(Value::as_str).unwrap_or(""),
-            model_hash: &h.model_hash,
-            cond: Cond {
-                hour: rec.hour,
-                u10: rec.u10,
-                wdir: rec.wdir,
-                t_max: rec.t_max.unwrap_or(f64::NAN),
-                sky: &rec.sky,
-                wind_ref,
-            },
-        };
-        let stub = BakedField {
-            location: e.location.clone(),
-            site: e.site.clone(),
-            model_hash: e.model_hash.clone(),
-            key: e.key.clone(),
-            levels: Vec::new(),
-            names: Vec::new(),
-            level_meta: Vec::new(),
-            inflow_k: 1.0,
-        };
-        match baked_lookup(std::slice::from_ref(&stub), &q) {
-            Err(r) => why.push(format!("{}: {}", e.site, r.reason)),
-            Ok(_) => {
-                return match parse_baked(&e.header, &e.data) {
-                    Ok(b) if !b.levels.is_empty() => Ok(b),
-                    Ok(_) => Err(format!("{}: нет уровней", e.site)),
-                    Err(er) => Err(format!("{}: {}", e.site, er.msg)),
-                };
-            }
-        }
-    }
-    Err(why.join("; "))
 }
 
 /// Ключ кеша: всё, от чего зависит посчитанное поле и что видно крейту (место целиком по хешу,
@@ -876,8 +737,6 @@ pub struct JobIn {
     pub progress: Arc<AtomicU32>,
     /// Этап и его итерации (`Status::stage/iters`).
     pub stage: Arc<StageCounter>,
-    /// Запечённые поля места (`add_baked_field`).
-    pub baked: Arc<Vec<BakedEntry>>,
     /// Кеш полей (`set_cache_dir`); `None` — выключен.
     pub cache: Option<FieldCache>,
     /// Хеш места — считается при первой надобности и живёт с местом.
@@ -1703,11 +1562,6 @@ pub fn run_job(job: JobIn) -> Result<JobOut, JobErr> {
     let mut ckey = None;
     job.stage.enter("lookup");
     if job.loading {
-        match pick_baked(&job) {
-            Ok(b) => return Ok(from_file(job, b, Source::Baked, t0, notes)),
-            Err(m) if !m.is_empty() => notes.push(format!("baked: {m}")),
-            Err(_) => {}
-        }
         check_cancel(&job)?;
         let mh = job.place.header().model_hash.clone();
         if let Some(cache) = job.cache.clone().filter(|c| c.enabled() && !mh.is_empty()) {

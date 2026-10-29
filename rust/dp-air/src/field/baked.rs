@@ -1,23 +1,15 @@
-//! Запечённое поле воздуха TI-К3 v3 (RW-6p): разбор, выбор под условия, запись.
+//! Поле воздуха в формате TI-К3 v3 (RW-6p): разбор, запись, сравнение `key`. Нужен кешу полей
+//! (`field_cache`) и выдаче поля `field_export*`; запечённых файлов мест больше нет (W5 v9).
 //!
-//! Перенос `AirBakedField` (формат, `key_diff`, `conditions_diff`, `make_key`) и
-//! `AirRuntime.baked_lookup` (GDScript, `scripts/atmosphere/air_model/`). Формат — `docs/contracts/
-//! training-island.md`, TI-К3: заголовок json + тело (`zstd` от склейки массивов little-endian;
-//! 3D-каналы `f16`, по столбцам `f32`; массив — `[смещение, длина_байт, "f16"|"f32"]`).
+//! Перенос `AirBakedField` (формат, `key_diff`). Формат — `docs/contracts/training-island.md`,
+//! TI-К3: заголовок json + тело (`zstd` от склейки массивов little-endian; 3D-каналы `f16`, по
+//! столбцам `f32`; массив — `[смещение, длина_байт, "f16"|"f32"]`).
 //!
-//! `parse_baked(header_json, data)` — как `AirBakedField.load_file` без проверки `key` (она — в
-//! `baked_lookup`): уровни собираются параллельно (`rayon`), каждый канал распаковывается в
-//! готовый `Vec<f32>` кусками `par_chunks_mut`, без промежуточных массивов. `f16 → f32` точен,
-//! поэтому поле бит-в-бит как в игре.
-//!
-//! `baked_lookup(поля, запрос)` — то же решение и те же причины отказа, что `AirRuntime.baked_lookup`:
-//! нет набора погоды у старта → нет файла → модель другой версии → условия не как в наборе погоды →
-//! `key` не совпал. Данные места (хеш `data_hash`), хеш модели воздуха (`model_hash`) и условия
-//! приходят в запросе: крейт не читает файлы игры.
-//!
-//! Границы модели: `model_hash` — хеш кода GDScript-модели; пока он есть в заголовках, его считает
-//! вызывающий (фасад), крейт лишь сравнивает строки. Числа в текстах причин печатаются как
-//! `str(float)` Godot (`gd_num`: 14 значащих знаков, хвостовые нули срезаны).
+//! `parse_baked(header_json, data)` — как `AirBakedField.load_file` без проверки `key`: уровни
+//! собираются параллельно (`rayon`), каждый канал распаковывается в готовый `Vec<f32>` кусками
+//! `par_chunks_mut`, без промежуточных массивов. `f16 → f32` точен, поэтому поле бит-в-бит как
+//! в игре. Числа в текстах причин печатаются как `str(float)` Godot (`gd_num`: 14 значащих
+//! знаков, хвостовые нули срезаны).
 use super::wind_field::{Field, FieldGrid, FieldMeta, Limits, Z0};
 use crate::error::Error;
 use rayon::prelude::*;
@@ -27,19 +19,8 @@ use std::collections::BTreeMap;
 
 pub const FORMAT: &str = "dp-air-baked";
 pub const VERSION: i64 = 1;
-/// Шаг области решателя, м (`AirRuntime.DX`) — в `key.domain_dx`.
-pub const DOMAIN_DX: f64 = 400.0;
-/// Допуск смены условий: ветер, м/с; направление, °; температура, °C.
-pub const WIND_TOL_MS: f64 = 0.05;
-pub const DIR_TOL_DEG: f64 = 1.0;
-pub const TMAX_TOL_C: f64 = 0.25;
 /// Допуск сравнения чисел `key` (JSON хранит не все разряды double).
 pub const KEY_TOL: f64 = 1.0e-6;
-/// Округление координат старта в `key`, м; координат центра — градусы.
-pub const START_ROUND_M: f64 = 0.01;
-pub const LATLON_ROUND: f64 = 1.0e-6;
-/// Каталог данных мест в тексте причин (`AirBakedField.baked_root`).
-pub const BAKED_ROOT: &str = "res://data/locations";
 /// Куски распаковки `par_chunks_mut`, элементов.
 const CHUNK: usize = 1 << 14;
 
@@ -341,11 +322,6 @@ pub fn encode_baked(
 
 // ---------------------------------------------------------------- key и условия
 
-/// `snappedf` Godot: ближайшее кратное шагу.
-pub fn snapped(x: f64, step: f64) -> f64 {
-    (x / step + 0.5).floor() * step
-}
-
 /// Число как `str(float)` Godot: `14 − ⌊lg|x|⌋` знаков после точки при |x| > 10 (иначе 14), хвостовые
 /// нули срезаны, но один после точки остаётся (`20.0`, `-6749.65`).
 pub fn gd_num(x: f64) -> String {
@@ -448,185 +424,5 @@ fn key_diff_at(a: &Value, b: &Value, path: &str) -> String {
                 format!("{path}: {} ≠ {}", show(a), show(b))
             }
         }
-    }
-}
-
-/// Условия игры (`AirRuntime.conditions_fn`): час, ветер 10 м, направление «откуда», температура
-/// максимума (NaN — нет), небо, опора ветра.
-#[derive(Clone, Debug)]
-pub struct Cond<'a> {
-    pub hour: f64,
-    pub u10: f64,
-    pub wdir: f64,
-    pub t_max: f64,
-    pub sky: &'a str,
-    pub wind_ref: &'a str,
-}
-
-/// Что нужно знать о месте и условиях, чтобы выбрать поле (всё — данными, без файлов игры).
-#[derive(Clone, Debug)]
-pub struct BakedQuery<'a> {
-    pub location: &'a str,
-    pub center_lat: f64,
-    pub center_lon: f64,
-    /// Площадка старта и её точка (x, z мира).
-    pub site: &'a str,
-    pub start: [f64; 2],
-    /// Набор погоды старта (TI-К2) как объект; не объект или пустой — «нет набора погоды».
-    pub weather: &'a Value,
-    /// Дата места.
-    pub month: i64,
-    pub day: i64,
-    /// Шаги окон `window_levels_m` конфига.
-    pub window_dx: &'a [f64],
-    /// Хеш данных места (`AirBakedField.place_hash`); `""` — места нет.
-    pub data_hash: &'a str,
-    /// Хеш модели воздуха сейчас (`AirBakedField.model_hash`); `""` — не узнать, поле не берётся.
-    pub model_hash: &'a str,
-    pub cond: Cond<'a>,
-}
-
-/// Отказ: текст причины, как в логе игры; `warn` — файл есть, а не сошёлся.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Reject {
-    pub reason: String,
-    pub warn: bool,
-    /// Путь файла в терминах игры (`res://data/locations/<место>/air/<старт>.json`); пусто — нет старта.
-    pub path: String,
-}
-
-/// `key` по запросу (`AirBakedField.make_key`).
-pub fn make_key(q: &BakedQuery) -> Value {
-    json!({
-        "location": q.location,
-        "site": q.site,
-        "weather": q.weather,
-        "center": [snapped(q.center_lat, LATLON_ROUND), snapped(q.center_lon, LATLON_ROUND)],
-        "start": [snapped(q.start[0], START_ROUND_M), snapped(q.start[1], START_ROUND_M)],
-        "domain_dx": DOMAIN_DX,
-        "window_dx": q.window_dx,
-        "data_hash": q.data_hash,
-        "format": VERSION,
-    })
-}
-
-/// `angle_difference` Godot: кратчайшая разность углов `to − from`, рад, в `[−π, π]`.
-fn angle_difference(from: f64, to: f64) -> f64 {
-    let tau = std::f64::consts::TAU;
-    let d = (to - from) % tau;
-    (2.0 * d) % tau - d
-}
-
-/// Условия игры против набора погоды старта: `""` — те же, иначе что отличается
-/// (`AirBakedField.conditions_diff`). Нет поля набора — `Err(имя)`.
-pub fn conditions_diff(weather: &Value, c: &Cond, month: i64, day: i64) -> Result<String, String> {
-    let num = |k: &str| {
-        weather
-            .get(k)
-            .and_then(Value::as_f64)
-            .ok_or_else(|| k.to_string())
-    };
-    let hour = num("start_hour")?;
-    let u10 = num("wind_speed_ms")?;
-    let wdir = num("wind_from_deg")?;
-    let t_max = num("temperature_c")?;
-    let w_month = num("month")? as i64;
-    let w_day = num("day")? as i64;
-    let sky = weather
-        .get("sky")
-        .and_then(Value::as_str)
-        .ok_or_else(|| "sky".to_string())?;
-    let wind_ref = weather
-        .get("wind_ref")
-        .and_then(Value::as_str)
-        .unwrap_or("start");
-    if (c.hour - hour).abs() > 1.0 / 60.0 {
-        return Ok(format!("час {:.3} ≠ {:.3}", c.hour, hour));
-    }
-    if (c.u10 - u10).abs() > WIND_TOL_MS {
-        return Ok(format!("ветер {:.2} ≠ {:.2} м/с", c.u10, u10));
-    }
-    let dd = angle_difference(c.wdir.to_radians(), wdir.to_radians());
-    if dd.abs() > DIR_TOL_DEG.to_radians() {
-        return Ok(format!("направление {:.1} ≠ {:.1}°", c.wdir, wdir));
-    }
-    if c.wind_ref != wind_ref {
-        return Ok(format!("опора ветра {} ≠ {}", c.wind_ref, wind_ref));
-    }
-    if (c.t_max - t_max).abs() > TMAX_TOL_C {
-        return Ok(format!(
-            "температура {} ≠ {}",
-            gd_num(c.t_max),
-            gd_num(t_max)
-        ));
-    }
-    if c.sky != sky {
-        return Ok(format!("небо {} ≠ {}", c.sky, sky));
-    }
-    if month != w_month || day != w_day {
-        return Ok(format!("дата {day}.{month} ≠ {w_day}.{w_month}"));
-    }
-    Ok(String::new())
-}
-
-/// Путь заголовка поля старта в терминах игры.
-pub fn path_of(location: &str, site: &str) -> String {
-    format!("{BAKED_ROOT}/{location}/air/{site}.json")
-}
-
-/// Подходит ли запечённое поле под условия (`AirRuntime.baked_lookup`): поле из `fields` для
-/// `(место, старт)` либо причина отказа. Порядок проверок — как в GDScript.
-pub fn baked_lookup<'a>(
-    fields: &'a [BakedField],
-    q: &BakedQuery,
-) -> Result<&'a BakedField, Reject> {
-    let rej = |reason: String, warn: bool, path: &str| Reject {
-        reason,
-        warn,
-        path: path.to_string(),
-    };
-    if q.weather.as_object().is_none_or(|m| m.is_empty()) {
-        return Err(rej("у старта нет набора погоды".into(), false, ""));
-    }
-    let path = path_of(q.location, q.site);
-    let Some(f) = fields
-        .iter()
-        .find(|f| f.location == q.location && f.site == q.site)
-    else {
-        return Err(rej(format!("нет файла {path}"), false, &path));
-    };
-    if q.model_hash.is_empty() || f.model_hash != q.model_hash {
-        let have = if f.model_hash.is_empty() {
-            "?"
-        } else {
-            &f.model_hash
-        };
-        return Err(rej(
-            format!(
-                "модель воздуха другой версии (хеш {have} ≠ {})",
-                q.model_hash
-            ),
-            true,
-            &path,
-        ));
-    }
-    match conditions_diff(q.weather, &q.cond, q.month, q.day) {
-        Ok(d) if d.is_empty() => {}
-        Ok(d) => {
-            return Err(rej(
-                format!("условия не как в наборе погоды старта ({d})"),
-                false,
-                &path,
-            ));
-        }
-        Err(k) => {
-            return Err(rej(format!("в наборе погоды старта нет {k}"), false, &path));
-        }
-    }
-    let d = key_diff(&f.key, &make_key(q));
-    if d.is_empty() {
-        Ok(f)
-    } else {
-        Err(rej(d, true, &path))
     }
 }

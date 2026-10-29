@@ -1006,9 +1006,6 @@ func _dp_start() -> void:
 	if code != 0:
 		_dp_failed_with("load_place")
 		return
-	for b: Dictionary in place.get("baked"):
-		if dp.add_baked_field(b.header_json, b.data) != 0:
-			_dp_log("dp_air: запечённое поле не принято: %s" % dp.last_error())
 	if _f_t_req > 0.0:
 		dp.start_at(_f_t_req)
 	_dp_placed = true
