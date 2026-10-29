@@ -63,7 +63,9 @@ fn field_dir(name: &str) -> PathBuf {
 fn load(name: &str) -> Ong {
     // эталон снят на том же поле (`tests/data/RW-10e/run_cases.sh`); `.desc.json` хранится сжатым
     let src = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/data/RW-10e/cases");
-    let tmp = std::env::temp_dir().join(format!("rw10e_cases_{}", std::process::id()));
+    static SEQ: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+    let n = SEQ.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    let tmp = std::env::temp_dir().join(format!("rw10e_cases_{}_{n}", std::process::id()));
     std::fs::create_dir_all(&tmp).unwrap();
     for ext in ["json", "bin"] {
         std::fs::copy(

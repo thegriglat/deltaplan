@@ -972,6 +972,7 @@ fn ongudai_model(focus: bool) -> Formula {
 }
 
 #[test]
+#[ignore = "тайминг: итоговый прогон"]
 fn ongudai_size_cancel_in_every_stage_returns_within_a_second() {
     // подготовка (случай, фазы, сборка многосетки, V-циклы фона), грубый шаг, решение тонкой сетки
     let mut worst = Duration::ZERO;
@@ -1272,6 +1273,7 @@ fn picard_cancel_limit() -> Duration {
 }
 
 #[test]
+#[ignore = "тайминг: итоговый прогон"]
 fn picard_cancel_during_the_setup_returns_within_the_limit() {
     use picard_rs::api::{SolveOpts, StopReason, solve};
     let [_, case_h] = ongudai_cases();
