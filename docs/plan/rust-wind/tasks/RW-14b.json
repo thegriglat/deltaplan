@@ -1,0 +1,64 @@
+{
+  "id": "RW-14b",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Эталоны погоды E1–E10 с GD-кода до удаления",
+  "goal": "Снять с живого GD-кода погоды эталоны E1–E10 (rw14-weather.md, «Эталоны») одним генератором tools/wind_fixtures/weather_ref2.gd/.sh в rust/dp-air/tests/data/RW-14b/ с manifest.json; повторный запуск даёт те же файлы; логику GD не менять.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "W5",
+      "version": "9",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-14b",
+  "branch": "rust-wind/RW-14b",
+  "base": "feature/rust-wind",
+  "scope": [
+    "tools/wind_fixtures/weather_ref2.gd",
+    "tools/wind_fixtures/weather_ref2.gd.uid",
+    "tools/wind_fixtures/weather_ref2.sh",
+    "tools/wind_fixtures/weather_ref2.tscn",
+    "rust/dp-air/tests/data/RW-14b/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "rust/dp-air/src/",
+    "rust/dp-gd/",
+    "configs/",
+    "docs/contracts/",
+    "tests/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "manifest",
+      "cmd": "python3 -c \"import json;m=json.load(open('rust/dp-air/tests/data/RW-14b/manifest.json'));print('sets',len(m['sets']))\"",
+      "expect": "num:sets (\\d+) >=10"
+    },
+    {
+      "name": "size",
+      "cmd": "du -sk rust/dp-air/tests/data/RW-14b | cut -f1",
+      "expect": "num:^(\\d+) <=5120"
+    },
+    {
+      "name": "repro",
+      "cmd": "bash tools/wind_fixtures/weather_ref2.sh --check",
+      "expect": "re:repro: OK"
+    },
+    {
+      "name": "docs_check",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-30T01:31:57"
+}
