@@ -1,0 +1,92 @@
+{
+  "status": "partial",
+  "summary": "Фасад ведёт поле через один DpAir (configure, load_place с запечёнными полями и кешем, set_conditions, фокусы, advance_to/start_at, set_field_enabled по режиму, stage/iters из крейта), снимок field_export подаётся в air_field через AirBakedField.load_bytes (синхронно при deterministic, иначе в фоне); AirRuntime не создаётся, --air-field удалён из фасада и launch_options, AirPlaceData несёт climate_cell(_lag), baked, weather старта, data_hash/model_hash. Приёмка 5 из 6: no_air_field_flag не выполним без правки air_runtime.gd (dont_touch). ВАЖНО: DpAir в dp-gd по умолчанию Calm (Bridge::default), поля из крейта нет, пока Bridge::default не станет Formula.",
+  "commits": [
+    "b5b2669bf rust-wind RW-7b: фасад ведёт поле через DpAir",
+    "e852415f0 rust-wind RW-7b: тест подачи поля в фоне"
+  ],
+  "checks": [
+    {
+      "name": "test_rust_wind_contracts",
+      "value": "23/23",
+      "pass": true
+    },
+    {
+      "name": "test_dp_air_ext",
+      "value": "5/5 (с библиотекой на Formula)",
+      "pass": true
+    },
+    {
+      "name": "test_rw7_field",
+      "value": "6/6, max |field фасада - DpAir.sample_many(MEAN)| = 2.4e-7 м/с",
+      "pass": true
+    },
+    {
+      "name": "no_air_runtime",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "no_air_field_flag",
+      "value": "2 (обе строки в air_runtime.gd: CMD_FIELD, _is_cmd_field)",
+      "pass": false
+    },
+    {
+      "name": "vs_base_contracts",
+      "value": "0 новых падений",
+      "pass": true
+    },
+    {
+      "name": "vs_base tests/atmosphere",
+      "value": "0 новых падений (копия 1, база 1)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "no_air_field_flag: нужна правка двух строк air_runtime.gd (в dont_touch)",
+    "tests_vs_base для tests/game и tests/flight не доведён (остановлен по новому решению о цене проверок)",
+    "карта фаз: растр phase_main пуст (крейт карту фаз не отдаёт)",
+    "docs/guide/game/cli-tests.md и docs/guide/air-model/debug.md ещё описывают --air-field"
+  ],
+  "questions": [
+    "contract: rust/dp-gd/src/bridge.rs Bridge::default() = Calm; для поля нужна Formula (я проверял локальной сборкой с одной правкой, в коммиты не вошла). Библиотеку addons/dp_air/bin/libdp_air_tune.so в копии собирал с ней"
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-7b --dry (нужна библиотека с Formula по умолчанию)",
+  "uncertain": [
+    {
+      "where": "scripts/atmosphere/atmosphere.gd:_dp_field_wanted",
+      "why": "поле считается только для условий-прогноза (preset-условия - без поля, как раньше), это строже, чем W2 'Режим поля'",
+      "checked": "тесты с прогнозом; preset не пробовал с крейтом"
+    },
+    {
+      "where": "scripts/atmosphere/air_place_data.gd:header_json",
+      "why": "utc_offset_h = NAN (солнечное время) заменяется center_lon/15, крейту NaN не передать",
+      "checked": "только чтением кода"
+    },
+    {
+      "where": "scripts/atmosphere/atmosphere.gd:_dp_config_text",
+      "why": "при пилотских слоях конфиг уходит слитым JSON.stringify (числа как float), при одном слое - файлом как есть; сид передаю явно",
+      "checked": "один слой (тесты)"
+    },
+    {
+      "where": "scripts/atmosphere/atmosphere.gd:_update_air_mode",
+      "why": "при выключении поля обнуляю field.air_src, иначе with_between падал на пустом air (старая ошибка thermal_field)",
+      "checked": "test_mode_off_and_on"
+    },
+    {
+      "where": "tests/atmosphere/test_air_status_iters_gpu.gd",
+      "why": "теперь считает CPU-крейт на Онгудае, не проверял (GPU-тест)",
+      "checked": "нет"
+    },
+    {
+      "where": "scripts/atmosphere/atmosphere.gd:_dp_tick",
+      "why": "статику и солнце крейту не передаю (термики на GDScript), фокус без ручного - раз в 25 м",
+      "checked": "нет"
+    }
+  ],
+  "dp_feedback": "accept-проверка по grep по всему scripts/ конфликтует с dont_touch карточки; ловить такое при заведении карточки.",
+  "extra": {},
+  "t": "2026-10-29T04:45:14",
+  "by": "executor"
+}
