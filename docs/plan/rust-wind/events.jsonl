@@ -753,3 +753,4 @@
 {"t": "2026-10-29T05:40:55", "by": "coordinator", "task": "RW-U3", "ev": "note", "note": "cargo_test 3-го прогона: FAIL dp-air acceptance pilot_left_baked_follows_the_game_skips_the_finest_window — «no Ready in 120 s» (таймаут) при нагрузке ~85; снова тест на время, не путь RW-U3; перезапуск"}
 {"t": "2026-10-29T05:45:30", "by": "coordinator", "task": "RW-12c", "ev": "checked", "note": "5/5 weather_day=ok:21; cargo_test=ok:exit 0; clippy=ok:exit 0; fmt=ok:exit 0; dp_air_no_godot=ok:0; scope=FAIL:вне scope: r-RW-12c.json"}
 {"t": "2026-10-29T05:45:42", "by": "coordinator", "task": "RW-12c", "ev": "accepted", "note": "по отчёту; scope — только неотслеживаемый r-RW-12c.json (удалён)"}
+{"t": "2026-10-29T05:45:44", "by": "coordinator", "task": "RW-12c", "ev": "merged", "note": "ec439d040"}
