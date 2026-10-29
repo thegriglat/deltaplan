@@ -445,19 +445,14 @@ impl ThermalSlot {
     }
 
     /// Облака изменились настолько, что подсос или тень могли поменяться (условие публикации
-    /// `Terms::advance_clouds`: поле шагнуло или есть Cb-объекты; смена конфига физики).
+    /// `Terms::advance_clouds`: поле шагнуло - в том числе при смене конфига - или есть Cb-объекты).
     fn cloud_changed(&self, now: &Arc<CloudPhysics>) -> bool {
         if self.hooks.is_some() || self.built.is_none() {
             return false;
         }
         match &self.cloud {
             None => true,
-            Some(a) => {
-                a.version != now.version
-                    || a.objects.count > 0
-                    || now.objects.count > 0
-                    || !Arc::ptr_eq(&a.cfg, &now.cfg)
-            }
+            Some(a) => a.version != now.version || a.objects.count > 0 || now.objects.count > 0,
         }
     }
 
@@ -554,20 +549,13 @@ impl Thermal for ThermalSlot {
         } else {
             self.advance_bg(terms, t)
         };
+        r.map(|s| Arc::new(s) as Arc<dyn Thermal>)
+    }
+
+    fn synced_with_clouds(&self, terms: &Terms) -> Option<Arc<dyn Thermal>> {
         let now = terms.cloud_physics();
-        match r {
-            Some(mut s) => {
-                // фоновый результат собран при прежних облаках: подсос - по текущим
-                if !force && s.cloud_changed(now) {
-                    s.cloud = Some(now.clone());
-                }
-                Some(Arc::new(s) as Arc<dyn Thermal>)
-            }
-            None if !force && self.cloud_changed(now) => {
-                Some(Arc::new(self.with_cloud(now.clone())) as Arc<dyn Thermal>)
-            }
-            None => None,
-        }
+        self.cloud_changed(now)
+            .then(|| Arc::new(self.with_cloud(now.clone())) as Arc<dyn Thermal>)
     }
 
     fn cores(&self, center: [f32; 3], radius: f32, t: f64, out: &mut Vec<Core>) {

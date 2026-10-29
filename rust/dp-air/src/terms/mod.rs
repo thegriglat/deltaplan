@@ -236,7 +236,16 @@ impl Terms {
             None => false,
         };
         let cl = self.advance_clouds(t, false);
-        w || th || cl
+        // подсос видит облака этого шага (в GD `update_time` пишет параметры термиков по текущим
+        // облакам), порождение термиков - прежние (`refresh_now`: термики раньше облаков)
+        let sy = match self.slots.thermal.synced_with_clouds(self) {
+            Some(n) => {
+                self.slots.thermal = n;
+                true
+            }
+            None => false,
+        };
+        w || th || cl || sy
     }
 
     /// Обновить облака; `true` - публикация нужна: поле шагнуло или есть Cb-объекты (их центры
