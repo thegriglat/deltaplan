@@ -668,3 +668,5 @@
 {"t": "2026-10-29T05:05:04", "by": "coordinator", "task": "RW-8b", "ev": "note", "note": "слияние фактически — dfa38527b (прошлое событие merged записано при отказе merge из-за грязной копии)"}
 {"t": "2026-10-29T05:05:09", "by": "coordinator", "task": "RW-U1", "ev": "edited", "note": "base", "diff": {"base": ["\"rust-wind/RW-6z\"", "\"feature/rust-wind\""]}}
 {"t": "2026-10-29T05:05:09", "by": "coordinator", "task": "RW-U2", "ev": "edited", "note": "base", "diff": {"base": ["\"rust-wind/RW-6z\"", "\"feature/rust-wind\""]}}
+{"t": "2026-10-29T05:05:17", "by": "coordinator", "task": "RW-U1", "ev": "checked", "commits": ["8bc9a7a"], "note": "2/3 no_code=ok:exit 0; findings=ok:6; docs=FAIL:нет совпадения"}
+{"t": "2026-10-29T05:05:17", "by": "coordinator", "task": "RW-U1", "ev": "merged"}
