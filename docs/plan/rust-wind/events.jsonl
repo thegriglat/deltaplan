@@ -1144,3 +1144,5 @@
 {"t": "2026-10-29T22:42:28", "by": "executor", "task": "RW-P10", "ev": "reported", "commits": ["2463789d5"], "note": "done: Удалены bake_air.* и bake_all.sh; упоминания в README, guide и контрактах убраны или помечены устаревшими.", "dp_feedback": "report не принял отчёт, пока accept не был прогнан без --dry"}
 {"t": "2026-10-29T22:42:36", "by": "coordinator", "task": "RW-P10", "ev": "checked", "note": "3/3 no_bake_air=ok:0; docs_check=ok:ошибок 0; gone=ok:exit 0"}
 {"t": "2026-10-29T22:42:43", "by": "coordinator", "task": "RW-P10", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-29T22:42:51", "by": "coordinator", "task": "RW-P10", "ev": "accepted", "commits": ["4b40d08"], "note": "3/3 no_bake_air=ok:0; docs_check=ok:ошибок 0; gone=ok:exit 0"}
+{"t": "2026-10-29T22:42:52", "by": "coordinator", "task": "RW-P10", "ev": "merged"}
