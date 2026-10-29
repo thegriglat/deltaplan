@@ -813,12 +813,27 @@ pub struct StageCounter {
     cur: Arc<AtomicU32>,
     /// Нечётное — перенос `cur` в `base` идёт: читатель повторяет.
     gen_: AtomicU32,
+    /// Номер прогона (вход в этап с итерациями решателя) в задаче; 0 — ещё не было.
+    run: AtomicU32,
+    /// Прогонов по текущему плану задачи (растёт, когда нужен следующий проход).
+    runs: AtomicU32,
 }
+
+/// Этапы с итерациями решателя: каждый вход в них — новый прогон (счёт итераций с нуля).
+const ITER_STAGES: [&str; 3] = ["coarse", "solve_mech", "solve_heat"];
 
 impl StageCounter {
     /// Начало этапа `name` (из [`STAGES`]): итерации с нуля.
     pub fn enter(&self, name: &str) {
         let i = STAGES.iter().position(|s| *s == name).map_or(0, |i| i + 1);
+        if name.is_empty() || name == "lookup" {
+            self.run.store(0, Ordering::SeqCst);
+            self.runs.store(0, Ordering::SeqCst);
+        } else if ITER_STAGES.contains(&name) {
+            let r = self.run.load(Ordering::SeqCst) + 1;
+            self.runs.fetch_max(r, Ordering::SeqCst);
+            self.run.store(r, Ordering::SeqCst);
+        }
         self.transfer(|| {
             self.base.store(0, Ordering::Relaxed);
             self.cur.store(0, Ordering::Relaxed);
@@ -842,6 +857,25 @@ impl StageCounter {
             self.base.store(v, Ordering::Relaxed);
             self.cur.store(0, Ordering::Relaxed);
         });
+    }
+    /// План: в проходе ещё `this_pass` прогонов (в т.ч. текущий, если он ещё не начат) и
+    /// `later_passes` проходов по два прогона (mech, heat) после него.
+    pub fn plan(&self, this_pass: u32, later_passes: usize) {
+        let later = u32::try_from(later_passes).unwrap_or(u32::MAX / 4);
+        let n = self
+            .run
+            .load(Ordering::SeqCst)
+            .saturating_add(this_pass)
+            .saturating_add(later.saturating_mul(2));
+        self.runs.fetch_max(n, Ordering::SeqCst);
+    }
+    /// `(run, runs)` для `Status`: вне этапов с итерациями — `(0, 0)`; всегда `run ≤ runs`.
+    pub fn run_runs(&self) -> (u32, u32) {
+        if !ITER_STAGES.contains(&self.stage()) {
+            return (0, 0);
+        }
+        let run = self.run.load(Ordering::SeqCst);
+        (run, self.runs.load(Ordering::SeqCst).max(run))
     }
     pub fn clear(&self) {
         self.enter("");
@@ -1216,7 +1250,9 @@ fn solve_pass(
         }
     }
     let t1 = Instant::now();
-    job.stage.enter("coarse");
+    let do_coarse = start == Start::Cold && !all_mech && coarse.is_some() && !cfg.faults.coarse;
+    job.stage
+        .plan(2 + u32::from(do_coarse), passes.saturating_sub(pass));
     if start == Start::Cold
         && !all_mech
         && let Some(c) = &coarse
@@ -1224,6 +1260,7 @@ fn solve_pass(
         if cfg.faults.coarse {
             notes.push("coarse step failed (injected): start from the background".into());
         } else {
+            job.stage.enter("coarse");
             match coarse_start(job, &fine, c, &fine_dom, &coarse_dom) {
                 Ok((pair, it)) => {
                     init_m = Some(pair.mech);

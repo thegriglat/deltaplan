@@ -12,6 +12,8 @@ var text: String = ""
 var fraction: float = 0.0
 ## Доп. строка под этапом (например, какой ветер выбран, если его этап пропущен); "" — нет.
 var note: String = ""
+## Строка итераций решателя под этапом («Итерация: 120», «Прогон 2 из 4 · Итерация: 120»); "" — нет.
+var iter_line: String = ""
 var trace: bool = false
 ## [{key, text, s}] — завершённые этапы с длительностью.
 var timings: Array[Dictionary] = []
@@ -40,6 +42,7 @@ func begin() -> void:
 	timings.clear()
 	counters.clear()
 	note = ""
+	iter_line = ""
 	_key = ""
 	_t0 = Time.get_ticks_usec()
 	_stage_t0 = _t0
@@ -51,6 +54,7 @@ func begin() -> void:
 func stage(key: String, stage_text: String) -> void:
 	CrashReporter.note_stage(key)
 	_close_stage()
+	iter_line = ""
 	_key = key
 	var total := 0.0
 	var before := 0.0

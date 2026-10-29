@@ -31,7 +31,7 @@ pub use types::{
 };
 
 /// Версия границы; равна версии в заголовке W2 `docs/contracts/rust-wind.md`.
-pub const API_VERSION: u32 = 5;
+pub const API_VERSION: u32 = 6;
 
 /// Число полей записи объекта-облака (`OBJ_STRIDE`, W6 v4).
 pub const OBJ_STRIDE: usize = 22;
