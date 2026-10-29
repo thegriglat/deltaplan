@@ -168,6 +168,10 @@ var _dp_failed := false
 var _dp_cfg_sig := ""
 ## load_place отправлен крейту и место не выгружено.
 var _dp_placed := false
+## Журнал подготовки: момент начала (мс), последний записанный этап и состояние.
+var _dp_t0 := 0
+var _dp_stage_logged := ""
+var _dp_state_logged := -1
 ## Номер подачи поля (field_version), уже принятый в air_field; −1 — ещё не принимали.
 var _dp_ver := -1
 ## Режим поля, отправленный крейту (set_field_enabled): −1 — не слали, 0/1.
@@ -820,11 +824,37 @@ func _dp_poll() -> void:
 	if not _dp_placed and not _dp_failed:
 		_dp_start()
 	var s := _compute_state()
+	_dp_log_progress(s)
 	if s == STATE_READY and _f_state != STATE_READY:
 		_on_ready()
 	_set_state(s)
 	_poll_weather()
 	_dp_feed()
+
+
+## Журнал подготовки (W9): смена этапа одной строкой с итерациями, итог READY/FAILED с временем.
+func _dp_log_progress(s: int) -> void:
+	if not _dp_placed or _dp == null:
+		return
+	var t := (Time.get_ticks_msec() - _dp_t0) * 0.001
+	if s == STATE_LOADING:
+		var st := String(_dp.stage())
+		if st != _dp_stage_logged:
+			_dp_stage_logged = st
+			_dp_log("dp_air: %.1f с, этап %s, итераций %d" % [t, st, int(_dp.iters())])
+	elif s != _dp_state_logged and (s == STATE_READY or s == STATE_FAILED):
+		_dp_log(
+			(
+				"dp_air: %s за %.1f с, поле %s, last_error=%s"
+				% [
+					"READY" if s == STATE_READY else "FAILED",
+					t,
+					"подано" if int(_dp.field_version()) > 0 else "нет",
+					_dp.last_error(),
+				]
+			)
+		)
+	_dp_state_logged = s
 
 
 ## Первое READY после сборки: запомненный момент старта и weather_changed.
@@ -862,6 +892,7 @@ func _dp_object() -> RefCounted:
 		_dp_log("dp_air: нет расширения — воздух недоступен")
 		return null
 	_dp = ClassDB.instantiate("DpAir")
+	_dp_log("dp_air: расширение загружено, api_version=%d" % int(_dp.api_version()))
 	return _dp
 
 
@@ -1003,6 +1034,15 @@ func _dp_start() -> void:
 	_dp_placed = true
 	_dp_ver = -1
 	_dp_fed = false
+	_dp_t0 = Time.get_ticks_msec()
+	_dp_stage_logged = ""
+	_dp_state_logged = -1
+	_dp_log(
+		(
+			"dp_air: подготовка места начата, поле %s, место %s"
+			% ["включено" if _dp_mode_sent == 1 else "выключено", str(place.get("header").get("loc", {}).get("id", "?"))]
+		)
+	)
 
 
 func _update_focus() -> void:
