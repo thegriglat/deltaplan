@@ -219,7 +219,13 @@ impl Terms {
     /// (`set_place`) выводит погоду по часу (`derive`, ход дня), первый вызов и `rebuild` — перестройка,
     /// иначе мягкая смена (`blend_s`).
     pub fn set_conditions(&mut self, c: &Conditions) {
+        let (old_from, first) = (self.wind.from_deg, self.cond.is_none());
         self.apply_conditions(c, false);
+        // Линия тени рельефа следует за ветром с отставанием: поворот не больше допуска её не
+        // перестраивает (`Atmosphere.set_wind`, RW-9); первые условия — как `configure`.
+        if first || angle_diff_deg(old_from, self.wind.from_deg).abs() > self.ground_tol_deg {
+            self.ground_dir = norm_dir(self.wind.dir());
+        }
     }
 
     /// Режим `air_model.enabled = off` (`set_air_mode`): упрощённый профиль ветра 0.8.0. Из
