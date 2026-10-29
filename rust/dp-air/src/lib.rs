@@ -30,7 +30,84 @@ pub use types::{
 };
 
 /// Версия границы; равна версии в заголовке W2 `docs/contracts/rust-wind.md`.
-pub const API_VERSION: u32 = 3;
+pub const API_VERSION: u32 = 4;
+
+/// Число полей записи объекта-облака (`OBJ_STRIDE`, W6 v4).
+pub const OBJ_STRIDE: usize = 22;
+
+/// Запись объекта-облака (W4 v6: `#[repr(C)]`, 22 `f32`).
+#[repr(C)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct ObjRecord {
+    /// `0` `id & 0xFFFFFF`, уникален в наборе.
+    pub id: f32,
+    /// `1` бит 0 - статичное, бит 2 - Cb.
+    pub flags: f32,
+    /// `2, 3` центр основания на `t`, м.
+    pub cx: f32,
+    pub cz: f32,
+    /// `4` основание, м MSL.
+    pub base_msl: f32,
+    /// `5, 6, 7` рост, распад, активность 0..1 (`CloudModel.stage`).
+    pub growth: f32,
+    pub decay: f32,
+    pub activity: f32,
+    /// `8, 9` полуоси по ветру и поперёк, м (`CloudModel.size`).
+    pub rx: f32,
+    pub rz: f32,
+    /// `10, 11` мощность и растекание верха, м.
+    pub depth: f32,
+    pub spread: f32,
+    /// `12` `noise_seed mod 9973`.
+    pub vis_seed: f32,
+    /// `13, 14` появление и конец облака, с атмосферы (статичное - `∓1e30`).
+    pub life_t0: f32,
+    pub life_t1: f32,
+    /// `15, 16` источник на земле, м.
+    pub src_x: f32,
+    pub src_z: f32,
+    /// `17, 18` скорость сноса, м/с (статичное - 0).
+    pub drift_vx: f32,
+    pub drift_vz: f32,
+    /// `19` начало сноса, с (статичное - `+1e30`).
+    pub drift_t0: f32,
+    /// `20` начало грозы, с (не Cb - 0).
+    pub storm_t0: f32,
+    /// `21` интенсивность грозы на `t`, 0..1 (не Cb - 0).
+    pub storm_k: f32,
+}
+
+const _: () = assert!(std::mem::size_of::<ObjRecord>() == OBJ_STRIDE * 4);
+
+impl ObjRecord {
+    /// Плоский вид (порядок полей W6 v4).
+    pub fn to_array(&self) -> [f32; OBJ_STRIDE] {
+        [
+            self.id,
+            self.flags,
+            self.cx,
+            self.cz,
+            self.base_msl,
+            self.growth,
+            self.decay,
+            self.activity,
+            self.rx,
+            self.rz,
+            self.depth,
+            self.spread,
+            self.vis_seed,
+            self.life_t0,
+            self.life_t1,
+            self.src_x,
+            self.src_z,
+            self.drift_vx,
+            self.drift_vz,
+            self.drift_t0,
+            self.storm_t0,
+            self.storm_k,
+        ]
+    }
+}
 
 /// Модель воздуха. Команды (`&mut self`) — из одного потока; опросы (`&self`) — из любого потока
 /// одновременно. Опросы не падают: длины `out` и `pts` обрабатываются по `min`, остальное не
@@ -83,6 +160,19 @@ pub trait AirModel: Send + Sync {
     fn cores(&self, center: [f32; 3], radius: f32, out: &mut Vec<Core>);
     fn clouds(&self, center: [f32; 3], radius: f32, out: &mut Vec<Cloud>);
     fn cloud_raster(&self) -> Option<std::sync::Arc<Raster>>;
+    /// W4 v6: объекты-облака W6 v4 на момент `t` (вне окна истории — ближайшая граница). По
+    /// умолчанию пусто (`Calm`).
+    fn cloud_objects(&self, _center: [f32; 3], _radius: f32, _t: f64, out: &mut Vec<ObjRecord>) {
+        out.clear();
+    }
+    /// W4 v6: `[enabled, wavelength_m]`; по умолчанию нули.
+    fn wave_info(&self) -> [f32; 2] {
+        [0.0; 2]
+    }
+    /// W4 v6: порыв у поверхности в точках `xz` на моменты `t`; по умолчанию нули.
+    fn surface_gust_many(&self, _xz: &[[f32; 2]], _t: &[f64], out: &mut [f32]) {
+        out.iter_mut().for_each(|o| *o = 0.0);
+    }
     fn wave_crests(
         &self,
         center: [f32; 2],
