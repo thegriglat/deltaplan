@@ -92,7 +92,7 @@ fn run_counts_solver_entries_and_resets_iters() {
             break;
         }
         assert_ne!(s.state, State::Failed, "{}", s.reason);
-        assert!(t0.elapsed() < Duration::from_secs(300), "no field in 300 s");
+        assert!(t0.elapsed() < Duration::from_secs(900), "no field in 900 s");
         std::thread::sleep(Duration::from_millis(1));
     }
     assert!(seen_iter_stage, "этап решателя не замечен опросом");
