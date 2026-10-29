@@ -13,7 +13,7 @@ use dp_air::terms::analytic::ground::{GroundField, PlaceSig};
 use dp_air::terms::analytic::lee::smoothstep;
 use dp_air::terms::analytic::noise::{GustNoise, NoiseCfg};
 use dp_air::terms::{self, Ctx, T_ANALYTIC, T_GUST, T_RIDGE, Terms};
-use dp_air::{Configs, Place, SampleMode};
+use dp_air::{Configs, Place, PlaceHeader, SampleMode};
 use serde_json::{Value, json};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -213,10 +213,38 @@ fn synth_horizontal_and_ridge_match() {
     }
 }
 
+/// Мир синтетических эталонов (`AtmoFingerprint.height`) растром 100 м на ±60 км: эталонный `Place`
+/// синтетики — 20 км, а ротор волны (`WaveField`) смотрит на 3λ ≈ 20 км и больше против ветра;
+/// за краем растр держит высоту края, у GD высота аналитическая во всём пространстве (RW-11g).
+fn synthetic_wide() -> Place {
+    let (n, sp, o) = (1201usize, 100.0, -60000.0);
+    let hdr = format!(
+        r#"{{"version":1,"loc":{{"id":"synthw","center_lat":51.5,"center_lon":86.5,"utc_offset_h":6.0,
+"month":7,"day":15}},"grid":{{"origin_x":{o},"origin_z":{o},"spacing":{sp},"width":{n},"height":{n}}},
+"surface_classes":{{"grass":1}},"start_sites":[]}}"#
+    );
+    let header = PlaceHeader::from_json(&hdr).unwrap();
+    let mut hs = Vec::with_capacity(n * n);
+    for j in 0..n {
+        let z = o + j as f64 * sp;
+        for i in 0..n {
+            let x = o + i as f64 * sp;
+            hs.push(
+                (900.0
+                    + 350.0 * (x / 3100.0).sin() * (z / 4300.0).cos()
+                    + 160.0 * ((x + 0.6 * z) / 1700.0).sin()
+                    + 40.0 * (x / 450.0 - z / 700.0).cos()) as f32,
+            );
+        }
+    }
+    Place::new(header, hs, vec![0; n * n], vec![1; n * n], vec![1.0; n * n]).unwrap()
+}
+
 #[test]
 fn synth_sigma_is_analytic_part_of_reference() {
     // σ аналитики в эталоне включает край термика, грозу и ротор волн (RW-10/11): σ² эталона
-    // не меньше нашей, а там, где они нулевые, равна
+    // не меньше нашей, а там, где они нулевые, равна. synth_wave: каждая точка по W8 (RW-11g) —
+    // расхождения 4 точек были рельефом за краем растра места, не портом ротора.
     for name in [
         "synth_weak",
         "synth_medium",
@@ -224,13 +252,16 @@ fn synth_sigma_is_analytic_part_of_reference() {
         "synth_storm",
         "synth_wave",
     ] {
-        let fx = load(name);
+        let mut fx = load(name);
+        if name == "synth_wave" {
+            fx.place = synthetic_wide();
+        }
         let (mut n, mut eq, mut worst_below) = (0, 0, 0.0f32);
         for ti in 0..fx.case.times_s.len() {
             let t = fx.case.times_s[ti];
             let rg = fx.slab(ti, "gust");
             for (pi, p) in fx.case.points.iter().enumerate() {
-                if !fx.inside(*p, 500.0) {
+                if name != "synth_wave" && !fx.inside(*p, 500.0) {
                     continue;
                 }
                 let (_, _, s) = mine(&fx, *p, t);
@@ -239,28 +270,28 @@ fn synth_sigma_is_analytic_part_of_reference() {
                 worst_below = worst_below.max(s - r);
                 if (s - r).abs() <= tol_s(r) {
                     eq += 1;
+                } else if name == "synth_wave" {
+                    println!(
+                        "{name} t{ti} p{pi} {}: σ {s} против {r}",
+                        fx.case.point_tags[pi]
+                    );
                 }
             }
         }
         println!(
             "{name}: σ аналитики: совпало {eq}/{n}, наибольшее превышение нашей над эталоном {worst_below:.4}"
         );
-        // synth_wave: σ ротора волны (`WaveExtra`, RW-11b) в 3-4 точках из 93 расходится с GD
-        // (p7 ground: ротор 0.03 у GD против 0.73; p9 ground: 2.33 против 0.74; p36: 0.93 против 0).
-        // В GD ротор входит в σ аналитики так же (`_analytic_amp`), стык верный; расхождение в
-        // числе самой волны (RW-11b). Здесь допуск не расширяется: для волны проверяется доля
-        // совпавших точек, превышение не ограничивается.
-        if name != "synth_wave" {
+        if name == "synth_wave" {
+            assert_eq!(eq, n, "{name}: σ вне допуска W8 в {} из {n}", n - eq);
+        } else {
             assert!(
                 worst_below <= 0.02,
                 "{name}: наша σ больше эталона на {worst_below}"
             );
-        }
-        // гроза и роторы волн (RW-11) добавляют σ в эталоне — равенство только без них
-        if name == "synth_wave" {
-            assert!(eq * 100 >= n * 95, "{name}: σ совпала лишь в {eq}/{n}");
-        } else if name != "synth_storm" {
-            assert!(eq * 10 >= n * 9, "{name}: σ совпала лишь в {eq}/{n}");
+            // гроза добавляет σ в эталоне — равенство только без неё
+            if name != "synth_storm" {
+                assert!(eq * 10 >= n * 9, "{name}: σ совпала лишь в {eq}/{n}");
+            }
         }
     }
 }
