@@ -1157,3 +1157,5 @@
 {"t": "2026-10-29T22:49:43", "by": "executor", "task": "RW-P11", "ev": "reported", "commits": ["f70e38ac7", "07a0d0d0e"], "note": "done: Фасад передаёт все 8 файлов в add_baked_field, крейт их читает и принимает, но на feature/rust-wind все отвергаются по …", "dp_feedback": "Свежая копия: Godot без godot --import падает на class_name; в карточке/шаблоне про это ни слова. docs check: лимит summary 140 симв. выяснил только на падении."}
 {"t": "2026-10-29T22:50:03", "by": "coordinator", "task": "RW-P11", "ev": "checked", "note": "2/2 report_doc=ok:exit 0; docs_check=ok:ошибок 0"}
 {"t": "2026-10-29T22:50:04", "by": "coordinator", "task": "RW-P11", "ev": "accepted", "note": "по отчёту: все 8 файлов отвергаются по model_hash — удаление RW-P12"}
+{"t": "2026-10-29T22:50:10", "by": "coordinator", "task": "RW-P11", "ev": "accepted", "commits": ["81e21f1"], "note": "2/2 report_doc=ok:exit 0; docs_check=ok:ошибок 0"}
+{"t": "2026-10-29T22:50:10", "by": "coordinator", "task": "RW-P11", "ev": "merged"}
