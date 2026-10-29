@@ -1,0 +1,63 @@
+{
+  "status": "done",
+  "summary": "Порт ротора (terms/waves) верен — расхождение было в тесте: Place синтетики ±10 км, а WaveField смотрит на 3λ≈28 км против ветра, за краем растр держит высоту края (у GD высота аналитическая). Тест synth_sigma_is_analytic_part_of_reference для synth_wave теперь на широком Place (100 м, ±60 км, как в terms_waves) и сверяет каждую точку по W8 (σ 0,02+5 %): 111/111.",
+  "commits": [
+    "3c5b8fe8c RW-11g: σ ротора волны synth_wave — каждая точка по W8"
+  ],
+  "checks": [
+    {
+      "name": "synth_wave σ по W8",
+      "value": "111/111, max превышение нашей над эталоном 0.0045",
+      "pass": true
+    },
+    {
+      "name": "terms_analytic",
+      "value": "11",
+      "pass": true
+    },
+    {
+      "name": "terms_waves",
+      "value": "9",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "dp_air_no_godot",
+      "value": "0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-11g",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/tests/terms_analytic.rs synth_sigma_is_analytic_part_of_reference",
+      "why": "на ветке после sync из 4 точек карточки по узкому Place расходилась лишь p9 (σ 3,34 против 4 = turb_max); p7/p16/p36 уже сходились; причину p9 установил по геометрии (upwind 24 шага по λ/8 до x≈-29,5 км, растр от -8,5 км), GD-дамп не снимал",
+      "checked": "с широким Place все точки synth_wave в допуске W8, код terms/waves не менялся; synthetic_wide продублирован из terms_waves.rs (общего хелпера в tests нет)"
+    },
+    {
+      "where": "accept cargo_test",
+      "why": "один из двух параллельных прогонов accept уронил tests/runtime (exit 101), повторный одиночный — PASS 6/6",
+      "checked": "в логе падения нет FAILED-теста, похоже на гонку при параллельных запусках; мой код тест runtime не затрагивает"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-29T15:06:57",
+  "by": "executor"
+}

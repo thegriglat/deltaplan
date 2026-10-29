@@ -958,3 +958,4 @@
 {"t": "2026-10-29T15:06:57", "by": "executor", "task": "RW-11g", "ev": "reported", "commits": ["3c5b8fe8c"], "note": "done: Порт ротора (terms/waves) верен — расхождение было в тесте: Place синтетики ±10 км, а WaveField смотрит на 3λ≈28 км про…"}
 {"t": "2026-10-29T15:07:43", "by": "reviewer", "task": "RW-11g", "ev": "reviewed", "note": "Только тест, код terms/waves не менялся; диагноз (растр места ±10 км держит высоту края, GD — аналитическая) обоснован, широкий Place повторяет AtmoFingerprint…", "verdict": "accept", "issues": {"minor": 1}, "review": "docs/plan/rust-wind/tasks/RW-11g.review.json"}
 {"t": "2026-10-29T15:12:13", "by": "coordinator", "task": "RW-11g", "ev": "checked", "note": "6/6 terms_analytic=ok:11; terms_waves=ok:9; cargo_test=ok:exit 0; clippy=ok:exit 0; fmt=ok:exit 0; dp_air_no_godot=ok:0"}
+{"t": "2026-10-29T15:12:25", "by": "coordinator", "task": "RW-11g", "ev": "accepted"}
