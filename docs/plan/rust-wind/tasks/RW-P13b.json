@@ -1,0 +1,58 @@
+{
+  "id": "RW-P13b",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "status(): согласованный снимок этапа; тест сброса итераций",
+  "goal": "status() крейта читает этап, run, runs и iters одним согласованным снимком (сейчас этап читается дважды — formula.rs ~1458); stage_runs.rs проверяет, что с новым прогоном iters начинается с нуля.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "W4",
+      "version": "10",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W2",
+      "version": "6",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-P13b",
+  "branch": "rust-wind/RW-P13b",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/formula.rs",
+    "rust/dp-air/src/field/runtime.rs",
+    "rust/dp-air/tests/stage_runs.rs"
+  ],
+  "dont_touch": [
+    "rust/dp-gd/",
+    "scripts/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "stage_runs",
+      "cmd": "for i in 1 2 3; do cargo test --manifest-path rust/Cargo.toml -p dp-air --test stage_runs || exit 1; done",
+      "expect": "exit=0"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-30T02:38:36"
+}
