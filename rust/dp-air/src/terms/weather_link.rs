@@ -52,6 +52,18 @@ impl PlaceLink {
     }
 }
 
+/// Контекст без места: дата по умолчанию, остальное не задано (запасной климат).
+const NO_PLACE: PlaceCtx = PlaceCtx {
+    month: 7,
+    day: 15,
+    lat: f64::NAN,
+    lon: f64::NAN,
+    utc_offset_h: f64::NAN,
+    valley_msl_m: f64::NAN,
+    mean_msl_m: f64::NAN,
+    start_msl_m: f64::NAN,
+};
+
 /// Погода `Terms`: состояние, конфиги, место, время.
 #[derive(Clone, Default)]
 pub(super) struct WeatherLink {
@@ -172,14 +184,17 @@ impl Terms {
                 wind_ref: Some(w), ..
             } => {
                 self.wind.ref_msl = w.ref_msl;
-                // нет gain_per_km - из климата места на высоте старта (W5 v10)
+                // нет gain_per_km - из климата места на высоте старта (W5 v10); нет места или
+                // `Weather` - запасной климат (`climate.fallback`: рост ветра конфига). Прежний
+                // рост от прошлых условий не остаётся.
                 let gain = w.gain_per_km.or_else(|| {
-                    let (pl, wx) = (self.link.place.as_ref()?, self.link.weather.as_ref()?);
+                    let wm = self.link.wm.as_ref()?;
+                    let base = self.link.place.as_ref().map_or(NO_PLACE, |p| p.ctx);
                     let ctx = PlaceCtx {
                         start_msl_m: w.ref_msl,
-                        ..pl.ctx
+                        ..base
                     };
-                    Some(wx.climate_place(&ctx).gain_per_km)
+                    Some(self.place_climate(&ctx, wm).gain_per_km)
                 });
                 if let Some(g) = gain {
                     self.wind.set_altitude_gain(g);

@@ -1,6 +1,6 @@
 //! RW-14c: `dp_air::weather::Weather` против эталонов GD E1–E5, E7–E10 (`tests/data/RW-14b/`).
 //! Допуск W8: `1e-6 + 1e-5·|ref|`; `null` эталона (NaN/inf GD) — нечисло или бесконечность в Rust.
-//! E6 (`ground_context` функция против растра) — только замер, допуска нет; здесь не сверяется.
+//! E6 (`ground_context` по растру места) — только замер, жёсткого допуска нет (`e6_ground_context`).
 //!
 //! Сетки климата в репозитории сжаты brotli, а крейт берёт распакованные байты — распаковка
 //! здесь, как её делает игра: 64 байта заголовка + тело. Вариант «битый файл» (усечён, лишний
@@ -880,4 +880,51 @@ fn e10_heat_flux() {
         }
     }
     d.finish("E10");
+}
+
+// ---------------------------------------------------------------- E6
+
+/// E6: `ground_context` по растру места (долина и средняя высота в круге) - считается и конечна
+/// на местах эталона; разность с растром GD (`raster`) только измеряется: решение 2026-10-30,
+/// Δ = 0,0 м, поэтому допуск здесь широкий (0,5 м) и ловит лишь поломку, не сверяет формулу.
+#[test]
+fn e6_ground_context() {
+    use dp_air::field::weather_core::ground_context;
+    let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../tests/fixtures/wind/places");
+    let mut places: HashMap<String, dp_air::Place> = HashMap::new();
+    let (mut n, mut worst) = (0usize, 0.0f64);
+    for row in rows("e6_ground_context") {
+        if row["kind"].as_str() != Some("ground") {
+            continue;
+        }
+        let name = row["place"].as_str().unwrap().to_string();
+        let place = places.entry(name.clone()).or_insert_with(|| {
+            dp_air::fixtures::read_place(&dir.join(format!("{name}.json"))).unwrap()
+        });
+        let (valley, mean) = ground_context(
+            place,
+            f(&row["radius_m"]),
+            f(&row["samples"]) as usize,
+            f(&row["percentile"]),
+        );
+        assert!(
+            valley.is_finite() && mean.is_finite(),
+            "{name}: {valley} {mean}"
+        );
+        assert!(
+            valley <= mean + 1e-6 || row["percentile"].as_f64().unwrap() > 0.5,
+            "{name}"
+        );
+        let (want_v, want_m) = (
+            f(&row["raster"]["valley_msl_m"]),
+            f(&row["raster"]["mean_msl_m"]),
+        );
+        worst = worst
+            .max((valley - want_v).abs())
+            .max((mean - want_m).abs());
+        n += 1;
+    }
+    eprintln!("E6: {n} строк, наибольшая разность с растром GD {worst:.4} м");
+    assert!(n >= 40, "E6: строк {n}");
+    assert!(worst <= 0.5, "E6: разность с растром GD {worst} м");
 }
