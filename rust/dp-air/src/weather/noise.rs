@@ -37,7 +37,7 @@ pub fn td_noise(month: i64, day: i64, lat: f64, lon: f64) -> f64 {
 }
 
 /// Индекс пояса |φ|: первая верхняя граница, не меньшая |φ| (выше — последний).
-pub(crate) fn band_index(lat: f64, bounds: &[f64]) -> usize {
+pub fn band_index(lat: f64, bounds: &[f64]) -> usize {
     let a = lat.abs();
     bounds
         .iter()

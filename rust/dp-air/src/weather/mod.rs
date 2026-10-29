@@ -10,14 +10,17 @@
 //! - [`derive`]: прогноз + место + час → словарь погоды с `_derived` (ключи как у GD).
 //! - [`td_day`], [`td_noise`], [`haze_k_rh`], [`cirrus_base_cover`], [`sun_block_cover`],
 //!   [`lerp_table`], [`interp_rows`] — части `derive`.
+mod api;
 mod climate;
 mod coeffs;
 mod day;
 mod derive;
+mod grids;
 mod noise;
 mod state;
 mod tables;
 
+pub use api::{PlaceContext, Weather, hour_at, valley_of};
 pub use climate::{ClimatePlace, ClimateSrc, PlaceCtx, climate_place};
 pub use coeffs::{Coefficients, wind_conditions};
 pub use day::{
@@ -25,6 +28,9 @@ pub use day::{
     sun_direction,
 };
 pub use derive::{cirrus_base_cover, derive, haze_k_rh, sun_block_cover};
-pub use noise::{splitmix64, td_day, td_noise};
+pub use grids::{ClimateCell, ClimateGrids, GRID_NAMES};
+pub use noise::{band_index, splitmix64, td_day, td_noise};
 pub use state::WeatherState;
 pub use tables::{interp_rows, lerp_table};
+
+pub use crate::field::weather_core::{DiurnalState, ground_context, monthly};

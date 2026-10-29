@@ -8,6 +8,8 @@
 //! окна, поведение RW-6t без окон. Сдвиги, подача, детерминизм, Онгудай, стык уровней и сверка с
 //! GPU-дампом окон (`tests/data/window`) — `#[ignore]` (тяжёлое, release):
 //! `cargo test --release -p dp-air --test clipmap -- --ignored --nocapture --test-threads=1`.
+mod common;
+
 use dp_air::field::clipmap::{ClipMap, center_of, corner, shift_level, shifted_corner, solve_pair};
 use dp_air::field::runtime::{RtCfg, ground_height};
 use dp_air::field::weather_core::Cells;
@@ -115,6 +117,7 @@ fn wait_ready(m: &mut Formula, limit: f64) {
 fn formula(cfg: &Configs, pl: Place, c: &Conditions, focus: Option<Focus>) -> Formula {
     let mut m = Formula::new();
     m.configure(cfg, 1).unwrap();
+    m.set_weather(common::real_weather());
     m.set_conditions(c).unwrap();
     if let Some(f) = focus {
         m.set_focuses(&[f]).unwrap();

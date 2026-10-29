@@ -418,20 +418,8 @@ fn synthetic_place() -> Place {
     P.get_or_init(|| {
         let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("../../tests/fixtures/wind/places/synthetic.json");
-        // W5 v8: прогнозу нужна сырая ячейка климата; у синтетики её нет - заголовок без климата
-        // (запасные значения), как у синтетических заголовков тестов
-        let p = fixtures::read_place(&path).unwrap();
-        let mut h = p.header().clone();
-        h.loc.climate = None;
-        h.loc.climate_lag = None;
-        Place::new(
-            h,
-            p.heights().to_vec(),
-            p.water().to_vec(),
-            p.cls().to_vec(),
-            p.moist().to_vec(),
-        )
-        .unwrap()
+        // W5 v10: климат места берёт Weather; без неё - запасные значения конфига
+        fixtures::read_place(&path).unwrap()
     })
     .clone()
 }

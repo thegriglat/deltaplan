@@ -52,6 +52,7 @@ use crate::field::runtime::{
 use crate::field::weather_core::{WeatherInputs, hour_at};
 use crate::field::wind_field::{Field, Limits};
 use crate::terms::{self, Terms};
+use crate::weather::{PlaceContext, Weather};
 use crate::{
     AirModel, Cloud, Conditions, Configs, Core, Crest, Decomposition, Error, FieldExport, Focus,
     ObjRecord, Place, Raster, SampleMode, State, Status,
@@ -498,6 +499,8 @@ pub struct Formula {
     /// Слагаемые ветра помимо поля; опросы читают публикацию (`publish_terms`).
     terms: Terms,
     place: Option<Arc<Place>>,
+    /// Погода и климат места (`set_weather`).
+    weather: Option<Arc<Weather>>,
     time_s: f64,
     /// Условия поля в атмосфере (`None` — поля нет).
     cur: Option<CondRec>,
@@ -596,6 +599,7 @@ impl Formula {
             focuses: Vec::new(),
             terms: Terms::default(),
             place: None,
+            weather: None,
             time_s: 0.0,
             cur: None,
             warm: None,
@@ -750,22 +754,6 @@ impl Formula {
     fn set_time(&mut self, t: f64) {
         self.time_s = t;
         self.sh.set_time(t);
-    }
-
-    /// Прогноз без сырой ячейки климата места - `BadInput` (W5 v8: `loc.climate_cell` обязателен
-    /// при `loc.climate`; предел вывода погоды по часу). Эталон-пресет ячейки не требует.
-    fn check_climate(place: &Place, cond: Option<&Conditions>) -> Result<(), Error> {
-        let loc = &place.header().loc;
-        let forecast = matches!(
-            cond.map(|c| &c.source),
-            Some(crate::conditions::Source::Forecast { .. })
-        );
-        if forecast && loc.climate.is_some() && loc.climate_cell.is_none() {
-            return Err(Error::bad_input(
-                "loc.climate_cell is required with loc.climate for a forecast (W5 v8)",
-            ));
-        }
-        Ok(())
     }
 
     /// Опорная высота ветра без `wind_ref` (пресет, прогноз без `wind_ref`): высота первого старта
@@ -1017,6 +1005,7 @@ impl Formula {
             place_hash: self.place_hash.clone(),
             clip: if loading { None } else { self.clip.clone() },
             win_fail: self.win_fail.clone(),
+            weather: self.weather.clone(),
         };
         let sh = self.sh.clone();
         let sl = slot.clone();
@@ -1257,7 +1246,6 @@ impl AirModel for Formula {
     }
 
     fn load_place(&mut self, place: Place) -> Result<(), Error> {
-        Self::check_climate(&place, self.cond.as_ref())?;
         self.cancel_job();
         let epoch = self.sh.epoch.fetch_add(1, Ordering::SeqCst) + 1;
         let place = Arc::new(place);
@@ -1329,9 +1317,6 @@ impl AirModel for Formula {
     }
 
     fn set_conditions(&mut self, c: &Conditions) -> Result<(), Error> {
-        if let Some(p) = &self.place {
-            Self::check_climate(p, Some(c))?;
-        }
         self.reap();
         if self.cond.as_ref() != Some(c) {
             self.cond_t = self.time_s;
@@ -1436,6 +1421,16 @@ impl AirModel for Formula {
             self.launch(Kind::Start, rec, t);
         }
         Ok(())
+    }
+
+    fn set_weather(&mut self, w: Arc<Weather>) {
+        self.terms.set_weather(w.clone());
+        self.weather = Some(w);
+        self.publish_terms();
+    }
+
+    fn place_context(&self) -> Option<PlaceContext> {
+        self.place.as_deref().map(PlaceContext::of)
     }
 
     fn set_cache_dir(&mut self, path: &str) -> Result<(), Error> {

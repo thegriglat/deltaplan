@@ -3,19 +3,6 @@ use crate::error::Error;
 use serde::Deserialize;
 use std::collections::BTreeMap;
 
-/// Климат у центра места (W5 v3, `ClimateGrid.place`): ячейка ERA5 на `month/day`.
-#[derive(Clone, Copy, Debug, PartialEq, Deserialize)]
-pub struct LocClimate {
-    /// Дневной максимум HH5, °C.
-    pub tx_c: f64,
-    /// Суточная амплитуда, К.
-    pub dtr_k: f64,
-    /// Средняя высота ячейки HH1, м (0 — нет).
-    pub z_cell_m: f64,
-    pub has_hh1: bool,
-    pub has_hh5: bool,
-}
-
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct Loc {
     pub id: String,
@@ -24,22 +11,6 @@ pub struct Loc {
     pub utc_offset_h: f64,
     pub month: u32,
     pub day: u32,
-    /// Нет ключа — запасные таблицы `weather_model.json`.
-    #[serde(default)]
-    pub climate: Option<LocClimate>,
-    /// W5 v7: климат той же ячейки на дату `month/day − round(water.lag_days)`; нужен для
-    /// температуры воды. Обязателен, если есть `climate` (пара считается фасадом вместе).
-    #[serde(default)]
-    pub climate_lag: Option<LocClimate>,
-    /// W5 v8: сырая ячейка климата `ClimateGrid.at(center_lat, center_lon, month, day)` как json
-    /// (`td_c, td_sd_k, z_cell_m, t700_c, z700_m, tx_c, dtr_k, wr, trop_m, hcc, src{hh1,hh2,hh5,hh6}`);
-    /// поправки на высоту места считает крейт (`weather::climate_place`). Нет ключа — запасные
-    /// значения `weather_model.json`. Ключи только парой с `climate_cell_lag`.
-    #[serde(default)]
-    pub climate_cell: Option<serde_json::Value>,
-    /// W5 v8: то же на дату `month/day − round(water.lag_days)`.
-    #[serde(default)]
-    pub climate_cell_lag: Option<serde_json::Value>,
 }
 
 /// Сетка W1: узлы, `origin_*` — координаты узла (0, 0).
@@ -92,16 +63,6 @@ impl PlaceHeader {
         }
         if !(1..=12).contains(&l.month) || !(1..=31).contains(&l.day) {
             return bad("loc: month/day out of range");
-        }
-        if l.climate.is_some() && l.climate_lag.is_none() {
-            return bad("loc.climate_lag is required with loc.climate");
-        }
-        if l.climate_cell.is_some() != l.climate_cell_lag.is_some() {
-            return bad(if l.climate_cell.is_some() {
-                "loc.climate_cell_lag is required with loc.climate_cell"
-            } else {
-                "loc.climate_cell is required with loc.climate_cell_lag"
-            });
         }
         let g = &self.grid;
         if !(g.origin_x.is_finite() && g.origin_z.is_finite()) {

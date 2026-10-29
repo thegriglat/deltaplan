@@ -16,7 +16,9 @@ pub struct Forecast {
 #[serde(deny_unknown_fields)]
 pub struct WindRef {
     pub ref_msl: f64,
-    pub gain_per_km: f64,
+    /// Рост ветра на км высоты; нет ключа - из климата места (`Weather::climate_place`, W5 v10).
+    #[serde(default)]
+    pub gain_per_km: Option<f64>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -107,7 +109,7 @@ impl Conditions {
                     return Err(bad("quantum_h must be > 0".into()));
                 }
                 if let Some(w) = &raw.wind_ref
-                    && !(w.ref_msl.is_finite() && w.gain_per_km.is_finite())
+                    && !(w.ref_msl.is_finite() && w.gain_per_km.is_none_or(f64::is_finite))
                 {
                     return Err(bad("wind_ref: non-finite number".into()));
                 }

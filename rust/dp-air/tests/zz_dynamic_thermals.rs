@@ -8,6 +8,8 @@
 //! зависят - потому были. Игровое место всегда 25 м - в игре термики на месте есть.
 //! Второе: вне детерминированного режима первый набор термиков собирается в фоне, и до его
 //! публикации (десятки-сотни мс) `cores` пуст - тест ждёт.
+mod common;
+
 use dp_air::{AirModel, Conditions, Configs, Core, Focus, Formula, Place, PlaceHeader, State};
 use serde_json::{Value, json};
 use std::path::{Path, PathBuf};
@@ -59,9 +61,7 @@ fn rig_place(sp: f64) -> Place {
     let n = (2.0 * half / sp).round() as usize + 1;
     let h = format!(
         r#"{{"version":1,"loc":{{"id":"rig","center_lat":51.5,"center_lon":86.5,"utc_offset_h":6.0,
-        "month":7,"day":15,
-        "climate":{{"tx_c":24.0,"dtr_k":12.0,"z_cell_m":0.0,"has_hh1":false,"has_hh5":true}},
-        "climate_lag":{{"tx_c":22.0,"dtr_k":12.0,"z_cell_m":0.0,"has_hh1":false,"has_hh5":true}}}},
+        "month":7,"day":15}},
         "grid":{{"origin_x":{},"origin_z":{},"spacing":{sp},"width":{n},"height":{n}}},
         "surface_classes":{{"none":0,"forest":1,"grass":2,"crop":3,"shrub":4,"bare":5,"water":6,"built":7,"snow":8}},
         "start_sites":[]}}"#,
@@ -85,6 +85,8 @@ fn preset_obj(name: &str) -> String {
 fn formula(det: bool, preset: &str, sp: f64) -> Formula {
     let mut m = Formula::new();
     m.configure(&configs(det), 7).unwrap();
+    // климат стенда: Tmax 24 °C, амплитуда 12 К (сетка HH5), остальное - запасные значения
+    m.set_weather(common::const_hh5_weather(24, 12));
     let c = format!(
         r#"{{"preset":{preset},"start_hour":12,"speed":1,"blend_s":null,"rebuild":false,"inflow_mode":"inflow"}}"#
     );

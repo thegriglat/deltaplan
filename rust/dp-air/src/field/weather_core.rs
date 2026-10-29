@@ -79,7 +79,8 @@ impl<F: Fn(f64, f64, i64, i64) -> ClimateCell + Sync> Climate for F {
 /// Параметры `weather_model.json`, нужные полю.
 #[derive(Clone, Debug, PartialEq)]
 pub struct WeatherModelCfg {
-    pub ui_temperature_c: [f64; 2],
+    /// Физический диапазон температуры модели, °C (`limits.temperature_c`; `ui.*` крейт не читает).
+    pub temperature_limits_c: [f64; 2],
     pub peak_after_noon_h: f64,
     pub sunset_fraction: f64,
     pub night_tau_h: f64,
@@ -123,10 +124,10 @@ fn arr(v: &Value, path: &[&str], def: &[f64]) -> Vec<f64> {
 
 impl WeatherModelCfg {
     pub fn from_value(v: &Value) -> Self {
-        let ui = arr(v, &["ui", "temperature_c"], &[-50.0, 60.0, 1.0]);
+        let ui = arr(v, &["limits", "temperature_c"], &[-50.0, 60.0]);
         let d = |k: &str, def: f64| num(v, &["diurnal", k], def);
         WeatherModelCfg {
-            ui_temperature_c: [ui[0], ui[1]],
+            temperature_limits_c: [ui[0], ui[1]],
             peak_after_noon_h: d("peak_after_noon_h", 2.5),
             sunset_fraction: d("sunset_fraction", 0.65),
             night_tau_h: d("night_tau_h", 2.0),
@@ -373,7 +374,7 @@ pub fn season_index(month: i64, lat: f64) -> usize {
 }
 
 /// Градиент по поясам: `mid` (30–60°) по сезону, `tropics` (|φ| ≤ 20°), `other`; нет — `def`.
-pub(crate) fn belt_gradient(lat: f64, season: usize, g: Option<&Value>, def: f64) -> f64 {
+pub fn belt_gradient(lat: f64, season: usize, g: Option<&Value>, def: f64) -> f64 {
     let Some(g) = g else {
         return def; // секции нет: пустой словарь — всё по умолчанию
     };
@@ -420,7 +421,7 @@ impl WeatherModelCfg {
     pub fn typical_max_c(&self, ctx: &Ctx, climate: &dyn Climate) -> f64 {
         let cell = climate.cell(ctx.lat, ctx.lon, ctx.month, ctx.day);
         let (tx, _) = self.place_climate(&cell, ctx.lat, ctx.month, ctx.valley_msl_m);
-        tx.clamp(self.ui_temperature_c[0], self.ui_temperature_c[1])
+        tx.clamp(self.temperature_limits_c[0], self.temperature_limits_c[1])
     }
 
     /// Суточная амплитуда места на дату `ctx`, К.
@@ -623,7 +624,7 @@ pub fn day(
 
 // ---------------------------------------------------------------- вода
 
-fn lapse(z_m: f64, ctx: &Ctx, sh: &SurfaceHeatCfg) -> f64 {
+pub(crate) fn lapse(z_m: f64, ctx: &Ctx, sh: &SurfaceHeatCfg) -> f64 {
     sh.water.lapse_k_per_km * (z_m - ctx.valley_msl_m) / 1000.0
 }
 

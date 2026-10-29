@@ -1,6 +1,7 @@
 //! Климат места: `ClimateGrid.place` по сырой ячейке (`ClimateGrid.at`, W5 v8).
 use serde_json::Value;
 
+use super::grids::ClimateCell;
 use super::tables::{num, nums};
 use crate::field::weather_core::{WeatherModelCfg, belt_gradient, monthly, season_index};
 
@@ -114,7 +115,36 @@ fn cell_of(cell: &Value, ctx: &PlaceCtx, cfg: &WeatherModelCfg) -> ClimatePlace 
 /// поправки Td, Tx, амплитуды на высоту долины и рост ветра `gain_per_km` (`ClimateGrid.place`).
 /// `cell` не объект (`null`) — запасные значения `weather_model.json` как `ClimateGrid.at` без сеток.
 pub fn climate_place(cell: &Value, ctx: &PlaceCtx, cfg: &WeatherModelCfg) -> ClimatePlace {
-    let mut r = cell_of(cell, ctx, cfg);
+    finish_place(cell_of(cell, ctx, cfg), ctx, cfg)
+}
+
+/// Поправки на высоту и рост ветра для готовой ячейки ([`ClimateGrids::at`](super::ClimateGrids::at)).
+pub(crate) fn adjust_place(
+    cell: ClimateCell,
+    ctx: &PlaceCtx,
+    cfg: &WeatherModelCfg,
+) -> ClimatePlace {
+    finish_place(
+        ClimatePlace {
+            td_c: cell.td_c,
+            td_sd_k: cell.td_sd_k,
+            z_cell_m: cell.z_cell_m,
+            t700_c: cell.t700_c,
+            z700_m: cell.z700_m,
+            tx_c: cell.tx_c,
+            dtr_k: cell.dtr_k,
+            wr: cell.wr,
+            trop_m: cell.trop_m,
+            hcc: cell.hcc,
+            gain_per_km: 0.0,
+            src: cell.src,
+        },
+        ctx,
+        cfg,
+    )
+}
+
+fn finish_place(mut r: ClimatePlace, ctx: &PlaceCtx, cfg: &WeatherModelCfg) -> ClimatePlace {
     let (lat, month) = (ctx.lat, ctx.month.clamp(1, 12));
     let valley_given = ctx.valley_msl_m;
     let z_cell = r.z_cell_m;

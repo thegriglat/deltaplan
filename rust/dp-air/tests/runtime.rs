@@ -5,6 +5,8 @@
 //! области (`domain_l_m` 7,2 км, 18 клеток) с критерием игры (`tol_scale` 5). Онгудай (полная
 //! область 38,4 км) и точные числа AP-20 — `#[ignore]`, на release:
 //! `cargo test --release -p dp-air --test runtime -- --ignored --nocapture --test-threads=1`.
+mod common;
+
 use dp_air::field::runtime::*;
 use dp_air::field::weather_core::{WeatherInputs, hour_at};
 use dp_air::fixtures::read_place;
@@ -180,6 +182,7 @@ fn job_in(
     let inputs = WeatherInputs::from_conditions(c, cfgs).unwrap();
     let rec = CondRec::new(&inputs, c, hour_at(c, 0.0));
     JobIn {
+        weather: Some(common::real_weather()),
         cfg: Arc::new(cfg),
         configs: Arc::new(cfgs.clone()),
         place: Arc::new(pl),
@@ -1230,19 +1233,15 @@ fn formula_is_send_sync() {
 }
 
 #[test]
-fn place_header_carries_climate_and_its_absence_is_allowed() {
-    let pl = place("synthetic");
-    let c = pl.header().loc.climate.expect("W5 v3: loc.climate");
-    assert!(c.has_hh1 && c.has_hh5);
-    assert!((c.tx_c - 20.19).abs() < 0.01 && (c.dtr_k - 10.37).abs() < 0.01);
-    assert_eq!(c.z_cell_m, 1136.0);
+fn place_header_has_no_climate_keys_and_ignores_old_ones() {
+    // W5 v10: климат места берёт Weather; старые ключи loc.climate* в заголовке не читаются
     let h = dp_air::PlaceHeader::from_json(
         r#"{"version":1,"loc":{"id":"t","center_lat":50.0,"center_lon":86.0,"utc_offset_h":7.0,
-"month":7,"day":1},"grid":{"origin_x":0,"origin_z":0,"spacing":25,"width":2,"height":2},
-"surface_classes":{},"start_sites":[]}"#,
+"month":7,"day":1,"climate":{"tx_c":1.0}},"grid":{"origin_x":0,"origin_z":0,"spacing":25,"width":2,
+"height":2},"surface_classes":{},"start_sites":[]}"#,
     )
     .unwrap();
-    assert!(h.loc.climate.is_none());
+    assert_eq!(h.loc.center_lat, 50.0);
 }
 
 // ---------------------------------------------------------------- (7) RW-6t: отмена в подготовке
