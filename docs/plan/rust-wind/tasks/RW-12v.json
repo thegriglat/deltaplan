@@ -68,11 +68,12 @@
     "rust/dp-air/tests/contract.rs",
     "rust/dp-air/tests/runtime.rs",
     "rust/dp-air/tests/field_export.rs",
-    "rust/dp-air/tests/acceptance.rs"
+    "rust/dp-air/tests/acceptance.rs",
+    "rust/dp-air/src/terms/analytic/ground.rs",
+    "rust/dp-air/src/terms/analytic/mod.rs"
   ],
   "dont_touch": [
     "rust/dp-air/src/field/",
-    "rust/dp-air/src/terms/analytic/",
     "rust/picard_rs/",
     "rust/dp-gd/",
     "scripts/",
@@ -109,5 +110,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-29T14:21:30"
+  "created": "2026-10-29T14:21:30",
+  "edited": "2026-10-29T14:50:29"
 }
