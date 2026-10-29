@@ -1,0 +1,86 @@
+{
+  "id": "RW-11d",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Облака в крейте: CloudField (прогностическое поле), CloudFieldSources, CloudPhysics (подсос, плотность, sample, shade_at, visible_clouds) — слагаемое cloud, cloud_raster, clouds, cloud_density_many",
+  "goal": "Поле облаков GD в крейте: шаг 20 с, разгон 2400 с при start_at, снос, входы от термиков (RW-10b/10d) и погоды; CloudPhysics (Cb-объекты, подсос suck, плотность, sample с выбросом из облака и бурлением, shade_at); слагаемое cloud в ExtraSet, cloud_raster/clouds/cloud_density_many — pub-функции; растр и cloud совпадают с GD в допуске W8 v2, крючки для RW-10f (suck, shade) готовы.",
+  "plan_ref": "План переноса",
+  "contracts": [
+    {
+      "name": "W4",
+      "version": "5",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W6",
+      "version": "4",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W7",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W10",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-11d",
+  "branch": "rust-wind/RW-11d",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/terms/clouds/",
+    "rust/dp-air/src/terms/mod.rs",
+    "rust/dp-air/src/terms/slots.rs",
+    "rust/dp-air/tests/terms_clouds.rs",
+    "rust/dp-air/tests/data/RW-11d/"
+  ],
+  "dont_touch": [
+    "rust/dp-air/src/formula.rs",
+    "rust/dp-air/src/field/",
+    "rust/dp-air/src/terms/thermal/",
+    "rust/picard_rs/",
+    "rust/dp-gd/",
+    "scripts/",
+    "tests/fixtures/",
+    "docs/contracts/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "terms_clouds",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test terms_clouds",
+      "expect": "num:test result: ok\\. (\\d+) >=8"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dp_air_no_godot",
+      "cmd": "cargo tree --manifest-path rust/Cargo.toml -p dp-air -e normal | grep -ci godot || true",
+      "expect": "num:^(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T06:30:38"
+}
