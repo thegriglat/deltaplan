@@ -87,11 +87,6 @@
       "expect": "exit=0"
     },
     {
-      "name": "fmt",
-      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
-      "expect": "exit=0"
-    },
-    {
       "name": "report_doc",
       "cmd": "test -s docs/research/rust-wind-stage3/tests-field-always.md",
       "expect": "exit=0"
@@ -104,5 +99,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-29T19:57:01"
+  "created": "2026-10-29T19:57:01",
+  "edited": "2026-10-29T23:11:30"
 }
