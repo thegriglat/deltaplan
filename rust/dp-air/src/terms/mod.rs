@@ -49,6 +49,7 @@ pub mod waves;
 mod weather_link;
 
 use crate::field::field_set::FieldSet;
+use crate::field::wind_field::Field;
 use crate::place::Place;
 use crate::{Conditions, Configs, Focus, SampleMode};
 pub use decompose::{
@@ -155,6 +156,13 @@ pub struct Terms {
     pub statics_mode: u8,
     /// Направление на солнце (`set_sun_direction`).
     pub sun: Option<[f32; 3]>,
+    /// Самый грубый уровень поля воздуха: по нему собираются источники термиков
+    /// (`set_air_field`); нет — термики только по клеткам.
+    pub air: Option<Arc<Field>>,
+    /// Ветер прогноза на 10 м для источников из поля, м/с (`None` — `wind_speed_kmh` погоды).
+    pub air_u10: Option<f64>,
+    /// Термики пересобираются в фоне (`advance` не ждёт): `true` при `air.deterministic = false`.
+    pub thermal_async: bool,
     pub slots: Slots,
     /// Погода во времени (RW-12d, `weather_link.rs`): состояние, место, версии.
     link: weather_link::WeatherLink,
@@ -173,6 +181,9 @@ impl Default for Terms {
             statics: Vec::new(),
             statics_mode: 0,
             sun: None,
+            air: None,
+            air_u10: None,
+            thermal_async: false,
             slots: Slots::new(),
             link: Default::default(),
         }
@@ -184,6 +195,11 @@ impl Terms {
         self.configs = configs.clone();
         self.seed = seed;
         self.cfg = SumCfg::from_configs(configs);
+        // детерминированный режим (`air.deterministic`): фона нет, всё считается в `advance`
+        let det = named_json(configs, "atmosphere")
+            .and_then(|a| a.pointer("/air/deterministic").and_then(Value::as_bool))
+            .unwrap_or(false);
+        self.thermal_async = !det;
         self.weather_configure();
         let ref_msl = self.wind.ref_msl;
         self.wind = WindModel::new(WindCfg::from_configs(configs));
@@ -235,6 +251,45 @@ impl Terms {
         self.slots.thermal = Arc::new(thermal::ThermalSlot::new(g));
     }
 
+    /// Поле воздуха для источников термиков: берётся самый грубый (последний) уровень.
+    /// `u10` — ветер прогноза на 10 м (нет — из погоды). Источники пересоберутся при следующем
+    /// `advance`/`start_at`.
+    pub fn set_air_field(&mut self, levels: &[Arc<Field>], u10: Option<f64>) {
+        self.air = levels.last().cloned();
+        self.air_u10 = u10;
+    }
+
+    /// Ветер прогноза на 10 м, м/с: заданный или `wind_speed_kmh` погоды.
+    pub fn air_u10(&self) -> f64 {
+        self.air_u10
+            .unwrap_or_else(|| self.weather.f64_or("wind_speed_kmh", 0.0) / 3.6)
+    }
+
+    /// Земля термиков из места W5: высота по растру, вода, сила источника по растрам
+    /// (`thermal_src`) на час `hour` (нет — статичное солнце `world.json → sun`, без воды и ночи, как у случаев
+    /// W8 без `AtmoDay`). Конфиги — те, что в `configure`.
+    pub fn set_thermal_place(
+        &mut self,
+        place: Arc<crate::place::Place>,
+        hour: Option<thermal_src::SourceHour>,
+    ) -> Result<(), crate::Error> {
+        let cfg = thermal_src::SourceCfg::from_configs(&self.configs)?;
+        // без часа — статичное солнце мира (`world.json → sun`, `Terrain.refresh_sun`)
+        let hr = hour.unwrap_or_else(|| {
+            let w = named_json(&self.configs, "world").unwrap_or(Value::Null);
+            let g = |k: &str, d: f64| w.pointer(k).and_then(Value::as_f64).unwrap_or(d);
+            thermal_src::SourceHour::uniform(crate::field::sun::sun_direction(
+                g("/sun/azimuth_deg", 180.0),
+                g("/sun/elevation_deg", 45.0),
+            ))
+        });
+        let p2 = place.clone();
+        let src: Arc<thermal::SourceFn> =
+            Arc::new(move |x, z, _t| f64::from(thermal_src::source_strength(&p2, &cfg, &hr, x, z)));
+        self.set_thermal_ground(Arc::new(thermal::PlaceGround::new(place, src)));
+        Ok(())
+    }
+
     /// Ядра подъёма W6 (`AirModel::cores` подключит RW-12z): на момент `t`.
     /// Поле `storm` ядра Cb - интенсивность грозы (`StormField.intensity`, RW-11f).
     pub fn thermal_cores(&self, center: [f32; 3], radius: f32, t: f64, out: &mut Vec<crate::Core>) {
@@ -251,6 +306,8 @@ impl Terms {
     pub fn unload_place(&mut self) {
         self.focuses.clear();
         self.statics.clear();
+        self.air = None;
+        self.slots.thermal = Arc::new(thermal::ThermalSlot::empty());
         self.weather_unload_place();
     }
 }

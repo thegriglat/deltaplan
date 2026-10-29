@@ -17,6 +17,7 @@
 //!
 //! Подключение места: `Terms::set_thermal_ground(Arc<dyn GroundSource>)` (до этого — плоская
 //! земля без источников, термиков нет).
+pub mod air;
 pub mod cells;
 pub mod cfg;
 pub mod cores;
@@ -35,6 +36,8 @@ use super::{Ctx, Terms};
 use crate::Core;
 use crate::field::runtime::ground_height;
 use crate::place::Place;
+use air::{AirBuild, AirKey, AirSrc, LandCache};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 
 /// Земля под термиками: высота, вода, сила источника.
@@ -118,9 +121,23 @@ struct Built {
     ground_ref: f64,
     statics: Vec<[f32; 4]>,
     statics_mode: u8,
+    /// Источники поля и ключ, с которым они собраны.
+    air: Option<(AirKey, AirSrc)>,
+    /// Доля суши столбцов последней сборки (кеш на сетку места).
+    land: LandCache,
 }
 
-/// Слот `Thermal`: термики по клеткам и статичные.
+/// Результат фоновой пересборки.
+struct Cell {
+    done: AtomicBool,
+    val: Mutex<Option<ThermalSlot>>,
+}
+
+/// Фоновая пересборка (одна за раз), общая для снимков слота.
+#[derive(Default)]
+struct Job(Mutex<Option<Arc<Cell>>>);
+
+/// Слот `Thermal`: термики по клеткам, источники из поля и статичные.
 pub struct ThermalSlot {
     ground: Arc<dyn GroundSource>,
     hooks: Arc<dyn CloudHooks>,
@@ -128,6 +145,18 @@ pub struct ThermalSlot {
     /// Слот без земли (по умолчанию): набор не строится, `sample` даёт `None` (ни термиков, ни
     /// фонового опускания) - ветер остальных слагаемых не меняется.
     inert: bool,
+    job: Arc<Job>,
+}
+
+/// Что нужно знать о текущем состоянии `Terms`, чтобы решить, годится ли снимок.
+struct Plan {
+    setup: Setup,
+    same: bool,
+    slot: i64,
+    key: Option<AirKey>,
+    dt: f64,
+    cfg_ptr: usize,
+    ground_ref: f64,
 }
 
 impl ThermalSlot {
@@ -138,6 +167,7 @@ impl ThermalSlot {
             hooks: Arc::new(NoClouds),
             built: None,
             inert: false,
+            job: Arc::new(Job::default()),
         }
     }
 
@@ -168,11 +198,38 @@ impl ThermalSlot {
         self.built.as_ref().map(|b| &b.setup)
     }
 
-    /// Новый снимок на момент `t` (или `None` — прежний ещё годится). `force` — `start_at`.
-    pub fn rebuild(&self, terms: &Terms, t: f64, force: bool) -> Option<ThermalSlot> {
-        if self.inert {
-            return None;
+    /// Источники из поля, по которым собран снимок.
+    pub fn air(&self) -> Option<&AirSrc> {
+        self.built
+            .as_ref()
+            .and_then(|b| b.air.as_ref())
+            .map(|a| &a.1)
+    }
+
+    /// Идёт ли фоновая пересборка.
+    pub fn pending(&self) -> bool {
+        self.job
+            .0
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .is_some()
+    }
+
+    /// Дождаться фоновой пересборки (тесты); `false` — вышло время.
+    pub fn wait_pending(&self, limit: std::time::Duration) -> bool {
+        let c = self.job.0.lock().unwrap_or_else(|e| e.into_inner()).clone();
+        let Some(c) = c else { return true };
+        let t0 = std::time::Instant::now();
+        while !c.done.load(Ordering::Acquire) {
+            if t0.elapsed() > limit {
+                return false;
+            }
+            std::thread::sleep(std::time::Duration::from_millis(1));
         }
+        true
+    }
+
+    fn plan(&self, terms: &Terms, t: f64) -> Plan {
         let ptr = Arc::as_ptr(&terms.configs) as usize;
         let prev = self.built.as_ref();
         let (cfg, ground_ref) = match prev {
@@ -185,47 +242,196 @@ impl ThermalSlot {
         };
         let dt = cfg.refresh_interval_s.max(1.0e-3);
         let slot = (t / dt).floor() as i64;
-        let focus = terms
-            .focuses
-            .first()
-            .map_or([0.0, 0.0], |f| [f64::from(f.pos[0]), f64::from(f.pos[2])]);
-        let setup = Setup::new(terms, cfg, ground_ref);
+        let mut setup = Setup::new(terms, cfg, ground_ref);
+        let key = AirKey::of(terms.air.as_ref(), &setup);
+        // сравнивать окружение надо с теми же источниками, что и у прежнего снимка
+        setup.air = prev.and_then(|b| b.air.as_ref()).map(|a| a.1.clone());
         let same = prev.is_some_and(|b| b.setup.same_env(&setup));
-        if !force
-            && same
-            && let Some(b) = prev
-            && b.state.slot == slot
+        Plan {
+            setup,
+            same,
+            slot,
+            key,
+            dt,
+            cfg_ptr: ptr,
+            ground_ref,
+        }
+    }
+
+    /// Прежний снимок ещё годится (тот же час обновления, окружение, статичные и источники).
+    fn is_current(&self, terms: &Terms, p: &Plan) -> bool {
+        let Some(b) = &self.built else { return false };
+        p.same
+            && b.state.slot == p.slot
             && b.statics == terms.statics
             && b.statics_mode == terms.statics_mode
-        {
+            && b.air.as_ref().map(|a| a.0) == p.key
+    }
+
+    /// Новый снимок на момент `t` (или `None` — прежний ещё годится), синхронно. `force` —
+    /// `start_at`: строить заново. Если нужны источники поля, их собирает тоже тут.
+    pub fn rebuild(&self, terms: &Terms, t: f64, force: bool) -> Option<ThermalSlot> {
+        if self.inert {
             return None;
         }
+        let mut p = self.plan(terms, t);
+        if !force && self.is_current(terms, &p) {
+            return None;
+        }
+        let prev = self.built.as_ref();
         let memo = match prev {
-            Some(b) if same => b.memo.clone(),
+            Some(b) if p.same => b.memo.clone(),
             _ => Arc::new(Mutex::new(Memo::new())),
         };
-        let setup = Arc::new(setup);
+        // источники поля: прежние, если ключ тот же, иначе сборка (первые — ждём, как GD)
+        let mut land: LandCache = prev.and_then(|b| b.land.clone());
+        let air = match p.key {
+            None => None,
+            Some(k) => match prev.and_then(|b| b.air.as_ref()) {
+                Some(a) if a.0 == k => Some(a.clone()),
+                old => {
+                    let level = terms.air.clone()?;
+                    let b = AirBuild {
+                        level: level.clone(),
+                        ground: self.ground.clone(),
+                        thermal: crate::terms::named_json(&terms.configs, "atmosphere")
+                            .and_then(|v| v.get("thermal").cloned())
+                            .unwrap_or(serde_json::Value::Null),
+                        key: k,
+                        u10: terms.air_u10(),
+                        seed: terms.seed,
+                        t,
+                        land: land.clone(),
+                    };
+                    let built = b.run();
+                    if let Some(a) = &built
+                        && !a.src.land.is_empty()
+                    {
+                        land = Some((a.src.grid_sig.clone(), Arc::new(a.src.land.clone())));
+                    }
+                    // прежние циклы источников помнили старый список — забыть (живые доживают)
+                    {
+                        let mut m = memo.lock().unwrap_or_else(|e| e.into_inner());
+                        let same_cover = old.is_some_and(|o| {
+                            crate::terms::thermal_air::same_cover(&o.1.level, &level)
+                        });
+                        m.clear_empty(same_cover);
+                    }
+                    built.map(|a| (k, a))
+                }
+            },
+        };
+        if p.key.is_some() && air.is_none() && prev.and_then(|b| b.air.as_ref()).is_some() {
+            memo.lock()
+                .unwrap_or_else(|e| e.into_inner())
+                .clear_empty(false);
+        }
+        p.setup.air = air.as_ref().map(|a| a.1.clone());
+        let setup = Arc::new(p.setup);
+        let focuses = focus_points(terms);
         let mut all = statics::build_statics(&setup, &*self.ground, &terms.statics);
         if !setup.static_only {
             let mut m = memo.lock().unwrap_or_else(|e| e.into_inner());
             m.prune(t);
-            setup.generate(&mut m, &*self.ground, &*self.hooks, t, focus, &mut all);
+            setup.generate(&mut m, &*self.ground, &*self.hooks, t, &focuses, &mut all);
         }
-        let state = State::build(&setup, all, t, focus, dt, slot);
+        let state = State::build(&setup, all, t, &focuses, p.dt, p.slot);
         Some(ThermalSlot {
             ground: self.ground.clone(),
             hooks: self.hooks.clone(),
             inert: false,
+            job: self.job.clone(),
             built: Some(Built {
                 setup,
                 memo,
                 state,
-                configs_ptr: ptr,
-                ground_ref,
+                configs_ptr: p.cfg_ptr,
+                ground_ref: p.ground_ref,
                 statics: terms.statics.clone(),
                 statics_mode: terms.statics_mode,
+                air,
+                land,
             }),
         })
+    }
+
+    /// Ход `Terms::advance`: пересборка в фоне (снимок публикуется по готовности), пока есть
+    /// прежний снимок; первый снимок и источники, которых ещё не было, — синхронно.
+    fn advance_bg(&self, terms: &Terms, t: f64) -> Option<ThermalSlot> {
+        if self.inert {
+            return None;
+        }
+        // готовый результат принять, если он ещё про те же входы
+        let done = {
+            let mut g = self.job.0.lock().unwrap_or_else(|e| e.into_inner());
+            match g.as_ref() {
+                Some(c) if c.done.load(Ordering::Acquire) => {
+                    let c = g.take();
+                    c.and_then(|c| c.val.lock().unwrap_or_else(|e| e.into_inner()).take())
+                }
+                _ => None,
+            }
+        };
+        if let Some(res) = done {
+            let p = res.plan(terms, t);
+            let b = res.built.as_ref();
+            let ok = b.is_some_and(|b| {
+                p.same
+                    && b.statics == terms.statics
+                    && b.statics_mode == terms.statics_mode
+                    && b.air.as_ref().map(|a| a.0) == p.key
+            });
+            if ok {
+                return Some(res);
+            }
+        }
+        let p = self.plan(terms, t);
+        let first = self.built.is_none() || (p.key.is_some() && self.air().is_none());
+        if first {
+            return self.rebuild(terms, t, false);
+        }
+        if self.is_current(terms, &p) {
+            return None;
+        }
+        let mut g = self.job.0.lock().unwrap_or_else(|e| e.into_inner());
+        if g.is_some() {
+            return None;
+        }
+        let cell = Arc::new(Cell {
+            done: AtomicBool::new(false),
+            val: Mutex::new(None),
+        });
+        *g = Some(cell.clone());
+        drop(g);
+        let me = self.snapshot();
+        let terms = terms.clone();
+        rayon::spawn(move || {
+            let r = me.rebuild(&terms, t, false);
+            *cell.val.lock().unwrap_or_else(|e| e.into_inner()) = r;
+            cell.done.store(true, Ordering::Release);
+        });
+        None
+    }
+
+    /// Копия ручки снимка (общие `Arc`): для фоновой задачи.
+    fn snapshot(&self) -> ThermalSlot {
+        ThermalSlot {
+            ground: self.ground.clone(),
+            hooks: self.hooks.clone(),
+            inert: self.inert,
+            job: self.job.clone(),
+            built: self.built.as_ref().map(|b| Built {
+                setup: b.setup.clone(),
+                memo: b.memo.clone(),
+                state: State::stub(b.state.slot),
+                configs_ptr: b.configs_ptr,
+                ground_ref: b.ground_ref,
+                statics: b.statics.clone(),
+                statics_mode: b.statics_mode,
+                air: b.air.clone(),
+                land: b.land.clone(),
+            }),
+        }
     }
 
     /// Все термики набора в радиусе (без фильтра активности и силы), см. [`cores::all_cores`].
@@ -245,10 +451,23 @@ impl ThermalSlot {
     }
 }
 
+/// Точки фокусов (x, z); нет фокусов — начало координат, как в GD.
+fn focus_points(terms: &Terms) -> Vec<[f64; 2]> {
+    let v: Vec<[f64; 2]> = terms
+        .focuses
+        .iter()
+        .map(|f| [f64::from(f.pos[0]), f64::from(f.pos[2])])
+        .collect();
+    if v.is_empty() { vec![[0.0, 0.0]] } else { v }
+}
+
 impl Thermal for ThermalSlot {
     fn sample(&self, c: &Ctx) -> Option<ThermalOut> {
         let b = self.built.as_ref()?;
-        let o = b.state.sample(&b.setup, &*self.hooks, c.pos, c.t);
+        let mut o = b.state.sample(&b.setup, &*self.hooks, c.pos, c.t);
+        if let Some(a) = &b.air {
+            o = a.1.src.with_between(c.fs, c.pos, o);
+        }
         Some(ThermalOut {
             w: o[0],
             mask: o[1],
@@ -257,8 +476,12 @@ impl Thermal for ThermalSlot {
     }
 
     fn advanced(&self, terms: &Terms, t: f64, force: bool) -> Option<Arc<dyn Thermal>> {
-        self.rebuild(terms, t, force)
-            .map(|s| Arc::new(s) as Arc<dyn Thermal>)
+        let r = if force || !terms.thermal_async {
+            self.rebuild(terms, t, force)
+        } else {
+            self.advance_bg(terms, t)
+        };
+        r.map(|s| Arc::new(s) as Arc<dyn Thermal>)
     }
 
     fn cores(&self, center: [f32; 3], radius: f32, t: f64, out: &mut Vec<Core>) {
