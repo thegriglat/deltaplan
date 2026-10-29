@@ -1152,3 +1152,5 @@
 {"t": "2026-10-29T22:46:17", "by": "executor", "task": "RW-P9", "ev": "reported", "commits": ["RW-P9:"], "note": "partial: Зависание xc_run --synthetic устранено: причина - место на шаге 250 м, крейт принимает 25 м (FAILED без текста, _wait_r…", "dp_feedback": "В копии нового исполнителя нет addons/dp_air/bin - Godot молча без воздуха; хорошо бы task brief подсказывал cp из копии rust-wind. Фоновый Bash через pipe | grep буферит вывод - долгие прогоны удобнее через job start."}
 {"t": "2026-10-29T22:46:27", "by": "coordinator", "task": "RW-P9", "ev": "checked", "note": "2/2 report_doc=ok:exit 0; docs_check=ok:ошибок 0"}
 {"t": "2026-10-29T22:46:35", "by": "coordinator", "task": "RW-P9", "ev": "accepted", "note": "по отчёту: зависание устранено (место 25 м, быстрый выход при FAILED), synthetic 5 км — итог; 30 км не дошёл — цена шага от размера места, вопрос Q3"}
+{"t": "2026-10-29T22:46:41", "by": "coordinator", "task": "RW-P9", "ev": "accepted", "commits": ["ccbf20a"], "note": "2/2 report_doc=ok:exit 0; docs_check=ok:ошибок 0"}
+{"t": "2026-10-29T22:46:42", "by": "coordinator", "task": "RW-P9", "ev": "merged"}
