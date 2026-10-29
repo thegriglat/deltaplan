@@ -43,7 +43,7 @@ related: ["docs/research/rust-wind-stage3-path.md", "docs/plan/rust-wind.md"]
 | RW-10b | `rust/dp-air/tests/terms_thermal.rs` | синтетика в GD идёт с упрощённым профилем (air_model off); число пропущенных точек (вне растра, above_base) не в отчёте | итоговый T1 |
 | RW-10c | `terms/thermal_src/mod.rs` `edge_proximity`, `Grid::bilinear(moist)` | классы кромок из cls 25 м, влажность — растр 25 м вместо поля 50 м; доля |Δ| > 0,05 против terrain-пути — 1,57 % (Онгудай 0,4–7,1 % по часам) | принято как граница W5; сверка ядер в RW-10e |
 | RW-10c | `SourceHour::at` / `atmo_sun` | часовой множитель не сверен с `AtmoDay.source_fn` на потоке часов | RW-10e (с RW-12d) |
-| общее | `rust/dp-air/tests/runtime.rs` `picard_cancel_during_the_setup_returns_within_the_limit`, `ongudai_size_cancel_…` | тайминговые пороги падают под нагрузкой accept (275–522 мс, 1,016 с) | RW-0g: вынести в итоговый прогон |
+| общее | `rust/dp-air/tests/runtime.rs` `picard_cancel_during_the_setup_returns_within_the_limit`, `ongudai_size_cancel_…` | тайминговые пороги падают под нагрузкой accept (275–522 мс, 1,016 с) | RW-0g: вынесено (#[ignore], итоговый прогон) |
 | RW-10d | `rust/dp-air/tests/data/RW-10d/ongudai_medium/field.bin` | эталон поля — f16 (запечённое, w_mech обнулён), не f32 без потерь (бюджет 5 МБ); strong/wave — только счётчики, тестом не читаются | итоговый прогон: источники strong/wave по дампу из опорной ревизии |
 | RW-10d | `terms/thermal_air/pick.rs:20-60` | водная ветка `pick_in_column`/`land_fraction` не сверена с GD на реальных данных | RW-10e: острова |
 | RW-10d | `terms/thermal_air/mod.rs` `BuildIn::u10` | `u10` параметром (GD — `level.meta.u10`) | RW-10e |
@@ -74,7 +74,7 @@ related: ["docs/research/rust-wind-stage3-path.md", "docs/plan/rust-wind.md"]
 | RW-9 | `tests/terms_analytic.rs` `load_with` | пресет W5 не несёт ref_msl ветра прогноза — тест берёт из эталона; без него ветер вдвое | RW-12z: ref_msl в пресете/фасаде (связано с RW-12d) |
 | RW-8s | `terms/surface_gust` | «нет места / не READY — нули» (W6) — не в функции, у Terms нет признака места; свой GustUnit по configs+seed (не из слота Turb) | RW-12z: обнуление в фасаде; общий GustUnit |
 | RW-8s | `tests/data/RW-8s/` | эталон Онгудая — WindModel+GustDustModel с ручными сидами/ветром, не полный прогон Atmosphere на месте | итоговый прогон |
-| RW-12u | `tests/terms_thermal_field.rs:68-85` `load` | гонка: параллельные тесты одного процесса копируют одни файлы в общий tmp `rw10e_cases_<pid>` — EOF/обрезанный .bin (2 из 3 прогонов accept) | RW-0g: уникальный tmp на вызов |
+| RW-12u | `tests/terms_thermal_field.rs:68-85` `load` | гонка: параллельные тесты одного процесса копируют одни файлы в общий tmp `rw10e_cases_<pid>` — EOF/обрезанный .bin (2 из 3 прогонов accept) | RW-0g: исправлено |
 | RW-12u | `lib.rs` `ObjRecord` | FLAG_STATIC/FLAG_CB/FOREVER остались в terms::objects | RW-12v |
 | RW-12w | `rust/dp-gd/src/bridge.rs` `obj_f32s` | unsafe-каст `&[ObjRecord]` → `&[f32]` (repr(C) + const-assert размера и выравнивания); ObjRecord не реализует F32Record | RW-12v: `impl F32Record for ObjRecord` в dp-air, каст убрать |
 | RW-12w | `tests/contracts/test_dp_air_ext.gd` | api_version 4 и три метода на пустом объекте — Godot не запускался | итоговый прогон T7 |
