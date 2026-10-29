@@ -36,6 +36,7 @@
 //! - **`frame`** — `WindModel` (профиль, `speed_at`, `altitude_factor`, `vec2_at`, `dir`,
 //!   `simple_profile`) и `WeatherView` (словарь выведенной погоды, ключи как у GD; заполняет
 //!   RW-12b; пока — из условий: пресет или прогноз).
+pub mod clouds;
 mod decompose;
 mod frame;
 mod slots;
@@ -117,6 +118,8 @@ pub struct Slots {
     pub thermal: Arc<dyn Thermal>,
     pub extra: Arc<dyn Extra>,
     pub turb: Arc<dyn Turb>,
+    /// Облака (RW-11d): снимок физики облаков, обновляет `Terms::advance`/`start_at`.
+    pub clouds: Arc<clouds::CloudSlot>,
 }
 
 impl Slots {
@@ -125,10 +128,12 @@ impl Slots {
             analytic: Arc::new(NoAnalytic),                   // RW-9
             thermal: Arc::new(thermal::ThermalSlot::empty()), // RW-10b
             extra: Arc::new(ExtraSet::new(vec![
-                Arc::new(storm::StormExtra::new()), // RW-11c
-                Arc::new(waves::WaveExtra::new()),  // RW-11b
-            ])), // RW-11d: облако — одна строка здесь
-            turb: Arc::new(NoTurb),                           // RW-8
+                Arc::new(storm::StormExtra::new()),  // RW-11c
+                Arc::new(waves::WaveExtra::new()),   // RW-11b
+                Arc::new(clouds::CloudExtra::new()), // RW-11d
+            ])),
+            turb: Arc::new(NoTurb),                          // RW-8
+            clouds: Arc::new(clouds::CloudSlot::analytic()), // RW-11d
         }
     }
 }
@@ -206,26 +211,50 @@ impl Terms {
     /// `floor(t / refresh_interval_s)`, условий, ветра, статичных.
     pub fn advance(&mut self, t: f64) -> bool {
         let w = self.advance_weather(t);
-        match self.slots.thermal.advanced(self, t, false) {
+        let th = match self.slots.thermal.advanced(self, t, false) {
             Some(n) => {
                 self.slots.thermal = n;
                 true
             }
-            None => w,
+            None => false,
+        };
+        let cl = self.advance_clouds(t, false);
+        w || th || cl
+    }
+
+    fn advance_clouds(&mut self, t: f64, force: bool) -> bool {
+        match self.slots.clouds.advanced(self, t, force) {
+            Some(n) => {
+                self.slots.clouds = n;
+                true
+            }
+            None => false,
         }
+    }
+
+    /// Поставщик входов поля облаков (`Field` + `AirThermals` - RW-10e/RW-12z).
+    pub fn set_cloud_inputs(&mut self, inputs: Arc<dyn clouds::CloudInputs>) {
+        self.slots.clouds = Arc::new(self.slots.clouds.with_inputs(inputs));
+    }
+
+    /// Снимок физики облаков (крючки `CloudHooks` для термиков).
+    pub fn cloud_physics(&self) -> &Arc<clouds::CloudPhysics> {
+        self.slots.clouds.physics()
     }
 
     /// Хук `start_at`: состояние слагаемых на `t` как после прогона с 0 (W2). Погода — ход дня на `t`
     /// (чистая функция времени); термики — чистая функция (клетка, цикл), набор строится на `t` сразу.
     pub fn start_at(&mut self, t: f64) -> bool {
         let w = self.advance_weather(t);
-        match self.slots.thermal.advanced(self, t, true) {
+        let th = match self.slots.thermal.advanced(self, t, true) {
             Some(n) => {
                 self.slots.thermal = n;
                 true
             }
-            None => w,
-        }
+            None => false,
+        };
+        let cl = self.advance_clouds(t, true);
+        w || th || cl
     }
 
     /// Земля для термиков (высота, вода, сила источника): `thermal::PlaceGround` или своя.
