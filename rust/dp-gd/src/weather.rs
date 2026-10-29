@@ -1,6 +1,6 @@
 //! Логика `DpWeather` (W12 v2) без типов Godot: разбор JSON, коды W1, вызовы `dp_air::weather`.
 //! Класс gdext в `lib.rs` только переводит типы Godot. Состояние — один `Arc<Weather>`;
-//! до `configure` числа — NaN, строки — `""`, словари — `{}`.
+//! до `configure` числа — NaN, словари (JSON-строки) — `{}`, `sky_params` — пусто.
 use dp_air::weather::{ClimateGrids, PlaceCtx, Weather, hour_at, valley_of};
 use dp_air::{Configs, Forecast};
 use serde_json::{Value, json};
@@ -79,7 +79,7 @@ impl WeatherBridge {
 
     pub fn diurnal_state(&self, t_max: f64, hour: f64, ctx: &str) -> String {
         let Some(w) = &self.weather else {
-            return String::new();
+            return "{}".into();
         };
         let s = w.diurnal_state(t_max, hour, &ctx_from_json(ctx));
         json!({
@@ -155,7 +155,7 @@ impl WeatherBridge {
 
     pub fn reference_context(&self) -> String {
         let Some(w) = &self.weather else {
-            return String::new();
+            return "{}".into();
         };
         let c = w.reference_context();
         json!({

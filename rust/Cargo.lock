@@ -328,6 +328,7 @@ dependencies = [
  "godot",
  "rayon",
  "serde_json",
+ "zstd",
 ]
 
 [[package]]

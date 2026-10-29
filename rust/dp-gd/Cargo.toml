@@ -17,3 +17,4 @@ serde_json = "1"
 
 [dev-dependencies]
 brotli-decompressor = "2.5"
+zstd = { version = "0.13", default-features = false }

@@ -88,8 +88,8 @@ fn before_configure_nothing_is_computed() {
     assert!(b.typical_max_c(7, 15, 50.0, 86.0, f64::NAN).is_nan());
     assert!(b.sunset_h(25.0, CTX).is_nan());
     assert!(b.quantum_h().is_nan());
-    assert_eq!(b.diurnal_state(25.0, 12.0, CTX), "");
-    assert_eq!(b.reference_context(), "");
+    assert_eq!(b.diurnal_state(25.0, 12.0, CTX), "{}");
+    assert_eq!(b.reference_context(), "{}");
     assert_eq!(b.derive("{}", CTX, 12.0), "{}");
     assert_eq!(b.climate_cell(50.0, 86.0, 7, 15), "{}");
     assert!(b.sky_params("clear").is_empty());
@@ -229,4 +229,118 @@ fn place_context_after_load_place() {
     assert_eq!(c["lat"], 50.0);
     assert_eq!(c["month"], 7);
     assert_eq!(c["valley_msl_m"], 10.0);
+}
+
+// ---------------------------------------------------------------- наборы эталонов RW-14b
+
+fn rows(set: &str) -> Vec<Value> {
+    let p = repo().join(format!("rust/dp-air/tests/data/RW-14b/{set}.jsonl.zst"));
+    let raw = zstd::decode_all(&std::fs::read(p).unwrap()[..]).unwrap();
+    String::from_utf8(raw)
+        .unwrap()
+        .lines()
+        .map(|l| serde_json::from_str(l).unwrap())
+        .collect()
+}
+
+/// Каждая `step`-я строка набора, у которой `keep` истинно (не больше `max`).
+fn pick(set: &str, step: usize, max: usize, keep: impl Fn(&Value) -> bool) -> Vec<Value> {
+    rows(set)
+        .into_iter()
+        .filter(|r| keep(r))
+        .step_by(step)
+        .take(max)
+        .collect()
+}
+
+fn f(v: &Value) -> f64 {
+    v.as_f64().unwrap_or(f64::NAN)
+}
+
+fn ctx_of(v: &Value) -> PlaceCtx {
+    let g = |k: &str| v.get(k).map_or(f64::NAN, f);
+    PlaceCtx {
+        month: v.get("month").map_or(7, |m| f(m) as i64),
+        day: v.get("day").map_or(15, |m| f(m) as i64),
+        lat: g("lat"),
+        lon: g("lon"),
+        utc_offset_h: g("utc_offset_h"),
+        valley_msl_m: g("valley_msl_m"),
+        mean_msl_m: g("mean_msl_m"),
+        start_msl_m: f64::NAN,
+    }
+}
+
+/// Мост и `Weather` дают одно и то же на строках E1, E4, E5, E7 (числа через JSON — до 1e-12
+/// отн.: разбор serde без float_roundtrip теряет последний разряд; прямые скаляры совпадают точно).
+#[test]
+fn bridge_equals_crate_on_reference_rows() {
+    let (b, w) = both();
+    let same = |a: f64, c: f64| {
+        assert!(
+            (a.is_nan() && c.is_nan()) || (a - c).abs() <= 1e-12 * c.abs().max(1.0),
+            "{a} vs {c}"
+        );
+    };
+    // E1: ячейки реальных сеток
+    let e1 = pick("e1_climate_at", 997, 6, |r| r["variant"] == "real");
+    assert!(e1.len() >= 4);
+    for r in &e1 {
+        let (lat, lon) = (f(&r["lat"]), f(&r["lon"]));
+        let (m, d) = (f(&r["month"]) as i64, f(&r["day"]) as i64);
+        let got: Value = serde_json::from_str(&b.climate_cell(lat, lon, m, d)).unwrap();
+        let k = w.climate_at(lat, lon, m, d);
+        for (key, v) in [
+            ("tx_c", k.tx_c),
+            ("dtr_k", k.dtr_k),
+            ("td_c", k.td_c),
+            ("wr", k.wr),
+        ] {
+            same(got[key].as_f64().unwrap_or(f64::NAN), v);
+        }
+    }
+    // E4: typical_max и ход дня
+    let e4 = pick("e4_weather_diurnal", 37, 12, |_| true);
+    assert!(e4.len() >= 8);
+    for r in &e4 {
+        let (cx, kind) = (ctx_of(&r["ctx"]), r["kind"].as_str().unwrap());
+        let cj = r["ctx"].to_string();
+        if kind.starts_with("typical_max") {
+            let (m, d) = (f(&r["month"]) as i64, f(&r["day"]) as i64);
+            same(
+                b.typical_max_c(m, d, cx.lat, cx.lon, cx.valley_msl_m),
+                w.typical_max_c(m, d, cx.lat, cx.lon, cx.valley_msl_m),
+            );
+        } else if kind.starts_with("state") {
+            let (t, h) = (f(&r["t_max"]), f(&r["hour"]));
+            let got: Value = serde_json::from_str(&b.diurnal_state(t, h, &cj)).unwrap();
+            let s = w.diurnal_state(t, h, &cx);
+            same(
+                got["temperature_c"].as_f64().unwrap_or(f64::NAN),
+                s.temperature_c,
+            );
+            same(b.sunset_h(t, &cj), w.sunset_h(t, &cx));
+            same(
+                b.air_temp_c(h, t, 1500.0, &cj),
+                w.air_temp_c(h, t, 1500.0, &cx),
+            );
+        }
+    }
+    // E5: небо
+    for r in pick("e5_weather_small", 1, 50, |r| r["kind"] == "sky_params") {
+        let sky = r["sky"].as_str().unwrap();
+        let (c, h) = w.sky_params(sky);
+        assert_eq!(b.sky_params(sky), vec![c as f32, h as f32], "{sky}");
+    }
+    // E7: температура на высоте
+    let e7 = pick("e7_temp_at_altitude", 3, 12, |r| !r["derived"].is_null());
+    assert!(e7.len() >= 5);
+    for r in &e7 {
+        let wj = serde_json::json!({"_derived": r["derived"]});
+        let (a, m, d) = (f(&r["alt_msl"]), f(&r["month"]) as i64, f(&r["day"]) as i64);
+        same(
+            b.temp_at_altitude(&wj.to_string(), a, m, d),
+            w.temp_at_altitude(wj.as_object().unwrap(), a, m, d),
+        );
+    }
 }
