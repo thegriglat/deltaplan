@@ -44,7 +44,6 @@ pub mod thermal;
 pub mod thermal_air;
 pub mod thermal_src;
 pub mod turb;
-pub mod turb;
 
 use crate::field::field_set::FieldSet;
 use crate::place::Place;

@@ -26,7 +26,7 @@ use crate::SampleMode;
 use crate::field::runtime::ground_height;
 use crate::field::wind_field::{T_HMIX, T_SIZE};
 use crate::place::Place;
-pub use gust::{GustCfg, GustUnit, gust};
+pub use gust::{GustCfg, GustUnit};
 use sigma::{TurbCfg, conv_norm, lenschow, taylor_stretch};
 use spectrum::{GustSpectrum, SampleIn};
 use std::cell::Cell;
