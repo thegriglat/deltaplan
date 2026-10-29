@@ -69,6 +69,11 @@ pub trait Thermal: Send + Sync {
     fn advanced(&self, _terms: &Terms, _t: f64, _force: bool) -> Option<Arc<dyn Thermal>> {
         None
     }
+    /// После обновления облаков в `Terms::advance`: тот же набор с новыми облаками для подсоса
+    /// (RW-10f); `None` - облака слоту не нужны или не изменились.
+    fn synced_with_clouds(&self, _terms: &Terms) -> Option<Arc<dyn Thermal>> {
+        None
+    }
     /// Ядра подъёма W6 на момент `t` с осью ближе `radius` к `center` (подключение к `AirModel::cores`
     /// — RW-12z).
     fn cores(&self, _center: [f32; 3], _radius: f32, _t: f64, out: &mut Vec<Core>) {

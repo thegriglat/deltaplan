@@ -1,0 +1,29 @@
+{
+  "verdict": "accept",
+  "summary": "Подсос и тень облаков подключены в слот Thermal через CloudHooks/Terms::cloud_physics без правок вне скоупа; допуски W8 без ослабления; accept --dry 5/5, terms_thermal_cloud 6 ок. Порядок шага (термики до облаков при start_at, подсос после облаков в advance) выведен из GD и подтверждён своим эталоном (685 точек).",
+  "issues": [
+    {
+      "file": "rust/dp-air/tests/terms_thermal.rs",
+      "line": 693,
+      "severity": "minor",
+      "what": "Тест W2 T6 start_at_equals_run_from_zero переведён на NoClouds: гарантия W2 с облаками не держится (и в GD тоже). Решение координатора уже записано, но сам контракт W2 формулировку не менял.",
+      "fix": "Координатору: уточнить W2 (T6 - без облаков) при следующей правке контракта."
+    },
+    {
+      "file": "rust/dp-air/tests/terms_thermal_cloud.rs",
+      "line": 495,
+      "severity": "minor",
+      "what": "Точки suck_k дальше 5500 м от фокуса и точки вне растра пропускаются; по ядрам 3 из 1693 (w>0.05) без пары на ongudai. Заявлено в отчёте, не подгонка, но покрытие неполное.",
+      "fix": "Включить в список 'сверить после RW-12z' (вход поля облаков из AirThermals)."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "accept RW-10f --only terms_thermal_cloud --dry",
+      "value": "PASS, 6 тестов, scope 29 файлов в границах",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-29T13:02:11",
+  "by": "reviewer"
+}

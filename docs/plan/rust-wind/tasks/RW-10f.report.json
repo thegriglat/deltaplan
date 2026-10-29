@@ -1,0 +1,93 @@
+{
+  "status": "done",
+  "summary": "Слот Thermal берёт подсос (CloudPhysics::suck) и тень облаков (shade_at на источнике при порождении) из облаков Terms: порождение - облака до обновления шага, подсос - облака после (Thermal::synced_with_clouds в Terms::advance), start_at строит термики без облаков, как refresh_now в GD. Снят свой эталон на опорной ревизии (tests/data/RW-10f: 16 шагов после start_at, точки у термиков с подсосом): thermal у облаков 685 точек в допуске W8 (подсос меняет ответ в 571, без него 473 из них вне допуска), ядра после шагов против desc.json - без пары 3 из 2792 (все три на ongudai, w>0.05).",
+  "commits": [
+    "bec9694e5 rust-wind: RW-10f - подсос и тень облаков в слоте Thermal, сверка thermal у облаков",
+    "157a4c2cd rust-wind: RW-10f - подсос берёт облака после обновления облаков шага (Thermal::synced_with_clouds), T6 без облаков"
+  ],
+  "checks": [
+    {
+      "name": "terms_thermal_cloud",
+      "value": "6 тестов ok",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "dp_air_no_godot",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "W8 synth_* above_base+250 м под основанием (69 точек), ongudai_* (54)",
+      "value": "вне допуска 0; в этих точках подсос не меняет ответ ни в одной (start_at без шагов - облаков ещё нет, как в GD)",
+      "pass": true
+    },
+    {
+      "name": "RW-10f эталон после шагов, thermal у облаков",
+      "value": "сверено 685 (synth_weak/medium/strong/storm, ongudai_medium/strong/wave); подсос меняет ответ в 571; без подсоса вне допуска W8 473; с ним вне допуска 0; у несошедшегося по месту ядра 0",
+      "pass": true
+    },
+    {
+      "name": "ядра после шагов против desc.json (w, радиус, верх, стадия, флаги облака/Cb)",
+      "value": "synth: 0 без пары из 1099; ongudai: без пары 3 из 1693 (w>0.05), флаги не сошлись 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Облачный вклад в ответ full-sum (слагаемое cloud) в above_base не сверялся: он в слоте Extra/terms_clouds (RW-11d), не в Thermal",
+    "Путь входов поля облаков из AirThermals для игры (CloudInputs над Field+AirThermals) не подключён к Terms - это RW-12z; в тесте terms_thermal_cloud.rs свой AirInputs (аналог CloudFieldSources.prepare с air)"
+  ],
+  "questions": [
+    "Контракт W2 (T6: start_at(t) = прогон с 0): с облаками это не так и в самом GD (start_at строит термики без облаков, прогон - с тенью на источнике: на synth_medium за 900 с 207 термиков против 210). Тест start_at_equals_run_from_zero переведён на слот без облаков; решение по формулировке W2/T6 - за координатором."
+  ],
+  "how_to_check": ".dpcli/dpcli accept RW-10f",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/src/terms/thermal/mod.rs:ThermalSlot::rebuild (force -> cloud None) и Terms::advance (rust/dp-air/src/terms/mod.rs, synced_with_clouds после advance_clouds)",
+      "why": "Порядок шага выведен из GD (atmosphere.refresh_now: step_refresh -> _write_params с cloud_phys до _refresh_finish; thermal_field.update_time каждый тик пишет подсос по текущим облакам). Подсос берётся из облаков шага без лишней задержки, порождение (тень) - из облаков до обновления; точное число шагов лага в GD между refresh и update_time не мерено, сверено только 16 шагов по 0,25 с после start_at.",
+      "checked": "Эталон RW-10f: 685 точек у термиков с подсосом в допуске W8; без подсоса 473 из них вне допуска; start_at без шагов в W8-эталонах подсоса не даёт (тест start_at_has_no_clouds_until_first_advance)."
+    },
+    {
+      "where": "rust/dp-air/src/terms/thermal/mod.rs:cloud_changed",
+      "why": "Облака считаются изменившимися при смене version поля или наличии Cb-объектов; смена только cloud_size_factor погоды (CloudModel) без шага поля подхватится при следующем изменении version. Размер облаков-объектов в suck_object зависит от model.",
+      "checked": "Не проверялось отдельным тестом; в эталонах размер фиксирован."
+    },
+    {
+      "where": "rust/dp-air/tests/terms_thermal_cloud.rs:AirInputs",
+      "why": "Входы поля облаков Онгудая собраны в тесте (wind_field = уровень термиков, air = AirThermals слота, seed = terms.seed, cb/ground_ref из Setup); в GD seed поля и env_at(t) могут отличаться. Совпадение с эталоном по 685 точкам (ongudai_medium/wave) говорит, что на этих случаях входы эквивалентны, но постоянного подключения нет (RW-12z).",
+      "checked": "ongudai_medium/strong/wave после шагов: вне допуска 0."
+    },
+    {
+      "where": "rust/dp-air/tests/terms_thermal_cloud.rs:near_cloud (отбор точек)",
+      "why": "Точки suck_k<момент> дальше 5500 м от фокуса пропускаются (за радиусом физики 6 км термики не действуют; ось на высоте верха уходит от места выбора). Точки у несошедшегося по месту ядра (400 м от оси) относятся к границе RW-10c/10e; в итоговом прогоне таких 0.",
+      "checked": "Промежуточный прогон с конфигами синтетики (круг генерации 8 км) для Онгудая давал 2 точки вне допуска и ~30 % ядер без пары - причиной был мой тест (конфиг), не код; исправлено."
+    },
+    {
+      "where": "rust/dp-air/tests/data/RW-10f/",
+      "why": "Эталон снят на копии опорной ревизии c591b1026 (общей gd-ref) под замком cpu; после прогона тулзы gen_cloud_cases.* убраны из копии. Данные 1,7 МБ; ongudai_strong даёт мало точек (9): у него подсос мало где.",
+      "checked": "run_cloud_cases.sh, manifest.json в каталоге."
+    }
+  ],
+  "dp_feedback": "dpcli lock cpu при ожидании блокировки уходит в фон после 180 с и печатает только ID задачи; удобнее печатать ID job первой строкой сразу. accept --dry долгий (cargo test ~200 с) - вывод идёт только в конце.",
+  "extra": {
+    "sync_с_feature/rust-wind": "уже влит, конфликтов нет",
+    "ядра_против_desc": "synth 12 моментов: без пары 0; ongudai 9 моментов: без пары 3 (w>0.05: strong t=0, t=900; wave t=0)",
+    "формулы": "тень: best_sun *= 1 - shade*cloud_shade_factor и strength = max(strength, smin)*(1 - shade*cloud_shade_factor) (cells.rs/air.rs); подсос: vert *= 1 + suck*(1 - smoothstep(0, suck_depth, top - y)) под верхом термика, 250 м (sample.rs)"
+  },
+  "t": "2026-10-29T13:00:28",
+  "by": "executor"
+}

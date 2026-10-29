@@ -690,8 +690,16 @@ fn source_strength_controls_frequency() {
 /// (17) T6: `start_at(t)` равно прогону с 0 шагами `advance`: тот же набор и те же ответы побитно.
 #[test]
 fn start_at_equals_run_from_zero() {
+    // без облаков: тень облаков в силе источников делает прогон отличным от `start_at` (как в GD, где
+    // `start_at` строит термики раньше облаков) - это проверяет `terms_thermal_cloud`
+    use dp_air::terms::thermal::{NoClouds, ThermalSlot};
     let l = load("synth_medium");
+    let no_clouds = |t: &mut Terms| {
+        t.slots.thermal =
+            Arc::new(ThermalSlot::new(Arc::new(SynGround)).with_hooks(Arc::new(NoClouds)));
+    };
     let mut run = terms_for(&l.case, Arc::new(SynGround));
+    no_clouds(&mut run);
     run.start_at(0.0);
     let mut tm = 0.0;
     while tm < 900.0 {
@@ -699,6 +707,7 @@ fn start_at_equals_run_from_zero() {
         run.advance(tm);
     }
     let mut jump = terms_for(&l.case, Arc::new(SynGround));
+    no_clouds(&mut jump);
     jump.start_at(900.0);
     let (a, b) = (state_all(&run), state_all(&jump));
     assert_eq!(a.len(), b.len());
