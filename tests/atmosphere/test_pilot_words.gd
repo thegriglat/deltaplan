@@ -10,14 +10,21 @@ const _BASE_STRENGTH := 4.0
 const _BASE_RADIUS := 130.0
 const _SEEDS := 5
 
-# Облако поля над статичным термиком — естественное (крейт, W2 v4); заданное вручную облако (стадия,
-# покрытие, мощность — прежний Fixture.force_cloud) крейт не принимает: проверки зависимости подсоса
-# от стадии облака (test_no_suck_under_young_or_decaying_cloud), σ и пика перегрузки в облаке
-# (test_cloud_chaos_sigma_and_load_peak) — rust/dp-air/tests/terms_clouds.rs (physics_suck_vs_gd,
-# hooks_shade_and_suck), terms_thermal_cloud.rs (suck_points_from_gd_in_tolerance, synth_w8_near_cloud_in_tolerance),
-# terms_turb.rs (ongudai_sigma_turb_within_w8). Распределение силы при рождении (test_extreme_thermals_rare_and_only_strong,
-# 2–6 % ≥ 7 м/с) — terms_thermal.rs (extreme_thermals_exist, source_strength_controls_frequency); подъём
-# в ядре 8 м/с (test_variometer_plus8_reachable_in_extreme_core) — thermal_profile_core_ring_allen.
+# Облако поля над статичным термиком — естественное (крейт, W2 v4); заданное вручную облако
+# (прежний Fixture.force_cloud) крейт не принимает. Сценарий по стадии облака (молодое/тающее)
+# помечен skip_reason (pending), не удалён. Цифры физики покрыты в cargo: rust/dp-air/tests/
+# terms_clouds.rs (physics_suck_vs_gd, hooks_shade_and_suck), terms_thermal_cloud.rs
+# (suck_points_from_gd_in_tolerance), terms_turb.rs (ongudai_sigma_turb_within_w8).
+
+const _SKIP_STAGE := (
+	"pending: сценарий по стадии облака; у статичного термика облако всегда зрелое, момент "
+	+ "молодого/тающего облака у динамического термика (cloud_objects.stage) не подобран без "
+	+ "запуска Godot (RW-12s)"
+)
+
+
+func skip_reason(method: String) -> String:
+	return _SKIP_STAGE if method == "test_no_suck_under_young_or_decaying_cloud" else ""
 
 
 # ---------------------------------------------------------------- атмосфера-хелперы
@@ -77,6 +84,21 @@ func test_suck_layer_under_mature_cloud() -> void:
 	a.free()
 
 
+func test_no_suck_under_young_or_decaying_cloud() -> void:
+	# Молодое (стадия «растёт») и тающее облако: у базы подъём не сильнее середины, крыло в ядре
+	# за 5 мин в облако не входит. Пороги прежние; пропущен (skip_reason): стадию на естественном
+	# облаке задать нельзя.
+	var a := _cloud_atmo(2)
+	var cb := a.cloudbase_msl()
+	var layer := _mean_rise(a, cb - 150.0, cb, 5)
+	var mid := a.air_velocity_at(Vector3(0, cb * 0.5, 0)).y
+	check(layer <= mid * 1.0, "у базы не сильнее середины: %.2f <= %.2f" % [layer, mid])
+	var m := Sim.make("sport")
+	m.reset_in_air(Vector3(0, cb - 150.0, 0), 0.0)
+	check(_fly_until_above(m, a, 28.0, 300.0) < 0.0, "не входит в облако за 5 мин")
+	a.free()
+
+
 # ---------------------------------------------------------------- 2. «Выкинет»
 
 
@@ -99,6 +121,37 @@ func test_ejected_from_cloud_within_90s() -> void:
 			successes += 1
 		a.free()
 	check(successes >= _SEEDS - 1, "выходит из облака за 90 с в >= %d/%d сидах: %d" % [_SEEDS - 1, _SEEDS, successes])
+
+
+func _peak_load_circling(a: Atmosphere, pos: Vector3, seconds: float = 15.0) -> float:
+	var m := Sim.make("sport")
+	m.reset_in_air(pos, 0.0)
+	var target := deg_to_rad(28.0)
+	m.bank = target
+	m.load.reset()
+	var air := Callable(a, "air_velocity_at")
+	var n := int(round(seconds / Sim.DT))
+	for i in n:
+		var roll := clampf((target - m.bank) * 3.0, -1.0, 1.0)
+		m.step(Sim.DT, Sim.input(0.0, roll), air, Callable())
+	return m.load.load_max
+
+
+func test_cloud_chaos_sigma_and_load_peak() -> void:
+	var a := _cloud_atmo(3)
+	var cb := a.cloudbase_msl()
+	var sig_in := a.turbulence_intensity_at(Vector3(150, cb + 600, 30))
+	var sig_out := a.turbulence_intensity_at(Vector3(3000, cb - 500, 0))
+	check(sig_in >= 3.0, "σ вертикального воздуха в облаке >= 3 м/с: %.2f" % sig_in)
+	check(sig_out <= 1.5, "σ вне облака на той же высоте <= 1,5 м/с: %.2f" % sig_out)
+	var peak_cloud := _peak_load_circling(a, Vector3(0, cb + 200.0, 0))
+	var peak_clear := _peak_load_circling(a, Vector3(3000.0, cb - 500.0, 0))
+	check(
+		peak_cloud >= peak_clear * 1.5,
+		"пик перегрузки в облаке >= 1.5x пика в ясном воздухе: %.2f >= %.2f"
+		% [peak_cloud, peak_clear * 1.5]
+	)
+	a.free()
 
 
 # ---------------------------------------------------------------- 3. Уйти можно
@@ -127,6 +180,17 @@ func test_can_escape_pulling_away_from_base() -> void:
 		successes >= _SEEDS - 1,
 		"трапеция на себя + курс прочь — не входит в облако: >= %d/%d: %d" % [_SEEDS - 1, _SEEDS, successes]
 	)
+
+
+# ---------------------------------------------------------------- 4. «+8 надо валить»
+
+
+func test_variometer_plus8_reachable_in_extreme_core() -> void:
+	var a := Rig.cloud_day(4, false, 8.0)  # статичный термик 8 м/с
+	var cb := a.cloudbase_msl()
+	var w := a.air_velocity_at(Vector3(0, cb - 60.0, 0)).y
+	check(w >= 7.0, "вариометр >= +7 м/с у крыла в ядре 8 м/с: %.2f" % w)
+	a.free()
 
 
 # ---------------------------------------------------------------- 5. Термики без облаков

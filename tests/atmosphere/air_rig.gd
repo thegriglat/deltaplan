@@ -77,8 +77,10 @@ static func make(o: Dictionary = {}) -> Atmosphere:
 ## Сильный день без ветра, статичный термик 4 м/с / 130 м над началом координат, состояние на 3000 с
 ## и ещё секунда: над ним естественное облако поля (прежнее force_cloud — заданное вручную — крейт
 ## не принимает). Освобождает вызывающий.
-static func cloud_day(seed_v: int = 1, second_thermal: bool = false) -> Atmosphere:
-	var statics := [[0.0, 0.0, 4.0, 130.0]]
+static func cloud_day(
+	seed_v: int = 1, second_thermal: bool = false, strength: float = 4.0
+) -> Atmosphere:
+	var statics := [[0.0, 0.0, strength, 130.0]]
 	if second_thermal:
 		statics.append([1500.0, 800.0, 3.5, 120.0])
 	return make(
