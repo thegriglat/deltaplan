@@ -208,10 +208,6 @@ fn thousand(pl: &Place) -> Vec<[f32; 3]> {
     v
 }
 
-fn bits(v: &[[f32; 4]]) -> Vec<u32> {
-    v.iter().flatten().map(|x| x.to_bits()).collect()
-}
-
 /// (1) Нулевые слоты: `sample_many` FULL и MEAN побитно = прежнему `sample_point` в 1000 точках
 /// поля, окон и вне области (и NaN/inf — нули).
 #[test]
