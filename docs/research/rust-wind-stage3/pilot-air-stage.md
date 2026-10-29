@@ -28,12 +28,24 @@ related: ["docs/research/rust-wind-stage3/pilot-air.md"]
 
 ## Починка
 
-- `scripts/game/game.gd`: в условия добавлен `quantum_h` (как у `AtmoDay`).
-- `scripts/atmosphere/atmosphere.gd`: код `set_conditions` крейта проверяется в `_dp_start` и в `set_conditions`;
-  отказ в `_dp_start` — FAILED + push_error; отказ при смене условий на загруженном месте — BAD_INPUT, состояние и прежние условия сохраняются (W1); строгая проверка quantum_h на границе фасада не включена: условия без него есть в tests/atmosphere (weather_day, wind_profile_simple, rust_wind_consumers) и теперь видны как отказ - их правка вне скоупа; снят фильтр phase* в debug_raster_names/debug_raster.
-- Тест `tests/game/test_place_air_stage.gd`: игровой путь Main._fly, этап подготовки ветра виден (полный счёт Пикара на Онгудае — минуты, тест ждёт этап, не READY).
+- `scripts/game/game.gd:568`: в условия добавлен `quantum_h` (как у `AtmoDay`).
+- `scripts/atmosphere/atmosphere.gd`: код `set_conditions` крейта проверяется. Отказ в `_dp_start` (подготовка места) —
+  FAILED + `push_error`; отказ при смене условий на загруженном месте — BAD_INPUT, состояние и прежние условия
+  сохраняются (W1). Снят фильтр `phase*` в `debug_raster_names`/`debug_raster`.
+- `scripts/atmosphere/wind_field_debug.gd`: `fetch_raster` идёт только через фасад `debug_raster`, обход через `_dp` убран.
+- Тесты `tests/game/test_place_air_stage.gd` (2, ~25 с): (1) игровой путь Main._fly на Онгудае — этап подготовки ветра
+  виден экрану загрузки (до READY не ждёт: полный счёт Пикара там минуты); (2) малое не запечённое место 25 м с условиями
+  вида игры — этап, READY, поле включено, ветер ≠ 0, отказ условий без quantum_h на READY оставляет READY.
+
+## Регрессия и границы
+
+- Строгая проверка quantum_h на границе фасада не включена. Условия без `quantum_h` есть в tests/atmosphere
+  (weather_day, wind_profile_simple) и tests/contracts/test_rust_wind_consumers: раньше крейт их отвергал молча
+  (ветер 0), теперь отказ виден, и часть проверок падает (по tests_vs_base — 4 новых падения consumers). Правка условий
+  в тестах — у RW-P3, не здесь.
+- Независимо от задачи падают test_rust_wind_contracts (версии доков) и 2 теста rw7_field.
 
 ## Где не уверен
 
-- `tests/game/test_place_air_stage.gd`: READY и ветер ≠ 0 в тесте не проверяются (долго); проверено пробником load_probe до починки (READY 0.0 с, rc=1) — после починки этап виден в тесте.
-- Прогон целиком на чистом профиле с пилотным местом после починки — см. отчёт.
+- `tests/game/test_place_air_stage.gd`: полный прогон игры на чистом профиле с пилотным местом после починки не делался
+  (минуты счёта Пикара); до починки отказ воспроизведён load_probe (set_conditions rc=1, READY за 0.0 с).
