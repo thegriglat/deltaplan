@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-10-30"
 summary: "Граница ветра в Rust: фасад Atmosphere, DpAir (gdext), трейт dp-air, место, описания, разложение, допуски, сборка, чистота."
 related: ["docs/plan/rust-wind.md", "docs/contracts/picard-rs.md", "docs/plan/rust-air-integration.md", "docs/plan/rust-ext.md", "docs/plan/air-cascade.md", "tools/research/rust_ext/gdext_probe/README.md", "docs/contracts/rust-wind/fixtures-tolerances.md", "docs/contracts/rust-wind/descriptions.md", "docs/contracts/rust-wind/solver.md", "docs/contracts/rust-wind/trait.md", "docs/contracts/rust-wind/dpair.md", "docs/contracts/rust-wind/facade.md"]
-contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 6}, {"id": "W3", "version": 9}, {"id": "W4", "version": 10}, {"id": "W5", "version": 10}, {"id": "W6", "version": 4}, {"id": "W7", "version": 1}, {"id": "W8", "version": 3}, {"id": "W9", "version": 2}, {"id": "W10", "version": 2}, {"id": "W11", "version": 11}, {"id": "W12", "version": 1}]
+contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 6}, {"id": "W3", "version": 9}, {"id": "W4", "version": 10}, {"id": "W5", "version": 10}, {"id": "W6", "version": 4}, {"id": "W7", "version": 1}, {"id": "W8", "version": 3}, {"id": "W9", "version": 2}, {"id": "W10", "version": 2}, {"id": "W11", "version": 11}, {"id": "W12", "version": 2}]
 ---
 
 # Контракты модуля rust-wind
@@ -85,7 +85,7 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 6}, {"id": "W3",
 ## W11. Решатель Пикара в крейте (v11)
 Владелец — RW-6g, RW-6h. Потребители — RW-6j, RW-6n, фазы RW-6k–6m. R6 v3 + заморозка колонн, отмена, `AllFrozen`/`Cancelled` — `docs/contracts/rust-wind/solver.md`.
 
-## W12. Погода: `dp_air::weather`, `DpWeather` (v1)
+## W12. Погода: `dp_air::weather`, `DpWeather` (v2)
 Владелец — RW-14c (крейт), RW-14d (`dp-gd`), RW-14e (обёртка GD). Потребители — меню, `goal_estimator.gd`, `achievement_feed.gd`, `egg_place.gd`, `game.gd`, `DpAir` (W3 v9), `cargo test` (эталоны RW-14b). Крейт, класс, обёртка, допуски — `docs/contracts/rust-wind/weather.md`.
 
 ## История
@@ -122,3 +122,4 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 6}, {"id": "W3",
 - W3 v7, W4 v8, W5 v9 (2026-10-29, решение пользователя «bake_air удалить», итог RW-P11) — запечённые поля мест удалены (`AirPlaceData.baked`, `add_baked_field`, `data/locations/*/air`); кеш полей и `model_hash` для его ключа остаются; версия API не меняется (= 5). Потребитель: RW-P12.
 - W2 v6, W3 v8, W4 v9 (2026-10-30, решение пользователя: экран загрузки — «Итерация: N» отдельной строкой и номер прогона) — `status()` += `run`, `runs` (номер прогона с 1 и их число по текущему плану; прогон — вход в этап с итерациями, где `iters` с нуля); `DpAir.run()/runs()`. Версия API = 6. Потребитель: задача экрана загрузки (крейт, `dp-gd`, фасад, `CalmAir`, `game.gd`, контрактные тесты).
 - W12 v1, W3 v9, W4 v10, W5 v10 (2026-10-30, решение пользователя: погода в крейт; проект RW-14a) — погода `dp_air::weather` и класс `DpWeather` (W12), `DpAir.attach_weather`/`place_context` (W3), `AirModel::set_weather`/`place_context` (W4), климат места считает крейт — `loc.climate*` удалены, `wind_ref.gain_per_km` необязателен, `limits.temperature_c` (W5). Версия API не меняется (= 6). Потребители: RW-14c, RW-14d, RW-14e, RW-14f, RW-P13 (константы CONTRACTS).
+- W12 v2 (2026-10-30, вопросы RW-14c) — `typical_max_c` с `valley_msl_m`, `sun_direction` с долготой, формат байтов сеток (заголовок 64 Б + тело int16 без сжатия). Потребители: RW-14d, RW-14e; `CONTRACTS.W12 = 2` — RW-14d.

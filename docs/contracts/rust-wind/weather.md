@@ -6,11 +6,11 @@ area: "air"
 updated: "2026-10-30"
 summary: "W12 rust-wind: погода в крейте — dp_air::weather (климат, ход дня, температуры, небо), класс DpWeather (dp-gd) и тонкая обёртка GD."
 related: ["docs/contracts/rust-wind.md", "docs/contracts/rust-wind/input.md", "docs/contracts/rust-wind/dpair.md", "docs/research/rust-wind-stage3/rw14-weather.md"]
-contracts: [{"id": "W12", "version": 1}]
+contracts: [{"id": "W12", "version": 2}]
 ---
 Часть `docs/contracts/rust-wind.md` (версия — там, заголовок W12). Менять — только координатор.
 
-# W12. Погода: `dp_air::weather`, `DpWeather` (v1)
+# W12. Погода: `dp_air::weather`, `DpWeather` (v2)
 
 Владелец — RW-14c (крейт), RW-14d (`dp-gd`), RW-14e (обёртка GD). Потребители — меню (`flight_settings.gd`, `flight_setup_screen.gd`), `goal_estimator.gd`, `achievement_feed.gd`, `egg_place.gd`, `game.gd`, `DpAir` (W3 v9, `attach_weather`), `cargo test` (эталоны RW-14b). Проект и обоснование — `docs/research/rust-wind-stage3/rw14-weather.md` (разделы «Предложение контракта», «Эталоны»). Решения: перенос погоды в крейт, второй реализации в GDScript нет (пользователь, 2026-10-30); dp-air чистая — без Godot, путей и понятий игры (пользователь, 2026-10-30); сетки распаковывает игра (координатор, 2026-10-30).
 
@@ -33,3 +33,4 @@ contracts: [{"id": "W12", "version": 1}]
 
 ## История
 - **v1 (2026-10-30, проект RW-14a, решения пользователя и координатора 2026-10-30):** первая версия. Потребители: RW-14c (крейт), RW-14d (`DpWeather`, `attach_weather`, `place_context`), RW-14e (обёртка, перевод потребителей), RW-14h (порт GD-тестов), RW-P13 (`CONTRACTS.W12 = 1` в `tests/contracts/test_rust_wind_contracts.gd`).
+- **v2 (2026-10-30, вопросы RW-14c):** `typical_max_c(month, day, lat, lon, valley_msl_m)` — с высотой долины (поправка Tx на высоту, как GD и эталон E4; `NaN` — не задано, как GD без ctx); `sun_direction(lat, lon, month, day, hour, utc_offset_h)` — с долготой (часовой угол; эталон E9); `DpWeather.typical_max_c(month, day, lat, lon, valley_msl_m)` так же. Формат `ClimateGrids::from_bytes`: на сетку — 64 байта исходного заголовка файла + тело `int16` **без сжатия** (размер тела — заголовок [48..52], сверяется с длиной; `comp_size` [52..56] не читается); игра/`dp-gd` распаковывает тело и склеивает с заголовком. Потребители: RW-14d (`DpWeather`), RW-14e (обёртка).
