@@ -39,5 +39,5 @@ contracts: [{"id": "W1", "version": 1}, {"id": "W2", "version": 1}]
 (air-phase P10 v5), формат запечённого поля (training-island TI-К3 v3) — без изменений.
 - Инвариант: CPU- и GPU-путь фаз совпадают (тесты `test_air_phase`).
 - Изменение кода `scripts/atmosphere/air_model/*` меняет `model_hash` → запечённые поля встроенных мест устаревают; перепечка — последним шагом
-  модуля (`tools/terrain/bake_all.sh --check` = 0).
+  модуля (`bake_all.sh --check` = 0; скрипт удалён в rust-wind RW-P10, устарело).
 - Нужна правка интерфейса — исполнитель пишет `<ID> contract: …`, решает координатор.
