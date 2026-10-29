@@ -57,54 +57,33 @@ func _run() -> void:
 	var w: Dictionary = Config.get_config("weather/medium").duplicate(true)
 	w.wind_speed_kmh = wind_ms * 3.6
 	w.wind_from_deg = wdir
-	w.thermal_mode = "static"
-	w.static_thermals = []
-	var atmo = Atmosphere.new()
+	var atmo := Atmosphere.new()
 	atmo.visuals_enabled = false
-	atmo.seed_value = 20261016
-	atmo.configure(Config.get_config("atmosphere"), w)
-	atmo.set_ground(terrain.height_at, terrain.thermal_source_strength_at, terrain.surface_at)
-	atmo.set_wind(wind_ms * 3.6, wdir, s_h)
-	atmo.turbulence_enabled = false
-	atmo.wave.enabled = false
-	atmo.time_s = hour * 3600.0
-	atmo.set_focus(Vector3(sx, s_h, sz))
-	atmo.step(0.01)
-
+	add_child(atmo)
+	atmo.configure(20261016)
+	var place: AirPlaceData = await atmo.place_from_terrain(terrain, float(cfg.utc_offset_h), month, day)
+	if place == null:
+		push_error("нет слоя detail у рельефа")
+		return
+	# Без случайных термиков (только статические, список пуст); болтанка выключена (SAMPLE_MEAN);
+	# волны выкл. пресетом (wave_strength = 0). Поле Пикара — режим «on» (в окне, не headless).
+	atmo.set_air_mode("on")
+	atmo.set_static_thermals(PackedFloat32Array(), 1)
+	atmo.set_conditions({"preset": w, "start_hour": hour})
+	atmo.load_place(place)
+	atmo.set_focuses(PackedVector3Array([Vector3(sx, s_h, sz)]), PackedFloat32Array([1.0]))
 	var info := {}
-	var rt: Node = load("res://scripts/atmosphere/air_model/air_runtime.gd").new()
-	add_child(rt)
-	await get_tree().process_frame
-	var c := {hour = hour, u10 = wind_ms, wdir = wdir, t_max = t_max, sky = sky}
-	rt.setup(atmo, rt.get_script().place_of(terrain, float(cfg.utc_offset_h), month, day), func() -> Dictionary: return c)
-	rt.focus_fn = func() -> Vector3: return Vector3(sx, s_h, sz)
-	info["unavailable"] = rt.unavailable_reason()
-	if info.unavailable == "":
-		var t0 := Time.get_ticks_msec()
-		info["solver_ok"] = await rt.load_field()
-		info["solver_wall_s"] = (Time.get_ticks_msec() - t0) / 1000.0
-		info["solver_err"] = rt.last_error
-		info["solver_info"] = rt.last_info
-	for i in 600:
+	var t0 := Time.get_ticks_msec()
+	atmo.start_at(0.0)
+	while not atmo.is_ready() and atmo.status().state != Atmosphere.STATE_FAILED:
+		atmo.pump(8000)
 		await get_tree().process_frame
-		if not rt.busy() and i > 30:
-			break
-	var af: Object = atmo.get("air_field")
-	for i in 200:
-		atmo.step(0.5)
-		atmo.time_s = hour * 3600.0
-		if af.call("blend_fraction") >= 1.0:
-			break
-	info["blend_fraction"] = af.call("blend_fraction")
-	var lv: Array = []
-	for f in af.get("levels"):
-		lv.append({"dx": f.dx, "nx": f.nx, "ny": f.ny, "x0": f.x0, "y0": f.y0})
-	info["levels"] = lv
-	rt.queue_free()
-	atmo.time_s = hour * 3600.0
-	atmo.set_focus(Vector3(sx, s_h, sz))
-	atmo.step(0.0)
-	atmo.time_s = hour * 3600.0
+	var st := atmo.status()
+	info["solver_ok"] = st.state == Atmosphere.STATE_READY and bool(st.field_on)
+	info["solver_wall_s"] = (Time.get_ticks_msec() - t0) / 1000.0
+	info["solver_err"] = atmo.last_error()
+	info["field_on"] = st.field_on
+	atmo.advance_to(0.01)
 
 	var rows: Array = []
 	for p: Array in pts:
@@ -112,14 +91,13 @@ func _run() -> void:
 		var z := float(p[1])
 		var gh := terrain.height_at(x, z)
 		var q := Vector3(x, gh + float(p[2]), z)
-		var v: Vector3 = atmo.air_velocity_at(q)
-		var m: Vector3 = atmo.mean_wind_at(q)
-		var wc: Vector2 = af.call("sample_w_conv", q, gh)
+		var v: Vector3 = atmo.mean_wind_at(q)  # болтанка выкл. (W2 v4: SAMPLE_MEAN)
+		var m: Vector3 = v
 		rows.append([
 			x, z, float(p[2]), snappedf(gh, 0.01), terrain.surface_at(x, z),
 			snappedf(terrain.thermal_source_strength_at(x, z), 0.001),
 			snappedf(v.x, 0.001), snappedf(-v.z, 0.001), snappedf(v.y, 0.001), snappedf(m.y, 0.001),
-			snappedf(wc.x / wc.y if wc.y > 0.0 else 0.0, 0.001), snappedf(wc.y, 0.001),
+			0.0, 0.0,  # w_conv и доля поля: на границе W2 v4 их нет
 		])
 	var res := {
 		"cond": {

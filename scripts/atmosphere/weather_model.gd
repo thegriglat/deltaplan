@@ -7,7 +7,8 @@ extends RefCounted
 ##
 ##   var ctx := WeatherModel.ground_context(terrain.height_at, 10000.0, 15, 0.1)
 ##   ctx.merge({"month": 7, "day": 15, "lat": 51.9})
-##   air.set_weather(WeatherModel.derive(settings.forecast(), ctx, WeatherModel.config()))
+##   var w := WeatherModel.derive(settings.forecast(), ctx, WeatherModel.config())  # эталон-пресет
+##   air.set_conditions({"preset": w, "start_hour": hour})
 
 const CONFIG := "weather_model"
 ## Ускорение свободного падения, м/с² (частота Брента — Вяйсяля для волны).

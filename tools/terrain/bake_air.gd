@@ -94,7 +94,7 @@ func _bake() -> int:
 	var sp: Vector3 = site.position
 	var c := AirBakedField.conditions_of(weather)
 	# Атмосфера нужна расчёту только для замера U над стартом (GroundField) — как у игры, без термиков.
-	var atmo := _make_atmosphere(terrain, weather, sp, utc, c)
+	var atmo := await _make_atmosphere(terrain, weather, sp, utc, c)
 	var rt := AirRuntime.new()
 	add_child(rt)
 	await get_tree().process_frame
@@ -194,7 +194,7 @@ func _clock_utc_offset(terrain: Terrain) -> float:
 
 
 func _make_atmosphere(
-	terrain: Terrain, weather: Dictionary, sp: Vector3, utc: float, c: Dictionary
+	terrain: Terrain, weather: Dictionary, sp: Vector3, utc: float, _c: Dictionary
 ) -> Atmosphere:
 	var fs := FlightSettings.defaults()
 	fs.month = int(weather.month)
@@ -221,10 +221,16 @@ func _make_atmosphere(
 	w.static_thermals = []
 	var atmo := Atmosphere.new()
 	atmo.visuals_enabled = false
-	atmo.configure(Config.get_config("atmosphere"), w)
-	atmo.set_ground(terrain.height_at, terrain.sun_exposure_at, terrain.surface_at)
-	atmo.set_wind(float(c.u10) * 3.6, float(c.wdir), sp.y)
-	atmo.turbulence_enabled = false
-	atmo.set_focus(sp)
-	atmo.step(0.01)
+	add_child(atmo)
+	atmo.configure(-1)
+	var place: AirPlaceData = await atmo.place_from_terrain(terrain, utc, fs.month, fs.day)
+	atmo.set_air_mode("off")  # поле считает AirRuntime ниже; фасаду нужен только замер U
+	atmo.set_static_thermals(PackedFloat32Array(), 1)
+	atmo.set_conditions({"preset": w, "start_hour": fs.start_hour})
+	atmo.load_place(place)
+	atmo.set_focuses(PackedVector3Array([sp]), PackedFloat32Array([1.0]))
+	atmo.start_at(0.0)
+	while not atmo.is_ready() and atmo.status().state != Atmosphere.STATE_FAILED:
+		atmo.pump(8000)
+		await get_tree().process_frame
 	return atmo
