@@ -611,8 +611,8 @@ static func _wind_iter_line(st: Dictionary) -> String:
 	var run := int(st.get("run", 0))
 	var runs := int(st.get("runs", 0))
 	if runs > 1 and run >= 1:
-		return tr("loading_wind_run_iter") % [run, runs, iters]
-	return tr("loading_wind_iter") % iters
+		return TranslationServer.translate("loading_wind_run_iter") % [run, runs, iters]
+	return TranslationServer.translate("loading_wind_iter") % iters
 
 
 func _air_set_focus(force := false) -> void:
