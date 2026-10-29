@@ -23,6 +23,15 @@ related: ["docs/research/rust-wind-stage3-path.md", "docs/plan/rust-wind.md"]
 | RW-2c | `tools/wind_fixtures/gen_fixtures.gd` `ongudai_storm` | ветер 14 км/ч с 151°, сид 909 — первый подобранный | достаточно точек `storm` (23) для RW-11c — посмотреть при постановке |
 | RW-8c | `rust/dp-air/src/compat/rng.rs` | правило `randf` (два слова, `ldexp`) и `randf_range` подобраны по дампу Godot 4.7.2 | при смене версии Godot — `tools/wind_fixtures/compat_dump.sh --verify` |
 | RW-8c | `rust/dp-air/src/compat/noise.rs` | портированы только NONE и FBM, без `rotation_type_3d`, ping-pong, 2D | новые вызовы шума в слагаемых — сверять с дампом |
-| RW-12b | `rust/dp-air/src/field/weather_core.rs` `sun_elevation_deg`, `weather/tables.rs` `seg` | эмуляция f32 (`Vector2` в GD) ради совпадения ~1e-7; функция общая с полем | полный T1 поля (`acceptance_release`) в итоговом прогоне; прогон для сведения — job `rw12b-acc` |
+| RW-12b | `rust/dp-air/src/field/weather_core.rs` `sun_elevation_deg`, `weather/tables.rs` `seg` | эмуляция f32 (`Vector2` в GD) ради совпадения ~1e-7; функция общая с полем | полный T1 поля (`acceptance_release`) в итоговом прогоне; для сведения на RW-12b — 12/12 PASS (job `rw12b-acc`, 2026-10-29) |
 | RW-12b | `rust/dp-air/src/field/weather_core.rs` | `WeatherModelCfg` += `raw`, `altitude_gain_per_km` (из `atmosphere.json`) | то же |
 | RW-12b | `rust/dp-air/src/weather/climate.rs` `PlaceCtx` | += `utc_offset_h`, `start_msl_m` (NaN — не задано); `gain_per_km` зависит от высоты старта | RW-12c/RW-10e: откуда берётся `start_msl_m` в игре — сверить с `_f_weather_ctx` |
+| RW-7b | `scripts/atmosphere/atmosphere.gd` | поле считается только для условий-прогноза, пресет — без поля (как с AirRuntime); строже W2 «Режим поля» | T7: превью и тесты с пресетом — нужно ли поле |
+| RW-7b | `scripts/atmosphere/air_place_data.gd` | `utc_offset_h = NaN` → `center_lon/15` | места без часового пояса — сверить час поля |
+| RW-7b | `scripts/atmosphere/atmosphere.gd` | при пилотских слоях конфигов — слитый JSON (числа float), при одном слое — файл как есть; со слоями не проверено | T7 с пилотским слоем |
+| RW-7b | растр «карта фаз» (W7 `debug_raster`) | пуст: крейт карту фаз не отдаёт | RW-12z/RW-13: решить, нужен ли оверлей |
+| RW-7b | `docs/guide/game/cli-tests.md`, `docs/guide/air-model/debug.md` | описан удалённый `--air-field` | RW-13 (документация) |
+| RW-8b | `rust/dp-air/src/terms/sum.rs` | порядок и ограничители суммы — по чтению GD, слоты пустые: проверяется только при наполнении слотов | итоговый T1 итога FULL/MEAN |
+| RW-8b | `rust/dp-air/src/terms/frame.rs` | высота солнца в рамке — 52° (до RW-12c), `AirCase.Z0`, `F_COR` — константы | RW-12c подключение; T1 `analytic` дневных случаев |
+| RW-8b | `rust/dp-air/tests/terms_frame.rs` | эталон `synth_medium` содержит тень гребня; сверка рамки — только в свободном воздухе | RW-9 (линия тени) |
+| RW-8b | `rust/dp-air/tests/runtime.rs` | в accept упал без вывода теста под нагрузкой (вероятно, сигнал/таймаут), повтор 35/35 PASS | итоговый прогон: следить за runtime под нагрузкой |
