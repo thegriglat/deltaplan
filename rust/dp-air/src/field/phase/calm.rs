@@ -5,15 +5,48 @@
 use super::classifier::Classified;
 use super::prepare::{PH_A, PH_B, PH_C, PH_D, PH_H};
 
+/// Порог малости Σ механических весов колонны: ниже него в смесь подмешивается базовый ветер
+/// колонны F (см. [`mix`]). 1e-9 — на три порядка выше полу нормировки (1e-12) и на 7 порядков
+/// выше шума f64 при Σ ≈ 1; от поля механики колонна отличается при этом не более чем на 1e-9·|ΔU|.
+pub const MECH_EPS: f64 = 1e-9;
+
 /// Нормированная смесь механического поля (A, C → A; D, H → D; B → B; F, G — отдельно) по весам
 /// столбца `c`; `m` — 10 чисел [`super::mech::mech_at`]. Результат — f32 (`Vector3` GDScript).
+///
+/// Базовый ветер колонны F: F — конвекция поверх фонового течения, и когда механические веса
+/// колонны обнулились (`r = (1−F)(1−G) → 0`, Σ = wa+wb+wd < [`MECH_EPS`]), фоном служит то
+/// механическое поле, которое было бы без конвекции: смесь по весам до умножения на `r`
+/// (`Classified::base`), а если и они ≈ 0 — поле A. Переход непрерывный: при Σ < eps к весам
+/// добавляется вес базового поля `eps − Σ`, так что при Σ = eps формула совпадает с прежней, а при
+/// Σ ≥ eps результат побитно прежний.
 #[inline]
 pub fn mix(w: &Classified, n2: usize, c: usize, m: &[f64; 10]) -> [f64; 3] {
     let wa = w.weights[PH_A * n2 + c] + w.weights[PH_C * n2 + c];
     let wd = w.weights[PH_D * n2 + c] + w.weights[PH_H * n2 + c];
     let wb = w.weights[PH_B * n2 + c];
-    let sm = (wa + wb + wd).max(1e-12);
-    let f = |a: f64, b: f64, d: f64| f64::from(((wa * a + wb * b + wd * d) / sm) as f32);
+    let sum = wa + wb + wd;
+    let sm = sum.max(1e-12);
+    if sum >= MECH_EPS {
+        let f = |a: f64, b: f64, d: f64| f64::from(((wa * a + wb * b + wd * d) / sm) as f32);
+        return [
+            f(m[0], m[4], m[7]),
+            f(m[1], m[5], m[8]),
+            f(m[2], m[6], m[9]),
+        ];
+    }
+    let (ba, bb, bd) = (w.base[c], w.base[n2 + c], w.base[2 * n2 + c]);
+    let bs = ba + bb + bd;
+    let (ba, bb, bd) = if bs >= 1e-12 {
+        (ba / bs, bb / bs, bd / bs)
+    } else {
+        (1.0, 0.0, 0.0)
+    };
+    let s = MECH_EPS - sum;
+    let tot = MECH_EPS;
+    let f = |a: f64, b: f64, d: f64| {
+        let base = ba * a + bb * b + bd * d;
+        f64::from(((wa * a + wb * b + wd * d + s * base) / tot) as f32)
+    };
     [
         f(m[0], m[4], m[7]),
         f(m[1], m[5], m[8]),
