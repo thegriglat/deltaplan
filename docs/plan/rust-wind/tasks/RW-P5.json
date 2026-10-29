@@ -29,9 +29,11 @@
     "scripts/game/game.gd",
     "scripts/game/world_link.gd",
     "scripts/atmosphere/atmosphere.gd",
+    "scripts/atmosphere/wind_field_debug.gd",
     "tools/loading/",
     "tests/game/test_place_air_stage.gd",
     "tests/game/test_place_air_stage.gd.uid",
+    "tests/atmosphere/test_debug_layers.gd",
     "docs/research/rust-wind-stage3/pilot-air-stage.md"
   ],
   "dont_touch": [
@@ -58,10 +60,14 @@
       "name": "docs_check",
       "cmd": ".dpcli/dpcli docs check",
       "expect": "re:ошибок 0"
+    },
+    {
+      "name": "debug_layers",
+      "tests": "debug_layers"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-29T17:42:50",
-  "edited": "2026-10-29T17:42:59"
+  "edited": "2026-10-29T17:52:44"
 }
