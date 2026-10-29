@@ -240,12 +240,14 @@ fn load_synthetic_reaches_ready_with_finite_field() {
     let mut full = vec![[0.0f32; 4]; pts.len()];
     m.sample_many(&pts, SampleMode::Full, &mut full);
     assert_eq!(bits(&full), bits(&out));
-    // decompose: слагаемое field, итог побитно как sample_many
+    // decompose: имена W7 (RW-8b), слагаемое field, итог побитно как sample_many
     let d = m.decompose(pts[7]);
-    assert_eq!(d.names, vec!["field".to_string()]);
+    assert_eq!(d.names.len(), 9);
+    assert_eq!(d.names[0], "field");
     assert_eq!(d.total, out[7]);
-    assert_eq!(d.vel.len(), 1);
-    assert_eq!(d.sigma, vec![0.0]);
+    assert_eq!(d.vel.len(), 9);
+    assert_eq!(d.vel[0], [out[7][0], out[7][1], out[7][2]]);
+    assert_eq!(d.sigma, vec![0.0; 9]);
     m.unload_place();
     assert_eq!(m.status().state, State::Empty);
 }
