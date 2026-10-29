@@ -21,6 +21,9 @@ pub type WeatherFn = Box<dyn Fn(f64) -> WeatherMap + Send + Sync>;
 /// (x, z, час места) -> сила источника термиков (`AtmoDay.source_fn`).
 pub type SourceFn = Box<dyn Fn(f64, f64, f64) -> f64 + Send + Sync>;
 
+type SharedWeatherFn = Arc<dyn Fn(f64) -> WeatherMap + Send + Sync>;
+type SharedSourceFn = Arc<dyn Fn(f64, f64, f64) -> f64 + Send + Sync>;
+
 /// Записей в кеше погоды, после которых он очищается (как GD: `size() > 512`).
 const CACHE_MAX: usize = 512;
 
@@ -109,9 +112,9 @@ pub struct AtmoDay {
     /// Шаг пересчёта погоды, часы.
     pub quantum_h: f64,
     pub time: WorldTime,
-    weather_fn: Option<Arc<dyn Fn(f64) -> WeatherMap + Send + Sync>>,
+    weather_fn: Option<SharedWeatherFn>,
     sun: Option<SunSpec>,
-    source_fn: Option<Arc<dyn Fn(f64, f64, f64) -> f64 + Send + Sync>>,
+    source_fn: Option<SharedSourceFn>,
     cache: HashMap<i64, Arc<WeatherMap>>,
 }
 
