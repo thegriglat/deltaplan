@@ -1,0 +1,92 @@
+{
+  "status": "done",
+  "summary": "Formula отдаёт опросы W4 v6 из Terms: место, поле, облака (AirInputs), слоты, ключ места, фон/кромка из analytic, режим off, weather_version с порогом 1e-3, фоновый шаг облаков и термиков. formula_facade 13 тестов, workspace/clippy/fmt зелёные.",
+  "commits": [
+    "037f4988f HourFn в terms/mod.rs",
+    "9729f24db Formula на Terms",
+    "ref_msl без wind_ref - высота старта"
+  ],
+  "checks": [
+    {
+      "name": "formula_facade",
+      "value": "13",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "dp_air_no_godot",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "bench advance_to кадр 1/60 (release)",
+      "value": "55-70 мкс при пороге 500",
+      "pass": true
+    },
+    {
+      "name": "bench sample_many_18 / 1000",
+      "value": "49.7 мкс / 2.0 мс",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "тест (б) против эталона RW-2b по thermal/cloud/storm/wave на ongudai_* - в итоговый T1 (решение координатора)",
+    "кеш wind.speed_at(300) в Terms (п. 8)"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RW-12v",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/src/formula.rs check_climate",
+      "why": "climate_cell обязателен только для прогноза: у фикстуры synthetic есть loc.climate без cell; в contract.rs у синтетики убран климат",
+      "checked": "contract.rs, formula_facade forecast_needs_climate_cell"
+    },
+    {
+      "where": "rust/dp-air/src/terms/weather_link.rs source_hours",
+      "why": "источники термиков без воды (water None)",
+      "checked": "не сверялось с эталоном"
+    },
+    {
+      "where": "benches/formula.rs",
+      "why": "sample_many_18 49.7 мкс при пороге 50, 1000 точек 2.0 мс при пороге 2 - запаса нет",
+      "checked": "cargo bench один прогон"
+    },
+    {
+      "where": "rust/dp-air/src/terms/thermal/mod.rs advance_bg",
+      "why": "первая сборка термиков в фоне: после load_place ядер нет несколько кадров; start_at синхронно",
+      "checked": "terms_thermal_field, runtime"
+    },
+    {
+      "where": "rust/dp-air/src/formula.rs sync_field",
+      "why": "первая подача поля пересоздаёт слот облаков",
+      "checked": "field_off_drops_air_sources_and_back"
+    },
+    {
+      "where": "rust/dp-air/src/formula.rs default_ref_msl",
+      "why": "ref_msl без wind_ref = h_msl первого старта; какой из нескольких стартов не уточнено",
+      "checked": "общие тесты"
+    },
+    {
+      "where": "tests/runtime.rs, clipmap.rs, field_export.rs",
+      "why": "хелперы sample берут вклад поля через decompose; σ field = 0, проверки σ слабее",
+      "checked": "все тесты зелёные"
+    }
+  ],
+  "dp_feedback": "job --lock ставится перед start; job wait уходит в фон через 180 с; rtk grep обрезает вывод; report требует имена проверок точно как в карточке.",
+  "t": "2026-10-29T15:29:43",
+  "by": "executor"
+}

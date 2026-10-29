@@ -1,0 +1,83 @@
+{
+  "status": "done",
+  "summary": "Фасад atmosphere.gd переписан на DpAir целиком (2602 -> ~1190 строк): опросы, описания, погода (кэш по weather_version), солнце, растры, decompose, cloud_objects/wave_info/surface_gust_many и константы OBJ_*/WAVE_INFO_* (и в CalmAir) идут из крейта; GD-слагаемые, step, _f_build, _f_apply_*, set_ground/day/wind/weather убраны, pump без работы. Контрактные тесты переведены на W2 v4. Тесты Godot не гонялись (по решению координатора); в копии нет собранного расширения dp_air. Доработка: типизированные сигнатуры возвращены, T6 start_at через cloud_field.enabled=false.",
+  "commits": [
+    "f88f361cd RW-12x шаг 1: константы OBJ_*/WAVE_INFO_*, cloud_objects/wave_info/surface_gust_many в фасаде и CalmAir (W2 v4)",
+    "bf8adf4d2 RW-12x шаг 2: фасад atmosphere.gd на DpAir (W2 v4)",
+    "93f19dd26 RW-12x доработка: типизированные сигнатуры (AirPlaceData, Config), T6 start_at без облачной петли — строгое равенство"
+  ],
+  "checks": [
+    {
+      "name": "gdlint",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "no_gd_hot_path",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "contracts_w2_4",
+      "value": "1",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Файлы GD-слагаемых не удалял (RW-13). Из фасада убраны поля wind, ground, field, cloud_phys, storm, wave, field_turb, day, turbulence_enabled, refresh_budget_us и методы set_thermal_mode, set_cloudbase_msl, add_static_thermal, load_static_thermals, clear_static_thermals, set_day, set_wind, set_weather, set_ground, step, refresh_now, prefetch_air_sources, begin_load_refresh, load_refresh_step, lee_heat_wm2, phase_main_raster. Читатели вне моего скоупа ещё ссылаются: cloud_layer.gd (atmo.field/cloud_phys/storm/wave) и gust_dust (wind-источник) - RW-12z/12zd; tools/flight/wind_penetration_run.gd, tools/research/* (set_thermal_mode, set_cloudbase_msl); tests/atmosphere/* и tests/ui/test_wind_model_setting.gd (air.wind, air.ground, set_ground, step, turbulence_enabled), air_runtime.gd (atmosphere.get('ground')), atmosphere_preview.gd/atmo_fingerprint.gd (внутренности).",
+    "configure(Dictionary, Dictionary) оставлен как заглушка: кладёт словарь в cfg для визуальных слоёв, погоду и физику не строит (их нет в GD).",
+    "Тесты вне скоупа, которые теперь красные до правки их владельцами: test_rw7_field_from_crate (a.air_field.levels читает без запроса - сработает через геттер, но подача фоновая, нужен poll/ожидание), test_air_thermals_relief (air_sources_ready оставлен), всё, что трогает a.wind/a.ground/a.field/a.day.",
+    "Нет сборки dp_air в копии (libdp_air_tune.so не найдена): ни одного прогона Godot-тестов, живого обмена с DpAir не проверял.",
+    "Оставшиеся читатели удалённых членов (wind/ground/field/cloud_phys/storm/wave/day/turbulence_enabled, set_ground/set_wind/set_day/set_thermal_mode/set_cloudbase_msl/add_static_thermal и т.п.; грубый grep, возможны ложные срабатывания). scripts: cloud_layer.gd(15), wing_catalog.gd(2), weather_model.gd, atmo_day.gd. tests/contracts: test_perf_contracts(82), test_wing_physics_contracts, test_air_contracts, test_feedback_1013_contracts. tests/atmosphere: test_clouds_and_generation, test_atmosphere, test_cloud_field_runtime, test_hazards, test_wave, test_air_thermals, test_lee_rotor, test_weather_day, test_pilot_words, test_calibration, test_storm_rarity, test_wind_profile_simple, xc/xc_run, test_cloud_start, test_gust_dust, test_cloud_select_chunked, test_birds, test_cloud_suck, test_ridge_starts, test_cloud_render, test_cloud_layer_history, test_atmosphere_consumers, test_sun_transmission, test_cloud_fade, cloud_field_fixture, test_air_*_gpu и test_air_runtime*, test_air_model_atmo, test_start_air_gpu, test_forecast_game, test_debug_overlays, test_pendulum_ground_landing, test_*_baked_gpu. tools: wind_fixtures/gen_fixtures и day_dump, research/* (air_thermals, fb1013_evening, air_turb, qol_signs, surface_heat, wing_physics_check, air_start, cloud_field, air_model_baseline, wind_compare, air_weak_wind, b2, rust_wind), weather/storm_rarity, terrain/bake_air и island/volcano air_probe, shots/*, flight/wind_penetration_run, bench/air_velocity_bench, wind_field/dump_slices."
+  ],
+  "questions": [
+    "Подтвердить: подготовка места у крейта стартует лениво (start_at, либо первый status/pump/advance_to/is_ready после load_place), а не в load_place - иначе игра, которая шлёт set_conditions и set_static_thermals после load_place, пересчитывала бы поле дважды. Контракт W2 v4 этого не оговаривает.",
+    "Имена OBJ_* придуманы мной по таблице W6 v4 (OBJ_ID, OBJ_FLAGS, OBJ_CX, OBJ_CZ, OBJ_BASE, OBJ_GROWTH, OBJ_DECAY, OBJ_ACTIVITY, OBJ_RX, OBJ_RZ, OBJ_DEPTH, OBJ_SPREAD, OBJ_VIS_SEED, OBJ_LIFE_T0, OBJ_LIFE_T1, OBJ_SRC_X, OBJ_SRC_Z, OBJ_DRIFT_VX, OBJ_DRIFT_VZ, OBJ_DRIFT_T0, OBJ_STORM_T0, OBJ_STORM_K); RW-12z (cloud_layer.gd) должен использовать именно их - при желании другие имена правятся одной строкой."
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-12x; итоговый прогон: --filter=rust_wind (test_rust_wind_contracts, test_rust_wind_consumers) на сборке с dp_air",
+  "uncertain": [
+    {
+      "where": "scripts/atmosphere/atmosphere.gd: _dp_poll / _compute_state / load_place",
+      "why": "Контрактный тест ждёт state == LOADING сразу после load_place и start_at, и [1, 2] в state_changed. Я полагаюсь на то, что DpAir.state() сразу после load_place возвращает LOADING (подготовка в потоке крейта). Если крейт на малом месте вернёт READY синхронно, тесты test_start_at_async_and_determinism и test_signals покраснеют.",
+      "checked": "только чтением кода dp-gd/bridge.rs и контрактов; запуска не было."
+    },
+    {
+      "where": "scripts/atmosphere/atmosphere.gd: _on_ready (advance_to(_f_t_req) при time_s крейта < t_req)",
+      "why": "advance_to во время загрузки только запоминает t (NOT_READY); при первом READY фасад доводит крейт до t через advance_to, а не start_at. Тест 'time_s = 1.0 после READY' зависит от того, что dp.advance_to(1.0) разрешён сразу после READY и dp.time_s() его отражает.",
+      "checked": "логика сверена со старой реализацией (stage 2: time_s = _f_t_req); без запуска."
+    },
+    {
+      "where": "scripts/atmosphere/atmosphere.gd: _poll_weather, set_conditions",
+      "why": "weather_updated/weather_changed шлются по росту weather_version/weather_rebuild_version; тест 'мягкая смена шлёт weather_updated' ждёт сигнал сразу после set_conditions, а тест консьюмеров ждёт 0 сигналов при смене только start_hour/speed. Оба зависят от того, когда крейт повышает мягкую версию (в set_conditions или лишь при advance_to).",
+      "checked": "trait.md (weather_version) - 'растёт только при реальной смене'; фасад опрашивает версию сразу после dp.set_conditions."
+    },
+    {
+      "where": "scripts/atmosphere/atmosphere.gd: status() field_on / is_air_field_on",
+      "why": "field_on = режим поля отправлен как 1 (set_field_enabled(true)) и состояние READY; признака 'поле реально посчитано' у DpAir нет без field_export. Headless auto даёт false, как требует W2 'Режим поля'.",
+      "checked": "по тексту W2; test_field_off_in_headless_auto добавлен."
+    },
+    {
+      "where": "scripts/atmosphere/atmosphere.gd: cloud_raster() / debug_raster()",
+      "why": "Слои растра берутся из поля layers в заголовке крейта (raster_header); фасад не добавляет отсутствующие bg_cover/bg_depth. Если RW-11d отдаёт другие имена слоёв, тест 'слой k - nx*ny' для шести имён W6 покажет. debug_raster_names передаёт имена крейта как есть, кроме начинающихся с phase; 'terrain_height' - из места фасада.",
+      "checked": "bridge.rs raster_header/layer; без запуска."
+    },
+    {
+      "where": "scripts/atmosphere/atmosphere.gd: air_field (геттер)",
+      "why": "Подача снимка поля в air_field включается первым обращением к свойству (want_air_field), а не явным запросом, как просит карточка 'по запросу потребителя'. Первое чтение возвращает ещё пустой набор: сборка уровней в фоне (кроме deterministic).",
+      "checked": "по коду _dp_feed; потребителей вне скоупа не правил."
+    },
+    {
+      "where": "tests/contracts/test_rust_wind_contracts.gd: test_start_at_vs_run_from_zero",
+      "why": "Строгое равенство MEAN и cores после start_at(300) и прогона с 0 при cfg_override cloud_field.enabled=false; верно ли это у крейта, не проверено.",
+      "checked": "не запускался"
+    }
+  ],
+  "dp_feedback": "Параметры приёмки parse (--check-only --script) нереализуемы для скриптов с Config и его потребителями без обходов - хорошо бы дать в карточке готовый способ (например, загрузка автозагрузок или проверка через запуск сцены). Поле not_done/checks в report --template стоило бы пояснить на примере; журнал задач в этом модуле длинный, task show --full повторяет вывод.",
+  "extra": {
+    "atmosphere_gd_lines": "2602 -> 1190",
+    "removed_public_members": "wind, ground, field, cloud_phys, storm, wave, field_turb, day, turbulence_enabled, refresh_budget_us"
+  },
+  "t": "2026-10-29T15:31:08",
+  "by": "executor"
+}
