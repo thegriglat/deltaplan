@@ -58,7 +58,7 @@ fn configs() -> Configs {
 
 fn island_place() -> Place {
     let header = r#"{"version":1,"loc":{"id":"training_island","center_lat":43.2,"center_lon":34.0,
-"utc_offset_h":2.0,"month":7,"day":15},"grid":{"origin_x":-10000,"origin_z":-10000,"spacing":25,
+"utc_offset_h":2.0,"month":7,"day":15},"model_hash":"terms-sum-1","grid":{"origin_x":-10000,"origin_z":-10000,"spacing":25,
 "width":801,"height":801},"surface_classes":{"grass":1},
 "start_sites":[{"x":3510.0,"z":-1510.0,"h_msl":100.0}]}"#;
     let h = dp_air::PlaceHeader::from_json(header).unwrap();
@@ -83,12 +83,19 @@ fn focus() -> Focus {
 
 /// Рабочая `Formula` с посчитанным полем: место, условия, фокус, поля; ждёт `Ready` с полем.
 fn ready_model(windows: bool) -> (Formula, Place) {
+    // поле считается один раз на вариант (с окнами/без), дальше — из кеша: шесть тестов
+    // одновременно в debug не успевают посчитать его за таймаут
+    static ONE_AT_A_TIME: std::sync::Mutex<()> = std::sync::Mutex::new(());
+    let _g = ONE_AT_A_TIME.lock().unwrap_or_else(|e| e.into_inner());
+    let dir = std::env::temp_dir().join(format!("dp-air-terms-sum-{}", std::process::id()));
+    std::fs::create_dir_all(&dir).unwrap();
     let pl = island_place();
     let mut m = Formula::new();
     if !windows {
         m = m.with_faults(NO_WIN);
     }
     m.configure(&configs(), 1).unwrap();
+    m.set_cache_dir(dir.to_str().unwrap()).unwrap();
     m.set_conditions(&landing_cond()).unwrap();
     m.set_focuses(&[focus()]).unwrap();
     m.load_place(pl.clone()).unwrap();
