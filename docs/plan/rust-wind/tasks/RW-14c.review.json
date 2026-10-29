@@ -1,0 +1,34 @@
+{
+  "verdict": "accept",
+  "summary": "Крейт dp_air::weather соответствует W12 v2: typical_max_c с valley_msl_m, sun_direction с lon, формат from_bytes. Трейт set_weather/place_context с умолчаниями (W4 v10), dp-gd не тронут. Climate места берётся из Weather, loc.climate* принимаются и игнорируются (deny_unknown_fields у Loc нет, есть тест header_climate_keys_are_gone_and_old_ones_ignored). Изменённые файлы в скоупе, brotli только в dev-dependencies. Тесты ослаблены только там, где их требования отменил W5 v10 (check_climate, climate_lag).",
+  "issues": [
+    {
+      "file": "rust/dp-air/src/terms/weather_link.rs",
+      "line": 175,
+      "severity": "minor",
+      "what": "Если в wind_ref нет gain_per_km, а Weather не задана (или места ещё нет), set_altitude_gain не вызывается и alt_gain остаётся от прежних условий. Запасной climate_place(Null, ctx, wm).gain_per_km (climate.fallback) не берётся, хотя для типичного максимума place_climate этот запасной путь использует. Прямого теста этой связки нет, исполнитель сам указал это в uncertain.",
+      "fix": "Брать gain через self.place_climate(&ctx, wm) (там есть запасной путь) и добавить тест, что без gain_per_km рост ветра берётся из климата места на ref_msl. Можно сделать в RW-14d/e."
+    },
+    {
+      "file": "rust/dp-air/tests/weather_ref2.rs",
+      "line": 3,
+      "severity": "minor",
+      "what": "По дополнению к карточке E6 нужно было хотя бы убедиться, что считается. Сейчас E6 не запускается вовсе, а valley_of проверен только как алгоритм.",
+      "fix": "Добавить прогон valley_of/ground_context по входам E6 с проверкой конечности, без допуска."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "weather_ref2",
+      "value": "exit 0, 18 с",
+      "pass": true
+    },
+    {
+      "name": "dp_air_no_godot",
+      "value": "0",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-30T03:21:41",
+  "by": "reviewer"
+}
