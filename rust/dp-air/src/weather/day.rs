@@ -98,6 +98,7 @@ pub fn sun_direction(hour: f64, s: &SunSpec, min_light_elevation_deg: f64) -> [f
 }
 
 /// Ход дня. Погода — функция часа места; кеш по номеру шага.
+#[derive(Clone)]
 pub struct AtmoDay {
     /// Час места при `t = t0`.
     pub start_hour: f64,
@@ -108,9 +109,9 @@ pub struct AtmoDay {
     /// Шаг пересчёта погоды, часы.
     pub quantum_h: f64,
     pub time: WorldTime,
-    weather_fn: Option<WeatherFn>,
+    weather_fn: Option<Arc<dyn Fn(f64) -> WeatherMap + Send + Sync>>,
     sun: Option<SunSpec>,
-    source_fn: Option<SourceFn>,
+    source_fn: Option<Arc<dyn Fn(f64, f64, f64) -> f64 + Send + Sync>>,
     cache: HashMap<i64, Arc<WeatherMap>>,
 }
 
@@ -154,12 +155,14 @@ impl AtmoDay {
             day: ctx.day,
             utc_offset_h: ctx.utc_offset_h,
         });
-        d.weather_fn = Some(forecast_weather_fn(forecast, ctx, climate, cfg, overrides));
+        d.weather_fn = Some(Arc::from(forecast_weather_fn(
+            forecast, ctx, climate, cfg, overrides,
+        )));
         d
     }
 
     pub fn with_weather_fn(mut self, f: WeatherFn) -> Self {
-        self.weather_fn = Some(f);
+        self.weather_fn = Some(Arc::from(f));
         self.cache.clear();
         self
     }
@@ -170,8 +173,16 @@ impl AtmoDay {
     }
 
     pub fn with_source_fn(mut self, f: SourceFn) -> Self {
-        self.source_fn = Some(f);
+        self.source_fn = Some(Arc::from(f));
         self
+    }
+
+    /// Погода часа `hour` напрямую, мимо кеша шагов (`weather_fn.call(hour)`; GD `_f_resolve`:
+    /// стартовая погода `derive_fn.call(start_hour)`). Нет погоды — пустой словарь.
+    pub fn weather_for_hour(&self, hour: f64) -> WeatherMap {
+        self.weather_fn
+            .as_ref()
+            .map_or_else(WeatherMap::new, |f| f(hour))
     }
 
     pub fn has_weather(&self) -> bool {
