@@ -1,0 +1,65 @@
+{
+  "id": "RW-12s",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Тесты GDScript — на W2 v4: перевод на фасад или удаление проверок GD-внутренностей с эквивалентом в cargo",
+  "goal": "Ни один тест tests/ (кроме скоупа RW-12z и test_rust_wind_contracts.gd) не обращается к удалённым членам Atmosphere: тест поведения игры — переведён на W2 v4 с тем же смыслом; тест внутренности GD-слагаемого через фасад (air.field/air.cloud_phys/air.storm/…), у которого есть эквивалент в cargo (rust/dp-air/tests/terms_*.rs и др.), — функция удалена, в отчёте таблица «тест → cargo-эквивалент»; без эквивалента — переведён на W2 v4 или назван в отчёте с причиной. Тесты самих GD-классов (ThermalField.new() и т. п.) — не трогать (RW-13).",
+  "plan_ref": "План переноса",
+  "contracts": [
+    {
+      "name": "W2",
+      "version": "4",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W10",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-12s",
+  "branch": "rust-wind/RW-12s",
+  "base": "feature/rust-wind",
+  "scope": [
+    "tests/"
+  ],
+  "dont_touch": [
+    "tests/contracts/test_rust_wind_contracts.gd",
+    "tests/contracts/test_dp_air_ext.gd",
+    "tests/contracts/rust_wind_purity_baseline.txt",
+    "tests/contracts/test_rust_wind_purity.gd",
+    "tests/game/test_forecast_game.gd",
+    "tests/atmosphere/test_ridge_starts.gd",
+    "tests/atmosphere/test_start_air_gpu.gd",
+    "tests/atmosphere/test_gust_dust.gd",
+    "tests/atmosphere/test_cloud_fade.gd",
+    "tests/atmosphere/test_cloud_layer_history.gd",
+    "tests/atmosphere/test_cloud_select_chunked.gd",
+    "tests/fixtures/",
+    "scripts/",
+    "tools/",
+    "rust/",
+    "docs/contracts/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "gdlint",
+      "cmd": "tools/lint.sh tests",
+      "expect": "exit=0"
+    },
+    {
+      "name": "no_removed_in_tests",
+      "cmd": "grep -rnE '\\b(air|atmo|atmosphere|a|_air|_atmo)\\.(wind|ground|field|cloud_phys|storm|wave|field_turb|day|turbulence_enabled|refresh_budget_us|set_thermal_mode|set_cloudbase_msl|add_static_thermal|load_static_thermals|clear_static_thermals|set_day|set_wind|set_weather|set_ground|step|refresh_now|prefetch_air_sources|begin_load_refresh|load_refresh_step|lee_heat_wm2|phase_main_raster)\\b' tests --include=*.gd | grep -vE 'tests/(contracts/test_rust_wind_contracts|game/test_forecast_game|atmosphere/test_(ridge_starts|start_air_gpu|gust_dust|cloud_fade|cloud_layer_history|cloud_select_chunked))\\.gd' | wc -l",
+      "expect": "num:^(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T15:32:42"
+}
