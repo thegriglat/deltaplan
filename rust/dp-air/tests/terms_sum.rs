@@ -225,10 +225,14 @@ fn zero_slots_bit_for_bit_like_old_sample_point() {
         want.iter().filter(|w| w.iter().all(|x| *x == 0.0)).count() > 50,
         "есть точки вне области"
     );
-    for mode in [SampleMode::Full, SampleMode::Mean] {
-        let mut out = vec![[9.0f32; 4]; pts.len()];
-        m.sample_many(&pts, mode, &mut out);
-        assert_eq!(bits(&out), bits(&want), "{mode:?}");
+    // Аналитика (RW-9) активна с configure: прежний опрос = слагаемое `field` разложения.
+    for (p, w) in pts.iter().zip(&want) {
+        let d = m.decompose(*p);
+        assert_eq!(
+            d.vel[0].map(f32::to_bits),
+            [w[0], w[1], w[2]].map(f32::to_bits),
+            "{p:?}"
+        );
     }
 }
 
@@ -263,8 +267,6 @@ fn decompose_names_and_invariants() {
             );
             assert!(d.total[q].is_finite() && d.vel.iter().all(|v| v[q].is_finite()));
         }
-        // с нулевыми слотами всё в `field`
-        assert_eq!(d.vel[0][0], d.total[0]);
         if d.total.iter().any(|x| *x != 0.0) {
             nonzero += 1;
         }
@@ -494,13 +496,16 @@ fn edge_band_mixes_noise_with_variance_kept() {
 fn commands_keep_zero_slot_samples() {
     let (mut m, pl) = ready_model(false);
     let pts = thousand(&pl);
-    let mut before = vec![[0.0f32; 4]; pts.len()];
-    m.sample_many(&pts, SampleMode::Full, &mut before);
+    // слагаемое `field` (аналитика зависит от условий и фокусов — RW-9)
+    let fld = |m: &Formula| -> Vec<[u32; 3]> {
+        pts.iter()
+            .map(|p| m.decompose(*p).vel[0].map(f32::to_bits))
+            .collect()
+    };
+    let before = fld(&m);
     m.set_focuses(&[focus()]).unwrap();
     m.set_static_thermals(&[[0.0, 0.0, 100.0, 2.0]], 0).unwrap();
     m.set_sun_direction(Some([0.0, 1.0, 0.0]));
     m.advance_to(1.0).unwrap();
-    let mut after = vec![[0.0f32; 4]; pts.len()];
-    m.sample_many(&pts, SampleMode::Full, &mut after);
-    assert_eq!(bits(&before), bits(&after));
+    assert_eq!(before, fld(&m));
 }
