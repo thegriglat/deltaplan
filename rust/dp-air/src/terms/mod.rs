@@ -223,11 +223,16 @@ impl Terms {
         w || th || cl
     }
 
+    /// Обновить облака; `true` - публикация нужна: поле шагнуло или есть Cb-объекты (их центры
+    /// движутся). Пустое обновление объектов (облаков-объектов нет) снимок не публикует.
     fn advance_clouds(&mut self, t: f64, force: bool) -> bool {
         match self.clouds.advanced(self, t, force) {
             Some(n) => {
+                let (a, b) = (self.clouds.physics(), n.physics());
+                let publish =
+                    force || a.version != b.version || a.objects.count > 0 || b.objects.count > 0;
                 self.clouds = n;
-                true
+                publish
             }
             None => false,
         }
