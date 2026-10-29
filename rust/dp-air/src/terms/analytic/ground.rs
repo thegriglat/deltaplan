@@ -55,10 +55,16 @@ pub struct GroundSample {
 
 /// Признак места: указатель и размер растра, шапка сетки, три высоты. Кеш живёт на одно место.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct PlaceSig([u64; 6]);
+pub struct PlaceSig([u64; 7]);
 
 impl PlaceSig {
     pub fn of(place: &Place) -> Self {
+        Self::keyed(place, 0)
+    }
+
+    /// С ключом места - поколением `load_place` (`Terms::place_key`): адрес освобождённого растра
+    /// мог достаться новому месту, поколение - нет.
+    pub fn keyed(place: &Place, key: u64) -> Self {
         let hs = place.heights();
         let g = &place.header().grid;
         let at = |i: usize| hs.get(i).map_or(0, |h| u64::from(h.to_bits()));
@@ -69,6 +75,7 @@ impl PlaceSig {
             at(0),
             at(hs.len() / 2),
             at(hs.len().saturating_sub(1)),
+            key,
         ])
     }
 }

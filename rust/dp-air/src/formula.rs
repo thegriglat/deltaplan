@@ -56,9 +56,10 @@ use crate::field::wind_field::{Field, Limits};
 use crate::terms::{self, Terms};
 use crate::{
     AirModel, Cloud, Conditions, Configs, Core, Crest, Decomposition, Error, FieldExport, Focus,
-    Place, Raster, SampleMode, State, Status,
+    ObjRecord, Place, Raster, SampleMode, State, Status,
 };
 use rayon::prelude::*;
+use serde_json::{Map, Value};
 use std::collections::HashMap;
 use std::panic::AssertUnwindSafe;
 use std::path::PathBuf;
@@ -535,6 +536,48 @@ pub struct Formula {
     field_on: bool,
     /// Следующая загрузка — включение поля при `Ready`: состояние не меняется.
     quiet_load: bool,
+    /// Номер подачи поля (`ExpState::version`), с которым собраны источники термиков и входы облаков
+    /// в `terms` (`u64::MAX` — не подавалось).
+    fed_ver: u64,
+    /// Входы поля облаков — из поля воздуха (`AirInputs`), иначе аналитические.
+    cloud_air: bool,
+    /// Ход дня, по которому собрана земля термиков (`Terms::day_sig`).
+    wired_sig: Option<[f64; 3]>,
+    /// `clouds.fade_out_s`: окно истории `cloud_objects`, с.
+    fade_out_s: f64,
+    /// Порог смены погоды для `weather_version` (под замком: опрос — `&self`).
+    wv: Mutex<WvMemo>,
+}
+
+/// Смена выведенной погоды меньше этого (относительно) версию не поднимает (`weather_version`).
+const WEATHER_EPS: f64 = 1.0e-3;
+
+/// Что `weather_version` помнит: версии `Terms`, выданные номера и погода, с которой номер вырос.
+#[derive(Default)]
+struct WvMemo {
+    seen: (u64, u64),
+    out: (u64, u64),
+    sig: Option<Map<String, Value>>,
+}
+
+/// Различаются ли словари погоды больше чем на [`WEATHER_EPS`] (числа - относительно, остальное -
+/// точно, вложенные словари - рекурсивно).
+fn weather_differs(a: &Value, b: &Value) -> bool {
+    match (a, b) {
+        (Value::Number(x), Value::Number(y)) => match (x.as_f64(), y.as_f64()) {
+            (Some(x), Some(y)) => (x - y).abs() > WEATHER_EPS * x.abs().max(y.abs()) + 1.0e-12,
+            _ => a != b,
+        },
+        (Value::Object(x), Value::Object(y)) => {
+            x.len() != y.len()
+                || x.iter()
+                    .any(|(k, v)| y.get(k).is_none_or(|w| weather_differs(v, w)))
+        }
+        (Value::Array(x), Value::Array(y)) => {
+            x.len() != y.len() || x.iter().zip(y).any(|(p, q)| weather_differs(p, q))
+        }
+        _ => a != b,
+    }
 }
 
 impl Default for Formula {
@@ -581,6 +624,11 @@ impl Formula {
             win_fail: Arc::new(AtomicUsize::new(0)),
             field_on: true,
             quiet_load: false,
+            fed_ver: u64::MAX,
+            cloud_air: false,
+            wired_sig: None,
+            fade_out_s: 60.0,
+            wv: Mutex::new(WvMemo::default()),
         }
     }
 
@@ -588,6 +636,22 @@ impl Formula {
     /// `clip()`, `current()` и `shifts()` отражают поданное поле.
     pub fn poll(&mut self) {
         self.reap();
+    }
+
+    /// Слагаемые, как их видят опросы (последняя публикация): для сверки и отладки.
+    pub fn terms_snapshot(&self) -> Arc<Terms> {
+        self.sh.snapshot().terms.clone()
+    }
+
+    /// Дождаться фоновых шагов слагаемых (термики, облака); `false` - вышло время. Для тестов
+    /// и бенчей: игра не ждёт.
+    pub fn wait_terms(&self, limit: Duration) -> bool {
+        let tm = self.sh.snapshot().terms.clone();
+        tm.slots
+            .thermal
+            .as_slot()
+            .is_none_or(|s| s.wait_pending(limit))
+            && tm.clouds.wait_pending(limit)
     }
 
     /// Уровней в поданном наборе (окна и область).
@@ -688,6 +752,83 @@ impl Formula {
     fn set_time(&mut self, t: f64) {
         self.time_s = t;
         self.sh.set_time(t);
+    }
+
+    /// Прогноз без сырой ячейки климата места - `BadInput` (W5 v8: `loc.climate_cell` обязателен
+    /// при `loc.climate`; предел вывода погоды по часу). Эталон-пресет ячейки не требует.
+    fn check_climate(place: &Place, cond: Option<&Conditions>) -> Result<(), Error> {
+        let loc = &place.header().loc;
+        let forecast = matches!(
+            cond.map(|c| &c.source),
+            Some(crate::conditions::Source::Forecast { .. })
+        );
+        if forecast && loc.climate.is_some() && loc.climate_cell.is_none() {
+            return Err(Error::bad_input(
+                "loc.climate_cell is required with loc.climate for a forecast (W5 v8)",
+            ));
+        }
+        Ok(())
+    }
+
+    /// Опорная высота ветра без `wind_ref` (пресет, прогноз без `wind_ref`): высота первого старта
+    /// места, как `Atmosphere._f_weather_ctx` в GD.
+    fn default_ref_msl(&mut self) {
+        if self.terms.wind.ref_msl.is_nan()
+            && let Some(s) = self
+                .place
+                .as_ref()
+                .and_then(|p| p.header().start_sites.first().map(|s| s.h_msl))
+        {
+            self.terms.wind.ref_msl = s;
+        }
+    }
+
+    /// Земля термиков из места и хода дня: сила источников по классам и часу. Ошибка конфигов
+    /// (`surface_heat`/`world` нет) термики не включает - слот остаётся без земли.
+    fn wire_thermal(&mut self) {
+        let Some(place) = self.place.clone() else {
+            return;
+        };
+        self.wired_sig = self.terms.day_sig();
+        let _ = match self.terms.source_hours() {
+            Some(h) => self.terms.set_thermal_place_hours(place, h),
+            None => self.terms.set_thermal_place(place, None),
+        };
+    }
+
+    /// Новая подача поля (`note_feed`) - в источники термиков и входы облаков `terms`. `true` -
+    /// `terms` изменились, нужна публикация. Режим `off` (поля нет) - источников нет.
+    fn sync_field(&mut self) -> bool {
+        let (ver, levels) = {
+            let e = lock(&self.sh.exp);
+            if e.version == self.fed_ver {
+                return false;
+            }
+            (e.version, e.levels.clone())
+        };
+        self.fed_ver = ver;
+        self.terms.set_air_field(&levels, None);
+        let air = !levels.is_empty();
+        if air != self.cloud_air {
+            self.cloud_air = air;
+            if air {
+                self.terms
+                    .set_cloud_inputs(Arc::new(terms::clouds::AirInputs));
+            } else {
+                self.terms.clouds = Arc::new(terms::clouds::CloudSlot::analytic());
+            }
+        }
+        true
+    }
+
+    /// Снимок и время атмосферы для опросов слагаемых: место загружено и состояние `Ready`.
+    fn query(&self) -> Option<(Arc<Published>, f64)> {
+        if self.sh.state() != State::Ready {
+            return None;
+        }
+        let pb = self.sh.snapshot();
+        pb.place.as_ref()?;
+        Some((pb, self.sh.time()))
     }
 
     /// Публикует слагаемые (`terms`) опросам: подмена указателя.
@@ -1110,13 +1251,24 @@ impl AirModel for Formula {
         }));
         self.recompute_inputs();
         self.terms.configure(&self.configs, seed);
+        if !self.field_on {
+            self.terms.set_air_off(true);
+        }
+        let bg = !self.det();
+        self.terms.thermal_async = bg;
+        self.terms.clouds_async = bg;
+        self.fade_out_s = terms::named_json(&self.configs, "atmosphere")
+            .and_then(|a| a.pointer("/clouds/fade_out_s").and_then(Value::as_f64))
+            .unwrap_or(60.0)
+            .max(0.0);
         self.publish_terms();
         Ok(())
     }
 
     fn load_place(&mut self, place: Place) -> Result<(), Error> {
+        Self::check_climate(&place, self.cond.as_ref())?;
         self.cancel_job();
-        self.sh.epoch.fetch_add(1, Ordering::SeqCst);
+        let epoch = self.sh.epoch.fetch_add(1, Ordering::SeqCst) + 1;
         let place = Arc::new(place);
         self.place = Some(place.clone());
         self.time_s = 0.0;
@@ -1131,8 +1283,17 @@ impl AirModel for Formula {
         self.place_hash = Arc::new(OnceLock::new());
         *lock(&self.sh.report) = None;
         self.cond_t = 0.0;
-        self.reset_published(Some(place));
+        self.reset_published(Some(place.clone()));
         self.sh.note_feed(&[], 0.0, 0.0, ExpMeta::default());
+        // слагаемые: ключ места, погода по часу, земля термиков; поле подаст `sync_field`
+        self.terms.place_key = epoch;
+        self.terms.set_origin(0.0);
+        self.terms.set_place(Some(&*place));
+        self.default_ref_msl();
+        self.wire_thermal();
+        self.fed_ver = u64::MAX;
+        self.sync_field();
+        self.publish_terms();
         self.sh.set_state(State::Ready, 1.0, "");
         if !self.field_on {
             return Ok(());
@@ -1154,7 +1315,8 @@ impl AirModel for Formula {
 
     fn unload_place(&mut self) {
         self.cancel_job();
-        self.sh.epoch.fetch_add(1, Ordering::SeqCst);
+        let epoch = self.sh.epoch.fetch_add(1, Ordering::SeqCst) + 1;
+        self.terms.place_key = epoch;
         self.place = None;
         self.time_s = 0.0;
         self.sh.set_time(0.0);
@@ -1170,14 +1332,21 @@ impl AirModel for Formula {
         self.thermals.clear();
         self.focuses.clear();
         self.terms.unload_place();
+        self.wired_sig = None;
+        self.cloud_air = false;
+        self.terms.clouds = Arc::new(terms::clouds::CloudSlot::analytic());
         self.reset_published(None);
         self.publish_terms();
         self.sh.note_feed(&[], 0.0, 0.0, ExpMeta::default());
+        self.fed_ver = lock(&self.sh.exp).version;
         self.quiet_load = false;
         self.sh.set_state(State::Empty, 0.0, "");
     }
 
     fn set_conditions(&mut self, c: &Conditions) -> Result<(), Error> {
+        if let Some(p) = &self.place {
+            Self::check_climate(p, Some(c))?;
+        }
         self.reap();
         if self.cond.as_ref() != Some(c) {
             self.cond_t = self.time_s;
@@ -1186,6 +1355,11 @@ impl AirModel for Formula {
         self.cond = Some(c.clone());
         self.recompute_inputs();
         self.terms.set_conditions(c);
+        self.default_ref_msl();
+        // ход дня сменился (новый или другие часы): сила источников термиков по новому часу
+        if self.place.is_some() && self.terms.day_sig() != self.wired_sig {
+            self.wire_thermal();
+        }
         self.publish_terms();
         Ok(())
     }
@@ -1234,7 +1408,8 @@ impl AirModel for Formula {
         }
         self.pump(t);
         self.set_time(t);
-        if self.terms.advance(t) {
+        let fed = self.sync_field();
+        if self.terms.advance(t) || fed {
             self.publish_terms();
         }
         Ok(())
@@ -1248,7 +1423,8 @@ impl AirModel for Formula {
         self.cancel_job();
         self.sh.advance_fs(t - self.time_s);
         self.set_time(t);
-        if self.terms.start_at(t) {
+        let fed = self.sync_field();
+        if self.terms.start_at(t) || fed {
             self.publish_terms();
         }
         if self.sh.state() == State::Loading {
@@ -1316,6 +1492,9 @@ impl AirModel for Formula {
             return Ok(());
         }
         self.field_on = on;
+        // режим `off` W2 v4: упрощённый профиль и аналитика без поля
+        self.terms.set_air_off(!on);
+        self.publish_terms();
         if self.place.is_none() {
             return Ok(());
         }
@@ -1331,6 +1510,10 @@ impl AirModel for Formula {
             self.reset_clip();
             self.sh.modify(|p| p.fs.set_levels(Vec::new(), 0.0));
             self.sh.note_feed(&[], 0.0, self.time_s, ExpMeta::default());
+            // источников термиков из снятого поля больше нет (соберутся заново на ближайшем шаге)
+            if self.sync_field() {
+                self.publish_terms();
+            }
             if self.sh.state() != State::Empty {
                 self.sh.set_state(State::Ready, 1.0, "");
             }
@@ -1387,46 +1570,130 @@ impl AirModel for Formula {
     }
 
     fn cloud_density_many(&self, pts: &[[f32; 3]], out: &mut [f32]) {
-        out.iter_mut().zip(pts).for_each(|(o, _)| *o = 0.0);
-    }
-
-    fn cloudbase_msl(&self) -> f32 {
-        0.0
-    }
-
-    fn background_wind(&self, heights: &[f32], out: &mut [[f32; 2]]) {
-        out.iter_mut().zip(heights).for_each(|(o, _)| *o = [0.0; 2]);
-    }
-
-    fn weather_json(&self) -> String {
-        "{}".into()
-    }
-
-    fn weather_version(&self) -> (u64, u64) {
-        (0, 0)
-    }
-
-    fn sun_state(&self) -> [f32; 4] {
-        match self.sun {
-            Some(d) => [d[0], d[1], d[2], 0.0],
-            None => [0.0; 4],
+        let n = pts.len().min(out.len());
+        match self.query() {
+            Some((pb, _)) => terms::clouds::cloud_density_many(&pb.terms, &pts[..n], &mut out[..n]),
+            None => out[..n].iter_mut().for_each(|o| *o = 0.0),
         }
     }
 
-    fn cores(&self, _center: [f32; 3], _radius: f32, out: &mut Vec<Core>) {
-        out.clear();
+    fn cloudbase_msl(&self) -> f32 {
+        self.query().map_or(0.0, |(pb, _)| {
+            let pl = pb.place.as_deref();
+            pl.and_then(|p| terms::analytic::cloudbase_msl(&pb.terms, p))
+                .map_or_else(|| pb.terms.cloudbase_msl(), |v| v as f32)
+        })
     }
 
-    fn clouds(&self, _center: [f32; 3], _radius: f32, out: &mut Vec<Cloud>) {
+    fn background_wind(&self, heights: &[f32], out: &mut [[f32; 2]]) {
+        let n = heights.len().min(out.len());
+        match self.query() {
+            Some((pb, _)) => match pb.place.as_deref() {
+                Some(p) => {
+                    terms::analytic::background_wind(&pb.terms, p, &heights[..n], &mut out[..n])
+                }
+                None => out[..n].iter_mut().for_each(|o| *o = [0.0; 2]),
+            },
+            None => out[..n].iter_mut().for_each(|o| *o = [0.0; 2]),
+        }
+    }
+
+    fn weather_json(&self) -> String {
+        self.query()
+            .map_or_else(|| "{}".into(), |(pb, _)| pb.terms.weather_json())
+    }
+
+    /// Мягкая версия растёт, когда выведенная погода сменилась больше чем на `1e-3` относительно
+    /// той, с которой номер вырос в последний раз; перестройка (`rebuild`, новое место) - всегда.
+    fn weather_version(&self) -> (u64, u64) {
+        let pb = self.sh.snapshot();
+        let raw = pb.terms.weather_version();
+        let mut m = lock(&self.wv);
+        if m.sig.is_none() && m.out == (0, 0) {
+            m.out = raw;
+            m.seen = raw;
+            m.sig = Some(pb.terms.weather.map().clone());
+            return m.out;
+        }
+        if raw.1 != m.seen.1 {
+            m.out.0 += 1;
+            m.out.1 += 1;
+            m.sig = Some(pb.terms.weather.map().clone());
+        } else if raw.0 != m.seen.0 {
+            let now = pb.terms.weather.map();
+            let moved = m.sig.as_ref().is_none_or(|old| {
+                old.len() != now.len()
+                    || now
+                        .iter()
+                        .any(|(k, v)| old.get(k).is_none_or(|o| weather_differs(o, v)))
+            });
+            if moved {
+                m.out.0 += 1;
+                m.sig = Some(now.clone());
+            }
+        }
+        m.seen = raw;
+        m.out
+    }
+
+    fn sun_state(&self) -> [f32; 4] {
+        self.query()
+            .map_or([0.0; 4], |(pb, t)| pb.terms.sun_state(t))
+    }
+
+    fn cores(&self, center: [f32; 3], radius: f32, out: &mut Vec<Core>) {
         out.clear();
+        if let Some((pb, t)) = self.query() {
+            pb.terms.thermal_cores(center, radius, t, out);
+        }
+    }
+
+    fn clouds(&self, center: [f32; 3], radius: f32, out: &mut Vec<Cloud>) {
+        out.clear();
+        if let Some((pb, t)) = self.query() {
+            terms::clouds::clouds(&pb.terms, center, radius, t, out);
+        }
     }
 
     fn cloud_raster(&self) -> Option<Arc<Raster>> {
-        None
+        let (pb, _) = self.query()?;
+        terms::clouds::cloud_raster(&pb.terms)
     }
 
-    fn wave_crests(&self, _c: [f32; 2], _r: f32, _min_eta: f32, _sp: f32, out: &mut Vec<Crest>) {
+    fn cloud_objects(&self, center: [f32; 3], radius: f32, t: f64, out: &mut Vec<ObjRecord>) {
         out.clear();
+        if let Some((pb, now)) = self.query() {
+            // окно истории `CloudLayer`: [now - fade_out_s, now]; вне него - ближайшая граница
+            let t = if t.is_finite() {
+                t.clamp(now - self.fade_out_s, now)
+            } else {
+                now
+            };
+            terms::objects::cloud_objects_into(&pb.terms, center, radius, t, out);
+        }
+    }
+
+    fn wave_crests(&self, c: [f32; 2], r: f32, min_eta: f32, spacing: f32, out: &mut Vec<Crest>) {
+        out.clear();
+        if let Some((pb, _)) = self.query() {
+            terms::waves::wave_crests(&pb.terms, pb.place.as_deref(), c, r, min_eta, spacing, out);
+        }
+    }
+
+    fn wave_info(&self) -> [f32; 2] {
+        self.query().map_or([0.0; 2], |(pb, _)| {
+            terms::waves::wave_info(&pb.terms, pb.place.as_deref())
+        })
+    }
+
+    fn surface_gust_many(&self, xz: &[[f32; 2]], t: &[f64], out: &mut [f32]) {
+        let n = xz.len().min(t.len()).min(out.len());
+        match self.query() {
+            Some((pb, _)) => {
+                terms::surface_gust::surface_gust_many(&pb.terms, &xz[..n], &t[..n], &mut out[..n]);
+            }
+            None => out[..n].iter_mut().for_each(|o| *o = 0.0),
+        }
     }
 
     fn decompose(&self, p: [f32; 3]) -> Decomposition {

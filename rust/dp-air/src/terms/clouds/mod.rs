@@ -35,7 +35,8 @@ use super::storm::{CloudCfg, CloudModel};
 use crate::{Cloud, Configs, Raster};
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
-use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 
 /// Период обновления Cb-объектов, с атмосферы.
 pub const OBJECTS_REFRESH_S: f64 = 0.1;
@@ -83,6 +84,48 @@ impl CloudInputs for AnalyticInputs {
     }
 }
 
+/// Входы поля облаков из поля воздуха и `AirThermals` слота `Thermal` (путь GD
+/// `CloudFieldSources.prepare` с GPU-полем): сетка - самого грубого уровня поля, термики и
+/// источники - слота. Нет поля или термики не собраны - `None` (поле облаков стоит).
+pub struct AirInputs;
+
+impl CloudInputs for AirInputs {
+    fn key(&self, terms: &Terms) -> Option<u64> {
+        let mut h = DefaultHasher::new();
+        serde_json::to_string(terms.weather.map())
+            .ok()?
+            .hash(&mut h);
+        terms
+            .slots
+            .thermal
+            .as_slot()?
+            .air()?
+            .src
+            .count()
+            .hash(&mut h);
+        Some(h.finish())
+    }
+
+    fn inputs(&self, terms: &Terms, t: f64) -> Option<FieldInputs> {
+        let slot = terms.slots.thermal.as_slot()?;
+        let setup = slot.setup()?;
+        let a = slot.air()?;
+        let ground_ref = setup.cloudbase_msl - terms.weather.f64_or("cloudbase_agl_m", 0.0);
+        let wind = terms.wind.clone();
+        Some(FieldInputs {
+            grid: Grid::of_field(&a.level),
+            wind_field: Some(a.level.clone()),
+            air: Some(a.src.clone()),
+            thermals: Some(snapshot_thermals(&slot.state()?.all, t)),
+            weather: terms.weather.clone(),
+            cloudbase_msl: Some(setup.cloudbase_msl),
+            ground_ref: Some(ground_ref),
+            seed: terms.seed as i64,
+            wind_at: Arc::new(move |z| wind.vec2_at((z - ground_ref).max(0.0))),
+        })
+    }
+}
+
 /// Слот облаков: снимок физики и обновление.
 #[derive(Clone)]
 pub struct CloudSlot {
@@ -93,6 +136,19 @@ pub struct CloudSlot {
     cfg_ptr: usize,
     key: Option<u64>,
     last_obj_t: f64,
+    /// Фоновый шаг (одна задача за раз), общий для снимков слота; `start_at` и новые входы его
+    /// отпускают (результат прежней задачи уходит в прежнюю ячейку, которую никто не читает).
+    job: Arc<Mutex<Option<Arc<BgCell>>>>,
+}
+
+/// Результат фонового шага: `done` — задача закончила, `val` — новый снимок (или `None`).
+struct BgCell {
+    done: AtomicBool,
+    val: Mutex<Option<Arc<CloudSlot>>>,
+}
+
+fn unpoison<T>(m: &Mutex<T>) -> MutexGuard<'_, T> {
+    m.lock().unwrap_or_else(PoisonError::into_inner)
 }
 
 impl CloudSlot {
@@ -111,6 +167,7 @@ impl CloudSlot {
             cfg_ptr: 0,
             key: None,
             last_obj_t: f64::NEG_INFINITY,
+            job: Arc::default(),
         }
     }
 
@@ -129,9 +186,79 @@ impl CloudSlot {
         &self.phys
     }
 
+    /// Нужен ли шаг на момент `t` (конфиги сменились, пора обновить объекты или шагнуть полем).
+    fn due(&self, terms: &Terms, t: f64) -> bool {
+        if Arc::as_ptr(&terms.configs) as usize != self.cfg_ptr {
+            return true;
+        }
+        if t < self.last_obj_t || t - self.last_obj_t >= OBJECTS_REFRESH_S {
+            return true;
+        }
+        let step = self.fcfg.step_s.max(0.1);
+        let tq = (t / step + 1.0e-9).floor() * step;
+        let f = &self.phys.field;
+        f.nx == 0 || tq < f.time || tq - f.time >= step - 1.0e-6
+    }
+
+    /// То же, что [`advanced`](Self::advanced), но тяжёлое — в фоне (`air.deterministic = false`):
+    /// готовый результат прежней задачи принимается сразу, новая запускается, если пора; сам вызов
+    /// не считает (клон `Terms` и постановка задачи). Результат всегда относится к входам момента
+    /// запуска задачи (отстаёт не больше чем на длительность шага).
+    pub fn advanced_bg(&self, terms: &Terms, t: f64) -> Option<Arc<CloudSlot>> {
+        let done = {
+            let mut g = unpoison(&self.job);
+            match g.as_ref() {
+                Some(c) if c.done.load(Ordering::Acquire) => {
+                    g.take().and_then(|c| unpoison(&c.val).take())
+                }
+                _ => None,
+            }
+        };
+        if done.is_some() {
+            return done;
+        }
+        if !self.due(terms, t) {
+            return None;
+        }
+        let mut g = unpoison(&self.job);
+        if g.is_some() {
+            return None;
+        }
+        let cell = Arc::new(BgCell {
+            done: AtomicBool::new(false),
+            val: Mutex::new(None),
+        });
+        *g = Some(cell.clone());
+        drop(g);
+        let (me, terms) = (self.clone(), terms.clone());
+        rayon::spawn(move || {
+            let r = me.advanced(&terms, t, false);
+            *unpoison(&cell.val) = r;
+            cell.done.store(true, Ordering::Release);
+        });
+        None
+    }
+
+    /// Дождаться фоновой задачи (тесты); `false` — вышло время.
+    pub fn wait_pending(&self, limit: std::time::Duration) -> bool {
+        let c = unpoison(&self.job).clone();
+        let Some(c) = c else { return true };
+        let t0 = std::time::Instant::now();
+        while !c.done.load(Ordering::Acquire) {
+            if t0.elapsed() > limit {
+                return false;
+            }
+            std::thread::sleep(std::time::Duration::from_millis(1));
+        }
+        true
+    }
+
     /// Новый снимок на момент `t` или `None` - прежний годится. `force` - `start_at`.
     pub fn advanced(&self, terms: &Terms, t: f64, force: bool) -> Option<Arc<CloudSlot>> {
         let mut s = self.clone();
+        if force {
+            s.job = Arc::default();
+        }
         let mut phys = (*self.phys).clone();
         let mut changed = false;
         let ptr = Arc::as_ptr(&terms.configs) as usize;

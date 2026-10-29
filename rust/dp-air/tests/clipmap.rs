@@ -16,7 +16,7 @@ use dp_air::field::window::{
     AirWindowCase, N_WINDOW, ParentPair, PrevPair, window_level, window_pair_inputs,
 };
 use dp_air::fixtures::read_place;
-use dp_air::{AirModel, Conditions, Configs, Focus, Formula, InflowMode, Place, SampleMode, State};
+use dp_air::{AirModel, Conditions, Configs, Focus, Formula, InflowMode, Place, State};
 use dp_air::{NestSrc, ShiftSrc};
 use serde_json::{Value, json};
 use std::path::{Path, PathBuf};
@@ -123,10 +123,16 @@ fn formula(cfg: &Configs, pl: Place, c: &Conditions, focus: Option<Focus>) -> Fo
     m
 }
 
+/// Вклад поля `field` в точке (W7): тесты оркестровки поля сверяют само поле, а не сумму со
+/// слагаемыми помимо него (термики, облака, погода - RW-12v).
 fn sample(m: &dyn AirModel, pts: &[[f32; 3]]) -> Vec<[f32; 4]> {
-    let mut out = vec![[0.0f32; 4]; pts.len()];
-    m.sample_many(pts, SampleMode::Mean, &mut out);
-    out
+    pts.iter()
+        .map(|p| {
+            let d = m.decompose(*p);
+            let k = d.names.iter().position(|n| n == "field").unwrap();
+            [d.vel[k][0], d.vel[k][1], d.vel[k][2], d.sigma[k]]
+        })
+        .collect()
 }
 
 fn bits(v: &[[f32; 4]]) -> Vec<u32> {
