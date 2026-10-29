@@ -1,0 +1,81 @@
+{
+  "status": "done",
+  "summary": "Причина: в «Осмотреться» дерево на паузе, а GrassField._process (центр кольца травинок, press, видимость) не шёл — кольцо 14 м оставалось у места до паузы, у камеры осмотра был плоский луг. Правка: GrassField.setup ставит process_mode = ALWAYS (дети — mid/far — наследуют). GPU-тест GN-К1 красный до, зелёный после.",
+  "commits": [
+    "92ca38d23 GN-1: трава следует за камерой на паузе (Осмотреться); GPU-тест покрытия GN-К1, docs, CHANGELOG"
+  ],
+  "checks": [
+    {
+      "name": "grass",
+      "value": "38/38",
+      "pass": true
+    },
+    {
+      "name": "gpu_grass",
+      "value": "64 тестов, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "gpu_grass_near",
+      "value": "1 тестов, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "sky_shade",
+      "value": "16/16",
+      "pass": true
+    },
+    {
+      "name": "pause_look_around",
+      "value": "accept FAIL 0/0; вручную --filter=test_gameplay: 13 тестов, 0 упало, test_pause_look_around ok",
+      "pass": false
+    },
+    {
+      "name": "доли травинок по 8 секторам (3…12 м, камера 18 м от пилота, пауза) до правки",
+      "value": "[0.51, 0.17, 0.01, 0.01, 0.01, 0.01, 0.02, 0.01]; min 0.007, max 0.507",
+      "pass": false
+    },
+    {
+      "name": "те же доли после правки",
+      "value": "[0.73, 0.70, 0.70, 0.73, 0.70, 0.71, 0.70, 0.74]; min 0.703, max 0.739; вне тени 0.722, под тенью 0.712; без заслонки 0.722",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Проверка accept pause_look_around не может стать PASS: run_tests.gd фильтрует по пути файла, а тест лежит в test_gameplay.gd; нужно в карточке tests: test_gameplay."
+  ],
+  "questions": [
+    "Поправить accept pause_look_around на фильтр test_gameplay (или имя файла)?"
+  ],
+  "images": [],
+  "how_to_check": "DISPLAY=:0 tools/gpu_tests.sh --filter=grass_near; .dpcli/dpcli accept GN-1 --dry",
+  "uncertain": [
+    {
+      "where": "scripts/terrain/grass_field.gd:setup",
+      "why": "Дерево/кусты/камни/трава-как-GrassField вне ветки GrassField на паузе так же могут не следовать за камерой; здесь не проверялись и не чинились. Mid shell/cards и far — дети GrassField и теперь следуют (побочно).",
+      "checked": "только grass; кадр пилота — по коду и тесту, не воспроизведён в полной игре с профилем пилота"
+    },
+    {
+      "where": "tests/vegetation/test_grass_near_cover_gpu.gd",
+      "why": "Заслонка-тень на траву в тесте не влияет (доли с ней и без одинаковы) — гипотеза SkyShade/тень не подтверждена и не нужна; теневые сектора в тесте не отделены чётко (тень крыла ~10×2 м покрывает часть секторов), доля сектора «под тенью» определяется по порогу 20 % пикселей.",
+      "checked": "доли с/без заслонки совпадают до 2 знаков"
+    },
+    {
+      "where": "tests/vegetation/test_grass_field.gd:119",
+      "why": "test_forest_grass_reaches_material падал и на базе (режим angle, GR-23: карточки без forest-uniform); поправил тест — материалы без этих uniform пропускаются, чтобы grass/gpu_grass проходили.",
+      "checked": "8/8 в test_grass_field; на базе до правки 1 упал"
+    },
+    {
+      "where": "общие include",
+      "why": "include-файлы шейдеров не менялись, вид земли не затронут; выборок текстур не добавлено.",
+      "checked": "sky_shade 16/16"
+    }
+  ],
+  "dp_feedback": "Фильтр --filter по пути файла, а в accept tests: пишут имя теста — молчаливое «0 тестов» трактуется как провал; accept --dry стоит предупреждать, что фильтр ничего не нашёл. Вывод lock/job-обёртки без ожидания затрудняет получение результата в одной команде.",
+  "extra": {
+    "радиус_кольца_м": 14,
+    "камера_от_пилота_м": 18
+  },
+  "t": "2026-10-29T19:37:48",
+  "by": "executor"
+}

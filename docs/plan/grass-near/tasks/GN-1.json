@@ -74,12 +74,12 @@
       "tests": "sky_shade"
     },
     {
-      "name": "pause_look_around",
-      "tests": "pause_look_around"
+      "name": "test_gameplay",
+      "tests": "test_gameplay"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-29T17:46:17",
-  "edited": "2026-10-29T19:20:10"
+  "edited": "2026-10-29T19:41:04"
 }
