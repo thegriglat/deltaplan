@@ -1,0 +1,31 @@
+{
+  "status": "done",
+  "summary": "Удалены bake_air.* и bake_all.sh; упоминания в README, guide и контрактах убраны или помечены устаревшими.",
+  "commits": [
+    "2463789d5 bake_all.sh удалён, упоминания помечены"
+  ],
+  "checks": [
+    {
+      "name": "no_bake_air",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "gone",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "docs_check",
+      "value": "ошибок 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RW-P10",
+  "uncertain": [],
+  "dp_feedback": "report не принял отчёт, пока accept не был прогнан без --dry",
+  "t": "2026-10-29T22:42:28",
+  "by": "executor"
+}

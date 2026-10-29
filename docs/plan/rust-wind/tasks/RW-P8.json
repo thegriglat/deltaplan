@@ -1,0 +1,74 @@
+{
+  "id": "RW-P8",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Разбор падений cargo итогового прогона RW-12r: 4 T1 (landing_hill, thermal_plain ×2, thermal_slope), t1_stability stab_*, задержка advance_to 1,71 мс",
+  "goal": "Для каждого падения cargo из RW-12r — причина фактом: неверно применённый допуск/эталон W8 v2 в тесте (чинить тест), дефект крейта (файл:строка, числа — в отчёт, не чинить) или нагрузка (повтор отдельно под замком); тесты, неверно применявшие W8 v2, приведены к нему.",
+  "plan_ref": "Тесты (TDD)",
+  "contracts": [
+    {
+      "name": "W8",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W11",
+      "version": "11",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W3",
+      "version": "6",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-P8",
+  "branch": "rust-wind/RW-P8",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/tests/acceptance.rs",
+    "rust/dp-air/tests/t1_stability.rs",
+    "rust/dp-air/tests/runtime.rs",
+    "rust/dp-air/tests/common/",
+    "docs/research/rust-wind-stage3/final-run-cargo.md"
+  ],
+  "dont_touch": [
+    "rust/dp-air/src/",
+    "rust/dp-gd/",
+    "rust/picard_rs/",
+    "tests/fixtures/",
+    "scripts/",
+    "tests/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "stab",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test t1_stability -- --include-ignored",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "report_doc",
+      "cmd": "test -s docs/research/rust-wind-stage3/final-run-cargo.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs_check",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T22:19:54"
+}

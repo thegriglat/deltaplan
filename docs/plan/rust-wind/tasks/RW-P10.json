@@ -1,0 +1,64 @@
+{
+  "id": "RW-P10",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Удалить запекание поля bake_air.gd (tools/terrain) и зависящее от него",
+  "goal": "В ветке нет tools/terrain/bake_air.gd/.tscn и вызовов их; bake_all.sh без шага запекания воздуха; упоминания в guide/контрактах островов/README эталонов убраны или помечены устаревшими; замены нет.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "W5",
+      "version": "8",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-P10",
+  "branch": "rust-wind/RW-P10",
+  "base": "feature/rust-wind",
+  "scope": [
+    "tools/terrain/bake_air.gd",
+    "tools/terrain/bake_air.gd.uid",
+    "tools/terrain/bake_air.tscn",
+    "tools/terrain/bake_all.sh",
+    "tools/terrain/volcano/README.md",
+    "tools/terrain/island/README.md",
+    "docs/guide/location-data.md",
+    "docs/guide/volcano-island.md",
+    "docs/guide/air-model/runtime.md",
+    "docs/contracts/training-island.md",
+    "docs/contracts/volcano-island.md",
+    "docs/contracts/air-weak-wind.md",
+    "tests/fixtures/wind/baked/README.md",
+    "tests/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "rust/",
+    "tools/research/",
+    "tools/wind_fixtures/",
+    "docs/research/",
+    "configs/",
+    "data/"
+  ],
+  "accept": [
+    {
+      "name": "no_bake_air",
+      "cmd": "grep -rln 'bake_air' tools scripts tests docs/guide docs/contracts --include=*.gd --include=*.sh --include=*.tscn --include=*.py --include=*.md | grep -vE '^tools/(research|wind_fixtures)/|^scripts/atmosphere/air_model/|^tests/fixtures/wind/baked/README.md|^docs/contracts/(training|volcano)-island.md' | wc -l",
+      "expect": "num:^(\\d+) <=0"
+    },
+    {
+      "name": "docs_check",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    },
+    {
+      "name": "gone",
+      "cmd": "test ! -e tools/terrain/bake_air.gd && test ! -e tools/terrain/bake_air.tscn && test ! -e tools/terrain/bake_all.sh",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T22:40:10",
+  "edited": "2026-10-29T22:42:05"
+}

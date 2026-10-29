@@ -6,10 +6,10 @@ area: "air"
 updated: "2026-10-29"
 summary: "W5 rust-wind: вход реализации — AirPlaceData (место, растры, климат, запечённые поля, хеши), конфиги, условия"
 related: ["docs/contracts/rust-wind.md", "docs/plan/rust-wind.md"]
-contracts: [{"id": "W5", "version": 8}]
+contracts: [{"id": "W5", "version": 9}]
 ---
 Часть `docs/contracts/rust-wind.md` (версия — там, заголовок W5). Менять — только координатор.
-# W5. Вход: место, конфиги, условия (v8)
+# W5. Вход: место, конфиги, условия (v9)
 Владелец — RW-2 (сборка `AirPlaceData` из `AirRuntime.place_of`, `air_runtime.gd:270`), RW-4 (разбор в крейте). Потребители — W2–W4, фикстуры W8.
 
 **`AirPlaceData`** (`RefCounted`, `scripts/atmosphere/air_place_data.gd`, создаёт RW-2) — то, что крейт получает один раз при загрузке:
@@ -44,3 +44,4 @@ contracts: [{"id": "W5", "version": 8}]
 - **v8 (2026-10-29, разбор RW-8a — `docs/research/rust-wind-stage3/rw12-weather.md`; эталон — `ClimateGrid.at`/`place`, `scripts/atmosphere/climate_grid.gd:50,147`):**
   - `header.loc.climate_cell` и `header.loc.climate_cell_lag` — обязательные при `loc.climate`: **сырая ячейка климата** `ClimateGrid.at(center_lat, center_lon, month, day)` как есть (все числовые ключи `docs/contracts/haze-humidity.md` §HH7 — `td_c, td_sd_k, z_cell_m, t700_c, z700_m, tx_c, dtr_k, trop_m, wr, hcc, …` — и `src: {hh1, hh2, hh5, hh6: String}`), второе — на дату сдвига воды (как `climate_lag` v7). Считает фасад при сборке `AirPlaceData`; крейт файлы климата не читает. Поправки на высоту (`ClimateGrid.place`: `td_gradient`, `belt_gradient`, `gain_per_km` по `valley_msl_m`/`start_msl_m`) — **считает крейт** по этой ячейке, растрам места и `weather_model.json` (`climate`, `upper_air`), как в GD. `loc.climate`/`climate_lag` (v3/v7) остаются (поле Пикара); совпадение их с поправленной ячейкой — проверка RW-12b. Нет обоих новых ключей (синтетические заголовки) — запасные значения `weather_model.json` `climate.fallback`, как `ClimateGrid.at` без сеток; есть одно — BAD_INPUT с именем недостающего.
   - Конфиги: имя `world` (`configs/world.json`) добавлено в список W2 `configure`/W3 (`configs_json`); крейт читает только `time.{min_hour, max_hour, min_light_elevation_deg, utc_offset_h}`, `terrain_look.rock_slope_deg`, `surface.thermal.edge_*` (ход дня `AtmoDay`, правило скал и сила источника термиков). Нет `world` — запасные значения, как в GD (`Config.value` по умолчанию).
+- **v9 (2026-10-29, решение пользователя «bake_air удалить»; итог RW-P11):** `AirPlaceData.baked` удалено вместе с файлами `data/locations/*/air` (все отвергались по `model_hash`, перепекать нечем). `header.model_hash` остаётся только для ключа кеша полей (`set_cache_dir`); пусто — кеш не используется. Выбор по `start_sites[].id/weather` (v6) нужен только кешу — если кеш его не использует, поля `id/weather` стартов удаляются той же задачей.

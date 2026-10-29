@@ -1,0 +1,49 @@
+{
+  "id": "RW-P9",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "T9 xc: xc_run.gd — Invalid assignment on read-only value (Dictionary) и зависание; прогон --synthetic",
+  "goal": "Боты T9 (tests/atmosphere/xc) запускаются на ветке: ошибка записи в read-only Dictionary в xc_run.gd устранена (класс ошибки RW-P4), Godot после ошибки не висит, синтетический прогон даёт итог.",
+  "plan_ref": "Тесты (TDD)",
+  "contracts": [
+    {
+      "name": "W2",
+      "version": "5",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W5",
+      "version": "8",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-P9",
+  "branch": "rust-wind/RW-P9",
+  "base": "feature/rust-wind",
+  "scope": [
+    "tests/atmosphere/xc/",
+    "docs/research/rust-wind-stage3/t9-xc.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "rust/",
+    "configs/",
+    "docs/contracts/",
+    "tests/atmosphere/air_rig.gd"
+  ],
+  "accept": [
+    {
+      "name": "report_doc",
+      "cmd": "test -s docs/research/rust-wind-stage3/t9-xc.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs_check",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T22:20:44"
+}

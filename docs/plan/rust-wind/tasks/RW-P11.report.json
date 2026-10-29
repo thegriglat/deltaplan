@@ -1,0 +1,68 @@
+{
+  "status": "done",
+  "summary": "Фасад передаёт все 8 файлов в add_baked_field, крейт их читает и принимает, но на feature/rust-wind все отвергаются по model_hash (в файлах 50e249bed5ee6b3c, сейчас 7da6a196ca606f39); data_hash и остальной ключ сходятся. Поле всегда считает Rust; удаление ~45 МБ ничего не меняет.",
+  "commits": [
+    "f70e38ac7 запечённые поля островов — крейт читает, model_hash отвергает все 8",
+    "07a0d0d0e summary короче"
+  ],
+  "checks": [
+    {
+      "name": "файлов принято BakedEntry/parse_baked",
+      "value": "8/8",
+      "pass": true
+    },
+    {
+      "name": "data_hash файла = текущему place_hash (Godot)",
+      "value": "8/8",
+      "pass": true
+    },
+    {
+      "name": "baked_lookup с хешем файла",
+      "value": "8/8 принят",
+      "pass": true
+    },
+    {
+      "name": "baked_lookup с текущим model_hash",
+      "value": "0/8 принят, все 'модель воздуха другой версии'",
+      "pass": true
+    },
+    {
+      "name": "report_doc",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "docs_check",
+      "value": "ошибок 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Полную игру с загрузкой места не запускал: приём и pick_baked проверены тестом крейта и чтением кода"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": "cd rust && cargo test -p dp-air --test baked_islands_probe -- --nocapture; .dpcli/dpcli accept RW-P11",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/tests/baked_islands_probe.rs:CUR_MODEL_HASH",
+      "why": "текущий model_hash снят Godot на этой копии без профиля пилота; конфиги пилота в хеш не входят",
+      "checked": "AirBakedField.model_hash() headless; исходники air_model менялись после бейка (837ca673d, 752144918, 937b26828, b5b2669bf, 8f344ef31)"
+    },
+    {
+      "where": "docs/research/rust-wind-stage3/baked-islands.md",
+      "why": "условия запроса в тесте взяты из key.weather файла, а не из configs/locations (набор погоды старта)",
+      "checked": "отказ по хешу идёт раньше проверки условий, вывод не зависит"
+    }
+  ],
+  "dp_feedback": "Свежая копия: Godot без godot --import падает на class_name; в карточке/шаблоне про это ни слова. docs check: лимит summary 140 симв. выяснил только на падении.",
+  "extra": {
+    "model_hash_now": "7da6a196ca606f39",
+    "model_hash_files": "50e249bed5ee6b3c",
+    "data_hash_training_island": "a49fb9ea1b803627",
+    "data_hash_volcano_island": "4a94276e1be0fdf8",
+    "recommendation": "Удалять data/locations/*/air вместе с BakedEntry/add_baked_field/parse_baked/baked_lookup, fill_crate_inputs.baked, model_hash/place_hash в фасаде и tests/baked.rs: после RW-12z хеш GD-исходников не сможет совпасть, перепекать нечем"
+  },
+  "t": "2026-10-29T22:49:43",
+  "by": "executor"
+}

@@ -1,0 +1,111 @@
+{
+  "status": "partial",
+  "summary": "Итоговый прогон этапа 3 выполнен частично: сборка tune, cargo workspace (4 бинарника с падениями), T1 release 13/17, бенч W8 в порогах, tests_vs_base +108 новых падений против main. T9 xc не выполнен (нет собранного места ongudai в профиле копии, синтетический запуск без результата).",
+  "commits": [
+    "df94a1747 rust-wind RW-12r: итоговый прогон этапа 3 — отчёт падений, бенч W8, tests_vs_base, T9 не выполнен"
+  ],
+  "checks": [
+    {
+      "name": "report_doc",
+      "value": "test -s final-run.md — exit 0",
+      "pass": true
+    },
+    {
+      "name": "docs_check",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "cargo test --no-fail-fast --workspace -- --include-ignored",
+      "value": "падают: acceptance 4 (t1_open_training_island_landing_hill, t1_open_training_island_thermal_plain, t1_open_volcano_island_thermal_slope, t1_training_island_thermal_plain_windows); runtime 1 (ongudai_advance_to_latency_release, 1.714636 ms при лимите 0.5 ms); t1_stability 2 (stab_compare, stab_run); terms_thermal_field 1 (w8_strict_place_and_points, 81 из 1692 ядер не сошлось по месту)",
+      "pass": false
+    },
+    {
+      "name": "T1 release acceptance (cargo test --release -p dp-air --test acceptance -- --ignored)",
+      "value": "13 passed, 4 failed; ожидание ok >= 12 — не выполнено (падают те же 4 T1)",
+      "pass": false
+    },
+    {
+      "name": "bench W8 sample_many_18",
+      "value": "8.89 нс (median) при пороге <= 50 мкс",
+      "pass": true
+    },
+    {
+      "name": "bench W8 sample_many_1000",
+      "value": "171.1 нс (median) при пороге <= 2 мс",
+      "pass": true
+    },
+    {
+      "name": "bench W8 advance_to",
+      "value": "3.51 нс (median) при пороге <= 0,5 мс",
+      "pass": true
+    },
+    {
+      "name": "tests_vs_base --base main",
+      "value": "база 43 падения, копия 145, новых 108, исправлено 6; первый прогон упал по таймауту задачи 7200 с на подтверждении",
+      "pass": false
+    },
+    {
+      "name": "T9 xc (ongudai, medium, seed 1, 30 км)",
+      "value": "не выполнен: error=location (нет user://locations/ongudai/meta.json)",
+      "pass": false
+    },
+    {
+      "name": "T9 xc (--synthetic)",
+      "value": "не выполнен: SCRIPT ERROR Invalid assignment on read-only value (Dictionary), запуск остановлен по зависанию",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "T9 xc: нет результата ни на ongudai (место не собрано в профиле копии), ни синтетически (SCRIPT ERROR в xc_run.gd, зависание Godot)",
+    "Повтор падений одним отдельным прогоном при нагрузке не выполнен (кроме проверки прохождения на подтверждении tests_vs_base)",
+    "Расшифровка паники stab_run (t1_stability.rs:349) не сделана",
+    "Сравнение T9 с main не делалось"
+  ],
+  "questions": [
+    "T9: собирать место ongudai в профиле копии (или дать путь к готовому meta.json) или исправить xc_run.gd (Invalid assignment на read-only Dictionary)?",
+    "Падения T1 (4 кейса) и ongudai_advance_to_latency_release — решение по этапу 3 (блокер или допуск)?",
+    "108 новых GDScript-падений против main — разбирать в RW-12x или ждать решения координатора?"
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-12r --dry; логи задач rw12r-build, rw12r-import, rw12r-cargo2, rw12r-release, rw12r-bench, rw12r-tvb2, rw12r-xc, rw12r-xcsyn в ~/.cache/dpcli/deltaplan/jobs/; логи tests_vs_base в build/tests_vs_base/",
+  "uncertain": [
+    {
+      "where": "docs/research/rust-wind-stage3/final-run.md (раздел GDScript)",
+      "why": "108 новых падений — регрессия ветки или таймауты под нагрузкой не отделены",
+      "checked": "подтверждение на обеих сторонах прошло для части файлов; повтора всей пачки нет"
+    },
+    {
+      "where": "tests/atmosphere/xc/xc_run.gd:51",
+      "why": "SCRIPT ERROR при синтетическом прогоне и зависание Godot после ошибки",
+      "checked": "лог rw12r-xcsyn; код не менялся по правилу задачи"
+    },
+    {
+      "where": "dp-air/tests/t1_stability.rs:402",
+      "why": "RW6Z_DIFFS: NotPresent — возможно, нужна переменная окружения",
+      "checked": "только текст паники из лога"
+    }
+  ],
+  "dp_feedback": "job wait без таймаута-обёртки и task show без --full обрезает дополнения координатора (видно только начало); при таймауте tests_vs_base теряется итог, хотя база уже закеширована — полезно выводить частичный список падений при exit 124; на сборку места для xc нет команды, пришлось выяснять по скрипту.",
+  "extra": {
+    "cargo_workspace": {
+      "первый_прогон": "стоп на acceptance (25 ok, 4 failed)",
+      "no_fail_fast": "acceptance 25/4, baked 10, case_build 12, runtime 39/1, t1_stability 0/2, terms_thermal_field 11/1, остальные ok"
+    },
+    "t1_release": {
+      "passed": 13,
+      "failed": 4,
+      "filtered_out": 12,
+      "время_с": 1616
+    },
+    "gdscript": {
+      "база_падений": 43,
+      "копия_падений": 145,
+      "новых": 108,
+      "исправлено": 6,
+      "стена_второго_прогона_с": 4131
+    }
+  },
+  "t": "2026-10-29T22:18:36",
+  "by": "main"
+}
