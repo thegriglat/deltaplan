@@ -34,7 +34,7 @@ var time_s: float = 0.0
 
 var _weather: Dictionary = {}
 var _f_err := ""
-var _f_place: AirPlaceData
+var _f_place: RefCounted
 
 
 func _ready() -> void:
@@ -55,14 +55,21 @@ func _f_fail(msg: String) -> int:
 	return BAD_INPUT
 
 
+## Конфиг по имени. Автозагрузка Config берётся из дерева, не по имени класса: скрипт разбирается
+## без автозагрузок (godot --check-only --script), как Atmosphere.
+func _conf(config_name: String) -> Dictionary:
+	var node := (Engine.get_main_loop() as SceneTree).root.get_node("Config")
+	return node.call("get_config", config_name)
+
+
 func configure(_seed: int) -> int:
 	return OK
 
 
-func load_place(place: AirPlaceData) -> int:
+func load_place(place: RefCounted) -> int:
 	if place == null:
 		return _f_fail("load_place: место null")
-	var why := place.validate()
+	var why: String = place.call("validate")
 	if why != "":
 		return _f_fail("load_place: " + why)
 	_f_place = place
@@ -79,8 +86,16 @@ func set_conditions(cond: Dictionary) -> int:
 	if cond.has("forecast") == cond.has("preset"):
 		return _f_fail("set_conditions: нужен ровно один из ключей forecast / preset")
 	var allowed: Array[String] = [
-		"start_hour", "speed", "blend_s", "rebuild", "inflow_mode", "forecast", "quantum_h",
-		"wind_ref", "overrides", "preset",
+		"start_hour",
+		"speed",
+		"blend_s",
+		"rebuild",
+		"inflow_mode",
+		"forecast",
+		"quantum_h",
+		"wind_ref",
+		"overrides",
+		"preset",
 	]
 	for k: Variant in cond:
 		if not allowed.has(String(k)):
@@ -88,10 +103,10 @@ func set_conditions(cond: Dictionary) -> int:
 	var w: Dictionary
 	if cond.has("preset"):
 		var p: Variant = cond.preset
-		w = (Config.get_config(String(p)) if p is String else p).duplicate(true)
+		w = (_conf(String(p)) if p is String else p).duplicate(true)
 	else:
 		var fc: Dictionary = cond.forecast
-		w = Config.get_config(String(Config.value("atmosphere", "default_weather"))).duplicate(true)
+		w = _conf(String(_conf("atmosphere").get("default_weather", ""))).duplicate(true)
 		w.wind_speed_kmh = float(fc.get("wind_speed_kmh", 0.0))
 		w.wind_from_deg = float(fc.get("wind_from_deg", 0.0))
 		for key: Variant in cond.get("overrides", {}):
@@ -140,8 +155,13 @@ func pump(_budget_us: int) -> void:
 
 func status() -> Dictionary:
 	return {
-		"state": STATE_READY, "progress": 1.0, "time_s": time_s, "reason": "", "stage": "",
-		"field_on": false, "iters": 0,
+		"state": STATE_READY,
+		"progress": 1.0,
+		"time_s": time_s,
+		"reason": "",
+		"stage": "",
+		"field_on": false,
+		"iters": 0,
 	}
 
 

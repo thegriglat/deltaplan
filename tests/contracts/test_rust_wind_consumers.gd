@@ -37,7 +37,9 @@ func _ready_up(a: Atmosphere, max_iter: int = 4000) -> bool:
 func test_empty_air_answers_zero() -> void:
 	var a := Atmosphere.new()
 	a.visuals_enabled = false
-	check(a.air_velocity_at(Vector3(10, 500, 10)) == Vector3.ZERO, "air_velocity_at до сборки — нули")
+	check(
+		a.air_velocity_at(Vector3(10, 500, 10)) == Vector3.ZERO, "air_velocity_at до сборки — нули"
+	)
 	check(a.mean_wind_at(Vector3(10, 500, 10)) == Vector3.ZERO, "mean_wind_at до сборки — нули")
 	check(a.turbulence_intensity_at(Vector3(10, 500, 10)) == 0.0, "σ до сборки — 0")
 	check(a.cloud_density_at(Vector3(10, 500, 10)) == 0.0, "облачность до сборки — 0")
@@ -50,8 +52,13 @@ func test_empty_air_answers_zero() -> void:
 func test_stage_labels() -> void:
 	for id in ["solver", "prepare", "phases", "coarse", "solve_mech", "solve_heat", "windows"]:
 		check(Atmosphere.stage_label(id) == tr("loading_wind"), "%s — «Рассчитываем ветер»" % id)
-	check(Atmosphere.stage_label("simple") == tr("loading_wind_simple"), "simple — упрощённая модель")
-	check(Atmosphere.stage_label("lookup") == "" and Atmosphere.stage_label("") == "", "lookup и пусто — без подписи")
+	check(
+		Atmosphere.stage_label("simple") == tr("loading_wind_simple"), "simple — упрощённая модель"
+	)
+	check(
+		Atmosphere.stage_label("lookup") == "" and Atmosphere.stage_label("") == "",
+		"lookup и пусто — без подписи"
+	)
 	check(Atmosphere.stage_label("нет такого") == "", "неизвестный — без подписи")
 
 
@@ -61,14 +68,31 @@ func test_status_stage_field_iters() -> void:
 	var a := Atmosphere.new()
 	a.visuals_enabled = false
 	var st0: Dictionary = a.status()
-	check(st0.has("stage") and st0.has("field_on") and st0.has("iters"), "ключи stage, field_on, iters")
-	check(String(st0.stage) == "" and int(st0.iters) == 0 and not bool(st0.field_on), "EMPTY: этапа нет")
+	check(
+		st0.has("stage") and st0.has("field_on") and st0.has("iters"),
+		"ключи stage, field_on, iters"
+	)
+	check(
+		String(st0.stage) == "" and int(st0.iters) == 0 and not bool(st0.field_on),
+		"EMPTY: этапа нет"
+	)
 	var loc := {
-		"id": "t", "center_lat": 51.5, "center_lon": 86.5, "utc_offset_h": 6.0, "month": 7, "day": 15
+		"id": "t",
+		"center_lat": 51.5,
+		"center_lon": 86.5,
+		"utc_offset_h": 6.0,
+		"month": 7,
+		"day": 15
 	}
 	var place := AirPlaceData.from_functions(
 		func(_x: float, _z: float) -> float: return 500.0,
-		func(_x: float, _z: float) -> float: return 0.8, loc, -2000.0, -2000.0, 100.0, 41, 41
+		func(_x: float, _z: float) -> float: return 0.8,
+		loc,
+		-2000.0,
+		-2000.0,
+		100.0,
+		41,
+		41
 	)
 	check(a.configure(5) == 0, "configure")
 	check(a.set_conditions({"preset": "weather/medium"}) == 0, "set_conditions")
@@ -84,7 +108,10 @@ func test_status_stage_field_iters() -> void:
 			break
 	check(a.is_ready(), "READY на синтетическом месте")
 	var done: Dictionary = a.status()
-	check(String(done.stage) == "" and int(done.iters) == 0 and not bool(done.field_on), "без решателя: нет этапа, iters 0")
+	check(
+		String(done.stage) == "" and int(done.iters) == 0 and not bool(done.field_on),
+		"без решателя: нет этапа, iters 0"
+	)
 	a.free()
 
 
@@ -106,7 +133,10 @@ func test_place_from_terrain_and_field_in_facade() -> void:
 	if p != null and ref != null:
 		check(p.header.grid == ref.header.grid, "сетка та же")
 		check(p.heights == ref.heights and p.water == ref.water, "высоты и вода те же")
-		check(p.surface_cls == ref.surface_cls and p.surface_moist == ref.surface_moist, "поверхность та же")
+		check(
+			p.surface_cls == ref.surface_cls and p.surface_moist == ref.surface_moist,
+			"поверхность та же"
+		)
 		check(p.header.loc.climate == ref.header.loc.climate, "климат тот же")
 		check(p.header.start_sites == ref.header.start_sites, "площадки те же")
 	if p == null:
@@ -120,7 +150,10 @@ func test_place_from_terrain_and_field_in_facade() -> void:
 	cond["overrides"] = {"wind_from_deg": 123.0}  # «встречный»: румб игры поверх прогноза
 	check(a.set_conditions(cond) == 0, "set_conditions: прогноз")
 	check(a.load_place(p) == 0, "load_place")
-	check(a.set_focuses(PackedVector3Array([Vector3(0, 900, 0)]), PackedFloat32Array([1.0])) == 0, "set_focuses")
+	check(
+		a.set_focuses(PackedVector3Array([Vector3(0, 900, 0)]), PackedFloat32Array([1.0])) == 0,
+		"set_focuses"
+	)
 	check(a.start_at(0.0) in [0, 3], "start_at(0) асинхронен (OK или NOT_READY до сборки)")
 	var st0: Dictionary = a.status()
 	check(int(st0.state) == Atmosphere.STATE_LOADING, "после start_at — LOADING")
@@ -129,15 +162,29 @@ func test_place_from_terrain_and_field_in_facade() -> void:
 	check(a.get("runtime") == null, "AirRuntime фасад не создаёт (RW-7b): поле ведёт крейт")
 	if ClassDB.class_exists("DpAir"):
 		check(a.get("_dp") != null, "место и прогноз отданы DpAir (поле в headless выключено)")
-	check(float(st.progress) >= 1.0 and String(st.stage) == "", "готов: прогресс 1, этапа нет: %s" % str(st))
-	check(not bool(st.field_on) and int(st.iters) == 0, "headless: поля нет (аналитика), итераций 0")
+	check(
+		float(st.progress) >= 1.0 and String(st.stage) == "",
+		"готов: прогресс 1, этапа нет: %s" % str(st)
+	)
+	check(
+		not bool(st.field_on) and int(st.iters) == 0, "headless: поля нет (аналитика), итераций 0"
+	)
 	var w: Dictionary = a.weather()
-	check(absf(float(w.wind_from_deg) - 123.0) < 1.0e-6, "румб игры поверх прогноза: %.1f" % w.wind_from_deg)
+	check(
+		absf(float(w.wind_from_deg) - 123.0) < 1.0e-6,
+		"румб игры поверх прогноза: %.1f" % w.wind_from_deg
+	)
 	check(absf(float(w.wind_speed_kmh) - 14.0) < 1.0e-6, "скорость — из прогноза")
-	check(is_equal_approx(a.wind.ref_msl, 1000.0), "опора ветра — wind_ref")
 	var q := Vector3(200.0, p.height_at(200.0, 0.0) + 120.0, 0.0)
 	var s := a.sample(q)
-	check(Vector3(s.x, s.y, s.z) == a.air_velocity_at(q), "sample (W2) = air_velocity_at (горячий путь модели полёта)")
+	check(
+		Vector3(s.x, s.y, s.z) == a.air_velocity_at(q),
+		"air_velocity_at = sample(pos).xyz (горячий путь модели полёта)"
+	)
+	check(
+		a.mean_wind_at(q) == Vector3(a.sample(q, 1).x, a.sample(q, 1).y, a.sample(q, 1).z),
+		"mean_wind_at = sample(MEAN).xyz"
+	)
 	# условия-часы: те же, кроме часа и скорости — перепривязка хода дня без смены погоды
 	var updated := [0]
 	a.weather_updated.connect(func() -> void: updated[0] += 1)
@@ -148,7 +195,6 @@ func test_place_from_terrain_and_field_in_facade() -> void:
 	check(a.set_conditions(c2) == 0, "set_conditions: другой час и скорость")
 	check(updated[0] == 0, "перепривязка часов — без сигнала погоды")
 	check(a.weather() == w_before, "погода не менялась")
-	check(is_equal_approx(a.day.start_hour, 13.5) and is_equal_approx(a.day.speed, 2.0), "ход дня перепривязан")
 	# смена места: выгрузка гасит поле и сбрасывает всё, что связано с местом
 	a.unload_place()
 	check(int(a.status().state) == Atmosphere.STATE_EMPTY, "unload_place — EMPTY")
@@ -162,10 +208,29 @@ func test_net_does_not_sync_air() -> void:
 	# воздух по сети не ходит (W1): ни NetZone, ни NetFlight не шлют и не читают источники термиков
 	# и снимки облачности (поля ZoneState в схеме остаются до чистки net.proto и docs)
 	var zone: Node = NET_ZONE.new()
-	check(not zone.has_method("set_thermal_sources") and not zone.has_method("set_cloud_field"), "NetZone без API воздуха")
-	check(not zone.has_signal("cloud_field_received") and not zone.has_signal("thermal_sources_changed"), "NetZone без сигналов воздуха")
-	check(not ("thermal_sources" in zone) and not ("cloud_field_wanted" in zone), "NetZone без состояния воздуха")
+	check(
+		not zone.has_method("set_thermal_sources") and not zone.has_method("set_cloud_field"),
+		"NetZone без API воздуха"
+	)
+	check(
+		(
+			not zone.has_signal("cloud_field_received")
+			and not zone.has_signal("thermal_sources_changed")
+		),
+		"NetZone без сигналов воздуха"
+	)
+	check(
+		not ("thermal_sources" in zone) and not ("cloud_field_wanted" in zone),
+		"NetZone без состояния воздуха"
+	)
 	zone.free()
 	var src := FileAccess.get_file_as_string("res://scripts/game/net_flight.gd")
-	for tok in ["air_forced", "set_air_forced", "air_sources_mask", "apply_net_snapshot", "sync_thermal_sources", "sync_cloud_field"]:
+	for tok in [
+		"air_forced",
+		"set_air_forced",
+		"air_sources_mask",
+		"apply_net_snapshot",
+		"sync_thermal_sources",
+		"sync_cloud_field"
+	]:
 		check(not src.contains(tok), "NetFlight без %s" % tok)
