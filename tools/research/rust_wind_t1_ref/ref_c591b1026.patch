@@ -1,0 +1,100 @@
+diff --git a/scripts/atmosphere/air_model/air_clipmap.gd b/scripts/atmosphere/air_model/air_clipmap.gd
+index cbe8dff8e..59e00f563 100644
+--- a/scripts/atmosphere/air_model/air_clipmap.gd
++++ b/scripts/atmosphere/air_model/air_clipmap.gd
+@@ -418,6 +418,7 @@ func _level_done() -> void:
+ 				reason = _reason,
+ 				iters = [int(r[0].iters), int(r[-1].iters)],
+ 				status = String(r[-1].status),
++				solver = r.map(func(q: Dictionary) -> Dictionary: return {status = q.status, iters = q.iters, div_rms = q.div_rms}),
+ 				warm = not job.prev.is_empty(),
+ 				wall_ms = (Time.get_ticks_usec() - int(row.t_start)) / 1000.0,
+ 				total_ms = (Time.get_ticks_usec() - _t_level) / 1000.0,
+diff --git a/scripts/atmosphere/air_model/air_runtime.gd b/scripts/atmosphere/air_model/air_runtime.gd
+index 4379ba32c..0f6450239 100644
+--- a/scripts/atmosphere/air_model/air_runtime.gd
++++ b/scripts/atmosphere/air_model/air_runtime.gd
+@@ -1326,6 +1326,7 @@ func _poll_solve() -> void:
+ 		poll_max_ms = _job.max_poll_cpu_ms,
+ 		chunk_max_ms = _job.max_chunk_gpu_ms,
+ 		engine = "phase+picard" if not _phase.is_empty() else "picard",
++		solver = _job.results.map(func(r: Dictionary) -> Dictionary: return {status = r.status, iters = r.iters, div_rms = r.div_rms}),
+ 		omega_fallback_used = _job.omega_fallback_used,
+ 		frozen_frac = _job.frozen_frac,
+ 		nonconv_fallback = {used = _job.nonconv_fallback, frac = _job.nonconv_frac},
+diff --git a/tools/terrain/bake_air.gd b/tools/terrain/bake_air.gd
+index daab3e7dc..5f545684c 100644
+--- a/tools/terrain/bake_air.gd
++++ b/tools/terrain/bake_air.gd
+@@ -46,6 +46,7 @@ func _weather_of(id: String, site_id: String) -> Dictionary:
+ 
+ func _load_terrain(id: String) -> Terrain:
+ 	var terrain := Terrain.new()
++	terrain.location_id = ""  # RW-6u: иначе _ready грузит место по умолчанию (altai, сеть) и в гонке сбивает центр
+ 	add_child(terrain)
+ 	if not terrain.load_location(id):
+ 		push_error("bake_air: место %s не загрузилось" % id)
+@@ -99,6 +100,9 @@ func _bake() -> int:
+ 	add_child(rt)
+ 	await get_tree().process_frame
+ 	rt.baked_enabled = false
++	if _a.has("cpu_phases"):
++		Config.get_config("atmosphere").air_model["timeout_s"] = 7200.0  # фазы f64 на GDScript — минуты
++		rt.phase_factory = func(_g: Object) -> Object: return load("res://tools/terrain/cpu_phase_job.gd").new()
+ 	rt.setup(atmo, AirRuntime.place_of(terrain, utc, month, day), func() -> Dictionary: return c)
+ 	rt.focus_fn = func() -> Vector3: return sp
+ 	var why := rt.unavailable_reason()
+@@ -110,6 +114,7 @@ func _bake() -> int:
+ 		push_error("bake_air: расчёт не удался: %s" % rt.last_error)
+ 		return 1
+ 	var calc_s := (Time.get_ticks_usec() - t0) / 1e6
++	_attach_solver(rt, atmo.air_field)
+ 	var header := {
+ 		"location": id,
+ 		"site": site_id,
+@@ -228,3 +233,27 @@ func _make_atmosphere(
+ 	atmo.set_focus(sp)
+ 	atmo.step(0.01)
+ 	return atmo
++
++
++## Статус решателя по уровням в meta.solver (W8 v2): {heat: {stop, iters, div_rms}, mech: {...}}.
++## Результаты Пикара: порядок «без нагрева, с нагревом» (results[0] — mech, results[1] — heat).
++## Область — из последнего расчёта AirRuntime (последний проход загрузки), окна — из последней
++## записи clipmap.history того же dx. Нет записи — ключ не пишется.
++func _attach_solver(rt: AirRuntime, fs: AirFieldSet) -> void:
++	var by_dx := {}
++	if rt._clip != null:
++		for h: Dictionary in rt._clip.history:
++			by_dx[roundi(float(h.dx))] = h.get("solver", [])
++	var dom: Array = rt.last_info.get("solver", [])
++	for f: WindField in fs.levels:
++		var res: Array = by_dx.get(roundi(f.dx), []) if f.meta.get("level", "") == "window" else dom
++		if res.size() < 2:
++			print("bake_air: dx%d — статуса решателя нет" % roundi(f.dx))
++			continue
++		f.meta["solver"] = {mech = _stop_of(res[0]), heat = _stop_of(res[1])}
++		print("bake_air: dx%d solver %s" % [roundi(f.dx), JSON.stringify(f.meta["solver"])])
++
++
++static func _stop_of(r: Dictionary) -> Dictionary:
++	var st := {ok = "converged", max = "max_iters", diverged = "diverged"}
++	return {stop = st.get(String(r.status), String(r.status)), iters = int(r.iters), div_rms = float(r.div_rms)}
+diff --git a/tools/terrain/cpu_phase_job.gd b/tools/terrain/cpu_phase_job.gd
+new file mode 100644
+index 000000000..1ec31a1a7
+--- /dev/null
++++ b/tools/terrain/cpu_phase_job.gd
+@@ -0,0 +1,12 @@
++extends RefCounted
++## Фазы поля на CPU (f64, AirPhaseCpu) для AirRuntime.phase_factory: только run(case) — runtime
++## ведёт его в рабочем потоке (нет start/poll). RW-6u.
++
++var case: AirCase
++var error := ""
++
++
++func run(c: AirCase) -> Dictionary:
++	var r := AirPhaseCpu.run(c, AirPhase.config())
++	error = String(r.get("error", ""))
++	return r
