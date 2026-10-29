@@ -31,6 +31,7 @@ pub use cfg::ThermalCfg;
 pub use life::AtmoThermal;
 pub use sample::State;
 
+use super::clouds::CloudPhysics;
 use super::slots::{Thermal, ThermalOut};
 use super::{Ctx, Terms};
 use crate::Core;
@@ -115,7 +116,7 @@ impl CloudHooks for NoClouds {}
 struct Built {
     setup: Arc<Setup>,
     memo: Arc<Mutex<Memo>>,
-    state: State,
+    state: Arc<State>,
     /// Адрес `Configs`, из которых разобран конфиг (смена — разбор заново).
     configs_ptr: usize,
     ground_ref: f64,
@@ -140,7 +141,13 @@ struct Job(Mutex<Option<Arc<Cell>>>);
 /// Слот `Thermal`: термики по клеткам, источники из поля и статичные.
 pub struct ThermalSlot {
     ground: Arc<dyn GroundSource>,
-    hooks: Arc<dyn CloudHooks>,
+    /// Своя реализация зацепок (тесты): вместо облаков `Terms`.
+    hooks: Option<Arc<dyn CloudHooks>>,
+    /// Облака, как их видели термики на последнем `advance` (RW-10f): подсос и тень берутся из
+    /// них, а не из «текущих» облаков. GD пишет параметры термиков (`_write_params`, подсос) в
+    /// `update_time` каждого шага по физике облаков до их обновления; после `start_at` - до
+    /// облаков вообще (`refresh_now`: термики, затем `cloud_phys.refresh`). `None` - облаков нет.
+    cloud: Option<Arc<CloudPhysics>>,
     built: Option<Built>,
     /// Слот без земли (по умолчанию): набор не строится, `sample` даёт `None` (ни термиков, ни
     /// фонового опускания) - ветер остальных слагаемых не меняется.
@@ -164,7 +171,8 @@ impl ThermalSlot {
     pub fn new(ground: Arc<dyn GroundSource>) -> Self {
         ThermalSlot {
             ground,
-            hooks: Arc::new(NoClouds),
+            hooks: None,
+            cloud: None,
             built: None,
             inert: false,
             job: Arc::new(Job::default()),
@@ -179,9 +187,9 @@ impl ThermalSlot {
         }
     }
 
-    /// Подключить облачные зацепки (RW-11).
+    /// Подставить свои облачные зацепки вместо облаков `Terms` (тесты).
     pub fn with_hooks(mut self, hooks: Arc<dyn CloudHooks>) -> Self {
-        self.hooks = hooks;
+        self.hooks = Some(hooks);
         self
     }
 
@@ -191,7 +199,7 @@ impl ThermalSlot {
 
     /// Снимок набора (для RW-11: термики с `is_cb`, `has_cloud`, `top`, `lean`, `drift_vel`).
     pub fn state(&self) -> Option<&State> {
-        self.built.as_ref().map(|b| &b.state)
+        self.built.as_ref().map(|b| &*b.state)
     }
 
     pub fn setup(&self) -> Option<&Arc<Setup>> {
@@ -271,6 +279,12 @@ impl ThermalSlot {
     /// Новый снимок на момент `t` (или `None` — прежний ещё годится), синхронно. `force` —
     /// `start_at`: строить заново. Если нужны источники поля, их собирает тоже тут.
     pub fn rebuild(&self, terms: &Terms, t: f64, force: bool) -> Option<ThermalSlot> {
+        // `start_at` как в GD (`refresh_now`): термики строятся раньше облаков - без подсоса и тени
+        let cloud = if force {
+            None
+        } else {
+            Some(terms.cloud_physics().clone())
+        };
         if self.inert {
             return None;
         }
@@ -333,18 +347,26 @@ impl ThermalSlot {
         if !setup.static_only {
             let mut m = memo.lock().unwrap_or_else(|e| e.into_inner());
             m.prune(t);
-            setup.generate(&mut m, &*self.ground, &*self.hooks, t, &focuses, &mut all);
+            setup.generate(
+                &mut m,
+                &*self.ground,
+                self.hooks_of(cloud.as_ref()),
+                t,
+                &focuses,
+                &mut all,
+            );
         }
         let state = State::build(&setup, all, t, &focuses, p.dt, p.slot);
         Some(ThermalSlot {
             ground: self.ground.clone(),
             hooks: self.hooks.clone(),
+            cloud,
             inert: false,
             job: self.job.clone(),
             built: Some(Built {
                 setup,
                 memo,
-                state,
+                state: Arc::new(state),
                 configs_ptr: p.cfg_ptr,
                 ground_ref: p.ground_ref,
                 statics: terms.statics.clone(),
@@ -413,17 +435,61 @@ impl ThermalSlot {
         None
     }
 
-    /// Копия ручки снимка (общие `Arc`): для фоновой задачи.
-    fn snapshot(&self) -> ThermalSlot {
+    /// Зацепки: свои или переданные облака (нет облаков - нулевые).
+    fn hooks_of<'a>(&'a self, cloud: Option<&'a Arc<CloudPhysics>>) -> &'a dyn CloudHooks {
+        match (&self.hooks, cloud) {
+            (Some(h), _) => &**h,
+            (None, Some(c)) => &**c,
+            (None, None) => &NoClouds,
+        }
+    }
+
+    /// Облака изменились настолько, что подсос или тень могли поменяться (условие публикации
+    /// `Terms::advance_clouds`: поле шагнуло - в том числе при смене конфига - или есть Cb-объекты).
+    fn cloud_changed(&self, now: &Arc<CloudPhysics>) -> bool {
+        if self.hooks.is_some() || self.built.is_none() {
+            return false;
+        }
+        match &self.cloud {
+            None => true,
+            Some(a) => a.version != now.version || a.objects.count > 0 || now.objects.count > 0,
+        }
+    }
+
+    /// Тот же набор термиков с облаками `c` (подсос и тень видят новые облака).
+    fn with_cloud(&self, c: Arc<CloudPhysics>) -> ThermalSlot {
         ThermalSlot {
             ground: self.ground.clone(),
             hooks: self.hooks.clone(),
+            cloud: Some(c),
             inert: self.inert,
             job: self.job.clone(),
             built: self.built.as_ref().map(|b| Built {
                 setup: b.setup.clone(),
                 memo: b.memo.clone(),
-                state: State::stub(b.state.slot),
+                state: b.state.clone(),
+                configs_ptr: b.configs_ptr,
+                ground_ref: b.ground_ref,
+                statics: b.statics.clone(),
+                statics_mode: b.statics_mode,
+                air: b.air.clone(),
+                land: b.land.clone(),
+            }),
+        }
+    }
+
+    /// Копия ручки снимка (общие `Arc`): для фоновой задачи.
+    fn snapshot(&self) -> ThermalSlot {
+        ThermalSlot {
+            ground: self.ground.clone(),
+            hooks: self.hooks.clone(),
+            cloud: self.cloud.clone(),
+            inert: self.inert,
+            job: self.job.clone(),
+            built: self.built.as_ref().map(|b| Built {
+                setup: b.setup.clone(),
+                memo: b.memo.clone(),
+                state: Arc::new(State::stub(b.state.slot)),
                 configs_ptr: b.configs_ptr,
                 ground_ref: b.ground_ref,
                 statics: b.statics.clone(),
@@ -464,7 +530,9 @@ fn focus_points(terms: &Terms) -> Vec<[f64; 2]> {
 impl Thermal for ThermalSlot {
     fn sample(&self, c: &Ctx) -> Option<ThermalOut> {
         let b = self.built.as_ref()?;
-        let mut o = b.state.sample(&b.setup, &*self.hooks, c.pos, c.t);
+        let mut o = b
+            .state
+            .sample(&b.setup, self.hooks_of(self.cloud.as_ref()), c.pos, c.t);
         if let Some(a) = &b.air {
             o = a.1.src.with_between(c.fs, c.pos, o);
         }
@@ -482,6 +550,12 @@ impl Thermal for ThermalSlot {
             self.advance_bg(terms, t)
         };
         r.map(|s| Arc::new(s) as Arc<dyn Thermal>)
+    }
+
+    fn synced_with_clouds(&self, terms: &Terms) -> Option<Arc<dyn Thermal>> {
+        let now = terms.cloud_physics();
+        self.cloud_changed(now)
+            .then(|| Arc::new(self.with_cloud(now.clone())) as Arc<dyn Thermal>)
     }
 
     fn cores(&self, center: [f32; 3], radius: f32, t: f64, out: &mut Vec<Core>) {
