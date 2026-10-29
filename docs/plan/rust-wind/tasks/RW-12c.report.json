@@ -1,0 +1,49 @@
+{
+  "status": "done",
+  "summary": "AtmoDay (hour_at, weather_at, bracket, sun_at, source_at, rebase) и кеш коэффициентов погоды в dp-air/src/weather; дамп-эталон из Godot (tools/wind_fixtures/day_dump.*) и тест weather_day (21 проверка) против него.",
+  "commits": [
+    "a71a324f4 rust-wind RW-12c: AtmoDay и коэффициенты погоды в dp-air, дамп-эталон из Godot"
+  ],
+  "checks": [
+    {
+      "name": "weather_day",
+      "value": "21",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "34/35 в полном прогоне; единственный упавший ongudai_size_cancel_... отдельно ok",
+      "pass": false
+    },
+    {
+      "name": "clippy",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "dp_air_no_godot",
+      "value": "0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Эталон погоды W8 v2 (cases/<имя>.weather.json) не делал: дамп функций остаётся по дополнению."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RW-12c",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/tests/runtime.rs:983",
+      "why": "ongudai_size_cancel_in_every_stage_returns_within_a_second: reload@150 = 1.016 с при пороге 1 с под нагрузкой accept (399 с)",
+      "checked": "код теста не затронут моими правками; отдельно прогнан - ok за 43 с; считаю флейком по времени"
+    }
+  ],
+  "dp_feedback": "Тайминговый тест с порогом 1 с флейкует при параллельной нагрузке accept; стоит расслабить порог или гонять отдельно.",
+  "t": "2026-10-29T05:37:03",
+  "by": "executor"
+}
