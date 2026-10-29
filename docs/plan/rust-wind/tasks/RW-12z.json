@@ -1,0 +1,79 @@
+{
+  "id": "RW-12z",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Потребители на W2 v4: cloud_layer.gd на cloud_objects/wave_info/cloud_raster, gust_dust на surface_gust_many, тесты без air.wind/air.ground, храповик чистоты пуст (вкл. бывший RW-11e)",
+  "goal": "Потребители воздуха вне фасада идут только через W2 v4: cloud_layer.gd — cloud_objects (+ выбор/слияние в Godot, W6 v4), storm_t0/storm_k из записей, wave_info + wave_crests, cloud_raster(_version); cloud_model.gd разделён по W6 v4; gust_dust.gd/gust_dust_model.gd — кандидаты клетки → пачка surface_gust_many → событие, без WindModel и без force_wind/--gust-dust-wind; тесты test_forecast_game/test_ridge_starts/test_start_air_gpu/test_gust_dust — без air.wind/air.ground; база храповика rust_wind_purity_baseline.txt пуста, CONTRACTS.W6 = 4 там, где сверяется.",
+  "plan_ref": "План переноса",
+  "contracts": [
+    {
+      "name": "W2",
+      "version": "4",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W6",
+      "version": "4",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W10",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-12z",
+  "branch": "rust-wind/RW-12z",
+  "base": "feature/rust-wind",
+  "scope": [
+    "scripts/atmosphere/cloud_layer.gd",
+    "scripts/atmosphere/cloud_model.gd",
+    "scripts/atmosphere/gust_dust.gd",
+    "scripts/atmosphere/gust_dust_model.gd",
+    "scripts/atmosphere/atmosphere_preview.gd",
+    "scripts/atmosphere/thermal_signs.gd",
+    "scripts/atmosphere/bird_flock.gd",
+    "tests/contracts/rust_wind_purity_baseline.txt",
+    "tests/contracts/test_rust_wind_purity.gd",
+    "tests/game/test_forecast_game.gd",
+    "tests/atmosphere/test_ridge_starts.gd",
+    "tests/atmosphere/test_start_air_gpu.gd",
+    "tests/atmosphere/test_gust_dust.gd",
+    "tests/atmosphere/test_cloud_fade.gd",
+    "tests/atmosphere/test_cloud_layer_history.gd",
+    "tests/atmosphere/test_cloud_select_chunked.gd"
+  ],
+  "dont_touch": [
+    "rust/",
+    "scripts/atmosphere/atmosphere.gd",
+    "scripts/game/calm_air.gd",
+    "tests/contracts/test_rust_wind_contracts.gd",
+    "docs/contracts/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "gdlint",
+      "cmd": "tools/lint.sh scripts/atmosphere/cloud_layer.gd scripts/atmosphere/cloud_model.gd scripts/atmosphere/gust_dust.gd scripts/atmosphere/gust_dust_model.gd",
+      "expect": "exit=0"
+    },
+    {
+      "name": "parse",
+      "cmd": "for f in scripts/atmosphere/cloud_layer.gd scripts/atmosphere/cloud_model.gd scripts/atmosphere/gust_dust.gd scripts/atmosphere/gust_dust_model.gd; do XDG_DATA_HOME=$(mktemp -d) godot --headless --path . --check-only --script res://$f 2>&1 | grep -E 'SCRIPT ERROR|Parse Error' && exit 1; done; exit 0",
+      "expect": "exit=0"
+    },
+    {
+      "name": "purity_baseline_empty",
+      "cmd": "grep -cvE '^\\s*(#|$)' tests/contracts/rust_wind_purity_baseline.txt || true",
+      "expect": "num:^(\\d+) <=0"
+    },
+    {
+      "name": "no_force_wind",
+      "cmd": "grep -rc -- 'gust-dust-wind\\|force_wind' scripts/ | awk -F: '{s+=$2} END {print s+0}'",
+      "expect": "num:^(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T15:13:47"
+}

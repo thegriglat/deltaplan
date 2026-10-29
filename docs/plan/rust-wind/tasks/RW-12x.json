@@ -1,0 +1,78 @@
+{
+  "id": "RW-12x",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Фасад atmosphere.gd на DpAir (W2 v4): опросы, описания, погода, солнце — из крейта; GD-слагаемые — вне горячего пути",
+  "goal": "Atmosphere по W2 v4 (facade.md): обёртки cloud_objects/wave_info/surface_gust_many и константы OBJ_*/WAVE_INFO_* (и в CalmAir); sample_many/sample/cloud_density_many/cloudbase_msl/background_wind/weather (разбор weather_json по weather_version, кэш)/sun_state/cores/clouds/cloud_raster(+version)/wave_crests/decompose/debug_raster* — через DpAir; mean_wind_at и thermals_near по W2 v4; сигналы weather_* — по версиям; из горячего пути убраны air_velocity_at (GD-ветка), step, _f_build, _f_apply_*, set_ground/set_day/set_wind/set_weather; pump пустой; test_rust_wind_contracts.gd на W2 v4 (CONTRACTS: W2 = 4, W3 = 5, W4 = 6, W6 = 4; T6 start_at по W2 v4). Файлы GD-слагаемых не удалять (RW-13).",
+  "plan_ref": "План переноса",
+  "contracts": [
+    {
+      "name": "W2",
+      "version": "4",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W3",
+      "version": "5",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W6",
+      "version": "4",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W7",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W10",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-12x",
+  "branch": "rust-wind/RW-12x",
+  "base": "feature/rust-wind",
+  "scope": [
+    "scripts/atmosphere/atmosphere.gd",
+    "scripts/game/calm_air.gd",
+    "tests/contracts/test_rust_wind_contracts.gd",
+    "tests/contracts/test_rust_wind_consumers.gd"
+  ],
+  "dont_touch": [
+    "rust/",
+    "scripts/atmosphere/cloud_layer.gd",
+    "scripts/atmosphere/gust_dust.gd",
+    "scripts/atmosphere/gust_dust_model.gd",
+    "tests/contracts/rust_wind_purity_baseline.txt",
+    "docs/contracts/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "gdlint",
+      "cmd": "tools/lint.sh scripts/atmosphere/atmosphere.gd scripts/game/calm_air.gd tests/contracts/test_rust_wind_contracts.gd tests/contracts/test_rust_wind_consumers.gd",
+      "expect": "exit=0"
+    },
+    {
+      "name": "parse",
+      "cmd": "for f in scripts/atmosphere/atmosphere.gd scripts/game/calm_air.gd; do XDG_DATA_HOME=$(mktemp -d) godot --headless --path . --check-only --script res://$f 2>&1 | grep -E 'SCRIPT ERROR|Parse Error' && exit 1; done; exit 0",
+      "expect": "exit=0"
+    },
+    {
+      "name": "no_gd_hot_path",
+      "cmd": "grep -cE '^func (step|_f_build|_f_apply_)' scripts/atmosphere/atmosphere.gd || true",
+      "expect": "num:^(\\d+) <=0"
+    },
+    {
+      "name": "contracts_w2_4",
+      "cmd": "grep -cE 'W2 = 4, W3 = 5, W4 = 6' tests/contracts/test_rust_wind_contracts.gd",
+      "expect": "num:^(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T15:13:43"
+}
