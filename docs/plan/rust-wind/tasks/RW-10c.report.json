@@ -1,0 +1,87 @@
+{
+  "status": "done",
+  "summary": "terms/thermal_src: source_strength(place, cfg, hour, x, z) и source_grid (растр на место) - перенос Terrain.thermal_source_strength_water (класс по cls/water, скалы по rock_slope_deg, mix_flux, edge_boost) и raster_source (AirPlaceData.source_at). Сверено с дампом GD c591b1026 на Онгудае, двух островах и синтетике.",
+  "commits": [
+    "88e070228 rust-wind RW-10c: сила источников термиков из растров места"
+  ],
+  "checks": [
+    {
+      "name": "terms_thermal_src",
+      "value": "9",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "dp_air_no_godot",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "raster_source против AirPlaceData.source_at",
+      "value": "max|d| 1.2e-7 (допуск 1e-4), 4 места x 25921 точек",
+      "pass": true
+    },
+    {
+      "name": "доля точек |d|>0.05 против terrain-пути GD (слои 10 м)",
+      "value": "1.57 % всего (7335 из 466578); Онгудай 0.4-7.1 % по часам, учебный остров 0-1.1 %, вулканический 0-0.5 %",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Слот Thermal в Slots::new не трогал (по карточке только функции силы); часовой множитель AtmoDay.source_at собирает вызывающий (RW-12c) через SourceHour::at / atmo_sun."
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-10c; печать долей: cargo test -p dp-air --test terms_thermal_src -- --nocapture",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/src/terms/thermal_src/mod.rs: edge_proximity",
+      "why": "классы границ берутся из cls растра 25 м, где уже есть bare от крутизны и маски 10 м; в GD карта классов 50 м без уклона. Близость к границе расходится >0.05 в 4.5 % точек Онгудая, класс точки совпал в 94.1 % (острова 98.8/99.6 %)",
+      "checked": "дамп Terrain._edge_proximity и surface_at сравнён по сетке"
+    },
+    {
+      "where": "thermal_src/mod.rs: Grid::bilinear(moist)",
+      "why": "GD moisture_at - поле рельефа 50 м, здесь билинейно растр moist 25 м",
+      "checked": "вклад входит в измеренную долю; отдельно не разделён"
+    },
+    {
+      "where": "SourceHour::at / atmo_sun",
+      "why": "не сверено с AtmoDay.source_fn на потоке часов: дамп подавал directions/built_night/water из GD как есть; сборка тех же входов из SurfaceHeating крейта не проверялась",
+      "checked": "SurfaceHeating сверён в прошлых задачах; сверить после RW-12c"
+    },
+    {
+      "where": "rust/dp-air/tests/data/RW-10c/dump_source.gd",
+      "why": "каталог под .gdignore; скрипт запускается копией в корень опорной ревизии вместе с dump_source.tscn; .uid нет",
+      "checked": "дамп снят им на c591b1026, manifest.json хранит ревизию"
+    }
+  ],
+  "dp_feedback": "job start с таймаутом 1700 с убил первый дамп на импорте свежей копии; нужен общий готовый .godot опорной ревизии (скопировал из чужого scratchpad, 103 МБ). lock cpu cargo уходит в фон - вывод только через job wait и лог.",
+  "extra": {
+    "hours": [
+      6,
+      9,
+      12,
+      15,
+      18,
+      21.5
+    ],
+    "grid_m": 50,
+    "points_per_place": 25921
+  },
+  "t": "2026-10-29T05:58:35",
+  "by": "executor"
+}

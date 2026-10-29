@@ -5,8 +5,9 @@
 //! `-0.0 + 0.0` меняет бит). Все вклады слотов приходят уже со своими весами (в т. ч. `(1 − a)`
 //! полосы края), горизонтальный вклад аналитики — скаляр `h` вдоль ветра `wind.dir()`.
 use super::sum::Mid;
+use super::thermal::ThermalSlot;
 use super::{Ctx, Terms};
-use crate::{Crest, Place};
+use crate::{Core, Crest, Place};
 use std::sync::Arc;
 
 /// Аналитика: среднее (RW-9). Ветка `a < 1` (в `a = 0` — вся); `h = u·(1 − a)·(1 − 0,6·lee_a)` и
@@ -61,6 +62,20 @@ pub struct ThermalOut {
 
 pub trait Thermal: Send + Sync {
     fn sample(&self, _c: &Ctx) -> Option<ThermalOut> {
+        None
+    }
+    /// Снимок на момент `t` (раз в обновление термиков, `Terms::advance`/`start_at`); `None` —
+    /// прежний годится. `force` — `start_at`: строить заново.
+    fn advanced(&self, _terms: &Terms, _t: f64, _force: bool) -> Option<Arc<dyn Thermal>> {
+        None
+    }
+    /// Ядра подъёма W6 на момент `t` с осью ближе `radius` к `center` (подключение к `AirModel::cores`
+    /// — RW-12z).
+    fn cores(&self, _center: [f32; 3], _radius: f32, _t: f64, out: &mut Vec<Core>) {
+        out.clear();
+    }
+    /// Слот термиков RW-10b (для доступа к набору из RW-10e/11).
+    fn as_slot(&self) -> Option<&ThermalSlot> {
         None
     }
 }

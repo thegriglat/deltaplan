@@ -37,3 +37,10 @@ related: ["docs/research/rust-wind-stage3-path.md", "docs/plan/rust-wind.md"]
 | RW-8b | `rust/dp-air/tests/runtime.rs` | в accept упал без вывода теста под нагрузкой (вероятно, сигнал/таймаут), повтор 35/35 PASS | итоговый прогон: следить за runtime под нагрузкой |
 | RW-12c | `rust/dp-air/tests/runtime.rs:983` `ongudai_size_cancel_in_every_stage_returns_within_a_second` | тайминговый порог 1 с, под нагрузкой 1,016 с (флейк) | итоговый прогон отдельно; при повторе — поднять порог или гонять с --test-threads=1 |
 | RW-12c | `rust/dp-air/src/weather/` | эталон W8 v2 `cases/<имя>.weather.json` не делался (дамп функций) | при подключении погоды к сумме (RW-12z) — дневные случаи |
+| RW-10b | `rust/dp-air/src/terms/mod.rs` `Terms::advance` | построение набора термиков синхронно в `advance_to`: 2 мс при бюджете 0,5 мс (W3) | RW-10e/RW-12z: вынести в фон или инкрементально; бенч в итоговом прогоне |
+| RW-10b | `terms/thermal/mod.rs` `ThermalSlot::empty` | слот инертен без земли — до RW-10e термиков и фонового опускания нет; после подключения — снять хеш clipmap заново | RW-10e |
+| RW-10b | `terms/thermal/mod.rs` `PlaceGround::is_water` | вода — ближайший узел растра 25 м, GD — класс слоя 10 м | RW-10e: сверка на Онгудае/островах |
+| RW-10b | `rust/dp-air/tests/terms_thermal.rs` | синтетика в GD идёт с упрощённым профилем (air_model off); число пропущенных точек (вне растра, above_base) не в отчёте | итоговый T1 |
+| RW-10c | `terms/thermal_src/mod.rs` `edge_proximity`, `Grid::bilinear(moist)` | классы кромок из cls 25 м, влажность — растр 25 м вместо поля 50 м; доля |Δ| > 0,05 против terrain-пути — 1,57 % (Онгудай 0,4–7,1 % по часам) | принято как граница W5; сверка ядер в RW-10e |
+| RW-10c | `SourceHour::at` / `atmo_sun` | часовой множитель не сверен с `AtmoDay.source_fn` на потоке часов | RW-10e (с RW-12d) |
+| общее | `rust/dp-air/tests/runtime.rs` `picard_cancel_during_the_setup_returns_within_the_limit`, `ongudai_size_cancel_…` | тайминговые пороги падают под нагрузкой accept (275–522 мс, 1,016 с) | RW-0g: вынести в итоговый прогон |

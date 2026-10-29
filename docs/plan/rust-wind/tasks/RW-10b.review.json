@@ -1,0 +1,48 @@
+{
+  "verdict": "accept",
+  "summary": "Слот Thermal в скоупе (11 файлов), formula.rs/field/ не тронуты, допуски тестов = W8 (0,05+2 %, ядра 25 м/3 %/10 м/0,05), подгонки не видно. cargo_test на ad6407d96 перезапущен — PASS (493 с); FAIL при проверке координатора не воспроизвёлся. Замечания — minor, для RW-10e/12z.",
+  "issues": [
+    {
+      "file": "rust/dp-air/src/terms/mod.rs",
+      "line": 228,
+      "severity": "minor",
+      "what": "Terms::advance строит набор термиков синхронно внутри Formula::advance_to (formula.rs:1237); замер 2 мс при бюджете advance_to ≤ 0,5 мс (W8/dpair). Сейчас не проявляется: в игре set_thermal_ground никто не зовёт, слот инертен.",
+      "fix": "Перед подключением земли (RW-10e/12z) перенести сборку набора в фон или сделать её инкрементальной и снять замер release; в карточку RW-10e/12z."
+    },
+    {
+      "file": "rust/dp-air/src/terms/thermal/mod.rs",
+      "line": 145,
+      "severity": "minor",
+      "what": "ThermalSlot::empty инертен: без set_thermal_ground нет ни термиков, ни фонового опускания bg_sink. Значит, до RW-10e Formula в игре даёт thermal = 0 и не даёт фонового опускания, хотя в GD оно есть. Это осознанно (иначе ломался хеш clipmap) и указано в uncertain.",
+      "fix": "В RW-10e/12z проверить, что после подключения земли фон возвращается и хеш clipmap снят заново."
+    },
+    {
+      "file": "rust/dp-air/tests/terms_thermal.rs",
+      "line": 182,
+      "severity": "minor",
+      "what": "Точки вне растра места (!on_grid) пропускаются молча; сколько их на каждом случае, в отчёте нет (W8 v2 требует писать пропуски числами).",
+      "fix": "Указать в отчёте или в сообщении теста число пропущенных точек off-grid и above_base по каждому synth_*."
+    },
+    {
+      "file": "rust/dp-air/src/terms/thermal/mod.rs",
+      "line": 90,
+      "severity": "minor",
+      "what": "PlaceGround::is_water берёт ближайший узел растра water, а GD — класс слоя 10 м. На синтетике воды нет, поэтому это не проверено.",
+      "fix": "Сверить на реальном месте с водой в RW-10c/10e."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "cargo_test (accept --only cargo_test --dry, ad6407d96)",
+      "value": "exit 0, 493 с",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "11 файлов в границах",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-29T06:05:49",
+  "by": "reviewer"
+}
