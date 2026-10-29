@@ -1,0 +1,282 @@
+{
+  "status": "done",
+  "summary": "Ни один тест tests/ (кроме скоупа RW-12z и test_rust_wind_contracts.gd) не обращается к удалённым членам Atmosphere: поведение игры переведено на W2 v4 через новый помощник tests/atmosphere/air_rig.gd (место из функций, эталон/прогноз, статические термики, start_at, ожидание READY, шаги advance_to; «без турбулентности» = mean_wind_at), проверки внутренностей GD-слагаемых (air.field/cloud_phys/storm/wave/wind/ground, порционное обновление, потоки AirThermals) удалены с эквивалентом в cargo (таблица в extra). Заодно закрыты ссылки на удалённое вне regex: Atmosphere.T_NAMES, Atmosphere.phase_main_raster, типы Variant у air_field. Доработка: возвращены test_cloud_chaos_sigma_and_load_peak, test_variometer_plus8 (статик 8 м/с, Rig.cloud_day), test_in_cloud_chaos_and_eject; стадийные test_no_suck_under_young_or_decaying_cloud (pilot_words) и test_no_suck_under_young_or_decaying (cloud_suck) оставлены с skip_reason (pending): стадию естественного облака над статичным термиком задать нельзя.",
+  "commits": [
+    "9623c1088 RW-12s шаг 1: тесты на W2 v4 — air_rig, перевод и удаление проверок GD-внутренностей (часть)",
+    "0751555c7 RW-12s шаг 2: тесты на W2 v4 — перевод на фасад через air_rig, удаление проверок GD-внутренностей с эквивалентами в cargo"
+  ],
+  "checks": [
+    {
+      "name": "no_removed_in_tests",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "51 файл(ов) в границах (только tests/)",
+      "pass": true
+    },
+    {
+      "name": "check_gd (разбор/типы) по всем 542 .gd в tests/",
+      "value": "ок",
+      "pass": true
+    },
+    {
+      "name": "gdlint на изменённых файлах",
+      "value": "132 замечания против 133 на тех же файлах до правок (legacy: длина строки, порядок определений); `tools/lint.sh tests` целиком падает и на базе (2851), к exit=0 не приводится",
+      "pass": false
+    },
+    {
+      "name": "Godot-тесты",
+      "value": "не гонялись (решение координатора: итоговый прогон); бинарника расширения dp_air в копии нет",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Godot-тесты не гонялись — все конверсии проверены только разбором типов (tools/check_gd.py) и grep; поведенческая сходимость порогов на крейте — на итоговом прогоне.",
+    "docs/guide/air-model/runtime.md:22 ссылается на удалённый test_air_warmstart_gpu.gd (docs вне скоупа) — поправить координатору/в RW-13.",
+    "pending (skip_reason): test_pilot_words.test_no_suck_under_young_or_decaying_cloud, test_cloud_suck.test_no_suck_under_young_or_decaying — нужен динамический термик в нужной стадии; не подбирал без запуска Godot."
+  ],
+  "questions": [
+    "tools/lint.sh tests (критерий gdlint exit=0 в карточке) красный на базе из-за legacy (2851 замечание) — критерий ожидается на изменённых файлах, или его надо снять с карточки?"
+  ],
+  "how_to_check": ".dpcli/dpcli accept RW-12s; python3 tools/check_gd.py $(find tests -name '*.gd'); итоговый прогон: godot --headless --path . res://tests/run_tests.tscn -- --filter=<имя> (новые/изменённые: air_rig-потребители — atmosphere, atmosphere_consumers, birds, calibration, clouds_and_generation, hazards, lee_rotor, pilot_words, storm_rarity, wave, weather_day, wind_profile_simple, cloud_suck, cloud_start, cloud_field_runtime, feedback_1013, wing_physics, air_contracts, debug_overlays, xc_bot) и GPU tools/gpu_tests.sh --filter=cloud_render.",
+  "uncertain": [
+    {
+      "where": "tests/atmosphere/air_rig.gd",
+      "why": "Единый помощник: place из from_functions 101×101 (шаг 100 м, половина 5 км; волны и xc — больше), conditions-эталон `preset`, deterministic=true, set_focuses до load_place, wait_ready с OS.delay 1 мс и потолком 60 с. Не гонялся: возможен промах по времени READY или по охвату места.",
+      "checked": "check_gd (типы), чтение фасада atmosphere.gd и контракта W2 v4."
+    },
+    {
+      "where": "tests/atmosphere/test_hazards.gd:test_cirrus_weakens_thermals; test_calibration.gd (_mature, пороги 2,2–3,2 и 0,9/5,0 м/с); test_pilot_words.gd:test_dry_thermal_climb",
+      "why": "Термики по дню считаются теперь по снимку ядер (cores, stage 1–2, w) на t=3600 с, а не по рождениям GD-генератора за 2 ч: распределение w/смещение выборки может сдвинуть средние; зависимость прогрева от перистых (get_insolation = sun_state().w) в режиме эталон-пресет не проверена.",
+      "checked": "тот же набор порогов; в cargo — terms_thermal.rs/weather_derive.rs покрывают источник, но не эти средние."
+    },
+    {
+      "where": "tests/atmosphere/test_cloud_suck.gd, test_pilot_words.gd (_cloud_atmo → Rig.cloud_day), test_cloud_field_runtime.gd",
+      "why": "Облако теперь естественное над статичным термиком 4 м/с (start_at 3000 + 1 с), а не заданное force_cloud: подсос ≥1,3× середины, плотность >0,3, «выкинет за 90 с в ≥4/5 сидах», «уйти можно» — пороги перенесены без калибровки по крейту; число сидов 10→5 (каждое — своя загрузка места).",
+      "checked": "логика и пороги оригинала; облака над статичным термиком подтверждены только чтением контракта."
+    },
+    {
+      "where": "tests/atmosphere/test_wave.gd, test_hazards.gd (волна)",
+      "why": "Место 40×40 км (шаг 250 м): волна идёт далеко за хребет; гребни из wave_crests, пороги 0,45·max_ms и λ∈[3000,20000] вместо точного 2πU/N (N — внутренность GD; эквивалент — terms_waves.rs).",
+      "checked": "чтение W6/W3 wave_info/wave_crests."
+    },
+    {
+      "where": "tests/atmosphere/test_lee_rotor.gd, test_atmosphere.gd (хребты)",
+      "why": "Рельеф-хребет шириной 400 м на растре 50–100 м вместо аналитической функции: билинейная выборка места может смещать пороги. «Ветер ослаблен в тени гребня» теперь против набегающего потока на тех же 30 м AGL (раньше air vs mean при выключенной болтанке).",
+      "checked": "—"
+    },
+    {
+      "where": "tests/atmosphere/test_wind_profile_simple.gd, test_weather_day.gd, test_feedback_1013_contracts.gd:_births",
+      "why": "Условия — прогноз в set_conditions (wind_ref {ref_msl, gain_per_km 0.6 из atmosphere.json altitude_gain_per_km}); рождения термиков — новые id ядер за 10 мин от t=0 против набора на t=0; выход крейта на 20:00/overcast ожидается 0.",
+      "checked": "чтение input.md (условия), weather_day.rs/terms_analytic.rs (simple_profile_matches_080…) заявляют перенос этих тестов."
+    },
+    {
+      "where": "tests/atmosphere/test_cloud_render.gd (GPU)",
+      "why": "Растр облаков теперь подаёт подкласс FieldAtmo.cloud_raster() (x0, z0 — центр клетки (0,0), W6): cf_rect/CF-параметры сверены с форматом _upload_field в cloud_layer.gd на ветке после RW-12z; на GPU не гонялся.",
+      "checked": "чтение cloud_layer.gd:_update_field/_upload_field."
+    },
+    {
+      "where": "tests/atmosphere/test_air_runtime_gpu.gd, test_air_runtime_reload_gpu.gd, test_air_window_gpu.gd (test_runtime_with_windows), test_air_{cache,baked,prep_parallel}_gpu.gd, test_{volcano,island}_baked_gpu.gd",
+      "why": "GPU-тесты GD AirRuntime оставлены (RW-13 удалит класс) с «голой» Atmosphere как приёмником поля (set_air_field/air_field); время подмены — air_field.advance. Подмену через mean_wind_at фасад больше не показывает.",
+      "checked": "check_gd."
+    },
+    {
+      "where": "tests/atmosphere/xc/xc_run.gd",
+      "why": "Прогон бота на фасаде: место 250 м (синтетика) или from_terrain, cfg_override (сид и радиусы) уходит крейту текстом, oracle по cores (без cut_h), подъём термика — слагаемое thermal из decompose. Результаты прогонов (km/тайминги) не сравнивались с прежними JSON.",
+      "checked": "check_gd."
+    }
+  ],
+  "dp_feedback": "task show обрезает дополнения и выводит их в одну строку — мне пришлось читать ограничения по частям; `accept --dry` не показывает критерий gdlint (в карточке есть, в прогоне нет). Параметрические подсказки по предыдущим решениям таких задач (где лежит парсер типов tools/check_gd.py) нашёл случайно через pre-commit; хорошо бы упомянуть в workflow.md для задач на тесты.",
+  "extra": {
+    "files_changed": "tests/: изменено ~42 файла, добавлен tests/atmosphere/air_rig.gd (+ .uid), удалены test_air_start_gpu, test_air_warmstart_gpu, test_air_z0_places_gpu, test_air_runtime_inflow_gpu и cloud_field_fixture.gd (по 2 файла с .uid)",
+    "removed_or_translated": [
+      {
+        "test": "test_perf_contracts: test_pf_k4_* (поток=синхронно, старый источник до готовности, выход без ожидания, освобождение при сборке, подмена сохраняет термики, циклы сетки), test_fl5_* (load_refresh_step, prefetch)",
+        "action": "удалено (внутренности AirThermals через air.field)",
+        "cargo": "terms_thermal_air.rs: parallel_equals_sequential_bitwise_on_dump_field, bands_bit_identical_synthetic; terms_thermal_field.rs: advance_builds_in_background, rebuild_by_key_keeps_live_thermals; terms_thermal.rs: start_at_equals_run_from_zero"
+      },
+      {
+        "test": "test_air_thermals: test_two_clients_same_thermals, test_atmosphere_field_region_and_off, test_cell_thermals_not_over_water, часть атмосферы в test_ceiling_inversion_and_cloudbase, Монте-Карло в test_mass_flux_matches_field",
+        "action": "удалено/усечено (тесты самого AirThermals остались)",
+        "cargo": "terms_thermal_air.rs: ceiling_inversion_cloudbase_and_warm_lid, no_source_over_water_and_warm_sea; terms_thermal_field.rs: field_region_covers_and_off, monte_carlo_core_flux_matches_field; сеть — не цель (W1)"
+      },
+      {
+        "test": "test_clouds_and_generation: cumulus_are_not_cloud_objects, decaying_thermal_bottom_cut, cloud_streets_align_across_wind, cloud_shadow_weakens_new_thermals, shade_weakens_born_thermals, extreme_thermals, source_strength_controls_frequency",
+        "action": "удалено",
+        "cargo": "terms_objects.rs: records_match_gd_dump; terms_thermal.rs: decaying_thermal_bottom_cut, streets_align_sources, cloud_hooks_default_zero_and_shade_weakens, extreme_thermals_exist, source_strength_controls_frequency; terms_thermal_cloud.rs: hooks_shade_scales_source_strength"
+      },
+      {
+        "test": "test_clouds_and_generation: static_thermals_from_weather_config, set_wind_changes_lean_and_mean_wind",
+        "action": "переведено на W2 v4 (set_static_thermals, cores, mean_wind_at)",
+        "cargo": "—"
+      },
+      {
+        "test": "test_atmosphere: lifecycle_in_field, sun_controls_sources, refresh_chunked_equals_sync, refresh_abort_midway_then_sync_equals_sync",
+        "action": "удалено",
+        "cargo": "terms_thermal.rs: lifecycle_in_field, lifecycle_envelope_cut_and_drift, advance_cadence_and_inputs, source_strength_controls_frequency; terms_thermal_src.rs: grid_equals_pointwise, edge_boost_near_class_boundary; terms_thermal_field.rs: rebuild_by_key_keeps_live_thermals"
+      },
+      {
+        "test": "test_atmosphere: thermal_profile, wing_asymmetry, wind_drift_and_lean, background_sink, cloudbase_limits_climb, ridge_lift/lee_sink, lee_turbulence, turbulence_deterministic, deterministic_generation, performance",
+        "action": "переведено на W2 v4",
+        "cargo": "—"
+      },
+      {
+        "test": "test_hazards: cb_downdraft_and_outflow, cb_suck_under_base",
+        "action": "удалено",
+        "cargo": "terms_storm.rs: cb_downdraft_outflow_and_front, overlapping_outflows_do_not_add, intensity_follows_life; terms_thermal_cloud.rs: suck_points_from_gd_in_tolerance; terms_clouds.rs: physics_suck_vs_gd"
+      },
+      {
+        "test": "test_hazards: cirrus_weakens_thermals, storm_preset_makes_cb, lee_wave_crest_lift, no_wave_without_preset, dust_devils (DustModel без атмосферы)",
+        "action": "переведено на W2 v4",
+        "cargo": "—"
+      },
+      {
+        "test": "test_wave: ongudai_lens_matches_lift, λ = 2πU/N",
+        "action": "удалено (рельеф Онгудая; N — внутренность GD)",
+        "cargo": "terms_waves.rs: ongudai_lens_matches_lift, wave_term_matches_ongudai_terrain_reference, ongudai_wave_on_place_raster, wave_term_matches_references"
+      },
+      {
+        "test": "test_wave: synthetic_ridge_lens_matches_lift, rotor_turbulence_under_crest, no_wave_without_preset, climb_above_cloudbase_in_first_crest",
+        "action": "переведено на W2 v4 (wave_info, wave_crests, mean/air_velocity_at)",
+        "cargo": "—"
+      },
+      {
+        "test": "test_cloud_field_runtime: refresh_main_ms, thread_matches_sync, shade_at_uses_field, refresh_main_ms_many_thermals",
+        "action": "удалено",
+        "cargo": "terms_clouds.rs: timing_step_and_spinup, start_at_deterministic_and_close_to_run_from_zero, hooks_shade_and_suck; runtime.rs: same_input_same_field_bitwise_at_2_4_20_threads, nondeterministic_advance_does_not_wait_for_the_background"
+      },
+      {
+        "test": "test_cloud_field_runtime: field_cloud_seen_by_physics, bots_see_field_clouds",
+        "action": "переведено (cloud_density_at, clouds, BotPilots._visible_clouds)",
+        "cargo": "—"
+      },
+      {
+        "test": "test_calibration: thermal_drifts_with_wind_as_a_whole, sources_prefer_ridge_triggers",
+        "action": "удалено",
+        "cargo": "terms_thermal.rs: lifecycle_envelope_cut_and_drift, wind_lean_shifts_axis, wind_change_turns_lean, source_strength_controls_frequency; terms_thermal_src.rs: edge_boost_near_class_boundary"
+      },
+      {
+        "test": "test_calibration: thermal_strength_by_day, medium_lift_at_working_height, static_thermal_stays_over_source, thermal_within_3km_after_start",
+        "action": "переведено на W2 v4 (cores, mean_wind_at)",
+        "cargo": "—"
+      },
+      {
+        "test": "test_pilot_words: no_suck_under_young_or_decaying_cloud, cloud_chaos_sigma_and_load_peak, extreme_thermals_rare_and_only_strong, variometer_plus8_reachable_in_extreme_core",
+        "action": "возвращено на естественном облаке (стадийные — skip_reason pending)",
+        "cargo": "terms_clouds.rs: physics_suck_vs_gd, hooks_shade_and_suck; terms_thermal_cloud.rs: suck_points_from_gd_in_tolerance, synth_w8_near_cloud_in_tolerance; terms_turb.rs: ongudai_sigma_turb_within_w8; terms_thermal.rs: extreme_thermals_exist; thermal_profile_core_ring_allen"
+      },
+      {
+        "test": "test_pilot_words: suck_layer_under_mature_cloud, ejected_from_cloud_within_90s (5 сидов), can_escape_pulling_away_from_base (5 сидов), dry_thermal_climb, background_sink_medium, ring_sink_weaker_than_core",
+        "action": "переведено (естественное облако Rig.cloud_day вместо force_cloud)",
+        "cargo": "—"
+      },
+      {
+        "test": "test_cloud_suck: in_cloud_chaos_and_eject, no_suck_under_young_or_decaying",
+        "action": "возвращено на естественном облаке (стадийные — skip_reason pending)",
+        "cargo": "terms_clouds.rs: physics_suck_vs_gd, hooks_shade_and_suck; terms_thermal_cloud.rs: suck_points_from_gd_in_tolerance"
+      },
+      {
+        "test": "test_cloud_suck: suck_under_mature_cloud, cloud_density_at, turbulence_stronger_in_cloud",
+        "action": "переведено",
+        "cargo": "—"
+      },
+      {
+        "test": "test_cloud_start: field_version_on_swap (mark_field_changed); cloud_ready_after_start",
+        "action": "первый заменён ростом cloud_raster_version; второй переведён (start_at + pump + cloud_raster, недетерминированный режим)",
+        "cargo": "terms_clouds.rs: timing_step_and_spinup"
+      },
+      {
+        "test": "test_cloud_render (GPU)",
+        "action": "переведено: подкласс FieldAtmo с заданным cloud_raster вместо cloud_phys.field",
+        "cargo": "—"
+      },
+      {
+        "test": "test_weather_day: soft_update_keeps_thermals, wind_profile_follows_hour",
+        "action": "удалено",
+        "cargo": "weather_day.rs: soft_blend_follows_update_weather, blend_steps_compose_exactly, day_keeps_wind_and_spacing_and_bumps_version_per_step, wind_conditions_follow_hour, day_state_follows_apply_day; terms_thermal_field.rs: rebuild_by_key_keeps_live_thermals"
+      },
+      {
+        "test": "test_weather_day: wind_grows_above_launch",
+        "action": "переведено (прогноз + wind_ref)",
+        "cargo": "—"
+      },
+      {
+        "test": "test_lee_rotor: rotor_weakens_with_heating, все test_field_* (поле в зоне отрыва)",
+        "action": "удалено",
+        "cargo": "terms_turb.rs: sigma_lee_sep_scales_match_godot, separation_zone_bursts_sigma_and_reverse_flow, slot_in_sum_on_island_field, ongudai_replay_matches_air_velocity_field"
+      },
+      {
+        "test": "test_lee_rotor: lee_sink_and_rotor_scale_with_wind, rotor_reverse_flow_near_slope, same_seed_same_air, flying_into_lee_loses_height",
+        "action": "переведено",
+        "cargo": "—"
+      },
+      {
+        "test": "test_storm_rarity: overlapping_outflows_do_not_add",
+        "action": "удалено",
+        "cargo": "terms_storm.rs: overlapping_outflows_do_not_add"
+      },
+      {
+        "test": "test_storm_rarity: clear_26_almost_never, hot_34_occasional",
+        "action": "переведено (cores флаг Cb, слагаемое storm из decompose)",
+        "cargo": "—"
+      },
+      {
+        "test": "test_wind_profile_simple: auto_keeps_windprofile и профили WindModel",
+        "action": "удалено; off-профиль переведён через set_air_mode(off)+прогноз",
+        "cargo": "terms_analytic.rs: simple_profile_matches_080_any_hour_and_sky (в комментарии — перенос этого теста), off_mode_case_equals_medium_and_uses_simple_profile"
+      },
+      {
+        "test": "test_air_model_atmo: kayancha_probes, off_and_outside_bitwise_analytic, edge_smooth_in_atmosphere",
+        "action": "удалено",
+        "cargo": "terms_turb.rs: ongudai_replay_matches_air_velocity_field, slot_in_sum_on_island_field; terms_thermal_field.rs: field_region_covers_and_off; terms_analytic.rs: strip_has_no_jump_at_field_edge_t2, off_mode_case_equals_medium_and_uses_simple_profile"
+      },
+      {
+        "test": "test_air_contracts: c4_atmosphere_api_and_analytic, c4_atmosphere_field_rule",
+        "action": "удалено; направление/вертикаль аналитики — новый test_c4_atmosphere_analytic_direction",
+        "cargo": "terms_analytic.rs, terms_thermal_field.rs: field_region_covers_and_off, terms_turb.rs: ongudai_replay_matches_air_velocity_field"
+      },
+      {
+        "test": "test_air_start_gpu (start_wind_matches_menu, failed_second_pass_keeps_first)",
+        "action": "файл удалён (ветер меню = mean_wind_at по GD-полю)",
+        "cargo": "runtime.rs: k_pass_follows_next_k_formula_and_stops_by_pass_tol, failed_second_pass_serves_the_first_pass_field; GPU: tests/atmosphere/test_start_air_gpu.gd (RW-12z)"
+      },
+      {
+        "test": "test_air_warmstart_gpu (варианты тёплого старта, 'heur' от аналитики GD)",
+        "action": "файл удалён",
+        "cargo": "runtime.rs: t4a_coarse_start_is_used_and_cold_start_is_available, t4a_warm_pair_skips_coarse_step, t4a_iterations_ongudai_release"
+      },
+      {
+        "test": "test_air_z0_places_gpu (z0 по покрову, подбор inflow_k со снимком)",
+        "action": "файл удалён",
+        "cargo": "runtime.rs: k_pass_follows_next_k_formula_and_stops_by_pass_tol, next_k_inflow_p_and_recompute_rules; acceptance.rs"
+      },
+      {
+        "test": "test_air_runtime_inflow_gpu (inflow k=1, lee_bowl)",
+        "action": "файл удалён",
+        "cargo": "runtime.rs: inflow_mode_is_a_single_pass_with_k_one, next_k_inflow_p_and_recompute_rules"
+      },
+      {
+        "test": "test_air_runtime_gpu: test_ongudai_runtime",
+        "action": "удалён (оставлен test_phase_picard_pipeline и _atmo для запечённых GPU-тестов)",
+        "cargo": "runtime.rs: ongudai_loads_ready_release, recompute_on_slot_blends_monotonically_and_ends_at_the_new_field, condition_change_recomputes_from_the_moment_of_change, queries_never_block_on_the_solve_and_survive_garbage, t4a_iterations_ongudai_release"
+      },
+      {
+        "test": "test_air_runtime: test_phase_image (Atmosphere.phase_main_raster)",
+        "action": "удалён",
+        "cargo": "phase_classifier.rs, phase_assembly.rs, phase_mech.rs"
+      },
+      {
+        "test": "test_air_baked_gpu: источники термиков из поля (field._update_air / air_wait)",
+        "action": "блок удалён",
+        "cargo": "terms_thermal_air.rs: sources_match_gd_dump"
+      }
+    ],
+    "no_equivalent": [
+      "Стадийные сценарии (молодое/тающее облако) — pending, тесты в файлах."
+    ]
+  },
+  "t": "2026-10-29T16:04:11",
+  "by": "executor"
+}
