@@ -21,7 +21,7 @@ use std::sync::{Arc, Mutex};
 struct Key {
     strength: u64,
     n_bv: u64,
-    place: (usize, usize),
+    place: (u64, usize, usize),
 }
 
 struct Cached {
@@ -37,8 +37,10 @@ pub struct WaveExtra {
     cache: Mutex<Option<Cached>>,
 }
 
-fn place_id(p: &Place) -> (usize, usize) {
-    (p.heights().as_ptr() as usize, p.heights().len())
+/// Ключ места: поколение `load_place` (`Terms::place_key`) и адрес растра. Адрес освобождённого
+/// места может достаться новому, поколение - нет.
+fn place_id(key: u64, p: &Place) -> (u64, usize, usize) {
+    (key, p.heights().as_ptr() as usize, p.heights().len())
 }
 
 impl WaveExtra {
@@ -69,7 +71,7 @@ impl WaveExtra {
         let key = Key {
             strength: strength.to_bits(),
             n_bv: n_bv.to_bits(),
-            place: place_id(place),
+            place: place_id(terms.place_key, place),
         };
         if let Some(c) = g.as_ref()
             && reuse_cfg
@@ -126,6 +128,11 @@ impl Extra for WaveExtra {
         let gh = |x: f64, z: f64| f64::from(ground_height(place, x as f32, z as f32));
         *out = f.crests(center, radius, min_eta, spacing, &gh);
     }
+
+    fn wave_info(&self, terms: &Terms, place: &Place) -> Option<(bool, f64)> {
+        let (f, _) = self.field(terms, place)?;
+        Some((f.enabled(), f.wavelength()))
+    }
 }
 
 /// Гребни волн W6 (`wave_crests`): `[x, z, eta, crest]` (`CREST_STRIDE = 4`), сильные первыми;
@@ -145,5 +152,15 @@ pub fn wave_crests(
             .slots
             .extra
             .crests(terms, p, center, radius, min_eta, spacing, out);
+    }
+}
+
+/// `[enabled, wavelength_m]` (`wave_info`, W6 v4): `enabled` - волны есть (`wave_strength > 0`) и место
+/// загружено; длина волны - `2π·max(u_ref, 1)/max(N, 1e-4)` поля волн. Нет места или волн - нули.
+pub fn wave_info(terms: &Terms, place: Option<&Place>) -> [f32; 2] {
+    let Some(p) = place else { return [0.0; 2] };
+    match terms.slots.extra.wave_info(terms, p) {
+        Some((true, l)) => [1.0, l as f32],
+        _ => [0.0; 2],
     }
 }

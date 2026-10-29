@@ -11,12 +11,12 @@
 //! хватает климата — прогноз без вывода (словарь из полей прогноза и переопределений, как до RW-12d).
 //!
 //! Для RW-12z: `weather_json`, `weather_version`, `sun_state`, `coefficients`, `set_place`.
-use std::sync::Arc;
+use std::sync::{Arc, Mutex, PoisonError};
 
 use serde_json::{Map, Value};
 
-use super::{Terms, WeatherView, named_json};
-use crate::field::weather_core::{WeatherModelCfg, context};
+use super::{Terms, WeatherView, named_json, thermal_src};
+use crate::field::weather_core::{Ctx, WeatherModelCfg, context};
 use crate::place::Place;
 use crate::weather::{
     AtmoDay, ClimatePlace, Coefficients, PlaceCtx, WeatherMap, WeatherState, WorldTime,
@@ -300,6 +300,57 @@ impl Terms {
     /// Коэффициенты суммы на текущий момент (плавные — по ходу дня / мягкой смене); нет условий — `None`.
     pub fn coefficients(&self) -> Option<&Coefficients> {
         self.link.state.as_ref().map(|s| &s.coeffs)
+    }
+
+    /// Время атмосферы, с которого идёт погода (после `load_place` - 0): прогноз при `set_place`
+    /// строит ход дня от этого момента.
+    pub fn set_origin(&mut self, t: f64) {
+        self.link.time = t;
+    }
+
+    /// Часовая часть силы источников термиков как функция времени атмосферы (`AtmoDay.source_fn`):
+    /// направления солнца по классам и застройка ночью из `SurfaceHeating` места и даты, час - по
+    /// ходу дня. Воды нет (`water: None`): температуры воды и воздуха для источника - по клетке,
+    /// растровый путь их не знает. Нет хода дня, места или `weather_model` - `None` (источники -
+    /// статичное солнце мира). Ответ кешируется по минуте часа места.
+    pub fn source_hours(&self) -> Option<Arc<thermal_src::HourFn>> {
+        let (day, pl, wm) = (
+            self.day()?,
+            self.link.place.as_ref()?,
+            self.link.wm.as_ref()?,
+        );
+        let c = pl.ctx;
+        let heating = wm.surface_heating(&Ctx {
+            month: c.month,
+            day: c.day,
+            lat: c.lat,
+            lon: c.lon,
+            utc_offset_h: c.utc_offset_h,
+            valley_msl_m: c.valley_msl_m,
+            mean_msl_m: c.mean_msl_m,
+        });
+        let day = day.clone();
+        let min_light = day.time.min_light_elevation_deg;
+        let memo: Mutex<Option<(i64, thermal_src::SourceHour)>> = Mutex::new(None);
+        Some(Arc::new(move |t| {
+            let hour = day.hour_at(t);
+            let key = (hour * 60.0).floor() as i64;
+            let mut g = memo.lock().unwrap_or_else(PoisonError::into_inner);
+            if let Some((k, h)) = *g
+                && k == key
+            {
+                return h;
+            }
+            let to_sun = thermal_src::atmo_sun(&heating, hour, min_light);
+            let h = thermal_src::SourceHour::at(&heating, hour, to_sun, None);
+            *g = Some((key, h));
+            h
+        }))
+    }
+
+    /// Подпись хода дня `(start_hour, t0, speed)`: сменилась - часовая часть источников устарела.
+    pub fn day_sig(&self) -> Option<[f64; 3]> {
+        self.day().map(|d| [d.start_hour, d.t0, d.speed])
     }
 
     /// Ход дня (часы места, `AtmoDay`); прогноз без вывода и эталон — `None`.

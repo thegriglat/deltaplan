@@ -102,6 +102,9 @@ impl SourceCfg {
     }
 }
 
+/// Часовая часть силы источника по времени атмосферы (ход дня).
+pub type HourFn = dyn Fn(f64) -> SourceHour + Send + Sync;
+
 /// Часовая часть силы источника (`AtmoDay.source_fn`): солнце по классам, вода, застройка ночью.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct SourceHour {

@@ -167,6 +167,12 @@ pub struct Terms {
     pub air_u10: Option<f64>,
     /// Термики пересобираются в фоне (`advance` не ждёт): `true` при `air.deterministic = false`.
     pub thermal_async: bool,
+    /// Поле облаков шагает в фоне (`advance` не ждёт). Ставит `Formula` (`air.deterministic = false`);
+    /// по умолчанию - синхронно.
+    pub clouds_async: bool,
+    /// Ключ места (поколение `load_place`): кеши слагаемых (`WaveExtra`) не принимают чужое место
+    /// по совпавшему адресу освобождённого растра. `0` — не задан (кеши идут по адресу).
+    pub place_key: u64,
     pub slots: Slots,
     /// Облака (RW-11d): снимок физики облаков, обновляет `advance`/`start_at`.
     pub clouds: Arc<clouds::CloudSlot>,
@@ -192,6 +198,8 @@ impl Default for Terms {
             air: None,
             air_u10: None,
             thermal_async: false,
+            clouds_async: false,
+            place_key: 0,
             slots: Slots::new(),
             clouds: Arc::new(clouds::CloudSlot::analytic()),
             surface_gust: Default::default(),
@@ -265,7 +273,12 @@ impl Terms {
     /// Обновить облака; `true` - публикация нужна: поле шагнуло или есть Cb-объекты (их центры
     /// движутся). Пустое обновление объектов (облаков-объектов нет) снимок не публикует.
     fn advance_clouds(&mut self, t: f64, force: bool) -> bool {
-        match self.clouds.advanced(self, t, force) {
+        let next = if self.clouds_async && !force {
+            self.clouds.advanced_bg(self, t)
+        } else {
+            self.clouds.advanced(self, t, force)
+        };
+        match next {
             Some(n) => {
                 let (a, b) = (self.clouds.physics(), n.physics());
                 let publish =
@@ -330,21 +343,35 @@ impl Terms {
         place: Arc<crate::place::Place>,
         hour: Option<thermal_src::SourceHour>,
     ) -> Result<(), crate::Error> {
-        let cfg = thermal_src::SourceCfg::from_configs(&self.configs)?;
         // без часа — статичное солнце мира (`world.json → sun`, `Terrain.refresh_sun`)
-        let hr = hour.unwrap_or_else(|| {
-            let w = named_json(&self.configs, "world").unwrap_or(Value::Null);
-            let g = |k: &str, d: f64| w.pointer(k).and_then(Value::as_f64).unwrap_or(d);
-            thermal_src::SourceHour::uniform(crate::field::sun::sun_direction(
-                g("/sun/azimuth_deg", 180.0),
-                g("/sun/elevation_deg", 45.0),
-            ))
-        });
+        let hr = hour.unwrap_or_else(|| self.static_source_hour());
+        self.set_thermal_place_hours(place, Arc::new(move |_| hr))
+    }
+
+    /// Как [`set_thermal_place`](Self::set_thermal_place), но часовая часть - функция времени
+    /// атмосферы (`source_hours`: ход дня).
+    pub fn set_thermal_place_hours(
+        &mut self,
+        place: Arc<crate::place::Place>,
+        hours: Arc<thermal_src::HourFn>,
+    ) -> Result<(), crate::Error> {
+        let cfg = thermal_src::SourceCfg::from_configs(&self.configs)?;
         let p2 = place.clone();
-        let src: Arc<thermal::SourceFn> =
-            Arc::new(move |x, z, _t| f64::from(thermal_src::source_strength(&p2, &cfg, &hr, x, z)));
+        let src: Arc<thermal::SourceFn> = Arc::new(move |x, z, t| {
+            f64::from(thermal_src::source_strength(&p2, &cfg, &hours(t), x, z))
+        });
         self.set_thermal_ground(Arc::new(thermal::PlaceGround::new(place, src)));
         Ok(())
+    }
+
+    /// Статичное солнце мира (`world.json → sun`) для всех классов.
+    pub fn static_source_hour(&self) -> thermal_src::SourceHour {
+        let w = named_json(&self.configs, "world").unwrap_or(Value::Null);
+        let g = |k: &str, d: f64| w.pointer(k).and_then(Value::as_f64).unwrap_or(d);
+        thermal_src::SourceHour::uniform(crate::field::sun::sun_direction(
+            g("/sun/azimuth_deg", 180.0),
+            g("/sun/elevation_deg", 45.0),
+        ))
     }
 
     /// Ядра подъёма W6 (`AirModel::cores` подключит RW-12z): на момент `t`.
@@ -356,6 +383,41 @@ impl Terms {
                 thermal::cores::cores_with(st, center, radius, t, out, &|th, t| f.intensity(th, t));
             }
             None => self.slots.thermal.cores(center, radius, t, out),
+        }
+    }
+
+    /// Кромка облаков, м MSL (`Atmosphere.cloudbase_msl`): средняя высота земли + `cloudbase_agl_m`
+    /// погоды; пока термики не собраны - `0`.
+    pub fn cloudbase_msl(&self) -> f32 {
+        self.slots
+            .thermal
+            .as_slot()
+            .and_then(|s| s.setup())
+            .map_or(0.0, |s| s.cloudbase_msl as f32)
+    }
+
+    /// Средняя высота земли вокруг (0, 0), м (`Atmosphere._ground_ref`); слот термиков без земли
+    /// места - `None`.
+    pub fn ground_ref(&self) -> Option<f64> {
+        let s = self.slots.thermal.as_slot()?;
+        Some(s.ground_ref(&thermal::ThermalCfg::from_configs(&self.configs)))
+    }
+
+    /// Фоновый (синоптический) ветер на высотах MSL без рельефа и термиков (`background_wind`, W2):
+    /// `out[i] = dir · speed_at_pos(max(h − ground_ref, 0), h)`; не конечная высота - `[0, 0]`;
+    /// земли нет - нули.
+    pub fn background_wind(&self, heights: &[f32], out: &mut [[f32; 2]]) {
+        let gr = self.ground_ref();
+        let dir = self.wind.dir();
+        let (dx, dz) = (f64::from(dir[0] as f32), f64::from(dir[1] as f32));
+        for (o, &h) in out.iter_mut().zip(heights) {
+            *o = [0.0; 2];
+            if let (Some(gr), true) = (gr, h.is_finite()) {
+                let u = self
+                    .wind
+                    .speed_at_pos((f64::from(h) - gr).max(0.0), f64::from(h));
+                *o = [(dx * u) as f32, (dz * u) as f32];
+            }
         }
     }
 

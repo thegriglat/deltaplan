@@ -508,13 +508,20 @@ fn edge_band_mixes_noise_with_variance_kept() {
 fn commands_keep_zero_slot_samples() {
     let (mut m, pl) = ready_model(false);
     let pts = thousand(&pl);
-    let mut before = vec![[0.0f32; 4]; pts.len()];
-    m.sample_many(&pts, SampleMode::Mean, &mut before);
+    // вклад поля: термики и облака (RW-12v) от фокусов, статичных и времени зависят, поле - нет
+    let field = |m: &Formula| -> Vec<[f32; 4]> {
+        pts.iter()
+            .map(|p| {
+                let d = m.decompose(*p);
+                [d.vel[0][0], d.vel[0][1], d.vel[0][2], d.sigma[0]]
+            })
+            .collect()
+    };
+    let before = field(&m);
     m.set_focuses(&[focus()]).unwrap();
     m.set_static_thermals(&[[0.0, 0.0, 100.0, 2.0]], 0).unwrap();
     m.set_sun_direction(Some([0.0, 1.0, 0.0]));
     m.advance_to(1.0).unwrap();
-    let mut after = vec![[0.0f32; 4]; pts.len()];
-    m.sample_many(&pts, SampleMode::Mean, &mut after);
+    let after = field(&m);
     assert_eq!(bits(&before), bits(&after));
 }

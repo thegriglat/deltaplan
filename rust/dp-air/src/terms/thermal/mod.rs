@@ -206,6 +206,15 @@ impl ThermalSlot {
         self.built.as_ref().map(|b| &b.setup)
     }
 
+    /// Средняя высота земли вокруг (0, 0) (`Atmosphere._ground_ref`): отсчёт кромки облаков и
+    /// фонового ветра. Снимок собран — его значение, иначе считается по `cfg` (`ground.reference_*`).
+    pub fn ground_ref(&self, cfg: &ThermalCfg) -> f64 {
+        match &self.built {
+            Some(b) => b.ground_ref,
+            None => mean_height(&*self.ground, cfg),
+        }
+    }
+
     /// Источники из поля, по которым собран снимок.
     pub fn air(&self) -> Option<&AirSrc> {
         self.built
@@ -408,10 +417,8 @@ impl ThermalSlot {
             }
         }
         let p = self.plan(terms, t);
-        let first = self.built.is_none() || (p.key.is_some() && self.air().is_none());
-        if first {
-            return self.rebuild(terms, t, false);
-        }
+        // всё тяжёлое (первая сборка, источники поля) - в фоне: главный поток не ждёт (RW-12v);
+        // синхронно строит только `start_at` (`force`)
         if self.is_current(terms, &p) {
             return None;
         }

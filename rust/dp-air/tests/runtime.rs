@@ -135,10 +135,16 @@ fn probes(pl: &Place) -> Vec<[f32; 3]> {
     v
 }
 
+/// Вклад поля `field` в точке (W7): тесты оркестровки поля сверяют само поле, а не сумму со
+/// слагаемыми помимо него (термики, облака, погода - RW-12v).
 fn sample(m: &dyn AirModel, pts: &[[f32; 3]]) -> Vec<[f32; 4]> {
-    let mut out = vec![[0.0f32; 4]; pts.len()];
-    m.sample_many(pts, SampleMode::Mean, &mut out);
-    out
+    pts.iter()
+        .map(|p| {
+            let d = m.decompose(*p);
+            let k = d.names.iter().position(|n| n == "field").unwrap();
+            [d.vel[k][0], d.vel[k][1], d.vel[k][2], d.sigma[k]]
+        })
+        .collect()
 }
 
 fn bits(v: &[[f32; 4]]) -> Vec<u32> {
@@ -239,12 +245,14 @@ fn load_synthetic_reaches_ready_with_finite_field() {
     let mut full = vec![[0.0f32; 4]; pts.len()];
     m.sample_many(&pts, SampleMode::Full, &mut full);
     let sig = |v: &[[f32; 4]]| v.iter().map(|x| x[3].to_bits()).collect::<Vec<_>>();
-    assert_eq!(sig(&full), sig(&out));
+    let mut mean = vec![[0.0f32; 4]; pts.len()];
+    m.sample_many(&pts, SampleMode::Mean, &mut mean);
+    assert_eq!(sig(&full), sig(&mean));
     // decompose: имена W7 (RW-8b), слагаемое field, итог побитно как sample_many
     let d = m.decompose(pts[7]);
     assert_eq!(d.names.len(), 9);
     assert_eq!(d.names[0], "field");
-    assert_eq!(d.total[3], out[7][3]); // RW-8: итог FULL несёт шум, σ та же
+    assert_eq!(d.total[3], mean[7][3]); // RW-8: итог FULL несёт шум, σ та же
     assert_eq!(d.vel.len(), 9);
     assert_eq!(d.vel[0], [out[7][0], out[7][1], out[7][2]]);
     assert_eq!(d.sigma[0], 0.0);

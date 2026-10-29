@@ -5,7 +5,7 @@
 use dp_air::field::baked::parse_baked;
 use dp_air::field::field_set::FieldSet;
 use dp_air::field::runtime::{Faults, RtCfg, ground_height};
-use dp_air::{AirModel, Calm, Conditions, Configs, Focus, Formula, Place, SampleMode, State};
+use dp_air::{AirModel, Calm, Conditions, Configs, Focus, Formula, Place, State};
 use serde_json::Value;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
@@ -165,10 +165,16 @@ fn probes(pl: &Place) -> Vec<[f32; 3]> {
     v
 }
 
+/// Вклад поля `field` в точке (W7): тесты оркестровки поля сверяют само поле, а не сумму со
+/// слагаемыми помимо него (термики, облака, погода - RW-12v).
 fn sample(m: &dyn AirModel, pts: &[[f32; 3]]) -> Vec<[f32; 4]> {
-    let mut out = vec![[9.0f32; 4]; pts.len()];
-    m.sample_many(pts, SampleMode::Mean, &mut out);
-    out
+    pts.iter()
+        .map(|p| {
+            let d = m.decompose(*p);
+            let k = d.names.iter().position(|n| n == "field").unwrap();
+            [d.vel[k][0], d.vel[k][1], d.vel[k][2], d.sigma[k]]
+        })
+        .collect()
 }
 
 fn bits(v: &[[f32; 4]]) -> Vec<u32> {

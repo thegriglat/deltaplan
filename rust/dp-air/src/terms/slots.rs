@@ -120,6 +120,10 @@ pub trait Extra: Send + Sync {
     ) {
         out.clear();
     }
+    /// Волны для `wave_info` W6 v4: `(включены, длина волны, м)`; у слота без волн - `None`.
+    fn wave_info(&self, _terms: &Terms, _place: &Place) -> Option<(bool, f64)> {
+        None
+    }
 }
 
 /// Поле: поправка среднего горизонтали (`-a·0,22·U_H·lee_f·danger·unres·…`, `dh` вдоль ветра).
@@ -213,6 +217,11 @@ impl Extra for ExtraSet {
                 return;
             }
         }
+    }
+
+    /// Волны - у первой части, что их отдала.
+    fn wave_info(&self, terms: &Terms, place: &Place) -> Option<(bool, f64)> {
+        self.parts.iter().find_map(|p| p.wave_info(terms, place))
     }
 
     fn chaos_noise(&self, c: &Ctx) -> [f64; 3] {

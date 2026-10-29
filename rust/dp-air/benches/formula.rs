@@ -1,6 +1,7 @@
 //! Скорость `Formula` (W8, «Скорость»; профиль release W9): `sample_many` 18 и 1000 точек и
 //! `advance_to` в `Ready` — без окон клипмапа (одна область) и с окнами 100/50 м (три уровня).
-//! Пороги W8: 18 точек ≤ 50 мкс, 1000 ≤ 2 мс, `advance_to` ≤ 0,5 мс; регрессия > 20 % от
+//! С RW-12v `Formula` ведёт слагаемые (`Terms`): `formula_advance_to_frame` - шаг кадра 1/60 с со
+//! термиками, облаками и погодой (фон не в замере). Пороги W8: 18 точек ≤ 50 мкс, 1000 ≤ 2 мс, `advance_to` ≤ 0,5 мс; регрессия > 20 % от
 //! `baseline.json` — FAIL. Медианы собирает `collect_baseline.py Formula` после `cargo bench`.
 //!
 //! Поле — синтетика (`tests/fixtures/wind/places/synthetic`), область 12 км, `tol_scale` 5, режим
@@ -111,6 +112,22 @@ fn benches(c: &mut Criterion) {
         c.bench_function(&format!("formula_advance_to{tag}"), |b| {
             b.iter(|| {
                 t += 1.0e-6;
+                m.advance_to(black_box(t)).unwrap()
+            })
+        });
+        // кадр игры (RW-12v): шаг 1/60 с атмосферы со слагаемыми - термики раз в 1 с, объекты облаков
+        // раз в 0,1 с, поле облаков раз в 20 с, погода по часу; тяжёлое идёт в фоне, главный поток
+        // только принимает готовое и ставит задачу. Первый шаг (сборка термиков из поля) - вне замера.
+        m.start_at(1200.0).unwrap();
+        let mut t = 1200.0f64;
+        for _ in 0..600 {
+            t += 1.0 / 60.0;
+            m.advance_to(t).unwrap();
+        }
+        m.wait_terms(Duration::from_secs(120));
+        c.bench_function(&format!("formula_advance_to_frame{tag}"), |b| {
+            b.iter(|| {
+                t += 1.0 / 60.0;
                 m.advance_to(black_box(t)).unwrap()
             })
         });
