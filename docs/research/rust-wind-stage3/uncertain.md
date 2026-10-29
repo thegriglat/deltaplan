@@ -76,3 +76,6 @@ related: ["docs/research/rust-wind-stage3-path.md", "docs/plan/rust-wind.md"]
 | RW-8s | `tests/data/RW-8s/` | эталон Онгудая — WindModel+GustDustModel с ручными сидами/ветром, не полный прогон Atmosphere на месте | итоговый прогон |
 | RW-12u | `tests/terms_thermal_field.rs:68-85` `load` | гонка: параллельные тесты одного процесса копируют одни файлы в общий tmp `rw10e_cases_<pid>` — EOF/обрезанный .bin (2 из 3 прогонов accept) | RW-0g: уникальный tmp на вызов |
 | RW-12u | `lib.rs` `ObjRecord` | FLAG_STATIC/FLAG_CB/FOREVER остались в terms::objects | RW-12v |
+| RW-12w | `rust/dp-gd/src/bridge.rs` `obj_f32s` | unsafe-каст `&[ObjRecord]` → `&[f32]` (repr(C) + const-assert размера и выравнивания); ObjRecord не реализует F32Record | RW-12v: `impl F32Record for ObjRecord` в dp-air, каст убрать |
+| RW-12w | `tests/contracts/test_dp_air_ext.gd` | api_version 4 и три метода на пустом объекте — Godot не запускался | итоговый прогон T7 |
+| RW-9 | `terms/waves` σ ротора на synth_wave | GD кладёт rotor_turb в σ аналитики (atmosphere.gd:1038) — стык верный, но число WaveExtra расходится с GD в 4/93 точках (p7 0,03↔0,73; p9 2,33↔0,74; p16 0,95↔0,85; p36 0,93↔0); тест RW-9 — доля ≥ 95 % | RW-11g: исправить ротор, тест — по точкам W8 |

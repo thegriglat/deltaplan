@@ -672,10 +672,15 @@ fn wave_in_sum_and_decompose() {
     assert!(f64::from(w[1]) >= 0.45 * 8.0, "w {w:?}");
     let want = w_at(&t, &pl, p).0;
     assert!((f64::from(w[1]) - want).abs() < 1.0e-6);
-    // других слагаемых нет: итог = волна
-    assert!((d.total[1] - w[1]).abs() < 1.0e-6);
-    for q in [0, 2] {
-        assert_eq!(d.total[q], 0.0);
+    // Analytic активен (RW-9): итог = волна + analytic + ridge + порыв, остальные слоты пусты
+    let (a, r, gu) = (
+        d.vel[terms::T_ANALYTIC],
+        d.vel[terms::T_RIDGE],
+        d.vel[terms::T_GUST],
+    );
+    for q in 0..3 {
+        let own = if q == 1 { w[1] } else { 0.0 };
+        assert!((d.total[q] - (own + a[q] + r[q] + gu[q])).abs() < 1.0e-5);
     }
     // у земли под гребнем: σ итога = ротор (ограничен turb_max/rotor_max)
     let wd = f.dir();

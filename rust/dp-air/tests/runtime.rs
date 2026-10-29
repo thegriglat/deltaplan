@@ -137,6 +137,11 @@ fn probes(pl: &Place) -> Vec<[f32; 3]> {
 
 /// Вклад поля `field` в точке (W7): тесты оркестровки поля сверяют само поле, а не сумму со
 /// слагаемыми помимо него (термики, облака, погода - RW-12v).
+/// Слагаемое `field` (первое в разложении): аналитика (RW-9) активна и без поля.
+fn field_part(m: &dyn AirModel, pts: &[[f32; 3]]) -> Vec<[f32; 3]> {
+    pts.iter().map(|p| m.decompose(*p).vel[0]).collect()
+}
+
 fn sample(m: &dyn AirModel, pts: &[[f32; 3]]) -> Vec<[f32; 4]> {
     pts.iter()
         .map(|p| {
@@ -269,7 +274,7 @@ fn load_without_conditions_is_ready_without_field_then_first_advance_computes() 
     m.configure(&cfg, 1).unwrap();
     m.load_place(pl).unwrap();
     assert_eq!(m.status().state, State::Ready);
-    assert_eq!(sample(&m, &pts), vec![[0.0; 4]; pts.len()]);
+    assert_eq!(field_part(&m, &pts), vec![[0.0; 3]; pts.len()]);
     m.set_conditions(&cond("medium")).unwrap();
     m.advance_to(1.0).unwrap(); // детерминированный режим: ждёт поле
     assert_eq!(m.status().state, State::Ready);
@@ -299,8 +304,8 @@ fn failed_load_answers_zeros_and_recovers() {
     assert_eq!(s.state, State::Failed);
     assert!(s.reason.contains("too small"), "reason: {}", s.reason);
     assert_eq!(
-        sample(&m, &[[0.0, 100.0, 0.0], [10.0, 50.0, 10.0]]),
-        vec![[0.0; 4]; 2]
+        field_part(&m, &[[0.0, 100.0, 0.0], [10.0, 50.0, 10.0]]),
+        vec![[0.0; 3]; 2]
     );
     m.advance_to(10.0).unwrap(); // Failed не мешает времени и не повторяет попытки
     assert_eq!(m.status().state, State::Failed);
@@ -1018,7 +1023,7 @@ fn changing_the_place_mid_solve_cancels_and_restarts() {
     assert_eq!(m.status().state, State::Loading);
     assert_eq!(m.status().time_s, 0.0);
     // старая задача ничего не подала: поле пустое, пока не посчитано новое
-    assert_eq!(sample(&m, &[[0.0, 1000.0, 0.0]]), vec![[0.0; 4]]);
+    assert_eq!(field_part(&m, &[[0.0, 1000.0, 0.0]]), vec![[0.0; 3]]);
     m.unload_place();
 }
 

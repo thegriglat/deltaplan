@@ -7,7 +7,7 @@
 pub mod bridge;
 
 use bridge::Bridge;
-use dp_air::{Cloud, Core, Crest};
+use dp_air::{Cloud, Core, Crest, ObjRecord};
 use godot::prelude::*;
 
 struct DpAirExt;
@@ -23,6 +23,11 @@ const _: () = {
 
 fn v3s(v: &[Vector3]) -> &[[f32; 3]] {
     // SAFETY: Vector3 — repr(C) { x, y, z: f32 }, размер и выравнивание проверены const-assert.
+    unsafe { std::slice::from_raw_parts(v.as_ptr().cast(), v.len()) }
+}
+
+fn v2s(v: &[Vector2]) -> &[[f32; 2]] {
+    // SAFETY: Vector2 - repr(C) { x, y: f32 }, размер и выравнивание проверены const-assert.
     unsafe { std::slice::from_raw_parts(v.as_ptr().cast(), v.len()) }
 }
 
@@ -53,6 +58,8 @@ pub struct DpAir {
     cores: Vec<Core>,
     clouds: Vec<Cloud>,
     crests: Vec<Crest>,
+    objects: Vec<ObjRecord>,
+    gust: Vec<f32>,
     base: Base<RefCounted>,
 }
 
@@ -86,6 +93,10 @@ impl DpAir {
     pub const CLOUD_STRIDE: i64 = 10;
     #[constant]
     pub const CREST_STRIDE: i64 = 4;
+    #[constant]
+    pub const OBJ_STRIDE: i64 = 22;
+    #[constant]
+    pub const WAVE_INFO_SIZE: i64 = 2;
 
     #[func]
     fn api_version(&self) -> i64 {
@@ -291,6 +302,33 @@ impl DpAir {
             &mut self.crests,
         );
         packed(r)
+    }
+    /// Объекты-облака W6 v4, шаг `OBJ_STRIDE`; `radius < 0` - без ограничения, `t` не конечно -
+    /// текущее время.
+    #[func]
+    fn cloud_objects(&mut self, center: Vector3, radius: f64, t: f64) -> PackedFloat32Array {
+        let c = [center.x, center.y, center.z];
+        packed(
+            self.bridge
+                .cloud_objects(c, radius as f32, t, &mut self.objects),
+        )
+    }
+    /// `[enabled, wavelength_m]`.
+    #[func]
+    fn wave_info(&self) -> PackedFloat32Array {
+        packed(&self.bridge.wave_info())
+    }
+    /// Порыв у поверхности на точку (`xz` - x, z мира) и момент; длина - минимум длин.
+    #[func]
+    fn surface_gust_many(
+        &mut self,
+        xz: PackedVector2Array,
+        t: PackedFloat64Array,
+    ) -> PackedFloat32Array {
+        let pts = v2s(xz.as_slice());
+        self.bridge
+            .surface_gust_many(pts, t.as_slice(), &mut self.gust);
+        packed(&self.gust)
     }
 
     #[func]

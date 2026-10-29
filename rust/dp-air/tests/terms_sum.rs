@@ -208,10 +208,6 @@ fn thousand(pl: &Place) -> Vec<[f32; 3]> {
     v
 }
 
-fn bits(v: &[[f32; 4]]) -> Vec<u32> {
-    v.iter().flatten().map(|x| x.to_bits()).collect()
-}
-
 /// (1) Нулевые слоты: `sample_many` FULL и MEAN побитно = прежнему `sample_point` в 1000 точках
 /// поля, окон и вне области (и NaN/inf — нули).
 #[test]
@@ -225,25 +221,15 @@ fn zero_slots_bit_for_bit_like_old_sample_point() {
         want.iter().filter(|w| w.iter().all(|x| *x == 0.0)).count() > 50,
         "есть точки вне области"
     );
-    // RW-8: слот Turb (болтанка поля) даёт σ и шум в FULL; скорость среднего (MEAN) там, где
-    // слот не поправляет среднее (обратный поток эвристики — только в зоне отрыва), прежняя
-    let mut out = vec![[9.0f32; 4]; pts.len()];
-    m.sample_many(&pts, SampleMode::Mean, &mut out);
-    let same = out
-        .iter()
-        .zip(&want)
-        .filter(|(o, w)| {
-            o[..3]
-                .iter()
-                .zip(&w[..3])
-                .all(|(a, b)| a.to_bits() == b.to_bits())
-        })
-        .count();
-    assert!(
-        same * 100 >= out.len() * 97,
-        "MEAN: {same} из {} как прежде",
-        out.len()
-    );
+    // Аналитика (RW-9) активна с configure: прежний опрос = слагаемое `field` разложения.
+    for (p, w) in pts.iter().zip(&want) {
+        let d = m.decompose(*p);
+        assert_eq!(
+            d.vel[0].map(f32::to_bits),
+            [w[0], w[1], w[2]].map(f32::to_bits),
+            "{p:?}"
+        );
+    }
 }
 
 const W7: [&str; 9] = [
@@ -277,8 +263,6 @@ fn decompose_names_and_invariants() {
             );
             assert!(d.total[q].is_finite() && d.vel.iter().all(|v| v[q].is_finite()));
         }
-        // RW-8: кроме шума поля (`turb`) всё в `field`
-        assert!((d.vel[0][0] + d.vel[7][0] - d.total[0]).abs() <= 1e-4);
         if d.total.iter().any(|x| *x != 0.0) {
             nonzero += 1;
         }
@@ -508,20 +492,16 @@ fn edge_band_mixes_noise_with_variance_kept() {
 fn commands_keep_zero_slot_samples() {
     let (mut m, pl) = ready_model(false);
     let pts = thousand(&pl);
-    // вклад поля: термики и облака (RW-12v) от фокусов, статичных и времени зависят, поле - нет
-    let field = |m: &Formula| -> Vec<[f32; 4]> {
+    // слагаемое `field` (аналитика зависит от условий и фокусов — RW-9)
+    let fld = |m: &Formula| -> Vec<[u32; 3]> {
         pts.iter()
-            .map(|p| {
-                let d = m.decompose(*p);
-                [d.vel[0][0], d.vel[0][1], d.vel[0][2], d.sigma[0]]
-            })
+            .map(|p| m.decompose(*p).vel[0].map(f32::to_bits))
             .collect()
     };
-    let before = field(&m);
+    let before = fld(&m);
     m.set_focuses(&[focus()]).unwrap();
     m.set_static_thermals(&[[0.0, 0.0, 100.0, 2.0]], 0).unwrap();
     m.set_sun_direction(Some([0.0, 1.0, 0.0]));
     m.advance_to(1.0).unwrap();
-    let after = field(&m);
-    assert_eq!(bits(&before), bits(&after));
+    assert_eq!(before, fld(&m));
 }

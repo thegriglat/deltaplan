@@ -1,0 +1,53 @@
+{
+  "id": "RW-0g",
+  "module": "rust-wind",
+  "type": "dp-mechanic",
+  "title": "Нестабильные тесты: тайминговые runtime.rs — в итоговый прогон (#[ignore]), гонка tmp в terms_thermal_field.rs",
+  "goal": "cargo test --workspace под нагрузкой не падает по таймингу и гонке файлов: два тайминговых теста runtime.rs помечены #[ignore = \"тайминг: итоговый прогон\"] (сам тест не меняется), load() в terms_thermal_field.rs копирует данные в уникальный каталог на вызов (без гонки параллельных тестов).",
+  "plan_ref": "План переноса",
+  "contracts": [],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-0g",
+  "branch": "rust-wind/RW-0g",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/tests/runtime.rs",
+    "rust/dp-air/tests/terms_thermal_field.rs"
+  ],
+  "dont_touch": [
+    "rust/dp-air/src/",
+    "rust/dp-gd/",
+    "rust/picard_rs/",
+    "scripts/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "ignored_timing",
+      "cmd": "grep -c 'ignore = \"тайминг: итоговый прогон\"' rust/dp-air/tests/runtime.rs",
+      "expect": "num:^(\\d+) >=2"
+    },
+    {
+      "name": "thermal_field_x3",
+      "cmd": "for i in 1 2 3; do cargo test --manifest-path rust/Cargo.toml -p dp-air --test terms_thermal_field || exit 1; done",
+      "expect": "exit=0"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T14:45:03"
+}
