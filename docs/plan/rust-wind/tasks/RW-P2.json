@@ -1,0 +1,97 @@
+{
+  "id": "RW-P2",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Отладочные слои F3–F7 на фасаде W2 v4: ветер (F3/F5), фазы (F4), термики (F6), F7 — данные из крейта и отрисовка",
+  "goal": "Каждый отладочный слой F3–F7 получает от фасада W2 v4 / разложения W7 непустые конечные данные из DpAir и рисуется; для каждого слоя — причина, почему не показывался, и починка; headless-тест на уровне данных слоя.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "W2",
+      "version": "5",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W3",
+      "version": "6",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W4",
+      "version": "7",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W7",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W10",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-P2",
+  "branch": "rust-wind/RW-P2",
+  "base": "feature/rust-wind",
+  "scope": [
+    "scripts/game/debug_overlays.gd",
+    "scripts/atmosphere/wind_field_debug.gd",
+    "rust/dp-gd/",
+    "rust/dp-air/",
+    "tests/atmosphere/test_debug_layers.gd",
+    "tests/atmosphere/test_debug_layers.gd.uid",
+    "docs/research/rust-wind-stage3/debug-layers.md"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/atmosphere.gd",
+    "tools/",
+    "export_presets.cfg",
+    "addons/dp_air/",
+    "configs/",
+    "tests/fixtures/",
+    "docs/contracts/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "debug_layers",
+      "tests": "debug_layers"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dp_air_no_godot",
+      "cmd": "cargo tree --manifest-path rust/Cargo.toml -p dp-air -e normal | grep -ci godot || true",
+      "expect": "num:^(\\d+) <=0"
+    },
+    {
+      "name": "report_doc",
+      "cmd": "test -s docs/research/rust-wind-stage3/debug-layers.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs_check",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T17:05:22",
+  "edited": "2026-10-29T17:08:51"
+}

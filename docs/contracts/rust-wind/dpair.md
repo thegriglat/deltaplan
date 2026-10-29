@@ -4,12 +4,12 @@ status: "active"
 module: "rust-wind"
 area: "air"
 updated: "2026-10-29"
-summary: "W3 rust-wind: класс DpAir (gdext, dp-gd) — методы W2 в типах Godot, потоки, жизненный цикл, режим поля, описания W6 (v5)."
+summary: "W3 rust-wind: класс DpAir (gdext, dp-gd) — методы W2 в типах Godot, потоки, жизненный цикл, описания W6; v6 — без режима поля."
 related: ["docs/contracts/rust-wind.md", "docs/contracts/rust-wind/trait.md", "docs/plan/rust-wind.md"]
-contracts: [{"id": "W3", "version": 5}]
+contracts: [{"id": "W3", "version": 6}]
 ---
 
-# W3. Класс `DpAir` (gdext, крейт `dp-gd`) (v5)
+# W3. Класс `DpAir` (gdext, крейт `dp-gd`) (v6)
 
 Часть `docs/contracts/rust-wind.md` (версия — там, заголовок W3). Менять — только координатор.
 Владелец — RW-4 (каркас, заглушка `Calm`), RW-6…12 (наполнение). Потребитель — фасад (реализация `rust`), контрактные тесты.
@@ -37,3 +37,5 @@ contracts: [{"id": "W3", "version": 5}]
   - `surface_gust_many(xz: PackedVector2Array, t: PackedFloat64Array) -> PackedFloat32Array` — длина `min`; вход — срезами без копирования.
   - Все три читают последний снимок и не ждут фон (как `sample_many`).
   - Переходное `field_export*`/`field_version` (v4) остаётся до RW-13: после RW-12z фасад берёт снимок только для отладки и превью (`air_field`), горячий путь его не читает.
+
+- **v6 (2026-10-29, решение пользователя: упрощённый режим ветра убрать):** `api_version() = 5`. `set_field_enabled` удалён (W4 v7); номер подачи по `set_field_enabled(false)` больше не растёт — такого вызова нет. Поле на месте считается всегда.

@@ -1,0 +1,131 @@
+{
+  "id": "RW-P3",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Убрать упрощённый режим ветра: режим поля off/auto, set_air_mode, set_field_enabled, ветку off в крейте, пункт настроек «Ветер над рельефом», synth_off",
+  "goal": "Поле Пикара на месте считается всегда (и в headless): нет ключа air_model.enabled, set_air_mode, DpAir/AirModel set_field_enabled, ветки off в Formula, пункта настроек и его локали/сохранённого значения, случая synth_off и тестов режима off; версия API = 5 (W2 v5, W3 v6, W4 v7, W8 v3).",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "W2",
+      "version": "5",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W3",
+      "version": "6",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W4",
+      "version": "7",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W1",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-P3",
+  "branch": "rust-wind/RW-P3",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/",
+    "rust/dp-gd/",
+    "rust/dp-stand/",
+    "scripts/atmosphere/atmosphere.gd",
+    "scripts/game/calm_air.gd",
+    "scripts/ui/settings_panel.gd",
+    "scripts/game/user_settings.gd",
+    "scripts/game/gpu_safety.gd",
+    "scripts/core/crash_diag.gd",
+    "scripts/atmosphere/atmo_fingerprint.gd",
+    "scripts/atmosphere/air_field_cache.gd",
+    "configs/atmosphere.json",
+    "locale/ui.csv",
+    "tools/release/README-options.txt",
+    "tests/",
+    "docs/research/rust-wind-stage3/no-off-mode.md"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/air_model/",
+    "scripts/atmosphere/wind_model.gd",
+    "scripts/game/debug_overlays.gd",
+    "scripts/atmosphere/wind_field_debug.gd",
+    "rust/picard_rs/",
+    "tools/research/",
+    "tools/wind_fixtures/",
+    "docs/contracts/",
+    "docs/guide/",
+    "project.godot",
+    "export_presets.cfg"
+  ],
+  "accept": [
+    {
+      "name": "rust_wind_contracts",
+      "tests": "rust_wind_contracts"
+    },
+    {
+      "name": "settings",
+      "tests": "settings"
+    },
+    {
+      "name": "crash_diag",
+      "tests": "crash_diag"
+    },
+    {
+      "name": "no_off_api",
+      "cmd": "grep -rnE 'set_air_mode|set_field_enabled|settings_wind_model|air_model\\.enabled|\"enabled\": *\"(auto|on|off)\"' scripts rust/dp-air/src rust/dp-gd/src rust/dp-stand tests/core tests/ui tests/game tests/atmosphere tests/contracts locale configs/atmosphere.json tools/release --include=*.gd --include=*.rs --include=*.csv --include=*.json --include=*.txt | grep -vE '^scripts/atmosphere/(air_model/|wind_model\\.gd)' | wc -l",
+      "expect": "num:^(\\d+) <=0"
+    },
+    {
+      "name": "no_synth_off",
+      "cmd": "test ! -e tests/fixtures/wind/cases/synth_off.json && ! grep -rq synth_off tests/fixtures/wind rust/dp-air/tests",
+      "expect": "exit=0"
+    },
+    {
+      "name": "no_off_rs",
+      "cmd": "test ! -e rust/dp-air/src/terms/analytic/off.rs",
+      "expect": "exit=0"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dp_air_no_godot",
+      "cmd": "cargo tree --manifest-path rust/Cargo.toml -p dp-air -e normal | grep -ci godot || true",
+      "expect": "num:^(\\d+) <=0"
+    },
+    {
+      "name": "report_doc",
+      "cmd": "test -s docs/research/rust-wind-stage3/no-off-mode.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs_check",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T17:09:34"
+}

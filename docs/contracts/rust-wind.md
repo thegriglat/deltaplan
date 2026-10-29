@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-10-29"
 summary: "Граница ветра в Rust: фасад Atmosphere, DpAir (gdext), трейт dp-air, место, описания, разложение, допуски, сборка, чистота."
 related: ["docs/plan/rust-wind.md", "docs/contracts/picard-rs.md", "docs/plan/rust-air-integration.md", "docs/plan/rust-ext.md", "docs/plan/air-cascade.md", "tools/research/rust_ext/gdext_probe/README.md", "docs/contracts/rust-wind/fixtures-tolerances.md", "docs/contracts/rust-wind/descriptions.md", "docs/contracts/rust-wind/solver.md", "docs/contracts/rust-wind/trait.md", "docs/contracts/rust-wind/dpair.md", "docs/contracts/rust-wind/facade.md"]
-contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 4}, {"id": "W3", "version": 5}, {"id": "W4", "version": 6}, {"id": "W5", "version": 8}, {"id": "W6", "version": 4}, {"id": "W7", "version": 1}, {"id": "W8", "version": 2}, {"id": "W9", "version": 2}, {"id": "W10", "version": 2}, {"id": "W11", "version": 11}]
+contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 5}, {"id": "W3", "version": 6}, {"id": "W4", "version": 7}, {"id": "W5", "version": 8}, {"id": "W6", "version": 4}, {"id": "W7", "version": 1}, {"id": "W8", "version": 3}, {"id": "W9", "version": 2}, {"id": "W10", "version": 2}, {"id": "W11", "version": 11}]
 ---
 
 # Контракты модуля rust-wind
@@ -18,7 +18,7 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 4}, {"id": "W3",
 Контрактные тесты (пишутся первыми, красные до кода):
 - GDScript — `tests/contracts/test_rust_wind_contracts.gd` (T5, T6 уровня фасада; T7 — чистота W10) — первым шагом RW-2; с RW-7 он идёт на реализации с полем из крейта (второго прогона нет).
 - Rust — `rust/dp-air/tests/contract.rs` (T5, T6 на трейте, на заглушке и на `Formula`) и `rust/dp-gd/tests/` (версия, разбор массивов) — первым шагом RW-4.
-- Версия: константа `Atmosphere.WIND_API_VERSION`, `DpAir.api_version()` и `dp_air::API_VERSION` равны версии W2 здесь (с W2 v4 — 4); тест сверяет с заголовками этого файла (как `test_air_contracts.gd`: `CONTRACTS` против заголовков `## Wn … (vK)`).
+- Версия: константа `Atmosphere.WIND_API_VERSION`, `DpAir.api_version()` и `dp_air::API_VERSION` равны версии W2 здесь (с W2 v5 — 5); тест сверяет с заголовками этого файла (как `test_air_contracts.gd`: `CONTRACTS` против заголовков `## Wn … (vK)`).
 
 ## W1. Соглашения (v2)
 Владелец — координатор. Потребители — все слои.
@@ -36,13 +36,13 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 4}, {"id": "W3",
 - **Сеть — не цель** (решение пользователя 2026-10-25): у каждого клиента свой воздух от общей погоды и сида; выгрузки/загрузки состояния воздуха и синхронизации нет. Нынешняя синхронизация термиков и `CloudField` в `net_flight.gd` (`air_forced_sig`, `set_air_forced`, `air_sources_mask`, `apply_net_snapshot`) удаляется в RW-3, не переносится.
 - **Колбэков из крейта в Godot нет.** `height_fn`, `surface_fn`, `sun_fn`, `AtmoDay.weather_fn/sun_fn/source_fn` — не часть W3/W4; всё нужное — данными (W5).
 
-## W2. Фасад `Atmosphere` (GDScript) (v4)
+## W2. Фасад `Atmosphere` (GDScript) (v5)
 Владелец — RW-2 (фасад), RW-7 (режим поля), RW-12z (переход на `DpAir`). Потребители — `scripts/game/*`, `scripts/glider/*`, визуальные и отладочные потребители (W10), `CalmAir`. Методы, константы, сигналы, история v2–v4 — `docs/contracts/rust-wind/facade.md`.
 
-## W3. Класс `DpAir` (gdext, крейт `dp-gd`) (v5)
+## W3. Класс `DpAir` (gdext, крейт `dp-gd`) (v6)
 Владелец — RW-4 (каркас, заглушка `Calm`), RW-6…12 (наполнение), RW-7 (режим поля, выдача поля фасаду), RW-12z (описания W6 v4 на фасаде). Потребитель — фасад, контрактные тесты. Методы, потоки, жизненный цикл, история v2–v4 — `docs/contracts/rust-wind/dpair.md`.
 
-## W4. Трейт `AirModel` (крейт `dp-air`, без Godot) (v6)
+## W4. Трейт `AirModel` (крейт `dp-air`, без Godot) (v7)
 Владелец — RW-4 (трейт, `Calm`), RW-6…12 (`Formula`), живой воздух (`Live`). Потребители — `dp-gd`, стенд RW-5, `cargo test`, `cargo bench`. Трейт, типы, порядок команд, структуры описаний — `docs/contracts/rust-wind/trait.md`.
 
 ## W5. Вход: место, конфиги, условия (v8)
@@ -58,7 +58,7 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 4}, {"id": "W3",
 - `debug_raster_names() -> PackedStringArray`; `debug_raster(name) -> Dictionary {nx, ny, dx, x0, z0, data: PackedFloat32Array}` — растры для оверлеев (поток тепла F7, карта фаз F4 и т. п.); неизвестное имя → `{}`.
 - Отладка не в горячем пути; `Dictionary` допустим.
 
-## W8. Фикстуры T1 и допуски (v2)
+## W8. Фикстуры T1 и допуски (v3)
 Владелец — RW-1 (снимает на текущем коде до правок атмосферы), RW-2 (второй набор — по слагаемым W7). Потребители — `cargo test` (RW-6…12), GDScript-тесты T7. Формат фикстур `tests/fixtures/wind/`, допуски T1 по величинам (решение вопроса 3 плана) и пороги скорости — `docs/contracts/rust-wind/fixtures-tolerances.md`.
 
 ## W9. Workspace, сборка, поставка (v2)
@@ -115,3 +115,4 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 4}, {"id": "W3",
 - W8 v2 (2026-10-29, ответ пользователя на Q1, итоги RW-6z/U1/U2, предложения RW-8a) — допуск T1 поля по классам клеток (`mech` 1 % |U| + 0,01 м/с, `conv` как v1, `nonconv` 15 %), статус решателя эталона `meta.solver`, эталоны с ошибкой GPU (landing_hill, thermal_slope); число ядер ≤ 2 на момент и ≤ 3 %, `above_base` после RW-11, случай `off`, `cases/<имя>.weather.json`. Потребители: RW-6u (T1 по классам, перепечатка landing_hill), RW-2c, RW-10*, RW-11*, RW-12* (эталоны этапа 3).
 - W6 v4 (2026-10-29, проект RW-11a) — объекты-облака `cloud_objects` (шаг 22, момент `t`), `wave_info`, `surface_gust_many`, `Core.storm`; методы W2–W4 — с RW-12z. Потребители: RW-11d, RW-11e, RW-8/9, RW-12z; `tests/contracts/test_rust_wind_contracts.gd` `CONTRACTS.W6 = 4` — первая задача, трогающая файл (RW-11e).
 - W2 v4, W3 v5, W4 v6 (2026-10-29, переход фасада RW-12z; проект RW-12y — `docs/research/rust-wind-stage3/rw12z.md`) — W2 вынесен в `rust-wind/facade.md`; методы W6 v4 `cloud_objects`/`wave_info`/`surface_gust_many` во всех трёх слоях, `ObjRecord` в корне крейта, `thermals_near` из `cores`, формулировка `start_at` (как GD, равенство прогону с 0 — без облачной петли), режим `off` в крейте, порог `weather_version`, реализация фасада — `DpAir` целиком. Версия API = 4. Потребители: RW-12u (версия 4, методы трейта с умолчаниями), RW-12v (`Formula`), RW-12w (`dp-gd`), RW-12x (фасад, `test_rust_wind_contracts.gd`), RW-12z (`cloud_layer.gd`, `gust_dust*.gd`, храповик; RW-11e влита сюда); в rw12z.md — 12za…12zd соответственно (12za шаг 1 = RW-12u).
+- W2 v5, W3 v6, W4 v7, W8 v3 (2026-10-29, решение пользователя: упрощённый режим ветра убрать) — режима поля нет (`set_air_mode`, `air_model.enabled`, пункт настроек «Ветер над рельефом», `set_field_enabled`, ветка `off` в крейте, случай `synth_off`); поле считается всегда, и в headless. Версия API = 5. Потребители: RW-P3 (всё удаление, константы версий, контрактные тесты), RW-P1/RW-P2 (не опираться на режим поля).

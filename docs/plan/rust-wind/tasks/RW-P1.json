@@ -1,0 +1,84 @@
+{
+  "id": "RW-P1",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Воздух в экспортированной release-сборке Linux: грузится ли DpAir, считается ли поле, ненулевой ли ветер — причина и починка",
+  "goal": "Выяснить на экспортированной release-сборке Linux, работает ли воздух (загрузка libdp_air_release.so, подготовка поля места до READY, ветер ≠ 0), найти причину отказа и починить; стадии загрузки поля и итог видны в логе игры.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "W2",
+      "version": "5",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W3",
+      "version": "6",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W9",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-P1",
+  "branch": "rust-wind/RW-P1",
+  "base": "feature/rust-wind",
+  "scope": [
+    "tools/build.sh",
+    "tools/build_rust.sh",
+    "tools/dp_air_smoke.sh",
+    "addons/dp_air/",
+    "export_presets.cfg",
+    "scripts/atmosphere/atmosphere.gd",
+    "rust/dp-gd/",
+    "tests/atmosphere/",
+    "docs/research/rust-wind-stage3/pilot-air.md"
+  ],
+  "dont_touch": [
+    "rust/dp-air/",
+    "configs/",
+    "scripts/game/debug_overlays.gd",
+    "scripts/atmosphere/wind_field_debug.gd",
+    "tests/fixtures/",
+    "docs/contracts/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "smoke_release",
+      "cmd": "tools/dp_air_smoke.sh",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dp_gd_tests",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-gd",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "report_doc",
+      "cmd": "test -s docs/research/rust-wind-stage3/pilot-air.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs_check",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T17:04:51",
+  "edited": "2026-10-29T17:08:51"
+}

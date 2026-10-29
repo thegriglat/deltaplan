@@ -6,10 +6,10 @@ area: "air"
 updated: "2026-10-29"
 summary: "W8 rust-wind: формат фикстур T1 (json + f32), допуски сверки Rust против GDScript, пороги скорости."
 related: ["docs/contracts/rust-wind.md", "docs/plan/rust-wind.md", "docs/contracts/air-cascade.md"]
-contracts: [{"id": "W8", "version": 2}]
+contracts: [{"id": "W8", "version": 3}]
 ---
 
-# W8. Фикстуры T1 и допуски (v2)
+# W8. Фикстуры T1 и допуски (v3)
 
 Часть `docs/contracts/rust-wind.md` (версия — там, заголовок W8). Менять — только координатор.
 Владелец — RW-1 (снимает на текущем коде до правок атмосферы), RW-2 (второй набор — по слагаемым W7). Потребители — `cargo test` (RW-6…12), GDScript-тесты T7.
@@ -61,3 +61,4 @@ contracts: [{"id": "W8", "version": 2}]
 
 **Скорость** (бенч `cargo bench`, release-профиль W9; игровой замер — под `lock gpu`): `sample_many` 18 точек ≤ 50 мкс, 1000 точек ≤ 2 мс (один вызов, главный поток); `advance_to` ≤ 0,5 мс; базовая линия — `rust/dp-air/benches/baseline.json` (снимает RW-4 на `Calm`, RW-6…12 обновляют на `Formula`); регрессия > 20 % от базовой — FAIL.
 
+**v3 (2026-10-29, решение пользователя: упрощённый режим ветра убрать).** Случай режима `off` (`synth_off`, RW-2c) удаляется из эталонов вместе с тестами, которые его сверяют; пункт v2 «режим `off`» не действует.

@@ -6,10 +6,10 @@ area: "air"
 updated: "2026-10-29"
 summary: "W4 rust-wind: трейт AirModel крейта dp-air (без Godot) — типы, методы, порядок команд, структуры описаний, реализации Calm/Formula/Live."
 related: ["docs/contracts/rust-wind.md", "docs/plan/rust-wind.md"]
-contracts: [{"id": "W4", "version": 6}]
+contracts: [{"id": "W4", "version": 7}]
 ---
 
-# W4. Трейт `AirModel` (крейт `dp-air`, без Godot) (v6)
+# W4. Трейт `AirModel` (крейт `dp-air`, без Godot) (v7)
 
 Часть `docs/contracts/rust-wind.md` (версия — там, заголовок W4). Менять — только координатор.
 Владелец — RW-4 (трейт, заглушка `Calm`), RW-6…12 (`Formula`), будущий живой воздух (`Live`). Потребители — `dp-gd`, стенд RW-5, `cargo test`, `cargo bench`.
@@ -79,3 +79,5 @@ pub trait AirModel: Send + Sync {
   - Кеши крейта по месту — по поколению `load_place`, не по адресу растра.
   - Бюджет `advance_to` ≤ 0,5 мс главного потока (W3) — с термиками и облаками: тяжёлое (сборка термиков, шаг и разгон поля облаков) — фоном (single-flight, подмена `Arc`); в детерминированном режиме (`air.deterministic`) — синхронно, бюджет не действует.
   - Переходное `field_export`/`field_version` (v5) — без изменений до RW-13.
+
+- **v7 (2026-10-29, решение пользователя: упрощённый режим ветра убрать):** `API_VERSION = 5`. `set_field_enabled` (v5) удалён из трейта, `Calm`, `Formula` и стенда; ветка `off` в `Formula` (аналитика без поля по выключателю) удалена вместе с её тестами. Поле считается всегда; ответ без поля остаётся только при `Failed` (W1) и до готовности поля — как прежде.

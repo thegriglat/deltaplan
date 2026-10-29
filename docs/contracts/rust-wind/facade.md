@@ -4,12 +4,12 @@ status: "active"
 module: "rust-wind"
 area: "air"
 updated: "2026-10-29"
-summary: "W2 rust-wind: фасад Atmosphere (GDScript) — настройка, место, время, фокусы, опрос, описания; v4 — переход фасада на DpAir (RW-12z)."
+summary: "W2 rust-wind: фасад Atmosphere (GDScript) — настройка, место, время, фокусы, опрос, описания; v5 — без режима поля."
 related: ["docs/contracts/rust-wind.md", "docs/contracts/rust-wind/dpair.md", "docs/contracts/rust-wind/trait.md", "docs/contracts/rust-wind/descriptions.md", "docs/research/rust-wind-stage3/rw12z.md"]
-contracts: [{"id": "W2", "version": 4}]
+contracts: [{"id": "W2", "version": 5}]
 ---
 
-# W2. Фасад `Atmosphere` (GDScript) (v4)
+# W2. Фасад `Atmosphere` (GDScript) (v5)
 
 Часть `docs/contracts/rust-wind.md` (версия — там, заголовок W2). Менять — только координатор.
 Владелец — RW-2 (фасад на текущем коде), RW-7 (выбор реализации). Потребители — `scripts/game/*`, `scripts/glider/*`, визуальные и отладочные потребители из W10, `CalmAir` (`scripts/game/calm_air.gd` реализует тот же набор, ветер 0, состояние READY сразу). Узел игры `air` остаётся `Atmosphere`; всё, что не перечислено ниже, — внутренность реализации (W10).
@@ -57,7 +57,7 @@ contracts: [{"id": "W2", "version": 4}]
 - Переходное до RW-13 (в W3/W4 нет): `refresh_scale` (ускорение догона на экране ожидания), `start_at` без места — синхронно, `focus_node`/`set_focus`/`get_focus` и `configure(Variant, Variant)` — только для тестов и превью до RW-3c.
 
 **Переходное (только RW-2…RW-12, удаляется в RW-13; в W3/W4 нет):** реализация `gd` может держать прежние входы — `set_ground(height_fn, sun_fn, surface_fn)`, `set_day(AtmoDay)`, `set_wind(...)`, `set_weather(...)` — фасад сам выводит их из `load_place`/`set_conditions` (игра их больше не зовёт после RW-3). Переключателя `air.backend` нет (W9 v2): поле — только из крейта (RW-7).
-- **Режим поля (уточнение 2026-10-29, без смены версии; RW-7):** прежний метод фасада `set_air_mode(mode: String)` (`"auto" | "on" | "off"`, пункт настроек «Эвристика») и ключ `air_model.enabled` в `configs/atmosphere.json` отображаются в `DpAir.set_field_enabled` (W3 v4): `off` → `false`; `on` → `true`; `auto` → `true`, кроме headless (`DisplayServer.get_name() == "headless"`) — там `false`, как сейчас: в headless-тестах поле не считается, тесты, которым оно нужно, ставят `on`.
+- **Режим поля (уточнение 2026-10-29, без смены версии; RW-7; удалён в v5):** прежний метод фасада `set_air_mode(mode: String)` (`"auto" | "on" | "off"`, пункт настроек «Эвристика») и ключ `air_model.enabled` в `configs/atmosphere.json` отображаются в `DpAir.set_field_enabled` (W3 v4): `off` → `false`; `on` → `true`; `auto` → `true`, кроме headless (`DisplayServer.get_name() == "headless"`) — там `false`, как сейчас: в headless-тестах поле не считается, тесты, которым оно нужно, ставят `on`.
 
 - **v4 (2026-10-29, переход фасада RW-12z; проект — `docs/research/rust-wind-stage3/rw12z.md`):**
   - Константы += `OBJ_STRIDE := 22` и смещения `OBJ_ID … OBJ_STORM_K` (0…21, W6 v4); `WAVE_INFO_ENABLED := 0`, `WAVE_INFO_LENGTH := 1`. `WIND_API_VERSION = 4`.
@@ -69,3 +69,5 @@ contracts: [{"id": "W2", "version": 4}]
   - Режим поля `off`: крейт считает аналитику (`WindModel`, линия тени, склоновый подъём, подветренный поток) без поля и без полосы края; термики, облака, гроза и волны включены.
   - Реализация — `DpAir` целиком: `sample_many`/`sample`, `cloud_density_many`, `cloudbase_msl`, `background_wind`, `weather` (разбор `weather_json` по `weather_version`), `sun_state`, `cores`, `clouds`, `cloud_raster(_version)`, `wave_crests`, `decompose`, `debug_raster*` — из крейта; `pump` — пустой; `status().field_on` — по `DpAir`. Сигналы `weather_updated`/`weather_changed` — по росту первого/второго числа `weather_version` (W4 v6).
   - Переходное: после RW-12z у фасада и тестов-потребителей нет `air.wind`, `air.ground`, `air.cloud_phys`, `air.storm`, `air.wave`, `air.field`, `set_ground/set_day/set_wind/set_weather/set_air_field`, `step`; файлы GDScript-слагаемых удаляет RW-13. `refresh_scale`, `focus_node`, `configure(Variant, Variant)` — как в v2, до RW-13.
+
+- **v5 (2026-10-29, решение пользователя: упрощённый режим ветра убрать):** `WIND_API_VERSION = 5`. Режима поля нет: удалены `set_air_mode`, ключ `air_model.enabled` в `configs/atmosphere.json` и его чтение, пункт настроек «Ветер над рельефом» (`settings_wind_model*`) и сохранённое значение, ветка `off` в фасаде, `DpAir.set_field_enabled` (W3 v6). Поле Пикара на месте считается всегда, в том числе в headless (тесты, которым поле не нужно, берут `CalmAir` или маленькое место/запечённое поле). Остаются, это не режим: FAILED (подготовка не удалась — опросы по запасному пути, W1) и «нет расширения — ветер без поля» (W9, до RW-13). Абзац «Режим поля» и пункт v4 «Режим поля `off`» не действуют.
