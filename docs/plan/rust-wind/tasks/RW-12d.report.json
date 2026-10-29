@@ -1,0 +1,99 @@
+{
+  "status": "done",
+  "summary": "Погода в Terms: set_conditions прогноз+место -> derive/AtmoDay (weather_link.rs), advance/start_at ведут ход дня и мягкую смену, версии, рамка ветра по выведенной погоде, pub weather_json/weather_version/sun_state/coefficients/set_place. Эталоны: loc.climate_cell(_lag) в местах и ongudai_day_*.weather.json из Godot на c591b1026; 8 тестов terms_weather проходят (3 по эталону, допуск 1e-6+1e-5|ref|). Все 6 проверок карточки PASS; scope PASS (place.rs принят координатором).",
+  "commits": [
+    "ad1a38232 rust-wind RW-12d: погода в Terms, эталоны W5 v8 и погоды дневных случаев",
+    "ea5727cc2 clippy: псевдонимы типов замыканий AtmoDay"
+  ],
+  "checks": [
+    {
+      "name": "terms_weather",
+      "value": "8 passed",
+      "pass": true
+    },
+    {
+      "name": "places_bins_untouched",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "dp_air_no_godot",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "17 файлов в границах",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Terms::set_place пока никто не вызывает (formula.rs не трогать): RW-12z обязан вызвать после load_place; до того прогноз идёт по старому пути без derive."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RW-12d --dry; cargo test --manifest-path rust/Cargo.toml -p dp-air --test terms_weather",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/src/terms/weather_link.rs: PlaceLink::of",
+      "why": "Карточка просит start_msl_m = высота старта; GD-фасад (_f_weather_ctx) и генератор его в ctx не кладут, derive использует климат без него. Взял NaN.",
+      "checked": "эталон дневных случаев совпал при NaN"
+    },
+    {
+      "where": "weather_link.rs: apply_conditions, t0 хода дня",
+      "why": "t0 = время, до которого продвинута погода (при первом вызове 0). GD в _f_build берёт 0 даже при перестройке в полёте.",
+      "checked": "совпадение только при t0 = 0 (эталон)"
+    },
+    {
+      "where": "weather_link.rs: ref_msl",
+      "why": "GD ставит ref_msl = h_msl старта и для пресета, и для прогноза без wind_ref; здесь NaN (как было в Terms), чтобы не менять пресетные эталоны набора 1.",
+      "checked": "не сверялось с Godot"
+    },
+    {
+      "where": "weather_link.rs: advance_weather",
+      "why": "возвращает true на каждом 0,1 с слоте хода дня (плавные коэффициенты меняются) -> фасад будет публиковать Terms часто.",
+      "checked": "стоимость клона Terms не мерял"
+    },
+    {
+      "where": "weather/state.rs: insolation()",
+      "why": "теперь по словарю погоды шага (get_insolation GD), а не по плавному coeffs.insolation; тесты RW-12c проходят, т.к. совпадают в точке настройки. Эталон дня: sun_state[3] сверен с get_insolation GD.",
+      "checked": "terms_weather day_* и weather_day"
+    },
+    {
+      "where": "tests/data/RW-12d/weather_ref.gd",
+      "why": "лежит под rust/.gdignore, .uid не создан Godot; pre-commit пропустил.",
+      "checked": "коммит прошёл"
+    },
+    {
+      "where": "формат cases/*.weather.json",
+      "why": "W8 v2 описывал поля кратко; day ключуется часом места, внутри t, weather и коэффициенты; derive - словарь целиком. Описано в README эталонов.",
+      "checked": "читалка - terms_weather.rs"
+    },
+    {
+      "where": "cargo test --workspace",
+      "why": "picard_cancel_during_the_setup_returns_within_the_limit (runtime.rs:1314) один раз упал по времени при загруженной машине (344 мс), при повторе проходит; к погоде не относится.",
+      "checked": "повторный полный прогон exit 0"
+    }
+  ],
+  "dp_feedback": "dpcli lock cpu в tmux-окне не выводит stdout в вызвавшую оболочку и зависает при относительном пути команды вне копии; удобнее job start --lock cpu с абсолютными путями. Scope-проверка не даёт пометить обязательную правку вне scope иначе как отчётом.",
+  "extra": {
+    "tests": 8,
+    "files_changed": 17
+  },
+  "t": "2026-10-29T06:40:02",
+  "by": "executor"
+}

@@ -1,0 +1,80 @@
+{
+  "id": "RW-11f",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Объекты-облака W6 v4 в крейте: cloud_objects (шаг 22, момент t) по термикам и грозе; Core.storm",
+  "goal": "pub-функция terms::objects::cloud_objects(terms, center, radius, t) отдаёт записи W6 v4 (22 поля) по всем термикам набора с облаком на t (CloudModel stage/size/center RW-11c, жизнь RW-10b, гроза storm_start/intensity), id уникальны; Core.storm заполнен интенсивностью грозы ядра; записи совпадают с дампом GD в допуске W8 v2.",
+  "plan_ref": "План переноса",
+  "contracts": [
+    {
+      "name": "W4",
+      "version": "5",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W6",
+      "version": "4",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W10",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-11f",
+  "branch": "rust-wind/RW-11f",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/terms/objects/",
+    "rust/dp-air/src/terms/mod.rs",
+    "rust/dp-air/src/terms/thermal/cores.rs",
+    "rust/dp-air/tests/terms_objects.rs",
+    "rust/dp-air/tests/data/RW-11f/"
+  ],
+  "dont_touch": [
+    "rust/dp-air/src/formula.rs",
+    "rust/dp-air/src/field/",
+    "rust/picard_rs/",
+    "rust/dp-gd/",
+    "scripts/",
+    "tests/fixtures/",
+    "docs/contracts/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "terms_objects",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test terms_objects",
+      "expect": "num:test result: ok\\. (\\d+) >=5"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dp_air_no_godot",
+      "cmd": "cargo tree --manifest-path rust/Cargo.toml -p dp-air -e normal | grep -ci godot || true",
+      "expect": "num:^(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T06:31:12"
+}

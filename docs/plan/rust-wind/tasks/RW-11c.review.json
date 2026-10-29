@@ -1,0 +1,29 @@
+{
+  "verdict": "accept",
+  "summary": "StormField и CloudModel (stage/_life_window/center/size) перенесены построчно с storm_field.gd и cloud_model.gd на c591b1026: коэффициенты, запасные значения, границы (горизонталь ≤ outflow_ms, vy ∈ [−downdraft_ms, front_updraft_ms], σ — максимум по ячейкам) совпадают. Пороги в тестах не ослаблены (W8: 0,05 + 2 %). Скоуп соблюдён, ветка содержит свежий feature/rust-wind. Что не сверено (ongudai_*, σ слагаемого, Core.storm), честно записано в «не вышло».",
+  "issues": [
+    {
+      "file": "rust/dp-air/src/terms/storm/mod.rs",
+      "line": 68,
+      "severity": "minor",
+      "what": "Кэш StormCfg привязан к адресу Arc<Configs>. Если старый Configs освобождён, а новый выделен по тому же адресу (configure с другими конфигами), останется устаревший cfg. Так же устроено в thermal/mod.rs:176, поэтому это не регресс.",
+      "fix": "Позже, для обоих слагаемых: хранить Weak/Arc на Configs или сбрасывать кэш в Terms::configure. В этой задаче не обязательно."
+    },
+    {
+      "file": "rust/dp-air/tests/terms_storm.rs",
+      "line": 172,
+      "severity": "minor",
+      "what": "Точки вне растра места при сверке storm vel пропускаются (там agl знает только аналитика GD). Это объяснено, и сверено > 600 точек, но горизонт растекания у края места не проверен.",
+      "fix": "Вернуть точки вне растра в сверку после сборки суммы (RW-12z), когда будет высота по краю (W5)."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "terms_storm (accept --only --dry)",
+      "value": "11 тестов, scope 6 файлов в границах",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-29T06:24:42",
+  "by": "reviewer"
+}

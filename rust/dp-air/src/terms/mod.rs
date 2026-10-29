@@ -39,27 +39,31 @@
 mod decompose;
 mod frame;
 mod slots;
+pub mod storm;
 mod sum;
 pub mod thermal;
 pub mod thermal_air;
 pub mod thermal_src;
 pub mod turb;
+pub mod waves;
+mod weather_link;
 
 use crate::field::field_set::FieldSet;
 use crate::place::Place;
-use crate::{Conditions, Configs, Focus, SampleMode, Source};
+use crate::{Conditions, Configs, Focus, SampleMode};
 pub use decompose::{
     NAMES, Rec, T_ANALYTIC, T_CLOUD, T_FIELD, T_GUST, T_RIDGE, T_STORM, T_THERMAL, T_TURB, T_WAVE,
     empty as empty_decomposition,
 };
 pub use frame::{AIR_CASE_Z0, WeatherView, WindCfg, WindModel};
-use serde_json::{Map, Value};
+use serde_json::Value;
 pub use slots::{
-    Analytic, AnalyticMean, AnalyticTurb, Extra, ExtraOut, NoAnalytic, NoExtra, NoThermal, NoTurb,
-    Thermal, ThermalOut, Turb, TurbMean, TurbOut,
+    Analytic, AnalyticMean, AnalyticTurb, Extra, ExtraOut, ExtraSet, NoAnalytic, NoExtra,
+    NoThermal, NoTurb, Thermal, ThermalOut, Turb, TurbMean, TurbOut,
 };
 use std::sync::Arc;
 pub use sum::{Mid, sum};
+pub use weather_link::PlaceLink;
 
 /// Коэффициенты суммы из `atmosphere.json` (запасные значения — как в GD).
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -121,7 +125,10 @@ impl Slots {
         Slots {
             analytic: Arc::new(NoAnalytic),                   // RW-9
             thermal: Arc::new(thermal::ThermalSlot::empty()), // RW-10b
-            extra: Arc::new(NoExtra),                         // RW-11
+            extra: Arc::new(ExtraSet::new(vec![
+                Arc::new(storm::StormExtra::new()), // RW-11c
+                Arc::new(waves::WaveExtra::new()),  // RW-11b
+            ])), // RW-11d: облако — одна строка здесь
             turb: Arc::new(NoTurb),                           // RW-8
         }
     }
@@ -149,6 +156,8 @@ pub struct Terms {
     /// Направление на солнце (`set_sun_direction`).
     pub sun: Option<[f32; 3]>,
     pub slots: Slots,
+    /// Погода во времени (RW-12d, `weather_link.rs`): состояние, место, версии.
+    link: weather_link::WeatherLink,
 }
 
 impl Default for Terms {
@@ -165,6 +174,7 @@ impl Default for Terms {
             statics_mode: 0,
             sun: None,
             slots: Slots::new(),
+            link: Default::default(),
         }
     }
 }
@@ -174,6 +184,7 @@ impl Terms {
         self.configs = configs.clone();
         self.seed = seed;
         self.cfg = SumCfg::from_configs(configs);
+        self.weather_configure();
         // RW-8: слот Turb зависит от конфигов и сида (шум, таблицы), поэтому ставится здесь
         self.slots.turb = turb::FieldTurb::slot(configs, seed);
         let ref_msl = self.wind.ref_msl;
@@ -185,72 +196,38 @@ impl Terms {
         }
     }
 
-    /// Погода и ветер из условий: пресет (имя или словарь) или прогноз. Выведенная погода
-    /// (`_derived`, ход дня) — RW-12b.
+    /// Погода и ветер из условий (`weather_link.rs`): эталон-пресет или прогноз; прогноз с местом
+    /// (`set_place`) выводит погоду по часу (`derive`, ход дня), первый вызов и `rebuild` — перестройка,
+    /// иначе мягкая смена (`blend_s`).
     pub fn set_conditions(&mut self, c: &Conditions) {
-        let mut map: Map<String, Value> = Map::new();
-        match &c.source {
-            Source::Preset(Value::String(n)) => {
-                let n = n.strip_prefix("weather/").unwrap_or(n);
-                if let Some(Value::Object(m)) = named_json(&self.configs, &format!("weather/{n}")) {
-                    map = m;
-                }
-                self.wind.ref_msl = f64::NAN;
-            }
-            Source::Preset(Value::Object(m)) => {
-                map = m.clone();
-                self.wind.ref_msl = f64::NAN;
-            }
-            Source::Preset(_) => {}
-            Source::Forecast {
-                forecast,
-                wind_ref,
-                overrides,
-                ..
-            } => {
-                map.insert("temperature_c".into(), forecast.temperature_c.into());
-                map.insert("wind_speed_kmh".into(), forecast.wind_speed_kmh.into());
-                map.insert("wind_from_deg".into(), forecast.wind_from_deg.into());
-                map.insert("sky".into(), forecast.sky.clone().into());
-                for (k, v) in overrides {
-                    map.insert(k.clone(), v.clone());
-                }
-                match wind_ref {
-                    Some(w) => {
-                        self.wind.ref_msl = w.ref_msl;
-                        self.wind.set_altitude_gain(w.gain_per_km);
-                    }
-                    None => self.wind.ref_msl = f64::NAN,
-                }
-            }
-        }
-        self.weather = WeatherView::new(map);
-        self.wind.set_from_weather(&self.weather);
-        self.cond = Some(c.clone());
+        self.apply_conditions(c, false);
     }
 
     /// Хук времени (`advance_to`): обновить слагаемые, которым нужен шаг (термики раз в 1 с
-    /// атмосферы, облака 0,1 с). `true` — снимок изменился, нужна публикация. Термики (RW-10b):
-    /// новый набор при смене ячейки `floor(t / refresh_interval_s)`, условий, ветра, статичных.
+    /// атмосферы, облака 0,1 с) и погоду (ход дня на сетке 0,1 с, мягкая смена). `true` — снимок
+    /// изменился, нужна публикация. Термики (RW-10b): новый набор при смене ячейки
+    /// `floor(t / refresh_interval_s)`, условий, ветра, статичных.
     pub fn advance(&mut self, t: f64) -> bool {
+        let w = self.advance_weather(t);
         match self.slots.thermal.advanced(self, t, false) {
             Some(n) => {
                 self.slots.thermal = n;
                 true
             }
-            None => false,
+            None => w,
         }
     }
 
-    /// Хук `start_at`: состояние слагаемых на `t` как после прогона с 0 (W2). Термики — чистая
-    /// функция (клетка, цикл), набор строится на `t` сразу.
+    /// Хук `start_at`: состояние слагаемых на `t` как после прогона с 0 (W2). Погода — ход дня на `t`
+    /// (чистая функция времени); термики — чистая функция (клетка, цикл), набор строится на `t` сразу.
     pub fn start_at(&mut self, t: f64) -> bool {
+        let w = self.advance_weather(t);
         match self.slots.thermal.advanced(self, t, true) {
             Some(n) => {
                 self.slots.thermal = n;
                 true
             }
-            None => false,
+            None => w,
         }
     }
 
@@ -269,6 +246,7 @@ impl Terms {
     pub fn unload_place(&mut self) {
         self.focuses.clear();
         self.statics.clear();
+        self.weather_unload_place();
     }
 }
 

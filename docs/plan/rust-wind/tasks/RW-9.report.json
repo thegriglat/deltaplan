@@ -1,10 +1,11 @@
 {
   "status": "done",
-  "summary": "Слот Analytic перенесён в крейт: terms/analytic/{ground,ridge,lee,strip,off,noise}.rs (GroundField кусками 16x16 по 30 м с кешем, склоновый подъём, подветренная зона, полоса края буквально по GD, режим off, background_wind, cloudbase_msl, шум gust_unit побитно с Godot). Девять старых тестов (field_export, runtime, terms_sum) переведены на слагаемое field разложения, смысл тот же. accept --dry 5/5 PASS.",
+  "summary": "Слот Analytic перенесён в крейт: terms/analytic/{ground,ridge,lee,strip,off,noise}.rs (GroundField кусками 16x16 по 30 м с кешем, склоновый подъём, подветренная зона, полоса края буквально по GD, режим off, background_wind, cloudbase_msl, шум gust_unit побитно с Godot). Девять старых тестов (field_export, runtime, terms_sum) переведены на слагаемое field разложения, смысл тот же. accept --dry 5/5 PASS. После слияния feature/rust-wind (термики RW-10b/c/d, конфликт terms/mod.rs и slots.rs разрешён: слот Thermal + Analytic, ground_dir, air_off) accept --dry 5/5 PASS.",
   "commits": [
     "250e8ccfe слот Analytic в крейте",
     "тесты field_export/runtime/terms_sum на слагаемое field",
-    "terms_sum без лишнего bits"
+    "terms_sum без лишнего bits",
+    "0b8fa3c6f слияние feature/rust-wind (термики)"
   ],
   "checks": [
     {
@@ -113,6 +114,6 @@
     "gust_max_diff": 0,
     "ground_max_dh_m": 0.00015
   },
-  "t": "2026-10-29T06:16:19",
+  "t": "2026-10-29T06:23:49",
   "by": "executor"
 }
