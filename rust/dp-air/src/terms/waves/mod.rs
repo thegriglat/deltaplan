@@ -49,6 +49,9 @@ impl WaveExtra {
     /// Поле для текущих погоды, ветра и места; `None` — волн нет (`wave_strength ≤ 0`).
     pub fn field(&self, terms: &Terms, place: &Place) -> Option<(Arc<WaveField>, WaveCfg)> {
         let strength = terms.weather.f64_or("wave_strength", 0.0);
+        if strength <= 0.0 {
+            return None; // быстрый путь: без волны конфиг не разбираем
+        }
         let mut g = self.cache.lock().unwrap();
         let reuse_cfg = g
             .as_ref()
@@ -58,9 +61,6 @@ impl WaveExtra {
         } else {
             WaveCfg::from_configs(&terms.configs)
         };
-        if strength <= 0.0 {
-            return None;
-        }
         let n_bv = terms
             .weather
             .f64_or("stability_n_per_s", cfg.default_n_per_s);
