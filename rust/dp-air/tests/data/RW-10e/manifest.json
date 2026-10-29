@@ -1,0 +1,8 @@
+{
+ "task": "RW-10e",
+ "reference_revision": "c591b1026 (feature/rust-wind; GD-ветер до отключения GPU-пути RW-7b)",
+ "generator": "скрипты RW-10d без изменений: ../RW-10d/run_dump.sh <копия на c591b1026> <каталог> ongudai_strong,ongudai_wave; затем ../RW-10d/recompress.py <каталог случая>... (w_mech обнулён: источники и термики его не читают, zstd -19)",
+ "what": "GPU-поле Пикара Онгудая (400 м), на котором GD строил источники в дампе RW-10d; поле перечитано из запечённого f16 (TI-К3 v3). Поле ongudai_medium - в ../RW-10d/ongudai_medium",
+ "files": {"<случай>/field.json + field.bin": "parse_baked"},
+ "note": "Поле дампа считалось отдельным запуском GPU, а не тем прогоном, что снял эталоны tests/fixtures/wind/cases/ongudai_*: поле эталона недоступно; расхождения u, v на доли процента дают сдвиг ядер на ~25 м"
+}
