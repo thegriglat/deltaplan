@@ -40,6 +40,7 @@ mod decompose;
 mod frame;
 mod slots;
 mod sum;
+pub mod turb;
 
 use crate::field::field_set::FieldSet;
 use crate::place::Place;
@@ -170,6 +171,8 @@ impl Terms {
         self.configs = configs.clone();
         self.seed = seed;
         self.cfg = SumCfg::from_configs(configs);
+        // RW-8: слот Turb зависит от конфигов и сида (шум, таблицы), поэтому ставится здесь
+        self.slots.turb = turb::FieldTurb::slot(configs, seed);
         let ref_msl = self.wind.ref_msl;
         self.wind = WindModel::new(WindCfg::from_configs(configs));
         self.wind.ref_msl = ref_msl;
