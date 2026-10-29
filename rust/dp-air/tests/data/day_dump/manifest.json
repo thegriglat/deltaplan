@@ -1,0 +1,12 @@
+{
+	"day_rows": 48,
+	"format": "json lines (rows.jsonl.zst, zstd): kind=day (AtmoDay над derive: initial, samples[t, hour, q, f, weather=weather_at, w1, value_at, source, sun]) | day_state (Atmosphere._apply_day по шагам) | coeffs (_cache_coefficients и др.) | blend (_update_weather/_blend); NaN и inf -> null",
+	"godot": "4.7.2-stable (official)",
+	"places": [
+		"ongudai",
+		"training_island",
+		"volcano_island",
+		"synthetic"
+	],
+	"rows": 116
+}

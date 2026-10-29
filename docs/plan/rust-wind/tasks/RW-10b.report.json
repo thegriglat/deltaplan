@@ -1,0 +1,101 @@
+{
+  "status": "done",
+  "summary": "Слот Thermal в крейте: terms/thermal/{cfg,life,cells,statics,profile,sample,cores,mod}.rs. Жизнь термиков по клеткам (PCG32/_mix побитно как GD), статичные, профиль Гедеона/Аллена, бакеты, фон (через sum), ядра W6 (cores и all_cores). Набор ядер и слагаемое thermal на synth_* совпадают с эталоном без единого расхождения.",
+  "commits": [
+    "734b7bdc5 rust-wind RW-10b: слот Thermal без земли не добавляет фон",
+    "f10884410 rust-wind RW-10b: термики по клеткам в крейте (слот Thermal): жизнь, статичные, профиль, ядра"
+  ],
+  "checks": [
+    {
+      "name": "terms_thermal",
+      "value": "20 тестов ok",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "dp_air_no_godot",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "ядра synth_* (7x3)",
+      "value": "расхождений 0, id совпали",
+      "pass": true
+    },
+    {
+      "name": "thermal без облаков (растр и аналитика)",
+      "value": "0 точек вне допуска W8",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Подключение к AirModel::cores / Formula (RW-12z): функция Terms::thermal_cores готова, трейт не тронут.",
+    "Источники из поля (_spawn_air) и сила источника места: RW-10c/10d/10e. Реализация GroundSource для места передаётся через Terms::set_thermal_ground (есть PlaceGround с функцией силы снаружи).",
+    "Облачные крючки: CloudHooks (shade_at, suck), по умолчанию нули. Core.storm = 0 (RW-11).",
+    "Сверка после RW-11: above_base и 250 м под базой (в synth_* на растре они совпали, но облака там не моделируются); сверка Cb-тяги в synth_storm."
+  ],
+  "questions": [
+    "Terms::advance вне warm-пути 2 мс > 0,5 мс бюджета advance_to (W8). Цена — обход ~2100 клеток круга 20 км раз в 1 с; снижать (инкрементально) в RW-12z/по замеру? Дебаг не мерил, замер release выше."
+  ],
+  "how_to_check": ".dpcli/dpcli accept RW-10b",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/src/terms/mod.rs (Terms::advance/start_at, set_thermal_ground)",
+      "why": "Place в Terms нет и formula.rs не трогал, поэтому землю (высота, вода, сила источника) слот получает через GroundSource, который кто-то обязан вызвать set_thermal_ground. По умолчанию земля плоская без источников, термиков нет. Смена условий/фокуса/статичных без advance в той же секунде подхватится только на следующем advance/start_at.",
+      "checked": "тест advance_cadence_and_inputs; интеграция с Formula не проверялась"
+    },
+    {
+      "where": "rust/dp-air/tests/terms_thermal.rs: terms_for",
+      "why": "Синтетика в GD идёт с air_model=off, т.е. упрощённый профиль ветра: тест вызывает wind.set_simple_profile(true). Без него снос/наклон расходятся на сотни метров. Кто в Formula включит simple-профиль в режиме без поля (RW-9/12b) - не определено.",
+      "checked": "до включения simple профиля положения ядер не совпадали, после - 0 м"
+    },
+    {
+      "where": "rust/dp-air/src/terms/thermal/cells.rs: spawn",
+      "why": "Vector2/Vector3 GDScript (f32) эмулированы для ax/cx, источника, lean, drift_vel; остальное f64. Дискретные решения (sun_min, выбор из 8 точек) могут на другом месте разойтись на единичное ядро; на 7 случаях x 3 момента расхождений нет.",
+      "checked": "сверка с desc.json"
+    },
+    {
+      "where": "rust/dp-air/src/terms/thermal/mod.rs: PlaceGround::is_water",
+      "why": "вода - ближайший узел растра water, GD берёт класс слоя 10 м; на синтетике воды нет, не проверено.",
+      "checked": "нет"
+    },
+    {
+      "where": "rust/dp-air/src/terms/thermal/cells.rs: Setup::new static_only",
+      "why": "режим static: statics_mode==1 или thermal_mode=static в погоде при mode 0; weather.static_thermals не читаются (статичные только из terms.statics).",
+      "checked": "сверкой synth_weak/medium"
+    },
+    {
+      "where": "sample в момент c.t",
+      "why": "набор и бакеты строятся на момент обновления, огибающая/снос считаются на c.t; запрос позже t+refresh_interval без advance теряет термики, ушедшие за бакет.",
+      "checked": "не измерял"
+    },
+    {
+      "where": "terms/thermal/mod.rs ThermalSlot::empty",
+      "why": "слот по умолчанию inert: без set_thermal_ground не строит набор и не добавляет фон (иначе ломался clipmap). Фон bg_sink в Formula появится после подключения земли (RW-12z).",
+      "checked": "accept 5/5"
+    }
+  ],
+  "dp_feedback": "task sync отказывает при грязной копии, а коммит нужен до него; accept --dry идёт >2 мин в foreground, хотелось бы авто-фон. Каталог jobs общий: свежий лог по ls -t подхватывает чужие.",
+  "extra": {
+    "tests": 20,
+    "cores_checked": "~3200 ядер synth_* сверено с дампом",
+    "cold_build_ms": 12.4,
+    "warm_advance_ms": 2.0
+  },
+  "t": "2026-10-29T05:50:31",
+  "by": "executor"
+}
