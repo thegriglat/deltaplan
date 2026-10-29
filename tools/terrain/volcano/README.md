@@ -147,7 +147,7 @@ p90 ядра над сушей 0,14 м/с — **меньше порога 1 м/�
 
 ## Погода стартов (VI-5)
 
-Наборы TI-К2 v2 (`start_sites[].weather`, пишет `make_config.py`; запечены — VI-К3, `bash tools/terrain/bake_all.sh --id volcano_island`):
+Наборы TI-К2 v2 (`start_sites[].weather`, пишет `make_config.py`; запечены — VI-К3; инструмент запекания удалён в rust-wind RW-P10):
 
 | старт | откуда | ветер | `wind_ref` | час | дата | небо | t_max |
 |---|---|---|---|---|---|---|---|
@@ -257,12 +257,12 @@ python3 tools/terrain/volcano/air_check.py --summarize            # итог и�
 ## Числа воздуха после VI-7 (VI-9)
 
 VI-7 убрал источники термиков над водой (точка источника и термики-клетки только на суше), `model_hash` сменился
-(`c6f6c663a76fe0bf` → `6da65c77ab23e850`); все поля встроенных мест перепечены (`bash tools/terrain/bake_all.sh`, `--check` = 0,
+(`c6f6c663a76fe0bf` → `6da65c77ab23e850`); все поля встроенных мест перепечены (инструмент запекания удалён в rust-wind RW-P10, устарело;
 `air/` 20 МБ), `air_check.py` прогнан заново (все случаи + новый `thermal_slope` — сам старт с погодой конфига и запечённым полем).
 «До» — `out/air_check.json` VI-5/VI-6 (поле до VI-7), «после» — текущий.
 
 ```bash
-.dpcli/dpcli lock gpu bake -- bash tools/terrain/bake_all.sh          # все места, окно DISPLAY=:0, ≈ 1 мин на старт
+(запекание удалено в rust-wind RW-P10)
 .dpcli/dpcli lock gpu air -- python3 tools/terrain/volcano/air_check.py   # ≈ 40 мин; .venv — setup_env.sh
 python3 tools/terrain/volcano/air_check.py --show
 ```
