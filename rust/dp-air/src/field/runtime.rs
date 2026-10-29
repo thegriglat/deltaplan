@@ -826,19 +826,19 @@ impl StageCounter {
     /// Начало этапа `name` (из [`STAGES`]): итерации с нуля.
     pub fn enter(&self, name: &str) {
         let i = STAGES.iter().position(|s| *s == name).map_or(0, |i| i + 1);
-        if name.is_empty() || name == "lookup" {
-            self.run.store(0, Ordering::SeqCst);
-            self.runs.store(0, Ordering::SeqCst);
-        } else if ITER_STAGES.contains(&name) {
-            let r = self.run.load(Ordering::SeqCst) + 1;
-            self.runs.fetch_max(r, Ordering::SeqCst);
-            self.run.store(r, Ordering::SeqCst);
-        }
         self.transfer(|| {
+            if name.is_empty() || name == "lookup" {
+                self.run.store(0, Ordering::SeqCst);
+                self.runs.store(0, Ordering::SeqCst);
+            } else if ITER_STAGES.contains(&name) {
+                let r = self.run.load(Ordering::SeqCst) + 1;
+                self.runs.fetch_max(r, Ordering::SeqCst);
+                self.run.store(r, Ordering::SeqCst);
+            }
             self.base.store(0, Ordering::Relaxed);
             self.cur.store(0, Ordering::Relaxed);
+            self.idx.store(i as u32, Ordering::Relaxed);
         });
-        self.idx.store(i as u32, Ordering::Relaxed);
     }
     fn transfer(&self, f: impl FnOnce()) {
         self.gen_.fetch_add(1, Ordering::SeqCst);
@@ -867,15 +867,32 @@ impl StageCounter {
             .load(Ordering::SeqCst)
             .saturating_add(this_pass)
             .saturating_add(later.saturating_mul(2));
-        self.runs.fetch_max(n, Ordering::SeqCst);
+        self.transfer(|| {
+            self.runs.fetch_max(n, Ordering::SeqCst);
+        });
     }
-    /// `(run, runs)` для `Status`: вне этапов с итерациями — `(0, 0)`; всегда `run ≤ runs`.
-    pub fn run_runs(&self) -> (u32, u32) {
-        if !ITER_STAGES.contains(&self.stage()) {
-            return (0, 0);
+    /// Согласованный снимок `(этап, run, runs, итерации)` для `Status`: одно чтение под
+    /// счётчиком поколений — смена этапа не даёт смеси старого и нового.
+    pub fn snapshot(&self) -> (&'static str, u32, u32, u32) {
+        loop {
+            let g = self.gen_.load(Ordering::SeqCst);
+            let stage = self.stage();
+            let run = self.run.load(Ordering::SeqCst);
+            let runs = self.runs.load(Ordering::SeqCst);
+            let iters = self
+                .base
+                .load(Ordering::Relaxed)
+                .saturating_add(self.cur.load(Ordering::Relaxed));
+            if g.is_multiple_of(2) && self.gen_.load(Ordering::SeqCst) == g {
+                let (run, runs) = if ITER_STAGES.contains(&stage) {
+                    (run, runs.max(run))
+                } else {
+                    (0, 0)
+                };
+                return (stage, run, runs, iters);
+            }
+            std::hint::spin_loop();
         }
-        let run = self.run.load(Ordering::SeqCst);
-        (run, self.runs.load(Ordering::SeqCst).max(run))
     }
     pub fn clear(&self) {
         self.enter("");

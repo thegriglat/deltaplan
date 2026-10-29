@@ -75,6 +75,8 @@ fn run_counts_solver_entries_and_resets_iters() {
     m.load_place(place()).unwrap();
     let mut last_run = 0u32;
     let mut seen_iter_stage = false;
+    let mut last_iters = 0u32;
+    let mut resets = 0u32;
     let t0 = Instant::now();
     loop {
         m.poll();
@@ -84,7 +86,14 @@ fn run_counts_solver_entries_and_resets_iters() {
             seen_iter_stage = true;
             assert!(s.run >= 1 && s.run <= s.runs, "{s:?}");
             assert!(s.run >= last_run, "run убыл: {s:?}");
+            if s.run == last_run {
+                // той же итерационной пробежке итерации только растут
+                assert!(s.iters >= last_iters, "iters убыли внутри прогона: {s:?}");
+            } else {
+                resets += 1;
+            }
             last_run = s.run;
+            last_iters = s.iters;
         } else {
             assert_eq!((s.run, s.runs), (0, 0), "вне решателя: {s:?}");
         }
@@ -95,6 +104,7 @@ fn run_counts_solver_entries_and_resets_iters() {
         assert!(t0.elapsed() < Duration::from_secs(300), "no field in 300 s");
         std::thread::sleep(Duration::from_millis(1));
     }
+    assert!(resets >= 1, "смены прогона не замечено");
     assert!(seen_iter_stage, "этап решателя не замечен опросом");
     assert!(
         last_run >= 2,
@@ -107,4 +117,19 @@ fn calm_has_no_runs() {
     let c = Calm::new();
     let s = c.status();
     assert_eq!((s.run, s.runs, s.iters), (0, 0, 0));
+}
+
+#[test]
+fn new_run_resets_iters() {
+    use dp_air::field::runtime::StageCounter;
+    let c = StageCounter::default();
+    c.enter("solve_mech");
+    c.end_solve(500);
+    c.solve_counter()
+        .store(7, std::sync::atomic::Ordering::Relaxed);
+    assert_eq!(c.snapshot(), ("solve_mech", 1, 1, 507));
+    c.enter("solve_heat");
+    assert_eq!(c.snapshot(), ("solve_heat", 2, 2, 0));
+    c.enter("windows");
+    assert_eq!(c.snapshot(), ("windows", 0, 0, 0));
 }
