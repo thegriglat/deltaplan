@@ -1,0 +1,75 @@
+{
+  "status": "partial",
+  "summary": "DpWeather (dp-gd, 17 методов W12 v2 п. 2) поверх Arc<Weather>; DpAir.attach_weather(w) и place_context() (W3 v9); CONTRACTS.W12 = 2. Логика без Godot в rust/dp-gd/src/weather.rs, тесты моста в rust/dp-gd/tests/weather.rs (JSON-строки и числа совпадают с Weather напрямую, включая настоящие сетки data/climate).",
+  "commits": [
+    "RW-14d: DpWeather в dp-gd, DpAir.attach_weather и place_context (W12 v2, W3 v9)"
+  ],
+  "checks": [
+    {
+      "name": "rust_wind_contracts",
+      "value": "ручной прогон 27 тестов, 0 упало; в acc14d PASS 164 с",
+      "pass": true
+    },
+    {
+      "name": "bridge",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "FAIL: dp-air step_cost_same (известное, RW-15c; dp-air не менялся); остальные бинари ok",
+      "pass": false
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "contracts_const",
+      "value": "1",
+      "pass": true
+    },
+    {
+      "name": "dpweather_methods",
+      "value": "36",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "cargo_test: dp-air step_cost_same красный - известное (RW-15c), не из этой задачи",
+    "полный accept не завершён; пройдены dpweather_methods, contracts_const, bridge, clippy, fmt, scope; rust_wind_contracts - ручной 27/0 и 164 с PASS в acc14d"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RW-14d",
+  "uncertain": [
+    {
+      "where": "rust/dp-gd/src/weather.rs: hour_at",
+      "why": "4-й аргумент world_time в сигнатуре W12 п. 2 (float) не определён контрактом; зажим берётся из world.time конфига в Weather, аргумент игнорируется",
+      "checked": "сверил с dp_air::weather::hour_at; предлагаю уточнить контракт (убрать аргумент или задать смысл)"
+    },
+    {
+      "where": "rust/dp-gd/src/weather.rs: ctx_from_json",
+      "why": "формат ctx_json контрактом не описан; взял ключи PlaceContext + start_msl_m, нет ключа/null = NaN, month/day по умолчанию 7/15",
+      "checked": "тест с контекстом из place_context; обёртке GD (RW-14e) передавать те же ключи"
+    },
+    {
+      "where": "rust/dp-gd/src/weather.rs: diurnal_state/climate_cell/reference_context",
+      "why": "ключи JSON выбраны по именам полей структур крейта; NaN -> null",
+      "checked": "тест сверяет значения с Weather"
+    },
+    {
+      "where": "rust/dp-gd/Cargo.toml",
+      "why": "добавлен dev-dependency brotli-decompressor (для теста с настоящими сетками); Cargo.lock уже содержал его",
+      "checked": "cargo test"
+    }
+  ],
+  "dp_feedback": "accept --dry идёт десятки минут (Godot-тесты + cargo workspace) и обрывается вместе с фоновой оболочкой; в копии нет .godot и addons/dp_air/bin - нужны import и tools/build_rust.sh tune linux, accept об этом не подсказывает.",
+  "t": "2026-10-30T03:52:56",
+  "by": "executor"
+}

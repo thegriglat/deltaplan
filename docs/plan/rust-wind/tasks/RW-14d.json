@@ -74,11 +74,12 @@
     },
     {
       "name": "dpweather_methods",
-      "cmd": "grep -cE 'fn (configure|typical_max_c|diurnal_state|sunrise_h|sunset_h|sky_params|derive|air_temp_c|water_temp_c|temp_at_altitude|climate_cell|reference_context|quantum_h|hour_at|valley_of|attach_weather|place_context)\\(' rust/dp-gd/src/*.rs",
+      "cmd": "cat rust/dp-gd/src/*.rs | grep -cE 'fn (configure|typical_max_c|diurnal_state|sunrise_h|sunset_h|sky_params|derive|air_temp_c|water_temp_c|temp_at_altitude|climate_cell|reference_context|quantum_h|hour_at|valley_of|attach_weather|place_context)\\('",
       "expect": "num:^(\\d+) >=17"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-30T03:22:52"
+  "created": "2026-10-30T03:22:52",
+  "edited": "2026-10-30T03:52:09"
 }

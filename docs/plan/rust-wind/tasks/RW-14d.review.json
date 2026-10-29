@@ -1,0 +1,60 @@
+{
+  "verdict": "rework",
+  "summary": "Мост DpWeather и attach_weather/place_context сделаны в скоупе, сигнатуры по W12 v2/W3 v9, bridge-тесты зелёные. Но в контрактном GD-тесте нет проверки ClassDB.class_exists(\"DpWeather\") и методов W12 п. 2, которую требовало дополнение координатора; в отчёте это не упомянуто. Регистрацию класса gdext в Godot сейчас не проверяет ни один тест.",
+  "issues": [
+    {
+      "file": "tests/contracts/test_rust_wind_contracts.gd",
+      "line": 14,
+      "severity": "major",
+      "what": "Дополнение координатора 03:22 требует проверить, что класс DpWeather есть (ClassDB.class_exists) и методы W12 п. 2 на месте. Изменена только константа W12 = 2. Rust-тесты регистрацию в gdext не покрывают, в отчёте пропуск не отмечен (отчёт расходится с фактом)",
+      "fix": "Добавить тест: ClassDB.class_exists(\"DpWeather\"), экземпляр ClassDB.instantiate и has_method для 15 методов п. 2 (configure, typical_max_c, …, valley_of); до configure quantum_h() — NaN. Пересобрать расширение и прогнать rust_wind_contracts"
+    },
+    {
+      "file": "tests/contracts/test_rust_wind_contracts.gd",
+      "line": 1043,
+      "severity": "minor",
+      "what": "В списке методов DpAir (W3) нет attach_weather и place_context из W3 v9, хотя CONTRACTS.W3 = 9",
+      "fix": "Добавить их в проверку методов DpAir (только для реализации DpAir, если список общий с GD-реализациями — отдельной проверкой)"
+    },
+    {
+      "file": "rust/dp-gd/src/weather.rs",
+      "line": 155,
+      "severity": "minor",
+      "what": "До configure reference_context() и diurnal_state() (оба возвращают словарь JSON) дают \"\", а climate_cell/derive — \"{}\". По W12 п. 2 для словарей — {}; обёртке RW-14e придётся отдельно обрабатывать пустую строку",
+      "fix": "Возвращать \"{}\" для всех методов-словарей, тест before_configure поправить"
+    },
+    {
+      "file": "rust/dp-gd/tests/weather.rs",
+      "line": 112,
+      "severity": "minor",
+      "what": "Координатор просил сверить по нескольку строк каждого набора эталонов RW-14b через мост с прямым вызовом. Тест сверяет одну точку (лат 50, лон 86, июль) на настоящих сетках; эталоны RW-14b не читаются",
+      "fix": "Взять по 3–5 строк из e1/e4/e5/e7 (как в rust/dp-air/tests/weather_ref2.rs) и сравнивать мост с Weather побитно; либо коротко объяснить в отчёте, почему одной точки достаточно"
+    },
+    {
+      "file": "rust/dp-gd/src/weather.rs",
+      "line": 172,
+      "severity": "minor",
+      "what": "hour_at игнорирует world_time (границы берутся из конфига), а ctx_from_json по умолчанию ставит month/day = 7/15. Обе вещи — додуманная семантика, контракт её не описывает. Исполнитель это отметил",
+      "fix": "Координатору: уточнить W12 п. 2 (убрать world_time или задать его смысл; описать ключи ctx_json и умолчания), чтобы RW-14e передавала то же"
+    }
+  ],
+  "rerun": [
+    {
+      "name": "bridge",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "dpweather_methods",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "7 файлов в границах",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-30T03:54:38",
+  "by": "reviewer"
+}

@@ -1,0 +1,32 @@
+{
+  "status": "done",
+  "summary": "Бисекция подтвердила: step_cost_same PASS до слияния RW-14c (0b7ce602d), FAIL после (ddbbfd990, value 0: 1.1404377 vs 1.1990175). Эталон ref.json пересъят RW15_WRITE=1, перепроверка PASS; manifest.what дополнен.",
+  "commits": [
+    "34667afdd RW-15c: пересъёмка эталона step_cost_same после W5 v10"
+  ],
+  "checks": [
+    {
+      "name": "step_same",
+      "value": "exit 0; после пересъёмки: ok. 1 passed, 11.77 s. Бисекция: 0b7ce602d PASS, ddbbfd990 FAILED (value 0: 1.1404377 vs 1.1990175)",
+      "pass": true
+    },
+    {
+      "name": "manifest",
+      "value": "1",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-15c",
+  "uncertain": [],
+  "dp_feedback": "Очередь замка cpu при 18/18 держала тесты более 10 минут без сигнала о позиции в очереди; job wait с таймаутом возвращает пусто при живом процессе — удобнее было бы явное «ждёт в очереди N с».",
+  "extra": {
+    "изменено_значений_ref": 900,
+    "из_значений": 931,
+    "бисект_коммиты": "0b7ce602d (до), ddbbfd990 (после слияния RW-14c)"
+  },
+  "t": "2026-10-30T03:55:45",
+  "by": "main"
+}
