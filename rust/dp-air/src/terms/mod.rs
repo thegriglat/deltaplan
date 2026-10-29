@@ -40,6 +40,7 @@ mod decompose;
 mod frame;
 mod slots;
 mod sum;
+pub mod waves;
 
 use crate::field::field_set::FieldSet;
 use crate::place::Place;
@@ -51,8 +52,8 @@ pub use decompose::{
 pub use frame::{AIR_CASE_Z0, WeatherView, WindCfg, WindModel};
 use serde_json::{Map, Value};
 pub use slots::{
-    Analytic, AnalyticMean, AnalyticTurb, Extra, ExtraOut, NoAnalytic, NoExtra, NoThermal, NoTurb,
-    Thermal, ThermalOut, Turb, TurbMean, TurbOut,
+    Analytic, AnalyticMean, AnalyticTurb, Extra, ExtraOut, ExtraParts, NoAnalytic, NoExtra,
+    NoThermal, NoTurb, Thermal, ThermalOut, Turb, TurbMean, TurbOut,
 };
 use std::sync::Arc;
 pub use sum::{Mid, sum};
@@ -117,8 +118,12 @@ impl Slots {
         Slots {
             analytic: Arc::new(NoAnalytic), // RW-9
             thermal: Arc::new(NoThermal),   // RW-10
-            extra: Arc::new(NoExtra),       // RW-11
-            turb: Arc::new(NoTurb),         // RW-8
+            extra: Arc::new(ExtraParts {
+                storm: Arc::new(NoExtra),                // RW-11c
+                wave: Arc::new(waves::WaveExtra::new()), // RW-11b
+                cloud: Arc::new(NoExtra),                // RW-11d
+            }),
+            turb: Arc::new(NoTurb), // RW-8
         }
     }
 }

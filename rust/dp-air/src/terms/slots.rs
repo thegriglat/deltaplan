@@ -4,8 +4,10 @@
 //! Правило выдачи: `None` — слагаемого в точке нет, `sum` его пропускает (не прибавляет нули:
 //! `-0.0 + 0.0` меняет бит). Все вклады слотов приходят уже со своими весами (в т. ч. `(1 − a)`
 //! полосы края), горизонтальный вклад аналитики — скаляр `h` вдоль ветра `wind.dir()`.
-use super::Ctx;
 use super::sum::Mid;
+use super::{Ctx, Terms};
+use crate::{Crest, Place};
+use std::sync::Arc;
 
 /// Аналитика: среднее (RW-9). Ветка `a < 1` (в `a = 0` — вся); `h = u·(1 − a)·(1 − 0,6·lee_a)` и
 /// добавки подветренной зоны вдоль ветра, `w_ridge` — склоновый подъём (`ridge`), `w_lee` —
@@ -83,6 +85,72 @@ pub trait Extra: Send + Sync {
     /// Единичный шум бурления в облаке (`gust_unit(pos·k, 3t, advect, 0)`); только в FULL.
     fn chaos_noise(&self, _c: &Ctx) -> [f64; 3] {
         [0.0; 3]
+    }
+    /// Гребни волн W6 (`wave_crests`); у слота без волн — пусто.
+    #[allow(clippy::too_many_arguments)]
+    fn crests(
+        &self,
+        _terms: &Terms,
+        _place: &Place,
+        _center: [f32; 2],
+        _radius: f32,
+        _min_eta: f32,
+        _spacing: f32,
+        out: &mut Vec<Crest>,
+    ) {
+        out.clear();
+    }
+}
+
+/// Слот `Extra` из трёх независимых частей: гроза (RW-11c), волна (RW-11b), облако (RW-11d).
+/// Каждая часть отвечает за свои поля `ExtraOut`: `storm`/`sigma_storm`, `wave`/`sigma_rotor`,
+/// `cloud`/`chaos`; поля других частей из ответа части игнорируются. Все `None` — `None`.
+/// Замена части — одна строка в `Slots::new`.
+#[derive(Clone)]
+pub struct ExtraParts {
+    pub storm: Arc<dyn Extra>,
+    pub wave: Arc<dyn Extra>,
+    pub cloud: Arc<dyn Extra>,
+}
+
+impl Extra for ExtraParts {
+    fn flow(&self, c: &Ctx, v: [f64; 3]) -> Option<ExtraOut> {
+        let s = self.storm.flow(c, v);
+        let w = self.wave.flow(c, v);
+        let cl = self.cloud.flow(c, v);
+        if s.is_none() && w.is_none() && cl.is_none() {
+            return None;
+        }
+        let mut o = ExtraOut::default();
+        if let Some(s) = s {
+            o.storm = s.storm;
+            o.sigma_storm = s.sigma_storm;
+        }
+        if let Some(w) = w {
+            o.wave = w.wave;
+            o.sigma_rotor = w.sigma_rotor;
+        }
+        if let Some(cl) = cl {
+            o.cloud = cl.cloud;
+            o.chaos = cl.chaos;
+        }
+        Some(o)
+    }
+    fn chaos_noise(&self, c: &Ctx) -> [f64; 3] {
+        self.cloud.chaos_noise(c)
+    }
+    fn crests(
+        &self,
+        terms: &Terms,
+        place: &Place,
+        center: [f32; 2],
+        radius: f32,
+        min_eta: f32,
+        spacing: f32,
+        out: &mut Vec<Crest>,
+    ) {
+        self.wave
+            .crests(terms, place, center, radius, min_eta, spacing, out);
     }
 }
 
