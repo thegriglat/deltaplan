@@ -53,6 +53,9 @@ func setup(
 	cfg: Dictionary,
 	mowed_spots: Array[Vector4]
 ) -> void:
+	# GN-1: «Осмотреться» из меню паузы — дерево на паузе, камера уходит от пилота; без ALWAYS
+	# _process не идёт и кольцо травинок (с детьми: средний слой, дальний) остаётся у прежнего места.
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	_layer = layer
 	_surface = surface
 	_cfg = cfg
