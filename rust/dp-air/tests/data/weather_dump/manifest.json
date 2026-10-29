@@ -1,0 +1,14 @@
+{
+	"combos": 220,
+	"format": "json lines (rows.jsonl.zst, zstd): kind=derive|place_nan_valley|reference; place, ctx (WeatherModel/AirPlace.context), start_msl_m, cell (ClimateGrid.at), place_nostart / place_start (ClimateGrid.place без и с start_msl_m), hour (null — разгар дня), forecast, weather (WeatherModel.derive(forecast, ctx, {}, hour)); NaN и inf -> null",
+	"godot": "4.7.2-stable (official)",
+	"places": [
+		"ongudai",
+		"training_island",
+		"volcano_island",
+		"synthetic",
+		"ongudai_no_hh1",
+		"ongudai_no_hh6"
+	],
+	"rows": 6181
+}

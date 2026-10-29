@@ -1,0 +1,45 @@
+{
+  "status": "done",
+  "summary": "Добавлены случаи synth_off и ongudai_storm (формат W8, k0/k1 + 9 слагаемых), verify.sh получил --only, README дополнен. accept --dry PASS 3/3.",
+  "commits": [
+    "e1268f387 эталоны synth_off и ongudai_storm, verify.sh --only"
+  ],
+  "checks": [
+    {
+      "name": "new_cases",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "old_cases_untouched",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "verify_new",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "размер новых файлов",
+      "value": "408 КБ (storm 38+223+11, off 20+96+8)",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [
+    "synth_off побитно равен synth_medium: синтетика в генераторе и так идёт в режиме off (cfg.air_model.enabled=off + упрощённый профиль). Оставил по карточке как явную фиксацию режима (extra.air_mode); настоящего непокрытого off на реальном рельефе (Онгудай без поля) нет. Нужен ли ongudai_off?"
+  ],
+  "how_to_check": ".dpcli/dpcli accept RW-2c",
+  "uncertain": [
+    {
+      "where": "gen_fixtures.gd CASES ongudai_storm",
+      "why": "выбор ветра 14 км/ч с 151° и сида 909 — первый, гроза родилась сразу",
+      "checked": "23 точки метки storm, слагаемое storm до ~13 м/с во всех трёх моментах, Cb в описаниях"
+    }
+  ],
+  "dp_feedback": "Команда в Bash, ушедшая в фон по 120 с таймауту, при lock cpu потерялась без результата (пришлось перезапускать через job start). Нет dpcli job list.",
+  "extra": {},
+  "t": "2026-10-29T03:01:57",
+  "by": "executor"
+}

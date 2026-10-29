@@ -100,6 +100,11 @@ pub struct WeatherModelCfg {
     heating: Value,
     tx_gradient: Option<Value>,
     dtr_gradient: Option<Value>,
+    /// Весь `weather_model.json` как есть (RW-12b: `weather::derive` читает остальные таблицы).
+    pub raw: Value,
+    /// `atmosphere.json` → `wind.altitude_gain_per_km` (запасной рост ветра, когда сетки HH6 нет);
+    /// `from_value` — 0,6, `WeatherConfigs::from_configs` берёт из конфига.
+    pub altitude_gain_per_km: f64,
 }
 
 fn arr(v: &Value, path: &[&str], def: &[f64]) -> Vec<f64> {
@@ -141,6 +146,8 @@ impl WeatherModelCfg {
             heating: v.get("heating").cloned().unwrap_or(Value::Null),
             tx_gradient: v.pointer("/climate/tx_gradient_k_per_km").cloned(),
             dtr_gradient: v.pointer("/climate/dtr_gradient_k_per_km").cloned(),
+            raw: v.clone(),
+            altitude_gain_per_km: 0.6,
         }
     }
 
@@ -195,8 +202,10 @@ impl WeatherConfigs {
             Some(_) => parse_named(c, "atmosphere")?,
             None => Value::Null,
         };
+        let mut wm = WeatherModelCfg::from_value(&parse_named(c, "weather_model")?);
+        wm.altitude_gain_per_km = num(&atm, &["wind", "altitude_gain_per_km"], 0.6);
         Ok(WeatherConfigs {
-            wm: WeatherModelCfg::from_value(&parse_named(c, "weather_model")?),
+            wm,
             sh: SurfaceHeatCfg::from_value(&parse_named(c, "surface_heat")?)?,
             wind: WindProfileCfg {
                 alpha_n: num(&atm, &["wind", "shear_exponent_neutral"], 0.24),
@@ -364,7 +373,7 @@ pub fn season_index(month: i64, lat: f64) -> usize {
 }
 
 /// Градиент по поясам: `mid` (30–60°) по сезону, `tropics` (|φ| ≤ 20°), `other`; нет — `def`.
-fn belt_gradient(lat: f64, season: usize, g: Option<&Value>, def: f64) -> f64 {
+pub(crate) fn belt_gradient(lat: f64, season: usize, g: Option<&Value>, def: f64) -> f64 {
     let Some(g) = g else {
         return def; // секции нет: пустой словарь — всё по умолчанию
     };
@@ -380,6 +389,11 @@ fn belt_gradient(lat: f64, season: usize, g: Option<&Value>, def: f64) -> f64 {
         return num(g, &["tropics"], def);
     }
     num(g, &["other"], def)
+}
+
+/// Высота солнца, градусы, как `SunClock.solar_position(...).y`: `Vector2` движка хранит f32.
+pub fn sun_elevation_deg(lat: f64, lon: f64, doy: i64, clock_h: f64, utc_offset_h: f64) -> f64 {
+    solar_position(lat, lon, doy, clock_h, utc_offset_h).1 as f32 as f64
 }
 
 impl WeatherModelCfg {
@@ -456,11 +470,11 @@ impl WeatherModelCfg {
                 * ((t + excess - t_min) / (t_full - t_min).max(0.5)).clamp(0.0, 1.0);
             brk = ((t + excess - t_full) / window.max(0.1)).clamp(0.0, 1.0);
         }
-        let el = solar_position(ctx.lat, ctx.lon, doy, hour - self.heat_lag_h, utc).1;
-        let el_noon = solar_position(ctx.lat, ctx.lon, doy, noon, utc).1;
+        let el = sun_elevation_deg(ctx.lat, ctx.lon, doy, hour - self.heat_lag_h, utc);
+        let el_noon = sun_elevation_deg(ctx.lat, ctx.lon, doy, noon, utc);
         let mut heat = el.to_radians().sin().max(0.0) / el_noon.to_radians().sin().max(0.05);
         heat = heat.clamp(0.0, 1.0);
-        if solar_position(ctx.lat, ctx.lon, doy, hour, utc).1 <= 0.0 {
+        if sun_elevation_deg(ctx.lat, ctx.lon, doy, hour, utc) <= 0.0 {
             heat = 0.0;
         }
         let soft = ((1.0 - heat) / (1.0 - self.sharp_min).max(0.01)).clamp(0.0, 1.0);

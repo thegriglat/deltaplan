@@ -1,0 +1,66 @@
+{
+  "status": "done",
+  "summary": "dp_air::compat (noise::FastNoise OpenSimplex2S 3D NONE/FBM, rng::Pcg32, hash::hash_v2i/v3i) сошёлся с дампом Godot 4.7.2 побитно: шум max|d| = 0 по 64384 значениям на вид, RNG и хеши точно. Дамп compat_dump.sh (+ --verify), тест godot_compat.rs (9 тестов), итог в godot-compat.md.",
+  "commits": [
+    "af3e19647 rust-wind RW-8c: dp_air::compat — шум FastNoiseLite, PCG32, hash() Godot побитно по дампу"
+  ],
+  "checks": [
+    {
+      "name": "godot_compat",
+      "value": "9 тестов ok",
+      "pass": true
+    },
+    {
+      "name": "dump_reproducible",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "dp_air_no_godot",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RW-8c",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/src/compat/noise.rs",
+      "why": "Не портированы другие noise_type, rotation_type_3d, ping_pong, 2D; ручной ввод только то, что зовут слагаемые",
+      "checked": "Проверены NONE, FBM 2 окт., FBM 4 окт. с weighted 0.5 и частотой 0.7, сиды 0/1/20260927/+7919, координаты до ±600"
+    },
+    {
+      "where": "rust/dp-air/src/compat/rng.rs",
+      "why": "Правило randf (два слова, ldexp) и randf_range во float-варианте подобраны по дампу 4.7.2; для другой версии движка могут отличаться",
+      "checked": "9 сидов, включая 32-битные и -1, потоки по 10 тыс."
+    }
+  ],
+  "dp_feedback": "docs check падает на docs/plan/rust-wind.md (41 КБ > 40 КБ) — не моя правка. lock cpu + bash-таймаут: фоновый запуск через & убивается по возврату вызова, помог только job start.",
+  "extra": {
+    "noise_max_abs_diff": 0,
+    "dump_size_mb": 2.5,
+    "podobrano": [
+      "RSQ=3/4 (не 2/3)",
+      "randf двухсловный",
+      "hash seed 0x7F07C65"
+    ]
+  },
+  "t": "2026-10-29T03:03:38",
+  "by": "executor"
+}

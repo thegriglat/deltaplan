@@ -1,0 +1,87 @@
+{
+  "id": "RW-7b",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Фасад Atmosphere на DpAir: поле только из крейта, AirRuntime не создаётся (W2 «Режим поля», W3 v4, W5 v8)",
+  "goal": "Фасад ведёт поле через DpAir (configure, load_place с запечёнными полями и кешем, set_conditions, фокусы, advance_to/start_at, статус, режим поля) и подаёт снимок поля field_export в свой AirFieldSet для GDScript-слагаемых; AirRuntime и GPU-путь фасадом не вызываются; нет расширения — ветер без поля и строка в журнале; AirPlaceData несёт climate_cell (W5 v8), configure — конфиг world.",
+  "plan_ref": "План переноса",
+  "contracts": [
+    {
+      "name": "W2",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W3",
+      "version": "4",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W5",
+      "version": "8",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W9",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W10",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-7b",
+  "branch": "rust-wind/RW-7b",
+  "base": "feature/rust-wind",
+  "scope": [
+    "scripts/atmosphere/atmosphere.gd",
+    "scripts/atmosphere/air_place_data.gd",
+    "scripts/atmosphere/air_model/air_baked_field.gd",
+    "scripts/game/launch_options.gd",
+    "scripts/game/calm_air.gd",
+    "tests/atmosphere/",
+    "tests/contracts/",
+    "tests/game/",
+    "rust/dp-gd/src/",
+    "rust/dp-gd/tests/"
+  ],
+  "dont_touch": [
+    "configs/",
+    "docs/contracts/",
+    "tests/fixtures/",
+    "tools/wind_fixtures/",
+    "scripts/atmosphere/air_model/air_runtime.gd",
+    "scripts/atmosphere/air_model/air_gpu.gd",
+    "addons/"
+  ],
+  "accept": [
+    {
+      "name": "test_rust_wind_contracts",
+      "tests": "test_rust_wind_contracts"
+    },
+    {
+      "name": "test_dp_air_ext",
+      "tests": "test_dp_air_ext"
+    },
+    {
+      "name": "test_rw7_field",
+      "tests": "test_rw7_field"
+    },
+    {
+      "name": "no_air_runtime",
+      "cmd": "grep -c 'AirRuntime.new\\|AirRuntime\\.place_of' scripts/atmosphere/atmosphere.gd || true",
+      "expect": "num:^(\\d+) <=0"
+    },
+    {
+      "name": "no_air_field_flag",
+      "cmd": "grep -rc --exclude=air_runtime.gd -- '--air-field' scripts/ | awk -F: '{s+=$2} END {print s+0}'",
+      "expect": "num:^(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T03:32:37",
+  "edited": "2026-10-29T04:45:44"
+}

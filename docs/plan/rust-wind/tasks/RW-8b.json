@@ -1,0 +1,92 @@
+{
+  "id": "RW-8b",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Каркас суммы ветра в крейте: модуль terms/ (слоты слагаемых, порядок суммы, decompose W7) и ветровая рамка",
+  "goal": "Formula складывает ветер через dp_air::terms по порядку Atmosphere.air_velocity_at (слоты analytic, thermal, extra, turb с нулевыми заглушками; полоса края a; σ квадратами), decompose отдаёт все имена W7 с инвариантами; ветровая рамка (WindModel: профиль, speed_at, altitude_factor, vec2_at, dir, simple_profile) — общий тип для RW-8…11; при нулевых слотах опрос побитно как сейчас, поле T1 не меняется.",
+  "plan_ref": "План переноса",
+  "contracts": [
+    {
+      "name": "W4",
+      "version": "5",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W7",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W10",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-8b",
+  "branch": "rust-wind/RW-8b",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/terms/",
+    "rust/dp-air/src/formula.rs",
+    "rust/dp-air/src/lib.rs",
+    "rust/dp-air/tests/terms_sum.rs",
+    "rust/dp-air/tests/terms_frame.rs",
+    "rust/dp-air/tests/runtime.rs"
+  ],
+  "dont_touch": [
+    "rust/dp-air/src/field/",
+    "rust/dp-air/src/compat/",
+    "rust/picard_rs/",
+    "rust/dp-gd/",
+    "scripts/",
+    "tests/fixtures/",
+    "docs/contracts/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "terms_sum",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test terms_sum",
+      "expect": "num:test result: ok\\. (\\d+) >=4"
+    },
+    {
+      "name": "terms_frame",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test terms_frame",
+      "expect": "num:test result: ok\\. (\\d+) >=3"
+    },
+    {
+      "name": "field_export",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test field_export",
+      "expect": "exit=0"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dp_air_no_godot",
+      "cmd": "cargo tree --manifest-path rust/Cargo.toml -p dp-air -e normal | grep -ci godot || true",
+      "expect": "num:^(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T03:33:19",
+  "edited": "2026-10-29T04:50:46"
+}

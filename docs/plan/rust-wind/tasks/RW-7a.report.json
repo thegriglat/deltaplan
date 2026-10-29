@@ -1,0 +1,58 @@
+{
+  "status": "done",
+  "summary": "AirModel получил set_field_enabled/field_export/field_version (умолчания для Calm), Formula ведёт номер подачи и снимок целевого набора, DpAir отдаёт set_field_enabled/field_export/field_version/field_export_header/field_export_data. CONTRACTS: W3=4, W4=5, W5=8.",
+  "commits": [
+    "a2e60ab66 rust-wind RW-7a: режим поля и выдача поля фасаду (W3 v4, W4 v5)",
+    "7e4a88239 clippy в тесте field_export"
+  ],
+  "checks": [
+    {
+      "name": "test_rust_wind_contracts",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_dp_air_ext",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "field_export",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "dp_air_no_godot",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RW-7a",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/src/formula.rs: set_field_enabled / note_feed",
+      "why": "Номер подачи растёт и при load_place (пустой снимок) — в контракте перечислены только подачи, off, unload_place; wait по field_version>0 ненадёжен, нужен непустой export. blend_s в снимке = 0, если прежний набор был пуст (честнее, чем нерабочий blend_s из конфига). Снимок несёт meta.inflow_k, site пуст, key = {}. Включение при Failed/после смены часа без запечённого поля считает Пикар (hour 9.033 != 9.000 — запечённое не подходит, как и при обычной загрузке на t>0).",
+      "checked": "7 тестов field_export, bridge-тест, GD-контракты"
+    }
+  ],
+  "dp_feedback": "Foreground-команды обрезаются на 120-180 с, accept --dry с очередью lock cpu идёт 10+ минут; Godot-тесты в accept висят 900 с, если в копии не сделан --import (нужна подсказка).",
+  "t": "2026-10-29T03:23:55",
+  "by": "executor"
+}

@@ -1,0 +1,80 @@
+{
+  "id": "RW-6z",
+  "module": "rust-wind",
+  "type": "dp-researcher",
+  "title": "Опыт: t1_open_* — неустойчивость задачи (порядок сложения, возмущение входа, фазы) или ошибка переноса",
+  "goal": "Для открытых полей T1 выяснить, вызвано ли расхождение крейта с GPU-эталоном неустойчивостью задачи (порядок float-сложения, несходимость Пикара на слабом ветре) или ошибкой переноса: сдвиг поля крейта при CHUNK det_sum 4096→1000 и при возмущении входа 1e-6 против расхождения с эталоном, отдельно по клеткам Пикара и клеткам механизмов, со статусом решения, U10/Fr и классами фаз. Только опыт и вывод — ничего не чинить.",
+  "plan_ref": "Решения пользователя (2026-10-29: опыт t1_open_*)",
+  "contracts": [
+    {
+      "name": "W8",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W11",
+      "version": "10",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-6z",
+  "branch": "rust-wind/RW-6z",
+  "base": "feature/rust-wind",
+  "scope": [
+    "tools/research/rust_wind_t1_stability/",
+    "rust/dp-air/tests/",
+    "rust/dp-air/src/",
+    "docs/research/rust-wind-t1-stability.md",
+    "docs/research/rust-wind-rw6-acceptance.md",
+    "docs/INDEX.md"
+  ],
+  "dont_touch": [
+    "rust/picard_rs/",
+    "docs/contracts/",
+    "tests/fixtures/",
+    "data/",
+    "configs/",
+    "scripts/",
+    "docs/plan/"
+  ],
+  "accept": [
+    {
+      "name": "results",
+      "cmd": "python3 -c 'import json;d=json.load(open(\"tools/research/rust_wind_t1_stability/results.json\"));F={(f[\"loc\"],f[\"site\"]) for f in d[\"fields\"]};need={(\"training_island\",\"ridge_west\"),(\"training_island\",\"thermal_plain\"),(\"volcano_island\",\"plateau_landing\"),(\"volcano_island\",\"thermal_slope\"),(\"training_island\",\"lee_bowl\")};C={(x[\"site\"],x[\"cmp\"],x[\"cells\"]) for x in d[\"diffs\"]};assert need<=F,\"fields\";assert all((s,c,k) in C for _,s in need for c in (\"base_vs_gpu\",\"chunk1000_vs_base\",\"pert_u10_vs_base\") for k in (\"picard\",\"mech\")),\"diffs\";assert all(f[\"verdict\"] in (\"instability\",\"port_error\",\"mixed\") for f in d[\"fields\"] if f[\"site\"]!=\"lee_bowl\"),\"verdict\";print(\"results ok\")'",
+      "expect": "re:results ok"
+    },
+    {
+      "name": "picard_untouched",
+      "cmd": "git diff --quiet feature/rust-wind -- rust/picard_rs",
+      "expect": "exit=0"
+    },
+    {
+      "name": "acceptance_release",
+      "cmd": "cargo test --release --manifest-path rust/Cargo.toml -p dp-air --test acceptance -- --ignored --skip t1_open_ --skip stab_",
+      "expect": "num:test result: ok\\. (\\d+) >=12"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": "python3 -c 'import sys' && .dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T02:00:13"
+}

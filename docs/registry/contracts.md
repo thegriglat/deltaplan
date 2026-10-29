@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-26"
+updated: "2026-10-29"
 summary: "Контракты стыков по модулям: id и версии из заголовков."
 related: []
 generated: true
@@ -62,11 +62,12 @@ generated: true
 - regional-veg: RV-К1 v2, RV-К2 v1, RV-К3 v1, RV-К4 v2, RV-К5 v1, RV-К6 v1 — [docs/contracts/regional-veg.md](../contracts/regional-veg.md)
 - roll-modes: RM-К1 v1 — [docs/contracts/roll-modes.md](../contracts/roll-modes.md)
 - rust-wind: W6 v3 — [docs/contracts/rust-wind/descriptions.md](../contracts/rust-wind/descriptions.md)
+- rust-wind: W3 v4 — [docs/contracts/rust-wind/dpair.md](../contracts/rust-wind/dpair.md)
 - rust-wind: W8 v1 — [docs/contracts/rust-wind/fixtures-tolerances.md](../contracts/rust-wind/fixtures-tolerances.md)
-- rust-wind: W5 v6 — [docs/contracts/rust-wind/input.md](../contracts/rust-wind/input.md)
-- rust-wind: W11 v8 — [docs/contracts/rust-wind/solver.md](../contracts/rust-wind/solver.md)
-- rust-wind: W4 v3 — [docs/contracts/rust-wind/trait.md](../contracts/rust-wind/trait.md)
-- rust-wind: W1 v2, W2 v2, W3 v2, W4 v3, W5 v6, W6 v3, W7 v1, W8 v1, W9 v1, W10 v1, W11 v8 — [docs/contracts/rust-wind.md](../contracts/rust-wind.md)
+- rust-wind: W5 v8 — [docs/contracts/rust-wind/input.md](../contracts/rust-wind/input.md)
+- rust-wind: W11 v10 — [docs/contracts/rust-wind/solver.md](../contracts/rust-wind/solver.md)
+- rust-wind: W4 v5 — [docs/contracts/rust-wind/trait.md](../contracts/rust-wind/trait.md)
+- rust-wind: W1 v2, W2 v3, W3 v4, W4 v5, W5 v8, W6 v3, W7 v1, W8 v1, W9 v2, W10 v2, W11 v10 — [docs/contracts/rust-wind.md](../contracts/rust-wind.md)
 - scene-look: SL-К1 v4, SL-К2 v2, SL-К3 v1, SL-К4 v2, SL-К5 v1, SL-К6 v2, SL-К7 v1 — [docs/contracts/scene-look.md](../contracts/scene-look.md)
 - sea-ships: S1 v2, S2 v4, S3 v3, S4 v1 — [docs/contracts/sea-ships.md](../contracts/sea-ships.md)
 - site-i18n: SI-К1 v2, SI-К2 v1, SI-К3 v2, SI-К4 v3, SI-К5 v1, SI-К6 v1 — [docs/contracts/site-i18n.md](../contracts/site-i18n.md)

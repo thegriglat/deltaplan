@@ -3,13 +3,13 @@ type: "contract"
 status: "active"
 module: "rust-wind"
 area: "air"
-updated: "2026-10-27"
+updated: "2026-10-29"
 summary: "W5 rust-wind: вход реализации — AirPlaceData (место, растры, климат, запечённые поля, хеши), конфиги, условия"
 related: ["docs/contracts/rust-wind.md", "docs/plan/rust-wind.md"]
-contracts: [{"id": "W5", "version": 7}]
+contracts: [{"id": "W5", "version": 8}]
 ---
 Часть `docs/contracts/rust-wind.md` (версия — там, заголовок W5). Менять — только координатор.
-# W5. Вход: место, конфиги, условия (v7)
+# W5. Вход: место, конфиги, условия (v8)
 Владелец — RW-2 (сборка `AirPlaceData` из `AirRuntime.place_of`, `air_runtime.gd:270`), RW-4 (разбор в крейте). Потребители — W2–W4, фикстуры W8.
 
 **`AirPlaceData`** (`RefCounted`, `scripts/atmosphere/air_place_data.gd`, создаёт RW-2) — то, что крейт получает один раз при загрузке:
@@ -41,3 +41,6 @@ contracts: [{"id": "W5", "version": 7}]
 - **v7 (2026-10-27, итог RW-6q; эталон — `SurfaceHeat.water_temp_c`, `surface_heat.gd:93`):**
   - `header.loc.climate_lag` — обязательный, те же поля, что `loc.climate` (`tx_c`, `dtr_k`, `z_cell_m`, `has_hh1`, `has_hh5`): климат той же ячейки (`ClimateGrid.place` у центра) на дату `month/day − round(water.lag_days)` (`configs/surface_heat.json`, сейчас 30) с переходом через границу года — как `surface_heat.gd:98`; считает фасад при сборке `AirPlaceData`. Крейт берёт его для температуры воды (среднее суточное на дату сдвига), `loc.climate` — для всего остального. Есть `loc.climate`, нет `loc.climate_lag` — BAD_INPUT с именем `climate_lag`; нет обоих (синтетические заголовки тестов) — запасные значения, как для `climate` (уточнение по итогу RW-6v).
   - Конфиг `air.timeout_s` удалён (решение пользователя 2026-10-27: «в CPU-версии таймаут убрать совсем: считает — значит досчитает»): расчёт поля в крейте (подготовка, грубый старт, решения, окна) не ограничен по времени; остановка — только отмена (W11 `cancel`: `unload_place`, смена места/условий, `Drop`) и ошибки. Ключ в конфиге — неизвестный, не ошибка. `air_model.timeout_s` (GPU-путь игры) не трогается до RW-13.
+- **v8 (2026-10-29, разбор RW-8a — `docs/research/rust-wind-stage3/rw12-weather.md`; эталон — `ClimateGrid.at`/`place`, `scripts/atmosphere/climate_grid.gd:50,147`):**
+  - `header.loc.climate_cell` и `header.loc.climate_cell_lag` — обязательные при `loc.climate`: **сырая ячейка климата** `ClimateGrid.at(center_lat, center_lon, month, day)` как есть (все числовые ключи `docs/contracts/haze-humidity.md` §HH7 — `td_c, td_sd_k, z_cell_m, t700_c, z700_m, tx_c, dtr_k, trop_m, wr, hcc, …` — и `src: {hh1, hh2, hh5, hh6: String}`), второе — на дату сдвига воды (как `climate_lag` v7). Считает фасад при сборке `AirPlaceData`; крейт файлы климата не читает. Поправки на высоту (`ClimateGrid.place`: `td_gradient`, `belt_gradient`, `gain_per_km` по `valley_msl_m`/`start_msl_m`) — **считает крейт** по этой ячейке, растрам места и `weather_model.json` (`climate`, `upper_air`), как в GD. `loc.climate`/`climate_lag` (v3/v7) остаются (поле Пикара); совпадение их с поправленной ячейкой — проверка RW-12b. Нет обоих новых ключей (синтетические заголовки) — запасные значения `weather_model.json` `climate.fallback`, как `ClimateGrid.at` без сеток; есть одно — BAD_INPUT с именем недостающего.
+  - Конфиги: имя `world` (`configs/world.json`) добавлено в список W2 `configure`/W3 (`configs_json`); крейт читает только `time.{min_hour, max_hour, min_light_elevation_deg, utc_offset_h}`, `terrain_look.rock_slope_deg`, `surface.thermal.edge_*` (ход дня `AtmoDay`, правило скал и сила источника термиков). Нет `world` — запасные значения, как в GD (`Config.value` по умолчанию).

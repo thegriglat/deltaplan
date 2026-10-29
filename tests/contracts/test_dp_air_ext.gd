@@ -1,5 +1,5 @@
 extends TestCase
-## Расширение DpAir (W3, RW-4b): класс gdext поверх Calm. Нет бинарника (свежая копия, CI) —
+## Расширение DpAir (W3, RW-4b): класс gdext поверх модели крейта (Calm или Formula — проверки не зависят от неё). Нет бинарника (свежая копия, CI) —
 ## тесты пропускаются с сообщением. Сборка: tools/build_rust.sh tune linux.
 
 const HEADER := (
@@ -65,7 +65,7 @@ func test_load_and_sample_lengths() -> void:
 	check(a.clouds(Vector3.ZERO, 1000.0).size() == 0, "нет облаков")
 	check(a.wave_crests(Vector2.ZERO, 1000.0, 0.0, 10.0).size() == 0, "нет гребней")
 	check(a.cloud_raster_header() == '{"version":0}', "нет растра")
-	check(a.decompose(Vector3.ZERO).size() == 4, "decompose: total")
+	check(a.decompose(Vector3.ZERO).size() >= 4, "decompose: total (и слагаемые модели)")
 
 
 func test_codes_and_bad_input() -> void:
@@ -96,3 +96,20 @@ func test_unload_during_use_is_fast() -> void:
 	a.unload_place()
 	a = null
 	check(Time.get_ticks_msec() - t0 < 1000, "выгрузка ≤ 1 с")
+
+
+func test_field_mode_and_export_v4() -> void:
+	var a := _new()
+	for m in ["set_field_enabled", "field_export", "field_version", "field_export_header",
+			"field_export_data"]:
+		check(a.has_method(m), "W3 v4: метод " + m)
+	check(a.field_export() == 0 and a.field_version() == 0, "без места поля нет")
+	check(a.field_export_header() == "", "заголовок пуст")
+	check(a.field_export_data().size() == 0, "тело пусто")
+	check(a.set_field_enabled(false) == 0, "set_field_enabled(false) до места")
+	check(a.set_field_enabled(true) == 0, "set_field_enabled(true)")
+	check(_load(a) == 0, "load_place")
+	check(a.set_field_enabled(false) == 0, "set_field_enabled(false) на месте")
+	a.field_export()  # номер подачи (Formula растит его и при выключении); снимок пуст
+	check(a.field_export_header() == "", "поле выключено: заголовок снимка пуст")
+	check(a.field_export_data().size() == 0, "поле выключено: тело пусто")

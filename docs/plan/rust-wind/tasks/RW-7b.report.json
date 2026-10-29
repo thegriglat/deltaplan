@@ -1,0 +1,85 @@
+{
+  "status": "done",
+  "summary": "Фасад ведёт поле через один DpAir (configure, load_place с запечёнными полями и кешем, условия, фокусы, advance_to/start_at, set_field_enabled по режиму, stage/iters из крейта); снимок field_export идёт в air_field через AirBakedField.load_bytes (синхронно при deterministic, иначе в фоне); AirRuntime не создаётся, --air-field удалён; AirPlaceData несёт climate_cell(_lag), baked, weather старта, хеши. DpAir по умолчанию на Formula (dp-gd; cargo clippy/test/fmt зелёные). accept --dry 5/5.",
+  "commits": [
+    "b5b2669bf rust-wind RW-7b: фасад ведёт поле через DpAir",
+    "e852415f0 rust-wind RW-7b: тест подачи поля в фоне",
+    "ee5bd61c0 rust-wind RW-7b: DpAir по умолчанию на Formula"
+  ],
+  "checks": [
+    {
+      "name": "test_rust_wind_contracts",
+      "value": "23/23",
+      "pass": true
+    },
+    {
+      "name": "test_dp_air_ext",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "test_rw7_field",
+      "value": "6/6, max |Δ| 2.4e-7 м/с",
+      "pass": true
+    },
+    {
+      "name": "no_air_runtime",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "no_air_field_flag",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "cargo clippy/test/fmt dp-gd",
+      "value": "зелёные",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "карта фаз: растр phase_main пуст (крейт карту фаз не отдаёт)",
+    "docs/guide/game/cli-tests.md и docs/guide/air-model/debug.md ещё описывают --air-field",
+    "tests_vs_base game/flight не гонялись (решение о цене проверок); tests/atmosphere: 0 новых падений на прежнем состоянии"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-7b --dry",
+  "uncertain": [
+    {
+      "where": "scripts/atmosphere/atmosphere.gd:_dp_field_wanted",
+      "why": "поле считается только для условий-прогноза (preset-условия - без поля, как раньше), это строже, чем W2 'Режим поля'",
+      "checked": "тесты с прогнозом; preset не пробовал с крейтом"
+    },
+    {
+      "where": "scripts/atmosphere/air_place_data.gd:header_json",
+      "why": "utc_offset_h = NAN (солнечное время) заменяется center_lon/15, крейту NaN не передать",
+      "checked": "только чтением кода"
+    },
+    {
+      "where": "scripts/atmosphere/atmosphere.gd:_dp_config_text",
+      "why": "при пилотских слоях конфиг уходит слитым JSON.stringify (числа как float), при одном слое - файлом как есть; сид передаю явно",
+      "checked": "один слой (тесты)"
+    },
+    {
+      "where": "scripts/atmosphere/atmosphere.gd:_update_air_mode",
+      "why": "при выключении поля обнуляю field.air_src, иначе with_between падал на пустом air (старая ошибка thermal_field)",
+      "checked": "test_mode_off_and_on"
+    },
+    {
+      "where": "tests/atmosphere/test_air_status_iters_gpu.gd",
+      "why": "теперь считает CPU-крейт на Онгудае, не проверял (GPU-тест)",
+      "checked": "нет"
+    },
+    {
+      "where": "scripts/atmosphere/atmosphere.gd:_dp_tick",
+      "why": "статику и солнце крейту не передаю (термики на GDScript), фокус без ручного - раз в 25 м",
+      "checked": "нет"
+    }
+  ],
+  "dp_feedback": "accept-проверка по grep по всему scripts/ конфликтует с dont_touch карточки; ловить такое при заведении карточки.",
+  "extra": {},
+  "t": "2026-10-29T05:10:40",
+  "by": "executor"
+}
