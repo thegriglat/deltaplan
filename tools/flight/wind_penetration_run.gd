@@ -1,7 +1,7 @@
 extends Node
 ## WPC-3: пачка полётов против ветра и в динамике (docs/archive/plan/wing-physics-check.md, контракт К6 —
 ## docs/contracts/wing-physics-check.md). Мир — как в игре: рельеф места (Terrain), Atmosphere с
-## ветром «в старт» (set_wind(км/ч, курс старта, высота старта) — как game.gd), турбулентность
+## ветром «в старт» (set_conditions: ветер пресета, inflow_mode start — как game.gd), турбулентность
 ## включена (сид конфига, часы атмосферы с нуля на каждый полёт), термики выключены (static,
 ## пусто), FlightModel, масса пилота 85 кг (configs/pilot.json, в диапазоне крыла), плотность по
 ## высоте. Серии:
@@ -10,20 +10,17 @@ extends Node
 ##     трапеция постоянна; касание земли — конец полёта (note);
 ##   ridge — бот-восьмёрка у гребня (BotPilot.setup_ridge, рабочая точка в полосе 50–100 м AGL,
 ##     как tests/atmosphere/test_ridge_starts.gd), 3 мин, трапеция — трим (pitch 0).
-## Режимы: analytic (без поля) и field (поле воздуха GPU, как в игре: AirRuntime.load_field на час,
-## температуру и небо меню по умолчанию — FlightSettings.defaults()). Поле считается отдельной
-## фазой с окном (под flock) и сохраняется в файлы; полёты в режиме field — headless из файлов.
+## Режимы: analytic (поле выключено: set_air_mode("off")) и field (поле Пикара из крейта, как в игре:
+## set_air_mode("on"); час, температура и небо меню по умолчанию — FlightSettings.defaults()).
 ##
 ##   # аналитика (headless):
 ##   godot --headless --path . res://tools/flight/wind_penetration_run.tscn -- --mode=analytic
-##   # поле: 1) расчёт (окно, GPU, под замком) 2) полёты по сохранённым полям (headless)
-##   flock /tmp/heat_ca_gpu.lock godot --path . --resolution 320x240 --audio-driver Dummy \
-##       res://tools/flight/wind_penetration_run.tscn -- --phase=fields
+##   # поле (из крейта, headless, поле в режиме on):
 ##   godot --headless --path . res://tools/flight/wind_penetration_run.tscn -- --mode=field \
 ##       --wings=slavutich_ut,training,laminar,combat
 ## Ключи: --csv=файл (по умолчанию tools/research/wing_physics_check/out/penetration.csv; готовые
 ## ключи пропускаются), --wings=a,b, --sites=loc/start,…, --winds=3,6, --pitches=0,-0.5,-1,
-## --agls=30,100,200, --series=penetration,ridge, --fields-dir=build/wpc3/fields, --dt=0.008333,
+## --agls=30,100,200, --series=penetration,ridge, --dt=0.008333,
 ## --stats=файл (СКО путевой, воздушной, вертикальной скорости и w воздуха за окно — не К6).
 
 const SITES := [
@@ -48,7 +45,6 @@ const HEADER := (
 
 var _dt := 1.0 / 120.0
 var _mode := "analytic"
-var _fields_dir := "build/wpc3/fields"
 var _out: FileAccess
 var _done := {}
 var _n_new := 0
@@ -62,12 +58,11 @@ func _ready() -> void:
 		args[kv[0]] = kv[1] if kv.size() > 1 else "1"
 	_dt = float(args.get("dt", str(_dt)))
 	_mode = String(args.get("mode", "analytic"))
-	_fields_dir = String(args.get("fields-dir", _fields_dir))
 	var sites: Array = _list(args, "sites", ",".join(SITES))
 	var winds: Array = _floats(args, "winds", "3,6")
 	var t0 := Time.get_ticks_msec()
 	if String(args.get("phase", "fly")) == "fields":
-		await _compute_fields(sites, winds)
+		print("wind_penetration: фаза fields не нужна — поле считает крейт (--mode=field, окно не обязательно)")
 	else:
 		var wings: Array = _list(args, "wings", "")
 		if wings.is_empty():
@@ -84,7 +79,7 @@ func _ready() -> void:
 			series = _list(args, "series", "penetration,ridge"),
 		}
 		for s: String in sites:
-			_fly_site(s, winds, wings, plan)
+			await _fly_site(s, winds, wings, plan)
 		_out.close()
 	print(
 		(
@@ -142,182 +137,37 @@ static func _load_site(site_key: String) -> Array:
 	return []
 
 
-## Атмосфера как в игре: погода medium без термиков, ветер «в старт» от высоты старта.
+## Атмосфера как в игре (W2 v4): погода medium без случайных термиков, ветер «в старт» (inflow_mode
+## start), режим поля по --mode (field → "on", analytic → "off"), готовность ждём.
 func _make_atmo(terrain: Terrain, site: Dictionary, wind_ms: float) -> Atmosphere:
 	var w: Dictionary = Config.get_config("weather/medium").duplicate(true)
-	w.thermal_mode = "static"
-	w.static_thermals = []
+	w.wind_speed_kmh = Units.to_kmh(wind_ms)
+	w.wind_from_deg = float(site.heading_deg)
+	var fs := FlightSettings.defaults()
 	var a := Atmosphere.new()
 	a.visuals_enabled = false
-	a.configure(Config.get_config("atmosphere"), w)
-	a.set_ground(terrain.height_at, terrain.thermal_source_strength_at, terrain.surface_at)
-	a.set_thermal_mode("static")
-	a.turbulence_enabled = true
-	a.set_wind(Units.to_kmh(wind_ms), float(site.heading_deg), Vector3(site.position).y)
-	a.set_focus(site.position)
-	a.step(_dt)
+	add_child(a)
+	a.configure(-1)
+	var utc := float(terrain.location.get("utc_offset_h", 0.0))
+	var place: AirPlaceData = await a.place_from_terrain(terrain, utc, fs.month, fs.day)
+	if place == null:
+		push_error("wind_penetration: у рельефа нет слоя detail")
+		return a
+	a.set_air_mode("on" if _mode == "field" else "off")
+	a.set_static_thermals(PackedFloat32Array(), 1)
+	a.set_conditions({"preset": w, "start_hour": fs.start_hour, "inflow_mode": "start"})
+	a.load_place(place)
+	a.set_focuses(PackedVector3Array([site.position]), PackedFloat32Array([1.0]))
+	await _restart(a)
 	return a
 
 
-func _field_base(site_key: String, wind_ms: float, lvl: int) -> String:
-	return "%s/%s_%sms_L%d" % [_fields_dir, site_key.replace("/", "_"), _num(wind_ms), lvl]
-
-
-# ================================================================ поле (окно, GPU)
-
-
-func _compute_fields(sites: Array, winds: Array) -> void:
-	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(_fields_dir))
-	var fs := FlightSettings.defaults()
-	for sk: String in sites:
-		var ts := _load_site(sk)
-		if ts.is_empty():
-			print("wind_penetration: нет старта ", sk)
-			continue
-		var terrain: Terrain = ts[0]
-		var site: Dictionary = ts[1]
-		for wind_ms: float in winds:
-			if FileAccess.file_exists(_field_base(sk, wind_ms, 0) + ".json"):
-				print("поле %s %s м/с — уже есть" % [sk, wind_ms])
-				continue
-			var atmo := _make_atmo(terrain, site, wind_ms)
-			var c := {
-				hour = fs.start_hour,
-				u10 = wind_ms,
-				wdir = float(site.heading_deg),
-				t_max = fs.temperature_c,
-				sky = fs.sky,
-			}
-			var rt := AirRuntime.new()
-			add_child(rt)
-			var utc := float(terrain.location.get("utc_offset_h", NAN))
-			rt.setup(atmo, AirRuntime.place_of(terrain, utc), func() -> Dictionary: return c)
-			var p0: Vector3 = site.position
-			rt.focus_fn = func() -> Vector3: return p0
-			var t0 := Time.get_ticks_msec()
-			var ok: bool = await rt.load_field()
-			var levels: Array[WindField] = atmo.air_field.levels if ok else []
-			print(
-				(
-					"поле %s %s м/с: %s за %.1f с, уровней %d %s"
-					% [
-						sk,
-						wind_ms,
-						"готово" if ok else "НЕТ",
-						(Time.get_ticks_msec() - t0) / 1000.0,
-						levels.size(),
-						rt.last_error
-					]
-				)
-			)
-			for i in levels.size():
-				var base := _field_base(sk, wind_ms, i)
-				_save_field(levels[i], base)
-				var back := WindField.load_file(base)
-				print(
-					(
-						"  L%d dx %.0f м: max|файл − поле| = %s м/с"
-						% [i, levels[i].dx, str(_field_diff(levels[i], back, p0, terrain))]
-					)
-				)
-			rt.stop()
-			rt.queue_free()
-			atmo.free()
-		terrain.free()
-
-
-## Записать поле в формате WindField.load_file (<base>.json + <base>.bin, float32 LE).
-static func _save_field(f: WindField, base: String) -> void:
-	var nxy := f.nx * f.ny
-	var n := nxy * f.nz
-	var vel := f.raw_vel()
-	var u := PackedFloat32Array()
-	var v := PackedFloat32Array()
-	var wm := PackedFloat32Array()
-	for a in [u, v, wm]:
-		a.resize(n)
-	for c in n:
-		u[c] = vel[c * 3]
-		v[c] = vel[c * 3 + 1]
-		wm[c] = vel[c * 3 + 2]
-	var arrays := {
-		"u": u,
-		"v": v,
-		"w_mech": wm,
-		"w_conv": f.raw_w_conv(),
-		"theta": f.raw_theta(),
-		"hc": f.raw_hc()
-	}
-	var heat := f.heat_flux()
-	if heat.size() == nxy:
-		arrays["heat"] = heat
-	var meta := {}
-	for k in f.meta:
-		if k in ["heat", "heat_array", "path", "arrays"]:
-			continue
-		meta[k] = _json_safe(f.meta[k])
-	meta.dx = f.dx
-	meta.dz = f.dz
-	meta.x0 = f.x0
-	meta.y0 = f.y0
-	meta.z_bot = f.z_bot
-	meta.nx = f.nx
-	meta.ny = f.ny
-	meta.nz = f.nz
-	meta.z0 = f.z0
-	meta.version = WindField.FORMAT_VERSION
-	var all := PackedFloat32Array()
-	var offs := {}
-	for k in arrays:
-		offs[k] = [all.size(), (arrays[k] as PackedFloat32Array).size()]
-		all.append_array(arrays[k])
-	meta.arrays = offs
-	var fb := FileAccess.open(base + ".bin", FileAccess.WRITE)
-	fb.store_buffer(all.to_byte_array())
-	fb.close()
-	var fj := FileAccess.open(base + ".json", FileAccess.WRITE)
-	fj.store_string(JSON.stringify(meta))
-	fj.close()
-
-
-static func _json_safe(x: Variant) -> Variant:
-	if x is float:
-		return x if is_finite(x) else null
-	if x is Dictionary:
-		var d := {}
-		for k in x:
-			d[k] = _json_safe(x[k])
-		return d
-	if x is Array or x is PackedFloat32Array or x is PackedFloat64Array or x is PackedInt32Array:
-		return Array(x).map(_json_safe)
-	return x
-
-
-static func _field_diff(a: WindField, b: WindField, p0: Vector3, t: Terrain) -> float:
-	if b == null:
-		return INF
-	var e := 0.0
-	for i in range(-6, 7):
-		for j in range(-6, 7):
-			var x := p0.x + i * 150.0
-			var z := p0.z + j * 150.0
-			var h := t.height_at(x, z)
-			for agl in [5.0, 30.0, 100.0, 300.0]:
-				var p := Vector3(x, h + agl, z)
-				e = maxf(e, (a.sample(p, h) - b.sample(p, h)).length())
-	return e
-
-
-func _load_levels(site_key: String, wind_ms: float) -> Array[WindField]:
-	var out: Array[WindField] = []
-	var i := 0
-	while FileAccess.file_exists(_field_base(site_key, wind_ms, i) + ".json"):
-		var f := WindField.load_file(_field_base(site_key, wind_ms, i))
-		if f == null:
-			return []
-		out.append(f)
-		i += 1
-	return out
+## Часы атмосферы с нуля на каждый полёт (start_at(0)), ждём READY.
+func _restart(a: Atmosphere) -> void:
+	a.start_at(0.0)
+	while not a.is_ready() and a.status().state != Atmosphere.STATE_FAILED:
+		a.pump(8000)
+		await get_tree().process_frame
 
 
 # ================================================================ полёты
@@ -331,17 +181,11 @@ func _fly_site(sk: String, winds: Array, wings: Array, plan: Dictionary) -> void
 	var terrain: Terrain = ts[0]
 	var site: Dictionary = ts[1]
 	for wind_ms: float in winds:
-		var atmo := _make_atmo(terrain, site, wind_ms)
+		var atmo := await _make_atmo(terrain, site, wind_ms)
 		if _mode == "field":
-			var levels := _load_levels(sk, wind_ms)
-			if levels.is_empty():
-				print("wind_penetration: нет поля %s %s м/с — пропуск" % [sk, wind_ms])
-				atmo.free()
-				continue
-			atmo.set_air_field(levels, 0.0)
 			if not atmo.is_air_field_on():
 				print("wind_penetration: поле %s %s м/с не включилось — пропуск" % [sk, wind_ms])
-				atmo.free()
+				atmo.queue_free()
 				continue
 		var scan := {}
 		if "ridge" in plan.series:
@@ -365,15 +209,15 @@ func _fly_site(sk: String, winds: Array, wings: Array, plan: Dictionary) -> void
 						r.merge({series = "penetration", pitch = pitch, agl0_m = agl0})
 						if _skip(r):
 							continue
-						r.merge(_fly_pen(atmo, terrain, site, wing, pilot, pitch, agl0))
+						r.merge(await _fly_pen(atmo, terrain, site, wing, pilot, pitch, agl0))
 						_write(r)
 			if "ridge" in plan.series:
 				var r := base.duplicate()
 				r.merge({series = "ridge", pitch = 0.0, agl0_m = scan.agl})
 				if not _skip(r):
-					r.merge(_fly_ridge(atmo, terrain, site, wing, pilot, scan))
+					r.merge(await _fly_ridge(atmo, terrain, site, wing, pilot, scan))
 					_write(r)
-		atmo.free()
+		atmo.queue_free()
 	terrain.free()
 
 
@@ -448,9 +292,9 @@ func _fly_pen(
 	var start := Vector3(p0.x, terrain.height_at(p0.x, p0.z) + agl0, p0.z)
 	var fm := FlightModel.new()
 	fm.setup(wing, pilot)
-	atmo.time_s = 0.0
-	atmo.set_focus(start)
-	atmo.step(_dt)
+	await _restart(atmo)
+	atmo.set_focuses(PackedVector3Array([start]), PackedFloat32Array([1.0]))
+	atmo.advance_to(_dt)
 	fm.reset_in_air(start, heading, 0.0, atmo.mean_wind_at(start))  # плотность на высоте
 	var v0 := _v_ref(wing, pitch) * fm.speed_scale()
 	fm.reset_in_air(start, heading, v0, atmo.mean_wind_at(start))
@@ -518,9 +362,9 @@ func _fly_ridge(
 	var start := Vector3(p2.x, terrain.height_at(p2.x, p2.y) + float(scan.agl), p2.y)
 	var fm := FlightModel.new()
 	fm.setup(wing, pilot)
-	atmo.time_s = 0.0
-	atmo.set_focus(start)
-	atmo.step(_dt)
+	await _restart(atmo)
+	atmo.set_focuses(PackedVector3Array([start]), PackedFloat32Array([1.0]))
+	atmo.advance_to(_dt)
 	fm.reset_in_air(start, heading, 0.0, atmo.mean_wind_at(start))
 	var bot := BotPilot.new()
 	bot.setup(wing, pilot, p2)
@@ -567,8 +411,8 @@ func _fly(
 	var i := 0
 	var note := ""
 	while t < dur:
-		atmo.set_focus(fm.position)
-		atmo.step(_dt)
+		atmo.set_focuses(PackedVector3Array([fm.position]), PackedFloat32Array([1.0]))
+		atmo.advance_to(t + _dt)
 		steer.call(fm.telemetry)
 		fm.step(_dt, inp, air_fn, terrain.height_at)
 		t += _dt

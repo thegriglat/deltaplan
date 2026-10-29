@@ -721,14 +721,10 @@ func _micro_run() -> void:
 	var cam := get_viewport().get_camera_3d()
 	var eye: Vector3 = cam.global_position if cam != null else Vector3.ZERO
 	var jobs := {}
-	if atmo != null and atmo.has_method("refresh_now"):
-		jobs["atmo.refresh_now"] = func() -> void: atmo.call("refresh_now")
-		# то же после смены поля: ThermalField._update_air пересобирает AirThermals (build)
-		jobs["atmo.refresh_now+AirThermals.build"] = func() -> void:
-			var tf: Object = atmo.get("field")
-			if tf != null:
-				tf.set("_air_key", "frame_profile")
-			atmo.call("refresh_now")
+	if atmo != null and atmo.has_method("advance_to"):
+		# тик воздуха (W2 v4: advance_to вместо refresh_now); пересборка источников — в крейте
+		jobs["atmo.advance_to"] = func() -> void:
+			atmo.call("advance_to", float(atmo.get("time_s")) + 1.0 / 60.0)
 	if clouds != null:
 		jobs["clouds._select"] = func() -> void: clouds.call("_select", float(atmo.get("time_s")), eye)
 		jobs["clouds._update_light"] = func() -> void: clouds.call("_update_light")

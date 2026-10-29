@@ -14,7 +14,7 @@ extends RefCounted
 ##   day.weather_fn = func(h: float) -> Dictionary: return WeatherModel.derive(fc, ctx, {}, h)
 ##   day.sun_fn = func(h: float) -> Vector3: return …  # направление НА солнце
 ##   day.source_fn = func(x: float, z: float, h: float) -> float: return …  # 0..1
-##   atmo.set_day(day)
+##   (ход дня передаётся фасаду через air.set_conditions: W5, forecast + start_hour)
 
 ## Час места при t = t0.
 var start_hour: float = 13.0
