@@ -792,3 +792,5 @@
 {"t": "2026-10-29T06:06:11", "by": "coordinator", "task": "RW-10b", "ev": "merged", "note": "f3b2f32a3"}
 {"t": "2026-10-29T06:06:13", "by": "coordinator", "task": "RW-10c", "ev": "accepted", "note": "по ревью; cargo_test — только тайминговый флейк runtime.rs picard_cancel_during_the_setup (522 мс под нагрузкой), тот же тест у RW-10b прошёл при повторе"}
 {"t": "2026-10-29T06:06:15", "by": "coordinator", "task": "RW-10c", "ev": "merged", "note": "16e73d275"}
+{"t": "2026-10-29T06:07:06", "by": "executor", "task": "RW-10d", "ev": "checked", "note": "5/5 terms_thermal_air=ok:19; cargo_test=ok:exit 0; clippy=ok:exit 0; fmt=ok:exit 0; dp_air_no_godot=ok:0"}
+{"t": "2026-10-29T06:07:21", "by": "coordinator", "task": "RW-10c", "ev": "merged", "note": "14a7501c7"}
