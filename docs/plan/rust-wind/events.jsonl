@@ -788,3 +788,4 @@
 {"t": "2026-10-29T06:05:01", "by": "coordinator", "task": "RW-10b", "ev": "checked", "note": "5/5 terms_thermal=ok:20; cargo_test=ok:exit 0; clippy=ok:exit 0; fmt=ok:exit 0; dp_air_no_godot=ok:0"}
 {"t": "2026-10-29T06:05:47", "by": "coordinator", "task": "RW-10c", "ev": "checked", "note": "4/5 terms_thermal_src=ok:9; cargo_test=FAIL:exit 101 · error: test failed…; clippy=ok:exit 0; fmt=ok:exit 0; dp_air_no_godot=ok:0"}
 {"t": "2026-10-29T06:05:49", "by": "reviewer", "task": "RW-10b", "ev": "reviewed", "note": "Слот Thermal в скоупе (11 файлов), formula.rs/field/ не тронуты, допуски тестов = W8 (0,05+2 %, ядра 25 м/3 %/10 м/0,05), подгонки не видно. cargo_test на ad64…", "verdict": "accept", "issues": {"minor": 4}, "review": "docs/plan/rust-wind/tasks/RW-10b.review.json"}
+{"t": "2026-10-29T06:06:10", "by": "coordinator", "task": "RW-10b", "ev": "accepted", "note": "по ревью"}
