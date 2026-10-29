@@ -174,7 +174,7 @@ func test_no_air_runtime_in_facade() -> void:
 	var h := _baked_header()
 	var a := _facade(h)
 	for c in a.get_children():
-		check(c.name != "AirRuntime", "дочерний AirRuntime: " + c.name)
+		check(c.name != "AirField", "дочерний узел воздуха: " + c.name)
 	check(a.get("runtime") == null, "поля runtime нет")
 	a.free()
 
