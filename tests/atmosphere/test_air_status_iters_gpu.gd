@@ -1,7 +1,7 @@
 extends TestCase
-## W2 v3: status().iters на экране подготовки воздуха (RW-3c). Поле Онгудая считается решателем на
-## GPU внутри фасада: пока идёт этап «solver», status().stage — подпись, iters — int ≥ 0, не убывает
-## и растёт (шаг 10 итераций, обновляется каждый кадр pump); после READY этапа нет, iters = 0.
+## W2 v3: status().iters на экране подготовки воздуха (RW-3c). Поле Онгудая считает крейт (DpAir,
+## CPU; RW-7b — GPU-путь фасад не вызывает), режим поля «on»: пока идёт этап расчёта, status().stage —
+## подпись, iters — int ≥ 0, не убывает и растёт (шаг 10 итераций, обновляется каждый кадр pump); после READY этапа нет, iters = 0.
 ## tools/gpu_tests.sh --filter=air_status_iters
 
 const ID := "ongudai"
@@ -32,6 +32,7 @@ func test_iters_grow_during_solver_stage() -> void:
 	if p == null:
 		host.queue_free()
 		return
+	a.set_air_mode("on")
 	check(a.configure(77) == 0, "configure")
 	# ветер, которого нет среди запечённых полей старта: решатель считает поле с нуля
 	var cond := {
