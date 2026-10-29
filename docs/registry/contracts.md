@@ -67,7 +67,7 @@ generated: true
 - rust-wind: W5 v8 — [docs/contracts/rust-wind/input.md](../contracts/rust-wind/input.md)
 - rust-wind: W11 v10 — [docs/contracts/rust-wind/solver.md](../contracts/rust-wind/solver.md)
 - rust-wind: W4 v5 — [docs/contracts/rust-wind/trait.md](../contracts/rust-wind/trait.md)
-- rust-wind: W1 v2, W2 v3, W3 v4, W4 v5, W5 v8, W6 v3, W7 v1, W8 v1, W9 v2, W10 v2, W11 v10 — [docs/contracts/rust-wind.md](../contracts/rust-wind.md)
+- rust-wind: W1 v2, W2 v3, W3 v4, W4 v5, W5 v8, W6 v3, W7 v1, W8 v1, W9 v2, W10 v2, W11 v11 — [docs/contracts/rust-wind.md](../contracts/rust-wind.md)
 - scene-look: SL-К1 v4, SL-К2 v2, SL-К3 v1, SL-К4 v2, SL-К5 v1, SL-К6 v2, SL-К7 v1 — [docs/contracts/scene-look.md](../contracts/scene-look.md)
 - sea-ships: S1 v2, S2 v4, S3 v3, S4 v1 — [docs/contracts/sea-ships.md](../contracts/sea-ships.md)
 - site-i18n: SI-К1 v2, SI-К2 v1, SI-К3 v2, SI-К4 v3, SI-К5 v1, SI-К6 v1 — [docs/contracts/site-i18n.md](../contracts/site-i18n.md)

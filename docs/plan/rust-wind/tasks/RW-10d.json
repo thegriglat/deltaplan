@@ -1,0 +1,80 @@
+{
+  "id": "RW-10d",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Источники термиков из поля в крейте: AirThermals.build (столбцы, плотность, выбор, водосборы, expected_net, pick_in_column, land_fraction, fill)",
+  "goal": "Модуль строит источники термиков из поля Пикара как AirThermals.build GD (параллельно = последовательно побитно); источники ongudai_* против дампа GD и ядер desc.json в допуске W8; тесты test_air_thermals*.gd и test_subsidence.gd перенесены в cargo.",
+  "plan_ref": "План переноса",
+  "contracts": [
+    {
+      "name": "W4",
+      "version": "5",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W7",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W10",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-10d",
+  "branch": "rust-wind/RW-10d",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/terms/thermal_air/",
+    "rust/dp-air/src/terms/mod.rs",
+    "rust/dp-air/src/terms/slots.rs",
+    "rust/dp-air/tests/terms_thermal_air.rs",
+    "rust/dp-air/tests/data/RW-10d/"
+  ],
+  "dont_touch": [
+    "rust/dp-air/src/formula.rs",
+    "rust/dp-air/src/field/",
+    "rust/picard_rs/",
+    "rust/dp-gd/",
+    "scripts/",
+    "tests/fixtures/",
+    "docs/contracts/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "terms_thermal_air",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test terms_thermal_air",
+      "expect": "num:test result: ok\\. (\\d+) >=8"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dp_air_no_godot",
+      "cmd": "cargo tree --manifest-path rust/Cargo.toml -p dp-air -e normal | grep -ci godot || true",
+      "expect": "num:^(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T05:06:17"
+}

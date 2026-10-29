@@ -78,10 +78,6 @@ const COND_KEYS_PRESET: Array[String] = ["preset"]
 
 ## Журнал режима поля: последняя напечатанная строка (одна строка на смену режима, не на мир).
 static var _air_log_last := ""
-## Поле из командной строки (--air-field=<путь>, отладка до решателя на GPU): читается один раз.
-static var _cmd_field_checked := false
-static var _cmd_field: WindField
-static var _cmd_field_error := ""
 
 ## Нода, вокруг которой живут термики и облака (обычно планер). Если не задана — активная камера.
 @export var focus_node: Node3D
@@ -104,8 +100,9 @@ var storm: StormField
 ## Подветренные волны и роторы (VR-27).
 var wave: WaveField
 ## Среднее поле воздуха (масштаб 1, docs/guide/air-model.md → «Поле на CPU»): уровни и плавная подмена.
-## Переживает configure() (как функции рельефа); поле подаёт set_air_field.
-var air_field: AirFieldSet
+## Переживает configure() (как функции рельефа); поле подаёт крейт (снимок field_export, RW-7b)
+## или set_air_field (тесты и инструменты).
+var air_field: AirFieldSet = AirFieldSet.new()
 ## Масштаб 3 с полем (AM-08): коэффициенты, признак отрыва, σ и спектр порывов.
 var field_turb: FieldTurbulence
 
@@ -153,33 +150,37 @@ var _f_state := STATE_EMPTY
 ## Стадия загрузки в pump: 0 — собрать воздух, 1 — ждать поле Пикара (место из рельефа игры),
 ## 2 — начать обновление термиков, 3 — порции обновления, 4 — готово.
 var _f_stage := 0
-## Кеш поля Пикара на диске (FL-К1): включает игра; тесты — нет.
-var air_cache_enabled := false:
-	set(v):
-		air_cache_enabled = v
-		if runtime != null:
-			runtime.cache_enabled = v
-## Среднее поле воздуха (Пикар, AirRuntime): создаётся при load_place, если место — из рельефа игры
-## (AirPlaceData.terrain), условия — прогноз и узел в дереве; иначе воздух — аналитика. Переходное
-## (до RW-6/RW-7: поле уйдёт в крейт).
-var runtime: Node
-## Поле Пикара: 0 — не нужно/не начато, 1 — считается, 2 — готово.
-var _f_rt_state := 0
-var _f_rt_gen := 0
-var _f_rt_pending: Dictionary = {}
-var _f_rt_pending_terrain: Node
-var _f_rt_progress := 0.0
-## Итерации решателя поля в этапе (status().iters): база прошлых заданий, последнее значение, итог.
-var _f_it_base := 0
-var _f_it_last := 0
-var _f_iters := 0
+## Кеш поля Пикара на диске (FL-К1): включает игра; тесты — нет. Каталог кеша крейту отдаётся
+## при загрузке места (user://air_cache).
+var air_cache_enabled := false
+## Детерминированный режим крейта (W1 v2, air.deterministic): фоновые подачи поля — в игровой
+## момент, заданный входом; снимок поля принимается синхронно. Тесты; задать до первой загрузки.
+var deterministic := false
+## Поле Пикара ведёт крейт (DpAir, W3), фасад подаёт его снимок в air_field (RW-7b).
+var _dp: RefCounted
+## Нет расширения DpAir — ветер без поля (W9); строка в журнале одна.
+var _dp_missing := false
+## Подпись последнего configure крейта (сид, режим): повторный configure — только при смене.
+var _dp_cfg_sig := ""
+## load_place отправлен крейту и место не выгружено.
+var _dp_placed := false
+## Номер подачи поля (field_version), уже принятый в air_field; −1 — ещё не принимали.
+var _dp_ver := -1
+## Режим поля, отправленный крейту (set_field_enabled): −1 — не слали, 0/1.
+var _dp_mode_sent := -1
+## Поле в air_field пришло из крейта (выгрузка места его снимает).
+var _dp_fed := false
+## Сборка уровней снимка в фоне (WorkerThreadPool): id задачи и её задание {head, data, fs}.
+var _dp_task := -1
+var _dp_job: Dictionary = {}
+## Последняя фокусная точка, отправленная крейту.
+var _dp_focus_sent := Vector3(INF, INF, INF)
+## Состояние FAILED крейта уже в журнале.
+var _dp_fail_logged := false
 ## Растр «phase_main» (debug_raster): по какой карте весов построен, он сам и номер версии.
 var _f_phase_src: Variant = null
 var _f_phase_cache: Dictionary = {}
 var _f_phase_ver := 0
-## Подпись экрана загрузки: "" — нет этапа (поле из запечённого файла/кеша или не нужно), "solver" —
-## считается решателем, "simple" — упрощённый ветер (расчёт недоступен).
-var _f_wind_kind := ""
 var _f_t_req := 0.0
 var _f_progress := 0.0
 var _f_err := ""
@@ -266,6 +267,8 @@ var _day_w: Dictionary = {}  ## погода шага дня, выставлен
 ## Поле воздуха используется (air_model.enabled ≠ off и поле есть).
 var _air_on: bool = false
 var _air_mode: String = "auto"
+## Режим задан командой set_air_mode — конфиг (air_model.enabled) его не перебивает при сборке.
+var _air_mode_set := false
 var _air_blend_s: float = 60.0
 
 var _clouds: Node3D
@@ -279,7 +282,6 @@ func _ready() -> void:
 	if visuals_enabled and DisplayServer.get_name() != "headless":
 		_create_visuals()
 		refresh_budget_us = 3000
-		_f_rt_ensure()  # RD и ядра решателя — сразу при появлении узла, не на экране загрузки
 
 
 func _physics_process(delta: float) -> void:
@@ -304,6 +306,10 @@ func set_weather(preset: Variant, blend_s: float = -1.0) -> void:
 func _exit_tree() -> void:
 	if field != null:
 		field.air_wait(false)
+	_dp_stop_task()
+	if _dp != null and _dp_placed:
+		_dp.unload_place()  # фоновая работа крейта прерывается, без зависания (W3)
+		_dp_placed = false
 
 
 ## Фасад W2: configure(seed: int) -> int — сид до первого load_place (< 0 — из конфига).
@@ -657,7 +663,7 @@ static func _lenschow(xi: float) -> float:
 	return sqrt(1.8 * pow(xi, 2.0 / 3.0) * a * a)
 
 
-## Поле воздуха по конфигу air_model: режим, край, ограничители; поле с --air-field=<путь>.
+## Поле воздуха по конфигу air_model: режим, край, ограничители.
 func _setup_air() -> void:
 	var ac: Dictionary = cfg.get("air_model", {})
 	if air_field == null:
@@ -668,11 +674,8 @@ func _setup_air() -> void:
 	for f in air_field.levels:
 		f.edge_cells = air_field.edge_cells
 	_air_blend_s = float(ac.get("blend_s", 60.0))
-	_air_mode = String(ac.get("enabled", "auto"))
-	if _air_mode != "off" and not air_field.is_active():
-		var f := _cmdline_field()
-		if f != null:
-			air_field.set_field(f, 0.0)
+	if not _air_mode_set:
+		_air_mode = String(ac.get("enabled", "auto"))
 	_update_air_mode()
 
 
@@ -687,9 +690,13 @@ func set_air_field(new_field: Variant, blend_s: float = -1.0) -> void:
 
 
 ## Режим поля воздуха поверх конфига: "auto" | "on" | "off" (отладка «поле/аналитика», замеры).
+## Крейту уходит set_field_enabled (W2 «Режим поля»): off — false, on — true, auto — не headless.
 func set_air_mode(mode: String) -> void:
 	_air_mode = mode
+	_air_mode_set = true
 	_update_air_mode()
+	_dp_sync_mode()
+	_dp_feed()
 
 
 ## Используется ли сейчас поле воздуха (иначе — аналитика).
@@ -705,7 +712,7 @@ func _update_air_mode() -> void:
 	if _air_mode == "off":
 		reason = "air_model.enabled = off"
 	elif not air_field.is_active():
-		reason = "нет поля" if _cmd_field_error == "" else _cmd_field_error
+		reason = "нет поля"
 		if _air_mode == "on":
 			reason += "; требуется поле (enabled = on)"
 	_air_on = reason == ""
@@ -714,6 +721,8 @@ func _update_air_mode() -> void:
 	# Термики из поля (AM-07): источники, сила, потолок, снос и «между» — ThermalField.air.
 	if field != null:
 		field.air = air_field if _air_on else null
+		if not _air_on:
+			field.air_src = null  # источники поля без поля читать нечем (with_between)
 	var line := "air_model: analytic (%s)" % reason
 	if _air_on:
 		var src := "поле"
@@ -726,21 +735,9 @@ func _update_air_mode() -> void:
 		line = "air_model: field (%s; уровней %d)" % [src, air_field.levels.size()]
 	if line != _air_log_last:
 		_air_log_last = line
-		if _air_mode == "on" and not _air_on:
+		if _air_mode == "on" and not _air_on and _f_state == STATE_READY:
 			push_warning(line)
 		print(line)
-
-
-static func _cmdline_field() -> WindField:
-	if not _cmd_field_checked:
-		_cmd_field_checked = true
-		for a in OS.get_cmdline_user_args():
-			if a.begins_with("--air-field="):
-				var path := a.substr(12)
-				_cmd_field = WindField.load_file(path)
-				if _cmd_field == null:
-					_cmd_field_error = "ошибка чтения поля %s" % path
-	return _cmd_field
 
 
 ## Функции рельефа: height_fn(x, z) -> высота над уровнем моря, sun_fn(x, z) -> 0..1.
@@ -870,6 +867,7 @@ func step(dt: float) -> void:
 	if not _day_active() and not _target.is_empty():
 		_blend(1.0 - exp(-dt / _blend_tau) if _blend_tau > 0.0 else 1.0)
 	_update_focus()
+	_dp_tick()
 	_refresh_acc += dt
 	if _refresh_acc >= 1.0e8:
 		refresh_now()
@@ -1432,13 +1430,7 @@ func unload_place() -> void:
 	_f_stage = 0
 	_f_t_req = 0.0
 	_f_progress = 0.0
-	_f_rt_gen += 1
-	_f_rt_state = 0
-	_f_rt_progress = 0.0
-	_f_wind_kind = ""
-	if runtime != null:
-		runtime.stop()
-		runtime.recompute_enabled = false
+	_dp_unload()
 	_f_set_state(STATE_EMPTY)
 
 
@@ -1457,6 +1449,7 @@ func set_conditions(cond: Dictionary) -> int:
 	# хода дня к текущему моменту — без смены погоды и без пересчёта термиков (как AtmoDay.rebase).
 	if day != null and not bool(cond.get("rebuild", false)) and _f_same_but_clock(prev, _f_cond):
 		day.rebase(time_s, float(cond.get("start_hour", 12.0)), float(cond.get("speed", 1.0)))
+		_dp_conditions()
 		return OK
 	if bool(cond.get("rebuild", false)):
 		_f_stage = 0
@@ -1465,6 +1458,7 @@ func set_conditions(cond: Dictionary) -> int:
 		_f_set_state(STATE_LOADING)
 		return OK
 	_f_apply_soft(_f_cond)
+	_dp_conditions()
 	return OK
 
 
@@ -1747,6 +1741,7 @@ func set_focuses(points: PackedVector3Array, weights: PackedFloat32Array) -> int
 	_f_focus_w = weights
 	_f_focus_manual = true
 	_f_apply_focus()
+	_dp_send_focus(true)
 	return OK
 
 
@@ -1781,9 +1776,16 @@ func _f_start_at_place(t: float) -> int:
 		return _f_fail(BAD_INPUT, "start_at: t < 0 или не конечно")
 	_f_t_req = t
 	if _f_state == STATE_LOADING and _f_stage <= 1:
+		if _f_stage == 1 and _dp_placed:
+			_dp.start_at(t)  # крейт ещё готовит поле: пересчёт на момент t
 		return NOT_READY  # воздух ещё не собран или ждёт поле: момент старта запомнен
-	_f_stage = 2
-	_f_progress = 0.7
+	if _dp_placed:
+		_dp.start_at(t)  # поле на момент t — фоном в крейте; ждём его на стадии 1
+		_f_stage = 1
+		_f_progress = 0.1
+	else:
+		_f_stage = 2
+		_f_progress = 0.7
 	_f_set_state(STATE_LOADING)
 	return OK
 
@@ -1797,12 +1799,10 @@ func pump(budget_us: int) -> void:
 		_f_build()
 		_f_progress = 0.1
 		_f_stage = 1
-		if _f_rt_wanted():
-			_f_rt_start()
+		_dp_start()
 	if _f_stage == 1:
-		if _f_rt_state == 1:
-			_f_progress = 0.1 + 0.6 * _f_rt_progress
-			_f_poll_iters()
+		if _dp_loading():
+			_f_progress = 0.1 + 0.6 * _dp.progress()
 			return
 		_f_stage = 2
 		_f_progress = 0.7
@@ -1812,7 +1812,7 @@ func pump(budget_us: int) -> void:
 		time_s = _f_t_req
 		_target.clear()
 		field.reset_dynamic()
-		if _f_rt_state == 2:
+		if _dp_placed:
 			prefetch_air_sources()  # поле подано — источники термиков собираются сразу (FL-5)
 		begin_load_refresh()
 		_f_stage = 3
@@ -1827,64 +1827,18 @@ func pump(budget_us: int) -> void:
 
 
 ## Место из рельефа игры без остановки кадров (FL-9): снимок поверхности считает задача пула, по
-## кадрам ждём готовности. Те же растры, что у AirPlaceData.from_terrain (слой detail 25 м), и
-## снимок запоминается для поля Пикара — второй раз он не считается. null — рельеф без слоя detail
-## или снимка поверхности. Переходное (gd): сборку растров заберёт RW-4/RW-6.
+## кадрам ждём готовности. Те же растры, что у AirPlaceData.from_terrain (слой detail 25 м). null —
+## рельеф без слоя detail или снимка поверхности. Переходное (gd): сборку растров заберёт RW-4/RW-6.
 func place_from_terrain(
 	p_terrain: Node, utc_offset_h: float, month: int, day: int
 ) -> AirPlaceData:
-	var rp := AirRuntime.place_of(p_terrain, utc_offset_h, month, day)
-	var detail: HeightLayer = rp.detail
-	var sf: AirPlace.Surface = rp.surface
-	if detail == null or sf == null:
+	var snap := AirPlaceData.terrain_snapshot(p_terrain, utc_offset_h, month, day)
+	var sf: AirPlace.Surface = snap.surface
+	if snap.detail == null or sf == null:
 		return null
 	while not sf.is_ready() and is_inside_tree():
 		await get_tree().process_frame
-	sf.wait()
-	if (
-		sf.width != detail.width
-		or sf.height != detail.height
-		or sf.origin_x != detail.origin_x
-		or sf.origin_z != detail.origin_z
-	):
-		push_error("Atmosphere.place_from_terrain: сетка поверхности не совпала со слоем detail")
-		return null
-	var sites: Array = []
-	for st: Dictionary in rp.start_sites:
-		var sp: Vector3 = st.position
-		sites.append({"id": String(st.id), "x": sp.x, "z": sp.z, "h_msl": sp.y})
-	var loc: Dictionary = (rp.loc as Dictionary).duplicate()
-	loc.month = month
-	loc.day = day
-	var grid := {
-		"origin_x": detail.origin_x,
-		"origin_z": detail.origin_z,
-		"spacing": detail.spacing,
-		"width": detail.width,
-		"height": detail.height,
-	}
-	var place := AirPlaceData.from_arrays(
-		AirPlaceData.make_header(loc, grid, sites),
-		detail.heights,
-		AirPlaceData._water_nodes(rp.water, detail),
-		sf.cls,
-		sf.moist
-	)
-	place.terrain = p_terrain
-	place.fill_climate()
-	_f_rt_pending = rp
-	_f_rt_pending_terrain = p_terrain
-	return place
-
-
-## Снимок места, собранный place_from_terrain для этого рельефа (и только раз).
-func _f_rt_place_of(p_terrain: Node) -> Dictionary:
-	var out: Dictionary = _f_rt_pending
-	if p_terrain != _f_rt_pending_terrain:
-		out = {}
-	_f_rt_pending = {}
-	_f_rt_pending_terrain = null
-	return out
+	return AirPlaceData.from_snapshot(snap, p_terrain, month, day)
 
 
 ## Можно ли собирать источники термиков поля (FL-17): точка источника и его сила (pick_fn →
@@ -1896,111 +1850,283 @@ static func air_sources_ready(t: Object) -> bool:
 	return t == null or not t.has_method("relief_busy") or not bool(t.call("relief_busy"))
 
 
-## Среднее поле нужно: место из рельефа игры, условия — прогноз, узел в дереве (корутины кадров).
-func _f_rt_wanted() -> bool:
-	var t: Node = _f_place.terrain
-	return (
-		t != null
-		and is_instance_valid(t)
-		and is_inside_tree()
-		and _f_cond_set
-		and _f_cond.has("forecast")
+# ---------------------------------------------------------------- поле из крейта (RW-7b)
+# Поле Пикара ведёт DpAir (W3): фасад отдаёт ему конфиги, место (с запечёнными полями), условия,
+# фокусы и время, а снимок поля (field_export, W3 v4) подаёт в свой air_field для слагаемых на
+# GDScript. AirRuntime и расчёт на видеокарте фасад не вызывает. Нет расширения — ветер без поля.
+
+const FOCUS_STEP_M := 25.0
+
+
+## Один DpAir на фасад; null — нет расширения (одна строка в журнале, W9).
+func _dp_object() -> RefCounted:
+	if _dp != null or _dp_missing:
+		return _dp
+	if not ClassDB.class_exists("DpAir"):
+		_dp_missing = true
+		_dp_log("dp_air: нет расширения, ветер без поля")
+		return null
+	_dp = ClassDB.instantiate("DpAir")
+	return _dp
+
+
+func _dp_log(line: String) -> void:
+	if line != _air_log_last:
+		_air_log_last = line
+		print(line)
+
+
+func _dp_deterministic() -> bool:
+	return deterministic or bool(Config.get_config("atmosphere").get("air", {}).get("deterministic", false))
+
+
+## Текст конфига для крейта «как есть»: единственный слой res://configs — файл целиком (числа не
+## переписываются), пилотские слои поверх — слитый словарь.
+func _dp_config_text(config_name: String) -> String:
+	var texts := PackedStringArray()
+	for dir in Config.search_dirs():
+		var path: String = dir.path_join(config_name + ".json")
+		if FileAccess.file_exists(path):
+			texts.append(FileAccess.get_file_as_string(path))
+	if texts.size() == 1:
+		return texts[0]
+	return JSON.stringify(Config.get_config(config_name))
+
+
+func _dp_configs() -> PackedStringArray:
+	var out := PackedStringArray()
+	for n: String in ["atmosphere", "weather_model", "surface_heat", "world"]:
+		var text := _dp_config_text(n)
+		if n == "atmosphere" and _dp_deterministic():
+			var re := RegEx.create_from_string('"deterministic"\\s*:\\s*false')
+			text = re.sub(text, '"deterministic": true')
+		out.append(n)
+		out.append(text)
+	for n: String in Config.list_configs("weather"):
+		out.append(n)
+		out.append(_dp_config_text(n))
+	return out
+
+
+func _dp_seed() -> int:
+	return _f_seed if _f_seed >= 0 else int(Config.get_config("atmosphere").get("seed", 0))
+
+
+## Условия для крейта: запомненные (или погода по умолчанию), без rebuild (перестройка — загрузка).
+func _dp_cond_json() -> String:
+	var c: Dictionary = (
+		_f_cond.duplicate(true)
+		if _f_cond_set
+		else {"preset": String(Config.value("atmosphere", "default_weather"))}
 	)
+	c["rebuild"] = false
+	return JSON.stringify(c)
 
 
-func _f_rt_ensure() -> void:
-	if runtime == null:
-		runtime = AirRuntime.new()
-		runtime.cache_enabled = air_cache_enabled
-		add_child(runtime)
-		runtime.progress_changed.connect(_f_on_rt_progress)
+## Поле нужно крейту (W2 «Режим поля»): off — нет; on — да; auto — да, кроме headless. Расчёт
+## нужен только для прогноза (эталон погоды — превью и тесты — без поля, как раньше).
+func _dp_field_wanted() -> bool:
+	if _air_mode == "off" or not (_f_cond_set and _f_cond.has("forecast")):
+		return false
+	return _air_mode == "on" or DisplayServer.get_name() != "headless"
 
 
-func _f_rt_start() -> void:
-	_f_rt_ensure()
-	var loc: Dictionary = _f_place.header.loc
-	var rt_place := _f_rt_place_of(_f_place.terrain)
-	if rt_place.is_empty():
-		rt_place = AirRuntime.place_of(
-			_f_place.terrain, float(loc.get("utc_offset_h", NAN)), int(loc.get("month", 0)),
-			int(loc.get("day", 0))
-		)
-	runtime.setup(self, rt_place, Callable(self, "_f_rt_conditions"))
-	runtime.focus_fn = Callable(self, "get_focus")
-	_f_rt_gen += 1
-	_f_rt_state = 1
-	_f_rt_progress = 0.0
-	_f_wind_kind = ""
-	_f_it_base = 0
-	_f_it_last = 0
-	_f_iters = 0
-	_f_rt_task(_f_rt_gen)
-
-
-## Поле Пикара на загрузке (корутина кадров): снимок поверхности → запечённое/кеш/расчёт.
-func _f_rt_task(gen: int) -> void:
-	var rt: AirRuntime = runtime
-	rt.recompute_enabled = false
-	await rt.wait_place()
-	if gen != _f_rt_gen:
+func _dp_sync_mode() -> void:
+	if _dp == null:
 		return
-	if rt.baked_ready() or rt.cache_ready():
-		_f_wind_kind = ""  # поле из запечённого файла или кеша: этапа «Рассчитываем ветер» нет
-	elif rt.unavailable_reason() == "":
-		_f_wind_kind = "solver"
-	elif rt.unavailable_reason() != AirRuntime.CMD_FIELD:
-		_f_wind_kind = "simple"
-	await rt.load_field()
-	if gen != _f_rt_gen:
+	var want := 1 if _dp_field_wanted() else 0
+	if want != _dp_mode_sent:
+		_dp_mode_sent = want
+		_dp.set_field_enabled(want == 1)
+
+
+func _dp_fail(what: String) -> void:
+	_dp_log("dp_air: %s: %s — ветер без поля" % [what, _dp.last_error()])
+	_dp_placed = false
+
+
+## Стадия 0 загрузки: место, условия и фокус — крейту; он готовит поле в фоне.
+func _dp_start() -> void:
+	var dp := _dp_object()
+	_dp_stop_task()
+	if dp == null:
 		return
-	rt.recompute_enabled = true
-	_f_rt_progress = 1.0
-	_f_rt_state = 2
+	if _dp_placed:
+		dp.unload_place()
+		_dp_placed = false
+	var sig := "%d|%s" % [_dp_seed(), _dp_deterministic()]
+	if sig != _dp_cfg_sig:
+		if dp.configure(_dp_configs(), _dp_seed()) != 0:
+			_dp_fail("configure")
+			return
+		_dp_cfg_sig = sig
+	dp.set_cache_dir(ProjectSettings.globalize_path("user://air_cache") if air_cache_enabled else "")
+	var place := _f_place
+	if not place.header.has("model_hash"):
+		place.fill_crate_inputs()
+	dp.set_conditions(_dp_cond_json())
+	_dp_mode_sent = -1
+	_dp_sync_mode()
+	_dp_send_focus(true)
+	var code: int = dp.load_place(
+		place.header_json(), place.heights, place.water, place.surface_cls, place.surface_moist
+	)
+	if code != 0:
+		_dp_fail("load_place")
+		return
+	for b: Dictionary in place.baked:
+		if dp.add_baked_field(b.header_json, b.data) != 0:
+			_dp_log("dp_air: запечённое поле не принято: %s" % dp.last_error())
+	if _f_t_req > 0.0:
+		dp.start_at(_f_t_req)
+	_dp_placed = true
+	_dp_fail_logged = false
+	_dp_ver = dp.field_version()  # подача пустого места не нужна: прежнее поле остаётся до новой
 
 
-func _f_on_rt_progress(f: float) -> void:
-	_f_rt_progress = f
+## Крейт готовит поле (LOADING) или принятый снимок ещё собирается в фоне. Здесь же — подача.
+func _dp_loading() -> bool:
+	if not _dp_placed:
+		return false
+	var st: int = _dp.state()
+	if st == 1:
+		return true
+	_dp_feed()
+	if st == 3 and not _dp_fail_logged:
+		_dp_fail_logged = true
+		_dp_log("dp_air: поле не готово: %s — ветер без поля" % _dp.call("status_reason"))
+	return _dp_task >= 0
 
 
-## Условия поля для AirRuntime: час (по ходу дня), ветер атмосферы (на 10 м у старта), прогноз.
-func _f_rt_conditions() -> Dictionary:
-	var fc: Dictionary = _f_cond.get("forecast", {})
-	var hour := float(_f_cond.get("start_hour", 12.0))
-	if day != null:
-		hour = day.hour_at(time_s)
-	return {
-		hour = hour,
-		u10 = float(_weather.get("wind_speed_kmh", 0.0)) / 3.6,
-		wdir = float(_weather.get("wind_from_deg", 0.0)),
-		t_max = float(fc.get("temperature_c", 20.0)),
-		sky = String(fc.get("sky", "clear")),
-		wind_ref = String(_f_cond.get("inflow_mode", "start")),
-	}
+## Шаг игры: фокус, время и подача поля.
+func _dp_tick() -> void:
+	if not _dp_placed:
+		return
+	_dp_send_focus(false)
+	if _dp.state() == 2 and time_s > _dp.time_s():
+		_dp.advance_to(time_s)
+	_dp_feed()
+
+
+func _dp_send_focus(force: bool) -> void:
+	if _dp == null:
+		return
+	if _f_focus_manual:
+		if force:
+			_dp.set_focuses(_f_focus_pts, _f_focus_w)  # точки игры — как есть, индекс 0 — игрок
+		return
+	if not force and _focus.distance_to(_dp_focus_sent) < FOCUS_STEP_M:
+		return
+	_dp_focus_sent = _focus
+	_dp.set_focuses(PackedVector3Array([_focus]), PackedFloat32Array([1.0]))
+
+
+## Условия сменились (мягко): крейту — новый json; поле и режим пересчитаются там.
+func _dp_conditions() -> void:
+	if not _dp_placed:
+		return
+	_dp.set_conditions(_dp_cond_json())
+	_dp_sync_mode()
+	_dp_feed()
+
+
+## Принять новую подачу поля: сменился номер → снимок (field_export) → уровни → air_field.
+## Детерминированный режим — сборка уровней в этом же вызове; иначе — в фоне, главный поток не ждёт.
+func _dp_feed() -> void:
+	if _dp == null or not _dp_placed:
+		return
+	if _dp_task >= 0:
+		if not WorkerThreadPool.is_task_completed(_dp_task):
+			return
+		WorkerThreadPool.wait_for_task_completion(_dp_task)
+		_dp_task = -1
+		_dp_apply(_dp_job)
+		_dp_job = {}
+	var ver: int = _dp.field_version()
+	if ver == _dp_ver:
+		return
+	var got: int = _dp.field_export()
+	_dp_ver = got
+	var head_text := String(_dp.field_export_header())
+	if head_text == "":
+		if _dp_fed:
+			set_air_field(null, 0.0)  # поля нет (выключено, выгружено): заголовок пуст
+			_dp_fed = false
+		return
+	var head: Variant = JSON.parse_string(head_text)
+	if not head is Dictionary:
+		push_warning("Atmosphere: заголовок снимка поля не разобран")
+		return
+	_dp_job = {"head": head, "data": _dp.field_export_data(), "fs": null}
+	if _dp_deterministic():
+		_dp_build(_dp_job)
+		_dp_apply(_dp_job)
+		_dp_job = {}
+	else:
+		_dp_task = WorkerThreadPool.add_task(_dp_build.bind(_dp_job), false, "Atmosphere.field")
+
+
+func _dp_build(job: Dictionary) -> void:
+	job["fs"] = AirBakedField.load_bytes(job.head, job.data)
+
+
+func _dp_apply(job: Dictionary) -> void:
+	var fs: AirFieldSet = job.fs
+	if fs == null:
+		push_warning("Atmosphere: снимок поля не собрался — поле остаётся прежним")
+		return
+	var head: Dictionary = job.head
+	# подмена — за blend_s с момента blend_t0 (время крейта); сборка в фоне уже съела часть
+	var blend := float(head.get("blend_s", 0.0))
+	if blend > 0.0:
+		blend = maxf(blend - maxf(time_s - float(head.get("blend_t0", time_s)), 0.0), 0.0)
+	_dp_fed = true
+	set_air_field(fs.levels, blend)
+
+
+func _dp_stop_task() -> void:
+	if _dp_task >= 0:
+		WorkerThreadPool.wait_for_task_completion(_dp_task)
+		_dp_task = -1
+	_dp_job = {}
+
+
+## Выгрузка места: крейту — unload_place, поле крейта снимается.
+func _dp_unload() -> void:
+	_dp_stop_task()
+	if _dp != null and _dp_placed:
+		_dp.unload_place()
+	_dp_placed = false
+	_dp_ver = -1
+	_dp_mode_sent = -1
+	_dp_focus_sent = Vector3(INF, INF, INF)
+	if _dp_fed and air_field != null:
+		set_air_field(null, 0.0)
+	_dp_fed = false
 
 
 ## {state, progress 0..1, time_s, reason, stage, field_on, iters} (W2 v3).
-## stage — подпись этапа для экрана загрузки («» — этапа нет): пока считается поле Пикара —
-## «Рассчитываем ветер…» (или «упрощённая модель», если решатель недоступен); iters — итерации
-## решателя поля в этом этапе (шаг 10, не убывает; см. _f_poll_iters).
+## stage — подпись этапа для экрана загрузки («» — этапа нет): пока крейт готовит поле Пикара —
+## «Рассчитываем ветер…»; iters — итерации решателя в этом этапе (W3 v3, из DpAir.iters()).
 func status() -> Dictionary:
 	var s := _f_state_eff()
-	var staged := s == STATE_LOADING and _f_rt_state == 1 and _f_wind_kind != ""
+	var label := _f_stage_label() if s == STATE_LOADING else ""
 	return {
 		"state": s,
 		"progress": 1.0 if s == STATE_READY else (_f_progress if s == STATE_LOADING else 0.0),
 		"time_s": time_s,
 		"reason": _f_err if s == STATE_FAILED else "",
-		"stage": _f_stage_label() if staged else "",
+		"stage": label,
 		"field_on": is_air_field_on(),
-		"iters": _f_iters if staged else 0,
+		"iters": int(_dp.iters()) if label != "" else 0,
 	}
 
 
-## Подпись этапа для экрана загрузки по идентификатору этапа (ключи locale/ui.csv). Идентификаторы gd —
-## "solver" (считает решатель) и "simple" (упрощённый ветер, расчёт недоступен); крейта — из
-## doc-комментария Status.stage (W4 v4): lookup (поиск готового поля — быстро, этапа на экране
-## нет), prepare, phases, coarse, solve_mech, solve_heat, windows — все «Рассчитываем ветер».
-## Неизвестный идентификатор и "" — подписи нет.
+## Подпись этапа для экрана загрузки по идентификатору этапа (ключи locale/ui.csv). Идентификаторы
+## крейта — из doc-комментария Status.stage (W4 v4): lookup (поиск готового поля — быстро, этапа на
+## экране нет), prepare, phases, coarse, solve_mech, solve_heat, windows — все «Рассчитываем ветер»;
+## "solver" — то же (прежний идентификатор), "simple" — упрощённый ветер. Неизвестный идентификатор
+## и "" — подписи нет.
 static func stage_label(stage_id: String) -> String:
 	match stage_id:
 		"solver", "prepare", "phases", "coarse", "solve_mech", "solve_heat", "windows":
@@ -2010,29 +2136,11 @@ static func stage_label(stage_id: String) -> String:
 	return ""
 
 
+## Подпись этапа крейта (пока он готовит поле на загрузке места).
 func _f_stage_label() -> String:
-	return stage_label(_f_wind_kind)
-
-
-## Итерации решателя поля в этапе «solver» (AirRuntime → AirPicardJob; air_model только читается):
-## сумма итераций завершённых случаев и текущего у грубого и основного заданий. Задания
-## сменяются (грубый → основной, проход 2), поэтому при падении суммы прошлое значение уходит в
-## базу — счётчик этапа не убывает. Зовёт pump каждый кадр.
-func _f_poll_iters() -> void:
-	if runtime == null or _f_wind_kind != "solver":
-		return
-	var cur := 0
-	for key: String in ["_coarse_job", "_job"]:
-		var job: Object = runtime.get(key)
-		if job == null:
-			continue
-		for r: Dictionary in job.get("results"):
-			cur += int(r.iters)
-		cur += int(job.get("_iters"))
-	if cur < _f_it_last:
-		_f_it_base += _f_it_last
-	_f_it_last = cur
-	_f_iters = _f_it_base + cur
+	if not _dp_placed or _f_stage != 1:
+		return ""
+	return stage_label(String(_dp.stage()))
 
 
 func is_ready() -> bool:
@@ -2387,12 +2495,10 @@ func _f_heat_field() -> WindField:
 	return air_field.levels[air_field.levels.size() - 1]
 
 
-## Карта фаз последнего расчёта поля (AirRuntime.phase_map); нет — {}.
+## Карта фаз последнего расчёта поля; нет — {}. Поле считает крейт (RW-7b), карту фаз он пока
+## не отдаёт — растр «phase_main» пуст (вернётся с debug_raster крейта, RW-9…12).
 func _f_phase_map() -> Dictionary:
-	if runtime == null:
-		return {}
-	var pm: Dictionary = runtime.get("phase_map")
-	return pm if pm != null else {}
+	return {}
 
 
 func _f_phase_raster() -> Dictionary:
