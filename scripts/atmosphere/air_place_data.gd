@@ -250,7 +250,8 @@ func validate() -> String:
 ## как строит ctx weather_model.gd (высота долины из рельефа места). Нет сетки — has_* = false
 ## и запасные значения ClimateGrid. Возвращает climate.
 func fill_climate() -> Dictionary:
-	var loc: Dictionary = header.loc
+	# Копия: вход может быть const/read-only словарём (синтетика тестов, конфиг места).
+	var loc: Dictionary = (header.loc as Dictionary).duplicate()
 	var g: Dictionary = Config.get_config("atmosphere").ground
 	var ctx := WeatherModel.ground_context(
 		Callable(self, "height_at"),
@@ -309,7 +310,8 @@ func fill_crate_inputs() -> void:
 	var loc: Dictionary = header.loc
 	var lid := String(loc.get("id", ""))
 	var cfg_sites: Array = Locations.config(lid).get("start_sites", [])
-	var sites: Array = header.start_sites
+	var sites: Array = (header.start_sites as Array).duplicate(true)
+	header.start_sites = sites
 	for i in sites.size():
 		var st: Dictionary = sites[i]
 		var sid := String(st.get("id", ""))

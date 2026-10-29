@@ -37,15 +37,12 @@
   ],
   "accept": [
     {
-      "name": "test_atmosphere",
-      "tests": "test_atmosphere"
-    },
-    {
       "name": "air_place_data",
       "tests": "air_place_data"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-29T17:33:59"
+  "created": "2026-10-29T17:33:59",
+  "edited": "2026-10-29T17:48:52"
 }

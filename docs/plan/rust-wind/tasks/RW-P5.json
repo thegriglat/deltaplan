@@ -1,0 +1,73 @@
+{
+  "id": "RW-P5",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Нет стадии воздуха при входе на случайное место (release Linux): игра не запускает подготовку поля и экран «Рассчитываем ветер» — причина и починка",
+  "goal": "При входе на не запечённое место игровым путём (карта/URL deltaplan://world?…) после weather/objects идёт стадия подготовки воздуха: экран «Рассчитываем ветер по рельефу…» с итерациями, строки dp_air: в журнале, state READY до полёта, ветер ≠ 0; headless-тест этого игрового пути.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "W2",
+      "version": "5",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W3",
+      "version": "6",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W5",
+      "version": "8",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-P5",
+  "branch": "rust-wind/RW-P5",
+  "base": "feature/rust-wind",
+  "scope": [
+    "scripts/game/game.gd",
+    "scripts/game/world_link.gd",
+    "scripts/atmosphere/atmosphere.gd",
+    "scripts/atmosphere/wind_field_debug.gd",
+    "tools/loading/",
+    "tests/game/test_place_air_stage.gd",
+    "tests/game/test_place_air_stage.gd.uid",
+    "tests/atmosphere/test_debug_layers.gd",
+    "docs/research/rust-wind-stage3/pilot-air-stage.md"
+  ],
+  "dont_touch": [
+    "rust/",
+    "scripts/atmosphere/air_model/",
+    "scripts/atmosphere/air_place_data.gd",
+    "scripts/ui/settings_panel.gd",
+    "configs/",
+    "docs/contracts/",
+    "project.godot",
+    "addons/dp_air/"
+  ],
+  "accept": [
+    {
+      "name": "place_air_stage",
+      "tests": "place_air_stage"
+    },
+    {
+      "name": "report_doc",
+      "cmd": "test -s docs/research/rust-wind-stage3/pilot-air-stage.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs_check",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    },
+    {
+      "name": "debug_layers",
+      "tests": "debug_layers"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T17:42:50",
+  "edited": "2026-10-29T17:52:44"
+}

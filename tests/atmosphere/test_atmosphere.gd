@@ -19,8 +19,21 @@ static func _hills(x: float, z: float) -> float:
 	return 400.0 + 150.0 * sin(x / 700.0) * cos(z / 900.0)
 
 
+## Rig.make с часом старта и скоростью: air_rig их не задаёт, а крейт требует start_hour и speed (W5, input.md) — без них
+## set_conditions отклоняется, погода пуста, термики дают 0. 12 ч — как у прежних тестов.
+static func _make(o: Dictionary) -> Atmosphere:
+	var oo := o.duplicate()
+	if not oo.has("cond"):
+		oo["cond"] = {
+			"preset": Rig.preset(String(o.get("preset", "weather/medium")), o.get("over", {})),
+			"start_hour": float(o.get("start_hour", 12.0)),
+			"speed": 1.0,
+		}
+	return Rig.make(oo)
+
+
 func _static_one(wind_kmh: float, strength: float = 3.0, radius: float = 100.0) -> Atmosphere:
-	return Rig.make(
+	return _make(
 		{
 			"over": {"wind_speed_kmh": wind_kmh},
 			"statics": [[0.0, 0.0, strength, radius]],
@@ -114,7 +127,7 @@ func test_lifecycle_envelope() -> void:
 
 
 func test_background_sink() -> void:
-	var a := Rig.make({"over": {"wind_speed_kmh": 0.0}, "mode": 1, "advance": 0.01})
+	var a := _make({"over": {"wind_speed_kmh": 0.0}, "mode": 1, "advance": 0.01})
 	var bg := float(a.weather().background_sink_ms)
 	approx(a.mean_wind_at(Vector3(100, 600, 50)).y, bg, 1e-4, "фоновое опускание")
 	approx(a.mean_wind_at(Vector3(100, 0, 50)).y, 0.0, 1e-4, "у земли вертикального потока нет")
@@ -136,7 +149,7 @@ func test_cloudbase_limits_climb_without_cloud() -> void:
 
 
 func test_ridge_lift_windward_and_lee_sink() -> void:
-	var a := Rig.make(
+	var a := _make(
 		{
 			"over": {"wind_speed_kmh": 25.0, "wind_from_deg": 270.0},
 			"mode": 1,
@@ -166,7 +179,7 @@ func test_ridge_lift_windward_and_lee_sink() -> void:
 
 
 func test_lee_turbulence_stronger() -> void:
-	var a := Rig.make(
+	var a := _make(
 		{
 			"over": {
 				"wind_speed_kmh": 25.0,
@@ -200,7 +213,7 @@ func _variance_w(a: Atmosphere, x: float, agl: float) -> float:
 
 
 func test_turbulence_deterministic_and_ground_stronger() -> void:
-	var a := Rig.make(
+	var a := _make(
 		{"over": {"wind_speed_kmh": 20.0, "convective_turbulence_ms": 0.0}, "mode": 1, "advance": 0.01}
 	)
 	var p := Vector3(123, 40, -77)
@@ -222,8 +235,8 @@ func test_turbulence_deterministic_and_ground_stronger() -> void:
 
 func test_deterministic_generation() -> void:
 	var o := {"preset": "weather/strong", "ground": _hills, "advance": 10.0}
-	var a := Rig.make(o)
-	var b := Rig.make(o)
+	var a := _make(o)
+	var b := _make(o)
 	var ca := a.cores(Vector3(0, 300, 0), 8000.0)
 	var cb := b.cores(Vector3(0, 300, 0), 8000.0)
 	check(ca == cb and not ca.is_empty(), "одинаковые наборы термиков (%d)" % (ca.size() / Atmosphere.CORE_STRIDE))
@@ -242,7 +255,7 @@ func test_deterministic_generation() -> void:
 
 
 func test_performance() -> void:
-	var a := Rig.make({"preset": "weather/strong", "ground": _hills, "advance": 10.0})
+	var a := _make({"preset": "weather/strong", "ground": _hills, "advance": 10.0})
 	# Прогреть кеши в районе запросов.
 	for i in 200:
 		a.air_velocity_at(Vector3((i % 20) * 50.0, 1200.0, (i / 20) * 50.0))
