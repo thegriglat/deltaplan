@@ -24,6 +24,10 @@ pub enum Variant {
 #[derive(Clone, Debug)]
 pub struct Classified {
     pub weights: Vec<f64>,
+    /// Механические веса колонны ДО умножения на `r = (1−F)(1−G)`, сглаженные тем же гауссом, но не
+    /// нормированные: `[g·n² + c]`, группы g = 0 (A+C), 1 (B), 2 (D+H). Нужны [`super::calm::mix`]
+    /// для базового ветра колонны F, когда Σ механических весов → 0.
+    pub base: Vec<f64>,
     pub freeze: Vec<u8>,
 }
 
@@ -36,7 +40,7 @@ pub struct PhaseMaps {
 
 /// Сырые веса столбца `c` (K·n²-мажорно после `smooth`; здесь — по столбцам `[c][k]`).
 #[inline]
-fn raw_cell(p: &Prepared, v: Variant, c: usize) -> [f64; K] {
+fn raw_cell(p: &Prepared, v: Variant, c: usize) -> ([f64; K], [f64; 3]) {
     let a = &p.prm;
     let col = &p.cols;
     let heated = v == Variant::Heat && a.heated;
@@ -93,24 +97,23 @@ fn raw_cell(p: &Prepared, v: Variant, c: usize) -> [f64; K] {
     w[PH_F] = wfc * (1.0 - wg);
     w[PH_G] = wg;
     w[PH_H] = wh * r;
-    w
+    (w, [wa + wc, wb, wd + wh])
 }
 
 /// Сырые веса варианта `v` (K·n² не сглажены, Σ ≠ 1 до `smooth`), по столбцам: `[c][k]`.
 pub fn raw_weights(p: &Prepared, v: Variant) -> Vec<[f64; K]> {
     (0..p.n2)
         .into_par_iter()
-        .map(|c| raw_cell(p, v, c))
+        .map(|c| raw_cell(p, v, c).0)
         .collect()
 }
 
-/// Сглаживание гауссом σ = `smooth_cells` (раздельно, отражение) и нормировка Σ = 1.
-/// Вход — сырые веса `[c][k]`; выход — `[k·n² + c]`.
-pub fn smooth(p: &Prepared, raw: &[[f64; K]]) -> Vec<f64> {
+/// Сглаживание гауссом σ = `smooth_cells` (раздельно, отражение) без нормировки: `[c][k]` → `[k·n² + c]`.
+fn smooth_planes<const N: usize>(p: &Prepared, raw: &[[f64; N]]) -> Vec<f64> {
     let (nx, ny, n2) = (p.nx, p.ny, p.n2);
     let gk = &p.gk;
     let r = (gk.len() / 2) as i64;
-    let mut tmp = vec![0.0; K * n2];
+    let mut tmp = vec![0.0; N * n2];
     tmp.par_chunks_mut(nx).enumerate().for_each(|(row, out)| {
         let (k, j) = (row / ny, row % ny);
         for (i, o) in out.iter_mut().enumerate() {
@@ -121,7 +124,7 @@ pub fn smooth(p: &Prepared, raw: &[[f64; K]]) -> Vec<f64> {
             *o = s;
         }
     });
-    let mut out = vec![0.0; K * n2];
+    let mut out = vec![0.0; N * n2];
     out.par_chunks_mut(nx).enumerate().for_each(|(row, o)| {
         let (k, j) = (row / ny, row % ny);
         for (i, v) in o.iter_mut().enumerate() {
@@ -132,8 +135,15 @@ pub fn smooth(p: &Prepared, raw: &[[f64; K]]) -> Vec<f64> {
             *v = s.max(0.0);
         }
     });
-    let mut den = tmp;
-    den.truncate(n2);
+    out
+}
+
+/// Сглаживание гауссом σ = `smooth_cells` (раздельно, отражение) и нормировка Σ = 1.
+/// Вход — сырые веса `[c][k]`; выход — `[k·n² + c]`.
+pub fn smooth(p: &Prepared, raw: &[[f64; K]]) -> Vec<f64> {
+    let (nx, ny, n2) = (p.nx, p.ny, p.n2);
+    let mut out = smooth_planes::<K>(p, raw);
+    let mut den = vec![0.0; n2];
     den.par_chunks_mut(nx).enumerate().for_each(|(j, d)| {
         for (i, x) in d.iter_mut().enumerate() {
             let mut tot = 0.0;
@@ -173,10 +183,16 @@ pub fn freeze_mask(p: &Prepared, v: Variant, fin: &[f64]) -> Vec<u8> {
 
 /// Веса и маска одного варианта.
 pub fn classify(p: &Prepared, v: Variant) -> Classified {
-    let raw = raw_weights(p, v);
+    let (raw, base): (Vec<[f64; K]>, Vec<[f64; 3]>) =
+        (0..p.n2).into_par_iter().map(|c| raw_cell(p, v, c)).unzip();
     let weights = smooth(p, &raw);
+    let base = smooth_planes::<3>(p, &base);
     let freeze = freeze_mask(p, v, &weights);
-    Classified { weights, freeze }
+    Classified {
+        weights,
+        base,
+        freeze,
+    }
 }
 
 /// Оба варианта.

@@ -1,0 +1,22 @@
+{
+  "verdict": "accept",
+  "summary": "Скоуп чист, патч и README воспроизводимы, ключ эталона совпадает с ключом GPU-поля, parse перезапущен - PASS.",
+  "issues": [
+    {
+      "file": "tests/fixtures/wind/baked/training_island/landing_hill.json",
+      "line": 280,
+      "severity": "minor",
+      "what": "dx400: iters=0 при stop=converged (AllFrozen) схемой W8 v2 не различается; отмечено исполнителем.",
+      "fix": "Координатору решить, нужен ли отдельный stop для AllFrozen в W8."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "parse",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-29T05:55:45",
+  "by": "reviewer"
+}
