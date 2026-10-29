@@ -1104,3 +1104,5 @@
 {"t": "2026-10-29T18:47:28", "by": "executor", "task": "RW-P5", "ev": "reported", "commits": ["37e3928d0", "d5186d9b9", "c3a6be4f1"], "note": "done: Причина: Game._air_conditions не слал quantum_h, крейт отвергал set_conditions (BAD_INPUT), фасад код игнорировал: READ…", "dp_feedback": "Устаревшая tune-библиотека в копии даёт ложные FAIL приёмки; хорошо бы accept предупреждал или собирал."}
 {"t": "2026-10-29T18:48:08", "by": "coordinator", "task": "RW-P5", "ev": "checked", "note": "5/5 place_air_stage=ok:2/2; report_doc=ok:exit 0; docs_check=ok:ошибок 0; debug_layers=ok:7/7; no_private_dp=ok:0"}
 {"t": "2026-10-29T18:48:18", "by": "coordinator", "task": "RW-P5", "ev": "accepted", "note": "по ревью-2 (главный стык верен) + доработка п. 1, 3 проверкой no_private_dp; п. 2 — RW-P3"}
+{"t": "2026-10-29T18:49:01", "by": "coordinator", "task": "RW-P5", "ev": "checked", "commits": ["b5f5bfb"], "note": "4/5 place_air_stage=ok:2/2; report_doc=ok:exit 0; docs_check=ok:ошибок 0; debug_layers=FAIL:5/7; FAIL test_f4_phase_map,t…; no_private_dp=ok:0"}
+{"t": "2026-10-29T18:49:01", "by": "coordinator", "task": "RW-P5", "ev": "merged"}
