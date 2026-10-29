@@ -1,0 +1,55 @@
+{
+  "id": "RW-11a",
+  "module": "rust-wind",
+  "type": "dp-researcher",
+  "title": "Проект W6 v4 и поверхностного порыва: что Godot-рисованию нужно от облаков, Cb, грозы, волн и GustDust после выноса в крейт",
+  "goal": "Документ-предложение для координатора: точный состав записей W6 v4 (Cb, гроза, волны, момент t для истории CloudLayer) и метода поверхностного порыва (W2/W4) — по каждому полю: кто читает (файл:строка), единицы, откуда берётся в крейте (RW-10b/11c/11d), что рисование оставляет у себя; плюс состав weather_json (W4) по читателям. Только разбор, код не менять.",
+  "plan_ref": "План переноса",
+  "contracts": [
+    {
+      "name": "W2",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W4",
+      "version": "5",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W6",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-11a",
+  "branch": "rust-wind/RW-11a",
+  "base": "feature/rust-wind",
+  "scope": [
+    "docs/research/rust-wind-stage3/w6v4.md",
+    "docs/INDEX.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "rust/",
+    "configs/",
+    "docs/contracts/",
+    "docs/plan/",
+    "tests/"
+  ],
+  "accept": [
+    {
+      "name": "sections",
+      "cmd": "python3 -c 'import re;t=open(\"docs/research/rust-wind-stage3/w6v4.md\",encoding=\"utf-8\").read();need=[\"Cb\",\"Гроза\",\"Волны\",\"История\",\"Поверхностный порыв\",\"weather_json\",\"Предложение\"];miss=[n for n in need if not re.search(r\"^#+ .*\"+re.escape(n),t,re.M)];assert not miss,miss;print(\"sections ok\")'",
+      "expect": "re:sections ok"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check docs/research/rust-wind-stage3/w6v4.md",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T06:16:36"
+}

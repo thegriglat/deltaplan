@@ -3,13 +3,13 @@ type: "contract"
 status: "active"
 module: "rust-wind"
 area: "air"
-updated: "2026-10-26"
+updated: "2026-10-29"
 summary: "W6 rust-wind: описания — ядра подъёма, облака, растр облаков, гребни волн; поля, шаги, инвариант найденного ядра."
 related: ["docs/contracts/rust-wind.md", "docs/plan/rust-wind.md"]
-contracts: [{"id": "W6", "version": 3}]
+contracts: [{"id": "W6", "version": 4}]
 ---
 
-# W6. Описания — найденное, а не заданное (v3)
+# W6. Описания — найденное, а не заданное (v4)
 
 Часть `docs/contracts/rust-wind.md` (версия — там, заголовок W6). Менять — только координатор.
 Владелец — RW-2 (из текущего кода), RW-10/RW-11 (из крейта). Потребители — `cloud_layer.gd`, `bird_flock.gd`, `thermal_signs.gd`, `bot_pilots.gd`, `easter_eggs/group.gd`, `debug_overlays.gd`, `terrain_wind.gd`, `atmo_fingerprint.gd`, `dust_devils.gd`.
@@ -25,3 +25,11 @@ contracts: [{"id": "W6", "version": 3}]
 - Логика выбора и отрисовки облаков (`cloud_phys.model.select/merge_winners/stage`) — сторона Godot или крейт — решает RW-11 первым шагом (разбор границы); недостающие поля добавляются W6 v2, до этого `cloud_layer.gd` в RW-3 переводится на то, что есть, без потери вида — иначе `<ID> blocked` с перечнем полей.
 - Запись во внутренности (`atmosphere_preview.gd` правит `t_birth`, `cloud_depth` и т. п.) не поддерживается: превью пользуется `set_static_thermals`, `set_conditions` и `start_at`.
 
+## v4 (2026-10-29, проект RW-11a — `docs/research/rust-wind-stage3/w6v4.md`, таблица полей с читателями `file:line`)
+Запись для рисования облаков Godot (`cloud_layer.gd`): что рисовать — у крейта, как и сколько — у Godot. `Cloud`, `Core`, `Crest` (v3) не меняются, кроме `Core.storm` (поле 14) — заполняется интенсивностью грозы ядра (`StormField.intensity`, RW-11c `storm::core_intensity`).
+- **Объекты-облака** `cloud_objects(center: Vector3, radius: float, t: float) -> PackedFloat32Array`, `OBJ_STRIDE = 22`; охват — все термики набора (не только активные ядра) с облаком, существующим на `t` (`stage.x ≥ 0`), центр облака в круге `radius` по горизонтали; `radius < 0` — без ограничения. `t ∈ [now − fade_out_s, now]` (окно истории `CloudLayer`; функции жизни чистые по `t`); `t` вне окна — как ближайшая граница; у `Live` — только `now`. Поля (все `f32`): `0 id` (`& 0xFFFFFF`, уникален в наборе — реализация гарантирует, при совпадении берёт следующий свободный) · `1 flags` (бит 0 — статичное, бит 2 — Cb) · `2 cx`, `3 cz` (м, центр основания на `t`) · `4 base_msl` (м) · `5 growth`, `6 decay`, `7 activity` (0..1, `CloudModel.stage`) · `8 rx`, `9 rz` (м, полуоси по ветру/поперёк, `CloudModel.size`) · `10 depth`, `11 spread` (м) · `12 vis_seed` (`noise_seed mod 9973`) · `13 life_t0`, `14 life_t1` (с атмосферы: появление и конец облака; статичное — `∓1e30`) · `15 src_x`, `16 src_z` (м, источник на земле) · `17 drift_vx`, `18 drift_vz` (м/с) · `19 drift_t0` (с; статичное — `+1e30`) · `20 storm_t0` (с, начало грозы; не-Cb — 0) · `21 storm_k` (0..1 на `t`; не-Cb — 0). Центр между опросами Godot экстраполирует сам: `c(t′) = c + v·(max(0, t′ − drift_t0) − max(0, t − drift_t0))`.
+- **Волны** `wave_info() -> PackedFloat32Array` `[enabled (0|1), wavelength_m]`: `wavelength_m = 2π·max(u_ref, 1)/max(N, 1e-4)`, `u_ref` — ветер на `wave.wind_reference_agl_m`, `N = stability_n_per_s`; `enabled` — `wave_strength > 0` и место загружено. Гребни — `wave_crests` v3 без изменений.
+- **Поверхностный порыв** `surface_gust_many(xz: PackedVector2Array, t: PackedFloat64Array) -> PackedFloat32Array` (м/с, длина `min`): `max(u + σ·(g·dir), 0)`, `u` — профиль ветра на 10 м, `σ = √((gust_sigma_frac·u)² + (conv_sigma_k·convective_turbulence_ms)²)`, `g = gust_unit((x, 10, z), t, u, gust_large_k)` (шум аналитики RW-8/RW-9), `dir` — направление ветра; ветер и `convective_turbulence_ms` — на момент вызова, `t` — фаза шума (любой, в т. ч. прошлые слоты); константы — `configs/atmosphere.json gust_dust`. Нечисловой вход — 0; нет места или не READY — нули. Отладочный `force_u10`/`--gust-dust-wind` не переносится (решение координатора 2026-10-29).
+- Методы фасада W2, `DpAir` W3 и трейта W4 для этих вызовов (`cloud_objects`, `wave_info`, `surface_gust_many`, константы `OBJ_*`, `OBJ_STRIDE`, `WAVE_INFO_*`; в W4 — `#[repr(C)] ObjRecord` из 22 `f32`, `out` очищается) вводятся с версией W2 v4/W3 v5/W4 v6 в RW-12z (переход фасада) — до того реализация в крейте — pub-функции `terms`.
+- Остаётся в Godot: выбор и слияние (`select*`, `merge_winners`, `drop_*`, `life_fade`, `range_fade`, `far_m`, `step_fade`), слоты и шейдеры, линзы/роторы/шапка по гребням, конфиг рисования — `cloud_layer.gd` читает `Config.get_config("atmosphere")` сам, не через фасад.
+- Потребители: RW-11d (облака поля, `cloud_raster`, `clouds`), RW-11e (`cloud_objects` из крейта, `cloud_layer.gd` и `gust_dust.gd` на новые вызовы), RW-8/RW-9 (`surface_gust_many`), RW-12z (методы W2–W4).
