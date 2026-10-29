@@ -1,0 +1,11 @@
+{
+  "module": "grass-near",
+  "plan": "docs/plan/grass-near.md",
+  "contracts": "docs/contracts/grass-near.md",
+  "branch": "feature/grass-near",
+  "copy": "~/worktrees/deltaplan/grass-near",
+  "created": "2026-10-29T17:43:49",
+  "code": "GN",
+  "area": "game",
+  "base": "main"
+}
