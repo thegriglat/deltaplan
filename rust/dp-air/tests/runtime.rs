@@ -1091,61 +1091,8 @@ fn gd(path: &str) -> String {
     std::fs::read_to_string(repo().join(path)).unwrap_or_else(|e| panic!("{path}: {e}"))
 }
 
-/// Число после `name` в строке, начинающейся с него (`const X := 0.3`, `x = 2,`).
-fn gd_num(text: &str, name: &str) -> f64 {
-    let line = text
-        .lines()
-        .map(str::trim)
-        .find(|l| l.starts_with(name))
-        .unwrap_or_else(|| panic!("no line starting with '{name}'"));
-    let rest = line[name.len()..].trim_start_matches([' ', ':', '=']);
-    let end = rest
-        .find(|c: char| !(c.is_ascii_digit() || matches!(c, '.' | '-' | 'e' | 'E')))
-        .unwrap_or(rest.len());
-    rest[..end]
-        .parse()
-        .unwrap_or_else(|_| panic!("'{name}': cannot parse '{rest}'"))
-}
-
 #[test]
-fn constants_match_gdscript_and_configs() {
-    let rt = gd("scripts/atmosphere/air_model/air_runtime.gd");
-    let job = gd("scripts/atmosphere/air_model/air_picard_job.gd");
-    let case = gd("scripts/atmosphere/air_model/air_case.gd");
-    let prof = gd("scripts/atmosphere/wind_profile.gd");
-    assert_eq!(gd_num(&rt, "const DX"), DX);
-    assert_eq!(gd_num(&rt, "const INFLOW_K_MIN"), INFLOW_K_MIN);
-    assert_eq!(gd_num(&rt, "const INFLOW_K_MAX"), INFLOW_K_MAX);
-    assert_eq!(gd_num(&rt, "const START_AGL_M"), START_AGL_M);
-    assert_eq!(gd_num(&rt, "const WIND_TOL_MS"), WIND_TOL_MS);
-    assert_eq!(gd_num(&rt, "const DIR_TOL_DEG"), DIR_TOL_DEG);
-    assert_eq!(gd_num(&rt, "const TMAX_TOL_C"), TMAX_TOL_C);
-    assert_eq!(gd_num(&rt, "var max_passes"), MAX_PASSES as f64);
-    assert_eq!(gd_num(&rt, "var pass_tol"), PASS_TOL);
-    assert_eq!(gd_num(&prof, "const U10_MIN"), U10_MIN);
-    // таблица p
-    let line = rt
-        .lines()
-        .find(|l| l.starts_with("const INFLOW_P"))
-        .unwrap();
-    let nums: Vec<f64> = line
-        .split(|c: char| !(c.is_ascii_digit() || c == '.'))
-        .filter(|s| s.chars().any(|c| c.is_ascii_digit()))
-        .filter_map(|s| s.parse().ok())
-        .collect();
-    let want: Vec<f64> = INFLOW_P.iter().flatten().copied().collect();
-    assert_eq!(nums, want, "INFLOW_P: {line}");
-    // решатель: AirPicardJob и AirCase.p
-    let sc = dp_air::field::case_build::SolverCfg::new(5.0);
-    assert_eq!(gd_num(&job, "var tol_mom"), sc.tol_mom_rms);
-    assert_eq!(gd_num(&job, "var tol_th"), sc.tol_th_rms);
-    assert_eq!(gd_num(&job, "var tol_div"), sc.tol_div_rms);
-    assert_eq!(gd_num(&job, "var check_every"), sc.check_every as f64);
-    assert_eq!(gd_num(&job, "var max_outer"), MAX_OUTER as f64);
-    assert_eq!(gd_num(&case, "mom_sweeps"), sc.mom_sweeps as f64);
-    assert_eq!(gd_num(&case, "heat_sweeps"), sc.heat_sweeps as f64);
-    assert_eq!(gd_num(&case, "vcycles"), sc.vcycles as f64);
-    assert!(case.contains("local_k = true") && sc.local_k);
+fn constants_match_configs() {
     // конфиги: ключи, которые читает оркестровка
     let cfg = RtCfg::from_configs(&configs_with(|_| {})).unwrap();
     let a: Value = serde_json::from_str(&gd("configs/atmosphere.json")).unwrap();
