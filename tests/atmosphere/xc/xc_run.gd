@@ -9,7 +9,7 @@ extends Node
 ## Прочие флаги: --course=<°> (по умолчанию по ветру), --start-agl=300, --time-limit=<с>,
 ## --wing=sport, --no-thermals, --bg=<м/с>, --start-alt=<м AGL>, --grid=<м>, --lateral=<м>,
 ## --strength=<м/с>, --radius=<м>, --turbulence=0|1, --cloudbase-agl=<м>, --trace=<с>,
-## --ideal (диагностика «идеальный пилот»: знает оси термиков, карточка 07), --ideal-min=<м/с>.
+## --margin=<м> (запас места вокруг трассы в синтетике, не меньше 5000), --ideal (диагностика «идеальный пилот»: знает оси термиков, карточка 07), --ideal-min=<м/с>.
 
 const DT := 1.0 / 60.0
 const HIST_BIN := 0.5
@@ -36,6 +36,10 @@ func _ready() -> void:
 	var opts := parse_args(OS.get_cmdline_user_args())
 	var t0 := Time.get_ticks_usec()
 	var res := simulate(opts)
+	if res.has("error"):
+		push_error("xc_run: %s" % JSON.stringify(res))
+		get_tree().quit(1)
+		return
 	var cpu := (Time.get_ticks_usec() - t0) / 1.0e6
 	var text := JSON.stringify(res, "  ", false)
 	var out := String(opts.get("out", ""))
@@ -144,10 +148,18 @@ func simulate(opts: Dictionary) -> Dictionary:
 	atmo.set_static_thermals(statics, mode)
 	var place: AirPlaceData
 	if synthetic:
-		# плоская земля на всю трассу и запас: шаг 250 м, начало координат — центр
-		var half := km * 1000.0 + 8000.0
-		var n := int(round(2.0 * half / 250.0)) + 1
-		place = AirPlaceData.from_functions(height_fn, _sun, _LOC, -half, -half, 250.0, n, n)
+		# Плоская земля: прямоугольник вокруг отрезка старт - цель с запасом margin. Шаг 25 м -
+		# крейт принимает поле только на нём (на 250 м место FAILED без last_error, прогон раньше
+		# висел в _wait_ready). Цена шага воздуха растёт с числом узлов места (RW-P9: квадрат
+		# 66 км - около 1.5 с на секунду полёта), поэтому не квадрат вокруг начала.
+		# Меньше ~5 км запаса крейт не принимает (4 км - FAILED).
+		var m := maxf(float(opts.get("margin", 5000.0)), 5000.0)
+		var c0 := Vector2(sin(deg_to_rad(course)), -cos(deg_to_rad(course))) * km * 1000.0
+		var x0 := snappedf(minf(0.0, c0.x) - m, 25.0)
+		var z0 := snappedf(minf(0.0, c0.y) - m, 25.0)
+		var nx := int(ceil((absf(c0.x) + 2.0 * m) / 25.0)) + 1
+		var nz := int(ceil((absf(c0.y) + 2.0 * m) / 25.0)) + 1
+		place = AirPlaceData.from_functions(height_fn, _sun, _LOC, x0, z0, 25.0, nx, nz)
 	else:
 		var loc_cfg: Dictionary = Config.get_config(
 			"locations/" + String(opts.get("location", "ongudai"))
@@ -167,7 +179,13 @@ func simulate(opts: Dictionary) -> Dictionary:
 	var fm := FlightModel.new()
 	fm.setup(wing, pilot_cfg)
 	atmo.set_focuses(PackedVector3Array([start]), PackedFloat32Array([1.0]))
-	_wait_ready(atmo)
+	var why := _wait_ready(atmo)
+	if why != "":
+		push_error("xc_run: воздух не готов: %s" % why)
+		atmo.free()
+		if terrain != null:
+			terrain.free()
+		return {"error": "air", "reason": why}
 	atmo.advance_to(atmo.time_s + DT)
 	fm.reset_in_air(start, course, 0.0, atmo.mean_wind_at(start))
 
@@ -322,11 +340,22 @@ static func _thermal_lift(atmo: Atmosphere, p: Vector3) -> float:
 	return (d.vel as PackedVector3Array)[i].y if i >= 0 else 0.0
 
 
-static func _wait_ready(atmo: Atmosphere) -> void:
+## Ждёт готовности воздуха. Возвращает "" при READY, иначе причину (FAILED/EMPTY/таймаут):
+## без этого прогон висел бы до таймаута на упавшей подготовке места.
+static func _wait_ready(atmo: Atmosphere) -> String:
 	var t0 := Time.get_ticks_msec()
-	while not atmo.is_ready() and Time.get_ticks_msec() - t0 < 600000:
+	while Time.get_ticks_msec() - t0 < 600000:
 		atmo.pump(4000)
+		var st := atmo.status()
+		var state := int(st.state)
+		if state == Atmosphere.STATE_READY:
+			return ""
+		if state == Atmosphere.STATE_FAILED or state == Atmosphere.STATE_EMPTY:
+			var why := String(st.reason)
+			return "state=%d %s" % [state, why if why != "" else atmo.last_error()]
 		OS.delay_usec(1000)
+	return "таймаут подготовки воздуха"
+
 
 
 func _fly(
