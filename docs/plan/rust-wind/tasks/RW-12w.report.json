@@ -1,0 +1,66 @@
+{
+  "status": "done",
+  "summary": "DpAir получил cloud_objects (22·N f32, radius<0 без ограничения, t не конечно - time_s), wave_info (2 числа), surface_gust_many (min длин, нечисловой вход -> 0, срезы Vector2/f64 без копирования); константы OBJ_STRIDE=22, WAVE_INFO_SIZE=2. Разбор - чистые функции в bridge.rs, cargo-тесты в tests/bridge.rs, test_dp_air_ext.gd дополнен (api_version 4, три метода на пустом объекте).",
+  "commits": [
+    "67160aea4 RW-12w: DpAir.cloud_objects, wave_info, surface_gust_many (W3 v5)",
+    "b33bd0eb2 doc-тест wave_info",
+    "(следующий) obj_f32s выше тестового модуля (clippy)"
+  ],
+  "checks": [
+    {
+      "name": "dp_gd_tests",
+      "value": "1 (последний набор), 16 тестов всего",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "dp_air_no_godot",
+      "value": "0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Godot не запускался (решение 'проверки по цене'): test_dp_air_ext.gd - в итоговом прогоне"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RW-12w",
+  "uncertain": [
+    {
+      "where": "rust/dp-gd/src/bridge.rs obj_f32s",
+      "why": "ObjRecord не реализует F32Record (dp-air не трогать), поэтому свой unsafe-каст slice<ObjRecord> -> &[f32]; опирается на repr(C) и const-assert размера 22*4 и выравнивания 4",
+      "checked": "const-assert в bridge.rs и в dp-air/lib.rs; тест проверяет значения полей по смещениям"
+    },
+    {
+      "where": "rust/dp-gd/src/lib.rs surface_gust_many",
+      "why": "результат пишется в буфер self.gust и копируется в PackedFloat32Array (одно копирование); WAVE_INFO_SIZE и порядок констант контрактом W3 v5 не заданы - добавлены мной",
+      "checked": "контракт dpair.md строки 35-37"
+    },
+    {
+      "where": "tests/contracts/test_dp_air_ext.gd",
+      "why": "GD-тест не запускался; api_version исправлен с 3 на 4 (был устарелым)",
+      "checked": "только чтение кода"
+    },
+    {
+      "where": "карточка dp_gd_tests num:test result: ok. (\\d+) >=1",
+      "why": "проверка берёт ПОСЛЕДНИЙ набор вывода (doc-tests, обычно 0 passed) и падала; добавил doc-тест на wave_info (bridge.rs), чтобы последний набор был 1",
+      "checked": "accept --dry PASS"
+    }
+  ],
+  "dp_feedback": "num: берёт последнее совпадение: для cargo test это doc-tests (0 passed) - стоит брать сумму/максимум. accept --dry в foreground > 120 с: нужен --bg по умолчанию. r-<ID>.json в копии даёт FAIL scope - держать вне копии.",
+  "t": "2026-10-29T14:42:52",
+  "by": "executor"
+}
