@@ -1,0 +1,74 @@
+{
+  "id": "RW-14h",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Перенос GD-тестов погоды в cargo; замечания ревью RW-14c",
+  "goal": "Утверждения GD-тестов погоды (test_surface_heat, test_surface_heating, test_storm_rarity, часть ClimateGrid в test_haze_humidity_contracts, test_air_place_climate_lag) — эквивалентными cargo-тестами над dp_air::weather; запасной рост ветра без Weather (weather_link.rs:175) и прогон набора E6.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "W12",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W5",
+      "version": "10",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-14h",
+  "branch": "rust-wind/RW-14h",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/tests/",
+    "rust/dp-air/src/terms/weather_link.rs"
+  ],
+  "dont_touch": [
+    "rust/dp-air/tests/data/",
+    "rust/dp-gd/",
+    "scripts/",
+    "tests/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "ported",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test weather_ported",
+      "expect": "exit=0"
+    },
+    {
+      "name": "ported_count",
+      "cmd": "grep -c '#\\[test\\]' rust/dp-air/tests/weather_ported.rs",
+      "expect": "num:^(\\d+) >=15"
+    },
+    {
+      "name": "weather_ref2",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test weather_ref2",
+      "expect": "exit=0"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-30T03:23:08"
+}
