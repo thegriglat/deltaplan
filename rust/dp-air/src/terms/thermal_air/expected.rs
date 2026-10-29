@@ -5,7 +5,7 @@ use super::{AirThermalsCfg, CORE_FLUX, NQ, SM_STEP, gclamp, gmax, smoothstep};
 /// Профиль потока ядра `q(ξ)`, таблица среднего потока по глубине столба и доля жизни.
 #[derive(Clone, Debug)]
 pub struct Shape {
-    /// `q` по ξ = 0..1, `NQ` точек (хранится `f32`, как `PackedFloat32Array`).
+    /// `q` по ξ = 0..1, `NQ` точек (хранится `f32`).
     q: Vec<f32>,
     /// Среднее `q` по ξ (трапеции).
     pub q_mean: f64,

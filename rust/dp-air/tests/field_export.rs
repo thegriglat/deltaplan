@@ -1,10 +1,10 @@
 //! RW-7a: выдача поля фасаду (W4 v5, W3 v4) — запечённое поле острова, без Пикара.
 //!
-//! Снимок (`field_export`) разбирается `parse_baked` обратно бит в бит; опрос набора по нему
+//! Снимок (`field_export`) разбирается `parse_solved` обратно бит в бит; опрос набора по нему
 //! совпадает с опросом `Formula`.
-use dp_air::field::baked::parse_baked;
 use dp_air::field::field_set::FieldSet;
 use dp_air::field::runtime::{Faults, RtCfg, ground_height};
+use dp_air::field::solved::parse_solved;
 use dp_air::{AirModel, Calm, Conditions, Configs, Focus, Formula, Place, State};
 use serde_json::Value;
 use std::path::{Path, PathBuf};
@@ -28,7 +28,10 @@ fn collect(dir: &Path, prefix: &str, out: &mut Vec<(String, String)>) {
         if p.is_dir() {
             collect(&p, &format!("{name}/"), out);
         } else if p.extension().is_some_and(|x| x == "json") {
-            out.push((name, std::fs::read_to_string(&p).unwrap()));
+            out.push((
+                name.trim_end_matches(".json").to_string(),
+                std::fs::read_to_string(&p).unwrap(),
+            ));
         }
     }
 }
@@ -38,7 +41,7 @@ fn configs() -> Configs {
     let mut files = Vec::new();
     collect(&repo().join("configs"), "", &mut files);
     for (n, t) in &mut files {
-        if n == "atmosphere.json" {
+        if n == "atmosphere" {
             let mut v: Value = serde_json::from_str(t).unwrap();
             v["air"]["deterministic"] = serde_json::json!(true);
             v["air"]["domain_l_m"] = serde_json::json!(7200.0);
@@ -155,7 +158,7 @@ fn export_parses_back_and_samples_bit_for_bit() {
     let e = m.field_export();
     assert_eq!(e.version, v);
     assert!(!e.header_json.is_empty() && !e.data.is_empty());
-    let b = parse_baked(&e.header_json, &e.data).unwrap();
+    let b = parse_solved(&e.header_json, &e.data).unwrap();
     assert_eq!(b.levels.len(), 3, "окна 50/100 м и область");
     let rt = RtCfg::from_configs(&configs()).unwrap();
     let mut fs = FieldSet::new(rt.limits, rt.edge_blend_cells);
@@ -194,7 +197,7 @@ fn header_carries_version_and_blend() {
 }
 
 fn parse_ok_format(e: &dp_air::FieldExport) -> Value {
-    parse_baked(&e.header_json, &e.data).unwrap();
+    parse_solved(&e.header_json, &e.data).unwrap();
     let h: Value = serde_json::from_str(&e.header_json).unwrap();
     h["format"].clone()
 }

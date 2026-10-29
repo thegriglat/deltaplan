@@ -1,7 +1,7 @@
-//! Погода и солнце для поля воздуха: то, что `AirPlace.domain_case` берёт из погоды игры, но
-//! из условий W5 v2, конфигов (текст json) и растров места — без колбэков и без Godot.
+//! Погода и солнце для поля воздуха: то, что `AirPlace.domain_case` берёт из погоды эталона, но
+//! из условий W5 v2, конфигов (текст json) и растров места — без колбэков и без движка.
 //!
-//! Перенесено из GDScript (совпадение проверяет `tests/weather_core.rs` против дампа GD):
+//! Перенесено из эталона (совпадение проверяет `tests/weather_core.rs` против дампа GD):
 //! `WeatherModel.{diurnal_state, sky_params, typical_max_c, diurnal_range_k, ground_context,
 //! monthly}`, `AirPlace.{context, day, theta, gamma, block_mean, cell_surface, cell_z0,
 //! surface_flux}`, температура воды (`SurfaceHeat.water_temp_c`), `WindProfile.apply_to_case`.
@@ -76,7 +76,7 @@ impl<F: Fn(f64, f64, i64, i64) -> ClimateCell + Sync> Climate for F {
     }
 }
 
-/// Параметры `weather_model.json`, нужные полю.
+/// Параметры секция `weather_model`, нужные полю.
 #[derive(Clone, Debug, PartialEq)]
 pub struct WeatherModelCfg {
     /// Физический диапазон температуры модели, °C (`limits.temperature_c`; `ui.*` крейт не читает).
@@ -101,9 +101,9 @@ pub struct WeatherModelCfg {
     heating: Value,
     tx_gradient: Option<Value>,
     dtr_gradient: Option<Value>,
-    /// Весь `weather_model.json` как есть (RW-12b: `weather::derive` читает остальные таблицы).
+    /// Весь секция `weather_model` как есть (RW-12b: `weather::derive` читает остальные таблицы).
     pub raw: Value,
-    /// `atmosphere.json` → `wind.altitude_gain_per_km` (запасной рост ветра, когда сетки HH6 нет);
+    /// секция `atmosphere` → `wind.altitude_gain_per_km` (запасной рост ветра, когда сетки HH6 нет);
     /// `from_value` — 0,6, `WeatherConfigs::from_configs` берёт из конфига.
     pub altitude_gain_per_km: f64,
 }
@@ -184,22 +184,17 @@ pub struct WeatherConfigs {
     pub wind: WindProfileCfg,
 }
 
-fn find<'a>(c: &'a Configs, name: &str) -> Option<&'a str> {
-    c.files
-        .iter()
-        .find(|(n, _)| n == name || n.strip_suffix(".json") == Some(name))
-        .map(|(_, t)| t.as_str())
-}
-
 fn parse_named(c: &Configs, name: &str) -> Result<Value, Error> {
-    let t = find(c, name).ok_or_else(|| Error::bad_input(format!("config '{name}' missing")))?;
+    let t = c
+        .get(name)
+        .ok_or_else(|| Error::bad_input(format!("config '{name}' missing")))?;
     serde_json::from_str(t).map_err(|e| Error::bad_input(format!("config '{name}': {e}")))
 }
 
 impl WeatherConfigs {
     /// Из пар (имя, текст): `atmosphere` (необязателен), `weather_model`, `surface_heat`.
     pub fn from_configs(c: &Configs) -> Result<Self, Error> {
-        let atm = match find(c, "atmosphere") {
+        let atm = match c.get("atmosphere") {
             Some(_) => parse_named(c, "atmosphere")?,
             None => Value::Null,
         };
@@ -224,7 +219,7 @@ pub struct WeatherInputs {
     /// Дневной максимум, °C; `None` — обычный для даты места.
     pub t_max: Option<f64>,
     pub sky: String,
-    /// Ветер меню на 10 м, м/с.
+    /// Заданный ветер на 10 м, м/с.
     pub u10: f64,
     pub wdir: f64,
 }
@@ -417,7 +412,7 @@ impl WeatherModelCfg {
         (tx, dtr)
     }
 
-    /// Обычный дневной максимум места на дату `ctx`, °C (зажат в диапазон меню).
+    /// Обычный дневной максимум места на дату `ctx`, °C (зажат в допустимый диапазон).
     pub fn typical_max_c(&self, ctx: &Ctx, climate: &dyn Climate) -> f64 {
         let cell = climate.cell(ctx.lat, ctx.lon, ctx.month, ctx.day);
         let (tx, _) = self.place_climate(&cell, ctx.lat, ctx.month, ctx.valley_msl_m);

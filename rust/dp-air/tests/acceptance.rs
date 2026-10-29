@@ -67,7 +67,10 @@ fn collect(dir: &Path, prefix: &str, out: &mut Vec<(String, String)>) {
         if p.is_dir() {
             collect(&p, &format!("{name}/"), out);
         } else if p.extension().is_some_and(|x| x == "json") {
-            out.push((name, std::fs::read_to_string(&p).unwrap()));
+            out.push((
+                name.trim_end_matches(".json").to_string(),
+                std::fs::read_to_string(&p).unwrap(),
+            ));
         }
     }
 }
@@ -77,7 +80,7 @@ fn configs_with(patch: impl Fn(&mut Value)) -> Configs {
     let mut files = Vec::new();
     collect(&repo().join("configs"), "", &mut files);
     for (n, t) in &mut files {
-        if n == "atmosphere.json" {
+        if n == "atmosphere" {
             let mut v: Value = serde_json::from_str(t).unwrap();
             patch(&mut v);
             *t = serde_json::to_string(&v).unwrap();
@@ -683,12 +686,12 @@ fn landing_focus(dx: f32) -> Focus {
     }
 }
 
-/// `pilot_left_baked` — как `AirRuntime._pilot_left_baked_windows`: проверяются уровни с индекса 1
+/// `focus_left_windows` — как `AirRuntime._pilot_left_windows`: проверяются уровни с индекса 1
 /// (от мелкого), мелкое окно 50 м (сторона 3,2 км, порог 0,8 км) пропускается, окно 100 м (сторона
 /// 6,4 км, порог 1,6 км) проверяется. Поле из файла с окнами: фокус в 1 км от старта — выход из
 /// окна 50 м, но не 100 м — пересчёта нет; в 1,7 км — выход из окна 100 м — пересчёт запущен.
 #[test]
-fn pilot_left_baked_follows_the_game_skips_the_finest_window() {
+fn focus_left_windows_follows_the_game_skips_the_finest_window() {
     let cfg = configs_with(|v| {
         cheap(v);
         v["air"]["deterministic"] = json!(false);
@@ -726,7 +729,7 @@ fn pilot_left_baked_follows_the_game_skips_the_finest_window() {
         m.advance_to(2.0).unwrap();
         // пересчёт запущен ⇔ фоновая задача идёт (на плоском месте 20 км он не кончится мгновенно)
         let running = !m.wait_job(Duration::ZERO);
-        eprintln!("pilot_left_baked: фокус +{dx} м → пересчёт запущен: {running}");
+        eprintln!("focus_left_windows: фокус +{dx} м → пересчёт запущен: {running}");
         assert_eq!(running, relaunch, "фокус +{dx} м");
     }
     let _ = std::fs::remove_dir_all(&dir);

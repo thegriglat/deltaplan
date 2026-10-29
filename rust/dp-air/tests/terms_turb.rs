@@ -8,9 +8,9 @@
 //!   (поле Пикара посчитано на GPU, тот же прогон даёт побитно файлы `tests/fixtures/wind/cases`).
 //!
 //! Статистика (T3): дисперсия, спектр фон Кармана, масштабы MIL-HDBK-1797, σ_u ≠ σ_v ≠ σ_w.
-use dp_air::compat::rng::Pcg32;
 use dp_air::field::wind_field::{T_AOUT, T_DESC, T_HMIX, T_N2, T_SHEAR, T_UOUT, T_USTAR, T_WSTAR};
 use dp_air::fixtures::{read_case, read_case_data};
+use dp_air::rand::Pcg32;
 use dp_air::terms::turb::sigma::{self, TurbCfg};
 use dp_air::terms::turb::spectrum::{self, GustSpectrum, SampleIn};
 use dp_air::terms::turb::{FieldState, FieldTurb, GustCfg, GustUnit, PointIn, sep};
@@ -29,7 +29,7 @@ fn data_dir() -> PathBuf {
 
 fn atmosphere() -> Configs {
     let t = std::fs::read_to_string(repo().join("configs/atmosphere.json")).unwrap();
-    Configs::new(vec![("atmosphere.json".into(), t)])
+    Configs::new(vec![("atmosphere".into(), t)])
 }
 
 fn f64s(path: &Path) -> Vec<f64> {
@@ -872,9 +872,9 @@ fn slot_in_sum_on_island_field() {
 
 mod island {
     use super::*;
-    use dp_air::field::baked::parse_baked;
     use dp_air::field::field_set::FieldSet;
     use dp_air::field::runtime::{RtCfg, ground_height};
+    use dp_air::field::solved::parse_solved;
     use dp_air::terms::Terms;
     use dp_air::{AirModel, Conditions, Focus, Formula, Place, State};
     use std::sync::Arc;
@@ -887,7 +887,10 @@ mod island {
             if p.is_dir() {
                 collect(&p, &format!("{name}/"), out);
             } else if p.extension().is_some_and(|x| x == "json") {
-                out.push((name, std::fs::read_to_string(&p).unwrap()));
+                out.push((
+                    name.trim_end_matches(".json").to_string(),
+                    std::fs::read_to_string(&p).unwrap(),
+                ));
             }
         }
     }
@@ -896,7 +899,7 @@ mod island {
         let mut files = Vec::new();
         collect(&repo().join("configs"), "", &mut files);
         for (n, t) in &mut files {
-            if n == "atmosphere.json" {
+            if n == "atmosphere" {
                 let mut v: Value = serde_json::from_str(t).unwrap();
                 v["air"]["deterministic"] = serde_json::json!(true);
                 v["air"]["domain_l_m"] = serde_json::json!(7200.0);
@@ -962,7 +965,7 @@ mod island {
             std::thread::sleep(Duration::from_millis(2));
         }
         let e = m.field_export();
-        let b = parse_baked(&e.header_json, &e.data).unwrap();
+        let b = parse_solved(&e.header_json, &e.data).unwrap();
         let rt = RtCfg::from_configs(&cfgs).unwrap();
         let mut fs = FieldSet::new(rt.limits, rt.edge_blend_cells);
         fs.set_field(b.levels, 0.0);

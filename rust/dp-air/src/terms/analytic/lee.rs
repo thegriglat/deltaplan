@@ -1,4 +1,4 @@
-//! Подветренная зона аналитики (`atmosphere.gd`: `_lee_danger` 1215, `_lee_burst_g` 1224,
+//! Подветренная зона аналитики (`_lee_danger`, `_lee_burst_g`,
 //! `_lee_heat_factor` 1232, `_lee_flow` 1254, зона в `air_velocity_at` 934–944 и в
 //! `_air_velocity_field` 1083–1090).
 //!
@@ -60,7 +60,7 @@ impl Default for LeeCfg {
     }
 }
 
-/// `smoothstep(from, to, x)` Godot.
+/// `smoothstep(from, to, x)` эталона.
 pub fn smoothstep(from: f64, to: f64, x: f64) -> f64 {
     if (from - to).abs() < f64::EPSILON {
         return if x < from { 0.0 } else { 1.0 };

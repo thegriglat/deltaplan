@@ -3,7 +3,7 @@
 use super::GroundSource;
 use super::cells::Setup;
 use super::life::AtmoThermal;
-use crate::compat::hash::hash_v2i;
+use crate::hash::hash_v2i;
 use std::sync::Arc;
 
 /// Термики из списка `[x, z, сила, радиус]` (W4 `set_static_thermals`).
@@ -17,7 +17,7 @@ pub fn build_statics(
         let (x, z) = (f64::from(s[0]), f64::from(s[1]));
         let mut th = AtmoThermal::blank(-1 - i as i64);
         th.is_static = true;
-        // `int(x)` GDScript — усечение к нулю
+        // `int(x)` эталона — усечение к нулю
         th.noise_seed = i64::from(hash_v2i(x as i32, z as i32));
         let h = ground.height(x, z);
         th.src = [s[0], h as f32, s[1]];

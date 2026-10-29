@@ -1,5 +1,4 @@
-//! `FastNoiseLite` Godot (Jordan Peck, MIT): OpenSimplex2S 3D (`TYPE_SIMPLEX_SMOOTH`), фракталы
-//! NONE и FBM. Арифметика — f32, как в Godot (`real_t` обычной сборки).
+//! Шум OpenSimplex2S 3D (Jordan Peck, MIT; «FastNoise»), фракталы NONE и FBM. Арифметика — f32.
 
 const PRIME_X: i32 = 501_125_321;
 const PRIME_Y: i32 = 1_136_930_381;
@@ -25,7 +24,7 @@ const GRAD3: [f32; 256] = {
     t
 };
 
-/// Фрактал Godot (`fractal_type`).
+/// Вид фрактала.
 #[derive(Clone, Copy, Debug)]
 pub enum Fractal {
     None,
@@ -63,7 +62,7 @@ fn floor_i(f: f32) -> i32 {
     if f >= 0.0 { f as i32 } else { f as i32 - 1 }
 }
 
-/// Квадрат радиуса влияния узла OpenSimplex2S 3D (подобран по дампу Godot: 3/4).
+/// Квадрат радиуса влияния узла OpenSimplex2S 3D (подобран по эталону: 3/4).
 const RSQ: f32 = 3.0 / 4.0;
 /// Множитель поворота 3D (`R3`).
 const R3: f32 = 2.0 / 3.0;
@@ -353,7 +352,7 @@ impl FastNoise {
         }
     }
 
-    /// `get_noise_3d(x, y, z)`: координаты — f32, как у `real_t` Godot.
+    /// `get_noise_3d(x, y, z)`: координаты — f32.
     pub fn get3(&self, x: f32, y: f32, z: f32) -> f32 {
         let (mut x, mut y, mut z) = (x * self.frequency, y * self.frequency, z * self.frequency);
         // поворот 3D по умолчанию для OpenSimplex2(S): r = (x+y+z)*2/3; p = r - p

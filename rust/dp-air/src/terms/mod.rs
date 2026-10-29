@@ -70,7 +70,7 @@ use std::sync::{Arc, OnceLock};
 pub use sum::{Mid, sum};
 pub use weather_link::PlaceLink;
 
-/// Коэффициенты суммы из `atmosphere.json` (запасные значения — как в GD).
+/// Коэффициенты суммы из секция `atmosphere` (запасные значения — как в эталоне).
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct SumCfg {
     /// `ground_fade_m`: у земли термики плавно гаснут.
@@ -108,12 +108,9 @@ impl SumCfg {
     }
 }
 
-/// Конфиг по имени (`weather/medium` или `weather/medium.json`) как json.
+/// Секция конфигов (`atmosphere`, `weather/medium`, …) как json.
 pub fn named_json(c: &Configs, name: &str) -> Option<Value> {
-    c.files
-        .iter()
-        .find(|(n, _)| n == name || n.strip_suffix(".json") == Some(name))
-        .and_then(|(_, t)| serde_json::from_str(t).ok())
+    c.value(name)
 }
 
 /// Часовая часть силы источников термиков по времени атмосферы (ход дня).
@@ -363,14 +360,14 @@ impl Terms {
     }
 
     /// Земля термиков из места W5: высота по растру, вода, сила источника по растрам
-    /// (`thermal_src`) на час `hour` (нет — статичное солнце `world.json → sun`, без воды и ночи, как у случаев
+    /// (`thermal_src`) на час `hour` (нет — статичное солнце секция `world → sun`, без воды и ночи, как у случаев
     /// W8 без `AtmoDay`). Конфиги — те, что в `configure`.
     pub fn set_thermal_place(
         &mut self,
         place: Arc<crate::place::Place>,
         hour: Option<thermal_src::SourceHour>,
     ) -> Result<(), crate::Error> {
-        // без часа — статичное солнце мира (`world.json → sun`, `Terrain.refresh_sun`)
+        // без часа — статичное солнце мира (секция `world → sun`, `Terrain.refresh_sun`)
         let hr = hour.unwrap_or_else(|| self.static_source_hour());
         self.set_thermal_place_hours(place, Arc::new(move |_| hr))
     }
@@ -391,7 +388,7 @@ impl Terms {
         Ok(())
     }
 
-    /// Статичное солнце мира (`world.json → sun`) для всех классов.
+    /// Статичное солнце мира (секция `world → sun`) для всех классов.
     pub fn static_source_hour(&self) -> thermal_src::SourceHour {
         let w = named_json(&self.configs, "world").unwrap_or(Value::Null);
         let g = |k: &str, d: f64| w.pointer(k).and_then(Value::as_f64).unwrap_or(d);
@@ -465,7 +462,7 @@ fn norm_dir(d: [f64; 2]) -> [f32; 2] {
     if l > 0.0 { [x / l, z / l] } else { [0.0, 1.0] }
 }
 
-/// `angle_difference` Godot для углов в градусах: разность `b − a` в (−180, 180].
+/// `angle_difference` эталона для углов в градусах: разность `b − a` в (−180, 180].
 fn angle_diff_deg(a: f64, b: f64) -> f64 {
     let d = (b - a).rem_euclid(360.0);
     if d > 180.0 { d - 360.0 } else { d }

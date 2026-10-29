@@ -1,11 +1,11 @@
-//! Один термик (`atmo_thermal.gd`): наклонённый ветром столб от источника до верха, огибающая
+//! Один термик: наклонённый ветром столб от источника до верха, огибающая
 //! роста и распада, отрыв низа, снос; наклон и снос от ветра (`_apply_wind`), облачные поля
 //! (`_setup_cloud`, `_setup_cb`) и времена жизни (`_set_life`).
 use super::cfg::ThermalCfg;
-use crate::compat::rng::Pcg32;
+use crate::rand::Pcg32;
 use crate::terms::{WeatherView, WindModel};
 
-/// `smoothstep(from, to, x)` GDScript.
+/// `smoothstep(from, to, x)` эталона.
 pub fn smoothstep(from: f64, to: f64, x: f64) -> f64 {
     if (from - to).abs() < 1.0e-12 {
         return if x < from { 0.0 } else { 1.0 };
@@ -14,7 +14,7 @@ pub fn smoothstep(from: f64, to: f64, x: f64) -> f64 {
     t * t * (3.0 - 2.0 * t)
 }
 
-/// Запись термика. Поля `Vector2/Vector3` GDScript — `f32` (как там), остальное `f64`.
+/// Запись термика. Поля `Vector2/Vector3` эталона — `f32` (как там), остальное `f64`.
 #[derive(Clone, Debug, PartialEq)]
 pub struct AtmoThermal {
     pub id: i64,
@@ -285,7 +285,7 @@ pub fn pair(w: &WeatherView, key: &str, dv: [f64; 2]) -> [f64; 2] {
     }
 }
 
-/// `wind.vec2_at(agl)` как `Vector2` GDScript.
+/// `wind.vec2_at(agl)` как `Vector2` эталона.
 pub fn vec2_f32(wind: &WindModel, agl: f64) -> [f32; 2] {
     let v = wind.vec2_at(agl);
     [v[0] as f32, v[1] as f32]

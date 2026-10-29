@@ -1,14 +1,14 @@
-//! Шум порывов `WindModel.gust_unit` (`wind_model.gd` 51–104, 186, 197): «замороженный» шум
-//! (симплекс-гладкий FBM Godot), переносимый ветром (гипотеза Тейлора). Общий для болтанки
+//! Шум порывов `WindModel.gust_unit`: «замороженный» шум
+//! (симплекс-гладкий FBM эталона), переносимый ветром (гипотеза Тейлора). Общий для болтанки
 //! поля (рывки слоя смешения, `sep.rs`), шума аналитики (RW-9 берёт [`GustUnit::gust_unit`]) и
 //! бурления в облаке (RW-11).
 //!
-//! Арифметика повторяет GDScript: `Vector3` — f32, `float` — f64, приведения там, где их делает
-//! движок (поэтому значения побитно как у Godot, см. `tests/terms_turb.rs`).
-use crate::compat::noise::{FastNoise, Fractal};
-use crate::compat::rng::Pcg32;
+//! Арифметика повторяет эталон: `Vector3` — f32, `float` — f64, приведения там, где их делает
+//! движок (поэтому значения побитно как у эталона, см. `tests/terms_turb.rs`).
+use crate::noise::{FastNoise, Fractal};
+use crate::rand::Pcg32;
 
-/// Конфиг шума: `atmosphere.json` → `turbulence`.
+/// Конфиг шума: секция `atmosphere` → `turbulence`.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct GustCfg {
     /// `scale_m`: масштаб мелких вихрей.
@@ -33,7 +33,7 @@ impl Default for GustCfg {
 }
 
 impl GustCfg {
-    /// `atmosphere.json` → `turbulence` (`scale_m`, `large_scale_m`, `octaves`, `evolve_ms`).
+    /// секция `atmosphere` → `turbulence` (`scale_m`, `large_scale_m`, `octaves`, `evolve_ms`).
     pub fn from_configs(c: &crate::Configs) -> Self {
         let atm = crate::terms::named_json(c, "atmosphere").unwrap_or(serde_json::Value::Null);
         let d = GustCfg::default();
@@ -66,7 +66,7 @@ pub struct GustUnit {
 }
 
 fn offsets(rng: &mut Pcg32, lo: f32, hi: f32) -> [f32; 3] {
-    // порядок вычисления аргументов GDScript — слева направо
+    // порядок вычисления аргументов эталона — слева направо
     let x = rng.randf_range(lo, hi);
     let y = rng.randf_range(lo, hi);
     let z = rng.randf_range(lo, hi);

@@ -458,8 +458,8 @@ impl DpWeather {
         self.inner.quantum_h()
     }
     #[func]
-    fn hour_at(&self, start_hour: f64, speed: f64, t: f64, world_time: f64) -> f64 {
-        self.inner.hour_at(start_hour, speed, t, world_time)
+    fn hour_at(&self, start_hour: f64, speed: f64, t: f64) -> f64 {
+        self.inner.hour_at(start_hour, speed, t)
     }
     #[func]
     fn valley_of(&self, samples: PackedFloat32Array, percentile: f64) -> f64 {

@@ -1,9 +1,9 @@
-//! RW-8c: порт шума/генератора/хешей Godot сверяется с дампом
+//! RW-8c: шум, генератор и хеши сверяются с дампом, снятым в Godot
 //! (`tools/wind_fixtures/compat_dump.sh`, данные — `tests/data/godot_compat/`).
 
-use dp_air::compat::hash::{hash_v2i, hash_v3i};
-use dp_air::compat::noise::{FastNoise, Fractal};
-use dp_air::compat::rng::Pcg32;
+use dp_air::hash::{hash_v2i, hash_v3i};
+use dp_air::noise::{FastNoise, Fractal};
+use dp_air::rand::Pcg32;
 use std::path::PathBuf;
 
 const NOISE_SEEDS: [i32; 4] = [0, 1, 20_260_927, 20_260_927 + 7919];

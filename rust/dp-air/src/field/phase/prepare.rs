@@ -3,11 +3,11 @@
 //! ось фазы C, случайные веса P15, карта ω, ядро сглаживания весов.
 //!
 //! ## Интерфейс для RW-6l/6m
-//! [`prepare`]`(`[`PhaseCase`]`, `[`PhaseCfg`]`) -> `[`Prepared`]. Вход — срезы того, что в GDScript
+//! [`prepare`]`(`[`PhaseCase`]`, `[`PhaseCfg`]`) -> `[`Prepared`]. Вход — срезы того, что в эталоне
 //! лежит в `AirCase` после `prepare()` (u*, `U_sat`, h_bl, w*, нагрев) и в погоде дня; их даёт
 //! `case_prepare.rs` (RW-6d) и `weather_core`. Выход:
 //! - `Prepared.cols` — плоскости 2D-входа ядер (`CI_*`) в SoA, `[j·nx + i]`, f64;
-//! - `Prepared.prm` — скаляры ядер, округлённые до f32 как слоты `prm` GDScript (`P_*`): механизмы
+//! - `Prepared.prm` — скаляры ядер, округлённые до f32 как слоты `prm` эталона (`P_*`): механизмы
 //!   A/B/D/H (RW-6l) и F/G/сборка (RW-6m) читают их же, чтобы совпасть побитно с `AirPhaseCpu`;
 //! - `Prepared.lev`, `.zl` (слои Лапласа), `.hcd`, `.gk` — высоты линейной теории, слои D, `H_c`,
 //!   ядро сглаживания весов.
@@ -41,7 +41,7 @@ pub const RHO_CP: f64 = 1.2 * 1005.0;
 pub const ZL_MAX: usize = 16;
 pub const GK_MAX: usize = 17;
 
-/// Округление до f32 и обратно: как чтение слота `prm` (PackedFloat32Array) в GDScript.
+/// Округление до f32 и обратно: как чтение слота `prm` (массив f32) в эталоне.
 #[inline]
 pub(crate) fn r32(x: f64) -> f64 {
     x as f32 as f64
@@ -88,7 +88,7 @@ pub struct PhaseCase<'a> {
     pub hc: &'a [f64],
     /// dθ̄/dz в центрах `nz + 2` уровней.
     pub gam: &'a [f64],
-    /// Поток тепла игры, Вт/м² (пусто — нет нагрева).
+    /// Поток тепла эталона, Вт/м² (пусто — нет нагрева).
     pub heat: &'a [f64],
     /// Поток тепла, как его берёт решение (`AirCase.heat_used`), Вт/м².
     pub heat_used: &'a [f64],
@@ -202,7 +202,7 @@ pub struct Prepared {
     pub ey: f64,
     pub dx: f64,
     pub z0: f64,
-    /// Показатель профиля притока без округления до f32 (`p.alpha` GDScript; `u_prof`).
+    /// Показатель профиля притока без округления до f32 (`p.alpha` эталона; `u_prof`).
     pub alpha: f64,
     pub hmin: f64,
     pub relief: f64,

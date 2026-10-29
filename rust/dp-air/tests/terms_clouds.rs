@@ -6,7 +6,7 @@
 //! - **перенос тестов GDScript** `test_cloud_field.gd` (инварианты, слабый < сильный, детерминизм,
 //!   аналитика, задержка таяния, снос, башни), `test_cloud_start.gd` (разгон `start_at`), `test_cloud_suck.gd`.
 use dp_air::Configs;
-use dp_air::field::baked::parse_baked;
+use dp_air::field::solved::parse_solved;
 use dp_air::field::wind_field::{Field, FieldGrid, FieldMeta, Limits, Z0};
 use dp_air::terms::WeatherView;
 use dp_air::terms::clouds::{
@@ -180,7 +180,7 @@ fn ongudai() -> Ongudai {
     let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/data/RW-10d/ongudai_medium");
     let hdr = std::fs::read_to_string(dir.join("field.json")).unwrap();
     let bin = std::fs::read(dir.join("field.bin")).unwrap();
-    let mut b = parse_baked(&hdr, &bin).unwrap();
+    let mut b = parse_solved(&hdr, &bin).unwrap();
     let f = b.levels.remove(0);
     let hj: Value = serde_json::from_str(&hdr).unwrap();
     let u10 = hj["levels"][0]["meta"]["u10"].as_f64().unwrap();
@@ -937,7 +937,10 @@ mod slot {
             if p.is_dir() {
                 collect(&p, &format!("{name}/"), out);
             } else if p.extension().is_some_and(|x| x == "json") {
-                out.push((name, std::fs::read_to_string(&p).unwrap()));
+                out.push((
+                    name.trim_end_matches(".json").to_string(),
+                    std::fs::read_to_string(&p).unwrap(),
+                ));
             }
         }
     }
@@ -947,7 +950,7 @@ mod slot {
         let mut files = Vec::new();
         collect(&repo().join("configs"), "", &mut files);
         for (n, t) in &mut files {
-            if n == "atmosphere.json" {
+            if n == "atmosphere" {
                 let mut v: Value = serde_json::from_str(t).unwrap();
                 v["thermal"]["generation_radius_m"] = json!(8000.0);
                 *t = serde_json::to_string(&v).unwrap();

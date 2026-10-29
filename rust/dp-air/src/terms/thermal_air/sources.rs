@@ -1,8 +1,8 @@
 //! Параметры источников (`_src_band` GD) и `fill`: термик источника — точка, потолок, сила, кольцо,
 //! радиус, редкий «очень сильный».
 use super::{CORE_FLUX, K_ALLEN, Shape, ZI_MIN, allen_r2, gclamp, gmax, gmin, wstar};
-use crate::compat::rng::Pcg32;
 use crate::field::wind_field::Field;
+use crate::rand::Pcg32;
 use std::collections::HashMap;
 
 pub(super) struct SrcIn<'a> {

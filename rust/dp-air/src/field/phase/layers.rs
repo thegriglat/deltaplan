@@ -4,7 +4,7 @@
 //! `sor_omega`, затем скорости в долях набегающей. Эталон — `AirPhaseCpu.{laplace, _face_grad}`,
 //! `AirPhaseCpu.mech` (r[7..10]).
 //!
-//! Красно-чёрный порядок (как в GDScript): внутри цвета клетки не зависят друг от друга, поэтому
+//! Красно-чёрный порядок (как в эталоне): внутри цвета клетки не зависят друг от друга, поэтому
 //! результат не зависит от порядка обхода и числа потоков. Слои независимы — параллельны.
 use super::linear::u_prof;
 use super::prepare::{Prepared, r32};
@@ -15,7 +15,7 @@ use rayon::prelude::*;
 pub struct Laplace {
     pub n2: usize,
     pub nl: usize,
-    /// Высоты слоёв, как слоты `prm` GDScript (f32).
+    /// Высоты слоёв, как слоты `prm` эталона (f32).
     pub zl: Vec<f64>,
     pub data: Vec<f64>,
 }
@@ -28,7 +28,7 @@ impl Laplace {
 }
 
 /// Скорость клетки по граням: среднее двух граней; грани к стенке — 0; край области — `e`.
-/// Результат — f32 (`Vector2` GDScript).
+/// Результат — f32 (`Vector2` эталона).
 #[allow(clippy::too_many_arguments)]
 #[inline]
 fn face_grad(

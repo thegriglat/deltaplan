@@ -15,7 +15,7 @@ use crate::field::sun::lerp;
 use crate::field::weather_core::WeatherModelCfg;
 
 /// Ключи, которые смена погоды (ход дня, мягкая) оставляет прежними: ветер, сетка источников и
-/// статичные термики задаёт игра, а не погода часа.
+/// статичные термики задаёт эталон, а не погода часа.
 const KEEP_KEYS: [&str; 4] = [
     "wind_speed_kmh",
     "wind_from_deg",
@@ -54,7 +54,7 @@ pub struct WeatherState {
     time_s: f64,
     /// Направление на солнце, заданное снаружи (`set_sun_direction`); `None` — из дня или конфига.
     sun_set: Option<[f32; 3]>,
-    /// Солнце по умолчанию (`clouds.sun_elevation_deg/sun_azimuth_deg`; не нормализовано, как в GD).
+    /// Солнце по умолчанию (`clouds.sun_elevation_deg/sun_azimuth_deg`; не нормализовано, как в эталоне).
     sun_default: [f32; 3],
 }
 

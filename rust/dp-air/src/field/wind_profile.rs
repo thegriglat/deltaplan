@@ -41,7 +41,7 @@ pub const NEUTRAL_BL_K: f64 = 0.3;
 /// Параметр Кориолиса 51° с. ш., 1/с (`AirCase.F_COR`).
 pub const F_COR: f64 = 1.13e-4;
 
-/// Параметры из `configs/atmosphere.json` → `wind`.
+/// Параметры из секция `atmosphere` → `wind`.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct WindProfileCfg {
     /// `shear_exponent_neutral` (α_N класса D).
@@ -126,7 +126,7 @@ pub fn max_profile(
     (z_sat(cfg, u10, z0, f_cor, cls) / 10.0).powf(alpha_v)
 }
 
-/// α, класс, z_sat и max_profile случая решателя (`WindProfile.apply_to_case`): ветер меню,
+/// α, класс, z_sat и max_profile случая решателя (`WindProfile.apply_to_case`): заданный ветер,
 /// эффективный z0 области, солнце в момент `hour`, облачность неба.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct CaseProfile {

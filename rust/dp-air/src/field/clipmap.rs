@@ -1,5 +1,5 @@
-//! Клипмап окон 100/50 м в крейте (RW-6o): перенос `AirClipmap` (`air_clipmap.gd`) и окон
-//! `AirRuntime` (`air_runtime.gd`: `_start_windows`, `_update_windows`, `_on_windows_failed`).
+//! Клипмап окон 100/50 м в крейте (RW-6o): перенос `AirClipmap` и окон
+//! оркестровки.
 //! Решение каждого окна — `window.rs` (RW-6n: граница от родителя, поправка потока, тёплый
 //! сдвиг) и `picard_rs::api::solve` (`Case.nest`, `init_cycles`, W11 v7).
 //!
@@ -32,8 +32,8 @@
 //! - Условия окон — те же, что у области этого поля (`ClipMap.cond/rec/k`), и при сдвиге; час —
 //!   начало срока поля.
 //! - Окна не гасят нагрев у края (`taper = false`), решения окон — без запасных правил `ω` и
-//!   фаз (как в игре: `AirWindowJob` их не получает).
-//! - Фокус — первый; несколько фокусов клипмап не ведёт (игра: один пилот).
+//!   фаз (как в эталоне: `AirWindowJob` их не получает).
+//! - Фокус — первый; несколько фокусов клипмап не ведёт (один фокус).
 use super::case_prepare::CaseOpts;
 use super::field_set::FieldSet;
 use super::runtime::{
@@ -183,22 +183,22 @@ pub fn center_of(corner: [f64; 2], dx: f64) -> [f64; 2] {
     [corner[0] + h, corner[1] + h]
 }
 
-/// Какое окно (с какого уровня от грубого) пора сдвигать за `pilot`: первое, чей центр дальше
+/// Какое окно (с какого уровня от грубого) пора сдвигать за `focus`: первое, чей центр дальше
 /// `frac` стороны (`AirClipmap.update`). `None` — не пора.
-pub fn shift_level(corners: &[[f64; 2]], dxs: &[f64], pilot: [f64; 2], frac: f64) -> Option<usize> {
+pub fn shift_level(corners: &[[f64; 2]], dxs: &[f64], focus: [f64; 2], frac: f64) -> Option<usize> {
     corners.iter().zip(dxs).position(|(c, &dx)| {
         let m = center_of(*c, dx);
         let side = N_WINDOW as f64 * dx;
-        (pilot[0] - m[0]).abs().max((pilot[1] - m[1]).abs()) > frac * side
+        (focus[0] - m[0]).abs().max((focus[1] - m[1]).abs()) > frac * side
     })
 }
 
-/// Угол окна после сдвига: прежний плюс целое число клеток так, чтобы `pilot` был у центра.
-pub fn shifted_corner(c: [f64; 2], dx: f64, pilot: [f64; 2]) -> [f64; 2] {
+/// Угол окна после сдвига: прежний плюс целое число клеток так, чтобы `focus` был у центра.
+pub fn shifted_corner(c: [f64; 2], dx: f64, focus: [f64; 2]) -> [f64; 2] {
     let m = center_of(c, dx);
     [
-        c[0] + ((pilot[0] - m[0]) / dx).round() * dx,
-        c[1] + ((pilot[1] - m[1]) / dx).round() * dx,
+        c[0] + ((focus[0] - m[0]) / dx).round() * dx,
+        c[1] + ((focus[1] - m[1]) / dx).round() * dx,
     ]
 }
 
@@ -242,17 +242,17 @@ impl ClipMap {
         center_of(self.corners[q], self.dxs[q])
     }
 
-    /// Пора ли сдвигать за `pilot` и с какого уровня. Окна не посчитаны — первая же попытка
+    /// Пора ли сдвигать за `focus` и с какого уровня. Окна не посчитаны — первая же попытка
     /// проверяется по местам прежней (отказавшей) — как сдвиг.
-    pub fn shift_target(&self, pilot: [f64; 2], frac: f64) -> Option<usize> {
-        shift_level(&self.corners, &self.dxs, pilot, frac)
+    pub fn shift_target(&self, focus: [f64; 2], frac: f64) -> Option<usize> {
+        shift_level(&self.corners, &self.dxs, focus, frac)
     }
 
-    /// План сдвига с уровня `q` за `pilot`: окна `q…` получают новые углы, остальные остаются;
-    /// окна не посчитаны — заново вокруг `pilot`.
-    pub fn plan_shift(&self, q: usize, pilot: [f64; 2]) -> Plan {
+    /// План сдвига с уровня `q` за `focus`: окна `q…` получают новые углы, остальные остаются;
+    /// окна не посчитаны — заново вокруг `focus`.
+    pub fn plan_shift(&self, q: usize, focus: [f64; 2]) -> Plan {
         if !self.ready() {
-            return Plan::fresh(&self.dxs, pilot);
+            return Plan::fresh(&self.dxs, focus);
         }
         let q = q.min(self.dxs.len());
         let corners = (0..self.dxs.len())
@@ -260,7 +260,7 @@ impl ClipMap {
                 if i < q {
                     self.corners[i]
                 } else {
-                    shifted_corner(self.corners[i], self.dxs[i], pilot)
+                    shifted_corner(self.corners[i], self.dxs[i], focus)
                 }
             })
             .collect();
@@ -546,15 +546,15 @@ pub fn solve_windows(
     })
 }
 
-/// Сдвиг окон (задача `Formula`): `job.clip` — поле в атмосфере, `q` — с какого уровня, `pilot` —
+/// Сдвиг окон (задача `Formula`): `job.clip` — поле в атмосфере, `q` — с какого уровня, `focus` —
 /// центр в осях решателя. Условия — те же, что у `clip`. Итог — `JobOut` с новыми уровнями и
 /// `ClipMap` (область и состояния, не затронутые сдвигом, делятся по `Arc`).
-pub fn run_shift(job: JobIn, q: usize, pilot: [f64; 2]) -> Result<JobOut, JobErr> {
+pub fn run_shift(job: JobIn, q: usize, focus: [f64; 2]) -> Result<JobOut, JobErr> {
     let t0 = Instant::now();
     let Some(clip) = job.clip.clone() else {
         return Err(JobErr::Failed("shift: no clipmap".into()));
     };
-    let plan = clip.plan_shift(q, pilot);
+    let plan = clip.plan_shift(q, focus);
     let none = |_: f32| {};
     let w = solve_windows(&job, &clip.area, &clip.area_field, clip.k, plan, &none)?;
     Ok(JobOut {

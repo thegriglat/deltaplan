@@ -1,7 +1,7 @@
-//! Входы `CloudField` по столбцам (`cloud_field_sources.gd`): доля площади подъёма, дошедшего до
+//! Входы `CloudField` по столбцам: доля площади подъёма, дошедшего до
 //! основания (`a_u`), целевая мощность `D*`, снос на высоте основания, рельеф. Три источника:
 //! конвекция поля (`AirThermals`), склон (ветер у поверхности), аналитика (живые термики).
-//! Массивы - `f32`, арифметика - `f64`, как в GDScript.
+//! Массивы - `f32`, арифметика - `f64`, как в эталоне.
 use super::cfg::FieldCfg;
 use crate::field::wind_field::Field;
 use crate::terms::WeatherView;
@@ -26,7 +26,7 @@ pub struct Grid {
 }
 
 impl Grid {
-    /// Область места без поля воздуха: `AirPlace.DOMAIN_L / AirRuntime.DX`.
+    /// Область места без поля воздуха: `DOMAIN_L / DX`.
     pub fn default_domain() -> Grid {
         Grid {
             nx: 96,
@@ -65,7 +65,7 @@ pub struct ThermalSnap {
 }
 
 impl ThermalSnap {
-    /// Ось столба на высоте `y` (`Vector2` GDScript: f32).
+    /// Ось столба на высоте `y` (`Vector2` эталона: f32).
     pub fn axis_at(&self, y: f64) -> [f64; 2] {
         let dh = (y - f64::from(self.src[1])).max(0.0);
         [

@@ -1,5 +1,5 @@
 //! `DpWeather` (W12 v2) без Godot: вызовы моста дают те же числа/JSON, что `Weather` напрямую.
-use dp_air::weather::{ClimateGrids, PlaceCtx, Weather, hour_at, valley_of};
+use dp_air::weather::{ClimateGrids, PlaceCtx, Weather, valley_of};
 use dp_air::{Calm, Configs, Forecast};
 use dp_gd::bridge::{BAD_INPUT, Bridge, OK};
 use dp_gd::weather::WeatherBridge;
@@ -127,11 +127,8 @@ fn scalars_match_the_crate() {
         w.water_temp_c(7, 15, 300.0, &c)
     );
     assert_eq!(b.quantum_h(), w.quantum_h());
-    assert_eq!(
-        b.hour_at(8.0, 60.0, 600.0, 0.0),
-        hour_at(8.0, 60.0, 600.0, &w.world_time())
-    );
-    assert_eq!(b.hour_at(8.0, 60.0, 1e9, 0.0), w.world_time().max_hour);
+    assert_eq!(b.hour_at(8.0, 60.0, 600.0), w.hour_at(8.0, 60.0, 600.0));
+    assert_eq!(b.hour_at(8.0, 60.0, 1e9), w.world_time().max_hour);
     let s = [300.0f32, 100.0, 500.0, 200.0, 400.0];
     assert_eq!(b.valley_of(&s, 0.1), valley_of(&s, 0.1));
     let (cover, heat) = w.sky_params("scattered");

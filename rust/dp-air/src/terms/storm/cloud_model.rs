@@ -1,6 +1,6 @@
-//! Физика облака Cb над термиком (`cloud_model.gd`): стадия, окно жизни, центр и размеры.
+//! Физика облака Cb над термиком: стадия, окно жизни, центр и размеры.
 //! Выбор облаков для рисования, затухание по дальности и слияние (`select*`, `life_fade`,
-//! `range_fade`, `far_m`, `step_fade`, `merge_winners`) остаются в Godot.
+//! `range_fade`, `far_m`, `step_fade`, `merge_winners`) остаются у потребителя.
 use super::field::cloud_center;
 use crate::Configs;
 use crate::terms::named_json;
@@ -8,7 +8,7 @@ use crate::terms::thermal::AtmoThermal;
 use crate::terms::thermal::life::smoothstep;
 use serde_json::Value;
 
-/// `atmosphere.json` → `clouds` (запасные значения — как в GDScript).
+/// секция `atmosphere` → `clouds` (запасные значения — как в эталоне).
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct CloudCfg {
     pub delay_factor: f64,
@@ -74,7 +74,7 @@ impl CloudCfg {
     }
 }
 
-/// `clampf` GDScript: без паники при `min > max`.
+/// `clampf` эталона: без паники при `min > max`.
 fn clampf(x: f64, lo: f64, hi: f64) -> f64 {
     if x < lo {
         lo

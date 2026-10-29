@@ -52,7 +52,7 @@ pub struct WaterCfg {
     pub lapse_k_per_km: f64,
 }
 
-/// `configs/surface_heat.json`: неизвестные ключи не ошибка, числа классов обязательны.
+/// секция `surface_heat`: неизвестные ключи не ошибка, числа классов обязательны.
 #[derive(Clone, Debug, PartialEq)]
 pub struct SurfaceHeatCfg {
     pub classes: [ClassCfg; CLASS_COUNT],
@@ -321,7 +321,7 @@ pub struct SurfaceHeating {
 }
 
 impl SurfaceHeating {
-    /// `heating` — секция `heating` из `weather_model.json` (`enabled`, `lag_h.<класс>`).
+    /// `heating` — секция `heating` из секция `weather_model` (`enabled`, `lag_h.<класс>`).
     pub fn new(
         lat: f64,
         lon: f64,

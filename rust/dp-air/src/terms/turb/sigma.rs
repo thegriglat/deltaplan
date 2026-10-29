@@ -1,4 +1,4 @@
-//! σ болтанки поля (`FieldTurbulence.sigma`, `field_turbulence.gd` 138–229) и масштабы вихрей:
+//! σ болтанки поля и масштабы вихрей:
 //! механика по u* поля и сдвигу, устойчивость Ri, конвекция Ленчова по w*, σ³-сложение,
 //! анизотропия MIL-HDBK-1797 (σ_u ≠ σ_v ≠ σ_w), масштабы L_u, L_w с поправкой σ_w/N.
 //! Законы и источники — `docs/guide/air-model.md` → «Масштаб 3: возмущения».
@@ -20,7 +20,7 @@ pub const V_ANISO: f64 = (1.9 / 1.25 - 1.0) / (2.4 / 1.25 - 1.0);
 pub const TAYLOR_H: f64 = 10.0;
 pub const TAYLOR_MAX: f64 = 8.0;
 
-/// Коэффициенты болтанки поля: `atmosphere.json` → `turbulence.*`, `lee.*` (запасные значения —
+/// Коэффициенты болтанки поля: секция `atmosphere` → `turbulence.*`, `lee.*` (запасные значения —
 /// как в файле конфига).
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct TurbCfg {
@@ -142,7 +142,7 @@ impl TurbCfg {
     }
 }
 
-/// `smoothstep` GDScript.
+/// `smoothstep` эталона.
 pub fn smoothstep(from: f64, to: f64, x: f64) -> f64 {
     if (from - to).abs() <= 1.0e-5 * from.abs().max(1.0) {
         return if x <= from { 0.0 } else { 1.0 };
@@ -245,7 +245,7 @@ pub fn sigma(
     let l_mix = 1.0 / (1.0 / (KAPPA * z) + 1.0 / lam);
     let mut u_wall = ustar * decay;
     if u_pt >= 0.0 {
-        // приземный слой: u* из того же лог-закона, что даёт пилоту средний ветер
+        // приземный слой: u* из того же лог-закона, что даёт средний ветер
         let u_loc = KAPPA * u_pt / (z.max(2.0 * z0) / z0).ln();
         let sl = smoothstep(0.5, 1.0, z / (SURFACE_FRAC * h_bl).max(1.0));
         u_wall = lerp(u_loc, u_wall, sl);
@@ -315,7 +315,7 @@ pub fn sigma(
             l_c = 1.0 / (1.0 / l_c + 1.0 / lb);
         }
     }
-    // GDScript отдаёт (s_u, s_w, l_u, l_w) как `Vector4` — f32
+    // эталона отдаёт (s_u, s_w, l_u, l_w) как `Vector4` — f32
     let f = |x: f64| f64::from(x as f32);
     Sigma {
         s_u: f(s_u),

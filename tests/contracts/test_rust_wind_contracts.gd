@@ -11,7 +11,7 @@ extends TestCase
 
 ## Версии разделов — те же, что в заголовках docs/contracts/rust-wind.md и rust-wind/*.md.
 const CONTRACTS := {
-	W1 = 2, W2 = 6, W3 = 9, W4 = 10, W5 = 10, W6 = 4, W7 = 1, W8 = 3, W9 = 2, W10 = 2, W11 = 11, W12 = 2
+	W1 = 2, W2 = 6, W3 = 9, W4 = 10, W5 = 11, W6 = 4, W7 = 1, W8 = 3, W9 = 2, W10 = 2, W11 = 11, W12 = 3
 }
 const DOCS: Array[String] = [
 	"res://docs/contracts/rust-wind.md",
@@ -1282,7 +1282,7 @@ func test_start_at_vs_run_from_zero() -> void:
 	b.free()
 
 
-## W3 v9 / W12 v2: класс DpAir несёт attach_weather и place_context, класс DpWeather — методы п. 2.
+## W3 v9 / W12 v3: класс DpAir несёт attach_weather и place_context, класс DpWeather — методы п. 2.
 func test_dp_weather_and_dp_air_weather_methods() -> void:
 	check(ClassDB.class_exists("DpWeather"), "класс DpWeather есть (W12)")
 	check(ClassDB.class_exists("DpAir"), "класс DpAir есть (W3)")

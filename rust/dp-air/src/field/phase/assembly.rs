@@ -1,7 +1,7 @@
 //! Сборка фаз 3: тёплый старт `warm` (раскладка `picard_rs::state::State` с ореолом), поля
 //! заморозки `mech_field`/`mech_field_mech` и запасного пути `nonconv_field`, статистика.
 //! Эталон — `AirPhaseCpu.{fill, cell, faces, run_prepared}`, `AirPhase.{result, stats}` и
-//! `AirRuntime.{_start_picard, nonconv_mask}`.
+//! `{_start_picard, nonconv_mask}`.
 //!
 //! Порядок шагов (как `AirPhaseCpu.run_prepared`): подготовка → сток G ([`super::drainage`]) →
 //! классификатор обоих вариантов → поля механизмов A/B/D ([`MechFields`]) → скорость слоя
@@ -16,7 +16,7 @@
 //! - `freeze_mech` — то же для решения без нагрева (`mech_field_mech`);
 //! - `nonconv` — [`NonConv`] запасного пути: колонны, где вес H + D > `nonconv.mech_w` и колонна не
 //!   заморожена, поле — `warm` со слоем `mech_field` (они совпадают); `None`, если таких колонн нет
-//!   (игра тогда не передаёт маску);
+//!   (эталон тогда не передаёт маску);
 //! - `warm` — [`State`] для `SolveOpts.init` решения с нагревом, `warm_mech` — без нагрева.
 //!
 //! Канал `thd` (θ′_d) полей заморозки: у решения с нагревом `thd = Some(θ′ механизма)` — θ′ механизма
@@ -32,7 +32,7 @@ use picard_rs::api::{Freeze, FrozenField, NonConv};
 use picard_rs::state::State;
 use rayon::prelude::*;
 
-/// Статистика фаз (`AirPhase.stats`; часть полей `last_info` игры).
+/// Статистика фаз (`AirPhase.stats`; часть полей `last_info` эталона).
 #[derive(Clone, Debug)]
 pub struct PhaseStats {
     /// Доли фаз по площади (порядок `PHASES`), по весам в f32.
@@ -119,7 +119,7 @@ pub fn assemble_prepared(p: &Prepared, g: Option<&Drainage>) -> PhaseResult {
     let (heat, bad_h) = fill_state(p, &mf, &maps.heat, &th, g, true);
     let (mech, bad_m) = fill_state(p, &mf, &maps.mech, &th, None, false);
     let n2 = p.n2;
-    // веса, как их получает игра: f32
+    // веса, как их получает эталон: f32
     let wf: Vec<f32> = maps.heat.weights.iter().map(|&x| x as f32).collect();
     let stats = stats(p, &wf, &maps, g);
     let nonconv = nonconv(p, &wf, &maps.heat.freeze, &heat);
@@ -142,7 +142,7 @@ pub fn assemble_prepared(p: &Prepared, g: Option<&Drainage>) -> PhaseResult {
     }
 }
 
-/// Колонны запасного пути (`AirRuntime.nonconv_mask`): вес H + D выше порога и колонна не заморожена.
+/// Колонны запасного пути (`nonconv_mask`): вес H + D выше порога и колонна не заморожена.
 fn nonconv(p: &Prepared, wf: &[f32], freeze: &[u8], field: &State) -> Option<NonConv> {
     let n2 = p.n2;
     let thr = p.cfg.nonconv_mech_w;

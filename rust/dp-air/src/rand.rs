@@ -1,4 +1,4 @@
-//! `RandomNumberGenerator` Godot: PCG32 (O'Neill), `randf()`, `randf_range()`, `randi()`.
+//! Генератор PCG32 (O'Neill): `randf()`, `randf_range()`, `randi()`.
 
 const MULT: u64 = 6_364_136_223_846_793_005;
 const INC: u64 = 1_442_695_040_888_963_407;
@@ -10,7 +10,7 @@ pub struct Pcg32 {
 }
 
 impl Pcg32 {
-    /// `rng.seed = s` (знаковый сид GDScript — `s as u64`).
+    /// Сид `s` (знаковый сид — `s as u64`).
     pub fn from_seed(seed: u64) -> Self {
         let mut r = Pcg32 {
             state: 0,
@@ -35,7 +35,7 @@ impl Pcg32 {
         if proto == 0 {
             return 0.0;
         }
-        // Godot 4.x: ldexp((float)(rand() | 0x80000001), -32 - countl_zero(proto))
+        // ldexp((float)(rand() | 0x80000001), -32 - countl_zero(proto))
         let m = (self.randi() | 0x8000_0001) as f32;
         m * f32::from_bits((127 - 32 - proto.leading_zeros()) << 23)
     }

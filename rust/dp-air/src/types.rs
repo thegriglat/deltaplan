@@ -26,7 +26,7 @@ pub enum SampleMode {
     Mean,
 }
 
-/// Конфиги: пары (имя, текст json как есть), W5.
+/// Конфиги: пары (ключ секции, текст json как есть), W5 v11.
 #[derive(Clone, Debug, Default)]
 pub struct Configs {
     pub files: Vec<(String, String)>,
@@ -35,6 +35,20 @@ pub struct Configs {
 impl Configs {
     pub fn new(files: Vec<(String, String)>) -> Self {
         Configs { files }
+    }
+
+    /// Текст секции по ключу (`atmosphere`, `weather_model`, `surface_heat`, `world`,
+    /// `weather/<пресет>`; W5 v11) — единственное место поиска секции.
+    pub fn get(&self, section: &str) -> Option<&str> {
+        self.files
+            .iter()
+            .find(|(n, _)| n == section)
+            .map(|(_, t)| t.as_str())
+    }
+
+    /// Секция как json; нет секции или не json — `None`.
+    pub fn value(&self, section: &str) -> Option<serde_json::Value> {
+        self.get(section).and_then(|t| serde_json::from_str(t).ok())
     }
 
     /// Каждый текст должен быть json; неизвестные ключи не ошибка.
@@ -175,7 +189,7 @@ pub fn as_f32s<T: F32Record>(v: &[T]) -> &[f32] {
 }
 
 /// Снимок последней подачи поля для фасада (W4 v5, переходное): заголовок и тело TI-К3 v3
-/// (`field::baked::encode_baked`, каналы `f32` без потерь). `version = 0` и пустые строки — поля нет.
+/// (`field::solved::encode_solved`, каналы `f32` без потерь). `version = 0` и пустые строки — поля нет.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct FieldExport {
     pub version: u64,

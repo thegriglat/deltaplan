@@ -1,4 +1,4 @@
-//! Конфиг фаз: `configs/atmosphere.json` → `air_phase` (все константы фаз — там, в коде их нет).
+//! Конфиг фаз: секция `atmosphere` → `air_phase` (все константы фаз — там, в коде их нет).
 //! Читается разбором текста json (как `ZiCfg`); нет ключа — `BAD_INPUT` с путём ключа.
 use crate::{Configs, Error};
 use serde_json::Value;
@@ -12,7 +12,7 @@ pub enum DStrongAxis {
     NcLaw,
     /// По числу Фруда.
     Fr,
-    /// По `U_sat/N` (по умолчанию в игре).
+    /// По `U_sat/N` (по умолчанию в эталоне).
     UOverN,
 }
 
@@ -164,18 +164,15 @@ impl Get<'_> {
 }
 
 impl PhaseCfg {
-    /// Из набора конфигов W5 (файл `atmosphere`, с `.json` или без).
+    /// Из набора конфигов W5 (секция `atmosphere`).
     pub fn from_configs(cfg: &Configs) -> Result<Self, Error> {
         let text = cfg
-            .files
-            .iter()
-            .find(|(n, _)| n.strip_suffix(".json").unwrap_or(n) == "atmosphere")
-            .map(|(_, t)| t.as_str())
+            .get("atmosphere")
             .ok_or_else(|| Error::bad_input("config 'atmosphere' не передан"))?;
         Self::from_json(text)
     }
 
-    /// Из текста `atmosphere.json`.
+    /// Из текста секция `atmosphere`.
     pub fn from_json(text: &str) -> Result<Self, Error> {
         let v: Value = serde_json::from_str(text)
             .map_err(|e| Error::bad_input(format!("config 'atmosphere': {e}")))?;

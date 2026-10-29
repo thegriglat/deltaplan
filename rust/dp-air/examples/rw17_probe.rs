@@ -1,7 +1,7 @@
 //! RW-17: микропроба цены кандидатов (arc-swap, glam, rand_pcg, jiff). Только std и dp_air; крейты-кандидаты
 //! здесь не подключены — их сторона замерена во временном крейте вне репозитория (см. rw17-crates.md).
 //! Запуск: `cargo run --release -p dp-air --example rw17_probe`.
-use dp_air::compat::rng::Pcg32;
+use dp_air::rand::Pcg32;
 use std::hint::black_box;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, RwLock};

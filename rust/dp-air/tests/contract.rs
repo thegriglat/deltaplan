@@ -387,7 +387,10 @@ fn collect_configs(dir: &std::path::Path, prefix: &str, out: &mut Vec<(String, S
         if p.is_dir() {
             collect_configs(&p, &format!("{name}/"), out);
         } else if p.extension().is_some_and(|x| x == "json") {
-            out.push((name, std::fs::read_to_string(&p).unwrap()));
+            out.push((
+                name.trim_end_matches(".json").to_string(),
+                std::fs::read_to_string(&p).unwrap(),
+            ));
         }
     }
 }
@@ -398,7 +401,7 @@ fn formula_configs() -> Configs {
     let mut files = Vec::new();
     collect_configs(&root, "", &mut files);
     for (n, t) in &mut files {
-        if n == "atmosphere.json" {
+        if n == "atmosphere" {
             let mut v: serde_json::Value = serde_json::from_str(t).unwrap();
             v["air"]["deterministic"] = true.into();
             v["air"]["domain_l_m"] = 7200.0.into();

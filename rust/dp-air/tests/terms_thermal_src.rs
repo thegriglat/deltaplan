@@ -32,8 +32,8 @@ fn data() -> PathBuf {
 fn configs() -> Configs {
     let read = |n: &str| std::fs::read_to_string(repo().join("configs").join(n)).unwrap();
     Configs::new(vec![
-        ("surface_heat.json".into(), read("surface_heat.json")),
-        ("world.json".into(), read("world.json")),
+        ("surface_heat".into(), read("surface_heat.json")),
+        ("world".into(), read("world.json")),
     ])
 }
 
