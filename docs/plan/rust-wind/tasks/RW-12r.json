@@ -1,0 +1,50 @@
+{
+  "id": "RW-12r",
+  "module": "rust-wind",
+  "type": "dp-mechanic",
+  "title": "Итоговый прогон этапа 3: T1 (acceptance release), cargo workspace с тайминговыми, GDScript-тесты против main (tests_vs_base), бенч W8 — отчёт падений",
+  "goal": "Один итоговый прогон feature/rust-wind после перехода фасада: собрать расширение tune (Linux), прогнать cargo test --workspace -- --include-ignored (T1 полный, тайминговые), acceptance release (T1 открытых случаев по W8), cargo bench W8, tools/tests_vs_base.sh против main (все GDScript-тесты, T7/T8), tests/atmosphere/xc (T9 боты) — и сдать отчёт: каждое падение (файл::тест, сообщение одной строкой, число повторов) и числа бенча. Код не править.",
+  "plan_ref": "Тесты (TDD)",
+  "contracts": [
+    {
+      "name": "W8",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W2",
+      "version": "4",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-12r",
+  "branch": "rust-wind/RW-12r",
+  "base": "feature/rust-wind",
+  "scope": [
+    "docs/research/rust-wind-stage3/final-run.md",
+    "build/"
+  ],
+  "dont_touch": [
+    "rust/",
+    "scripts/",
+    "tests/",
+    "tools/",
+    "docs/contracts/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "report_doc",
+      "cmd": "test -s docs/research/rust-wind-stage3/final-run.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs_check",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T16:10:15"
+}
