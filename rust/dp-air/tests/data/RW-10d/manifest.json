@@ -80,5 +80,11 @@
     50
    ]
   }
- }
+ },
+ "generator_removed_at": "a5d9387c3",
+ "generator_files_removed": [
+  "rust/dp-air/tests/data/RW-10d/dump_air_thermals.gd",
+  "rust/dp-air/tests/data/RW-10d/dump_air_thermals.tscn",
+  "rust/dp-air/tests/data/RW-10d/run_dump.sh"
+ ]
 }

@@ -64,7 +64,7 @@ func test_pf_k2_buffer_size_formula() -> void:
 
 
 # PF-К4 (сборка источников термиков в потоке) и FL-5 (предзагрузка/порции обновления) — проверки
-# внутренностей GDScript-слагаемого (AirThermals через поле термиков GD) удалены в RW-12s: слагаемое в крейте,
+# внутренностей GDScript-слагаемого (термики через поле термиков GD) удалены в RW-12s: слагаемое в крейте,
 # эквиваленты — rust/dp-air/tests/terms_thermal_air.rs (parallel_equals_sequential_bitwise_on_dump_field,
 # bands_bit_identical_synthetic), terms_thermal_field.rs (advance_builds_in_background,
 # rebuild_by_key_keeps_live_thermals), terms_thermal.rs (start_at_equals_run_from_zero).

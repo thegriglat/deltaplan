@@ -164,7 +164,7 @@ func test_place_from_terrain_and_field_in_facade() -> void:
 	check(int(st0.state) == Atmosphere.STATE_LOADING, "после start_at — LOADING")
 	check(await _ready_up(a), "дошёл до READY")
 	var st: Dictionary = a.status()
-	check(a.get("runtime") == null, "AirRuntime фасад не создаёт (RW-7b): поле ведёт крейт")
+	check(a.get("runtime") == null, "узел воздуха фасад не создаёт (RW-7b): поле ведёт крейт")
 	if ClassDB.class_exists("DpAir"):
 		check(a.get("_dp") != null, "место и прогноз отданы DpAir")
 	check(

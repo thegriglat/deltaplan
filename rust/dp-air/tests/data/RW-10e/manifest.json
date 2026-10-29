@@ -8,5 +8,11 @@
   "<случай>/source_log.json + source_log.bin": "журнал ground.sun/is_water GD в точках кандидатов pick_in_column (strong, wave; для medium - ../RW-10d/ongudai_medium/ref.*)",
   "cases/<случай>.json|.bin|.desc.json.zst": "эталон ongudai_* W8, снятый на ЭТОМ поле: run_cases.sh <копия на c591b1026> <вывод> <каталог полей> (gen_cases_baked.gd - gen_fixtures с полем из файла)"
  },
- "note": "Эталон cases/ снят на том же запечённом поле, что читает крейт: расхождение входа поля исключено. Оставшееся расхождение по месту ядер (4,8 %) - сила источника по растру 25 м у границ классов (RW-10c); с журналом силы GD ядра и точки сходятся в допуске W8."
+ "note": "Эталон cases/ снят на том же запечённом поле, что читает крейт: расхождение входа поля исключено. Оставшееся расхождение по месту ядер (4,8 %) - сила источника по растру 25 м у границ классов (RW-10c); с журналом силы GD ядра и точки сходятся в допуске W8.",
+ "generator_removed_at": "a5d9387c3",
+ "generator_files_removed": [
+  "rust/dp-air/tests/data/RW-10e/gen_cases_baked.gd",
+  "rust/dp-air/tests/data/RW-10e/gen_cases_baked.tscn",
+  "rust/dp-air/tests/data/RW-10e/run_cases.sh"
+ ]
 }

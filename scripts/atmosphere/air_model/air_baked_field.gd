@@ -3,7 +3,7 @@ extends RefCounted
 ## Запечённое поле ветра старта (TI-К3, docs/contracts/training-island.md): набор уровней среднего
 ## поля (AirFieldSet.levels: область 400 м + окна 100 и 50 м) в двух файлах рядом —
 ## <старт>.json (заголовок) и <старт>.bin (тело: массивы подряд, 3D-каналы float16, по столбцам
-## float32, всё вместе — zstd). Поле считает tools/terrain/bake_air.gd; игра (AirRuntime.load_field)
+## float32, всё вместе — zstd). Поле считает tools/terrain/bake_air.gd; игра (фасад через DpAir)
 ## берёт файл при точном совпадении key вместо расчёта. Формат состояния модели воздуха (WindField,
 ## AirCase.meta) не меняется: уровень собирается тем же WindField.from_arrays.
 ##
@@ -12,6 +12,11 @@ extends RefCounted
 ## ("heat", "meta.<ключ>", float32), прочее — JSON.
 
 const FORMAT := "dp-air-baked"
+## Шаг сетки области, м; допуски условий запечённого поля.
+const DOMAIN_DX := 400.0
+const WIND_TOL_MS := 0.05
+const DIR_TOL_DEG := 1.0
+const TMAX_TOL_C := 0.25
 const VERSION := 1
 ## Каналы по клеткам (float16) в порядке тела.
 const CHANNELS_3D: Array[String] = ["u", "v", "w_mech", "w_conv", "theta"]
@@ -304,7 +309,7 @@ static func make_key(
 		"weather": weather.duplicate(true),
 		"center": [snappedf(center_lat, 1.0e-6), snappedf(center_lon, 1.0e-6)],
 		"start": [snappedf(start.x, START_ROUND_M), snappedf(start.z, START_ROUND_M)],
-		"domain_dx": AirRuntime.DX,
+		"domain_dx": DOMAIN_DX,
 		"window_dx": window_dx,
 		"data_hash": data_hash,
 		"format": VERSION,
@@ -452,7 +457,7 @@ static func model_hash_ok(header: Dictionary) -> bool:
 # ---------------------------------------------------------------- условия (TI-К2)
 
 
-## Условия расчёта AirRuntime ({hour, u10, wdir, t_max, sky, wind_ref}) по набору погоды TI-К2 — ключ
+## Условия расчёта воздуха ({hour, u10, wdir, t_max, sky, wind_ref}) по набору погоды TI-К2 — ключ
 ## weather конфига старта. Единственное место разбора набора на стороне поля: те же числа, что
 ## FlightSettings получает из набора (wind_speed_ms·3,6 км/ч → u10 = wind_speed_ms).
 static func conditions_of(weather: Dictionary) -> Dictionary:
@@ -471,14 +476,14 @@ static func conditions_diff(weather: Dictionary, c: Dictionary, month: int, day:
 	var w := conditions_of(weather)
 	if absf(float(c.hour) - float(w.hour)) > 1.0 / 60.0:
 		return "час %.3f ≠ %.3f" % [float(c.hour), float(w.hour)]
-	if absf(float(c.u10) - float(w.u10)) > AirRuntime.WIND_TOL_MS:
+	if absf(float(c.u10) - float(w.u10)) > WIND_TOL_MS:
 		return "ветер %.2f ≠ %.2f м/с" % [float(c.u10), float(w.u10)]
 	var dd := angle_difference(deg_to_rad(float(c.wdir)), deg_to_rad(float(w.wdir)))
-	if absf(dd) > deg_to_rad(AirRuntime.DIR_TOL_DEG):
+	if absf(dd) > deg_to_rad(DIR_TOL_DEG):
 		return "направление %.1f ≠ %.1f°" % [float(c.wdir), float(w.wdir)]
 	if String(c.get("wind_ref", "start")) != String(w.wind_ref):
 		return "опора ветра %s ≠ %s" % [c.get("wind_ref", "start"), w.wind_ref]
-	if absf(float(c.get("t_max", NAN)) - float(w.t_max)) > AirRuntime.TMAX_TOL_C:
+	if absf(float(c.get("t_max", NAN)) - float(w.t_max)) > TMAX_TOL_C:
 		return "температура %s ≠ %s" % [c.get("t_max"), w.t_max]
 	if String(c.get("sky", "")) != String(w.sky):
 		return "небо %s ≠ %s" % [c.get("sky"), w.sky]

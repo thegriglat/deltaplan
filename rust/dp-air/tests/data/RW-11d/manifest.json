@@ -2,10 +2,17 @@
  "task": "RW-11d",
  "reference_revision": "c591b1026 (feature/rust-wind; GD-ветер до отключения GPU-пути RW-7b); scripts/atmosphere/cloud_*.gd на ней равны текущим",
  "generator": "dump_clouds.gd, запуск run_dump.sh <копия на c591b1026> <каталог> <каталог поля tests/data/RW-10d/ongudai_medium> под замком cpu (headless, без GPU)",
- "files": {"ref.json+ref.bin": "ref.bin - zstd от склейки f32/f64 little-endian; ref.json[arrays][имя]=[смещение,число,вид]; скаляры og_*.sc = [bg_cover, bg_depth, base_msl, time]"},
+ "files": {
+  "ref.json+ref.bin": "ref.bin - zstd от склейки f32/f64 little-endian; ref.json[arrays][имя]=[смещение,число,вид]; скаляры og_*.sc = [bg_cover, bg_depth, base_msl, time]"
+ },
  "cases": {
   "ongudai": "поле Онгудая RW-10d (baked f16), AirThermals.build без земли (duty 0.85, кромка 3035.67, u10 из поля), сид 606; reset(0/900/3600), step_to 3620/3700, разгон по шагам k=5..120, смена LCL на -300 м (переход 60 с), выборка sample/density_at/shade_at на сетке 15x15x4",
   "synthetic": "flat_field test_cloud_field.gd: sy_blob, sy_wind, sy_tower (переразвитие), sy_advect, sy_analytic (аналитические термики)",
   "physics": "ph_*: поле sy_wind на t=2500, 14 термиков (LCG; параметры в ref.json phys_thermals), подсос suck, sample/density_at на 21x21x6, visible_clouds"
- }
+ },
+ "generator_removed_at": "a5d9387c3",
+ "generator_files_removed": [
+  "rust/dp-air/tests/data/RW-11d/dump_clouds.gd",
+  "rust/dp-air/tests/data/RW-11d/run_dump.sh"
+ ]
 }

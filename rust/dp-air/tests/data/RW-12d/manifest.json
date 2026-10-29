@@ -1,0 +1,10 @@
+{
+ "task": "RW-12d",
+ "generator_removed_at": "a5d9387c3",
+ "generator_files_removed": [
+  "rust/dp-air/tests/data/RW-12d/weather_ref.gd",
+  "rust/dp-air/tests/data/RW-12d/weather_ref.sh",
+  "rust/dp-air/tests/data/RW-12d/weather_ref.tscn"
+ ],
+ "restore": "git show a5d9387c3:<путь> — генератор восстанавливается из ревизии до удаления (RW-13)"
+}

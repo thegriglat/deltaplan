@@ -2,7 +2,7 @@ class_name CloudModel
 extends RefCounted
 ## Логика облаков без нод (тестируется headless). Две половины:
 ## - физическая (stage, size, center, _life_window по AtmoThermal) — только для GDScript-реализации
-##   (CloudPhysics, Atmosphere) до RW-13; в крейте то же считает cloud_objects (W6 v4);
+##   (старый GD-расчёт, Atmosphere) до RW-13; в крейте то же считает cloud_objects (W6 v4);
 ## - выбор для рисования (select*, merge_winners, life_fade, range_fade, far_m, step_fade) — по
 ##   записям cloud_objects (Obj), без AtmoThermal: ею пользуется CloudLayer.
 

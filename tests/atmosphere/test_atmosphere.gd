@@ -222,6 +222,6 @@ func test_performance() -> void:
 
 
 # PF-8 (test_refresh_chunked_equals_sync, test_refresh_abort_midway_then_sync_equals_sync) — порционное
-# обновление GD-ThermalField (begin_refresh/step_refresh) удалено вместе с GD-слагаемым; эквиваленты —
+# обновление GD-термиков (begin_refresh/step_refresh) удалено вместе с GD-слагаемым; эквиваленты —
 # rust/dp-air/tests/terms_thermal.rs (advance_cadence_and_inputs, start_at_equals_run_from_zero) и
 # terms_thermal_field.rs (rebuild_by_key_keeps_live_thermals, advance_builds_in_background).

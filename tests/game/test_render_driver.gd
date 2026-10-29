@@ -162,7 +162,7 @@ func test_gpu_health_in_session_triggers_dialog() -> void:
 	# Main опрашивает _gpu_failed() == GpuHealth.is_failed() раз в секунду и показывает окно один раз
 	GpuHealth.reset()
 	check(not GpuHealth.is_failed(), "здорова")
-	GpuHealth.report_failure("AirGpu.buffer", "тест")
+	GpuHealth.report_failure("Gpu.buffer", "тест")
 	check(GpuHealth.is_failed(), "отказ виден опросу")
 	GpuHealth.reset()
 
