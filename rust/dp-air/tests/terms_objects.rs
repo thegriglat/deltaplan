@@ -108,7 +108,9 @@ fn dump() -> Value {
 }
 
 /// Моменты дампа: (случай, момент, t записи, записи (полный id, 22 поля)).
-fn shots() -> Vec<(String, f64, f64, Vec<(i64, Vec<f32>)>)> {
+type Shot = (String, f64, f64, Vec<(i64, Vec<f32>)>);
+
+fn shots() -> Vec<Shot> {
     let d = dump();
     let mut out = Vec::new();
     for (name, moments) in d["cases"].as_object().unwrap() {
