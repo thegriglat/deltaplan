@@ -1106,3 +1106,4 @@
 {"t": "2026-10-29T18:48:18", "by": "coordinator", "task": "RW-P5", "ev": "accepted", "note": "по ревью-2 (главный стык верен) + доработка п. 1, 3 проверкой no_private_dp; п. 2 — RW-P3"}
 {"t": "2026-10-29T18:49:01", "by": "coordinator", "task": "RW-P5", "ev": "checked", "commits": ["b5f5bfb"], "note": "4/5 place_air_stage=ok:2/2; report_doc=ok:exit 0; docs_check=ok:ошибок 0; debug_layers=FAIL:5/7; FAIL test_f4_phase_map,t…; no_private_dp=ok:0"}
 {"t": "2026-10-29T18:49:01", "by": "coordinator", "task": "RW-P5", "ev": "merged"}
+{"t": "2026-10-29T18:49:11", "by": "coordinator", "task": null, "ev": "note", "note": "Причина у пилота найдена и влита (RW-P5): игра не слала quantum_h в условиях, крейт отвергал, фасад молчал — поле не считалось. Тестовая сборка Linux для повторной проверки пилотом — после RW-P3 (удаление упрощённого режима) или сразу с feature/rust-wind"}
