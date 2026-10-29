@@ -875,7 +875,16 @@ fn advance_builds_in_background() {
     let (f, u10) = flat(&heat300, &zero3, [0.0, 0.0]);
     let mut t = syn_terms(&f, u10, vec![[0.0, 0.0]]);
     t.thermal_async = true;
-    assert!(t.advance(2000.2), "первый снимок и источники — синхронно");
+    // с RW-12v первый снимок и источники тоже строятся в фоне (главный поток не ждёт)
+    t.advance(2000.2);
+    assert!(
+        t.slots
+            .thermal
+            .as_slot()
+            .unwrap()
+            .wait_pending(std::time::Duration::from_secs(60))
+    );
+    assert!(t.advance(2000.3), "первый снимок опубликован");
     let t0 = std::time::Instant::now();
     let r = t.advance(2001.5);
     let dt = t0.elapsed();

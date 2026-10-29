@@ -79,6 +79,9 @@ pub struct ObjRecord {
 
 const _: () = assert!(std::mem::size_of::<ObjRecord>() == OBJ_STRIDE * 4);
 
+// SAFETY: `#[repr(C)]`, одни `f32`, размер проверен const-assert выше.
+unsafe impl F32Record for ObjRecord {}
+
 impl ObjRecord {
     /// Плоский вид (порядок полей W6 v4).
     pub fn to_array(&self) -> [f32; OBJ_STRIDE] {

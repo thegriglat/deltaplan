@@ -1238,6 +1238,9 @@ impl AirModel for Formula {
         }));
         self.recompute_inputs();
         self.terms.configure(&self.configs, seed);
+        if !self.field_on {
+            self.terms.set_air_off(true);
+        }
         let bg = !self.det();
         self.terms.thermal_async = bg;
         self.terms.clouds_async = bg;
@@ -1474,6 +1477,9 @@ impl AirModel for Formula {
             return Ok(());
         }
         self.field_on = on;
+        // режим `off` W2 v4: упрощённый профиль и аналитика без поля
+        self.terms.set_air_off(!on);
+        self.publish_terms();
         if self.place.is_none() {
             return Ok(());
         }
@@ -1557,13 +1563,22 @@ impl AirModel for Formula {
     }
 
     fn cloudbase_msl(&self) -> f32 {
-        self.query().map_or(0.0, |(pb, _)| pb.terms.cloudbase_msl())
+        self.query().map_or(0.0, |(pb, _)| {
+            let pl = pb.place.as_deref();
+            pl.and_then(|p| terms::analytic::cloudbase_msl(&pb.terms, p))
+                .map_or_else(|| pb.terms.cloudbase_msl(), |v| v as f32)
+        })
     }
 
     fn background_wind(&self, heights: &[f32], out: &mut [[f32; 2]]) {
         let n = heights.len().min(out.len());
         match self.query() {
-            Some((pb, _)) => pb.terms.background_wind(&heights[..n], &mut out[..n]),
+            Some((pb, _)) => match pb.place.as_deref() {
+                Some(p) => {
+                    terms::analytic::background_wind(&pb.terms, p, &heights[..n], &mut out[..n])
+                }
+                None => out[..n].iter_mut().for_each(|o| *o = [0.0; 2]),
+            },
             None => out[..n].iter_mut().for_each(|o| *o = [0.0; 2]),
         }
     }

@@ -141,8 +141,8 @@ pub(crate) struct Cfgd {
 const MAX_GROUNDS: usize = 4;
 
 impl Cfgd {
-    fn ground(&self, place: &Place, dir: [f32; 2]) -> Arc<GroundField> {
-        let sig = PlaceSig::of(place);
+    fn ground(&self, place: &Place, dir: [f32; 2], key: u64) -> Arc<GroundField> {
+        let sig = PlaceSig::keyed(place, key);
         {
             let r = self
                 .grounds
@@ -184,7 +184,7 @@ pub(crate) struct Pt<'a> {
 
 impl<'a> Pt<'a> {
     fn new(st: &'a Cfgd, c: &'a Ctx<'a>) -> Self {
-        let gf = st.ground(c.place, c.terms.ground_dir);
+        let gf = st.ground(c.place, c.terms.ground_dir, c.terms.place_key);
         let gs = gf.sample(c.place, f64::from(c.pos[0]), f64::from(c.pos[2]));
         let y = f64::from(c.pos[1]);
         let agl = (y - gs.h).max(0.0);
@@ -395,13 +395,13 @@ impl Analytic for AnalyticSlot {
 
     fn relief(&self, c: &Ctx) -> Option<f64> {
         let st = self.st.as_ref()?;
-        let gf = st.ground(c.place, c.terms.ground_dir);
+        let gf = st.ground(c.place, c.terms.ground_dir, c.terms.place_key);
         Some(gf.relief_at(c.place, f64::from(c.pos[0]), f64::from(c.pos[2])))
     }
 
     fn cloudbase_msl(&self, t: &Terms, place: &Place) -> Option<f64> {
         let st = self.st.as_ref()?;
-        let g = st.ground(place, t.ground_dir);
+        let g = st.ground(place, t.ground_dir, t.place_key);
         Some(g.ground_ref(place) + t.weather.f64_or("cloudbase_agl_m", 1500.0))
     }
 
@@ -410,7 +410,9 @@ impl Analytic for AnalyticSlot {
         let Some(st) = self.st.as_ref() else {
             return;
         };
-        let gref = st.ground(place, t.ground_dir).ground_ref(place);
+        let gref = st
+            .ground(place, t.ground_dir, t.place_key)
+            .ground_ref(place);
         let d = t.wind.dir();
         for (o, &h) in out.iter_mut().zip(heights) {
             if !h.is_finite() {
