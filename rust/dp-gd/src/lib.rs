@@ -5,10 +5,12 @@
 //! Рабочие потоки Rust объекты Godot не трогают.
 
 pub mod bridge;
+pub mod weather;
 
 use bridge::Bridge;
 use dp_air::{Cloud, Core, Crest, ObjRecord};
 use godot::prelude::*;
+use weather::WeatherBridge;
 
 struct DpAirExt;
 
@@ -147,6 +149,17 @@ impl DpAir {
     #[func]
     fn configure(&mut self, configs_json: PackedStringArray, seed: i64) -> i64 {
         self.bridge.configure(&strings(&configs_json), seed)
+    }
+    /// Общая погода (W3 v9, W12) до `load_place`; `null` или неготовая — `BAD_INPUT`.
+    #[func]
+    fn attach_weather(&mut self, w: Option<Gd<DpWeather>>) -> i64 {
+        let arc = w.and_then(|w| w.bind().inner.arc());
+        self.bridge.attach_weather(arc)
+    }
+    /// Контекст загруженного места (json, W3 v9); места нет — `{}`.
+    #[func]
+    fn place_context(&self) -> GString {
+        gs(self.bridge.place_context())
     }
     #[func]
     fn load_place(
@@ -365,5 +378,91 @@ impl DpAir {
             .iter()
             .map(|s| GString::from(s.as_str()))
             .collect()
+    }
+}
+
+/// Погода (W12 v2): чистые функции над `Arc<Weather>`; словари — json-строкой.
+#[derive(GodotClass)]
+#[class(base = RefCounted, init)]
+pub struct DpWeather {
+    inner: WeatherBridge,
+    base: Base<RefCounted>,
+}
+
+#[godot_api]
+impl DpWeather {
+    /// Конфиги как у `DpAir.configure`, сетки (`hh1`, `hh2`, `hh5`, `hh6`) распакованными байтами.
+    #[func]
+    fn configure(
+        &mut self,
+        configs_json: PackedStringArray,
+        grid_names: PackedStringArray,
+        grid_bytes: Array<PackedByteArray>,
+    ) -> i64 {
+        let bytes: Vec<PackedByteArray> = grid_bytes.iter_shared().collect();
+        let slices: Vec<&[u8]> = bytes.iter().map(|b| b.as_slice()).collect();
+        self.inner
+            .configure(&strings(&configs_json), &strings(&grid_names), &slices)
+    }
+    #[func]
+    fn typical_max_c(&self, month: i64, day: i64, lat: f64, lon: f64, valley_msl_m: f64) -> f64 {
+        self.inner.typical_max_c(month, day, lat, lon, valley_msl_m)
+    }
+    #[func]
+    fn diurnal_state(&self, t_max: f64, hour: f64, ctx_json: GString) -> GString {
+        gs(self.inner.diurnal_state(t_max, hour, &ctx_json.to_string()))
+    }
+    #[func]
+    fn sunrise_h(&self, t_max: f64, ctx_json: GString) -> f64 {
+        self.inner.sunrise_h(t_max, &ctx_json.to_string())
+    }
+    #[func]
+    fn sunset_h(&self, t_max: f64, ctx_json: GString) -> f64 {
+        self.inner.sunset_h(t_max, &ctx_json.to_string())
+    }
+    /// `[cover, sky_heat]`; до `configure` - пусто.
+    #[func]
+    fn sky_params(&self, sky: GString) -> PackedFloat32Array {
+        packed(&self.inner.sky_params(&sky.to_string()))
+    }
+    #[func]
+    fn derive(&self, forecast_json: GString, ctx_json: GString, hour: f64) -> GString {
+        gs(self
+            .inner
+            .derive(&forecast_json.to_string(), &ctx_json.to_string(), hour))
+    }
+    #[func]
+    fn air_temp_c(&self, hour: f64, t_max: f64, z: f64, ctx_json: GString) -> f64 {
+        self.inner.air_temp_c(hour, t_max, z, &ctx_json.to_string())
+    }
+    #[func]
+    fn water_temp_c(&self, month: i64, day: i64, z: f64, ctx_json: GString) -> f64 {
+        self.inner
+            .water_temp_c(month, day, z, &ctx_json.to_string())
+    }
+    #[func]
+    fn temp_at_altitude(&self, weather_json: GString, alt_msl: f64, month: i64, day: i64) -> f64 {
+        self.inner
+            .temp_at_altitude(&weather_json.to_string(), alt_msl, month, day)
+    }
+    #[func]
+    fn climate_cell(&self, lat: f64, lon: f64, month: i64, day: i64) -> GString {
+        gs(self.inner.climate_cell(lat, lon, month, day))
+    }
+    #[func]
+    fn reference_context(&self) -> GString {
+        gs(self.inner.reference_context())
+    }
+    #[func]
+    fn quantum_h(&self) -> f64 {
+        self.inner.quantum_h()
+    }
+    #[func]
+    fn hour_at(&self, start_hour: f64, speed: f64, t: f64, world_time: f64) -> f64 {
+        self.inner.hour_at(start_hour, speed, t, world_time)
+    }
+    #[func]
+    fn valley_of(&self, samples: PackedFloat32Array, percentile: f64) -> f64 {
+        self.inner.valley_of(samples.as_slice(), percentile)
     }
 }
