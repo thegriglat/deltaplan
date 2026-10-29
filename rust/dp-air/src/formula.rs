@@ -770,6 +770,19 @@ impl Formula {
         Ok(())
     }
 
+    /// Опорная высота ветра без `wind_ref` (пресет, прогноз без `wind_ref`): высота первого старта
+    /// места, как `Atmosphere._f_weather_ctx` в GD.
+    fn default_ref_msl(&mut self) {
+        if self.terms.wind.ref_msl.is_nan()
+            && let Some(s) = self
+                .place
+                .as_ref()
+                .and_then(|p| p.header().start_sites.first().map(|s| s.h_msl))
+        {
+            self.terms.wind.ref_msl = s;
+        }
+    }
+
     /// Земля термиков из места и хода дня: сила источников по классам и часу. Ошибка конфигов
     /// (`surface_heat`/`world` нет) термики не включает - слот остаётся без земли.
     fn wire_thermal(&mut self) {
@@ -1276,6 +1289,7 @@ impl AirModel for Formula {
         self.terms.place_key = epoch;
         self.terms.set_origin(0.0);
         self.terms.set_place(Some(&*place));
+        self.default_ref_msl();
         self.wire_thermal();
         self.fed_ver = u64::MAX;
         self.sync_field();
@@ -1341,6 +1355,7 @@ impl AirModel for Formula {
         self.cond = Some(c.clone());
         self.recompute_inputs();
         self.terms.set_conditions(c);
+        self.default_ref_msl();
         // ход дня сменился (новый или другие часы): сила источников термиков по новому часу
         if self.place.is_some() && self.terms.day_sig() != self.wired_sig {
             self.wire_thermal();
