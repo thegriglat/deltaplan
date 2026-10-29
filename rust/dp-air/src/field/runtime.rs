@@ -71,7 +71,7 @@ use super::weather_core::{
 use super::wind_field::{Field, FieldGrid, FieldMeta, Limits, Z0};
 use super::window::tcode;
 use crate::level::{Level, prolong_state};
-use crate::{Conditions, Configs, Error, InflowMode, Loc, LocClimate, Place};
+use crate::{Conditions, Configs, Error, InflowMode, Loc, LocClimate, Place, Raster};
 use picard_rs::api::{Fallback, Freeze, NonConv, SolveOpts, Solved, StopReason, solve};
 use picard_rs::case::Case;
 use picard_rs::state::State;
@@ -818,6 +818,8 @@ pub struct PassReport {
     pub secs: [f64; 4],
     /// Фазы поля посчитаны (иначе — Пикар без фаз).
     pub phases: bool,
+    /// Растр главной фазы клетки (`debug_raster("phase_main")`, F4); `None` - без фаз.
+    pub phase_main: Option<Arc<Raster>>,
     /// Секунды сборки фаз.
     pub phase_s: f64,
     /// Доля замороженных колонн `[heat, mech]`.
@@ -1333,6 +1335,10 @@ fn solve_pass(
         )
     });
     let fr_some = phase.is_some();
+    let phase_main = phase
+        .as_ref()
+        .and_then(|r| crate::debug_rasters::phase_main(&fine_dom, &r.maps.heat.weights))
+        .map(Arc::new);
     let (fr_h, fr_m, nonconv) = match phase {
         Some(r) => (Some(r.freeze), Some(r.freeze_mech), r.nonconv),
         None => (None, None, None),
@@ -1466,6 +1472,7 @@ fn solve_pass(
         nonconv_fallback: sm.nonconv_fallback || sh.nonconv_fallback,
         secs: [t_prep, t_coarse, t_solve, t_build],
         phases: fr_some,
+        phase_main,
         phase_s,
         frozen_frac,
         nonconv_cols,
