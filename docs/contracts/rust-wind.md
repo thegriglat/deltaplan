@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-10-29"
 summary: "Граница ветра в Rust: фасад Atmosphere, DpAir (gdext), трейт dp-air, место, описания, разложение, допуски, сборка, чистота."
 related: ["docs/plan/rust-wind.md", "docs/contracts/picard-rs.md", "docs/plan/rust-air-integration.md", "docs/plan/rust-ext.md", "docs/plan/air-cascade.md", "tools/research/rust_ext/gdext_probe/README.md", "docs/contracts/rust-wind/fixtures-tolerances.md", "docs/contracts/rust-wind/descriptions.md", "docs/contracts/rust-wind/solver.md", "docs/contracts/rust-wind/trait.md", "docs/contracts/rust-wind/dpair.md"]
-contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 3}, {"id": "W3", "version": 4}, {"id": "W4", "version": 5}, {"id": "W5", "version": 8}, {"id": "W6", "version": 3}, {"id": "W7", "version": 1}, {"id": "W8", "version": 1}, {"id": "W9", "version": 2}, {"id": "W10", "version": 2}, {"id": "W11", "version": 11}]
+contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 3}, {"id": "W3", "version": 4}, {"id": "W4", "version": 5}, {"id": "W5", "version": 8}, {"id": "W6", "version": 3}, {"id": "W7", "version": 1}, {"id": "W8", "version": 2}, {"id": "W9", "version": 2}, {"id": "W10", "version": 2}, {"id": "W11", "version": 11}]
 ---
 
 # Контракты модуля rust-wind
@@ -103,7 +103,7 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 3}, {"id": "W3",
 - `debug_raster_names() -> PackedStringArray`; `debug_raster(name) -> Dictionary {nx, ny, dx, x0, z0, data: PackedFloat32Array}` — растры для оверлеев (поток тепла F7, карта фаз F4 и т. п.); неизвестное имя → `{}`.
 - Отладка не в горячем пути; `Dictionary` допустим.
 
-## W8. Фикстуры T1 и допуски (v1)
+## W8. Фикстуры T1 и допуски (v2)
 Владелец — RW-1 (снимает на текущем коде до правок атмосферы), RW-2 (второй набор — по слагаемым W7). Потребители — `cargo test` (RW-6…12), GDScript-тесты T7. Формат фикстур `tests/fixtures/wind/`, допуски T1 по величинам (решение вопроса 3 плана) и пороги скорости — `docs/contracts/rust-wind/fixtures-tolerances.md`.
 
 ## W9. Workspace, сборка, поставка (v2)
@@ -157,3 +157,4 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 3}, {"id": "W3",
 - W3 v4, W4 v5, уточнение W2 без смены версии (2026-10-29, постановка RW-7) — режим поля `set_field_enabled` (W2 «Режим поля»: `auto` в headless — без поля), переходная выдача поля фасаду `field_export*`/`field_version` (TI-К3 v3 без потерь) для GDScript-слагаемых до их переноса. Версия API не меняется (= W2 v3). Потребители: RW-7a (крейт, `dp-gd`, контрактные тесты), RW-7b (фасад).
 - W5 v8 (2026-10-29, разбор RW-8a) — сырая ячейка климата `loc.climate_cell`/`climate_cell_lag` (поправки на высоту — в крейте), конфиг `world` в `configure`. Потребители: RW-12b (фасад `AirPlaceData`, крейт `derive`/`ClimateGrid.place`, места фикстур), RW-10c (правило скал, `surface.thermal.edge_*`), RW-12c (`AtmoDay`, часы 6…21).
 - W11 v11 (2026-10-29, итог RW-U2) — θ′_d замороженных колонн решения с нагревом := θ′ механизма (`thd = Some(th)`), K — своего случая; θ′, θ′_d во всех не-неизвестных клетках — как `K_BC`. Потребители: RW-U4 (`dp-air` assembly, `picard_rs` граница, тесты), RW-7 (без изменений интерфейса).
+- W8 v2 (2026-10-29, ответ пользователя на Q1, итоги RW-6z/U1/U2, предложения RW-8a) — допуск T1 поля по классам клеток (`mech` 1 % |U| + 0,01 м/с, `conv` как v1, `nonconv` 15 %), статус решателя эталона `meta.solver`, эталоны с ошибкой GPU (landing_hill, thermal_slope); число ядер ≤ 2 на момент и ≤ 3 %, `above_base` после RW-11, случай `off`, `cases/<имя>.weather.json`. Потребители: RW-6u (T1 по классам, перепечатка landing_hill), RW-2c, RW-10*, RW-11*, RW-12* (эталоны этапа 3).
