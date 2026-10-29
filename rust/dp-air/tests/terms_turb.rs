@@ -288,7 +288,6 @@ fn sigma_lee_sep_scales_match_godot() {
 /// Номера полей записи дампа `_air_velocity_field` (64 числа).
 mod rec {
     pub const LEN: usize = 64;
-    pub const POS: usize = 0;
     pub const T: usize = 3;
     pub const A: usize = 4;
     pub const AGL: usize = 5;
@@ -301,19 +300,14 @@ mod rec {
     pub const DANGER: usize = 22;
     pub const U_H: usize = 23;
     pub const DU: usize = 24;
-    pub const GROUND: usize = 25;
     pub const MH: usize = 26;
     pub const CONV_A: usize = 28;
-    pub const SG: usize = 29;
-    pub const SV: usize = 33;
-    pub const SEP: usize = 37;
     pub const W_BURST: usize = 39;
     pub const S_U: usize = 40;
     pub const S_V: usize = 41;
     pub const S_W: usize = 42;
     pub const EX2: usize = 43;
     pub const N: usize = 46;
-    pub const SIG: usize = 52;
     pub const HARD_F: usize = 54;
     pub const ADVECT: usize = 55;
     pub const WD: usize = 56;
@@ -419,7 +413,7 @@ fn ongudai_replay_matches_air_velocity_field() {
                 .max(o.sep[1].min(atmosphere_sum_cfg().rotor_max_ms));
             let vr = atmosphere_sum_cfg().vertical_ratio;
             let fin_w = (o.s_w * o.s_w + r[rec::EX2] * vr * vr).sqrt().min(cap_v);
-            worst[2] = worst[2].max((fin_w - r[rec::S_W + 0]).abs());
+            worst[2] = worst[2].max((fin_w - r[rec::S_W]).abs());
             for q in 0..3 {
                 worst[3] = worst[3].max((o.n[q] - r[rec::N + q]).abs());
             }
@@ -647,7 +641,7 @@ fn t3_mil_scales_and_anisotropy() {
         t[T_N2] = f32::NAN;
         t
     };
-    let mut prev_w = 0.0;
+    let prev_w = 0.0;
     for z in [3.0f64, 10.0, 30.0, 100.0] {
         let s = sigma::sigma(&cfg, 0.1, z, &tb(z), [0.0, 0.0], 8.0);
         println!(
@@ -1033,8 +1027,8 @@ mod island {
         for p in pts.iter().take(200) {
             let dc = m.decompose(*p);
             let s: [f32; 3] = std::array::from_fn(|q| dc.vel.iter().map(|v| v[q]).sum());
-            for q in 0..3 {
-                assert!((s[q] - dc.total[q]).abs() <= 1e-4);
+            for (a, b) in s.iter().zip(&dc.total) {
+                assert!((a - b).abs() <= 1e-4);
             }
             seen_turb |=
                 dc.vel[terms::T_TURB].iter().any(|x| *x != 0.0) && dc.sigma[terms::T_TURB] > 0.0;
