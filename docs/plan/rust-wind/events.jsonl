@@ -1039,3 +1039,5 @@
 {"t": "2026-10-29T17:34:15", "by": "coordinator", "task": "RW-P4", "ev": "started"}
 {"t": "2026-10-29T17:34:26", "by": "coordinator", "task": "RW-P1", "ev": "checked", "note": "6/6 smoke_release=ok:exit 0; dp_gd_tests=ok:exit 0; clippy=ok:exit 0; fmt=ok:exit 0; report_doc=ok:exit 0; docs_check=ok:ошибок 0"}
 {"t": "2026-10-29T17:34:38", "by": "coordinator", "task": "RW-P1", "ev": "accepted", "note": "по отчёту: smoke, журнал стадий, отчёт; вывод о чужой сборке — вопрос пилоту Q2"}
+{"t": "2026-10-29T17:39:51", "by": "coordinator", "task": "RW-P1", "ev": "accepted", "commits": ["6ab932f"], "note": "6/6 smoke_release=ok:exit 0; dp_gd_tests=ok:exit 0; clippy=ok:exit 0; fmt=ok:exit 0; report_doc=ok:exit 0; docs_check=ok:ошибок 0"}
+{"t": "2026-10-29T17:39:51", "by": "coordinator", "task": "RW-P1", "ev": "merged"}
