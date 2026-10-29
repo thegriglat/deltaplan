@@ -40,6 +40,8 @@ mod decompose;
 mod frame;
 mod slots;
 mod sum;
+pub mod thermal;
+pub mod thermal_src;
 mod weather_link;
 
 use crate::field::field_set::FieldSet;
@@ -117,10 +119,10 @@ pub struct Slots {
 impl Slots {
     pub fn new() -> Self {
         Slots {
-            analytic: Arc::new(NoAnalytic), // RW-9
-            thermal: Arc::new(NoThermal),   // RW-10
-            extra: Arc::new(NoExtra),       // RW-11
-            turb: Arc::new(NoTurb),         // RW-8
+            analytic: Arc::new(NoAnalytic),                   // RW-9
+            thermal: Arc::new(thermal::ThermalSlot::empty()), // RW-10b
+            extra: Arc::new(NoExtra),                         // RW-11
+            turb: Arc::new(NoTurb),                           // RW-8
         }
     }
 }
@@ -194,15 +196,41 @@ impl Terms {
 
     /// Хук времени (`advance_to`): обновить слагаемые, которым нужен шаг (термики раз в 1 с
     /// атмосферы, облака 0,1 с) и погоду (ход дня на сетке 0,1 с, мягкая смена). `true` — снимок
-    /// изменился, нужна публикация.
+    /// изменился, нужна публикация. Термики (RW-10b): новый набор при смене ячейки
+    /// `floor(t / refresh_interval_s)`, условий, ветра, статичных.
     pub fn advance(&mut self, t: f64) -> bool {
-        self.advance_weather(t)
+        let w = self.advance_weather(t);
+        match self.slots.thermal.advanced(self, t, false) {
+            Some(n) => {
+                self.slots.thermal = n;
+                true
+            }
+            None => w,
+        }
     }
 
     /// Хук `start_at`: состояние слагаемых на `t` как после прогона с 0 (W2). Погода — ход дня на `t`
-    /// (чистая функция времени); остальные слагаемые — пусто.
+    /// (чистая функция времени); термики — чистая функция (клетка, цикл), набор строится на `t` сразу.
     pub fn start_at(&mut self, t: f64) -> bool {
-        self.advance_weather(t)
+        let w = self.advance_weather(t);
+        match self.slots.thermal.advanced(self, t, true) {
+            Some(n) => {
+                self.slots.thermal = n;
+                true
+            }
+            None => w,
+        }
+    }
+
+    /// Земля для термиков (высота, вода, сила источника): `thermal::PlaceGround` или своя.
+    /// Набор термиков строится при следующем `advance`/`start_at`.
+    pub fn set_thermal_ground(&mut self, g: Arc<dyn thermal::GroundSource>) {
+        self.slots.thermal = Arc::new(thermal::ThermalSlot::new(g));
+    }
+
+    /// Ядра подъёма W6 (`AirModel::cores` подключит RW-12z): на момент `t`.
+    pub fn thermal_cores(&self, center: [f32; 3], radius: f32, t: f64, out: &mut Vec<crate::Core>) {
+        self.slots.thermal.cores(center, radius, t, out);
     }
 
     /// Выгрузка места: условия и конфиги остаются, фокусы и статические термики — нет.

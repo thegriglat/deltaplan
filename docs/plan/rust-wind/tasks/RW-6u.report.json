@@ -1,0 +1,135 @@
+{
+  "status": "done",
+  "summary": "Эталон training_island/landing_hill перепечатан на c591b1026 с фазами AirPhaseCpu (f64), Пикар на GPU как в игре; meta.solver записан по трём уровням (все converged; область dx400 — 0 итераций, колонны заморожены целиком). Крейт против нового эталона: max |Δ| 0,0024 м/с, вне допуска v2 0 клеток; против GPU-поля игры: до 1,47 м/с.",
+  "commits": [
+    "ad509646c rust-wind RW-6u: эталон T1 landing_hill - перепечь CPU-путём фаз (f64) на c591b1026 со статусом решателя"
+  ],
+  "checks": [
+    {
+      "name": "ref_files",
+      "value": "ref ok",
+      "pass": true
+    },
+    {
+      "name": "readme",
+      "value": "3",
+      "pass": true
+    },
+    {
+      "name": "parse",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "повтор печати",
+      "value": "статус решателя и key совпали побитно (две печати)",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RW-6u; сравнение - tools/research/rust_wind_t1_ref/compare.py (числа в compare_results.json)",
+  "uncertain": [
+    {
+      "where": "tests/fixtures/wind/baked/training_island/landing_hill.json: meta.solver, dx400",
+      "why": "область решалась 0 итераций (frozen_frac 1,00, фазы F 0,99 / H 0,01): stop=converged при iters=0 - это AllFrozen крейта, у игры отдельного статуса нет. Схема W8 v2 не различает.",
+      "checked": "крейт на тех же условиях тоже AllFrozen на dx400 (stab_run meta); compare.py считает converged и AllFrozen сошедшимся"
+    },
+    {
+      "where": "tools/research/rust_wind_t1_ref/ref_c591b1026.patch (bake_air.gd)",
+      "why": "первая печать вышла с центром места 51,87/85,87 в key: Terrain._ready грузил место по умолчанию altai по сети и в гонке подменял центр (в оригинальном GPU-поле гонку выиграл остров). Добавлено terrain.location_id = '' ; после этого key побитно равен ключу GPU-поля.",
+      "checked": "key эталона == key data/locations/training_island/air/landing_hill.json; grid и прочие meta уровней совпадают, различается только solver; model_hash другой (c28c394c28da8707 против 50e249bed5ee6b3c) - хеш по исходникам модели с крючками патча"
+    },
+    {
+      "where": "compare.py: классы клеток",
+      "why": "весь эталон - класс mech (колонны заморожены, окна берут маску области), поэтому conv/nonconv в сравнении пусты (n=0); допуск conv/nonconv этим полем не проверяется",
+      "checked": "статусы: крейт Converged/Converged на окнах, AllFrozen на dx400; эталон converged везде - nonconv-клеток нет по определению W8 v2"
+    }
+  ],
+  "dp_feedback": "dpcli lock cpu <имя> -- cmd в моей копии не запустил godot молча (лог пуст, код 0); job --lock cpu --no-tmux start сработал. План: раздел из карточки 'Решения пользователя (2026-10-29: RW-U1, Q1 - W8 v2)' в plan не найден.",
+  "extra": {
+    "solver_status": {
+      "dx50": {
+        "heat": {
+          "stop": "converged",
+          "iters": 240,
+          "div_rms": 7e-10
+        },
+        "mech": {
+          "stop": "converged",
+          "iters": 40,
+          "div_rms": 2.3e-10
+        }
+      },
+      "dx100": {
+        "heat": {
+          "stop": "converged",
+          "iters": 180,
+          "div_rms": 3.4e-10
+        },
+        "mech": {
+          "stop": "converged",
+          "iters": 30,
+          "div_rms": 1.2e-10
+        }
+      },
+      "dx400": {
+        "heat": {
+          "stop": "converged",
+          "iters": 0,
+          "div_rms": 4e-10
+        },
+        "mech": {
+          "stop": "converged",
+          "iters": 0,
+          "div_rms": 3.2e-10
+        }
+      }
+    },
+    "crate_vs_new_ref_max_abs": {
+      "dx50": {
+        "u": 0.0016,
+        "w_mech": 0.0001,
+        "w_conv": 0.0014,
+        "theta_K": 0.0007
+      },
+      "dx100": {
+        "u": 0.0013,
+        "w_mech": 0.0001,
+        "w_conv": 0.0013,
+        "theta_K": 0.0005
+      },
+      "dx400": {
+        "u": 0.0024,
+        "w_mech": 0.0023,
+        "w_conv": 0.0001,
+        "theta_K": 0.0005
+      }
+    },
+    "crate_vs_new_ref_rms_u": {
+      "dx50": 0.00024,
+      "dx100": 0.0002,
+      "dx400": 0.00014
+    },
+    "crate_vs_new_ref_frac_over_v2": 0.0,
+    "crate_vs_game_gpu_field_max_u": {
+      "dx50": 1.19,
+      "dx100": 1.47,
+      "dx400": 0.32
+    },
+    "crate_vs_game_gpu_field_rms_u": {
+      "dx50": 0.245,
+      "dx100": 0.229,
+      "dx400": 0.05
+    },
+    "crate_vs_game_gpu_field_frac_u_over_mech_tol": {
+      "dx50": 0.923,
+      "dx100": 0.899,
+      "dx400": 0.462
+    },
+    "bake_wall_s": "~200 (фазы CPU ~100 с)",
+    "ref_worktree_removed": true
+  },
+  "t": "2026-10-29T05:53:40",
+  "by": "executor"
+}

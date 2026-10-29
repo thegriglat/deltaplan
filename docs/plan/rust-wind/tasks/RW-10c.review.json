@@ -1,0 +1,46 @@
+{
+  "verdict": "accept",
+  "summary": "Перенос Terrain.thermal_source_strength_water / _surface_class / _edge_proximity / normal_at и AirPlaceData.source_at сверен построчно с c591b1026, совпадает (onehot-класс, ясное небо или ночь застройки, порог скал по n.y, 4×8 лучей края, roundi ближайшего узла). Скоуп соблюдён, formula.rs/field/ не тронуты, эталон с ревизией в manifest, 2,7 МБ. Числа отчёта воспроизведены.",
+  "issues": [
+    {
+      "file": "rust/dp-air/tests/terms_thermal_src.rs",
+      "line": 287,
+      "severity": "minor",
+      "what": "Защита от регрессии assert frac < 0.03 берётся по сумме трёх мест; на Онгудае доля в отдельные часы до 7,1 %, и её рост за счёт островов не виден. Это не допуск (так и сказано), но границы по месту нет",
+      "fix": "по желанию: порог защиты по каждому месту (например, Онгудай < 0,09), без ужесточения ради теста"
+    },
+    {
+      "file": "rust/dp-air/src/terms/thermal_src/mod.rs",
+      "line": 236,
+      "severity": "minor",
+      "what": "edge_proximity берёт классы из cls растра, где уже есть bare от крутизны; в GD карта классов без уклона. Отсюда 4,5 % расхождений близости на Онгудае: это систематическое отличие, а не шум разрешения",
+      "fix": "для RW-10d или координатора: решить, нужен ли в W5 класс до уклона (или флаг «bare от крутизны»), либо принять отличие как границу модели (оно описано в rustdoc)"
+    },
+    {
+      "file": "rust/dp-air/src/terms/thermal_src/mod.rs",
+      "line": 133,
+      "severity": "minor",
+      "what": "SourceHour::at / atmo_sun не сверены с AtmoDay.source_fn: дамп подавал направления и ночь из GD. В отчёте это названо",
+      "fix": "сверить после RW-12c (у координатора в списке)"
+    }
+  ],
+  "rerun": [
+    {
+      "name": "terms_thermal_src (accept --only --dry)",
+      "value": "9",
+      "pass": true
+    },
+    {
+      "name": "raster_source против source_at max|Δ|",
+      "value": "1.19e-7",
+      "pass": true
+    },
+    {
+      "name": "доля |Δ|>0,05 против terrain-пути",
+      "value": "1.57 % (7335 из 466578); класс Онгудая 94.1 %",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-29T06:00:44",
+  "by": "reviewer"
+}
