@@ -1,0 +1,46 @@
+{
+  "verdict": "rework",
+  "summary": "Стык W1/W2 исправлен верно: отказ set_conditions на READY даёт BAD_INPUT, state и _f_cond не меняются; отказ в _dp_start даёт FAILED и push_error; quantum_h берётся из AtmoDay (1/60 ч), фильтр phase* снят; тест малого места 25 м доходит до READY, ветер ≠ 0 (22 с). Не сделано: wind_field_debug.fetch_raster по-прежнему лезет в приватный Air._dp, хотя файл в скоупе (в отчёте «вне скоупа» — неправда). Документ устарел. 4 теста потребителей падают из-за этой ветки.",
+  "issues": [
+    {
+      "file": "scripts/atmosphere/wind_field_debug.gd",
+      "line": 176,
+      "severity": "major",
+      "what": "Заметки 17:52 и 18:32 требуют перевести fetch_raster на фасад Atmosphere.debug_raster (W10). Запасной путь через air.get(\"_dp\") → debug_raster_header/debug_raster_data остался, а комментарий :168 («фасад phase_* пока не отдаёт») после снятия фильтра врёт. Файл есть в скоупе карточки. Отчёт (not_done: «вне скоупа не менялся») не совпадает с карточкой.",
+      "fix": "Убрать ветку с _dp: fetch_raster возвращает air.debug_raster(raster_name) или {}. Поправить комментарий. Проверить, что debug_layers остаётся 7/7."
+    },
+    {
+      "file": "tests/contracts/test_rust_wind_consumers.gd",
+      "line": 98,
+      "severity": "major",
+      "what": "Ветка вносит регрессию: tests_vs_base --filter=consumers даёт 4 новых падения против feature/rust-wind — test_rust_wind_consumers::test_status_stage_field_iters и test_atmosphere_consumers::{test_fluff_rises_with_updraft, test_parse_cores_static_thermal, test_thermal_signs_over_static_thermal}. Причина в логе: условия теста ({preset: weather/medium} без start_hour/quantum_h) крейт отвергает, а _dp_start теперь переводит фасад в FAILED (atmosphere.gd:1019 → :917). По W1 так и должно быть: раньше зелёный тест держался на ложном READY. Но эти тесты вне скоупа задачи. Заметка 18:37 снимает только строгую проверку на границе фасада, а не эти падения. weather_day и wind_profile_simple падают и в базе, новых падений в них нет.",
+      "fix": "Решает координатор. Вариант 1: расширить скоуп RW-P5 на эти тесты и добавить в их условия start_hour/speed/quantum_h. Вариант 2: вливать RW-P5 только вместе с RW-P3, которая их правит, или после неё. Перед слиянием в любом случае прогнать tests_vs_base --filter=consumers."
+    },
+    {
+      "file": "docs/research/rust-wind-stage3/pilot-air-stage.md",
+      "line": 33,
+      "severity": "minor",
+      "what": "Документ не обновлён после доработки. В нём написано: «тест ждёт этап, не READY» (:33), «READY и ветер ≠ 0 в тесте не проверяются (долго)» (:37), «отказ… FAILED» без разделения на подготовку и READY. Но test_small_place_ready_with_wind проверяет READY, field_on, ветер ≠ 0 и сохранение READY после отказа условий.",
+      "fix": "Переписать разделы «Починка» и «Где не уверен» по факту: два теста, что каждый проверяет, время прогона. Указать регрессию тестов потребителей и путь её снятия."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "place_air_stage (accept --only --dry)",
+      "value": "2/2, 22 с; scope 4 файла в границах",
+      "pass": true
+    },
+    {
+      "name": "tests_vs_base --filter=weather_day / wind_profile_simple",
+      "value": "новых падений 0 (по 1 падению и в базе)",
+      "pass": true
+    },
+    {
+      "name": "tests_vs_base --filter=consumers",
+      "value": "новых падений 4 (из-за FAILED при отказе set_conditions)",
+      "pass": false
+    }
+  ],
+  "t": "2026-10-29T18:46:01",
+  "by": "reviewer"
+}

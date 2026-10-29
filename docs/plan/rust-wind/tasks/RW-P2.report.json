@@ -1,0 +1,79 @@
+{
+  "status": "partial",
+  "summary": "F4 (карта фаз) и F7 (поток тепла) были пусты: Formula::debug_raster возвращала None, а фасад отсекает phase*; теперь крейт строит heat_flux и phase_main (dp-air/debug_rasters.rs), F4 берёт phase_main из крейта напрямую, пока фасад его отсекает. F3 рисовал стрелки с перепутанным масштабом (Basis.scaled масштабирует строки) - исправлено. F5 и F6 по данным работали. Тест debug_layers 7/7; cargo test --no-fail-fast: падает один тест contract::api_version_matches_contract_header (API_VERSION 4 против W2 v5) - его чинит RW-P3.",
+  "commits": [
+    "ee4d468a6 RW-P2: отладочные слои F3-F7 - растры heat_flux и phase_main из крейта, F3 с верным масштабом стрелок, тест debug_layers"
+  ],
+  "checks": [
+    {
+      "name": "debug_layers",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "всё, кроме contract::api_version_matches_contract_header (версия 4 против 5, RW-P3)",
+      "pass": false
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "dp_air_no_godot",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "report_doc",
+      "value": "docs/research/rust-wind-stage3/debug-layers.md",
+      "pass": true
+    },
+    {
+      "name": "docs_check",
+      "value": "ошибок 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Причина, почему пилот не видел F5/F6 (и F3), данными не воспроизвелась: при READY с полем они работают. Вероятно воздух не был READY в экспорте (RW-P1).",
+    "Фасад atmosphere.gd (скоуп RW-P1) отсекает phase* в debug_raster и debug_raster_names: F4 обходит это чтением DpAir напрямую через Air._dp (WindFieldDebug.fetch_raster). После снятия фильтра в фасаде обход не нужен и сам отключится.",
+    "F6 проверен на статическом термике (динамические в cores() пусты через фасад - RW-P6)."
+  ],
+  "questions": [
+    "RW-P1: фасад не проверяет код dp.set_conditions в _dp_start - прогноз без speed/quantum_h отвергается крейтом молча, поле не считается, статус READY, field_on true. Нужна проверка и в _check_conditions, и код ответа."
+  ],
+  "images": [],
+  "how_to_check": "godot --headless --path . res://tests/run_tests.tscn -- --filter=debug_layers (после tools/build_rust.sh tune linux); cargo test -p dp-air --test formula_facade debug_rasters",
+  "uncertain": [
+    {
+      "where": "scripts/atmosphere/wind_field_debug.gd:fetch_raster",
+      "why": "обращается к приватному Air._dp; зависит от имени переменной фасада",
+      "checked": "работает в тесте test_f4_phase_map"
+    },
+    {
+      "where": "rust/dp-air/src/formula.rs:phase_main_raster",
+      "why": "карта фаз берётся из отчёта последнего прохода; поле из файла/кеша и сдвиг окон фаз не дают - F4 пишет нет",
+      "checked": "Rust-тест debug_rasters_absent_without_field; на запечённом месте глазами не смотрел"
+    },
+    {
+      "where": "scripts/atmosphere/wind_field_debug.gd:arrows_at",
+      "why": "исправление масштаба стрелок F3 проверено числами, не глазами",
+      "checked": "test_f3_wind_field_arrows: длина и толщина базиса"
+    },
+    {
+      "where": "запуски Godot",
+      "why": "все запуски шли с XDG_DATA_HOME=~/.cache/dp-xdg/rust-wind-RW-P2, кроме accept --dry (его запускает dpcli)",
+      "checked": "-"
+    }
+  ],
+  "dp_feedback": "lock cpu при Bash-вызове уходит в tmux-окно: вывод приходится читать из лога задачи вручную; удобно было бы печатать хвост лога по завершении.",
+  "t": "2026-10-29T17:52:08",
+  "by": "executor"
+}

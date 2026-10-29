@@ -444,3 +444,43 @@ fn background_cloud_step_does_not_block_advance() {
     assert!(terms_of(&m).clouds.physics().version > 0);
     eprintln!("worst advance_to: {worst:?}");
 }
+
+/// RW-P2: отладочные растры W7 после расчёта поля - поток тепла (F7) и главная фаза (F4): имена,
+/// размеры `nx·ny = len(data)`, конечные значения, индексы фаз; без поля растров нет.
+#[test]
+fn debug_rasters_follow_the_field() {
+    let m = synth_with_field("strong", 60.0);
+    let names = m.debug_raster_names();
+    assert!(names.iter().any(|n| n == "heat_flux"), "{names:?}");
+    assert!(names.iter().any(|n| n == "phase_main"), "{names:?}");
+    for n in ["heat_flux", "phase_main"] {
+        let r = m
+            .debug_raster(n)
+            .unwrap_or_else(|| panic!("{n}: нет растра"));
+        let (_, data) = r.layers.iter().find(|(l, _)| l == "data").unwrap();
+        assert!(r.nx > 1 && r.ny > 1 && r.dx > 0.0 && r.version > 0, "{n}");
+        assert_eq!(data.len(), (r.nx * r.ny) as usize, "{n}: nx·ny");
+        assert!(data.iter().all(|v| v.is_finite()), "{n}: конечны");
+        assert!(r.x0.is_finite() && r.z0.is_finite(), "{n}: начало");
+        if n == "phase_main" {
+            assert!(
+                data.iter()
+                    .all(|&v| (0.0..7.0).contains(&v) && v.fract() == 0.0)
+            );
+        } else {
+            assert!(
+                data.iter().any(|&v| v > 0.0),
+                "тепло над землёй при сильном дне"
+            );
+        }
+    }
+    assert!(m.debug_raster("нет такого").is_none());
+}
+
+#[test]
+fn debug_rasters_absent_without_field() {
+    let m = ongudai_no_field(0.0);
+    assert!(m.debug_raster_names().is_empty());
+    assert!(m.debug_raster("heat_flux").is_none());
+    assert!(m.debug_raster("phase_main").is_none());
+}

@@ -1,0 +1,88 @@
+{
+  "id": "RW-P6",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Динамические термики (mode 0) в крейте: cores() пуст на месте с погодой — причина и починка",
+  "goal": "У Formula на месте с полными условиями W5 (preset или прогноз) динамические термики (mode 0) рождаются и видны в cores()/thermals_near, как у GD на опорной ревизии c591b1026; cargo-тест, который это ловит, и сверка слагаемого thermal с эталоном RW-2b.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "W4",
+      "version": "7",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W5",
+      "version": "8",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W6",
+      "version": "4",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-P6",
+  "branch": "rust-wind/RW-P6",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/",
+    "rust/dp-air/tests/",
+    "docs/research/rust-wind-stage3/dynamic-thermals.md"
+  ],
+  "dont_touch": [
+    "rust/dp-air/src/terms/analytic/",
+    "rust/dp-gd/",
+    "rust/picard_rs/",
+    "scripts/",
+    "tests/",
+    "configs/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "dyn_thermals",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air dynamic_thermals",
+      "expect": "num:test result: ok\\. (\\d+) passed >=1"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dp_air_no_godot",
+      "cmd": "cargo tree --manifest-path rust/Cargo.toml -p dp-air -e normal | grep -ci godot || true",
+      "expect": "num:^(\\d+) <=0"
+    },
+    {
+      "name": "report_doc",
+      "cmd": "test -s docs/research/rust-wind-stage3/dynamic-thermals.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs_check",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace -- --skip api_version_matches_contract_header",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T17:49:53",
+  "edited": "2026-10-29T18:29:32"
+}

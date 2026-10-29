@@ -165,6 +165,10 @@ var _dp_failed := false
 var _dp_cfg_sig := ""
 ## load_place отправлен крейту и место не выгружено.
 var _dp_placed := false
+## Журнал подготовки: момент начала (мс), последний записанный этап и состояние.
+var _dp_t0 := 0
+var _dp_stage_logged := ""
+var _dp_state_logged := -1
 ## Номер подачи поля (field_version), уже принятый в air_field; −1 — ещё не принимали.
 var _dp_ver := -1
 ## Поле в air_field пришло из крейта (выгрузка места его снимает).
@@ -349,6 +353,8 @@ func set_conditions(cond: Dictionary) -> int:
 	var why := _check_conditions(cond)
 	if why != "":
 		return _fail(BAD_INPUT, "set_conditions: " + why)
+	var prev_cond := _f_cond
+	var prev_set := _f_cond_set
 	_f_cond = cond.duplicate(true)
 	_f_cond_set = true
 	if not _dp_placed:
@@ -359,7 +365,13 @@ func set_conditions(cond: Dictionary) -> int:
 		_dp_start()
 		_set_state(STATE_LOADING)
 		return OK
-	_dp.set_conditions(_dp_cond_json())
+	if _dp.set_conditions(_dp_cond_json()) != 0:
+		# W1: BAD_INPUT — вход отвергнут, состояние не меняется; прежние условия остаются
+		_f_cond = prev_cond
+		_f_cond_set = prev_set
+		var msg := "set_conditions: %s" % _dp.last_error()
+		push_error("dp_air: " + msg)
+		return _fail(BAD_INPUT, msg)
 	_dp_poll()
 	return OK
 
@@ -673,8 +685,7 @@ func debug_raster_names() -> PackedStringArray:
 		names.append("terrain_height")
 	if _dp_has():
 		for n in _dp.debug_raster_names():
-			if not String(n).begins_with("phase"):
-				names.append(n)
+			names.append(n)
 	return names
 
 
@@ -690,7 +701,7 @@ func debug_raster(raster_name: String) -> Dictionary:
 			"z0": float(g.origin_z),
 			"data": _f_place.get("heights"),
 		}
-	if not _dp_has() or raster_name.begins_with("phase"):
+	if not _dp_has():
 		return {}
 	var head := _raster_head(false, raster_name)
 	if int(head.get("version", 0)) <= 0:
@@ -807,11 +818,37 @@ func _dp_poll() -> void:
 	if not _dp_placed and not _dp_failed:
 		_dp_start()
 	var s := _compute_state()
+	_dp_log_progress(s)
 	if s == STATE_READY and _f_state != STATE_READY:
 		_on_ready()
 	_set_state(s)
 	_poll_weather()
 	_dp_feed()
+
+
+## Журнал подготовки (W9): смена этапа одной строкой с итерациями, итог READY/FAILED с временем.
+func _dp_log_progress(s: int) -> void:
+	if not _dp_placed or _dp == null:
+		return
+	var t := (Time.get_ticks_msec() - _dp_t0) * 0.001
+	if s == STATE_LOADING:
+		var st := String(_dp.stage())
+		if st != _dp_stage_logged:
+			_dp_stage_logged = st
+			_dp_log("dp_air: %.1f с, этап %s, итераций %d" % [t, st, int(_dp.iters())])
+	elif s != _dp_state_logged and (s == STATE_READY or s == STATE_FAILED):
+		_dp_log(
+			(
+				"dp_air: %s за %.1f с, поле %s, last_error=%s"
+				% [
+					"READY" if s == STATE_READY else "FAILED",
+					t,
+					"подано" if int(_dp.field_version()) > 0 else "нет",
+					_dp.last_error(),
+				]
+			)
+		)
+	_dp_state_logged = s
 
 
 ## Первое READY после сборки: запомненный момент старта и weather_changed.
@@ -849,6 +886,7 @@ func _dp_object() -> RefCounted:
 		_dp_log("dp_air: нет расширения — воздух недоступен")
 		return null
 	_dp = ClassDB.instantiate("DpAir")
+	_dp_log("dp_air: расширение загружено, api_version=%d" % int(_dp.api_version()))
 	return _dp
 
 
@@ -863,6 +901,7 @@ func _dp_failed_with(what: String) -> void:
 	_dp_placed = false
 	_f_err = "dp_air: %s: %s" % [what, _dp.last_error()]
 	_dp_log(_f_err)
+	push_error(_f_err)
 
 
 ## Конфиг по имени (слитый словарь Config).
@@ -949,7 +988,9 @@ func _dp_start() -> void:
 	var place := _f_place
 	if not place.get("header").has("model_hash"):
 		place.call("fill_crate_inputs")
-	dp.set_conditions(_dp_cond_json())
+	if dp.set_conditions(_dp_cond_json()) != 0:
+		_dp_failed_with("set_conditions")  # раньше молча: погода пуста, поле не считалось (RW-P5)
+		return
 	if _f_sun_set:
 		dp.set_sun_direction(_f_sun)
 	if _f_statics_set:
@@ -973,6 +1014,15 @@ func _dp_start() -> void:
 	_dp_placed = true
 	_dp_ver = -1
 	_dp_fed = false
+	_dp_t0 = Time.get_ticks_msec()
+	_dp_stage_logged = ""
+	_dp_state_logged = -1
+	_dp_log(
+		(
+			"dp_air: подготовка места начата, место %s"
+			% str(place.get("header").get("loc", {}).get("id", "?"))
+		)
+	)
 
 
 func _update_focus() -> void:

@@ -5,6 +5,7 @@
 mod calm;
 pub mod compat;
 mod conditions;
+pub mod debug_rasters;
 mod error;
 pub mod field;
 pub mod fixtures;

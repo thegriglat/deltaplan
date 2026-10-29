@@ -1,0 +1,48 @@
+{
+  "id": "RW-P4",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "tests/atmosphere/test_atmosphere.gd: 10 из 11 падают на feature/rust-wind (air_place_data.gd:281 read-only Dictionary) — причина и починка",
+  "goal": "Найти и починить причину падения test_atmosphere.gd на ветке модуля (ошибка записи в read-only Dictionary в scripts/atmosphere/air_place_data.gd:281 и что ещё всплывёт); проверить, что сборка AirPlaceData для настоящего входа игры на не запечённое место не ломается так же.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "W5",
+      "version": "8",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W2",
+      "version": "5",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-P4",
+  "branch": "rust-wind/RW-P4",
+  "base": "feature/rust-wind",
+  "scope": [
+    "scripts/atmosphere/air_place_data.gd",
+    "tests/atmosphere/test_atmosphere.gd",
+    "tests/atmosphere/test_air_place_data.gd",
+    "tests/atmosphere/test_air_place_data.gd.uid"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/atmosphere.gd",
+    "rust/",
+    "configs/",
+    "scripts/ui/",
+    "scripts/game/",
+    "docs/contracts/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "air_place_data",
+      "tests": "air_place_data"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T17:33:59",
+  "edited": "2026-10-29T17:48:52"
+}

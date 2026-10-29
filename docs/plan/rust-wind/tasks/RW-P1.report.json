@@ -1,0 +1,62 @@
+{
+  "status": "done",
+  "summary": "В release-экспорте Linux DpAir грузится (api 4), поле на не запечённом месте доходит до READY за ~15 с, ветер у земли 3,6 м/с. Журнал пилота не от сборки rust-wind: нет строки godot-rust и dp_air:, есть air_model: от GDScript/GPU AirRuntime, которого в 70e491dcb нет. Smoke переписан под W2/W3 (api 4, поле on, READY, ветер != 0), фасад пишет стадии в журнал.",
+  "commits": [
+    "9ebf608e6 RW-P1: воздух в release Linux — smoke с полем, журнал стадий фасада, отчёт"
+  ],
+  "checks": [
+    {
+      "name": "smoke_release",
+      "value": "OK: READY 14.8 с, ветер 3.60 м/с, field_version=2",
+      "pass": true
+    },
+    {
+      "name": "dp_gd_tests",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "report_doc",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "docs_check",
+      "value": "0 ошибок (в dry-прогоне падал по длине summary, исправлено до коммита)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Полную игру на случайном месте в экспорте не прогонял (нужен дисплей и меню); проверен smoke на DpAir напрямую и тест фасада."
+  ],
+  "questions": [
+    "Пилоту: какой каталог запускался (build/linux или build/linux-rust-wind)? Повторить запуск и искать dp_air: в новом журнале."
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-P1",
+  "uncertain": [
+    {
+      "where": "docs/research/rust-wind-stage3/pilot-air.md п.3",
+      "why": "вывод о чужой сборке косвенный (по содержимому журнала)",
+      "checked": "git grep: AirRuntime нигде не создаётся в 70e491dcb; в журнале нет Initialize godot-rust"
+    },
+    {
+      "where": "scripts/atmosphere/atmosphere.gd:_dp_log_progress",
+      "why": "журнал стадий не видел на реальной загрузке места в экспорте",
+      "checked": "строки dp_air: видны в тесте фасада test_atmosphere.gd; там же 10 из 11 падают и без моих правок (air_place_data.gd:281 read-only Dictionary)"
+    }
+  ],
+  "dp_feedback": "accept --dry гоняет smoke ~8 мин (полная release-сборка с нуля в свежей копии); хорошо бы общий target-кэш между копиями.",
+  "t": "2026-10-29T17:32:10",
+  "by": "executor"
+}

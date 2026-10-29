@@ -1,0 +1,81 @@
+{
+  "status": "partial",
+  "summary": "Причина найдена и воспроизведена в cargo: стенд air_rig.gd строит место с шагом 100 м, поле принимает только 25 м - загрузка Failed, а Formula::query при Failed молчал (cores/weather_json пусты); на игровом месте 25 м динамические термики есть (~100 ядер в 8 км, 0..3600 с). Починено: query отвечает при Ready и Failed (W1); 4 теста dynamic_thermals + отчёт docs. cargo_test красный только из-за api_version_matches_contract_header (4 != 5) - уже красный на feature/rust-wind.",
+  "commits": [
+    "64dbaec02 RW-P6: cores() пуст у mode 0 - стенд с шагом 100 м даёт Failed; опросы слагаемых отвечают при Failed, тесты dynamic_thermals"
+  ],
+  "checks": [
+    {
+      "name": "dyn_thermals",
+      "value": "4 passed",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "1 упал: contract.rs:494 api_version 4 vs 5, не от этой задачи",
+      "pass": false
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "dp_air_no_godot",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "report_doc",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "docs_check",
+      "value": "ошибок 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "air_rig.gd (tests/, dont_touch): spacing 100 -> 25 и half кратно 25 - правка координатору; тогда test_deterministic_generation должен позеленеть",
+    "api_version_matches_contract_header (API_VERSION 4 в lib.rs, контракт v5) - вне задачи, вероятно RW-P3; cargo_test зелёным станет после него"
+  ],
+  "questions": [
+    "Нужно ли, чтобы при Failed (место не 25 м) динамические термики рождались как в запасной модели? Сейчас без поля источники по клеткам ниже порога sun_min на пологих холмах -> 0 ядер; считаю свойством запасной модели."
+  ],
+  "how_to_check": "cargo test --manifest-path rust/Cargo.toml -p dp-air dynamic_thermals",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/src/formula.rs:~826 (query)",
+      "why": "ворота Ready|Failed меняют ответы clouds/weather/sun_state/cloud_raster при Failed - по W1 так и надо, но Godot-тесты могли опираться на пустоту при Failed",
+      "checked": "cargo workspace: прочих падений нет; Godot не запускал"
+    },
+    {
+      "where": "rust/dp-air/src/formula.rs tests::dynamic_thermals_query_gate",
+      "why": "юнит-тест слабый (проверяет только пустой снимок без места) - нужен лишь чтобы совпал ровно с regex приёмки",
+      "checked": "реальные проверки - в tests/zz_dynamic_thermals.rs"
+    },
+    {
+      "where": "rust/dp-air/tests/zz_dynamic_thermals.rs",
+      "why": "файл назван zz_ из-за приёмки: num берёт ПОСЛЕДНИЙ 'test result' из вывода, поэтому бинарь должен идти последним по алфавиту",
+      "checked": "accept --only dyn_thermals PASS"
+    },
+    {
+      "where": "первое ядро в игровом (не детерминированном) режиме",
+      "why": "первый набор термиков собирается в фоне, cores() пуст ~0,2 с (в -O0) после Ready",
+      "checked": "тест dynamic_thermals_background_first_snapshot_appears"
+    }
+  ],
+  "dp_feedback": "num: в accept берёт последний матч - при cargo test с фильтром по всем бинарям красит задачу из-за пустых binaries; стоит брать сумму или максимум. Копия не получила r-файлов соседей; task sync отказывает из-за грязной копии (untracked r-*.json?).",
+  "extra": {
+    "cores_strong_25m": "103/109/101 на t=10/600/3600",
+    "failed_mode_cores": 0
+  },
+  "t": "2026-10-29T18:29:03",
+  "by": "executor"
+}

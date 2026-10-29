@@ -687,6 +687,14 @@ impl Formula {
         self
     }
 
+    /// Растр главной фазы последнего прохода (`phase_main`); нет фаз - `None`.
+    fn phase_main_raster(&self) -> Option<Arc<Raster>> {
+        lock(&self.sh.report)
+            .as_ref()
+            .and_then(|r| r.passes.last())
+            .and_then(|p| p.phase_main.clone())
+    }
+
     /// Журнал последней принятой задачи (итерации, проходы `k`, заметки).
     pub fn report(&self) -> Option<JobReport> {
         lock(&self.sh.report).clone()
@@ -816,9 +824,11 @@ impl Formula {
         true
     }
 
-    /// Снимок и время атмосферы для опросов слагаемых: место загружено и состояние `Ready`.
+    /// Снимок и время атмосферы для опросов слагаемых: место загружено и состояние `Ready` или
+    /// `Failed` (W1: при `Failed` опросы идут по запасному пути - слагаемые без поля, погода и
+    /// термики по клеткам; пусто только до готовности).
     fn query(&self) -> Option<(Arc<Published>, f64)> {
-        if self.sh.state() != State::Ready {
+        if !matches!(self.sh.state(), State::Ready | State::Failed) {
             return None;
         }
         let pb = self.sh.snapshot();
@@ -1642,11 +1652,51 @@ impl AirModel for Formula {
         terms::decompose(&pb.terms, &pb.fs, pb.place.as_deref(), p, t)
     }
 
-    fn debug_raster(&self, _name: &str) -> Option<Arc<Raster>> {
-        None
+    /// `heat_flux` - поток тепла грубейшего уровня поля (F7); `phase_main` - главная фаза клетки
+    /// последнего расчёта поля (F4; поле из файла или кеша фаз не знает).
+    fn debug_raster(&self, name: &str) -> Option<Arc<Raster>> {
+        match name {
+            "heat_flux" => {
+                let pb = self.sh.snapshot();
+                let f = pb.fs.levels().last()?;
+                let version = lock(&self.sh.exp).version;
+                crate::debug_rasters::heat_flux(f, version).map(Arc::new)
+            }
+            "phase_main" => self.phase_main_raster(),
+            _ => None,
+        }
     }
 
     fn debug_raster_names(&self) -> Vec<String> {
-        Vec::new()
+        let mut out = Vec::new();
+        if self.debug_raster("heat_flux").is_some() {
+            out.push("heat_flux".to_string());
+        }
+        if self.phase_main_raster().is_some() {
+            out.push("phase_main".to_string());
+        }
+        out
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// RW-P6: опросы слагаемых отвечают при `Ready` и `Failed` (W1), не при `Empty`/`Loading`.
+    #[test]
+    fn dynamic_thermals_query_gate() {
+        let m = Formula::new();
+        assert!(m.query().is_none());
+        for (st, ok) in [
+            (State::Loading, false),
+            (State::Ready, true),
+            (State::Failed, true),
+        ] {
+            m.sh.set_state(st, 0.0, "");
+            // без места снимок пуст при любом состоянии: проверяется только ворота состояния
+            assert!(m.query().is_none());
+            assert_eq!(matches!(st, State::Ready | State::Failed), ok);
+        }
     }
 }

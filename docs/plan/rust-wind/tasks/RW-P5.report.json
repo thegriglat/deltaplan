@@ -1,0 +1,69 @@
+{
+  "status": "done",
+  "summary": "Причина: Game._air_conditions не слал quantum_h, крейт отвергал set_conditions (BAD_INPUT), фасад код игнорировал: READY за 0.0 с, поля нет, этапа нет. Добавлен quantum_h; отказ set_conditions теперь FAILED с last_error. Тест игрового пути ждёт этап подготовки ветра. Доработка по ревью: отказ set_conditions на READY - BAD_INPUT без смены состояния и условий; push_error; фильтр phase* снят в фасаде; тест малого места 25 м доходит до READY с ветром. Доработка-2: wind_field_debug.fetch_raster только через Atmosphere.debug_raster; документ переписан.",
+  "commits": [
+    "37e3928d0 RW-P5: quantum_h в условиях игры, отказ set_conditions виден, тест place_air_stage",
+    "d5186d9b9 RW-P5 ревью: W1 при отказе на READY, push_error, снят фильтр phase, тест малого места",
+    "c3a6be4f1 fetch_raster через фасад, pilot-air-stage.md по факту"
+  ],
+  "checks": [
+    {
+      "name": "load_probe чистый профиль до починки",
+      "value": "set_conditions rc=1 missing quantum_h; READY 0.0 с",
+      "pass": true
+    },
+    {
+      "name": "place_air_stage",
+      "value": "1/1",
+      "pass": true
+    },
+    {
+      "name": "debug_layers",
+      "value": "7/7 (после пересборки tune-библиотеки)",
+      "pass": true
+    },
+    {
+      "name": "report_doc",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "docs_check",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "no_private_dp",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Строгая проверка quantum_h на границе фасада не включена: ломает tests/atmosphere weather_day, wind_profile_simple, rust_wind_consumers (их условия без quantum_h; вне скоупа) - они теперь падают громко",
+    "wind_field_debug.fetch_raster вне скоупа не менялся",
+    "test_rust_wind_contracts (версии доков), rw7_field падают независимо от этой задачи"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-P5",
+  "uncertain": [
+    {
+      "where": "tests/game/test_place_air_stage.gd",
+      "why": "Онгудай, режим on; пилотное место pt_ после починки в окне не прогонялось до конца",
+      "checked": "до починки load_probe воспроизвёл отказ; после - этап виден в тесте"
+    },
+    {
+      "where": "scripts/atmosphere/atmosphere.gd:set_conditions",
+      "why": "отказ крейта теперь даёт FAILED; тесты с условиями без quantum_h (если есть) станут падать",
+      "checked": "debug_layers 7/7, place_air_stage"
+    }
+  ],
+  "dp_feedback": "Устаревшая tune-библиотека в копии даёт ложные FAIL приёмки; хорошо бы accept предупреждал или собирал.",
+  "t": "2026-10-29T18:47:28",
+  "by": "executor"
+}

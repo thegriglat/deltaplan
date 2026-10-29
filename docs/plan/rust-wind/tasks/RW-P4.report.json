@@ -1,0 +1,48 @@
+{
+  "status": "partial",
+  "summary": "Причина read-only: air_rig.LOC - const, from_functions отдаёт его как loc, fill_climate писал loc.climate в него (из игры from_snapshot копирует loc - там не падало, на не запечённое место с from_terrain сборка не ломается; fill_crate_inputs писал в start_sites - тоже копия). Починено; плюс тесты не слали start_hour/speed (крейт отклонял условия, погода пуста). test_atmosphere: 10 из 11 упало -> 3 из 11; test_air_place_data (новый, 2 теста) зелёный. Остаток - не read-only, см. not_done.",
+  "commits": [
+    "c98369743 RW-P4: AirPlaceData read-only + start_hour/speed в тестах атмосферы"
+  ],
+  "checks": [
+    {
+      "name": "air_place_data",
+      "value": "2 теста, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_atmosphere",
+      "value": "11 тестов, 3 упало",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "test_deterministic_generation: cores() пуст у динамических термиков (mode 0) в Godot-пути для нулевых статик: ни preset, ни forecast-условия, до 3600 с, место 10 и 40 км - ядер 0; статические (mode 1/2) работают. Воздух без термиков в эталонном месте - кандидат в баг крейта/привязки (rust/ вне скоупа). Не нашёл причину; подозрение: источники PlaceGround (thermal_src::strength) дают 0 на месте from_functions, а в rust-тестах земля sunny() без Place.",
+    "test_ridge_lift_windward_and_lee_sink: подветренный склон -0.93 м/с против порога bg-0.5 = -1.0 (bg=-0.5); крейт даёт чуть слабее GD. Порог не менял - калибровка физики, решать координатору.",
+    "test_turbulence_deterministic_and_ground_stronger: порывистость у земли 2.33 против 2.43 на 900 м (ожидалось низ > верх*1.2) - крейт не усиливает турбулентность у земли с этим профилем; не менял."
+  ],
+  "questions": [
+    "Динамические термики отсутствуют в эталонном месте через фасад (cores=0) - это в игре тоже так? Нужна отдельная задача с доступом к rust/dp-air."
+  ],
+  "how_to_check": ".dpcli/dpcli accept RW-P4 --dry; вручную: godot ... --filter=test_atmosphere.gd (нужен tools/build_rust.sh tune linux)",
+  "uncertain": [
+    {
+      "where": "tests/atmosphere/air_rig.gd",
+      "why": "Rig.make без cond не задаёт start_hour/speed - крейт отклоняет условия (Conditions::from_json: missing 'start_hour'/'speed'), фасад ошибку set_conditions не показывает; так же сломаны, вероятно, все тесты, зовущие Rig.make без cond (test_calibration, test_hazards и др.). В моём скоупе обошёл локальным _make в test_atmosphere.gd. Нужна правка air_rig (вне скоупа) и, возможно, громкая ошибка в фасаде.",
+      "checked": "воспроизвёл вызовом dp.set_conditions: r=1, last_error 'missing start_hour', затем 'missing speed'."
+    },
+    {
+      "where": "запуски Godot",
+      "why": "правило XDG_DATA_HOME пришло позже начала работы: часть ручных запусков (после первого) шла без XDG_DATA_HOME (shell не сохраняет export между вызовами), т.е. могла писать в профиль пилота ~/.local/share/Deltaplan.",
+      "checked": "последние запуски - с XDG_DATA_HOME=~/.cache/dp-xdg/rust-wind-RW-P4"
+    },
+    {
+      "where": "addons/dp_air/bin",
+      "why": "в копии не было собранного расширения - собрал tools/build_rust.sh tune linux (в .gitignore); без него тесты воздуха не идут.",
+      "checked": "libdp_air_tune.so есть"
+    }
+  ],
+  "dp_feedback": "accept --dry не собирает расширение dp_air в свежей копии; полезна подсказка в карточке.",
+  "t": "2026-10-29T17:48:23",
+  "by": "executor"
+}
