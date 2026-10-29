@@ -1,0 +1,34 @@
+{
+  "verdict": "accept",
+  "summary": "cloud_objects и Core.storm в скоупе, записи сверены с дампом GD в 1e-4, ветка вливается без конфликтов. Зажим t в окно и перенос ObjRecord - в RW-12z (названо в отчёте).",
+  "issues": [
+    {
+      "file": "rust/dp-air/src/terms/objects/mod.rs",
+      "line": 1,
+      "severity": "minor",
+      "what": "Зажим t в окно [now-fade_out_s, now] не сделан (контракт v4), отложен фасаду RW-12z.",
+      "fix": "Убедиться, что RW-12z принимает зажим и перенос ObjRecord рядом с Core (W4 v6)."
+    },
+    {
+      "file": "rust/dp-air/tests/data/RW-11f/cloud_objects.json",
+      "line": 1,
+      "severity": "minor",
+      "what": "Ветка статичных термиков (flags=1, life ∓1e30, drift_t0 +1e30) не сверена с GD: в дампе статичных записей нет.",
+      "fix": "Сверить после появления статичных облаков (RW-10d/e)."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "accept --only terms_objects --dry",
+      "value": "6 тестов ok, scope ok",
+      "pass": true
+    },
+    {
+      "name": "merge-tree с feature/rust-wind",
+      "value": "без конфликтов",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-29T11:59:44",
+  "by": "reviewer"
+}

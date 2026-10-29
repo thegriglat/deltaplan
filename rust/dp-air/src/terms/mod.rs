@@ -39,6 +39,7 @@
 pub mod clouds;
 mod decompose;
 mod frame;
+pub mod objects;
 mod slots;
 pub mod storm;
 mod sum;
@@ -264,8 +265,15 @@ impl Terms {
     }
 
     /// Ядра подъёма W6 (`AirModel::cores` подключит RW-12z): на момент `t`.
+    /// Поле `storm` ядра Cb - интенсивность грозы (`StormField.intensity`, RW-11f).
     pub fn thermal_cores(&self, center: [f32; 3], radius: f32, t: f64, out: &mut Vec<crate::Core>) {
-        self.slots.thermal.cores(center, radius, t, out);
+        match self.slots.thermal.as_slot().and_then(|s| s.state()) {
+            Some(st) => {
+                let f = storm::field_of(self, storm::StormCfg::from_configs(&self.configs));
+                thermal::cores::cores_with(st, center, radius, t, out, &|th, t| f.intensity(th, t));
+            }
+            None => self.slots.thermal.cores(center, radius, t, out),
+        }
     }
 
     /// Выгрузка места: условия и конфиги остаются, фокусы и статические термики — нет.
