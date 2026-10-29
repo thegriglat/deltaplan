@@ -205,7 +205,7 @@ impl CloudExtra {
 
 impl Extra for CloudExtra {
     fn flow(&self, c: &super::Ctx, _v: [f64; 3]) -> Option<ExtraOut> {
-        let ph = c.terms.slots.clouds.physics();
+        let ph = c.terms.clouds.physics();
         if ph.cloud_count() == 0 {
             return None;
         }
@@ -226,7 +226,7 @@ impl Extra for CloudExtra {
 /// Облака поля и Cb для описания W6 `clouds` на момент `t` (шаг `CLOUD_STRIDE = 10`).
 pub fn clouds(terms: &Terms, center: [f32; 3], radius: f32, t: f64, out: &mut Vec<Cloud>) {
     out.clear();
-    let ph = terms.slots.clouds.physics();
+    let ph = terms.clouds.physics();
     let all: &[Arc<crate::terms::thermal::AtmoThermal>] = terms
         .slots
         .thermal
@@ -304,7 +304,7 @@ pub fn clouds(terms: &Terms, center: [f32; 3], radius: f32, t: f64, out: &mut Ve
 
 /// Плотность облака в точках (`cloud_density_many`); не конечная точка - 0.
 pub fn cloud_density_many(terms: &Terms, pts: &[[f32; 3]], out: &mut [f32]) {
-    let ph = terms.slots.clouds.physics();
+    let ph = terms.clouds.physics();
     for (o, p) in out.iter_mut().zip(pts) {
         *o = 0.0;
         if p.iter().all(|v| v.is_finite()) {
@@ -318,7 +318,7 @@ pub fn cloud_density_many(terms: &Terms, pts: &[[f32; 3]], out: &mut [f32]) {
 
 /// Растр поля облаков на сетке W1: узлы - центры столбцов, строка растёт к +Z. `None` - поля нет.
 pub fn cloud_raster(terms: &Terms) -> Option<Arc<Raster>> {
-    let ph = terms.slots.clouds.physics();
+    let ph = terms.clouds.physics();
     let f = &*ph.field;
     if f.nx == 0 {
         return None;

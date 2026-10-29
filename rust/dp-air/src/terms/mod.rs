@@ -118,8 +118,6 @@ pub struct Slots {
     pub thermal: Arc<dyn Thermal>,
     pub extra: Arc<dyn Extra>,
     pub turb: Arc<dyn Turb>,
-    /// Облака (RW-11d): снимок физики облаков, обновляет `Terms::advance`/`start_at`.
-    pub clouds: Arc<clouds::CloudSlot>,
 }
 
 impl Slots {
@@ -132,8 +130,7 @@ impl Slots {
                 Arc::new(waves::WaveExtra::new()),   // RW-11b
                 Arc::new(clouds::CloudExtra::new()), // RW-11d
             ])),
-            turb: Arc::new(NoTurb),                          // RW-8
-            clouds: Arc::new(clouds::CloudSlot::analytic()), // RW-11d
+            turb: Arc::new(NoTurb), // RW-8
         }
     }
 }
@@ -160,6 +157,8 @@ pub struct Terms {
     /// Направление на солнце (`set_sun_direction`).
     pub sun: Option<[f32; 3]>,
     pub slots: Slots,
+    /// Облака (RW-11d): снимок физики облаков, обновляет `advance`/`start_at`.
+    pub clouds: Arc<clouds::CloudSlot>,
     /// Погода во времени (RW-12d, `weather_link.rs`): состояние, место, версии.
     link: weather_link::WeatherLink,
 }
@@ -178,6 +177,7 @@ impl Default for Terms {
             statics_mode: 0,
             sun: None,
             slots: Slots::new(),
+            clouds: Arc::new(clouds::CloudSlot::analytic()),
             link: Default::default(),
         }
     }
@@ -223,9 +223,9 @@ impl Terms {
     }
 
     fn advance_clouds(&mut self, t: f64, force: bool) -> bool {
-        match self.slots.clouds.advanced(self, t, force) {
+        match self.clouds.advanced(self, t, force) {
             Some(n) => {
-                self.slots.clouds = n;
+                self.clouds = n;
                 true
             }
             None => false,
@@ -234,12 +234,12 @@ impl Terms {
 
     /// Поставщик входов поля облаков (`Field` + `AirThermals` - RW-10e/RW-12z).
     pub fn set_cloud_inputs(&mut self, inputs: Arc<dyn clouds::CloudInputs>) {
-        self.slots.clouds = Arc::new(self.slots.clouds.with_inputs(inputs));
+        self.clouds = Arc::new(self.clouds.with_inputs(inputs));
     }
 
     /// Снимок физики облаков (крючки `CloudHooks` для термиков).
     pub fn cloud_physics(&self) -> &Arc<clouds::CloudPhysics> {
-        self.slots.clouds.physics()
+        self.clouds.physics()
     }
 
     /// Хук `start_at`: состояние слагаемых на `t` как после прогона с 0 (W2). Погода — ход дня на `t`
