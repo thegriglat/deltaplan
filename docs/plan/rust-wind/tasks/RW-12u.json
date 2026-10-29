@@ -1,0 +1,87 @@
+{
+  "id": "RW-12u",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Шаг 1 перехода фасада: API_VERSION = 4, методы W4 v6 с умолчаниями, ObjRecord в корне крейта",
+  "goal": "Крейт и dp-gd на версии API 4 (W2 v4/W3 v5/W4 v6): dp_air::API_VERSION = 4, трейт AirModel += cloud_objects/wave_info/surface_gust_many с умолчаниями W4 v6, ObjRecord и OBJ_STRIDE в корне dp_air (terms::objects использует их), константа версии dp-gd = 4; api_version_matches_contract_header и тест версии dp-gd зелёные. Реализацию в Formula НЕ делать (RW-12v).",
+  "plan_ref": "План переноса",
+  "contracts": [
+    {
+      "name": "W2",
+      "version": "4",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W3",
+      "version": "5",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W4",
+      "version": "6",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W6",
+      "version": "4",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-12u",
+  "branch": "rust-wind/RW-12u",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/lib.rs",
+    "rust/dp-air/src/terms/objects/",
+    "rust/dp-air/src/calm.rs",
+    "rust/dp-air/tests/contract.rs",
+    "rust/dp-air/tests/terms_objects.rs",
+    "rust/dp-gd/src/lib.rs",
+    "rust/dp-gd/src/bridge.rs",
+    "rust/dp-gd/tests/bridge.rs"
+  ],
+  "dont_touch": [
+    "rust/dp-air/src/formula.rs",
+    "rust/dp-air/src/field/",
+    "rust/picard_rs/",
+    "scripts/",
+    "tests/",
+    "docs/contracts/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "contract_version",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test contract api_version",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dp_gd_tests",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-gd",
+      "expect": "exit=0"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dp_air_no_godot",
+      "cmd": "cargo tree --manifest-path rust/Cargo.toml -p dp-air -e normal | grep -ci godot || true",
+      "expect": "num:^(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T13:55:01"
+}
