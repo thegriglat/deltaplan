@@ -8,5 +8,12 @@
 		"volcano_island",
 		"synthetic"
 	],
-	"rows": 116
+	"rows": 116,
+	"generator_removed_at": "a5d9387c3",
+	"generator_files_removed": [
+		"tools/wind_fixtures/day_dump.gd",
+		"tools/wind_fixtures/day_dump.gd.uid",
+		"tools/wind_fixtures/day_dump.sh",
+		"tools/wind_fixtures/day_dump.tscn"
+	]
 }

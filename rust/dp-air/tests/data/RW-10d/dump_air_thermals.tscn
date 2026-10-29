@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3]
-
-[ext_resource type="Script" path="res://tools/wind_fixtures/dump_air_thermals.gd" id="1"]
-
-[node name="DumpAirThermals" type="Node"]
-script = ExtResource("1")

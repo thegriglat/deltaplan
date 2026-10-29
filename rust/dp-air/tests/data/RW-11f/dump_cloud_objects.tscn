@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3]
-
-[ext_resource type="Script" path="res://tools/wind_fixtures/dump_cloud_objects.gd" id="1"]
-
-[node name="DumpCloudObjects" type="Node"]
-script = ExtResource("1")

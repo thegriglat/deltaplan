@@ -31,3 +31,6 @@ cp <это>/rw8_dump.gd.txt tools/wind_fixtures/rw8_dump.gd; cp <это>/rw8_dum
 godot --headless --path . res://tools/wind_fixtures/rw8_dump.tscn -- --out=<dir>
 ```
 Размер каталога ≤ 5 МБ. `project.godot` после запусков вернуть как был.
+
+## Генератор удалён (RW-13)
+`tools/wind_fixtures/gen_fixtures.{gd,gd.uid,tscn}`, `run.sh`, `verify.sh`, `check_k01.py` удалены; восстановление — `git show a5d9387c3:tools/wind_fixtures/<файл>`.
