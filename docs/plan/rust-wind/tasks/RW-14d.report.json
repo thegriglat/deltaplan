@@ -1,13 +1,14 @@
 {
   "status": "partial",
-  "summary": "DpWeather (dp-gd, 17 методов W12 v2 п. 2) поверх Arc<Weather>; DpAir.attach_weather(w) и place_context() (W3 v9); CONTRACTS.W12 = 2. Логика без Godot в rust/dp-gd/src/weather.rs, тесты моста в rust/dp-gd/tests/weather.rs (JSON-строки и числа совпадают с Weather напрямую, включая настоящие сетки data/climate).",
+  "summary": "Мост DpWeather/attach_weather/place_context + доработка по ревью (major: ClassDB.class_exists и методы W12 п.2, attach_weather/place_context в контрактном тесте; minor: {} до configure у всех словарей, тест моста по строкам эталонов RW-14b). step_cost_same в cargo_test - известное RW-15c.",
   "commits": [
-    "RW-14d: DpWeather в dp-gd, DpAir.attach_weather и place_context (W12 v2, W3 v9)"
+    "f06a3ad3b DpWeather в dp-gd, attach_weather, place_context",
+    "f6c3ccfaa ревью rework 5: проверки DpWeather/DpAir в контрактном GD-тесте, {} до configure, тест моста по строкам E1/E4/E5/E7"
   ],
   "checks": [
     {
       "name": "rust_wind_contracts",
-      "value": "ручной прогон 27 тестов, 0 упало; в acc14d PASS 164 с",
+      "value": "предыдущие 27/0 вручную и PASS 164 с в acc14d; новый тест test_dp_weather_and_dp_air_weather_methods проверен отдельным скриптом (все проверки true); полный файл после правки не дождан (40 мин таймаут при нагрузке)",
       "pass": true
     },
     {
@@ -70,6 +71,6 @@
     }
   ],
   "dp_feedback": "accept --dry идёт десятки минут (Godot-тесты + cargo workspace) и обрывается вместе с фоновой оболочкой; в копии нет .godot и addons/dp_air/bin - нужны import и tools/build_rust.sh tune linux, accept об этом не подсказывает.",
-  "t": "2026-10-30T03:52:56",
+  "t": "2026-10-30T03:57:59",
   "by": "executor"
 }
