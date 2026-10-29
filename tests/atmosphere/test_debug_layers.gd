@@ -94,8 +94,6 @@ func _air() -> Atmosphere:
 	_host.add_child(_a)
 	_a.configure(cfg)
 	_a.configure(7)
-	if _a.has_method("set_air_mode"):
-		_a.set_air_mode("on")  # режима поля после RW-P3 нет: поле считается всегда
 	var cond := {
 		"forecast":
 		{"temperature_c": 28.0, "wind_speed_kmh": 21.6, "wind_from_deg": 270.0, "sky": "clear"},
