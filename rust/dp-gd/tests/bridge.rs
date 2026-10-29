@@ -6,7 +6,7 @@ const HEADER: &str = r#"{"version":1,"loc":{"id":"t","center_lat":50.0,"center_l
 "width":4,"height":4},"surface_classes":{"grass":1},"start_sites":[]}"#;
 
 fn loaded() -> Bridge {
-    let mut b = Bridge::default();
+    let mut b = Bridge::new(Box::new(dp_air::Calm::new()));
     let n = 16;
     assert_eq!(
         b.load_place(
@@ -29,13 +29,13 @@ fn api_version_is_3() {
 
 #[test]
 fn stage_and_iters_are_empty_without_a_job() {
-    let b = Bridge::default();
+    let b = Bridge::new(Box::new(dp_air::Calm::new()));
     assert_eq!((b.stage().as_str(), b.iters()), ("", 0));
 }
 
 #[test]
 fn load_place_checks_lengths_and_nan() {
-    let mut b = Bridge::default();
+    let mut b = Bridge::new(Box::new(dp_air::Calm::new()));
     let ok = (
         vec![1.0f32; 16],
         vec![0u8; 16],
@@ -77,7 +77,7 @@ fn array_lengths_are_checked() {
 
 #[test]
 fn time_codes_and_no_place() {
-    let mut b = Bridge::default();
+    let mut b = Bridge::new(Box::new(dp_air::Calm::new()));
     assert_eq!(b.advance_to(1.0), NO_PLACE);
     assert_eq!(b.start_at(1.0), NO_PLACE);
     let mut b = loaded();
@@ -93,7 +93,7 @@ fn time_codes_and_no_place() {
 
 #[test]
 fn conditions_and_sun() {
-    let mut b = Bridge::default();
+    let mut b = Bridge::new(Box::new(dp_air::Calm::new()));
     assert_eq!(b.set_conditions("{}"), BAD_INPUT);
     assert_eq!(
         b.set_conditions(r#"{"preset":"weather/medium","start_hour":12,"speed":1}"#),
@@ -132,7 +132,7 @@ fn queries_fill_exact_lengths_and_calm_is_zero() {
 
 #[test]
 fn pool_is_created_once_with_config_threads() {
-    let mut b = Bridge::default();
+    let mut b = Bridge::new(Box::new(dp_air::Calm::new()));
     let cfg = r#"{"air":{"threads":2},"seed":7}"#;
     assert_eq!(b.configure(&["atmosphere".into(), cfg.into()], -1), OK);
     let n = init_pool(5);
