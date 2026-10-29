@@ -1,0 +1,95 @@
+{
+  "id": "RW-12d",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Погода в Terms: прогноз → derive по ходу дня (AtmoDay), WeatherState с версиями и коэффициентами, рамка ветра от выведенной погоды; эталон погоды дневных случаев",
+  "goal": "Terms::set_conditions для прогноза строит погоду через dp_air::weather (climate_place по loc.climate_cell W5 v8, derive, AtmoDay с зажимом часов world, коэффициенты), Terms::advance ведёт ход дня и мягкую смену, WeatherView и рамка ветра (высота солнца, облачность) берут выведенную погоду; weather_json/weather_version/sun_state — pub-методы Terms для RW-12z. Погода дневных случаев ongudai_day_* совпадает с эталоном W8 v2 cases/<имя>.weather.json.",
+  "plan_ref": "План переноса",
+  "contracts": [
+    {
+      "name": "W2",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W4",
+      "version": "5",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W5",
+      "version": "8",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W10",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-12d",
+  "branch": "rust-wind/RW-12d",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/terms/mod.rs",
+    "rust/dp-air/src/terms/frame.rs",
+    "rust/dp-air/src/terms/weather_link.rs",
+    "rust/dp-air/src/weather/",
+    "rust/dp-air/tests/terms_weather.rs",
+    "rust/dp-air/tests/data/RW-12d/",
+    "tests/fixtures/wind/places/",
+    "tests/fixtures/wind/cases/ongudai_day_1.weather.json",
+    "tests/fixtures/wind/cases/ongudai_day_2.weather.json",
+    "tests/fixtures/wind/cases/ongudai_day_3.weather.json",
+    "tests/fixtures/wind/README.md"
+  ],
+  "dont_touch": [
+    "rust/dp-air/src/formula.rs",
+    "rust/dp-air/src/field/",
+    "rust/picard_rs/",
+    "rust/dp-gd/",
+    "scripts/",
+    "docs/contracts/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "terms_weather",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test terms_weather",
+      "expect": "num:test result: ok\\. (\\d+) >=6"
+    },
+    {
+      "name": "places_bins_untouched",
+      "cmd": "git diff --quiet feature/rust-wind -- 'tests/fixtures/wind/places/*.bin'",
+      "expect": "exit=0"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dp_air_no_godot",
+      "cmd": "cargo tree --manifest-path rust/Cargo.toml -p dp-air -e normal | grep -ci godot || true",
+      "expect": "num:^(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T05:46:23"
+}

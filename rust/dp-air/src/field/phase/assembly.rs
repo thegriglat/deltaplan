@@ -19,8 +19,9 @@
 //!   (игра тогда не передаёт маску);
 //! - `warm` — [`State`] для `SolveOpts.init` решения с нагревом, `warm_mech` — без нагрева.
 //!
-//! Игра не передаёт канал `thd` (θ′_d) полей заморозки и запасного пути: здесь `thd = None` —
-//! замороженные колонны держат `thd` старта, `nonconv` берёт `thd` из `late_mean` (W11 v5).
+//! Канал `thd` (θ′_d) полей заморозки: у решения с нагревом `thd = Some(θ′ механизма)` — θ′ механизма
+//! F диабатический целиком (W11 v11); у решения без нагрева и у `nonconv` — `None` (θ′_d = 0 /
+//! `late_mean`, W11 v5).
 use super::classifier::{Classified, PhaseMaps, classify_pair};
 use super::config::PhaseCfg;
 use super::convection::{Updraft, convection_profile, theta, uml};
@@ -125,11 +126,11 @@ pub fn assemble_prepared(p: &Prepared, g: Option<&Drainage>) -> PhaseResult {
     PhaseResult {
         freeze: Freeze {
             mask: maps.heat.freeze.clone(),
-            field: Some(frozen(&heat)),
+            field: Some(frozen(&heat, true)),
         },
         freeze_mech: Freeze {
             mask: maps.mech.freeze.clone(),
-            field: Some(frozen(&mech)),
+            field: Some(frozen(&mech, false)),
         },
         nonconv,
         warm: heat,
@@ -153,18 +154,18 @@ fn nonconv(p: &Prepared, wf: &[f32], freeze: &[u8], field: &State) -> Option<Non
         .collect();
     mask.contains(&1).then(|| NonConv {
         mask,
-        field: Some(frozen(field)),
+        field: Some(frozen(field, false)),
     })
 }
 
-/// Поле для заморозки из состояния: `thd = None` (см. описание модуля).
-fn frozen(s: &State) -> FrozenField {
+/// Поле для заморозки из состояния: `thd = Some(θ′)` для решения с нагревом (`heated`), иначе `None`.
+fn frozen(s: &State, heated: bool) -> FrozenField {
     FrozenField {
         u: s.u.clone(),
         v: s.v.clone(),
         w: s.w.clone(),
         th: s.th.clone(),
-        thd: None,
+        thd: heated.then(|| s.th.clone()),
     }
 }
 

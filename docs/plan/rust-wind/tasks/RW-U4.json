@@ -21,7 +21,9 @@
     "rust/picard_rs/src/",
     "rust/picard_rs/tests/bc_type2_v11.rs",
     "rust/dp-air/tests/freeze_thd_v11.rs",
-    "rust/dp-air/tests/phase_assembly.rs"
+    "rust/dp-air/tests/phase_assembly.rs",
+    "rust/dp-air/tests/",
+    "rust/picard_rs/tests/"
   ],
   "dont_touch": [
     "rust/dp-air/src/field/phase/calm.rs",
@@ -57,5 +59,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-29T05:16:31"
+  "created": "2026-10-29T05:16:31",
+  "edited": "2026-10-29T05:28:25"
 }

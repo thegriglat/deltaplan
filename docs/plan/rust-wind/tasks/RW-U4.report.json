@@ -1,0 +1,41 @@
+{
+  "summary": "W11 v11: правило 1 (thd заморозки с нагревом = th механизма, assembly.rs) и правило 2 (theta', theta'_d во всех не-неизвестных клетках как K_BC, solver.rs apply_bc_all). Тесты freeze_thd_v11.rs и bc_type2_v11.rs. Обновлён хеш в dp-air/tests/clipmap.rs.",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/tests/clipmap.rs:594",
+      "why": "Изменившийся тест один: dp-air/tests/clipmap.rs::empty_window_levels_means_no_windows_and_the_area_only_path, хеш FNV-1a выборки 0x0a1f_dff1_73cb_b395 -> 0xa5ec_66d9_9d17_2394. Причина v11: после грубого старта theta' в кольце и на верху области ровно 0 (раньше интерполированные значения). cargo test --workspace --no-fail-fast: rc=0, других изменившихся эталонов нет. Числа T1/acceptance_release не гонял (решение пользователя). Величину сдвига полей (м/с, К) не измерял. Отдельного теста на K замороженных колонн нет: этот путь не менялся.",
+      "checked": "cargo test --workspace --no-fail-fast rc=0"
+    }
+  ],
+  "dp_feedback": "accept --dry без --no-fail-fast останавливается на первой упавшей тестовой программе; полный список меняющихся хешей виден только отдельным прогоном.",
+  "status": "done",
+  "commits": [
+    "d649acd5e W11 v11: thd заморозки = th; theta' в не-неизвестных клетках как K_BC",
+    "217ff4b31 хеш clipmap.rs снят заново на v11"
+  ],
+  "checks": [
+    {
+      "name": "v11_tests",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "how_to_check": ".dpcli/dpcli accept RW-U4",
+  "t": "2026-10-29T05:46:26",
+  "by": "executor"
+}
