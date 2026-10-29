@@ -993,3 +993,4 @@
 {"t": "2026-10-29T15:41:05", "by": "coordinator", "task": "RW-12t", "ev": "checked", "note": "1/1 no_removed_in_scripts=ok:0; scope=FAIL:вне scope: r-RW-12t.json"}
 {"t": "2026-10-29T15:42:21", "by": "executor", "task": "RW-12z", "ev": "reported", "commits": ["0779a3a31"], "note": "done: cloud_layer.gd на cloud_objects/wave_info/wave_crests/cloud_raster, gust_dust на пачку surface_gust_many (кандидаты кле…", "dp_feedback": "Pre-commit check_gd падает, пока соседняя задача (12x) не влита; проверка parse в карточке была невыполнима. gdlint по карточке падал уже на исходных файлах (файл >1000 строк)."}
 {"t": "2026-10-29T15:42:40", "by": "coordinator", "task": "RW-12z", "ev": "checked", "note": "3/3 gdlint=ok:exit 0; purity_baseline_empty=ok:0; no_force_wind=ok:0"}
+{"t": "2026-10-29T15:42:49", "by": "coordinator", "task": "RW-12z", "ev": "accepted", "note": "ревью не нужно (решение «проверки по цене»); Godot не гонялся; RW-11e влита сюда"}

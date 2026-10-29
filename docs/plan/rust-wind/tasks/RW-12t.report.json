@@ -1,0 +1,75 @@
+{
+  "status": "partial",
+  "summary": "Все обращения к удалённым членам Atmosphere в scripts/ и рабочих tools/ переведены на W2 v4 (grep=0). Инструменты записей поля GD (bake_air, часть wind_penetration) остаются завязаны на AirRuntime/WindField — их судьба RW-13.",
+  "commits": [
+    "2343ffb38 Слияние rust-wind/RW-12x: RW-12x доработка: типиз"
+  ],
+  "checks": [
+    {
+      "name": "no_removed_in_scripts",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "gdlint scripts",
+      "value": "1867 замечаний, столько же на feature/rust-wind без моих правок (в основном max-line-length, pendulum/game/osm)",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "gdlint tools/lint.sh scripts не PASS из-за прежних 1867 замечаний вне скоупа (до моих правок то же число)",
+    "tools/terrain/bake_air.gd: _make_atmosphere переведён на v4, но запекание идёт через AirRuntime/atmo.air_field (GD-решатель) — на W2 v4 не работает, нужна замена запекания в крейте (RW-13/отдельная задача)",
+    "tools/flight/wind_penetration_run.gd: фаза --phase=fields и сохранённые WindField удалены (поле считает крейт, режим field = set_air_mode on); _make_atmo/_fly_* теперь корутины",
+    "air_probe (volcano, island): w_conv и доля поля — нули, blend_fraction/levels убраны (на границе их нет); w (air_velocity_at) = mean_wind_at, болтанка выкл. через SAMPLE_MEAN",
+    "cloud_fade_shot.gd: убрать конкретный термик из поля нельзя — вместо этого set_static_thermals([],1) (все динамические термики выкл.); CloudLayer/AtmoThermal/_slot_th — внутренности RW-12z, инструмент заработает после их перехода",
+    "birds_shot.gd: внутренности BirdFlock (_flocks, AtmoThermal) не трогал — RW-12z"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RW-12t --dry (no_removed_in_scripts PASS; gdlint падает на прежних замечаниях)",
+  "uncertain": [
+    {
+      "where": "tools/flight/wind_penetration_run.gd:_restart",
+      "why": "start_at(0.0) на каждый полёт вместо time_s=0; не знаю, пересчитывает ли крейт поле при start_at (дорого в режиме field)",
+      "checked": "только чтение контракта facade.md; Godot не запускал (решение координатора)"
+    },
+    {
+      "where": "tools/wind_field/dump_slices.gd, tools/terrain/*air_probe.gd",
+      "why": "не запускались: сборка расширения dp_air в копии отсутствует; синтаксис проверен только gdlint (без новых ошибок кроме max-line-length)",
+      "checked": "tools/lint.sh по изменённым файлам"
+    },
+    {
+      "where": "tools/shots/thermal_signs_shot.gd",
+      "why": "ядро статического термика ищется в cores() по (x=0, z=-300) с допуском 5 м; y_src берётся из CORE_Y_SRC",
+      "checked": "по контракту W6"
+    },
+    {
+      "where": "tools/bench/frame_profile.gd",
+      "why": "задачи atmo.refresh_now и +AirThermals.build заменены одной atmo.advance_to (аналога обновления источников нет)",
+      "checked": "grep"
+    }
+  ],
+  "dp_feedback": "gdlint scripts падает на 1867 прежних замечаниях — приёмка gdlint без базовой линии не может быть PASS; хорошо бы сравнение с базой по файлам задачи.",
+  "extra": {
+    "research_refs_removed_members": {
+      "tools/research/air_model_baseline/probe.gd": 11,
+      "tools/research/air_start/as2/sl_table.gd": 2,
+      "tools/research/air_start/passes_probe.gd": 4,
+      "tools/research/air_start/slow_wind_probe.gd": 4,
+      "tools/research/air_start/wind_audit.gd": 12,
+      "tools/research/air_turb/turb_probe.gd": 5,
+      "tools/research/air_weak_wind/AWW-1/probe.gd": 4,
+      "tools/research/air_weak_wind/AWW-1/tw/probe.gd": 3,
+      "tools/research/air_weak_wind/AWW-2/probe.gd": 4,
+      "tools/research/cloud_field/dump.gd": 9,
+      "tools/research/fb1013_evening/probe.gd": 19,
+      "tools/research/qol_signs/signs9_probe.gd": 4,
+      "tools/research/qol_signs/signs_probe.gd": 13,
+      "tools/research/surface_heat/measure.gd": 16,
+      "tools/research/wind_compare/dump_wind.gd": 9,
+      "tools/research/wing_physics_check/wind_audit.gd": 12,
+      "tools/wind_fixtures/gen_fixtures.gd": 1
+    }
+  },
+  "t": "2026-10-29T15:40:39",
+  "by": "executor"
+}
