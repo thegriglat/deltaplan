@@ -1,0 +1,96 @@
+{
+  "id": "RW-15",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Цена шага воздуха не зависит от размера места",
+  "goal": "advance_to и обновление фокусов стоят почти одинаково на местах 1041² и 3041² узлов (сейчас 34 мс и ≈1,5 с на игровую секунду, Q3/RW-P9): найти работу на шаге, пропорциональную размеру места, и ограничить её окрестностью фокусов/окон; физика шага не меняется.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "W2",
+      "version": "6",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W4",
+      "version": "9",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W11",
+      "version": "11",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-15",
+  "branch": "rust-wind/RW-15",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/",
+    "rust/dp-air/benches/",
+    "rust/dp-air/examples/",
+    "rust/dp-air/tests/",
+    "rust/dp-air/Cargo.toml",
+    "rust/dp-gd/src/",
+    "scripts/atmosphere/atmosphere.gd",
+    "docs/research/rust-wind-stage3/rw15-step-cost.md"
+  ],
+  "dont_touch": [
+    "configs/",
+    "docs/contracts/",
+    "rust/picard_rs/",
+    "scripts/game/",
+    "tests/atmosphere/xc/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "step_cost_ratio",
+      "cmd": "cargo run --release --manifest-path rust/Cargo.toml -p dp-air --example step_cost",
+      "expect": "num:ratio_3041_1041=([0-9.]+) <=1.5"
+    },
+    {
+      "name": "step_cost_3041",
+      "cmd": "cargo run --release --manifest-path rust/Cargo.toml -p dp-air --example step_cost",
+      "expect": "num:ms_per_game_s_3041=([0-9.]+) <=60"
+    },
+    {
+      "name": "step_same",
+      "cmd": "cargo test --release --manifest-path rust/Cargo.toml -p dp-air --test step_cost_same",
+      "expect": "exit=0"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace -- --skip api_version_matches_contract_header",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dp_air_no_godot",
+      "cmd": "cargo tree --manifest-path rust/Cargo.toml -p dp-air -e normal | grep -ci godot || true",
+      "expect": "num:^(\\d+) <=0"
+    },
+    {
+      "name": "report_doc",
+      "cmd": "test -s docs/research/rust-wind-stage3/rw15-step-cost.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs_check",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-30T01:23:19"
+}

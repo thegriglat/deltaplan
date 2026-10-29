@@ -1,0 +1,68 @@
+{
+  "id": "RW-14a",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Проект переноса погоды в крейт",
+  "goal": "Документ-проект: что из погоды GDScript (WeatherModel, atmo_day, surface_heat, air_place, air_place_data, climate_grid) уже есть в dp-air, чего нет, какие методы фасада/DpAir/трейта нужны потребителям, какие эталоны снять с GD-кода до удаления и на какие задачи реализации разбить; без правок кода.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "W2",
+      "version": "6",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W3",
+      "version": "8",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W4",
+      "version": "9",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W5",
+      "version": "9",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W6",
+      "version": "4",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-14a",
+  "branch": "rust-wind/RW-14a",
+  "base": "feature/rust-wind",
+  "scope": [
+    "docs/research/rust-wind-stage3/rw14-weather.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "rust/",
+    "configs/",
+    "docs/contracts/",
+    "tests/"
+  ],
+  "accept": [
+    {
+      "name": "report_doc",
+      "cmd": "test -s docs/research/rust-wind-stage3/rw14-weather.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "sections",
+      "cmd": "grep -cE '^## (Инвентарь|Потребители|Есть в крейте|Предложение контракта|Эталоны|Задачи|Чистота dp-air)' docs/research/rust-wind-stage3/rw14-weather.md",
+      "expect": "num:^(\\d+) >=7"
+    },
+    {
+      "name": "docs_check",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-30T01:23:49"
+}

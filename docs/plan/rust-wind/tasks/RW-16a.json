@@ -1,0 +1,64 @@
+{
+  "id": "RW-16a",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Аудит чистоты dp-air: проверка и список нарушений",
+  "goal": "Скрипт tools/dp_air_purity.sh находит в rust/dp-air (src, Cargo.toml) игровое: Godot, пути и раскладку игры, имена конфигов игры, понятия игры, и печатает число нарушений; документ перечисляет каждое нарушение (файл:строка) с предложением, куда его деть, и влиянием на контракты W3/W4/W5. Код не правится.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "W3",
+      "version": "8",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W4",
+      "version": "9",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W5",
+      "version": "9",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W10",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-16a",
+  "branch": "rust-wind/RW-16a",
+  "base": "feature/rust-wind",
+  "scope": [
+    "tools/dp_air_purity.sh",
+    "docs/research/rust-wind-stage3/rw16-purity.md"
+  ],
+  "dont_touch": [
+    "rust/",
+    "scripts/",
+    "configs/",
+    "docs/contracts/",
+    "tests/"
+  ],
+  "accept": [
+    {
+      "name": "purity_runs",
+      "cmd": "bash tools/dp_air_purity.sh; true",
+      "expect": "re:нарушений: \\d+"
+    },
+    {
+      "name": "report_doc",
+      "cmd": "test -s docs/research/rust-wind-stage3/rw16-purity.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs_check",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-30T01:24:16"
+}
