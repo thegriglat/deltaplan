@@ -739,7 +739,7 @@ fn advance_cadence_and_inputs() {
     t.wind.set_simple_profile(true, None);
     assert!(t.advance(1.3));
     assert_eq!(state_all(&t).iter().filter(|h| !h.is_static).count(), 0);
-    // слот по умолчанию — плоская земля без источников
+    // слот по умолчанию — без земли: ни термиков, ни фона
     let mut d = Terms::default();
     d.configure(&configs(), 1);
     d.set_conditions(&l.case.conditions);

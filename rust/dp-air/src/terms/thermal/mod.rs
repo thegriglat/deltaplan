@@ -125,6 +125,9 @@ pub struct ThermalSlot {
     ground: Arc<dyn GroundSource>,
     hooks: Arc<dyn CloudHooks>,
     built: Option<Built>,
+    /// Слот без земли (по умолчанию): набор не строится, `sample` даёт `None` (ни термиков, ни
+    /// фонового опускания) - ветер остальных слагаемых не меняется.
+    inert: bool,
 }
 
 impl ThermalSlot {
@@ -134,12 +137,16 @@ impl ThermalSlot {
             ground,
             hooks: Arc::new(NoClouds),
             built: None,
+            inert: false,
         }
     }
 
-    /// Слот по умолчанию: плоская земля без источников.
+    /// Слот по умолчанию: земли нет, термиков и фона нет (пока не вызван `set_thermal_ground`).
     pub fn empty() -> Self {
-        Self::new(Arc::new(NoGround))
+        ThermalSlot {
+            inert: true,
+            ..Self::new(Arc::new(NoGround))
+        }
     }
 
     /// Подключить облачные зацепки (RW-11).
@@ -163,6 +170,9 @@ impl ThermalSlot {
 
     /// Новый снимок на момент `t` (или `None` — прежний ещё годится). `force` — `start_at`.
     pub fn rebuild(&self, terms: &Terms, t: f64, force: bool) -> Option<ThermalSlot> {
+        if self.inert {
+            return None;
+        }
         let ptr = Arc::as_ptr(&terms.configs) as usize;
         let prev = self.built.as_ref();
         let (cfg, ground_ref) = match prev {
@@ -205,6 +215,7 @@ impl ThermalSlot {
         Some(ThermalSlot {
             ground: self.ground.clone(),
             hooks: self.hooks.clone(),
+            inert: false,
             built: Some(Built {
                 setup,
                 memo,
