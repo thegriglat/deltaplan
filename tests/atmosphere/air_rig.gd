@@ -4,7 +4,10 @@ extends RefCounted
 ## шаги времени. Заменяет прежние set_ground/set_wind/set_thermal_mode/add_static_thermal/step
 ## (удалены в RW-12x). Без поля Пикара: условия — эталон погоды, не прогноз.
 ##
-## Параметры make(o): cond (условия W5 целиком, вместо preset/over — например прогноз), preset ("weather/medium"), over (ключи пресета поверх), ground (x, z -> высота,
+## Параметры make(o): loc (место и дата: id, center_lat, center_lon, utc_offset_h, month, day),
+## air_mode (режим поля), deterministic (true; false — как в игре), cond (условия W5 целиком,
+## вместо preset/over — например прогноз), preset ("weather/medium"), over (ключи пресета поверх),
+## ground (x, z -> высота,
 ## по умолчанию 0), moist (x, z -> 0..1, по умолчанию 1), half (полуразмер места, м), spacing (шаг, м),
 ## start_at (с: состояние на этот момент, W2 start_at), statics (Array из [x, z, сила, радиус]), mode (0 dynamic, 1 static, 2 both; по умолчанию 1 при
 ## statics, иначе 0), seed, focus (Vector3), advance (с игрового времени после READY, по умолчанию 1).
@@ -36,9 +39,11 @@ static func preset(base: String = "weather/medium", over: Dictionary = {}) -> Di
 static func make(o: Dictionary = {}) -> Atmosphere:
 	var a := Atmosphere.new()
 	a.visuals_enabled = false
-	a.deterministic = true
+	a.deterministic = bool(o.get("deterministic", true))
 	a.configure(Config.get_config("atmosphere"))  # конфиг визуальных слоёв (cfg)
 	a.configure(int(o.get("seed", 7)))
+	if o.has("air_mode"):
+		a.set_air_mode(String(o.air_mode))  # "auto" | "on" | "off" (режим поля, W2)
 	var cond: Dictionary = o.get("cond", {})
 	if cond.is_empty():
 		cond = {"preset": preset(String(o.get("preset", "weather/medium")), o.get("over", {}))}
@@ -57,7 +62,7 @@ static func make(o: Dictionary = {}) -> Atmosphere:
 	var spacing := float(o.get("spacing", 100.0))
 	var n := int(round(2.0 * half / spacing)) + 1
 	var place := AirPlaceData.from_functions(
-		o.get("ground", flat), o.get("moist", one), LOC, -half, -half, spacing, n, n
+		o.get("ground", flat), o.get("moist", one), o.get("loc", LOC), -half, -half, spacing, n, n
 	)
 	a.load_place(place)
 	if o.has("start_at"):
@@ -67,6 +72,25 @@ static func make(o: Dictionary = {}) -> Atmosphere:
 	if dt > 0.0:
 		a.advance_to(a.time_s + dt)
 	return a
+
+
+## Сильный день без ветра, статичный термик 4 м/с / 130 м над началом координат, состояние на 3000 с
+## и ещё секунда: над ним естественное облако поля (прежнее force_cloud — заданное вручную — крейт
+## не принимает). Освобождает вызывающий.
+static func cloud_day(seed_v: int = 1, second_thermal: bool = false) -> Atmosphere:
+	var statics := [[0.0, 0.0, 4.0, 130.0]]
+	if second_thermal:
+		statics.append([1500.0, 800.0, 3.5, 120.0])
+	return make(
+		{
+			"preset": "weather/strong",
+			"over": {"wind_speed_kmh": 0.0},
+			"seed": seed_v,
+			"statics": statics,
+			"start_at": 3000.0,
+			"advance": 1.0,
+		}
+	)
 
 
 ## До READY: пампим и отдаём время потокам крейта; false — не дошла.

@@ -20,46 +20,67 @@ func check(cond: bool, msg: String = "") -> void:
 		failures.append("check failed: " + msg)
 
 
-static func _flat(_x: float, _z: float) -> float:
-	return 0.0
+## Атмосфера с заданным вручную растром облаков (cloud_raster, W6): крейт растр сам считает, а слою
+## нужны именно заданные значения (пустой/сплошной слой, метка шага). Остальное — как у пустого
+## фасада.
+class FieldAtmo:
+	extends Atmosphere
 
+	var raster: Dictionary = {"version": 0}
 
-static func _sun(_x: float, _z: float) -> float:
-	return 1.0
+	func cloud_raster() -> Dictionary:
+		return raster
+
+	func cloud_raster_version() -> int:
+		return int(raster.version)
+
+	func cloudbase_msl() -> float:
+		return 1500.0
 
 
 func _world(renderer: String = "compute") -> Atmosphere:
 	var cfg := Config.get_config("atmosphere").duplicate(true)
 	cfg.clouds.renderer = renderer
-	var a := Atmosphere.new()
+	var a := FieldAtmo.new()
 	a.visuals_enabled = false
-	a.configure(cfg, Config.get_config("weather/medium"))
-	a.turbulence_enabled = false
-	a.set_ground(_flat, _sun)
+	a.configure(cfg)
 	a.time_s = 13.0 * 3600.0
-	a.set_focus(Vector3.ZERO)
-	a.step(0.0)
 	return a
 
 
-## Поле задано руками (шаг поля отключён): квадрат 20 × 20 клеток по 400 м вокруг начала координат,
-## покрытие cover, мощность depth; time — метка шага (по ней слой узнаёт новые данные).
+## Растр задан руками: квадрат 20 × 20 клеток по 400 м вокруг начала координат (x0, z0 — центр
+## клетки (0, 0), W6), покрытие cover, мощность depth; time — метка шага (по ней слой узнаёт
+## новые данные: растёт версия).
 static func _set_field(a: Atmosphere, cover: float, depth: float, time: float) -> void:
-	var cp := a.cloud_phys
-	cp.wait_field()
-	cp.inputs_fn = Callable()
-	var f := cp.field
-	f.setup_grid(20, 20, 400.0, -4000.0, -4000.0)
-	f.base_msl = 1500.0
-	f.bg_cover = 0.0
-	f.bg_depth = 0.0
-	f.time = time
-	for c in f.nx * f.ny:
-		f.cover[c] = cover
-		f.depth[c] = depth if cover > 0.0 else 0.0
-		f.stage[c] = 0.0
-		f.activity[c] = 0.3
-	cp.mark_field_changed()
+	var n := 20 * 20
+	var cv := PackedFloat32Array()
+	cv.resize(n)
+	cv.fill(cover)
+	var dp := PackedFloat32Array()
+	dp.resize(n)
+	dp.fill(depth if cover > 0.0 else 0.0)
+	var st := PackedFloat32Array()
+	st.resize(n)
+	var ac := PackedFloat32Array()
+	ac.resize(n)
+	ac.fill(0.3)
+	var fa := a as FieldAtmo
+	fa.raster = {
+		"version": int(fa.raster.version) + 1,
+		"nx": 20,
+		"ny": 20,
+		"dx": 400.0,
+		"x0": -3800.0,
+		"z0": -3800.0,
+		"base_msl": 1500.0,
+		"time_s": time,
+		"cover": cv,
+		"depth": dp,
+		"stage": st,
+		"activity": ac,
+		"bg_cover": PackedFloat32Array([0.0]),
+		"bg_depth": PackedFloat32Array([0.0]),
+	}
 
 
 ## Сцена: SubViewport с камерой под основанием, взгляд вверх-вперёд; слой облаков в ней.

@@ -13,13 +13,13 @@ const START_LATLON := Vector2(50.78708, 86.23278)
 
 class StubAtmo:
 	extends RefCounted
-	var field: Variant = null
+	var fed: Variant = null
 	var air_field: AirFieldSet = AirFieldSet.new()
 	var calls := 0
 	var blend := -1.0
 
 	func set_air_field(f: Variant, b: float) -> void:
-		field = f
+		fed = f
 		air_field.set_field(f, 0.0)
 		blend = b
 		calls += 1
@@ -99,7 +99,10 @@ func test_baked_taken_when_key_matches() -> void:
 	var ok: bool = await rt.load_field()
 	check(ok, "load_field: поле есть (%s)" % rt.last_error)
 	check(rt.last_info.get("baked", false) == true, "last_info.baked")
-	check(atmo.calls == 1 and atmo.field is Array and (atmo.field as Array).size() == 3, "в атмосферу подано 3 уровня")
+	check(
+		atmo.calls == 1 and atmo.fed is Array and (atmo.fed as Array).size() == 3,
+		"в атмосферу подано 3 уровня"
+	)
 	check(atmo.blend == 0.0, "при загрузке — без подмены")
 	check(not rt.busy(), "расчёт не запущен")
 	check(
@@ -141,7 +144,7 @@ func test_baked_refused_on_key_mismatch() -> void:
 	var look := rt.baked_lookup(_c)
 	check(look.reason != "" and look.warn, "причина и предупреждение: %s" % look.reason)
 	var ok: bool = await rt._load_baked(_c)
-	check(not ok and atmo.field == null, "поле из файла не взято")
+	check(not ok and atmo.fed == null, "поле из файла не взято")
 	check(not rt.last_info.has("baked"), "last_info без baked")
 	rt.queue_free()
 	_clean()
@@ -156,7 +159,7 @@ func test_baked_not_used_without_file_or_when_conditions_differ() -> void:
 	check(not rt.baked_ready(), "нет файла")
 	check(rt.baked_lookup(_c).reason.begins_with("нет файла"), "причина: нет файла")
 	var ok: bool = await rt._load_baked(_c)
-	check(not ok and atmo.field == null, "нет файла — обычный путь")
+	check(not ok and atmo.fed == null, "нет файла — обычный путь")
 	_bake(rt, _key(rt, weather()))
 	check(rt.baked_ready(), "файл появился — готово")
 	_c.u10 = 4.0  # игрок сменил ветер — набор погоды не действует

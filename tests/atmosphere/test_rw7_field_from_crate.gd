@@ -119,7 +119,7 @@ func _points(a: Atmosphere, n: int) -> PackedVector3Array:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7
 	var out := PackedVector3Array()
-	var lv := a.air_field.levels
+	var lv: Array[WindField] = a.air_field.levels
 	for i in n:
 		var f: WindField = lv[i % lv.size()]
 		var c := f.center_xz()
@@ -156,7 +156,7 @@ func _wait_field(a: Atmosphere, on: bool, seconds: float = 60.0) -> bool:
 	while Time.get_ticks_msec() - t0 < seconds * 1000.0:
 		if a.is_air_field_on() == on and bool(a.status().field_on) == on:
 			return true
-		a.step(0.05)
+		a.advance_to(a.time_s + 0.05)
 		OS.delay_msec(10)
 	return a.is_air_field_on() == on
 
@@ -253,13 +253,13 @@ func test_condition_change_blends_over_blend_s() -> void:
 	var last := f0
 	var grew := false
 	for i in 8:
-		a.step(blend / 8.0 * 0.9)
+		a.advance_to(a.time_s + blend / 8.0 * 0.9)
 		var f: float = a.air_field.blend_fraction()
 		check(f >= last - 1.0e-6, "доля нового монотонна: %s → %s" % [last, f])
 		grew = grew or f > last + 1.0e-4
 		last = f
 	check(grew, "доля нового растёт")
-	a.step(blend)
+	a.advance_to(a.time_s + blend)
 	approx(a.air_field.blend_fraction(), 1.0, 1.0e-6, "после blend_s подмена кончилась")
 	check(a.is_ready(), "READY")
 	a.free()

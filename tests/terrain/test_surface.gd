@@ -275,7 +275,8 @@ func test_thermal_edge_boost() -> void:
 
 
 func test_thermal_fn_fits_atmosphere() -> void:
-	# Годится как sun_fn для Atmosphere.set_ground: Callable (x, z) -> float 0..1.
+	# Годится как moist_fn для AirPlaceData.from_functions (раньше sun_fn Atmosphere.set_ground):
+	# Callable (x, z) -> float 0..1.
 	var t := _altai()
 	var fn := t.thermal_source_strength_at
 	var rng := RandomNumberGenerator.new()

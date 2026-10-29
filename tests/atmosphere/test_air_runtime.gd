@@ -125,24 +125,10 @@ func test_no_gpu_analytic() -> void:
 	rt.free()
 
 
-## Слой «карта фаз»: главная фаза клетки (север вверху).
-func test_phase_image() -> void:
-	var p := _place()
-	var c := AirPlace.domain_case(
-		p.detail, p.water, p.loc, AirRuntime.DX, 12.0, 3.0, 150.0, NAN, "clear", true, 1.0
-	)
-	if c == null or not c.prepare():
-		check(false, "случай Онгудая")
-		return
-	var ph := PhaseStub.new().run(c)
-	var pm := {
-		weights = ph.weights, phases = AirRuntime._phase_names(), nx = c.nx, ny = c.ny,
-		dx = AirRuntime.DX, x0 = 0.0, y0 = 0.0,
-	}
-	check(Array(pm.phases) == PHASES, "имена фаз: %s" % [pm.phases])
-	var img := WindFieldDebug.phase_image(Atmosphere.phase_main_raster(pm))
-	check(_near(img.get_pixel(0, c.ny - 1), WindFieldDebug.PHASE_COLORS.F), "угол — F")
-	check(_near(img.get_pixel(c.nx - 1, 0), WindFieldDebug.PHASE_COLORS.A), "остальное — A")
+# Слой «карта фаз» (Atmosphere.phase_main_raster → WindFieldDebug.phase_image: главная фаза клетки)
+# удалён
+# вместе со статической функцией фасада (RW-12s, W2 v4): фазы считает крейт — rust/dp-air/tests/
+# phase_classifier.rs, phase_assembly.rs, phase_mech.rs.
 
 
 ## Цвет после RGB8 (шаг 1/255).

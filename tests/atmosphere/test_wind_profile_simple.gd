@@ -1,60 +1,54 @@
 extends TestCase
-## Упрощённый ветер (air_model.enabled = off): профиль по высоте — как в 0.8.0 (α = 0,14, предел
-## ×1,8, опорная высота 10 м), без зависимости от часа и облачности. С полем (auto) — WindProfile.
+## Упрощённый ветер (режим поля off): профиль по высоте — как в 0.8.0 (α = 0,14, предел ×1,8,
+## опорная высота 10 м), без зависимости от часа и облачности — через фасад W2 v4 (прогноз в
+## set_conditions, set_air_mode("off"), отношение горизонтальной скорости на высоте к скорости на
+## 10 м). Переключение auto/off в рабочем режиме и параметры профиля WindProfile (с полем) —
+## крейт (RW-12s): rust/dp-air/tests/terms_analytic.rs (simple_profile_matches_080_any_hour_and_sky,
+## off_mode_case_equals_medium_and_uses_simple_profile).
 
+const Rig := preload("res://tests/atmosphere/air_rig.gd")
 const HEIGHTS := [10.0, 50.0, 100.0, 300.0, 1000.0]
+const GROUND := 1000.0
 
 
 static func _flat(_x: float, _z: float) -> float:
-	return 1000.0
-
-
-static func _sun(_x: float, _z: float) -> float:
-	return 1.0
+	return GROUND
 
 
 static func _v080(agl: float) -> float:
 	return minf(pow(maxf(agl, 1.0) / 10.0, 0.14), 1.8)
 
 
-func _atmo(mode: String, hour: float, sky: String = "") -> Atmosphere:
-	var c: Dictionary = Config.get_config("atmosphere").duplicate(true)
-	c.air_model.enabled = mode
-	var w := WeatherModel.derive(
-		{"temperature_c": 26.0, "wind_speed_kmh": 11.0, "wind_from_deg": 270.0},
-		WeatherModel.reference_context(),
-		WeatherModel.config(),
-		hour
-	)
-	if sky != "":
-		w.sky = sky
-	var a := Atmosphere.new()
-	a.configure(c, w)
-	a.turbulence_enabled = false
-	a.set_ground(_flat, _sun)
-	return a
+static func _horiz(a: Atmosphere, agl: float) -> float:
+	var v := a.mean_wind_at(Vector3(0.0, GROUND + agl, 0.0))
+	return Vector2(v.x, v.z).length()
 
 
 func test_off_matches_080_any_hour() -> void:
 	for hour in [9.0, 12.0, 15.0, 20.0]:
-		for sky in ["", "overcast"]:
-			var a := _atmo("off", hour, sky)
-			a.set_wind(10.8, 270.0)  # 3 м/с
-			check(a.wind.simple_profile, "off: простой профиль (%s ч)" % hour)
+		for sky in ["clear", "overcast"]:
+			var a := Rig.make(
+				{
+					"cond":
+					{
+						"forecast":
+						{
+							"temperature_c": 26.0,
+							"wind_speed_kmh": 10.8,
+							"wind_from_deg": 270.0,
+							"sky": sky
+						},
+						"start_hour": hour,
+					},
+					"air_mode": "off",
+					"ground": _flat,
+					"mode": 1,
+					"advance": 0.01,
+				}
+			)
+			var v10 := _horiz(a, 10.0)
+			approx(v10, 3.0, 0.02, "off %s ч %s: 3 м/с на 10 м" % [hour, sky])
 			for h in HEIGHTS:
-				approx(a.wind.profile(h), _v080(h), 1.0e-6, "off %s ч %s: ×(%s м)" % [hour, sky, h])
+				approx(_horiz(a, h) / v10, _v080(h), 2.0e-3, "off %s ч %s: ×(%s м)" % [hour, sky, h])
 			a.free()
 	approx(_v080(1000.0), 1.8, 1.0e-9, "предел 0.8.0 достигнут на 1000 м")
-
-
-func test_auto_keeps_windprofile() -> void:
-	var a := _atmo("auto", 12.0)
-	a.set_wind(10.8, 270.0)
-	check(not a.wind.simple_profile, "auto: не простой профиль")
-	var p := a.wind.profile_params()
-	check(absf(p.x - 0.14) > 0.02, "auto: α не 0.14 (%.3f)" % p.x)
-	a.set_air_mode("off")
-	approx(a.wind.profile_params().x, 0.14, 1.0e-9, "переключение в off: α 0.14")
-	a.set_air_mode("auto")
-	check(not a.wind.simple_profile and absf(a.wind.profile_params().x - 0.14) > 0.02, "назад в auto")
-	a.free()

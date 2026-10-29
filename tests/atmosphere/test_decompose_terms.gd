@@ -1,12 +1,14 @@
 extends TestCase
 ## W7 на реализации gd: слагаемые decompose — инварианты (total = sample FULL побитно, Σ vel =
-## total.xyz ± 1e-4, имена — Atmosphere.T_NAMES, одинаковой длины) на синтетическом месте в точках
+## total.xyz ± 1e-4, имена — T_NAMES, одинаковой длины) на синтетическом месте в точках
 ## у земли, подветер, под и над базой облаков, у термиков. Без GPU и без поля Пикара: аналитика,
 ## термики, гроза, волна. Помощники (синтетическое место, запуск до READY) — из контрактных тестов.
 
 const C := preload("res://tests/contracts/test_rust_wind_contracts.gd")
 const CENTER := Vector3(1500.0, 0.0, -2500.0)
 const TOL := 1.0e-4
+## Слагаемые W7 в порядке реализации (rust/dp-air/src/terms/decompose.rs).
+const T_NAMES := ["field", "analytic", "ridge", "thermal", "storm", "wave", "cloud", "turb", "gust"]
 
 var _h = C.new()
 
@@ -29,7 +31,7 @@ func _grid_points(a: Node) -> PackedVector3Array:
 
 func _check_all(a: Node, label: String, seen: Dictionary) -> void:
 	a.advance_to(1800.0)
-	var names := Atmosphere.T_NAMES
+	var names := T_NAMES
 	for p in _grid_points(a):
 		var d: Dictionary = a.decompose(p)
 		check((d.names as PackedStringArray) == PackedStringArray(names), "%s: имена" % label)
@@ -71,8 +73,8 @@ func test_invariants_storm_and_wave() -> void:
 
 func test_names_fixed() -> void:
 	for n in ["field", "analytic", "ridge", "thermal", "storm", "wave", "cloud", "turb", "gust"]:
-		check(n in Atmosphere.T_NAMES, "имя %s" % n)
-	check(Atmosphere.T_NAMES.size() == 9, "девять слагаемых")
+		check(n in T_NAMES, "имя %s" % n)
+	check(T_NAMES.size() == 9, "девять слагаемых")
 
 
 func test_nan_point() -> void:

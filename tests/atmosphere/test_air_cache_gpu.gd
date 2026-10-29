@@ -47,7 +47,6 @@ func _cache() -> AirFieldCache:
 
 func _runtime(place: Dictionary) -> Array:
 	var atmo := AR._atmo(place.detail)
-	atmo.field.air_async = false
 	var rt := AirRuntime.new()
 	rt.baked_enabled = false
 	rt.cache_enabled = true

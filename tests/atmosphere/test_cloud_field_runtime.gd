@@ -11,15 +11,7 @@ const Rig := preload("res://tests/atmosphere/air_rig.gd")
 
 
 func _atmo() -> Atmosphere:
-	return Rig.make(
-		{
-			"preset": "weather/strong",
-			"over": {"wind_speed_kmh": 0.0},
-			"statics": [[0.0, 0.0, 4.0, 130.0], [1500.0, 800.0, 3.5, 120.0]],
-			"start_at": 3000.0,
-			"advance": 1.0,
-		}
-	)
+	return Rig.cloud_day(1, true)
 
 
 func test_field_cloud_seen_by_physics() -> void:

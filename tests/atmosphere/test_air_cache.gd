@@ -14,13 +14,13 @@ const MAIN_MAX_MS := 100.0
 
 class StubAtmo:
 	extends RefCounted
-	var field: Variant = null
+	var fed: Variant = null
 	var air_field: AirFieldSet = AirFieldSet.new()
 	var calls := 0
 	var blend := -1.0
 
 	func set_air_field(f: Variant, b: float) -> void:
-		field = f
+		fed = f
 		if f != null:
 			air_field.set_field(f, 0.0)
 		blend = b
@@ -85,7 +85,10 @@ func test_air_cache_hit_skips_solver() -> void:
 	check(ok, "load_field: поле есть (%s)" % rt.last_error)
 	check(rt.last_info.get("cache", false) == true, "last_info.cache")
 	check(rt.cache_ready(), "cache_ready после загрузки — поле из кеша")
-	check(atmo.calls == 1 and atmo.field is Array and (atmo.field as Array).size() == 3, "в атмосферу — 3 уровня")
+	check(
+		atmo.calls == 1 and atmo.fed is Array and (atmo.fed as Array).size() == 3,
+		"в атмосферу — 3 уровня"
+	)
 	check(atmo.blend == 0.0, "при загрузке — без подмены")
 	check(not rt.busy(), "расчёт не запущен")
 	check(AirRuntime.needs_recompute(rt.current_conditions(), _c, 15.0) == "", "поле старта сразу не пересчитывается")

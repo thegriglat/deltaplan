@@ -46,7 +46,6 @@ func _place() -> Dictionary:
 
 func _runtime(place: Dictionary) -> Array:
 	var atmo := AR._atmo(place.detail)
-	atmo.field.air_async = false
 	var rt := AirRuntime.new()
 	(Engine.get_main_loop() as SceneTree).root.add_child(rt)
 	rt.setup(atmo, place, _cond)
@@ -123,17 +122,15 @@ func test_baked_roundtrip_ongudai() -> void:
 	print("  наибольшая ошибка float16: %.5f м/с" % worst)
 	# выборка у старта
 	var sp: Vector3 = place.start_sites[0].position
-	var s1 := atmo1.air_field.sample(sp + Vector3(0, 30, 0), sp.y)
-	var s2 := atmo2.air_field.sample(sp + Vector3(0, 30, 0), sp.y)
+	var s1: Vector4 = atmo1.air_field.sample(sp + Vector3(0, 30, 0), sp.y)
+	var s2: Vector4 = atmo2.air_field.sample(sp + Vector3(0, 30, 0), sp.y)
 	check(absf(s1.x - s2.x) <= 2.0 * TOL_MS and absf(s1.z - s2.z) <= 2.0 * TOL_MS, "выборка у старта совпала")
 	# ---- состояние: поле старта сразу не пересчитывается
 	check(not rt2.busy(), "после загрузки расчёт не идёт")
 	check(AirRuntime.needs_recompute(rt2.current_conditions(), _c, 15.0) == "", "needs_recompute пуст")
 	check(rt2.inflow_k > 0.0 and is_equal_approx(rt2.inflow_k, rt1.inflow_k), "k притока как у расчёта")
-	# ---- источники термиков из поля
-	atmo2.field._update_air()
-	atmo2.field.air_wait()
-	check(atmo2.field.air_src != null and atmo2.field.air_src.count() > 0, "источники термиков построены")
+	# источники термиков из поля — слагаемое крейта: rust/dp-air/tests/terms_thermal_air.rs
+	# (sources_match_gd_dump)
 	# ---- recompute_enabled: при тех же условиях и пилоте у старта пересчёта нет
 	var baked_levels: Array[WindField] = atmo2.air_field.levels.duplicate()
 	rt2.recompute_enabled = true

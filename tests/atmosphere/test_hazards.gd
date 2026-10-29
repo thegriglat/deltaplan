@@ -61,7 +61,16 @@ func test_storm_preset_makes_cb() -> void:
 
 
 func test_lee_wave_crest_lift() -> void:
-	var a := Rig.make({"preset": "weather/wave", "mode": 1, "ground": _ridge, "advance": 0.01})
+	var a := Rig.make(
+		{
+			"preset": "weather/wave",
+			"mode": 1,
+			"ground": _ridge,
+			"half": 20000.0,  # волна уходит на десятки км за хребет: место с запасом
+			"spacing": 250.0,
+			"advance": 0.01,
+		}
+	)
 	var info := a.wave_info()
 	check(info[Atmosphere.WAVE_INFO_ENABLED] > 0.5, "волна включена")
 	var lam := info[Atmosphere.WAVE_INFO_LENGTH]
@@ -91,7 +100,9 @@ func test_lee_wave_crest_lift() -> void:
 
 
 func test_no_wave_without_preset() -> void:
-	var a := Rig.make({"mode": 1, "ground": _ridge, "advance": 0.01})
+	var a := Rig.make(
+		{"mode": 1, "ground": _ridge, "half": 20000.0, "spacing": 250.0, "advance": 0.01}
+	)
 	check(a.wave_info()[Atmosphere.WAVE_INFO_ENABLED] < 0.5, "в обычный день волн нет")
 	a.free()
 

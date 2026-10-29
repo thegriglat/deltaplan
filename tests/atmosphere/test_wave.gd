@@ -15,7 +15,17 @@ static func _ridge(x: float, _z: float) -> float:
 
 
 func _rig(over: Dictionary = {}, preset: String = "weather/wave", advance: float = 0.01) -> Atmosphere:
-	return Rig.make({"preset": preset, "over": over, "mode": 1, "ground": _ridge, "advance": advance})
+	return Rig.make(
+		{
+			"preset": preset,
+			"over": over,
+			"mode": 1,
+			"ground": _ridge,
+			"half": 20000.0,  # волна уходит на десятки км за хребет: место с запасом
+			"spacing": 250.0,
+			"advance": advance,
+		}
+	)
 
 
 ## Единичный вектор «куда дует» (x, z) по wind_from_deg пресета (W1).

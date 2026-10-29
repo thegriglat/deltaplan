@@ -141,6 +141,8 @@ func test_ridge_lift_windward_and_lee_sink() -> void:
 			"over": {"wind_speed_kmh": 25.0, "wind_from_deg": 270.0},
 			"mode": 1,
 			"ground": _ridge,
+			"half": 3000.0,
+			"spacing": 50.0,
 			"advance": 0.01,
 		}
 	)
@@ -173,6 +175,8 @@ func test_lee_turbulence_stronger() -> void:
 			},
 			"mode": 1,
 			"ground": _ridge,
+			"half": 3000.0,
+			"spacing": 50.0,
 			"advance": 0.01,
 		}
 	)

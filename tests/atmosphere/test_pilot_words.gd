@@ -23,19 +23,9 @@ const _SEEDS := 5
 # ---------------------------------------------------------------- атмосфера-хелперы
 
 
-## Сильный день без ветра, статичный термик 4 м/с / 130 м над началом координат, состояние на 3000 с:
-## над ним облако поля. Освобождает вызывающий.
+## Облако поля над статичным термиком 4 м/с / 130 м (Rig.cloud_day). Освобождает вызывающий.
 func _cloud_atmo(seed_v: int) -> Atmosphere:
-	return Rig.make(
-		{
-			"preset": "weather/strong",
-			"over": {"wind_speed_kmh": 0.0},
-			"seed": seed_v,
-			"statics": [[0.0, 0.0, _BASE_STRENGTH, _BASE_RADIUS]],
-			"start_at": 3000.0,
-			"advance": 1.0,
-		}
-	)
+	return Rig.cloud_day(seed_v)
 
 
 func _mean_rise(a: Atmosphere, y0: float, y1: float, n: int) -> float:
