@@ -835,3 +835,4 @@
 {"t": "2026-10-29T06:24:48", "by": "coordinator", "task": "RW-11a", "ev": "merged", "note": "97dff2a3f"}
 {"t": "2026-10-29T06:28:16", "by": "executor", "task": "RW-11b", "ev": "checked", "note": "5/5 terms_waves=ok:9; cargo_test=ok:exit 0; clippy=ok:exit 0; fmt=ok:exit 0; dp_air_no_godot=ok:0"}
 {"t": "2026-10-29T06:29:06", "by": "coordinator", "task": "RW-11c", "ev": "checked", "note": "5/5 terms_storm=ok:11; cargo_test=ok:exit 0; clippy=ok:exit 0; fmt=ok:exit 0; dp_air_no_godot=ok:0"}
+{"t": "2026-10-29T06:29:18", "by": "coordinator", "task": "RW-11c", "ev": "accepted", "note": "по ревью"}
