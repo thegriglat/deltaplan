@@ -1,0 +1,61 @@
+{
+  "status": "done",
+  "summary": "Причина: Game._air_conditions не слал quantum_h, крейт отвергал set_conditions (BAD_INPUT), фасад код игнорировал: READY за 0.0 с, поля нет, этапа нет. Добавлен quantum_h; отказ set_conditions теперь FAILED с last_error. Тест игрового пути ждёт этап подготовки ветра.",
+  "commits": [
+    "37e3928d0 RW-P5: quantum_h в условиях игры, отказ set_conditions виден, тест place_air_stage"
+  ],
+  "checks": [
+    {
+      "name": "load_probe чистый профиль до починки",
+      "value": "set_conditions rc=1 missing quantum_h; READY 0.0 с",
+      "pass": true
+    },
+    {
+      "name": "place_air_stage",
+      "value": "1/1",
+      "pass": true
+    },
+    {
+      "name": "debug_layers",
+      "value": "7/7 (после пересборки tune-библиотеки)",
+      "pass": true
+    },
+    {
+      "name": "report_doc",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "docs_check",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Упрощённый режим off не убирался (не в скоупе RW-P5)",
+    "Тест не доводит до READY (счёт Пикара на Онгудае - десятки минут в tune-сборке)"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-P5",
+  "uncertain": [
+    {
+      "where": "tests/game/test_place_air_stage.gd",
+      "why": "Онгудай, режим on; пилотное место pt_ после починки в окне не прогонялось до конца",
+      "checked": "до починки load_probe воспроизвёл отказ; после - этап виден в тесте"
+    },
+    {
+      "where": "scripts/atmosphere/atmosphere.gd:set_conditions",
+      "why": "отказ крейта теперь даёт FAILED; тесты с условиями без quantum_h (если есть) станут падать",
+      "checked": "debug_layers 7/7, place_air_stage"
+    }
+  ],
+  "dp_feedback": "Устаревшая tune-библиотека в копии даёт ложные FAIL приёмки; хорошо бы accept предупреждал или собирал.",
+  "t": "2026-10-29T18:28:32",
+  "by": "executor"
+}

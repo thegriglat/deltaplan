@@ -1,0 +1,57 @@
+{
+  "verdict": "rework",
+  "summary": "Причина найдена верно (нет quantum_h в Game._air_conditions → BAD_INPUT крейта молча), починка в game.gd годная. Но отказ set_conditions на READY нарушает W1 (BAD_INPUT меняет состояние на FAILED и портит _f_cond), push_error из заметки RW-P4 нет, пункт RW-P2 (phase-фильтр, wind_field_debug через _dp) не сделан и в отчёте не упомянут, тест не проверяет READY и ветер ≠ 0 из цели.",
+  "issues": [
+    {
+      "file": "scripts/atmosphere/atmosphere.gd",
+      "line": 378,
+      "severity": "blocker",
+      "what": "Стык W1/W2: отказ крейта на set_conditions при уже загруженном месте (READY, смена условий) переводит фасад в FAILED и _dp_placed=false (_dp_failed_with), хотя возвращает BAD_INPUT. По W1 BAD_INPUT — «вход отвергнут, состояние не изменилось»: READY должен сохраниться. Кроме того, _f_cond (стр. 369) уже перезаписан отвергнутыми условиями до вызова крейта — следующий _dp_start/rebuild повторит плохой вход.",
+      "fix": "В set_conditions на _dp_placed: при rc≠0 — не трогать state и _dp_placed, вернуть _f_cond к прежнему значению (присваивать после успеха), _f_err = 'dp_air: set_conditions: ' + last_error(), push_error, вернуть BAD_INPUT. FAILED — только в _dp_start (первые условия при подготовке места). Добавить проверку в тест: READY + плохие условия → код 1, state READY, last_error не пуст."
+    },
+    {
+      "file": "scripts/atmosphere/atmosphere.gd",
+      "line": 908,
+      "severity": "major",
+      "what": "Заметка 17:49 (RW-P4): при коде ≠ 0 от DpAir в load_place/set_conditions/configure фасад пишет push_error с last_error(). _dp_failed_with пишет только print через _dp_log — в журнале ошибок/crash_report ошибки нет, опять «молча» для пилотного журнала.",
+      "fix": "В _dp_failed_with (не горячий путь, раз на вызов) — push_error(_f_err) вдобавок к _dp_log."
+    },
+    {
+      "file": "scripts/atmosphere/wind_field_debug.gd",
+      "line": 176,
+      "severity": "major",
+      "what": "Заметка 17:52 (RW-P2, п.2) не выполнена: фасад по-прежнему отсекает phase* в debug_raster_names/debug_raster (atmosphere.gd:696, 713), fetch_raster идёт в приватный Air._dp. Скоуп и проверка debug_layers под это добавлены, в отчёте («не вышло») пункт не упомянут — отчёт ≠ карточка.",
+      "fix": "Снять фильтр phase в atmosphere.gd:debug_raster_names/debug_raster, fetch_raster — только через Atmosphere.debug_raster (W10), обход через _dp убрать; debug_layers зелёный. Либо явно согласовать с координатором перенос и записать в отчёт."
+    },
+    {
+      "file": "tests/game/test_place_air_stage.gd",
+      "line": 41,
+      "severity": "major",
+      "what": "Цель карточки и заметка 17:43: тест проверяет «status() доходит до READY, ветер ≠ 0». Тест ждёт только непустой stage и обрывает загрузку; _iters_seen считается, но не проверяется; шапка теста (стр. 2) утверждает «доводит до READY … ветер ≠ 0» — не соответствует коду. После починки полный путь до READY с ветром ≠ 0 не показан ни тестом, ни пробником (load_probe прогнан только до починки).",
+      "fix": "Взять маленькое не запечённое место (синтетика/малая фикстура, как требует заметка — не Онгудай на минуты) и дождаться READY, проверить wind_at у старта ≠ 0 и iters > 0; если это невозможно в разумное время — прогнать load_probe после починки на pt_+42.400_+001.950 на чистом профиле, записать в отчёт время READY и ветер, и поправить шапку теста."
+    },
+    {
+      "file": "docs/research/rust-wind-stage3/pilot-air-stage.md",
+      "line": 22,
+      "severity": "minor",
+      "what": "Карточка требует причину с файл:строка — в документе только имена функций. Вопрос заметки 18:16 (как «auto» из пользовательского atmosphere.json отображается в окне на 70e491dcb) отвечен общей фразой про headless, без факта для окна.",
+      "fix": "Добавить game.gd:<строка> (_air_conditions), atmosphere.gd:<строка> (_dp_start set_conditions без проверки на 70e491dcb) и короткий факт про auto в окне (файл:строка, true/false)."
+    },
+    {
+      "file": "scripts/atmosphere/atmosphere.gd",
+      "line": 1188,
+      "severity": "minor",
+      "what": "Граница фасада (_check_numbers/_check_forecast) не требует quantum_h, хотя input.md (W5 v8) делает его обязательным в прогнозе — поэтому ошибка и дошла до крейта. Принцип «входы проверяет граница».",
+      "fix": "Требовать start_hour/speed/quantum_h в _check_forecast (BAD_INPUT с именем ключа), если это не ломает CalmAir/тесты; иначе — записать как известное."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "place_air_stage (accept --only --dry)",
+      "value": "1/1, 24 с; scope 4 файла в границах",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-29T18:31:51",
+  "by": "reviewer"
+}
