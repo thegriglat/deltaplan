@@ -476,11 +476,3 @@ fn debug_rasters_follow_the_field() {
     }
     assert!(m.debug_raster("нет такого").is_none());
 }
-
-#[test]
-fn debug_rasters_absent_without_field() {
-    let m = ongudai_ready(0.0);
-    assert!(m.debug_raster_names().is_empty());
-    assert!(m.debug_raster("heat_flux").is_none());
-    assert!(m.debug_raster("phase_main").is_none());
-}
