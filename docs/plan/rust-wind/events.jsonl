@@ -836,3 +836,5 @@
 {"t": "2026-10-29T06:28:16", "by": "executor", "task": "RW-11b", "ev": "checked", "note": "5/5 terms_waves=ok:9; cargo_test=ok:exit 0; clippy=ok:exit 0; fmt=ok:exit 0; dp_air_no_godot=ok:0"}
 {"t": "2026-10-29T06:29:06", "by": "coordinator", "task": "RW-11c", "ev": "checked", "note": "5/5 terms_storm=ok:11; cargo_test=ok:exit 0; clippy=ok:exit 0; fmt=ok:exit 0; dp_air_no_godot=ok:0"}
 {"t": "2026-10-29T06:29:18", "by": "coordinator", "task": "RW-11c", "ev": "accepted", "note": "по ревью"}
+{"t": "2026-10-29T06:29:19", "by": "coordinator", "task": "RW-11c", "ev": "merged", "note": "6634f0fb3"}
+{"t": "2026-10-29T06:29:22", "by": "coordinator", "task": "RW-11b", "ev": "note", "note": "RW-11c влита в feature/rust-wind (6634f0fb3): слот Extra — ExtraSet (rust/dp-air/src/terms/slots.rs). Теперь слей feature/rust-wind и переведи волну на ExtraSet, свой ExtraParts убери; затем accept --dry и report.", "addendum": true}
