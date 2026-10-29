@@ -1,0 +1,79 @@
+{
+  "id": "GN-1",
+  "module": "grass-near",
+  "type": "dp-engineer",
+  "title": "Ближние травинки только в пятне дельтаплана: причина и правка",
+  "goal": "Найти, почему ближние травинки видны только в пятне за/под дельтапланом формы его профиля, и починить: травинки вокруг пилота везде до grass.radius_m (GN-К1 v1).",
+  "plan_ref": "§3 GN-1",
+  "contracts": [
+    {
+      "name": "GN-К1",
+      "version": "1",
+      "ref": "docs/contracts/grass-near.md"
+    },
+    {
+      "name": "G2",
+      "version": "2",
+      "ref": "docs/contracts/grass-near.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/grass-near-GN-1",
+  "branch": "grass-near/GN-1",
+  "base": "feature/grass-near",
+  "scope": [
+    "scripts/terrain/grass_field.gd",
+    "scripts/terrain/grass.gdshader",
+    "scripts/terrain/ground_cover.gdshaderinc",
+    "scripts/terrain/meadow_look.gdshaderinc",
+    "scripts/terrain/terrain_wind.gdshaderinc",
+    "scripts/terrain/cloud_shadow.gdshaderinc",
+    "scripts/terrain/scene_look.gdshaderinc",
+    "scripts/terrain/terrain.gd",
+    "scripts/game/world_link.gd",
+    "scripts/world_objects/trample_mask.gd",
+    "scripts/flight/sky_shade.gd",
+    "configs/vegetation.json",
+    "tests/vegetation/",
+    "tests/flight/test_sky_shade_grass.gd",
+    "tests/flight/test_sky_shade_grass_gpu.gd",
+    "docs/guide/vegetation.md",
+    "docs/guide/flight.md",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "project.godot",
+    "scripts/terrain/grass_mid_shell.gd",
+    "scripts/terrain/grass_mid_shell.gdshader",
+    "scripts/terrain/grass_mid_cards.gd",
+    "scripts/terrain/grass_mid_cards.gdshader",
+    "scripts/terrain/terrain.gdshader",
+    "scripts/terrain/terrain_main.gdshaderinc",
+    "scripts/flight/glider_visual.gd",
+    "scripts/game/game.gd",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "grass",
+      "tests": "grass"
+    },
+    {
+      "name": "gpu_grass",
+      "cmd": "DISPLAY=:0 tools/gpu_tests.sh --filter=grass",
+      "expect": "re:[1-9][0-9]* тестов, 0 упало"
+    },
+    {
+      "name": "gpu_grass_near",
+      "cmd": "DISPLAY=:0 tools/gpu_tests.sh --filter=grass_near",
+      "expect": "re:[1-9][0-9]* тестов, 0 упало"
+    },
+    {
+      "name": "sky_shade",
+      "tests": "sky_shade"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T17:46:17",
+  "edited": "2026-10-29T17:47:50"
+}
