@@ -68,10 +68,6 @@
   ],
   "accept": [
     {
-      "name": "rust_wind_contracts",
-      "tests": "rust_wind_contracts"
-    },
-    {
       "name": "settings",
       "tests": "settings"
     },
@@ -127,5 +123,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-29T17:09:34"
+  "created": "2026-10-29T17:09:34",
+  "edited": "2026-10-29T19:47:44"
 }

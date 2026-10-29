@@ -1,0 +1,84 @@
+{
+  "status": "partial",
+  "summary": "Упрощённый режим ветра убран целиком (крейт, dp-gd, фасад, настройки, локаль, конфиг, GpuSafety, CrashDiag, synth_off, тесты off), API = 5, влит feature/rust-wind. Cargo (test/clippy/fmt) и все проверки grep/docs/settings/crash_diag зелёные; rust_wind_contracts (Godot) не зелёный: 3 теста из 27 падают по таймауту поля, весь файл идёт ~12 мин.",
+  "commits": [
+    "8f344ef31 rust-wind RW-P3: упрощённый режим ветра убран",
+    "хвосты после слияния, убран тест растров без поля, контрактные тесты: малая область поля и кеш (git log rust-wind/RW-P3)"
+  ],
+  "checks": [
+    {
+      "name": "settings",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "crash_diag",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "no_off_api / no_synth_off / no_off_rs",
+      "value": "0 / exit 0 / exit 0",
+      "pass": true
+    },
+    {
+      "name": "cargo test --workspace (после последней правки formula_facade 13/13; остальное зелёное до слияния)",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "clippy / fmt / dp_air_no_godot / docs_check",
+      "value": "exit 0 / exit 0 / 0 / ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "rust_wind_contracts",
+      "value": "24/27, 12m23s",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "rust_wind_contracts: test_place_from_terrain_ongudai (поле реального места Онгудая не готово за 120 с в _pump), test_conditions_soft_and_rebuild (прогноз: READY не за 120 с), test_start_at_vs_run_from_zero. Причина — поле Пикара теперь считается и в headless для каждого Atmosphere теста (_up делает ~30 штук). Сделал: cfg_override.air.domain_l_m=9600, air_cache_enabled=true, _pump до 120 с. Нужно решение: перевести эти 3 теста на запечённое поле острова (как test_rw7_field_from_crate) или CalmAir, либо вынести в медленный набор. Не затягивал пороги.",
+    "Тесты tests/atmosphere на Rig.make со spacing 50/250 м (test_wave, test_hazards, test_atmosphere, test_lee_rotor): поле в крейте принимает только 25 м, место 20 км при 25 м слишком тяжёлое. Не переведены и не запускались. Default Rig: half 1500, spacing 25, условия дополняются start_hour/speed (+quantum_h для forecast).",
+    "Время тестов atmosphere до/после не снято: Godot-набор atmosphere не гонялся."
+  ],
+  "questions": [
+    "Как быть с тестами, которым нужен воздух без поля на больших местах (wave/hazards: 20 км при 250 м)? CalmAir не годится (нужна аналитика волны); предложение — запечённое/малое место или убрать в cargo (слагаемые уже сверяются там)."
+  ],
+  "how_to_check": ".dpcli/dpcli accept RW-P3 --dry (rust_wind_contracts ~12 мин)",
+  "uncertain": [
+    {
+      "where": "scripts/atmosphere/atmo_fingerprint.gd:146",
+      "why": "снят принудительный off: отпечаток мира (детерминизм сети) теперь считается вместе с полем Пикара; на 22 км месте это долго, и совпадение полей на Linux/Windows не проверялось",
+      "checked": "только grep/синтаксис; tests/atmosphere/test_determinism.gd не гонялся"
+    },
+    {
+      "where": "rust/dp-air/src/terms/frame.rs (set_simple_profile)",
+      "why": "оставлен: эталоны synth_* сняты на упрощённом профиле 0.8.0; тесты применяют его явно. Удалить можно после пересъёмки эталонов",
+      "checked": "cargo test зелёный"
+    },
+    {
+      "where": "scripts/atmosphere/atmosphere.gd:_dp_field_wanted",
+      "why": "is_air_field_on() = READY и есть forecast; для preset крейт поле тоже считает (в тестах это дорого), а field_on в status показывает false",
+      "checked": "по поведению rust_wind_contracts"
+    },
+    {
+      "where": "docs/contracts/crash-reports.md:65-71, docs/guide/*",
+      "why": "описывают air_model.enabled в apply_safe/restore и настройках; контракты/гайд вне границ — устарели",
+      "checked": "grep"
+    },
+    {
+      "where": "tests/contracts/test_rust_wind_contracts.gd:_synthetic",
+      "why": "пришлось приводить grid.width/height и loc.month/day к int (JSON даёт float, крейт отвергает заголовок) — до этого load_place давал FAILED",
+      "checked": "проба в Godot"
+    },
+    {
+      "where": "запуски Godot",
+      "why": "все ручные запуски с XDG_DATA_HOME=mktemp или ~/.cache/dp-xdg/<копия>; запусков без профиля не было",
+      "checked": "—"
+    }
+  ],
+  "dp_feedback": "Фильтр --filter работает по имени файла, а не теста: нельзя гонять один тест. job wait с timeout<120 и вывод через grep буферизуется до конца — прогресс не виден. Добавки карточки приходят потоком; неплохо видеть их суммарно в task show.",
+  "t": "2026-10-29T19:47:01",
+  "by": "executor"
+}
