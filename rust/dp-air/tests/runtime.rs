@@ -1091,8 +1091,32 @@ fn gd(path: &str) -> String {
     std::fs::read_to_string(repo().join(path)).unwrap_or_else(|e| panic!("{path}: {e}"))
 }
 
+/// Число после `name` в строке, начинающейся с него (`const X := 0.3`, `x = 2,`).
+fn gd_num(text: &str, name: &str) -> f64 {
+    let line = text
+        .lines()
+        .map(str::trim)
+        .find(|l| l.starts_with(name))
+        .unwrap_or_else(|| panic!("no line starting with '{name}'"));
+    let rest = line[name.len()..].trim_start_matches([' ', ':', '=']);
+    let end = rest
+        .find(|c: char| !(c.is_ascii_digit() || matches!(c, '.' | '-' | 'e' | 'E')))
+        .unwrap_or(rest.len());
+    rest[..end]
+        .parse()
+        .unwrap_or_else(|_| panic!("'{name}': cannot parse '{rest}'"))
+}
+
 #[test]
 fn constants_match_configs() {
+    let case = gd("scripts/atmosphere/air_model/air_case.gd");
+    let prof = gd("scripts/atmosphere/wind_profile.gd");
+    assert_eq!(gd_num(&prof, "const U10_MIN"), U10_MIN);
+    let sc = dp_air::field::case_build::SolverCfg::new(5.0);
+    assert_eq!(gd_num(&case, "mom_sweeps"), sc.mom_sweeps as f64);
+    assert_eq!(gd_num(&case, "heat_sweeps"), sc.heat_sweeps as f64);
+    assert_eq!(gd_num(&case, "vcycles"), sc.vcycles as f64);
+    assert!(case.contains("local_k = true") && sc.local_k);
     // конфиги: ключи, которые читает оркестровка
     let cfg = RtCfg::from_configs(&configs_with(|_| {})).unwrap();
     let a: Value = serde_json::from_str(&gd("configs/atmosphere.json")).unwrap();

@@ -427,7 +427,9 @@ func test_c4_atmosphere_analytic_direction() -> void:
 		}
 	)
 	var m := a.mean_wind_at(Vector3(0.0, 300.0, 0.0))
-	check(absf(m.y) < 0.05, "mean_wind_at без поля: вертикаль мала (%.4f)" % m.y)
+	# Измерено m.y = -0.0072 м/с (вертикаль от слагаемых крейта, конкретный член не локализован);
+	# порог 0.02 — втрое выше измеренного, прежний 1e-3 был для GD-аналитики.
+	check(absf(m.y) < 0.02, "mean_wind_at без поля: вертикаль мала (%.4f)" % m.y)
 	var d := Vector3(m.x, 0.0, m.z).normalized()
 	check(d.z < -0.99, "ветер «с юга» (180°) дует на север: мир −z")
 	a.free()

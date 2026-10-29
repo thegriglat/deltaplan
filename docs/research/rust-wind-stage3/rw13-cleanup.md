@@ -38,7 +38,7 @@ related: ["docs/contracts/rust-wind.md"]
 | weather_model.gd, atmo_day.gd, surface_heat*.gd, climate_grid.gd, air_place_data.gd, air_place.gd | не тронуты | dont_touch (RW-14f/g); в air_place.gd и weather_model.gd остались комментарии со старыми именами — old_refs их не считает |
 
 ## Удалённые тесты и проверки, которых нет в cargo
-Перенесено на фасад: живая часть test_air_contracts → `tests/contracts/test_air_field_contracts.gd` (C1 формат эталона, C3 WindField, C4 AirFieldSet/turb_at/ключи, C6 версия поля, C8 blend). Проверка «без поля вертикаль 0» ослаблена до |w| < 0,05: крейт даёт малые добавки.
+Перенесено на фасад: живая часть test_air_contracts → `tests/contracts/test_air_field_contracts.gd` (C1 формат эталона, C3 WindField, C4 AirFieldSet/turb_at/ключи, C6 версия поля, C8 blend). Проверка «без поля вертикаль 0» ослаблена до |w| < 0,02 (измерено −0,0072 м/с, член крейта не локализован).
 
 Удалены без замены (проверок нет в cargo, перечень построчно):
 - test_air_contracts: test_contract_versions (версии air-model.md), test_thd_in_state_keys, C2 (test_c2_air_case_grid, cell_geometry, surface_input, inflow_scale, params_match_reference — AirCase и параметры решателя против эталона), C5 (подпись AirThermals, сетевая схема), C7 (форма AirClipmap/AirWindowJob), C9/C10 (форма AirRuntime, needs_recompute, slot_hour).
@@ -49,7 +49,7 @@ related: ["docs/contracts/rust-wind.md"]
 - test_cloud_field*, test_cloud_field_k1–k4, test_cloud_field_perf: GD-поле облачности (в крейте — terms_thermal_cloud.rs).
 - test_air_phase, test_air_window_case, test_air_runtime*, test_air_gpu_*, test_air_picard_*, test_air_hybrid_gpu, test_air_window_gpu, test_air_baked_gpu, test_air_cache_gpu, test_air_prep_parallel_gpu, test_air_thermals*, test_start_regression_gpu, test_start_weather_ref (условия AirRuntime wind_ref), test_storm_rarity (слияние выбросов Cb — в крейте terms_storm.rs, статистика по случайным дням — нет).
 - test_rust_wind_purity: убраны из списка файлов реализации удалённые.
-- rust/dp-air/tests/runtime.rs: constants_match_gdscript_and_configs → constants_match_configs (сверка с GD-файлами убрана, сверка с configs осталась).
+- rust/dp-air/tests/runtime.rs: constants_match_gdscript_and_configs → constants_match_configs (убрана сверка только с удалёнными air_runtime.gd и air_picard_job.gd; с air_case.gd, wind_profile.gd и configs осталась).
 
 ## Изменённые manifest (generator_removed_at = a5d9387c3, generator_files_removed — пути)
 RW-10d, RW-10e, RW-10f, RW-11d, day_dump (дополнены); RW-11b, RW-11f, RW-12d (созданы минимальные). RW-8/README.md и tests/fixtures/wind/README.md — пометка об удалённом gen_fixtures. Удалены генераторы: RW-10d (dump_air_thermals.gd/.tscn, run_dump.sh), RW-10e (gen_cases_baked.gd/.tscn, run_cases.sh), RW-10f (gen_cloud_cases.gd, run_cloud_cases.sh), RW-11b (gen_ongudai_wave.gd), RW-11d (dump_clouds.gd, run_dump.sh), RW-11f (dump_cloud_objects.gd/.tscn, run_dump.sh), RW-12d (weather_ref.gd/.sh/.tscn), tools/wind_fixtures (gen_fixtures.*, run.sh, verify.sh, check_k01.py, day_dump.*). Оставлены: RW-10c/dump_source.gd, RW-9/dump.*, tools/wind_fixtures/weather_dump.*, compat_dump.*, weather_ref2.*.
