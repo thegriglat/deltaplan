@@ -35,6 +35,7 @@ struct Target {
 }
 
 /// Погода места: словарь, коэффициенты, версии.
+#[derive(Clone)]
 pub struct WeatherState {
     /// Выведенная погода (ключи пресета и `_derived`) — то, что отдаёт `weather()`.
     pub map: WeatherMap,
@@ -251,9 +252,10 @@ impl WeatherState {
         (self.version, self.rebuild_version)
     }
 
-    /// Прогрев 0..1 на текущий момент (`get_insolation` с зажимом `sun_state`).
+    /// Прогрев 0..1 (`Atmosphere.get_insolation`): по словарю погоды шага (не по плавному
+    /// `coeffs.insolation`), с зажимом `sun_state`.
     pub fn insolation(&self) -> f64 {
-        self.coeffs.insolation.clamp(0.0, 1.0)
+        (1.0 - sun_block_cover(&self.map) * self.coeffs.sun_block).clamp(0.0, 1.0)
     }
 
     /// Задать направление на солнце снаружи (`set_sun_direction`); `None` — снять. Нулевой или
@@ -273,7 +275,21 @@ impl WeatherState {
     /// `(на солнце x, y, z; прогрев 0..1)` на момент `t` (W2 `sun_state`). Направление: заданное снаружи,
     /// иначе из хода дня (если у него есть солнце), иначе `clouds.sun_*` из конфига.
     pub fn sun_state(&self, t: f64) -> [f32; 4] {
-        let s = self.sun_set.unwrap_or_else(|| {
+        self.sun_state_set(t, self.sun_set)
+    }
+
+    /// [`sun_state`](Self::sun_state) с направлением, заданным снаружи, вместо `set_sun_direction`
+    /// (нормализуется, нулевой и нечисловой вектор игнорируется — как там).
+    pub fn sun_state_with(&self, t: f64, set: Option<[f32; 3]>) -> [f32; 4] {
+        let set = set.and_then(|v| {
+            let l2: f32 = v.iter().map(|x| x * x).sum();
+            (v.iter().all(|x| x.is_finite()) && l2 >= 1.0e-12).then(|| normalized_f32(v))
+        });
+        self.sun_state_set(t, set)
+    }
+
+    fn sun_state_set(&self, t: f64, set: Option<[f32; 3]>) -> [f32; 4] {
+        let s = set.unwrap_or_else(|| {
             let d = self.day.as_ref().map_or([0.0; 3], |d| d.sun_at(t));
             if d == [0.0; 3] { self.sun_default } else { d }
         });
