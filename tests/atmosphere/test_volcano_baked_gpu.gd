@@ -67,7 +67,6 @@ func test_volcano_baked_every_start() -> void:
 		# AirRuntime берёт поле из файла
 		var c := AirBakedField.conditions_of(weather)
 		var atmo := AR._atmo(terrain.layers[0] if terrain.layers[0].id == "detail" else terrain.layers[1])
-		atmo.field.air_async = false
 		var rt := AirRuntime.new()
 		root.add_child(rt)
 		var cond := c

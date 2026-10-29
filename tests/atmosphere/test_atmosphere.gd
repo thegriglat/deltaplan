@@ -1,19 +1,13 @@
 extends TestCase
-## Тесты атмосферы: профиль термика, снос, жизненный цикл, фон, склон/подветренная сторона,
-## кромка, детерминизм, турбулентность, производительность.
+## Тесты атмосферы через фасад W2 v4: профиль термика, снос, фон, склон/подветренная сторона, кромка,
+## детерминизм, турбулентность, производительность. Воздух — tests/atmosphere/air_rig.gd (место из
+## функций, эталон погоды, статические термики); «без турбулентности» — mean_wind_at (SAMPLE_MEAN).
+## Жизненный цикл термиков в поле, порционное обновление, источники по солнцу — слагаемое крейта
+## (RW-12s: проверки через внутренности GD удалены, эквиваленты — в отчёте RW-12s и ниже).
 
+const Rig := preload("res://tests/atmosphere/air_rig.gd")
 const RIDGE_H := 300.0
 const RIDGE_W := 400.0
-
-
-func _atmo(
-	weather_over: Dictionary = {}, atmo_over: Dictionary = {}, preset: String = "weather/medium"
-) -> Atmosphere:
-	var a := Atmosphere.new()
-	var w := Config._deep_merge(Config.get_config(preset), weather_over)
-	a.configure(Config._deep_merge(Config.get_config("atmosphere"), atmo_over), w)
-	a.turbulence_enabled = false
-	return a
 
 
 ## Хребет вдоль оси Z (гребень на x = 0).
@@ -21,49 +15,43 @@ static func _ridge(x: float, _z: float) -> float:
 	return RIDGE_H * exp(-(x / RIDGE_W) * (x / RIDGE_W))
 
 
-static func _flat(_x: float, _z: float) -> float:
-	return 0.0
-
-
-static func _sun(_x: float, _z: float) -> float:
-	return 1.0
-
-
 static func _hills(x: float, z: float) -> float:
 	return 400.0 + 150.0 * sin(x / 700.0) * cos(z / 900.0)
 
 
 func _static_one(wind_kmh: float, strength: float = 3.0, radius: float = 100.0) -> Atmosphere:
-	var a := _atmo({"wind_speed_kmh": wind_kmh, "thermal_mode": "static"})
-	a.set_ground(_flat, _sun)
-	a.add_static_thermal(0.0, 0.0, strength, radius)
-	a.step(0.01)
-	return a
+	return Rig.make(
+		{
+			"over": {"wind_speed_kmh": wind_kmh},
+			"statics": [[0.0, 0.0, strength, radius]],
+			"advance": 0.01,
+		}
+	)
 
 
 func test_thermal_profile() -> void:
 	var a := _static_one(0.0)
 	var y := 800.0
 	var bg := float(a.weather().background_sink_ms)
-	var w0 := a.air_velocity_at(Vector3(0, y, 0)).y
+	var w0 := a.mean_wind_at(Vector3(0, y, 0)).y
 	check(w0 > 2.0, "ядро поднимает: %.2f" % w0)
 	# Убывает от ядра к краю.
 	var prev := w0
 	var mono := true
 	for r in range(10, 90, 10):
-		var w := a.air_velocity_at(Vector3(r, y, 0)).y
+		var w := a.mean_wind_at(Vector3(r, y, 0)).y
 		if w > prev + 1.0e-4:
 			mono = false
 		prev = w
 	check(mono, "подъём убывает от оси к краю ядра")
 	# Кольцо опускания сильнее фона.
-	var ring := a.air_velocity_at(Vector3(130, y, 0)).y
+	var ring := a.mean_wind_at(Vector3(130, y, 0)).y
 	check(ring < bg - 0.2, "кольцо опускания %.2f < фон %.2f" % [ring, bg])
 	# Далеко — только фон.
-	approx(a.air_velocity_at(Vector3(1500, y, 0)).y, bg, 0.01, "далеко от термика фон")
+	approx(a.mean_wind_at(Vector3(1500, y, 0)).y, bg, 0.01, "далеко от термика фон")
 	# Радиус растёт с высотой (Allen): на 1/3 радиуса у кромки подъём внизу слабее относительного.
-	var low := a.air_velocity_at(Vector3(70, 200, 0)).y / a.air_velocity_at(Vector3(0, 200, 0)).y
-	var high := a.air_velocity_at(Vector3(70, 1400, 0)).y / a.air_velocity_at(Vector3(0, 1400, 0)).y
+	var low := a.mean_wind_at(Vector3(70, 200, 0)).y / a.mean_wind_at(Vector3(0, 200, 0)).y
+	var high := a.mean_wind_at(Vector3(70, 1400, 0)).y / a.mean_wind_at(Vector3(0, 1400, 0)).y
 	check(high > low, "термик шире наверху: %.2f > %.2f" % [high, low])
 	a.free()
 
@@ -72,8 +60,8 @@ func test_wing_asymmetry_at_edge() -> void:
 	# FR-8: на краю ядра консоли крыла (±5 м) получают разный подъём — крыло кренит.
 	var a := _static_one(0.0)
 	var r := 90.0 * 0.6
-	var inner := a.air_velocity_at(Vector3(r - 5.0, 800, 0)).y
-	var outer := a.air_velocity_at(Vector3(r + 5.0, 800, 0)).y
+	var inner := a.mean_wind_at(Vector3(r - 5.0, 800, 0)).y
+	var outer := a.mean_wind_at(Vector3(r + 5.0, 800, 0)).y
 	check(inner - outer > 0.15, "разница на консолях %.2f м/с" % (inner - outer))
 	a.free()
 
@@ -86,12 +74,13 @@ func test_wind_drift_and_lean() -> void:
 	var best_w := -1.0e9
 	var y := 1000.0
 	for x in range(-500, 3000, 10):
-		var w := a.air_velocity_at(Vector3(x, y, 0)).y
+		var w := a.mean_wind_at(Vector3(x, y, 0)).y
 		if w > best_w:
 			best_w = w
 			best_x = x
-	var th: Dictionary = a.thermals_near(Vector3(0, 0, 0), 100.0)[0]
-	var expect: float = th.lean.x * y
+	var cores := a.cores(Vector3(0, 0, 0), 100.0)
+	check(cores.size() >= Atmosphere.CORE_STRIDE, "ядро есть")
+	var expect: float = cores[Atmosphere.CORE_LEAN_X] * y
 	check(best_x > 200.0, "ось на 1000 м снесена по ветру: %.0f м" % best_x)
 	approx(best_x, expect, 15.0, "снос = наклон × высота")
 	a.free()
@@ -120,48 +109,15 @@ func test_lifecycle_envelope() -> void:
 	check(th.cut_h < -1.0e8, "в зрелости низ не оторван")
 
 
-func test_lifecycle_in_field() -> void:
-	# Термики рождаются и умирают: через час набор другой, но их число держится.
-	var a := _atmo({}, {}, "weather/strong")
-	a.set_ground(_flat, _sun)
-	a.step(0.01)
-	var ids0 := a.field.thermals.keys()
-	check(ids0.size() > 20, "в радиусе генерации есть термики: %d" % ids0.size())
-	var alive := 0
-	var growing := 0
-	var decaying := 0
-	for id in ids0:
-		var th: AtmoThermal = a.field.thermals[id]
-		var e := th.envelope(a.time_s)
-		if e > 0.0:
-			alive += 1
-		if a.time_s < th.t_birth + th.t_grow:
-			growing += 1
-		elif a.time_s > th.t_decay_start():
-			decaying += 1
-	check(
-		growing > 0 and decaying > 0,
-		"есть растущие (%d) и распадающиеся (%d)" % [growing, decaying]
-	)
-	for i in 720:
-		a.step(5.0)
-	var ids1 := a.field.thermals.keys()
-	var common := 0
-	for id in ids1:
-		if ids0.has(id):
-			common += 1
-	check(ids1.size() > 20, "через час термики есть: %d" % ids1.size())
-	check(common < ids0.size() / 4, "через час почти все сменились (общих %d)" % common)
-	a.free()
+# test_lifecycle_in_field (рождение и смена термиков за час) — rust/dp-air/tests/terms_thermal.rs
+# (lifecycle_in_field, lifecycle_envelope_cut_and_drift).
 
 
 func test_background_sink() -> void:
-	var a := _atmo({"wind_speed_kmh": 0.0, "thermal_mode": "static"})
-	a.set_ground(_flat, _sun)
-	a.step(0.01)
+	var a := Rig.make({"over": {"wind_speed_kmh": 0.0}, "mode": 1, "advance": 0.01})
 	var bg := float(a.weather().background_sink_ms)
-	approx(a.air_velocity_at(Vector3(100, 600, 50)).y, bg, 1e-4, "фоновое опускание")
-	approx(a.air_velocity_at(Vector3(100, 0, 50)).y, 0.0, 1e-4, "у земли вертикального потока нет")
+	approx(a.mean_wind_at(Vector3(100, 600, 50)).y, bg, 1e-4, "фоновое опускание")
+	approx(a.mean_wind_at(Vector3(100, 0, 50)).y, 0.0, 1e-4, "у земли вертикального потока нет")
 	check(bg < 0.0, "фон отрицательный")
 	a.free()
 
@@ -169,10 +125,10 @@ func test_background_sink() -> void:
 func test_cloudbase_limits_climb_without_cloud() -> void:
 	# Термик без облака (слабее порога облака): у кромки подъём гаснет, выше — не поднимает.
 	var a := _static_one(0.0, 0.8, 120.0)
-	var cb := a.get_cloudbase_msl()
-	var mid := a.air_velocity_at(Vector3(0, cb - 600, 0)).y
-	var near_base := a.air_velocity_at(Vector3(0, cb - 20, 0)).y
-	var above := a.air_velocity_at(Vector3(0, cb + 50, 0)).y
+	var cb := a.cloudbase_msl()
+	var mid := a.mean_wind_at(Vector3(0, cb - 600, 0)).y
+	var near_base := a.mean_wind_at(Vector3(0, cb - 20, 0)).y
+	var above := a.mean_wind_at(Vector3(0, cb + 50, 0)).y
 	check(mid > 0.3, "в середине слоя подъём %.2f" % mid)
 	check(near_base < mid * 0.5, "у кромки подъём гаснет %.2f" % near_base)
 	check(above <= 0.0, "выше кромки не поднимает %.2f" % above)
@@ -180,41 +136,50 @@ func test_cloudbase_limits_climb_without_cloud() -> void:
 
 
 func test_ridge_lift_windward_and_lee_sink() -> void:
-	var a := _atmo({"wind_speed_kmh": 25.0, "wind_from_deg": 270.0, "thermal_mode": "static"})
-	a.set_ground(_ridge, _sun)
-	a.step(0.01)
+	var a := Rig.make(
+		{
+			"over": {"wind_speed_kmh": 25.0, "wind_from_deg": 270.0},
+			"mode": 1,
+			"ground": _ridge,
+			"half": 3000.0,
+			"spacing": 50.0,
+			"advance": 0.01,
+		}
+	)
 	var bg := float(a.weather().background_sink_ms)
 	var xw := -300.0
-	var ww := a.air_velocity_at(Vector3(xw, _ridge(xw, 0) + 50.0, 0)).y
+	var ww := a.mean_wind_at(Vector3(xw, _ridge(xw, 0) + 50.0, 0)).y
 	check(ww > 1.0, "наветренный склон поднимает: %.2f" % ww)
-	var ww_high := a.air_velocity_at(Vector3(xw, _ridge(xw, 0) + 700.0, 0)).y
+	var ww_high := a.mean_wind_at(Vector3(xw, _ridge(xw, 0) + 700.0, 0)).y
 	check(ww_high < ww * 0.5, "подъём затухает с высотой: %.2f < %.2f" % [ww_high, ww])
 	# Зона подъёма выдвинута вперёд склона.
-	var front := a.air_velocity_at(Vector3(-650, 250, 0)).y
+	var front := a.mean_wind_at(Vector3(-650, 250, 0)).y
 	check(front > bg + 0.3, "перед склоном уже поднимает: %.2f" % front)
 	var xl := 300.0
-	var wl := a.air_velocity_at(Vector3(xl, _ridge(xl, 0) + 30.0, 0)).y
+	var wl := a.mean_wind_at(Vector3(xl, _ridge(xl, 0) + 30.0, 0)).y
 	check(wl < bg - 0.5, "подветренный склон опускает: %.2f" % wl)
-	# Ветер слабее в подветренной зоне.
-	var pl := Vector3(xl, _ridge(xl, 0) + 30.0, 0)
-	var hl := a.mean_wind_at(pl).x
-	var vl := a.air_velocity_at(pl).x
-	check(vl < hl, "в тени гребня ветер ослаблен")
+	# Ветер слабее в подветренной зоне (против набегающего той же высоты над землёй).
+	var vl := a.mean_wind_at(Vector3(xl, _ridge(xl, 0) + 30.0, 0)).x
+	var vu := a.mean_wind_at(Vector3(-2500.0, 30.0, 0)).x
+	check(vl < vu, "в тени гребня ветер ослаблен: %.2f < %.2f" % [vl, vu])
 	a.free()
 
 
 func test_lee_turbulence_stronger() -> void:
-	var a := _atmo(
+	var a := Rig.make(
 		{
-			"wind_speed_kmh": 25.0,
-			"wind_from_deg": 270.0,
-			"thermal_mode": "static",
-			"convective_turbulence_ms": 0.0
+			"over": {
+				"wind_speed_kmh": 25.0,
+				"wind_from_deg": 270.0,
+				"convective_turbulence_ms": 0.0
+			},
+			"mode": 1,
+			"ground": _ridge,
+			"half": 3000.0,
+			"spacing": 50.0,
+			"advance": 0.01,
 		}
 	)
-	a.set_ground(_ridge, _sun)
-	a.turbulence_enabled = true
-	a.step(0.01)
 	var lee := _variance_w(a, 350.0, 40.0)
 	var wind_side := _variance_w(a, -600.0, 40.0)
 	check(lee > wind_side * 1.3, "за гребнем болтает сильнее: σ² %.3f > %.3f" % [lee, wind_side])
@@ -235,12 +200,9 @@ func _variance_w(a: Atmosphere, x: float, agl: float) -> float:
 
 
 func test_turbulence_deterministic_and_ground_stronger() -> void:
-	var a := _atmo(
-		{"wind_speed_kmh": 20.0, "thermal_mode": "static", "convective_turbulence_ms": 0.0}
+	var a := Rig.make(
+		{"over": {"wind_speed_kmh": 20.0, "convective_turbulence_ms": 0.0}, "mode": 1, "advance": 0.01}
 	)
-	a.set_ground(_flat, _sun)
-	a.turbulence_enabled = true
-	a.step(0.01)
 	var p := Vector3(123, 40, -77)
 	var v1 := a.air_velocity_at(p)
 	var v2 := a.air_velocity_at(p)
@@ -259,16 +221,12 @@ func test_turbulence_deterministic_and_ground_stronger() -> void:
 
 
 func test_deterministic_generation() -> void:
-	var a := _atmo({}, {}, "weather/strong")
-	var b := _atmo({}, {}, "weather/strong")
-	a.set_ground(_hills, _sun)
-	b.set_ground(_hills, _sun)
-	a.turbulence_enabled = true
-	b.turbulence_enabled = true
-	for i in 10:
-		a.step(1.0)
-		b.step(1.0)
-	check(a.field.thermals.size() == b.field.thermals.size(), "одинаковые наборы термиков")
+	var o := {"preset": "weather/strong", "ground": _hills, "advance": 10.0}
+	var a := Rig.make(o)
+	var b := Rig.make(o)
+	var ca := a.cores(Vector3(0, 300, 0), 8000.0)
+	var cb := b.cores(Vector3(0, 300, 0), 8000.0)
+	check(ca == cb and not ca.is_empty(), "одинаковые наборы термиков (%d)" % (ca.size() / Atmosphere.CORE_STRIDE))
 	var same := true
 	for i in 200:
 		var p := Vector3(i * 37.0 - 3000.0, 900.0 + i, i * 23.0 - 2000.0)
@@ -279,27 +237,13 @@ func test_deterministic_generation() -> void:
 	b.free()
 
 
-func test_sun_controls_sources() -> void:
-	# Источники только там, где солнце: на «тёмной» половине (x < 0) термиков нет.
-	var a := _atmo({}, {}, "weather/strong")
-	a.set_ground(_flat, func(x: float, _z: float) -> float: return 1.0 if x > 0.0 else 0.0)
-	a.step(0.01)
-	var dark := 0
-	for id in a.field.thermals:
-		if a.field.thermals[id].src.x < 0.0:
-			dark += 1
-	check(a.field.thermals.size() > 10, "на солнечной стороне термики есть")
-	check(dark == 0, "на тёмной стороне источников нет: %d" % dark)
-	a.free()
+# test_sun_controls_sources (источники только на «солнечной» половине) — rust/dp-air/tests/terms_thermal.rs
+# (source_strength_controls_frequency) и terms_thermal_src.rs (grid_equals_pointwise, edge_boost_near_class_boundary).
 
 
 func test_performance() -> void:
-	var a := _atmo({}, {}, "weather/strong")
-	a.set_ground(_hills, _sun)
-	a.turbulence_enabled = true
-	for i in 20:
-		a.step(0.5)
-	# Прогреть кеш рельефа в районе запросов.
+	var a := Rig.make({"preset": "weather/strong", "ground": _hills, "advance": 10.0})
+	# Прогреть кеши в районе запросов.
 	for i in 200:
 		a.air_velocity_at(Vector3((i % 20) * 50.0, 1200.0, (i / 20) * 50.0))
 	# Медиана 7 серий по 2000 вызовов: устойчиво к нагрузке соседних процессов
@@ -317,108 +261,23 @@ func test_performance() -> void:
 	var med := runs[runs.size() / 2]
 	print(
 		(
-			"         air_velocity_at: медиана %.2f мкс/вызов (серии %.1f…%.1f), термиков %d"
-			% [med, runs[0], runs[-1], a.field.active_count()]
+			"         air_velocity_at: медиана %.2f мкс/вызов (серии %.1f…%.1f), ядер %d"
+			% [med, runs[0], runs[-1], a.cores(Vector3(0, 300, 0), 8000.0).size() / Atmosphere.CORE_STRIDE]
 		)
 	)
 	# Бюджет: планер зовёт ~5 точек × 120 Гц = 600 вызовов/с; 40 мкс/вызов — это 24 мс
-	# в секунду (~0,4 мс на кадр). Сейчас ~10 мкс, порог с запасом ×4 на нагрузку и слабый CPU.
+	# в секунду (~0,4 мс на кадр). Порог с запасом ×4 на нагрузку и слабый CPU.
 	check(med < 40.0, "air_velocity_at медиана < 40 мкс: %.2f мкс" % med)
 	var t1 := Time.get_ticks_usec()
 	for i in 120:
-		a.step(1.0 / 120.0)
+		Rig.step(a, 1.0 / 120.0)
 	var step_us := (Time.get_ticks_usec() - t1) / 120.0
-	print("         step: %.1f мкс в среднем" % step_us)
+	print("         advance_to: %.1f мкс в среднем" % step_us)
 	check(acc.is_finite(), "значения конечны")
 	a.free()
 
 
-## PF-8: обновление порциями даёт тот же набор термиков и сетку поиска, что синхронное; пока оно
-## идёт, набор и сетка прежние (подмена целиком по готовности).
-func test_refresh_chunked_equals_sync() -> void:
-	var sync_a := _atmo({}, {}, "weather/strong")
-	var chunk_a := _atmo({}, {}, "weather/strong")
-	for a: Atmosphere in [sync_a, chunk_a]:
-		# тень поля облачности зависит от момента обновления поля — здесь сравнивается порционность
-		a.field._cfg = a.field._cfg.duplicate()
-		a.field._cfg.cloud_shade_factor = 0.0
-		a.set_ground(_hills, _sun)
-		a.set_focus(Vector3(500.0, 300.0, -300.0))
-		a.start_at(600.0)
-	var steps_total := 0
-	for round in 4:
-		var t := 600.0 + (round + 1) * 37.0
-		sync_a.time_s = t
-		chunk_a.time_s = t
-		var focus := Vector3(500.0 + round * 4000.0, 300.0, -300.0)
-		sync_a.set_focus(focus)
-		chunk_a.set_focus(focus)
-		sync_a.refresh_now()
-		var before_ids: Array = chunk_a.field.thermals.keys()
-		var before_tp: PackedFloat64Array = chunk_a.field._tp.duplicate()
-		chunk_a.field.begin_refresh(t, focus, chunk_a._refresh_dt(), true)
-		var steps := 0
-		var stable := true
-		while not chunk_a.field.step_refresh(200):
-			steps += 1
-			stable = (
-				stable
-				and chunk_a.field.thermals.keys() == before_ids
-				and chunk_a.field._tp == before_tp
-			)
-		steps_total += steps
-		check(stable, "раунд %d: до готовности набор и сетка прежние" % round)
-		var ia: Array = sync_a.field.thermals.keys()
-		var ib: Array = chunk_a.field.thermals.keys()
-		ia.sort()
-		ib.sort()
-		check(ia == ib, "раунд %d: набор термиков тот же (%d / %d)" % [round, ia.size(), ib.size()])
-		# столбцы 11–12 — подсос от поля облачности (его состояние зависит от момента обновления)
-		var same_tp := sync_a.field._tp.size() == chunk_a.field._tp.size()
-		for k in sync_a.field._tp.size():
-			if k % 14 != 11 and k % 14 != 12 and sync_a.field._tp[k] != chunk_a.field._tp[k]:
-				same_tp = false
-				break
-		check(same_tp, "раунд %d: параметры сетки поиска те же" % round)
-		check(
-			sync_a.field._buckets.size() == chunk_a.field._buckets.size(),
-			"раунд %d: ячеек поиска поровну" % round
-		)
-		for p in [Vector3(500, 900, -300), Vector3(5000, 1200, 200), Vector3(9000, 700, -300)]:
-			var va := sync_a.field.sample(p)
-			var vb := chunk_a.field.sample(p)
-			check(va.is_equal_approx(vb), "раунд %d: sample %s совпадает" % [round, p])
-	check(steps_total > 4, "обновление действительно разбито на шаги: %d" % steps_total)
-	sync_a.free()
-	chunk_a.free()
-
-
-## PF-8: порция, оборванная на середине генерации, не портит следующее обновление: набор тот же,
-## что у синхронного (чистая функция фокуса и времени).
-func test_refresh_abort_midway_then_sync_equals_sync() -> void:
-	var sync_a := _atmo({}, {}, "weather/strong")
-	var abort_a := _atmo({}, {}, "weather/strong")
-	for a: Atmosphere in [sync_a, abort_a]:
-		a.set_ground(_hills, _sun)
-		a.set_focus(Vector3(500.0, 300.0, -300.0))
-		a.start_at(600.0)
-	var t := 700.0
-	for a: Atmosphere in [sync_a, abort_a]:
-		a.time_s = t
-	abort_a.field.begin_refresh(t, abort_a._focus, abort_a._refresh_dt(), true)
-	var n := 0
-	while n < 2000 and not abort_a.field.step_refresh(100):
-		n += 1
-		if abort_a.field._j_ph == ThermalField._PH_GEN and abort_a.field._j_i > 20:
-			break
-	check(abort_a.field.refresh_pending(), "порция ещё идёт")
-	abort_a.field.abort_refresh()
-	sync_a.refresh_now()
-	abort_a.refresh_now()
-	var ia: Array = sync_a.field.thermals.keys()
-	var ib: Array = abort_a.field.thermals.keys()
-	ia.sort()
-	ib.sort()
-	check(ia == ib and not ia.is_empty(), "набор после обрыва тот же (%d / %d)" % [ia.size(), ib.size()])
-	sync_a.free()
-	abort_a.free()
+# PF-8 (test_refresh_chunked_equals_sync, test_refresh_abort_midway_then_sync_equals_sync) — порционное
+# обновление GD-ThermalField (begin_refresh/step_refresh) удалено вместе с GD-слагаемым; эквиваленты —
+# rust/dp-air/tests/terms_thermal.rs (advance_cadence_and_inputs, start_at_equals_run_from_zero) и
+# terms_thermal_field.rs (rebuild_by_key_keeps_live_thermals, advance_builds_in_background).

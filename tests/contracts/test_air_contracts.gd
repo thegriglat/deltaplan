@@ -6,6 +6,7 @@ extends TestCase
 
 ## Версии разделов контракта — те же, что в заголовках docs/contracts/air-model.md.
 const CONTRACTS := {C1 = 2, C2 = 9, C3 = 2, C4 = 4, C5 = 1, C6 = 1, C7 = 4, C8 = 2, C9 = 3, C10 = 3}
+const Rig := preload("res://tests/atmosphere/air_rig.gd")
 const DOC := "res://docs/contracts/air-model.md"
 const FIX := "res://tests/atmosphere/fixtures/air_model/"
 const REF_CASES := ["agnesi", "flat_wind", "heated_slope", "saddle"]
@@ -103,20 +104,11 @@ static func _sun(_x: float, _z: float) -> float:
 
 
 static func _atmo() -> Atmosphere:
-	var w: Dictionary = Config.get_config("weather/medium").duplicate(true)
-	w.wind_speed_kmh = Units.to_kmh(3.0)
-	w.wind_from_deg = 180.0
-	w.thermal_mode = "static"
-	w.static_thermals = []
-	w.background_sink_ms = 0.0
+	# Атмосфера — только приёмник поля AirFieldSet (set_air_field / air_field); воздух — в крейте
+	# (W2 v4).
 	var a := Atmosphere.new()
 	a.visuals_enabled = false
-	a.configure(Config.get_config("atmosphere"), w)
-	a.set_ground(_flat, _sun)
-	a.set_thermal_mode("static")
-	a.turbulence_enabled = false
-	a.wave.enabled = false
-	a.step(0.01)
+	a.configure(Config.get_config("atmosphere"))
 	return a
 
 
@@ -812,56 +804,38 @@ func test_c4_field_set_vector4() -> void:
 	check(not s.is_active(), "set_field(null) — без поля")
 
 
-func test_c4_atmosphere_api_and_analytic() -> void:
-	var a := _atmo()
-	for fn in [
-		"set_air_field", "set_air_mode", "is_air_field_on", "air_velocity_at", "mean_wind_at",
-		"thermals_near"
-	]:
-		check(a.has_method(fn), "Atmosphere." + fn)
-	check(a.air_field is AirFieldSet, "air_field — AirFieldSet после configure")
-	check(not a.is_air_field_on(), "без поля — аналитика")
-	var p := Vector3(0.0, 300.0, 0.0)
-	var m := a.mean_wind_at(p)
-	check(m.y == 0.0, "mean_wind_at без поля: вертикаль 0")
+func test_c4_atmosphere_analytic_direction() -> void:
+	# Ветер «с юга» (180°) без поля и термиков дует на север (мир −z), вертикали нет (W2 v4, фасад
+	# на DpAir).
+	var a := Rig.make(
+		{
+			"over":
+			{
+				"wind_speed_kmh": Units.to_kmh(3.0),
+				"wind_from_deg": 180.0,
+				"background_sink_ms": 0.0,
+			},
+			"mode": 1,
+			"moist": _sun,
+			"advance": 0.01,
+		}
+	)
+	var m := a.mean_wind_at(Vector3(0.0, 300.0, 0.0))
+	check(absf(m.y) < 1.0e-3, "mean_wind_at без поля: вертикаль 0 (%.4f)" % m.y)
 	var d := Vector3(m.x, 0.0, m.z).normalized()
-	check(d.is_equal_approx(a.wind.dir), "mean_wind_at без поля — по WindModel.dir")
 	check(d.z < -0.99, "ветер «с юга» (180°) дует на север: мир −z")
-	# поле есть, но режим off — побитно аналитика
-	var b := _atmo()
-	b.set_air_field(_const_field(7.0, 7.0, 1.0), 0.0)
-	check(b.is_air_field_on(), "поле включено (auto)")
-	b.set_air_mode("off")
-	check(not b.is_air_field_on(), "set_air_mode(off) — аналитика")
-	# off включает упрощённый профиль ветра (как в 0.8.0): эталон — аналитика без поля в том же режиме
-	a.set_air_mode("off")
-	for q in [p, Vector3(500.0, 80.0, -300.0), Vector3(-900.0, 900.0, 400.0)]:
-		check(b.air_velocity_at(q) == a.air_velocity_at(q), "off = аналитика побитно в %s" % q)
-		check(b.mean_wind_at(q) == a.mean_wind_at(q), "off: mean_wind_at = аналитика в %s" % q)
 	a.free()
-	b.free()
 
 
-## Правило стыка: внутри поля mean_wind_at = горизонталь поля + w_mech; w_conv пилоту не идёт.
-func test_c4_atmosphere_field_rule() -> void:
-	var g := _grid()
-	var f := _field(
-		g, func(_i, _j, _k): return 1.0, func(_i, _j, _k): return 2.0,
-		func(_i, _j, _k): return 0.3, func(_i, _j, _k): return 5.0,
-		func(_i, _j, _k): return 0.0, func(_i, _j): return 0.0
-	)
-	var a := _atmo()
-	a.set_air_field(f, 0.0)
-	var p := Vector3(0.0, 300.0, 0.0)
-	check(a.mean_wind_at(p).is_equal_approx(Vector3(1.0, 0.3, -2.0)), "mean_wind_at = поле")
-	var ref := _atmo()
-	ref.set_air_field(_const_field(1.0, 2.0, 0.3), 0.0)
-	check(
-		a.air_velocity_at(p).is_equal_approx(ref.air_velocity_at(p)),
-		"w_conv поля не меняет air_velocity_at без термиков из поля"
-	)
-	a.free()
-	ref.free()
+# test_c4_atmosphere_api_and_analytic (set_air_mode off = аналитика побитно) и
+# test_c4_atmosphere_field_rule
+# (внутри поля mean_wind_at = горизонталь поля + w_mech; w_conv пилоту не идёт) — поле и аналитику
+# в игре
+# считает крейт (RW-12s: проверки на GD-атмосфере с set_air_field удалены):
+# rust/dp-air/tests/terms_analytic.rs
+# (off_mode_case_equals_medium_and_uses_simple_profile), terms_thermal_field.rs
+# (field_region_covers_and_off),
+# terms_turb.rs (ongudai_replay_matches_air_velocity_field, slot_in_sum_on_island_field).
 
 
 ## C4 v3 (AM-08): величины пограничного слоя для масштаба 3 — WindField.turb_at,

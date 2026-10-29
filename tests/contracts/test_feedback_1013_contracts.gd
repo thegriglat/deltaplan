@@ -5,6 +5,7 @@ extends TestCase
 ## water_flux без солнца, рождений термиков нет; облачность — один раз; поле — по дате полёта.
 ## Сценарий пилота через сцену игры — tools/research/fb1013_evening/run.sh.
 
+const Rig := preload("res://tests/atmosphere/air_rig.gd")
 const DOC := "res://docs/contracts/feedback-1013.md"
 const VERSIONS := {"FBW-К2": 3}
 ## Места: широта, долгота, пояс (NAN — по долготе, как точка с карты): широты 40–60°, долготы мест игры.
@@ -218,39 +219,45 @@ static func _flat(_x: float, _z: float) -> float:
 	return 1000.0
 
 
+## Рождения термиков за 10 мин от t = 0 (ядра, которых не было в начале): прогноз в set_conditions
+## (ход дня, солнце и источники по SurfaceHeating — в крейте, W2 v4), ровная земля, трава.
 static func _births(p: Array, month: int, day: int, hour: float, sky: String) -> int:
-	var fc := {"temperature_c": WeatherModel.typical_max_c(month, day), "wind_speed_kmh": 25.2,
-		"wind_from_deg": 180.0, "sky": sky}
-	var ctx := _ctx(p, month, day)
-	ctx.valley_msl_m = 1000.0
-	ctx.mean_msl_m = 1000.0
-	var a := Atmosphere.new()
-	a.configure(Config.get_config("atmosphere"), WeatherModel.derive(fc, ctx, {}, hour))
-	a.turbulence_enabled = false
-	var heat := _heating(p, month, day)
-	var scfg := SurfaceHeat.config()
-	var src := func(_x: float, _z: float, h: float) -> float:
-		var hv := SurfaceHeat.mix_flux(
-			_onehot(SurfaceLayer.GRASS), 0, Vector3.UP, heat.directions(h), 0.47,
-			{cover = 0.0, night = heat.built_night(h)}, {}, scfg
-		)
-		return clampf(hv / 300.0, 0.0, 1.0)
-	a.set_ground(_flat, func(_x: float, _z: float) -> float: return 1.0)
-	a.set_wind(25.2, 180.0, 1000.0)
-	var d := AtmoDay.new()
-	d.start_hour = hour
-	d.t0 = 0.0
-	d.weather_fn = func(h: float) -> Dictionary: return WeatherModel.derive(fc, ctx, {}, h)
-	d.sun_fn = AtmoDay.sun_direction.bind(float(p[0]), float(p[1]), month, day, _utc(p))
-	d.source_fn = src
-	a.set_day(d)
-	a.set_focus(Vector3(0, 1000.0, 0))
+	var cond := {
+		"forecast":
+		{
+			"temperature_c": WeatherModel.typical_max_c(month, day),
+			"wind_speed_kmh": 25.2,
+			"wind_from_deg": 180.0,
+			"sky": sky
+		},
+		"start_hour": hour,
+		"wind_ref": {"ref_msl": 1000.0, "gain_per_km": 0.6},
+	}
+	var loc := {
+		"id": "fbw_k2",
+		"center_lat": float(p[0]),
+		"center_lon": float(p[1]),
+		"utc_offset_h": _utc(p),
+		"month": month,
+		"day": day,
+	}
+	var a := Rig.make(
+		{"cond": cond, "loc": loc, "ground": _flat, "focus": Vector3(0, 1000.0, 0), "advance": 0.0}
+	)
+	var center := Vector3(0, 1000.0, 0)
+	var cs := Atmosphere.CORE_STRIDE
+	var seen := {}
+	var c0 := a.cores(center, 20000.0)
+	for j in range(0, c0.size() - cs + 1, cs):
+		seen[int(c0[j + Atmosphere.CORE_ID])] = true
 	var born := {}
 	for i in 120:
-		a.step(5.0)
-		for th: AtmoThermal in a.field.thermals.values():
-			if not th.is_static and th.t_birth >= 0.0:
-				born[th.id] = true
+		Rig.step(a, 5.0)
+		var c := a.cores(center, 20000.0)
+		for j in range(0, c.size() - cs + 1, cs):
+			var id := int(c[j + Atmosphere.CORE_ID])
+			if (int(c[j + Atmosphere.CORE_FLAGS]) & 1) == 0 and not seen.has(id):
+				born[id] = true
 	a.free()
 	return born.size()
 

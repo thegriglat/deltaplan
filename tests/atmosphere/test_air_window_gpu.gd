@@ -527,17 +527,10 @@ func test_runtime_with_windows() -> void:
 	var lw := TestAirPlace.load_detail("ongudai")
 	var loc := TestAirPlace.load_loc("ongudai")
 	var detail: HeightLayer = lw[0]
-	var w: Dictionary = Config.get_config("weather/medium").duplicate(true)
-	w.wind_speed_kmh = Units.to_kmh(3.0)
-	w.wind_from_deg = 150.0
-	w.thermal_mode = "static"
-	w.static_thermals = []
+	# Атмосфера — только приёмник поля AirRuntime (air_field); воздух игры — в крейте (W2 v4)
 	var atmo := Atmosphere.new()
 	atmo.visuals_enabled = false
-	atmo.configure(Config.get_config("atmosphere"), w)
-	atmo.set_thermal_mode("static")
-	atmo.turbulence_enabled = false
-	atmo.step(0.01)
+	atmo.configure(Config.get_config("atmosphere"))
 	_rt_cond = {hour = 12.0, u10 = 3.0, wdir = 150.0, t_max = NAN, sky = "clear"}
 	var m100 := TestAirPicard.load_fix(FIX_W + "ongudai_w100_h12")
 	var start := Vector3(float(m100.site.x), 0.0, -float(m100.site.y))
@@ -569,16 +562,15 @@ func test_runtime_with_windows() -> void:
 			% [float(li.get("wall_s", 0)), fmax, float(li.get("main_max_ms", 0))]
 		)
 	)
-	# атмосфера 3 с без сдвига: первая сборка источников термиков по полю (AM-07, ~0,4 с на
-	# главном потоке через ~1 с) — не относится к окнам, в замер сдвига не входит
+	# 3 с без сдвига: подмена поля в приёмнике — не относится к окнам, в замер сдвига не входит
 	var tc0 := Time.get_ticks_msec()
 	var atmo_first := 0.0
 	while Time.get_ticks_msec() - tc0 < 3000:
 		await tree.process_frame
 		var tb := Time.get_ticks_usec()
-		atmo.step(1.0 / 60.0)
+		atmo.air_field.advance(1.0 / 60.0)
 		atmo_first = maxf(atmo_first, (Time.get_ticks_usec() - tb) / 1000.0)
-	print("    без сдвига: шаг атмосферы max %.0f мс (термики по полю)" % atmo_first)
+	print("    без сдвига: шаг приёмника поля max %.0f мс" % atmo_first)
 	# полёт: пилот ушёл на 1 км к востоку → сдвиг окна 50 м
 	host.set_physics_process(true)
 	rt.recompute_enabled = true
@@ -589,7 +581,7 @@ func test_runtime_with_windows() -> void:
 	while rt.shift_count < 1 and Time.get_ticks_msec() - t0 < 30000:
 		await tree.process_frame
 		var ta := Time.get_ticks_usec()
-		atmo.step(1.0 / 60.0)
+		atmo.air_field.advance(1.0 / 60.0)
 		atmo_ms = maxf(atmo_ms, (Time.get_ticks_usec() - ta) / 1000.0)
 	fmax = _rt_watch(false)
 	print(
@@ -617,7 +609,7 @@ func test_runtime_with_windows() -> void:
 	t0 = Time.get_ticks_msec()
 	while rt.applied_count < 2 and rt.failed_count == 0 and Time.get_ticks_msec() - t0 < 60000:
 		await tree.process_frame
-		atmo.step(1.0 / 60.0)
+		atmo.air_field.advance(1.0 / 60.0)
 	fmax = _rt_watch(false)
 	li = rt.last_info
 	check(rt.applied_count == 2 and li.has("windows"), "пересчёт по сроку — с окнами")

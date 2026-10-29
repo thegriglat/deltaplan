@@ -36,7 +36,6 @@ func _field(t: Terrain, par: bool) -> Array:
 	var place := AirRuntime.place_of(t, float(loc.get("utc_offset_h", NAN)), 7, 15)
 	var detail: HeightLayer = place.detail
 	var atmo := AR._atmo(detail)
-	atmo.field.air_async = false
 	var rt := AirRuntime.new()
 	rt.baked_enabled = false
 	rt.cache_enabled = false

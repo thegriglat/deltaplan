@@ -131,15 +131,15 @@ func test_cart_stops_after_takeoff_wing_flies() -> void:
 
 func test_no_dolly_unchanged() -> void:
 	# reset_on_dolly -> reset_on_ground: состояние тележки сброшено, поведение как у свежей модели
-	var a := Sim.make("sport")
-	a.reset_on_dolly(Vector3.ZERO, 0.0)
-	a.reset_on_ground(Vector3.ZERO, 0.0)
-	var b := Sim.make("sport")
-	b.reset_on_ground(Vector3.ZERO, 0.0)
+	var ma := Sim.make("sport")
+	ma.reset_on_dolly(Vector3.ZERO, 0.0)
+	ma.reset_on_ground(Vector3.ZERO, 0.0)
+	var mb := Sim.make("sport")
+	mb.reset_on_ground(Vector3.ZERO, 0.0)
 	var c := Sim.input()
 	for i in int(5.0 / DT):
-		a.step(DT, c, Callable(), Callable())
-		b.step(DT, c, Callable(), Callable())
-	check(a.position == b.position and a.velocity == b.velocity, "после reset_on_dolly -> reset_on_ground поведение прежнее")
-	check(not a.dolly_attached and a.dolly_pos == Vector3.ZERO and a.dolly_vel == Vector3.ZERO, "поля тележки нулевые")
-	check(a.phase() != "dolly", "фаза не dolly: %s" % a.phase())
+		ma.step(DT, c, Callable(), Callable())
+		mb.step(DT, c, Callable(), Callable())
+	check(ma.position == mb.position and ma.velocity == mb.velocity, "после reset_on_dolly -> reset_on_ground поведение прежнее")
+	check(not ma.dolly_attached and ma.dolly_pos == Vector3.ZERO and ma.dolly_vel == Vector3.ZERO, "поля тележки нулевые")
+	check(ma.phase() != "dolly", "фаза не dolly: %s" % ma.phase())

@@ -2,6 +2,8 @@ extends Node
 ## Отладочные слои (DebugOverlays): F1/F5/F6 включаются и выключаются без рендера и без ошибок,
 ## выключенный слой не крутит _process, термики берутся из полей AtmoThermal как есть.
 
+const Rig := preload("res://tests/atmosphere/air_rig.gd")
+
 var failures: PackedStringArray = []
 
 
@@ -14,20 +16,16 @@ static func _hills(x: float, z: float) -> float:
 	return 400.0 + 150.0 * sin(x / 700.0) * cos(z / 900.0)
 
 
-static func _sun(_x: float, _z: float) -> float:
-	return 1.0
-
-
 func _atmo() -> Atmosphere:
-	var a := Atmosphere.new()
-	var w := Config._deep_merge(
-		Config.get_config("weather/medium"), {"wind_speed_kmh": 20.0, "thermal_mode": "static"}
+	return Rig.make(
+		{
+			"over": {"wind_speed_kmh": 20.0},
+			"ground": _hills,
+			"statics": [[300.0, 200.0, 3.0, 120.0]],
+			"focus": Vector3(0.0, 600.0, 0.0),
+			"advance": 0.01,
+		}
 	)
-	a.configure(Config.get_config("atmosphere"), w)
-	a.set_ground(_hills, _sun)
-	a.add_static_thermal(300.0, 200.0, 3.0, 120.0)
-	a.step(0.01)
-	return a
 
 
 func _press(dbg: DebugOverlays, action: String) -> void:
@@ -62,7 +60,6 @@ func test_toggle_without_render() -> void:
 		check(dbg.core_radius(shapes[0], float(shapes[0].y1)) > 100.0, "радиус у верха ~ ядро")
 	var v := dbg.mean_air_at(Vector3(0, 600, 0))
 	check(v.length() > 1.0, "средний ветер есть (%s)" % v)
-	check(a.turbulence_enabled, "турбулентность атмосферы восстановлена")
 	for act in ["debug_perf", "debug_wind", "debug_thermals"]:
 		_press(dbg, act)
 	check(not (dbg.perf_on or dbg.wind_on or dbg.thermals_on), "повторное нажатие выключает")

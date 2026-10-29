@@ -22,25 +22,13 @@ func _cond() -> Dictionary:
 	return _c
 
 
-static func _atmo(detail: HeightLayer) -> Atmosphere:
-	var w: Dictionary = Config.get_config("weather/medium").duplicate(true)
-	w.wind_speed_kmh = Units.to_kmh(3.0)
-	w.wind_from_deg = 150.0
-	w.thermal_mode = "static"
-	w.static_thermals = []
+static func _atmo(_detail: HeightLayer) -> Atmosphere:
+	# Атмосфера — только приёмник поля AirRuntime (set_air_field / air_field); воздух — в крейте
+	# (W2 v4).
 	var a := Atmosphere.new()
 	a.visuals_enabled = false
-	a.configure(Config.get_config("atmosphere"), w)
-	a.set_ground(func(x: float, z: float) -> float: return detail.sample(x, z), _sun)
-	a.set_thermal_mode("static")
-	a.turbulence_enabled = false
-	a.wave.enabled = false
-	a.step(0.01)
+	a.configure(Config.get_config("atmosphere"))
 	return a
-
-
-static func _sun(_x: float, _z: float) -> float:
-	return 1.0
 
 
 func test_reload_place_n_times() -> void:
@@ -71,7 +59,7 @@ func test_reload_place_n_times() -> void:
 		var ok: bool = await rt.load_field()
 		check(ok, "загрузка %d: поле посчитано (%s)" % [i + 1, rt.last_error])
 		check(rt._gpu == gpu and gpu.rd != null, "загрузка %d: тот же живой RD" % [i + 1])
-		check(atmo.is_air_field_on(), "загрузка %d: поле в атмосфере" % [i + 1])
+		check(not atmo.air_field.levels.is_empty(), "загрузка %d: поле в приёмнике" % [i + 1])
 		rt.stop()
 		check(gpu._owned.size() == gpu._base, "загрузка %d: после stop() на RD нет буферов задач (%d)" % [i + 1, gpu._owned.size() - gpu._base])
 		var mem: int = gpu.rd.get_memory_usage(RenderingDevice.MEMORY_TOTAL)

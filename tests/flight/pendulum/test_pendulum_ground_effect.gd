@@ -45,13 +45,13 @@ func test_lift_up_drag_down() -> void:
 ## Высоко над землёй (ЦМ выше размаха) — шаг тот же, что без земли.
 func test_high_no_change() -> void:
 	var flat := func(_x: float, _z: float) -> float: return 0.0
-	var a := S.make("sport")
-	var b := S.make("sport")
-	a.reset_in_air(Vector3(0.0, 30.0, 0.0), 0.0)
-	b.reset_in_air(Vector3(0.0, 30.0, 0.0), 0.0)
+	var ma := S.make("sport")
+	var mb := S.make("sport")
+	ma.reset_in_air(Vector3(0.0, 30.0, 0.0), 0.0)
+	mb.reset_in_air(Vector3(0.0, 30.0, 0.0), 0.0)
 	var inp := S.input(0.3)
 	for i in 240:
-		a.step(S.DT, inp, Callable(), flat)
-		b.step(S.DT, inp, Callable(), Callable())
-	check(a.position.is_equal_approx(b.position), "30 м над землёй: как без земли")
-	check(a.velocity.is_equal_approx(b.velocity), "30 м: скорость как без земли")
+		ma.step(S.DT, inp, Callable(), flat)
+		mb.step(S.DT, inp, Callable(), Callable())
+	check(ma.position.is_equal_approx(mb.position), "30 м над землёй: как без земли")
+	check(ma.velocity.is_equal_approx(mb.velocity), "30 м: скорость как без земли")

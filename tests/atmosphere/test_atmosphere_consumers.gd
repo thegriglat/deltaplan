@@ -1,30 +1,21 @@
 extends TestCase
 ## RW-3b: потребители scripts/atmosphere берут термики и ветер через фасад W2 — описания ядер
 ## (cores, W6), sample_many, background_wind, weather(): разбор ядер, признаки термиков,
-## пылевые вихри. godot --headless --path . res://tests/run_tests.tscn -- --filter=atmosphere_consumers
+## пылевые вихри. Воздух — tests/atmosphere/air_rig.gd. godot --headless --path . res://tests/run_tests.tscn -- --filter=atmosphere_consumers
 
-
-static func _flat(_x: float, _z: float) -> float:
-	return 0.0
-
-
-static func _sun(_x: float, _z: float) -> float:
-	return 1.0
+const Rig := preload("res://tests/atmosphere/air_rig.gd")
 
 
 func _atmo(strength: float = 3.0) -> Atmosphere:
-	var a := Atmosphere.new()
-	a.visuals_enabled = false
-	var w := Config._deep_merge(
-		Config.get_config("weather/strong"), {"thermal_mode": "static", "wind_speed_kmh": 0.0}
+	return Rig.make(
+		{
+			"preset": "weather/strong",
+			"over": {"wind_speed_kmh": 0.0},
+			"statics": [[0.0, 0.0, strength, 150.0]],
+			"focus": Vector3(0, 300, 0),
+			"advance": 1.0,
+		}
 	)
-	a.configure(Config.get_config("atmosphere"), w)
-	a.turbulence_enabled = false
-	a.set_ground(_flat, _sun)
-	a.add_static_thermal(0.0, 0.0, strength, 150.0)
-	a.set_focus(Vector3(0, 300, 0))
-	a.step(1.0)
-	return a
 
 
 func test_parse_cores_static_thermal() -> void:

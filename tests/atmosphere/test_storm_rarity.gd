@@ -25,6 +25,7 @@ func _key(temp: float, hour: float, seed_v: int, sky := "clear") -> String:
 
 ## Прогон сида: [Cb ближе NEAR_M за первый час, ветер бури у центра в t = 0, м/с, наибольший за
 ## час, м/с]. t = 0 — прыжок (тёплый старт), дальше — обновление раз в 15 мин (Cb живёт дольше).
+## Cb — ядра W6 с флагом 4; ветер бури — слагаемое storm из decompose (W7).
 func _run(temp: float, hour: float, seed_v: int, sky := "clear") -> Array:
 	var a := AtmoFingerprint.make_world(_key(temp, hour, seed_v, sky))
 	var c := AtmoFingerprint.CENTER
@@ -32,20 +33,18 @@ func _run(temp: float, hour: float, seed_v: int, sky := "clear") -> Array:
 	var near := {}
 	var wind0 := 0.0
 	var wind_max := 0.0
+	var cs := Atmosphere.CORE_STRIDE
 	for k in 5:
 		var t := k * 900.0
-		if k == 0:
-			a.start_at(t)
-		else:
-			a.time_s = t
-			a.refresh_now()
-		for id in a.field.thermals:
-			var th: AtmoThermal = a.field.thermals[id]
-			if th.is_cb and t >= th.t_birth:
-				var cc := th.cloud_center(t)
-				if Vector2(cc.x - c.x, cc.y - c.z).length() < NEAR_M:
-					near[id] = true
-		var s := a.storm.sample(p, 2.0, t)
+		if k > 0:
+			AtmoFingerprint.run_to(a, t, 60.0)
+		var cores := a.cores(c, NEAR_M)
+		for j in range(0, cores.size() - cs + 1, cs):
+			if (int(cores[j + Atmosphere.CORE_FLAGS]) & 4) != 0:
+				near[int(cores[j + Atmosphere.CORE_ID])] = true
+		var d := a.decompose(p)
+		var i_storm := (d.names as PackedStringArray).find("storm")
+		var s: Vector3 = d.vel[i_storm] if i_storm >= 0 else Vector3.ZERO
 		var h := Vector2(s.x, s.z).length()
 		if k == 0:
 			wind0 = h
@@ -155,42 +154,6 @@ func test_hot_34_occasional() -> void:
 	check(wind_max <= out + 1.0e-3, "поток бури не сильнее одной ячейки: %.1f м/с" % wind_max)
 
 
-func test_overlapping_outflows_do_not_add() -> void:
-	var a := Atmosphere.new()
-	a.configure(
-		Config.get_config("atmosphere"),
-		Config._deep_merge(
-			Config.get_config("weather/storm"), {"wind_speed_kmh": 0.0, "thermal_mode": "static"}
-		)
-	)
-	a.turbulence_enabled = false
-	a.set_ground(
-		func(_x: float, _z: float) -> float: return 0.0,
-		func(_x: float, _z: float) -> float: return 1.0
-	)
-	var id := a.add_static_thermal(0.0, 0.0, 4.0, 150.0)
-	var th: AtmoThermal = a.field.thermals[id]
-	th.is_static = false
-	th.is_cb = true
-	th.has_cloud = true
-	th.t_birth = -2000.0
-	th.t_grow = 200.0
-	th.t_mature = 3000.0
-	th.t_decay = 400.0
-	a.time_s = 0.0
-	a.step(0.01)
-	var c := th.cloud_center(a.time_s)
-	var rf := a.storm.front_radius(th, a.time_s)
-	var p := Vector3(c.x + rf * 0.6, 50.0, c.y)
-	var one := a.storm.sample(p, 50.0, a.time_s)
-	a.storm.cells.append_array([th, th, th])
-	var four := a.storm.sample(p, 50.0, a.time_s)
-	var out := float(Config.get_config("atmosphere").storm.outflow_ms)
-	check(one.x > 5.0, "одна ячейка дует: %.1f м/с" % one.x)
-	check(
-		Vector2(four.x, four.z).length() <= out + 1.0e-3, "четыре — не сильнее одной: %.1f" % four.x
-	)
-	check(
-		four.y >= -float(Config.get_config("atmosphere").storm.downdraft_ms) - 1.0e-3, "ливень тоже"
-	)
-	a.free()
+# test_overlapping_outflows_do_not_add (слияние ячеек не складывает потоки) — rust/dp-air/tests/terms_storm.rs
+# (overlapping_outflows_do_not_add, cb_downdraft_outflow_and_front); потолок потока одной ячейки
+# проверяет test_hot_34_occasional (wind_max <= outflow_ms).

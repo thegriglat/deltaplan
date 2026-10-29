@@ -1,24 +1,12 @@
 extends TestCase
-## Перистая пелена (VR-28), грозы Cb (VR-26), подветренные волны (VR-27).
+## Перистая пелена (VR-28), грозы Cb (VR-26), подветренные волны (VR-27) — через фасад W2 v4
+## (tests/atmosphere/air_rig.gd). Внутренности GD-слагаемых (ячейки грозы, ось термика, поток
+## Cb) — крейт (RW-12s: проверки через ячейки грозы и поле GD удалены, эквиваленты ниже).
 
+const Rig := preload("res://tests/atmosphere/air_rig.gd")
 const RIDGE_H := 800.0
 const RIDGE_W := 1500.0
-
-
-func _atmo(weather_over: Dictionary = {}, preset: String = "weather/medium") -> Atmosphere:
-	var a := Atmosphere.new()
-	var w := Config._deep_merge(Config.get_config(preset), weather_over)
-	a.configure(Config.get_config("atmosphere"), w)
-	a.turbulence_enabled = false
-	return a
-
-
-static func _flat(_x: float, _z: float) -> float:
-	return 0.0
-
-
-static func _sun(_x: float, _z: float) -> float:
-	return 1.0
+const R_CORES := 8000.0
 
 
 ## Хребет поперёк ветра (гребень вдоль Z на x = 0).
@@ -26,104 +14,66 @@ static func _ridge(x: float, _z: float) -> float:
 	return 500.0 + RIDGE_H * exp(-(x / RIDGE_W) * (x / RIDGE_W))
 
 
+## (средняя сила ядер, число ядер) вокруг фокуса.
 func _mean_strength(a: Atmosphere) -> Vector2:
+	var c := a.cores(Vector3(0.0, 300.0, 0.0), R_CORES)
+	var n := c.size() / Atmosphere.CORE_STRIDE
 	var s := 0.0
-	for id in a.field.thermals:
-		s += a.field.thermals[id].strength
-	var n := a.field.thermals.size()
+	for j in n:
+		s += c[j * Atmosphere.CORE_STRIDE + Atmosphere.CORE_W]
 	return Vector2(s / maxi(n, 1), n)
 
 
 func test_cirrus_weakens_thermals() -> void:
-	var clear := _atmo({"cirrus_cover": 0.0}, "weather/strong")
-	var veil := _atmo({"cirrus_cover": 0.9}, "weather/strong")
-	for a in [clear, veil]:
-		a.set_ground(_flat, func(_x: float, _z: float) -> float: return 0.8)
-		a.step(0.01)
+	var clear := Rig.make(
+		{"preset": "weather/strong", "over": {"cirrus_cover": 0.0}, "moist": func(_x: float, _z: float) -> float: return 0.8,
+		"advance": 0.01}
+	)
+	var veil := Rig.make(
+		{"preset": "weather/strong", "over": {"cirrus_cover": 0.9}, "moist": func(_x: float, _z: float) -> float: return 0.8,
+		"advance": 0.01}
+	)
 	var c := _mean_strength(clear)
 	var v := _mean_strength(veil)
-	check(veil.get_insolation() < 0.6, "пелена снижает прогрев: %.2f" % veil.get_insolation())
+	var ins_c := clear.get_insolation()
+	var ins_v := veil.get_insolation()
+	check(ins_v < ins_c and ins_v < 0.6, "пелена снижает прогрев: %.2f < %.2f" % [ins_v, ins_c])
 	check(v.x < c.x * 0.9, "термики под пеленой слабее: %.2f < %.2f м/с" % [v.x, c.x])
 	check(v.y < c.y, "и реже: %d < %d" % [int(v.y), int(c.y)])
 	clear.free()
 	veil.free()
 
 
-func _storm_atmo() -> Array:
-	var a := _atmo({"wind_speed_kmh": 0.0, "thermal_mode": "static"}, "weather/storm")
-	a.set_ground(_flat, _sun)
-	var id := a.add_static_thermal(0.0, 0.0, 4.0, 150.0)
-	var th: AtmoThermal = a.field.thermals[id]
-	# Превратить в Cb посреди бури.
-	th.is_static = false
-	th.is_cb = true
-	th.suck = 0.6
-	th.has_cloud = true
-	th.t_birth = -2000.0
-	th.t_grow = 200.0
-	th.t_mature = 3000.0
-	th.t_decay = 400.0
-	a.time_s = 0.0
-	a.step(0.01)
-	return [a, th]
-
-
-func test_cb_downdraft_and_outflow() -> void:
-	var r := _storm_atmo()
-	var a: Atmosphere = r[0]
-	var th: AtmoThermal = r[1]
-	check(a.storm.cells.size() == 1, "грозовая ячейка есть")
-	check(a.storm.intensity(th, a.time_s) > 0.9, "буря в разгаре")
-	var c := th.cloud_center(a.time_s)
-	# Ливневый поток — рядом с центром, сбоку от ядра термика.
-	var rd := a.storm.downdraft_radius(th)
-	var p_dd := Vector3(c.x + rd * 0.5, 900.0, c.y)
-	var w_dd := a.air_velocity_at(p_dd).y
-	check(w_dd < -3.0, "под Cb сильный нисходящий поток: %.2f м/с" % w_dd)
-	# Растекание у земли: ветер от облака, порывистый; на фронте — подъём.
-	var rf := a.storm.front_radius(th, a.time_s)
-	var p_out := Vector3(c.x + rf * 0.6, 50.0, c.y)
-	var u_out := a.air_velocity_at(p_out).x
-	check(u_out > 5.0, "у земли ветер от облака: %.1f м/с" % u_out)
-	var w_front := a.air_velocity_at(Vector3(c.x + rf, 400.0, c.y)).y
-	var bg := float(a.weather().background_sink_ms)
-	check(w_front > bg + 0.8, "над фронтом порывов подъём: %.2f" % w_front)
-	var far := a.air_velocity_at(Vector3(c.x + rf + 4000.0, 50.0, c.y))
-	check(absf(far.x) < 0.5, "за фронтом тихо: %.2f" % far.x)
-	a.free()
-
-
-func test_cb_suck_under_base() -> void:
-	var r := _storm_atmo()
-	var a: Atmosphere = r[0]
-	var th: AtmoThermal = r[1]
-	var cb := a.get_cloudbase_msl()
-	var ax := th.axis_at(cb - 40.0)
-	var w_suck := a.air_velocity_at(Vector3(ax.x, cb - 40.0, ax.y)).y
-	var ax2 := th.axis_at(cb * 0.4)
-	var w_mid := a.air_velocity_at(Vector3(ax2.x, cb * 0.4, ax2.y)).y
-	check(w_suck > w_mid, "под основанием Cb подсос сильнее: %.2f > %.2f" % [w_suck, w_mid])
-	a.free()
+# test_cb_downdraft_and_outflow (ливневый поток, растекание, фронт) — rust/dp-air/tests/terms_storm.rs
+# (cb_downdraft_outflow_and_front, overlapping_outflows_do_not_add, intensity_follows_life);
+# test_cb_suck_under_base (подсос под основанием Cb) — terms_thermal_cloud.rs (suck_points_from_gd_in_tolerance)
+# и terms_clouds.rs (physics_suck_vs_gd).
 
 
 func test_storm_preset_makes_cb() -> void:
-	var a := _atmo({}, "weather/storm")
-	a.set_ground(_flat, _sun)
-	a.step(0.01)
+	var a := Rig.make({"preset": "weather/storm", "advance": 0.01})
 	var n := 0
-	for id in a.field.thermals:
-		if a.field.thermals[id].is_cb:
+	for th: Dictionary in a.thermals_near(Vector3(0.0, 300.0, 0.0), R_CORES):
+		if bool(th.is_cb):
 			n += 1
 	check(n > 0, "в грозовой день есть Cb: %d" % n)
 	a.free()
 
 
 func test_lee_wave_crest_lift() -> void:
-	var a := _atmo({"thermal_mode": "static"}, "weather/wave")
-	a.set_ground(_ridge, _sun)
-	a.step(0.01)
-	check(a.wave.enabled, "волна включена")
-	var lam := a.wave.wavelength()
+	var a := Rig.make(
+		{
+			"preset": "weather/wave",
+			"mode": 1,
+			"ground": _ridge,
+			"half": 20000.0,  # волна уходит на десятки км за хребет: место с запасом
+			"spacing": 250.0,
+			"advance": 0.01,
+		}
+	)
+	var info := a.wave_info()
+	check(info[Atmosphere.WAVE_INFO_ENABLED] > 0.5, "волна включена")
+	var lam := info[Atmosphere.WAVE_INFO_LENGTH]
 	check(lam > 3000.0 and lam < 20000.0, "длина волны правдоподобна: %.0f м" % lam)
 	# Вдоль ветра (+X) за хребтом на высоте 1,5 км над гребнем — есть и подъём, и опускание.
 	var y := 500.0 + RIDGE_H + 1500.0
@@ -132,7 +82,7 @@ func test_lee_wave_crest_lift() -> void:
 	var x_max := 0.0
 	for i in 120:
 		var x := 1000.0 + i * 150.0
-		var w := a.air_velocity_at(Vector3(x, y, 0.0)).y
+		var w := a.mean_wind_at(Vector3(x, y, 0.0)).y
 		if w > w_max:
 			w_max = w
 			x_max = x
@@ -141,28 +91,31 @@ func test_lee_wave_crest_lift() -> void:
 	check(w_max > bg + 1.0, "в гребне волны подъём: %.2f м/с на x = %.0f" % [w_max, x_max])
 	check(w_min < bg - 0.5, "в ложбине опускание: %.2f" % w_min)
 	# Высоко над волной поток слабее.
-	var w_high := a.air_velocity_at(Vector3(x_max, y + 12000.0, 0.0)).y
+	var w_high := a.mean_wind_at(Vector3(x_max, y + 12000.0, 0.0)).y
 	check(absf(w_high - bg) < absf(w_max - bg) * 0.5, "с высотой волна гаснет")
 	# Лентикулярные облака: гребни η найдены.
-	var cr := a.wave.crests(Vector3(8000, 0, 0), 12000.0, 50.0)
-	check(not cr.is_empty(), "гребни волн (лентикуляры) найдены: %d" % cr.size())
+	var cr := a.wave_crests(Vector2(8000, 0), 12000.0, 50.0)
+	check(not cr.is_empty(), "гребни волн (лентикуляры) найдены: %d" % (cr.size() / Atmosphere.CREST_STRIDE))
 	a.free()
 
 
 func test_no_wave_without_preset() -> void:
-	var a := _atmo({"thermal_mode": "static"}, "weather/medium")
-	a.set_ground(_ridge, _sun)
-	a.step(0.01)
-	check(not a.wave.enabled, "в обычный день волн нет")
+	var a := Rig.make(
+		{"mode": 1, "ground": _ridge, "half": 20000.0, "spacing": 250.0, "advance": 0.01}
+	)
+	check(a.wave_info()[Atmosphere.WAVE_INFO_ENABLED] < 0.5, "в обычный день волн нет")
 	a.free()
 
 
-func _young(a: Atmosphere, x: float) -> AtmoThermal:
-	var id := a.add_static_thermal(x, 0.0, 4.0, 120.0)
-	var th: AtmoThermal = a.field.thermals[id]
-	th.is_static = false
+## Молодой термик (GD AtmoThermal, без атмосферы): рост 300 с, зрелость 600 с, распад 200 с.
+func _young(x: float) -> AtmoThermal:
+	var th := AtmoThermal.new()
+	th.src = Vector3(x, 0.0, 0.0)
+	th.top = 1800.0
+	th.strength = 4.0
+	th.radius = 120.0
 	th.id = 1000 + int(x)
-	th.t_birth = a.time_s - 5.0
+	th.t_birth = -5.0
 	th.t_grow = 300.0
 	th.t_mature = 600.0
 	th.t_decay = 200.0
@@ -170,13 +123,12 @@ func _young(a: Atmosphere, x: float) -> AtmoThermal:
 
 
 func test_dust_devils_from_young_thermals_over_dry_ground() -> void:
-	var a := _atmo({"thermal_mode": "static", "dust_devil_chance": 1.0}, "weather/strong")
-	a.set_ground(_flat, _sun)
+	var dust_cfg: Dictionary = Config.get_config("atmosphere").dust
 	var dm := DustModel.new()
-	dm.setup(a.cfg.dust, a.weather())
+	dm.setup(dust_cfg, Rig.preset("weather/strong", {"dust_devil_chance": 1.0}))
 	var crop := func(_x: float, _z: float) -> int: return 3
 	var forest := func(_x: float, _z: float) -> int: return 1
-	var th := _young(a, 0.0)
+	var th := _young(0.0)
 	# Ищем момент, когда вихрь жив (он появляется в первой части роста термика).
 	var found := {}
 	for i in 400:
@@ -198,9 +150,6 @@ func test_dust_devils_from_young_thermals_over_dry_ground() -> void:
 		var p1: Vector3 = dm.devil(th, t_live + 5.0, crop, Vector2(3, 0)).get("pos", p0)
 		check(p1.x > p0.x, "вихрь дрейфует с ветром")
 	check(dm.devil(th, th.t_birth + 800.0, crop, Vector2.ZERO).is_empty(), "у зрелого термика нет")
-	var weak := _atmo({"dust_devil_chance": 0.0}, "weather/weak")
 	var dw := DustModel.new()
-	dw.setup(weak.cfg.dust, weak.weather())
+	dw.setup(dust_cfg, Rig.preset("weather/weak", {"dust_devil_chance": 0.0}))
 	check(dw.devil(th, th.t_birth + 30.0, crop, Vector2.ZERO).is_empty(), "в слабый день нет")
-	weak.free()
-	a.free()
