@@ -3,6 +3,8 @@ extends TestCase
 ## Модель получает порыв пачкой от вызываемого значения (в игре — Atmosphere.surface_gust_many, W2 v4):
 ## логика события проверяется на синтетическом порыве с известным средним, пул и слой — на фасаде.
 
+const Rig := preload("res://tests/atmosphere/air_rig.gd")
+
 
 ## Синтетический порыв: среднее u м/с и пульсация ±25 % по (x, z, t) — как порыв фасада по форме
 ## (функция точки и момента, пачкой).
@@ -142,23 +144,19 @@ func test_deterministic_and_world_not_pilot() -> void:
 	check(m1.event(7, 9, 105, _crop, _gust(15.3)) == e1[7 * 40 + 9], "одна клетка = та же клетка в пачке")
 
 
-func _atmo(w_over: Dictionary = {}) -> Atmosphere:
-	var a := Atmosphere.new()
-	var w := Config._deep_merge(Config.get_config("weather/strong"), w_over)
-	a.configure(Config.get_config("atmosphere"), w)
-	a.turbulence_enabled = false
-	return a
+func _atmo(w_over: Dictionary = {}, surface: Callable = _crop) -> Atmosphere:
+	return Rig.make({"preset": "weather/strong", "over": w_over, "surface": surface, "advance": 0.0})
 
 
 func test_node_scan_fills_pool() -> void:
 	var a := _atmo({"wind_speed_kmh": 55.0})
-	a.set_ground(func(_x: float, _z: float) -> float: return 0.0, func(_x: float, _z: float) -> float: return 1.0, _crop)
+	var t := 400.0
+	a.start_at(t)  # слой берёт начало просмотра слотов от времени атмосферы при setup
+	Rig.wait_ready(a)
 	var g := GustDust.new()
 	a.add_child(g)
 	g.setup(a, Callable(a, "_v_ground_height"), Callable(a, "_v_surface_class"))
-	var t := 400.0
-	a.time_s = t
-	var eye := Vector3(5000, 100, 5000)
+	var eye := Vector3(500, 100, 500)
 	for k in 20:
 		g.step_scan(eye, t)
 	var live := g.live_count(t + 3.0)
@@ -175,8 +173,8 @@ func test_node_scan_fills_pool() -> void:
 ## снимается итоговым прогоном модуля: tools/wind_fixtures на ветке до RW-12z, сверка по (x, z, t0).
 func test_slot_batch_equals_single_cells() -> void:
 	var a := _atmo({"wind_speed_kmh": 55.0})
-	a.set_ground(func(_x: float, _z: float) -> float: return 0.0, func(_x: float, _z: float) -> float: return 1.0, _crop)
-	a.time_s = 400.0
+	a.start_at(400.0)
+	Rig.wait_ready(a)
 	var m := _model()
 	var gust := Callable(a, "surface_gust_many")
 	var cells: Array[Vector2i] = []
@@ -199,12 +197,15 @@ func test_slot_batch_equals_single_cells() -> void:
 ## идёт по румбу погоды: «откуда» wind_from_deg -> единичный вектор (-sin, cos) в осях W1.
 func test_dust_direction_matches_wind_dir() -> void:
 	for case: Array in [["weather/weak", 270.0, 11.0], ["weather/medium", 45.0, 25.0], ["weather/strong", 135.0, 40.0]]:
-		var a := Atmosphere.new()
-		var w := Config.get_config(String(case[0])).duplicate(true)
-		w.wind_from_deg = float(case[1])
-		w.wind_speed_kmh = float(case[2])
-		a.configure(Config.get_config("atmosphere"), w)
-		a.set_ground(func(_x: float, _z: float) -> float: return 300.0, func(_x: float, _z: float) -> float: return 0.8)
+		var a := Rig.make(
+			{
+				"preset": String(case[0]),
+				"over": {"wind_from_deg": float(case[1]), "wind_speed_kmh": float(case[2])},
+				"ground": func(_x: float, _z: float) -> float: return 300.0,
+				"moist": func(_x: float, _z: float) -> float: return 0.8,
+				"advance": 0.0,
+			}
+		)
 		var g := GustDust.new()
 		g.atmo = a
 		var d: Vector2 = g._wind_dir()

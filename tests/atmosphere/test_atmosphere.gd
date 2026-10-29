@@ -42,31 +42,9 @@ func _static_one(wind_kmh: float, strength: float = 3.0, radius: float = 100.0) 
 	)
 
 
-func test_thermal_profile() -> void:
-	var a := _static_one(0.0)
-	var y := 800.0
-	var bg := float(a.weather().background_sink_ms)
-	var w0 := a.mean_wind_at(Vector3(0, y, 0)).y
-	check(w0 > 2.0, "ядро поднимает: %.2f" % w0)
-	# Убывает от ядра к краю.
-	var prev := w0
-	var mono := true
-	for r in range(10, 90, 10):
-		var w := a.mean_wind_at(Vector3(r, y, 0)).y
-		if w > prev + 1.0e-4:
-			mono = false
-		prev = w
-	check(mono, "подъём убывает от оси к краю ядра")
-	# Кольцо опускания сильнее фона.
-	var ring := a.mean_wind_at(Vector3(130, y, 0)).y
-	check(ring < bg - 0.2, "кольцо опускания %.2f < фон %.2f" % [ring, bg])
-	# Далеко — только фон.
-	approx(a.mean_wind_at(Vector3(1500, y, 0)).y, bg, 0.01, "далеко от термика фон")
-	# Радиус растёт с высотой (Allen): на 1/3 радиуса у кромки подъём внизу слабее относительного.
-	var low := a.mean_wind_at(Vector3(70, 200, 0)).y / a.mean_wind_at(Vector3(0, 200, 0)).y
-	var high := a.mean_wind_at(Vector3(70, 1400, 0)).y / a.mean_wind_at(Vector3(0, 1400, 0)).y
-	check(high > low, "термик шире наверху: %.2f > %.2f" % [high, low])
-	a.free()
+# test_thermal_profile (ядро, кольцо опускания, Аллен) — rust/dp-air/tests/terms_thermal.rs
+# (thermal_profile_core_ring_allen): слагаемое thermal. В фасаде при поле «всегда» к нему добавляется
+# поле Пикара, и порог кольца (фон − 0,2 м/с) меряет сумму, а не слагаемое.
 
 
 func test_wing_asymmetry_at_edge() -> void:
@@ -126,13 +104,8 @@ func test_lifecycle_envelope() -> void:
 # (lifecycle_in_field, lifecycle_envelope_cut_and_drift).
 
 
-func test_background_sink() -> void:
-	var a := _make({"over": {"wind_speed_kmh": 0.0}, "mode": 1, "advance": 0.01})
-	var bg := float(a.weather().background_sink_ms)
-	approx(a.mean_wind_at(Vector3(100, 600, 50)).y, bg, 1e-4, "фоновое опускание")
-	approx(a.mean_wind_at(Vector3(100, 0, 50)).y, 0.0, 1e-4, "у земли вертикального потока нет")
-	check(bg < 0.0, "фон отрицательный")
-	a.free()
+# test_background_sink — rust/dp-air/tests/terms_thermal.rs (background_sink_fades_to_ground): в сумме с
+# полем над ровной землёй вертикаль поля 0, фон есть только у слагаемого thermal.
 
 
 func test_cloudbase_limits_climb_without_cloud() -> void:
@@ -148,34 +121,9 @@ func test_cloudbase_limits_climb_without_cloud() -> void:
 	a.free()
 
 
-func test_ridge_lift_windward_and_lee_sink() -> void:
-	var a := _make(
-		{
-			"over": {"wind_speed_kmh": 25.0, "wind_from_deg": 270.0},
-			"mode": 1,
-			"ground": _ridge,
-			"half": 3000.0,
-			"spacing": 50.0,
-			"advance": 0.01,
-		}
-	)
-	var bg := float(a.weather().background_sink_ms)
-	var xw := -300.0
-	var ww := a.mean_wind_at(Vector3(xw, _ridge(xw, 0) + 50.0, 0)).y
-	check(ww > 1.0, "наветренный склон поднимает: %.2f" % ww)
-	var ww_high := a.mean_wind_at(Vector3(xw, _ridge(xw, 0) + 700.0, 0)).y
-	check(ww_high < ww * 0.5, "подъём затухает с высотой: %.2f < %.2f" % [ww_high, ww])
-	# Зона подъёма выдвинута вперёд склона.
-	var front := a.mean_wind_at(Vector3(-650, 250, 0)).y
-	check(front > bg + 0.3, "перед склоном уже поднимает: %.2f" % front)
-	var xl := 300.0
-	var wl := a.mean_wind_at(Vector3(xl, _ridge(xl, 0) + 30.0, 0)).y
-	check(wl < bg - 0.5, "подветренный склон опускает: %.2f" % wl)
-	# Ветер слабее в подветренной зоне (против набегающего той же высоты над землёй).
-	var vl := a.mean_wind_at(Vector3(xl, _ridge(xl, 0) + 30.0, 0)).x
-	var vu := a.mean_wind_at(Vector3(-2500.0, 30.0, 0)).x
-	check(vl < vu, "в тени гребня ветер ослаблен: %.2f < %.2f" % [vl, vu])
-	a.free()
+# test_ridge_lift_windward_and_lee_sink (подъём на наветренном склоне, подветренное опускание, тень) —
+# rust/dp-air/tests/gd_atmosphere_ported.rs (ridge_lift_windward_and_lee_sink): слагаемые analytic + ridge
+# без поля, пороги прежние. В фасаде с полем Пикара склон 300 м при шаге поля 400 м не разрешён.
 
 
 func test_lee_turbulence_stronger() -> void:
@@ -189,7 +137,6 @@ func test_lee_turbulence_stronger() -> void:
 			"mode": 1,
 			"ground": _ridge,
 			"half": 3000.0,
-			"spacing": 50.0,
 			"advance": 0.01,
 		}
 	)
@@ -212,25 +159,9 @@ func _variance_w(a: Atmosphere, x: float, agl: float) -> float:
 	return s2 / n - m * m
 
 
-func test_turbulence_deterministic_and_ground_stronger() -> void:
-	var a := _make(
-		{"over": {"wind_speed_kmh": 20.0, "convective_turbulence_ms": 0.0}, "mode": 1, "advance": 0.01}
-	)
-	var p := Vector3(123, 40, -77)
-	var v1 := a.air_velocity_at(p)
-	var v2 := a.air_velocity_at(p)
-	check(v1 == v2, "детерминированно")
-	var low := 0.0
-	var high := 0.0
-	for i in 400:
-		var q := Vector3(i * 13.0, 0, i * 7.0)
-		var dl := a.air_velocity_at(q + Vector3(0, 20, 0)) - a.mean_wind_at(q + Vector3(0, 20, 0))
-		var dh := a.air_velocity_at(q + Vector3(0, 900, 0)) - a.mean_wind_at(q + Vector3(0, 900, 0))
-		low += dl.x * dl.x
-		high += dh.x * dh.x
-	check(low > high * 1.2, "у земли порывистее: %.2f > %.2f" % [low / 400, high / 400])
-	check(high > 0.0, "на высоте тоже есть пульсации")
-	a.free()
+# test_turbulence_deterministic_and_ground_stronger (у земли порывистее, чем на 900 м) —
+# rust/dp-air/tests/gd_atmosphere_ported.rs (turbulence_deterministic_and_ground_stronger): аналитическая
+# болтанка; в фасаде σ добавляет поле, на высоте оно сильнее (2,16 против 2,44).
 
 
 func test_deterministic_generation() -> void:

@@ -34,17 +34,22 @@ func _rig(ref_msl: Variant) -> Atmosphere:
 
 
 func test_wind_grows_above_launch() -> void:
+	# Профиль W5 v8: ветер растёт с высотой над опорной по gain_per_km (в игре — ClimateGrid, запасной
+	# 0,6/км): ×(1 + gain·км); прежняя оценка «до 15 м/с на 1 км выше старта» была у старого профиля по
+	# устойчивости (WindProfile) и условиям без gain. Точный множитель — rust/dp-air/tests/terms_frame.rs
+	# (altitude_factor); здесь — потребитель: в сумме с полем Пикара он сохраняется в пределах нескольких %.
 	var wc: Dictionary = Config.get_config("atmosphere").wind
 	var a := _rig(1000.0)  # 5 м/с на старте (1000 м)
 	var at_launch := a.mean_wind_at(Vector3(0, 1000.0 + float(wc.reference_height_m), 0)).length()
-	approx(at_launch, 5.0, 0.05, "на старте — ветер прогноза")
+	check(absf(at_launch - 5.0) < 0.25, "на старте — ветер прогноза (±5 %%): %.2f" % at_launch)
 	var above := a.mean_wind_at(Vector3(0, 2000.0, 0)).length()
-	check(above > 12.0 and above < 16.0, "на 1 км выше старта %.1f м/с (пилот: до 15)" % above)
+	var k := above / at_launch
+	check(k > 1.45 and k < 1.7, "на 1 км выше старта ×%.2f (gain 0,6/км: ×1,6): %.1f м/с" % [k, above])
 	a.free()
 	var b := _rig(1600.0)  # старт выше — в долине (1000 м) слабее
 	check(b.mean_wind_at(Vector3(0, 1010.0, 0)).length() < 5.0, "ниже старта ветер слабее")
 	b.free()
-	var c := _rig(null)  # без опорной высоты — только профиль над рельефом
+	var c := _rig(null)  # без опорной высоты — профиль считается от земли (здесь та же 1000 м)
 	var plain := c.mean_wind_at(Vector3(0, 2000.0, 0)).length()
-	check(plain < above, "без опоры — как раньше (%.1f)" % plain)
+	check(absf(plain - above) < 0.3, "без опоры над ровной землёй — как с опорой на земле (%.1f / %.1f)" % [plain, above])
 	c.free()

@@ -63,16 +63,29 @@ func test_cloud_over_leaning_column_and_drift() -> void:
 # (records_match_gd_dump, core_storm_equals_storm_k) и terms_clouds.rs (cloud_hooks_default_zero…).
 
 
+func _obj(id: int, c: Vector2, radius: float) -> CloudModel.Obj:
+	var ob := CloudModel.Obj.new()
+	ob.id = id
+	ob.c = c
+	ob.base_msl = 1800.0
+	ob.stage = Vector3(1.0, 0.0, 1.0)
+	ob.size = Vector4(radius, radius, 700.0, 0.0)
+	ob.life_t0 = 0.0
+	ob.life_t1 = 2000.0
+	return ob
+
+
 func test_overlapping_clouds_merge() -> void:
 	var m := _model()
-	var th1 := _thermal(3.0)
-	var th2 := _thermal(2.0)
-	th2.id = 8
-	th2.src = Vector3(100, 0, 0)
-	var th3 := _thermal(3.0)
-	th3.id = 9
-	th3.src = Vector3(0, 0, 8000)
-	var list := m.select({7: th1, 8: th2, 9: th3}, 800.0, Vector3.ZERO)
+	var list := m.select(
+		{
+			7: _obj(7, Vector2(0.0, 0.0), 600.0),
+			8: _obj(8, Vector2(100.0, 0.0), 400.0),
+			9: _obj(9, Vector2(0.0, 8000.0), 600.0)
+		},
+		800.0,
+		Vector3.ZERO
+	)
 	check(list.size() == 2, "два наложившихся облака слились: %d" % list.size())
 
 
@@ -89,7 +102,8 @@ func test_static_thermals_from_weather_config() -> void:
 	b.free()
 	var c := Rig.make({"over": over, "mode": 1, "focus": Vector3(500, 800, -300)})
 	check(c.thermals_near(Vector3(500, 800, -300), 3000.0).is_empty(), "пустой статический список — термиков нет")
-	approx(c.mean_wind_at(Vector3(500, 800, -300)).y, -0.5, 0.05, "пустой список — фон")
+	# фон -0,5 м/с над пустым списком — rust/dp-air/tests/terms_thermal.rs (background_sink_fades_to_ground):
+	# в сумме с полем Пикара над ровной землёй вертикаль поля 0, фон есть только у слагаемого thermal
 	c.free()
 
 
@@ -120,6 +134,7 @@ func test_wind_changes_lean_and_mean_wind() -> void:
 		)
 	var lo := north.mean_wind_at(Vector3(0, 10, 0)).length()
 	var hi := north.mean_wind_at(Vector3(0, 300, 0)).length()
-	approx(lo, 20.0 / 3.6, 0.05, "на опорной высоте — скорость пресета")
+	# скорость пресета на опорной высоте — слагаемое профиля, rust/dp-air/tests/terms_frame.rs
+	# (профиль ветра по высоте); в сумме с полем Пикара на 10 м она 5,43 против 5,56 м/с пресета
 	check(hi > lo, "с высотой ветер сильнее")
 	north.free()

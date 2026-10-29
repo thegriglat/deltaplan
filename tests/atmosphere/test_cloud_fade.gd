@@ -3,17 +3,15 @@ extends TestCase
 ## (linger), слияние наложившихся, лимит max_clouds, предел дальности, удаление термика из поля.
 ## Видимость облака — CloudLayer: запись [20] (плотность × видимость в шейдере).
 
+const Rig := preload("res://tests/atmosphere/air_rig.gd")
+
 ## Больше этого за 1 с атмосферы видимость облака не меняется (скачок — это «пропало»).
 const MAX_STEP_PER_S := 0.1
 ## Облако с видимостью выше этой считаем заметным.
 const VISIBLE := 0.02
 
 
-static func _flat(_x: float, _z: float) -> float:
-	return 0.0
-
-
-static func _sun(x: float, z: float) -> float:
+static func _moist(x: float, z: float) -> float:
 	return 0.75 + 0.25 * sin(x / 1300.0) * cos(z / 1700.0)
 
 
@@ -124,17 +122,15 @@ func test_no_instant_disappearance_in_flight() -> void:
 
 
 func _fly(weather: String, seconds: int) -> Dictionary:
-	var a := Atmosphere.new()
-	var w := Config._deep_merge(Config.get_config(weather), {"wind_speed_kmh": 15.0})
 	var acfg := Config.get_config("atmosphere").duplicate(true)
 	acfg.clouds.max_clouds = 6
-	a.configure(acfg, w)
-	a.turbulence_enabled = false
-	a.set_ground(_flat, _sun)
-	a.time_s = 3600.0
 	var pos := Vector3(0, 1200, 0)
-	a.set_focus(pos)
-	a.step(0.0)
+	var a := Rig.make(
+		{
+			"cfg": acfg, "preset": weather, "over": {"wind_speed_kmh": 15.0}, "moist": _moist,
+			"start_at": 3600.0, "focus": pos, "advance": 0.0
+		}
+	)
 	var layer := CloudLayer.new()
 	layer.setup(a, acfg)
 	var prev: Dictionary = {}
@@ -144,8 +140,8 @@ func _fly(weather: String, seconds: int) -> Dictionary:
 	var vel := Vector3(18.0, 0.0, 6.0)
 	for s in seconds:
 		pos += vel
-		a.set_focus(pos)
-		a.step(1.0)
+		Rig.focus(a, pos)
+		Rig.step(a, 1.0)
 		var t := a.time_s
 		layer._select(t, pos)
 		for i in layer._slot_obj.size():

@@ -5,7 +5,7 @@ extends TestCase
 ## термики, гроза, волна. Помощники (синтетическое место, запуск до READY) — из контрактных тестов.
 
 const C := preload("res://tests/contracts/test_rust_wind_contracts.gd")
-const CENTER := Vector3(1500.0, 0.0, -2500.0)
+const CENTER := C.CENTER
 const TOL := 1.0e-4
 ## Слагаемые W7 в порядке реализации (rust/dp-air/src/terms/decompose.rs).
 const T_NAMES := ["field", "analytic", "ridge", "thermal", "storm", "wave", "cloud", "turb", "gust"]

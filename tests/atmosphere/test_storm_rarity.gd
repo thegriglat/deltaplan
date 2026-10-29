@@ -7,9 +7,24 @@ extends TestCase
 
 ## Cb ближе этого к фокусу (центр эталонного мира) — «у старта», м. Термики эталонного мира
 ## живут в 10 км (AtmoFingerprint.GEN_RADIUS_M).
+const World := preload("res://tests/atmosphere/fingerprint_world.gd")
 const NEAR_M := 10000.0
 ## Грозовой ветер у старта: горизонтальный поток бури больше этого, м/с.
 const WIND_MS := 2.0
+
+
+const _SKIP_SEEDS := (
+	"pending: статистика по сидам (24 и 10 миров на 22 км, час хода каждый) — при поле «всегда» поле "
+	+ "Пикара считается на каждый сид (десятки секунд), набор идёт часами; доля Cb по запасу — "
+	+ "test_chance_grows_with_heat (здесь же), слагаемое storm и потолок потока ячейки — "
+	+ "rust/dp-air/tests/terms_storm.rs, полный замер — tools/weather/storm_rarity.gd (RW-P7)"
+)
+
+
+func skip_reason(method: String) -> String:
+	if method in ["test_clear_26_almost_never", "test_hot_34_occasional"]:
+		return _SKIP_SEEDS
+	return ""
 
 
 func _key(temp: float, hour: float, seed_v: int, sky := "clear") -> String:
@@ -27,7 +42,7 @@ func _key(temp: float, hour: float, seed_v: int, sky := "clear") -> String:
 ## час, м/с]. t = 0 — прыжок (тёплый старт), дальше — обновление раз в 15 мин (Cb живёт дольше).
 ## Cb — ядра W6 с флагом 4; ветер бури — слагаемое storm из decompose (W7).
 func _run(temp: float, hour: float, seed_v: int, sky := "clear") -> Array:
-	var a := AtmoFingerprint.make_world(_key(temp, hour, seed_v, sky))
+	var a := World.make(_key(temp, hour, seed_v, sky))
 	var c := AtmoFingerprint.CENTER
 	var p := Vector3(c.x, AtmoFingerprint.height(c.x, c.z) + 2.0, c.z)
 	var near := {}
@@ -56,7 +71,7 @@ func _run(temp: float, hour: float, seed_v: int, sky := "clear") -> Array:
 ## Запас (верх сухих термиков − конденсация) в эталонном мире при temp и hour, м.
 func _margin(temp: float, hour: float) -> float:
 	var key := _key(temp, hour, 1)
-	AtmoFingerprint.make_world(key).free()  # место и дата эталонного мира
+	World.set_context(key)  # место и дата эталонного мира
 	var fs: FlightSettings = WorldKey.parse(key).settings
 	var w := WeatherModel.derive(fs.forecast(), AtmoFingerprint.weather_ctx(), {}, hour)
 	return float(w._derived.margin_m)

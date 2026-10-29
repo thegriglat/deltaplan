@@ -34,59 +34,8 @@ func _atmo(wind_ms: float) -> Atmosphere:
 		"convective_turbulence_ms": 0.0,
 	}
 	return Rig.make(
-		{"over": over, "mode": 1, "ground": _ridge, "half": 3000.0, "spacing": 50.0, "advance": 0.01}
+		{"over": over, "mode": 1, "ground": _ridge, "half": 3000.0, "advance": 0.01}
 	)
-
-
-## Среднее по пятну (вдоль гребня и по времени): Vector4(w, u, σ, горизонталь вдоль ветра).
-func _patch(a: Atmosphere, xs: Array[float], agls: Array[float]) -> Vector4:
-	var sw := 0.0
-	var su := 0.0
-	var ss := 0.0
-	var sh := 0.0
-	var n := 0
-	for t in 5:
-		a.advance_to(10.0 + t * 7.0)
-		for x in xs:
-			for agl in agls:
-				for k in 20:
-					var p := Vector3(x, _ridge(x, 0.0) + agl, k * 37.0)
-					var s := a.sample(p, Atmosphere.SAMPLE_MEAN)  # без болтанки: v и σ
-					sw += s.y
-					sh += s.x
-					su += Vector3(s.x, s.y, s.z).length()
-					ss += s.w
-					n += 1
-	return Vector4(sw / n, su / n, ss / n, sh / n)
-
-
-func test_lee_sink_and_rotor_scale_with_wind() -> void:
-	for wind in [2.0, 5.0, 8.0]:
-		var a := _atmo(wind)
-		var lee := _patch(a, LEE_X, LEE_AGL)
-		var ww := _patch(a, [WIND_X] as Array[float], LEE_AGL)
-		print(
-			(
-				(
-					"  ветер %.0f м/с: за гребнем w %.2f (%.2f·u), σ %.2f (%.2f·u), u %.2f; "
-					+ "наветренный w %.2f σ %.2f"
-				)
-				% [wind, lee.x, lee.x / lee.y, lee.z, lee.z / lee.y, lee.y, ww.x, ww.z]
-			)
-		)
-		if wind > 4.0:
-			# аналитика: пороги — регрессия эвристики lee.* (не физика)
-			# AP-10: опускание в полосе у линии тени 0,03–0,05 U, литература 0,06–0,17 U_H; сверху
-			# рывки («бьёт сверху») — опасность за гребнем это ротор и болтанка, не провал
-			check(lee.x < 0.0 and lee.x >= -0.35 * lee.y, "%.0f м/с: опускание %.2f" % [wind, lee.x])
-			# порог — регрессия аналитики, без источника: 0,5·u → 0,45·u по факту 0,47·u при 8 м/с
-			# (профиль притока откалиброван, Б2); эвристика не подгоняется
-			check(lee.z >= 0.45 * lee.y, "%.0f м/с: ротор σ %.2f" % [wind, lee.z])
-			check(ww.x > 0.3, "%.0f м/с: наветренный склон поднимает %.2f" % [wind, ww.x])
-			check(ww.z < 0.35 * ww.y, "%.0f м/с: наветренный σ мал %.2f" % [wind, ww.z])
-		else:
-			check(lee.x >= -1.0, "слабый ветер: опускание мягкое %.2f" % lee.x)
-		a.free()
 
 
 ## Числа lee взяты из AP-10 (tools/research/air_phase/analysis/AP-10): угол 12°, ротор 0,6–0,7,
@@ -104,19 +53,11 @@ func test_lee_config_from_ap10() -> void:
 # rust/dp-air/tests/terms_turb.rs (sigma_lee_sep_scales_match_godot, separation_zone_bursts_sigma_and_reverse_flow).
 
 
-func test_rotor_reverse_flow_near_slope() -> void:
-	var a := _atmo(8.0)
-	var reversed := 0
-	for x in LEE_X:
-		for agl in [5.0, 10.0, 15.0]:
-			var h := a.mean_wind_at(Vector3(x, _ridge(x, 0.0) + agl, 0.0)).x
-			if h < 0.5:
-				reversed += 1
-	check(reversed >= 3, "у подветренного склона обратный/нулевой поток: %d клеток" % reversed)
-	# Высоко над линией тени — воздух не тронут.
-	var p := Vector3(250.0, 700.0, 0.0)
-	check(a.mean_wind_at(p).x > 4.0, "над тенью ветер прежний: %.2f" % a.mean_wind_at(p).x)
-	a.free()
+# test_lee_sink_and_rotor_scale_with_wind (опускание и ротор растут с ветром, наветренный склон) и
+# test_rotor_reverse_flow_near_slope (обратный поток у склона) — rust/dp-air/tests/gd_atmosphere_ported.rs
+# (lee_sink_and_rotor_scale_with_wind, rotor_reverse_flow_near_slope): слагаемые analytic + ridge без
+# поля, пороги прежние; u — ветер профиля, как `mean_wind_at` эталона GD. В фасаде при поле «всегда»
+# поле Пикара (шаг 400 м) склон 300 м не разрешает, и эти числа меряют сумму с полем, а не эвристику.
 
 
 func test_same_seed_same_air() -> void:

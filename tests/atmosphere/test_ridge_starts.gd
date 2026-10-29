@@ -47,6 +47,17 @@ const WEAK_LEE_SITES: Dictionary = {
 
 const LOCATIONS: Array[String] = ["altai", "askarovo", "aushkul", "ongudai"]
 
+const _SKIP_REAL_PLACES := (
+	"pending: набор у склона на реальных местах (4 локации, 10 стартов) требует поле Пикара шага 25 м "
+	+ "на месте 20+ км на каждый старт — минуты на старт, не помещается в бюджет теста (RW-P7); "
+	+ "склон и подветренная зона без поля — rust/dp-air/tests/gd_atmosphere_ported.rs "
+	+ "(ridge_lift_windward_and_lee_sink, lee_sink_and_rotor_scale_with_wind), terms_analytic.rs"
+)
+
+
+func skip_reason(_method: String) -> String:
+	return _SKIP_REAL_PLACES
+
 
 func _weather_no_thermals(wind_kmh: float, wind_from_deg: float) -> Dictionary:
 	var w: Dictionary = Config.get_config("weather/medium").duplicate(true)

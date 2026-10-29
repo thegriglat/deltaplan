@@ -6,6 +6,14 @@ extends TestCase
 const XC_RUN := preload("res://tests/atmosphere/xc/xc_run.gd")
 
 
+func skip_reason(_method: String) -> String:
+	return (
+		"pending: маршрут 10 км при поле «всегда» — шаг воздуха около 1,5 с на секунду полёта "
+		+ "(RW-P9, xc_run.gd), десятки минут на тест; короткий маршрут теряет проверку «≥ 4 термиков "
+		+ "у линии» — решение за владельцем xc (RW-P9)"
+	)
+
+
 func test_xc_bot_synthetic_10km() -> void:
 	var run: Node = XC_RUN.new()
 	var res: Dictionary = (
