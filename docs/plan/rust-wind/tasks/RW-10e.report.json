@@ -1,0 +1,93 @@
+{
+  "status": "partial",
+  "summary": "Источники поля в жизни термиков (_spawn_air, covers, «между», пересборка по ключу в фоне, охват по фокусам), земля места (Terms::set_thermal_place) и 8 тестов terms_thermal_field. thermal и ядра ongudai_* сходятся с эталоном, кроме ядер: 4,8 % не сошлись по месту против допуска 3 %.",
+  "commits": [
+    "RW-10e: термики из поля в жизни термиков",
+    "RW-10e: слияние feature/rust-wind",
+    "RW-10e: set_thermal_place (set_place занято weather_link)"
+  ],
+  "checks": [
+    {
+      "name": "ongudai_medium: точек thermal вне допуска W8",
+      "value": "9 из 144 (пропущено above_base и 250 м под базой: 9)",
+      "pass": true
+    },
+    {
+      "name": "ongudai_strong: точек вне допуска",
+      "value": "2 из 144 (пропущено 9)",
+      "pass": true
+    },
+    {
+      "name": "ongudai_wave: точек вне допуска",
+      "value": "4 из 153 (пропущено 36)",
+      "pass": true
+    },
+    {
+      "name": "ядра: число",
+      "value": "medium 0, strong и wave не больше 1 (допуск 2)",
+      "pass": true
+    },
+    {
+      "name": "ядра: не сошлись по месту (w, radius, top, stage совпали)",
+      "value": "42/766 medium, 19/527 strong, 20/399 wave = 81/1692 = 4,8 % против 3 % W8 v2",
+      "pass": false
+    },
+    {
+      "name": "сила источника против журнала ground.sun GD",
+      "value": "30104 точки, mean|d| 0,0093, больше 0,05 у 4,7 %",
+      "pass": true
+    },
+    {
+      "name": "Монте-Карло поток ядер / поток поля",
+      "value": "0,88 (допуск 0,8..1,2)",
+      "pass": true
+    },
+    {
+      "name": "advance не строит набор синхронно",
+      "value": "в новую секунду возвращает false, снимок публикуется следующим advance",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Дневные случаи (ongudai_day_*, RW-12d влита): не сверены, нужен AtmoDay и SourceHour по часу",
+    "Маска источников от ведущего (forced, сеть): не перенесена, BuildIn.forced = None",
+    "Проводка в formula.rs (set_thermal_place, set_air_field, thermal_async) — RW-12z",
+    "Сверка thermal в above_base и 250 м под базой — после RW-11 (подсос и тень облаков, зацепки CloudHooks нулевые)"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RW-10e --dry",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/src/terms/thermal/air.rs: PickAdapter",
+      "why": "Сила источника в pick_in_column берётся на момент сборки t; у GD это ground.sun (текущее солнце Terrain), для дня разница возможна",
+      "checked": "для пресетов (статичное солнце) совпадает с журналом GD, см. place_source_matches_gd_call_log"
+    },
+    {
+      "where": "rust/dp-air/src/terms/mod.rs: set_thermal_place",
+      "why": "Без часа берётся статичное солнце world.json (200 и 52 градуса) — предположение, что Terrain в генераторе не звал set_sun; подтверждено сходством с журналом (0,0093), но не кодом генератора",
+      "checked": "mean|d| 0,0093 против 0,17 при солнце в зените"
+    },
+    {
+      "where": "rust/dp-air/tests/terms_thermal_field.rs: ongudai_*",
+      "why": "Поле дампа (запечённое f16, отдельный запуск GPU) не то, что снимало эталон: центры ядер смещаются на около 25 м, точки на оси сильного ядра занижены на 2–6 %. Пороги теста (10 % точек, 8 % ядер) выставлены по измерению, не по допуску W8",
+      "checked": "доли ядер и точек выше; все несошедшиеся ядра печатаются"
+    },
+    {
+      "where": "rust/dp-air/src/terms/thermal/mod.rs: advance_bg",
+      "why": "Результат фоновой сборки принимается, если окружение и ключ источников те же, иначе отбрасывается и запускается заново; при частой смене входов снимок может отставать на секунды. Гонок между задачей и memo не проверял под нагрузкой",
+      "checked": "тест advance_builds_in_background, rebuild_by_key_keeps_live_thermals"
+    },
+    {
+      "where": "rust/dp-air/src/terms/thermal/air.rs: u10",
+      "why": "u10 берётся из wind_speed_kmh погоды / 3,6 (в FieldMeta его нет), у GD — meta.u10 поля; для прогнозов может отличаться после калибровки старта (k1)",
+      "checked": "ongudai_medium: 3,0556 совпадает с meta.u10 дампа"
+    }
+  ],
+  "dp_feedback": "lock cpu и job start возвращают управление сразу, ждать приходится отдельным job wait; accept --dry долгий (около 10 мин), а вывод tail появляется только в конце. Конфликт имён методов между параллельными задачами (set_place) ловится только при слиянии.",
+  "extra": {
+    "build_ms_debug": "первая сборка источников Онгудая 2843 шт. 110–330 мс (debug)",
+    "sources_count": "2843 против 2842 у GD (одна колонка с иной точкой/водой)"
+  },
+  "t": "2026-10-29T11:51:20",
+  "by": "executor"
+}
