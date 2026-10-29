@@ -79,3 +79,11 @@ related: ["docs/research/rust-wind-stage3-path.md", "docs/plan/rust-wind.md"]
 | RW-12w | `rust/dp-gd/src/bridge.rs` `obj_f32s` | unsafe-каст `&[ObjRecord]` → `&[f32]` (repr(C) + const-assert размера и выравнивания); ObjRecord не реализует F32Record | RW-12v: `impl F32Record for ObjRecord` в dp-air, каст убрать |
 | RW-12w | `tests/contracts/test_dp_air_ext.gd` | api_version 4 и три метода на пустом объекте — Godot не запускался | итоговый прогон T7 |
 | RW-9 | `terms/waves` σ ротора на synth_wave | GD кладёт rotor_turb в σ аналитики (atmosphere.gd:1038) — стык верный, но число WaveExtra расходится с GD в 4/93 точках (p7 0,03↔0,73; p9 2,33↔0,74; p16 0,95↔0,85; p36 0,93↔0); тест RW-9 — доля ≥ 95 % | RW-11g: порт верен — синтетика на узком Place (±10 км против 3λ ≈ 28 км); тест на широком Place, 111/111 по W8. Тот же край растра, что у Онгудая (RW-11b) |
+| RW-12v | `formula.rs` `load_place`/`set_conditions` | climate_cell проверяется только для прогноза (synthetic без cell; безусловная проверка ломает contract.rs) | итог: W5 v8 «обязателен» — фикстура или place.rs |
+| RW-12v | источники термиков `water: None` | SourceHour::at — одна вода на все клетки, температура воды по клетке | итоговый T1 (острова, вода) |
+| RW-12v | бенч `sample_many` | 18 точек ≈ 49,7 мкс (порог 50), 1000 точек ≈ 2,0 мс (порог 2) — запаса нет; σ-адвекция speed_at(300) не кеширована | итог: бенч W8 на сборке релиза, кеш σ-адвекции |
+| RW-12v | `set_cloud_inputs` | рядом с первой подачей поля облака сбрасываются (новый слот) | итоговый T7: сравнить с GD |
+| RW-12v | тест (б) rw12z.md | Formula против RW-2b по thermal/cloud/storm/wave на ongudai_* не сверена (нужно поле Онгудая того же снятия) | итоговый T1 |
+| RW-12x | `atmosphere.gd` `_dp_poll`/`_compute_state`/`_on_ready`/`_poll_weather` | состояние, догон t после READY, сигналы погоды по версиям — Godot не запускался, сборки dp_air в копии нет | итоговый T7 (rust_wind) |
+| RW-12x | `atmosphere.gd` `status().field_on`, геттер `air_field` | field_on = режим отправлен и READY (признака «поле посчитано» без field_export нет); air_field — подача по первому чтению, первое чтение пусто | итоговый T7; RW-13 — удаление air_field |
+| RW-12x | `cloud_raster()`/`debug_raster()` | слои — из заголовка крейта, bg_cover/bg_depth фасад не добавляет | итоговый T7: тест «слой k — nx·ny» по шести именам W6 |

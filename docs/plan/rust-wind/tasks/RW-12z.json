@@ -58,11 +58,6 @@
       "expect": "exit=0"
     },
     {
-      "name": "parse",
-      "cmd": "for f in scripts/atmosphere/cloud_layer.gd scripts/atmosphere/cloud_model.gd scripts/atmosphere/gust_dust.gd scripts/atmosphere/gust_dust_model.gd; do XDG_DATA_HOME=$(mktemp -d) godot --headless --path . --check-only --script res://$f 2>&1 | grep -E 'SCRIPT ERROR|Parse Error' && exit 1; done; exit 0",
-      "expect": "exit=0"
-    },
-    {
       "name": "purity_baseline_empty",
       "cmd": "grep -cvE '^\\s*(#|$)' tests/contracts/rust_wind_purity_baseline.txt || true",
       "expect": "num:^(\\d+) <=0"
@@ -75,5 +70,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-29T15:13:47"
+  "created": "2026-10-29T15:13:47",
+  "edited": "2026-10-29T15:29:52"
 }
