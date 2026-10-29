@@ -16,8 +16,6 @@ extends Node3D
 ## Подготовка места у крейта начинается лениво — при start_at (или первом status/pump/advance_to
 ## после load_place): игра шлёт место, условия и статические термики до start_at, и крейт получает
 ## их все сразу, а не пересчитывает поле дважды.
-## Типы AirPlaceData и слоёв не названы в сигнатурах: скрипт разбирается без автозагрузок
-## (godot --check-only --script), а эти классы тянут Config.
 
 signal weather_changed
 ## Погода мягко обновлена (ход дня, мягкая смена условий) — термики и облака не пересоздаются.
@@ -103,7 +101,6 @@ const COND_KEYS_FORECAST: Array[String] = ["forecast", "quantum_h", "wind_ref", 
 const COND_KEYS_PRESET: Array[String] = ["preset"]
 ## Шаг сдвига фокуса, после которого он уходит крейту, м.
 const FOCUS_STEP_M := 25.0
-const PLACE_SCRIPT := "res://scripts/atmosphere/air_place_data.gd"
 const FIELD_SET_SCRIPT := "res://scripts/atmosphere/air_model/air_field_set.gd"
 const FIELD_LOAD_SCRIPT := "res://scripts/atmosphere/air_model/air_baked_field.gd"
 
@@ -147,7 +144,7 @@ var _air_mode_set := false
 var _air_blend_s: float = 60.0
 var _focus: Vector3 = Vector3.ZERO
 ## Место и запомненные команды фасада.
-var _f_place: RefCounted
+var _f_place: AirPlaceData
 var _f_seed: int = -1
 var _f_cond: Dictionary = {}
 var _f_cond_set := false
@@ -319,16 +316,16 @@ func set_focuses(points: PackedVector3Array, weights: PackedFloat32Array) -> int
 
 
 ## Растры места один раз (W5). Возвращает сразу; подготовка у крейта — асинхронно (LOADING).
-func load_place(place: RefCounted) -> int:
+func load_place(place: AirPlaceData) -> int:
 	if place == null:
 		return _fail(BAD_INPUT, "load_place: место null")
-	var why: String = place.call("validate")
+	var why := place.validate()
 	if why != "":
 		return _fail(BAD_INPUT, "load_place: " + why)
 	if _f_place != null:
 		unload_place()
-	if not (place.get("header").loc as Dictionary).has("climate"):
-		place.call("fill_climate")  # W5 v3: климат центра места считает фасад
+	if not (place.header.loc as Dictionary).has("climate"):
+		place.fill_climate()  # W5 v3: климат центра места считает фасад
 	_f_place = place
 	_f_err = ""
 	_f_t_req = 0.0
@@ -461,15 +458,14 @@ static func stage_label(stage_id: String) -> String:
 ## кадрам ждём готовности. null — рельеф без слоя detail или снимка поверхности.
 func place_from_terrain(
 	p_terrain: Node, utc_offset_h: float, month: int, day_of_month: int
-) -> RefCounted:
-	var apd: GDScript = load(PLACE_SCRIPT)
-	var snap: Variant = apd.call("terrain_snapshot", p_terrain, utc_offset_h, month, day_of_month)
-	var sf: Variant = snap.surface
+) -> AirPlaceData:
+	var snap := AirPlaceData.terrain_snapshot(p_terrain, utc_offset_h, month, day_of_month)
+	var sf: AirPlace.Surface = snap.surface
 	if snap.detail == null or sf == null:
 		return null
 	while not sf.is_ready() and is_inside_tree():
 		await get_tree().process_frame
-	return apd.call("from_snapshot", snap, p_terrain, month, day_of_month)
+	return AirPlaceData.from_snapshot(snap, p_terrain, month, day_of_month)
 
 
 ## Можно ли собирать источники термиков поля (FL-17): поля рельефа считаются в фоне и подменяются
@@ -882,13 +878,9 @@ func _dp_failed_with(what: String) -> void:
 	_dp_log(_f_err)
 
 
-func _conf_node() -> Node:
-	return (Engine.get_main_loop() as SceneTree).root.get_node("Config")
-
-
 ## Конфиг по имени (слитый словарь Config).
 func _conf(config_name: String) -> Dictionary:
-	return _conf_node().call("get_config", config_name)
+	return Config.get_config(config_name)
 
 
 func _dp_deterministic() -> bool:
@@ -901,7 +893,7 @@ func _dp_config_text(config_name: String) -> String:
 	if config_name == "atmosphere" and not cfg_override.is_empty():
 		return JSON.stringify(cfg_override)
 	var texts := PackedStringArray()
-	for dir: String in _conf_node().call("search_dirs"):
+	for dir: String in Config.search_dirs():
 		var path: String = dir.path_join(config_name + ".json")
 		if FileAccess.file_exists(path):
 			texts.append(FileAccess.get_file_as_string(path))
@@ -919,7 +911,7 @@ func _dp_configs() -> PackedStringArray:
 			text = re.sub(text, '"deterministic": true')
 		out.append(n)
 		out.append(text)
-	for n: String in _conf_node().call("list_configs", "weather"):
+	for n: String in Config.list_configs("weather"):
 		out.append(n)
 		out.append(_dp_config_text(n))
 	return out

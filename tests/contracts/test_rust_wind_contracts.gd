@@ -1170,28 +1170,29 @@ func test_field_off_in_headless_auto() -> void:
 	a.free()
 
 
-## start_at (W2 v4): состояние — как Atmosphere.start_at опорной ревизии; одно t — один ответ. Без
-## облачной петли равно прогону с 0; здесь проверяется то, что от облаков не зависит: число ядер в
-## пределах 2 % (+1) и та же выведенная погода.
+## start_at (W2 v4): без облачной петли (cloud_field.enabled = false) равен прогону с 0.
 func test_start_at_vs_run_from_zero() -> void:
-	var a := _up("gd", _preset(14.0, 230.0))
+	var c: Dictionary = Config.get_config("atmosphere").duplicate(true)
+	c.cloud_field.enabled = false
+	var pts := _pts_around([30.0, 600.0])
+	var a := _make("gd")
+	a.cfg_override = c
+	a.configure(4242)
+	a.set_conditions({"preset": _preset(14.0, 230.0)})
+	a.load_place(_synthetic())
 	check(a.start_at(300.0) == 0, "start_at(300)")
 	check(_pump(a), "start_at: READY")
-	var b := _up("gd", _preset(14.0, 230.0))
+	var b := _make("gd")
+	b.cfg_override = c
+	b.configure(4242)
+	b.set_conditions({"preset": _preset(14.0, 230.0)})
+	b.load_place(_synthetic())
+	check(_pump(b), "прогон с 0: READY")
 	var t := 0.0
 	while t < 300.0:
 		t += 20.0
 		check(b.advance_to(t) == 0, "прогон с 0: advance_to(%d)" % int(t))
-	var na: int = (a.cores(CENTER, 8000.0) as PackedFloat32Array).size() / Atmosphere.CORE_STRIDE
-	var nb: int = (b.cores(CENTER, 8000.0) as PackedFloat32Array).size() / Atmosphere.CORE_STRIDE
-	check(
-		absi(na - nb) <= int(ceil(0.02 * maxi(na, nb))) + 1,
-		"число ядер: start_at %d против прогона %d" % [na, nb]
-	)
-	check(a.start_at(300.0) == 0, "повторный start_at(300)")
-	check(_pump(a), "повторный start_at: READY")
-	check(
-		a.cores(CENTER, 8000.0).size() / Atmosphere.CORE_STRIDE == na, "то же t — то же число ядер"
-	)
+	check(a.sample_many(pts, 1) == b.sample_many(pts, 1), "MEAN после start_at = прогону с 0")
+	check(a.cores(CENTER, 8000.0) == b.cores(CENTER, 8000.0), "ядра после start_at = прогону с 0")
 	a.free()
 	b.free()

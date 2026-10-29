@@ -34,7 +34,7 @@ var time_s: float = 0.0
 
 var _weather: Dictionary = {}
 var _f_err := ""
-var _f_place: RefCounted
+var _f_place: AirPlaceData
 
 
 func _ready() -> void:
@@ -55,21 +55,14 @@ func _f_fail(msg: String) -> int:
 	return BAD_INPUT
 
 
-## Конфиг по имени. Автозагрузка Config берётся из дерева, не по имени класса: скрипт разбирается
-## без автозагрузок (godot --check-only --script), как Atmosphere.
-func _conf(config_name: String) -> Dictionary:
-	var node := (Engine.get_main_loop() as SceneTree).root.get_node("Config")
-	return node.call("get_config", config_name)
-
-
 func configure(_seed: int) -> int:
 	return OK
 
 
-func load_place(place: RefCounted) -> int:
+func load_place(place: AirPlaceData) -> int:
 	if place == null:
 		return _f_fail("load_place: место null")
-	var why: String = place.call("validate")
+	var why := place.validate()
 	if why != "":
 		return _f_fail("load_place: " + why)
 	_f_place = place
@@ -103,10 +96,14 @@ func set_conditions(cond: Dictionary) -> int:
 	var w: Dictionary
 	if cond.has("preset"):
 		var p: Variant = cond.preset
-		w = (_conf(String(p)) if p is String else p).duplicate(true)
+		w = (Config.get_config(String(p)) if p is String else p).duplicate(true)
 	else:
 		var fc: Dictionary = cond.forecast
-		w = _conf(String(_conf("atmosphere").get("default_weather", ""))).duplicate(true)
+		w = (
+			Config
+			. get_config(String(Config.get_config("atmosphere").get("default_weather", "")))
+			. duplicate(true)
+		)
 		w.wind_speed_kmh = float(fc.get("wind_speed_kmh", 0.0))
 		w.wind_from_deg = float(fc.get("wind_from_deg", 0.0))
 		for key: Variant in cond.get("overrides", {}):
