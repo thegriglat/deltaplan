@@ -564,6 +564,8 @@ func _air_conditions() -> Dictionary:
 		"forecast": settings.forecast(),
 		"start_hour": sky.clock.hour,
 		"speed": sky.clock.speed,
+		# шаг пересчёта погоды по часу (крейт требует; как у AtmoDay)
+		"quantum_h": AtmoDay.new().quantum_h,
 		"wind_ref":
 		{
 			"ref_msl": _start_pos.y,

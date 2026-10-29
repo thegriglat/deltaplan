@@ -375,7 +375,10 @@ func set_conditions(cond: Dictionary) -> int:
 		_dp_start()
 		_set_state(STATE_LOADING)
 		return OK
-	_dp.set_conditions(_dp_cond_json())
+	if _dp.set_conditions(_dp_cond_json()) != 0:
+		_dp_failed_with("set_conditions")
+		_set_state(STATE_FAILED)
+		return _fail(BAD_INPUT, _f_err)
 	_dp_sync_mode()
 	_dp_poll()
 	return OK
@@ -1008,7 +1011,9 @@ func _dp_start() -> void:
 	var place := _f_place
 	if not place.get("header").has("model_hash"):
 		place.call("fill_crate_inputs")
-	dp.set_conditions(_dp_cond_json())
+	if dp.set_conditions(_dp_cond_json()) != 0:
+		_dp_failed_with("set_conditions")  # раньше молча: погода пуста, поле не считалось (RW-P5)
+		return
 	_dp_mode_sent = -1
 	_dp_sync_mode()
 	if _f_sun_set:
