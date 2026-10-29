@@ -1,0 +1,57 @@
+{
+  "id": "RW-6u",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Эталон T1 landing_hill: перепечатка CPU-путём фаз (f64) на опорной ревизии со статусом решателя",
+  "goal": "Получить честный f64-эталон поля training_island/landing_hill (вместо GPU-поля с насыщением веса F в f32): перепечь его на опорной ревизии c591b1026 с фазами через AirPhaseCpu (Пикар — как в игре), записать статус решателя по уровням в meta.solver (W8 v2), положить в tests/fixtures/wind/baked/ с README и командой воспроизведения; сравнить с крейтом числами по классам клеток.",
+  "plan_ref": "Решения пользователя (2026-10-29: RW-U1, Q1 — W8 v2)",
+  "contracts": [
+    {
+      "name": "W8",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W11",
+      "version": "11",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-6u",
+  "branch": "rust-wind/RW-6u",
+  "base": "feature/rust-wind",
+  "scope": [
+    "tests/fixtures/wind/baked/",
+    "tools/research/rust_wind_t1_ref/",
+    "tests/fixtures/wind/README.md"
+  ],
+  "dont_touch": [
+    "data/",
+    "scripts/",
+    "rust/dp-air/src/",
+    "rust/picard_rs/",
+    "docs/contracts/",
+    "configs/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "ref_files",
+      "cmd": "python3 -c 'import json;h=json.load(open(\"tests/fixtures/wind/baked/training_island/landing_hill.json\"));L=h[\"levels\"];assert len(L)==3;assert all(\"solver\" in l[\"meta\"] for l in L),\"meta.solver\";import os;assert os.path.getsize(\"tests/fixtures/wind/baked/training_island/landing_hill.bin\")>1e6;print(\"ref ok\")'",
+      "expect": "re:ref ok"
+    },
+    {
+      "name": "readme",
+      "cmd": "grep -c 'c591b1026' tests/fixtures/wind/baked/README.md",
+      "expect": "num:^(\\d+) >=1"
+    },
+    {
+      "name": "parse",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test baked",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T05:26:50"
+}

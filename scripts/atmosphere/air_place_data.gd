@@ -24,6 +24,9 @@ var heights := PackedFloat32Array()
 var water := PackedByteArray()
 var surface_cls := PackedByteArray()
 var surface_moist := PackedFloat32Array()
+## Запечённые поля места (W5 v4): [{header_json: String, data: PackedByteArray}] — файлы
+## data/locations/<id>/air/<старт>.json и .bin как есть (fill_crate_inputs); нет — пусто.
+var baked: Array = []
 ## Рельеф игры (gd, переходное); null — место задано одними растрами.
 var terrain: Node = null
 
@@ -68,17 +71,53 @@ static func from_arrays(
 	return p
 
 
-## Место из рельефа игры (AirRuntime.place_of, слой detail 25 м): сборка полей W5 так же, как у
-## генератора эталонов (tools/wind_fixtures/gen_fixtures.gd). Блокирует до готовности снимка
-## поверхности. null — сетки не совпали или рельефа нет (причина — в push_error).
-static func from_terrain(
-	p_terrain: Node, utc_offset_h: float, month: int, day: int
-) -> AirPlaceData:
-	var place := AirRuntime.place_of(p_terrain, utc_offset_h, month, day)
-	var detail: HeightLayer = place.detail
-	var sf: AirPlace.Surface = place.surface
+## Снимок рельефа игры для места (слой detail 25 м, маска воды, снимок поверхности — задачей пула,
+## FL-9: читать после surface.wait() или surface.is_ready()), координаты, пояс часов (NAN —
+## солнечное время), дата полёта, площадки старта. {detail, water, surface, loc, start_sites}.
+## Сетки области решателя крейту не нужны (шаги не передаются).
+static func terrain_snapshot(
+	p_terrain: Node, utc_offset_h: float, month: int = 0, day: int = 0
+) -> Dictionary:
+	var detail: HeightLayer = null
+	for l: HeightLayer in p_terrain.get("layers"):
+		if l.id == "detail":
+			detail = l
+	var water: Image = null
+	if detail != null and detail.water_texture != null:
+		water = detail.water_texture.get_image()
+		if water != null:
+			water = water.duplicate()
+			if water.is_compressed():
+				water.decompress()
+	var loc := {
+		id = String(p_terrain.get("location_id")),
+		center_lat = float(p_terrain.get("center_lat")),
+		center_lon = float(p_terrain.get("center_lon")),
+		utc_offset_h = utc_offset_h,
+	}
+	if month > 0 and day > 0:
+		loc.month = month
+		loc.day = day
+	var sites: Array = []
+	if p_terrain.has_method("get_start_sites"):
+		for st: Dictionary in p_terrain.call("get_start_sites"):
+			sites.append({id = String(st.id), position = st.position})
+	return {
+		detail = detail,
+		water = water,
+		surface = AirPlace.surface_start(p_terrain, detail, water),
+		loc = loc,
+		start_sites = sites,
+	}
+
+
+## Место из снимка terrain_snapshot (снимок поверхности уже готов). null — нет слоя detail или
+## снимка поверхности, сетки не совпали (причина — в push_error).
+static func from_snapshot(snap: Dictionary, p_terrain: Node, month: int, day: int) -> AirPlaceData:
+	var detail: HeightLayer = snap.detail
+	var sf: AirPlace.Surface = snap.surface
 	if detail == null or sf == null:
-		push_error("AirPlaceData.from_terrain: нет слоя detail или снимка поверхности")
+		push_error("AirPlaceData: нет слоя detail или снимка поверхности")
 		return null
 	sf.wait()
 	if (
@@ -87,13 +126,13 @@ static func from_terrain(
 		or sf.origin_x != detail.origin_x
 		or sf.origin_z != detail.origin_z
 	):
-		push_error("AirPlaceData.from_terrain: сетка поверхности не совпала со слоем detail")
+		push_error("AirPlaceData: сетка поверхности не совпала со слоем detail")
 		return null
 	var sites: Array = []
-	for st: Dictionary in place.start_sites:
+	for st: Dictionary in snap.start_sites:
 		var sp: Vector3 = st.position
 		sites.append({"id": String(st.id), "x": sp.x, "z": sp.z, "h_msl": sp.y})
-	var loc: Dictionary = (place.loc as Dictionary).duplicate()
+	var loc: Dictionary = (snap.loc as Dictionary).duplicate()
 	loc.month = month
 	loc.day = day
 	var grid := {
@@ -106,13 +145,21 @@ static func from_terrain(
 	var p := from_arrays(
 		make_header(loc, grid, sites),
 		detail.heights,
-		_water_nodes(place.water, detail),
+		_water_nodes(snap.water, detail),
 		sf.cls,
 		sf.moist
 	)
 	p.terrain = p_terrain
 	p.fill_climate()
 	return p
+
+
+## Место из рельефа игры, блокирующе (тесты, инструменты, генератор эталонов; игра — корутина
+## Atmosphere.place_from_terrain). null — сетки не совпали или рельефа нет.
+static func from_terrain(
+	p_terrain: Node, utc_offset_h: float, month: int, day: int
+) -> AirPlaceData:
+	return from_snapshot(terrain_snapshot(p_terrain, utc_offset_h, month, day), p_terrain, month, day)
 
 
 ## Место из функций (превью и эталонный мир без карты): сетка width × height узлов с шагом spacing
@@ -233,6 +280,10 @@ func fill_climate() -> Dictionary:
 	ctx_lag["day"] = md.y
 	loc.climate = climate
 	loc.climate_lag = _climate_cell(ctx_lag)
+	# W5 v8: сырая ячейка климата (без поправки на высоту; поправку считает крейт) на дату места и
+	# на дату сдвига воды — как есть, числа и src.
+	loc.climate_cell = ClimateGrid.at(float(ctx.lat), float(ctx.lon), month, day)
+	loc.climate_cell_lag = ClimateGrid.at(float(ctx.lat), float(ctx.lon), int(md.x), int(md.y))
 	header.loc = loc
 	return climate
 
@@ -247,6 +298,57 @@ static func _climate_cell(ctx: Dictionary) -> Dictionary:
 		"has_hh1": String(src.hh1) != "none",
 		"has_hh5": String(src.hh5) != "none",
 	}
+
+
+## Входы крейта, которых нет в растрах (W5 v4, v5, v6): start_sites[i].id и weather (набор погоды
+## старта, TI-К2: из места, иначе из конфига места), header.data_hash (хеш данных места),
+## header.model_hash (хеш GD-модели воздуха — запечённое поле и кеш берутся при совпадении) и
+## baked — файлы запечённых полей по стартам места. Уже заданное не перезаписывается. Нет данных
+## места на диске (синтетика тестов) — хеши пустые, baked пуст: расчёт.
+func fill_crate_inputs() -> void:
+	var loc: Dictionary = header.loc
+	var lid := String(loc.get("id", ""))
+	var cfg_sites: Array = Locations.config(lid).get("start_sites", [])
+	var sites: Array = header.start_sites
+	for i in sites.size():
+		var st: Dictionary = sites[i]
+		var sid := String(st.get("id", ""))
+		if sid == "" or not (st.get("weather", {}) as Dictionary).is_empty():
+			continue
+		for cs: Dictionary in cfg_sites:
+			if String(cs.get("id", "")) == sid and cs.get("weather") is Dictionary:
+				st["weather"] = cs.weather
+	if not header.has("data_hash"):
+		header["data_hash"] = AirBakedField.place_hash(Locations.data_dir(lid)) if lid != "" else ""
+	if not header.has("model_hash"):
+		header["model_hash"] = AirBakedField.model_hash()
+	baked = []
+	if lid == "":
+		return
+	for st: Dictionary in sites:
+		var sid := String(st.get("id", ""))
+		if sid == "":
+			continue
+		var path := AirBakedField.path_of(lid, sid)
+		var base := path.trim_suffix(".json")
+		if not FileAccess.file_exists(base + ".json") or not FileAccess.file_exists(base + ".bin"):
+			continue
+		baked.append(
+			{
+				"header_json": FileAccess.get_file_as_string(base + ".json"),
+				"data": FileAccess.get_file_as_bytes(base + ".bin"),
+			}
+		)
+
+
+## Заголовок для load_place крейта (W5, json): utc_offset_h = NAN (солнечное время часов) крейту
+## не передать — подставляется солнечное смещение долготы центра (center_lon / 15 ч).
+func header_json() -> String:
+	var h := header.duplicate(true)
+	var loc: Dictionary = h.loc
+	if not is_finite(float(loc.get("utc_offset_h", NAN))):
+		loc["utc_offset_h"] = float(loc.get("center_lon", 0.0)) / 15.0
+	return JSON.stringify(h)
 
 
 func grid_width() -> int:

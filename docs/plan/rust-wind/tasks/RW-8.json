@@ -1,0 +1,81 @@
+{
+  "id": "RW-8",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Болтанка поля и шум порывов в крейте: FieldTurbulence, GustSpectrum, WindModel.gust_unit, рывки слоя смешения — слот Turb",
+  "goal": "Слот Turb (и шум аналитики gust_unit для RW-9) воспроизводит болтанку поля GD: σ_u/σ_v/σ_w по каналам turb_at, признак отрыва и рывки, спектр фон Кармана с шумом dp_air::compat; sigma[turb] и слагаемое turb совпадают с ongudai_* в допуске W8 там, где входы RW-10/11 нулевые; T3 по длинной выборке.",
+  "plan_ref": "План переноса",
+  "contracts": [
+    {
+      "name": "W4",
+      "version": "5",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W7",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W10",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-8",
+  "branch": "rust-wind/RW-8",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/terms/turb/",
+    "rust/dp-air/src/terms/mod.rs",
+    "rust/dp-air/src/terms/slots.rs",
+    "rust/dp-air/tests/terms_turb.rs",
+    "rust/dp-air/tests/data/RW-8/"
+  ],
+  "dont_touch": [
+    "rust/dp-air/src/formula.rs",
+    "rust/dp-air/src/field/",
+    "rust/picard_rs/",
+    "rust/dp-gd/",
+    "scripts/",
+    "tests/fixtures/",
+    "docs/contracts/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "terms_turb",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test terms_turb",
+      "expect": "num:test result: ok\\. (\\d+) >=8"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dp_air_no_godot",
+      "cmd": "cargo tree --manifest-path rust/Cargo.toml -p dp-air -e normal | grep -ci godot || true",
+      "expect": "num:^(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T05:06:00",
+  "edited": "2026-10-29T05:29:08"
+}
