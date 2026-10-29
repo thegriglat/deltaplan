@@ -43,7 +43,8 @@
     "scenes/",
     "locale/ui.csv",
     "tests/contracts/test_rust_wind_contracts.gd",
-    "tests/game/"
+    "tests/game/",
+    "rust/dp-gd/tests/bridge.rs"
   ],
   "dont_touch": [
     "configs/",
@@ -95,5 +96,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-30T01:41:16"
+  "created": "2026-10-30T01:41:16",
+  "edited": "2026-10-30T02:36:43"
 }

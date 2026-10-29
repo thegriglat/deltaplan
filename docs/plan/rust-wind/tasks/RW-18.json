@@ -1,0 +1,64 @@
+{
+  "id": "RW-18",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "cargo test без таймаутов поля под нагрузкой",
+  "goal": "Тесты dp-air, которые ждут поле по часам («no field in 120 s»: terms_sum, field_export и подобные), не падают на занятой машине: ожидание по состоянию с запасом или меньшая область/кеш под замком; результат тестов и их строгость не меняются.",
+  "plan_ref": "Тесты (TDD)",
+  "contracts": [
+    {
+      "name": "W8",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W9",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-18",
+  "branch": "rust-wind/RW-18",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/tests/"
+  ],
+  "dont_touch": [
+    "rust/dp-air/tests/data/",
+    "rust/dp-air/src/",
+    "rust/Cargo.toml",
+    "rust/dp-gd/",
+    "scripts/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "no_short_waits",
+      "cmd": "grep -rnE 'no field in [0-9]+ s' rust/dp-air/tests | grep -cvE 'in ([6-9][0-9]{2}|[0-9]{4,}) s'",
+      "expect": "num:^(\\d+) <=0"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "cargo_test_loaded",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air -- --test-threads=32",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-30T02:37:07"
+}

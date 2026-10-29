@@ -1,0 +1,96 @@
+{
+  "status": "done",
+  "summary": "Удалён старый GD/GLSL-код ветра (thermal_field, air_thermals, storm_field, wave_field, cloud_physics, gust_spectrum, GPU-путь air_gpu/air_runtime/air_picard_job и шейдеры) и всё, что нужно только им (air_clipmap, air_window_*, air_phase*, field_turbulence, air_field_cache, cloud_field*), вместе с тестами и генераторами эталонов на нём. gd_check, docs check, atmosphere (132/0 упало), debug_layers, place_air_stage — зелёные. Падают rust_wind_contracts (1) и cargo contract (1) из-за расхождения версии контракта W2 v6 и кода (API 5), не от удаления. old_refs по новой карточке = 0.",
+  "commits": [
+    "5e9ff0706 RW-13: удалён старый GD/GLSL-код ветра и тесты на нём",
+    "e71ef2613 RW-13: отчёт, починка разбора, уборка генераторов"
+  ],
+  "checks": [
+    {
+      "name": "gd_check",
+      "value": "971 файл, ок",
+      "pass": true
+    },
+    {
+      "name": "docs_check",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "atmosphere",
+      "value": "132 теста, 0 упало, 24 пропущено",
+      "pass": true
+    },
+    {
+      "name": "debug_layers",
+      "value": "7/0 упало",
+      "pass": true
+    },
+    {
+      "name": "place_air_stage",
+      "value": "2/0 упало",
+      "pass": true
+    },
+    {
+      "name": "old_files",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "old_refs",
+      "value": "0 (air_place.gd/weather_model.gd исключены карточкой)",
+      "pass": true
+    },
+    {
+      "name": "rust_wind_contracts",
+      "value": "26 из 27; test_versions_match_docs: тест W2 v5/W3 v7/W4 v8/W5 v9, документ v6/v9/v10/v10, нет W12; WIND_API_VERSION=5, контракт 6",
+      "pass": false
+    },
+    {
+      "name": "fixtures_data",
+      "value": "cargo contract::api_version_matches_contract_header 5!=6 (RW-P13)",
+      "pass": false
+    },
+    {
+      "name": "report_doc",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "rust_wind_contracts и cargo contract::api_version_matches_contract_header красные: W2 v6 против WIND_API_VERSION=5 — закрывает RW-P13, не RW-13 (accept --dry останавливается на первом, поэтому остальные пункты проверены вручную)"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-13 --dry",
+  "uncertain": [
+    {
+      "where": "tests/atmosphere/test_air_place.gd",
+      "why": "удалены сверки доменного входа с эталонами Пикара и подготовки на AirRuntime/AirWindowCase; осталась поверхность/вода/лёд/уклон",
+      "checked": "cargo (acceptance, terms_*) покрывает слагаемые; сверка домена Пикара с эталонами — в picard_rs"
+    },
+    {
+      "where": "tests/game/test_load_order.gd (удалён)",
+      "why": "тест порядка загрузки (FL-10) опирался на ключ кеша AirRuntime; заменой не покрыт",
+      "checked": "кеш поля удалён в RW-P12"
+    },
+    {
+      "where": "tests/contracts/test_air_contracts.gd (удалён)",
+      "why": "контракт старой модели воздуха (AirClipmap/AirWindowJob/AirRuntime) целиком; часть проверок AirCase/WindField/AirFieldSet ушла вместе с ним",
+      "checked": "не восстанавливал; документ air-model.md не правил"
+    },
+    {
+      "where": "tools/terrain/*/air_check_run.gd:83,104",
+      "why": "узел 'AirRuntime' заменён на 'AirField' формально, инструмент давно не рабочий (нет узла)",
+      "checked": "только gd_check"
+    },
+    {
+      "where": "addons/dp_air/bin",
+      "why": "собственная сборка tune не дошла за разумное время (нагрузка), использована libdp_air_tune.so из копии RW-P13",
+      "checked": "тесты Godot идут с расширением"
+    }
+  ],
+  "dp_feedback": "Нужна проверка 'accept --dry' с частичным запуском и выводом по пунктам: полный прогон под нагрузкой >15 мин, вывод фоновой команды приходит только в конце. Для старых ссылок в dont_touch-файлах нужен механизм исключений в проверке old_refs.",
+  "t": "2026-10-30T02:37:03",
+  "by": "executor"
+}

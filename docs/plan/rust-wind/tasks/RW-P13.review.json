@@ -1,0 +1,44 @@
+{
+  "verdict": "accept",
+  "summary": "Контракт W2 v6 / W3 v8 / W4 v9 выполнен: Status.run/runs, API 6 в крейте, мосте, фасаде и CalmAir, CONTRACTS обновлены, экран показывает итерации отдельной строкой, note не затирается. Правка rust/dp-gd/tests/bridge.rs теперь в scope (координатор правил карточку 02:36). Блокеров нет, есть два minor.",
+  "issues": [
+    {
+      "file": "rust/dp-air/src/formula.rs",
+      "line": 1458,
+      "severity": "minor",
+      "what": "status() берёт run_runs() (внутри себя смотрит stage()) и stage() двумя отдельными чтениями. На стыке solve_heat→windows можно получить stage=\"windows\" с run>0, а на стыке phases→coarse — stage=\"coarse\" с (0,0). Тогда stage_runs.rs ('вне решателя 0/0', '1 ≤ run') изредка падает. Экран не страдает: фасад обнуляет run и runs только при пустой подписи.",
+      "fix": "Считать idx один раз: run_runs берёт индекс этапа, по нему же заполняется Status.stage (например, метод snapshot() -> (stage, run, runs))."
+    },
+    {
+      "file": "rust/dp-air/tests/stage_runs.rs",
+      "line": 80,
+      "severity": "minor",
+      "what": "Карточка требовала проверить, что при росте run итерации начинаются заново (iters ≤ предыдущего). В тесте этого нет: обнуление упомянуто только в комментарии к StageCounter::enter.",
+      "fix": "При s.run > last_run проверять s.iters <= последнего виденного iters (или == 0 сразу после входа)."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "run_runs_crate",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "contracts_const",
+      "value": ">=1",
+      "pass": true
+    },
+    {
+      "name": "api6",
+      "value": "2",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "16 файлов в границах",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-30T02:38:01",
+  "by": "reviewer"
+}
