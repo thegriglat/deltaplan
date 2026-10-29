@@ -1,0 +1,104 @@
+{
+  "id": "RW-P12",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Удалить запечённые поля мест: data/locations/*/air, AirPlaceData.baked, add_baked_field (W3 v7, W4 v8, W5 v9); кеш полей оставить",
+  "goal": "В ветке нет файлов data/locations/*/air, сборки AirPlaceData.baked, DpAir/AirModel add_baked_field и кода, нужного только им (GD air_baked_field.gd, если больше никому, тесты запечённых); кеш полей (set_cache_dir, model_hash в ключе) работает как прежде.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "W3",
+      "version": "7",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W4",
+      "version": "8",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W5",
+      "version": "9",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-P12",
+  "branch": "rust-wind/RW-P12",
+  "base": "feature/rust-wind",
+  "scope": [
+    "data/locations/training_island/air/",
+    "data/locations/volcano_island/air/",
+    "rust/dp-air/",
+    "rust/dp-gd/",
+    "rust/dp-stand/",
+    "scripts/atmosphere/atmosphere.gd",
+    "scripts/atmosphere/air_place_data.gd",
+    "scripts/atmosphere/air_model/air_baked_field.gd",
+    "scripts/atmosphere/air_model/air_baked_field.gd.uid",
+    "tests/",
+    "docs/research/rust-wind-stage3/no-baked.md"
+  ],
+  "dont_touch": [
+    "configs/",
+    "docs/contracts/",
+    "rust/picard_rs/",
+    "tools/research/",
+    "tools/wind_fixtures/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "air_place_data",
+      "tests": "air_place_data"
+    },
+    {
+      "name": "no_baked_data",
+      "cmd": "test ! -e data/locations/training_island/air && test ! -e data/locations/volcano_island/air",
+      "expect": "exit=0"
+    },
+    {
+      "name": "no_add_baked",
+      "cmd": "grep -rn 'add_baked_field' scripts rust/dp-air/src rust/dp-gd/src rust/dp-stand tests --include=*.gd --include=*.rs | wc -l",
+      "expect": "num:^(\\d+) <=0"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace -- --skip api_version_matches_contract_header",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dp_air_no_godot",
+      "cmd": "cargo tree --manifest-path rust/Cargo.toml -p dp-air -e normal | grep -ci godot || true",
+      "expect": "num:^(\\d+) <=0"
+    },
+    {
+      "name": "report_doc",
+      "cmd": "test -s docs/research/rust-wind-stage3/no-baked.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs_check",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    },
+    {
+      "name": "contracts_const",
+      "cmd": "grep -c 'W3 = 7, W4 = 8, W5 = 9' tests/contracts/test_rust_wind_contracts.gd",
+      "expect": "num:^(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T22:50:48",
+  "edited": "2026-10-29T22:51:04"
+}
