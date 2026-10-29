@@ -1,0 +1,50 @@
+{
+  "status": "done",
+  "summary": "Документ rw14-weather.md: инвентарь GD (6 файлов, ~2200 строк), потребители, что уже в крейте (derive, AtmoDay, поток тепла, вода, ground_context сверены с дампами), чего нет (ClimateGrid.at, вход без места, air_temp_c, temp_at_altitude), контракт DpWeather/Weather, 10 недостающих эталонов E1-E10, задачи RW-14b..z, чистота dp-air.",
+  "commits": [
+    "rust-wind RW-14a: проект переноса погоды в крейт (rw14-weather.md)"
+  ],
+  "checks": [
+    {
+      "name": "report_doc",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "sections",
+      "value": "7",
+      "pass": true
+    },
+    {
+      "name": "docs_check",
+      "value": "ошибок 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [
+    "brotli: распаковывать сетки в GD (рекомендую, крейт не тянет зависимость, brotli нет в Cargo.lock) или в крейте (brotli 3.5 есть в ~/.cargo/registry)?",
+    "ground_context: GD считает долину по terrain.height_at, крейт по растру 25 м; расхождение не измерено (эталон E6). Если сдвиг > 5 м, нужно поле valley_msl_m в заголовке W5."
+  ],
+  "how_to_check": ".dpcli/dpcli accept RW-14a",
+  "uncertain": [
+    {
+      "where": "rw14-weather.md, Есть в крейте п.4 и Риски 5",
+      "why": "reference_context и noon_elevation_deg: прямых аналогов в крейте не нашёл",
+      "checked": "grep fn по rust/dp-air/src; нужна сверка в RW-14c"
+    },
+    {
+      "where": "rw14-weather.md, Потребители",
+      "why": "список живых и мёртвых потребителей собран grep по именам классов; динамические вызовы (call по строке, .tscn) могли не попасть",
+      "checked": "grep -rw по scripts/scenes для ThermalField, AirRuntime, AtmoFingerprint и др."
+    },
+    {
+      "where": "rw14-weather.md, Задачи (оценки строк)",
+      "why": "оценки строк и порядок с RW-13 прикидочные",
+      "checked": "по размеру GD и отношению 735 GD : 900 Rust из RW-12"
+    }
+  ],
+  "dp_feedback": "docs check: лимит 40 КБ считается в байтах, кириллица занимает 2 байта; сообщение 'N КБ > 40 КБ' стоит пояснить. Предупреждений в чужих файлах много, прячут свои.",
+  "t": "2026-10-30T01:31:01",
+  "by": "executor"
+}
