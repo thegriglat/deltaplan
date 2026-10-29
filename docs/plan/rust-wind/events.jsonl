@@ -1005,3 +1005,4 @@
 {"t": "2026-10-29T16:04:22", "by": "coordinator", "task": "RW-12s", "ev": "checked", "note": "1/1 no_removed_in_tests=ok:0"}
 {"t": "2026-10-29T16:04:30", "by": "coordinator", "task": "RW-12s", "ev": "accepted", "note": "ревью не нужно; Godot не гонялся; 2 стадийных облачных сценария — pending с причиной; таблица удалённых → cargo в отчёте"}
 {"t": "2026-10-29T16:09:54", "by": "coordinator", "task": "RW-12v", "ev": "checked", "note": "5/5 formula_facade=ok:13; cargo_test=ok:exit 0; clippy=ok:exit 0; fmt=ok:exit 0; dp_air_no_godot=ok:0"}
+{"t": "2026-10-29T16:10:08", "by": "coordinator", "task": "RW-12v", "ev": "accepted", "note": "ревью не нужно; тест (б) — итоговый T1; бенч sample_many на пороге"}
