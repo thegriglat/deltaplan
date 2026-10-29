@@ -821,9 +821,11 @@ impl Formula {
         true
     }
 
-    /// Снимок и время атмосферы для опросов слагаемых: место загружено и состояние `Ready`.
+    /// Снимок и время атмосферы для опросов слагаемых: место загружено и состояние `Ready` или
+    /// `Failed` (W1: при `Failed` опросы идут по запасному пути - слагаемые без поля, погода и
+    /// термики по клеткам; пусто только до готовности).
     fn query(&self) -> Option<(Arc<Published>, f64)> {
-        if self.sh.state() != State::Ready {
+        if !matches!(self.sh.state(), State::Ready | State::Failed) {
             return None;
         }
         let pb = self.sh.snapshot();
@@ -1708,5 +1710,27 @@ impl AirModel for Formula {
 
     fn debug_raster_names(&self) -> Vec<String> {
         Vec::new()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// RW-P6: опросы слагаемых отвечают при `Ready` и `Failed` (W1), не при `Empty`/`Loading`.
+    #[test]
+    fn dynamic_thermals_query_gate() {
+        let m = Formula::new();
+        assert!(m.query().is_none());
+        for (st, ok) in [
+            (State::Loading, false),
+            (State::Ready, true),
+            (State::Failed, true),
+        ] {
+            m.sh.set_state(st, 0.0, "");
+            // без места снимок пуст при любом состоянии: проверяется только ворота состояния
+            assert!(m.query().is_none());
+            assert_eq!(matches!(st, State::Ready | State::Failed), ok);
+        }
     }
 }
