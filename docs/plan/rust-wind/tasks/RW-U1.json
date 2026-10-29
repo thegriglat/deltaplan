@@ -24,7 +24,7 @@
   ],
   "copy": "~/worktrees/deltaplan/rust-wind-RW-U1",
   "branch": "rust-wind/RW-U1",
-  "base": "rust-wind/RW-6z",
+  "base": "feature/rust-wind",
   "scope": [
     "docs/research/rust-wind-t1-audit-landing-hill.md",
     "docs/INDEX.md"
@@ -58,5 +58,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-29T04:23:13"
+  "created": "2026-10-29T04:23:13",
+  "edited": "2026-10-29T05:05:09"
 }

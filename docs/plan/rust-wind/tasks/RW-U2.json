@@ -24,7 +24,7 @@
   ],
   "copy": "~/worktrees/deltaplan/rust-wind-RW-U2",
   "branch": "rust-wind/RW-U2",
-  "base": "rust-wind/RW-6z",
+  "base": "feature/rust-wind",
   "scope": [
     "docs/research/rust-wind-t1-audit-thermal-slope.md",
     "docs/INDEX.md"
@@ -58,5 +58,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-29T04:23:18"
+  "created": "2026-10-29T04:23:18",
+  "edited": "2026-10-29T05:05:09"
 }

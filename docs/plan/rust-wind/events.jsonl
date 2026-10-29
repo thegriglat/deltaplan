@@ -665,3 +665,6 @@
 {"t": "2026-10-29T05:04:38", "by": "coordinator", "task": "RW-8b", "ev": "merged", "note": "fa9834d9f"}
 {"t": "2026-10-29T05:04:55", "by": "coordinator", "task": "RW-U1", "ev": "checked", "note": "3/3 no_code=ok:exit 0; findings=ok:6; docs=ok:ошибок 0"}
 {"t": "2026-10-29T05:05:02", "by": "coordinator", "task": "RW-U1", "ev": "accepted", "note": "по отчёту: аудит без правок, вывод подтверждён эмуляцией f32 (rms 0,05→0,008 м/с); пользователь принял находки решением 2026-10-29"}
+{"t": "2026-10-29T05:05:04", "by": "coordinator", "task": "RW-8b", "ev": "note", "note": "слияние фактически — dfa38527b (прошлое событие merged записано при отказе merge из-за грязной копии)"}
+{"t": "2026-10-29T05:05:09", "by": "coordinator", "task": "RW-U1", "ev": "edited", "note": "base", "diff": {"base": ["\"rust-wind/RW-6z\"", "\"feature/rust-wind\""]}}
+{"t": "2026-10-29T05:05:09", "by": "coordinator", "task": "RW-U2", "ev": "edited", "note": "base", "diff": {"base": ["\"rust-wind/RW-6z\"", "\"feature/rust-wind\""]}}
