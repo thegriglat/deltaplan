@@ -3,13 +3,13 @@ type: "contract"
 status: "active"
 module: "rust-wind"
 area: "air"
-updated: "2026-10-29"
-summary: "W2 rust-wind: фасад Atmosphere (GDScript) — настройка, место, время, фокусы, опрос, описания; v5 — без режима поля."
+updated: "2026-10-30"
+summary: "W2 rust-wind: фасад Atmosphere (GDScript) — настройка, место, время, фокусы, опрос, описания; v6 — номер прогона в status."
 related: ["docs/contracts/rust-wind.md", "docs/contracts/rust-wind/dpair.md", "docs/contracts/rust-wind/trait.md", "docs/contracts/rust-wind/descriptions.md", "docs/research/rust-wind-stage3/rw12z.md"]
-contracts: [{"id": "W2", "version": 5}]
+contracts: [{"id": "W2", "version": 6}]
 ---
 
-# W2. Фасад `Atmosphere` (GDScript) (v5)
+# W2. Фасад `Atmosphere` (GDScript) (v6)
 
 Часть `docs/contracts/rust-wind.md` (версия — там, заголовок W2). Менять — только координатор.
 Владелец — RW-2 (фасад на текущем коде), RW-7 (выбор реализации). Потребители — `scripts/game/*`, `scripts/glider/*`, визуальные и отладочные потребители из W10, `CalmAir` (`scripts/game/calm_air.gd` реализует тот же набор, ветер 0, состояние READY сразу). Узел игры `air` остаётся `Atmosphere`; всё, что не перечислено ниже, — внутренность реализации (W10).
@@ -71,3 +71,4 @@ contracts: [{"id": "W2", "version": 5}]
   - Переходное: после RW-12z у фасада и тестов-потребителей нет `air.wind`, `air.ground`, `air.cloud_phys`, `air.storm`, `air.wave`, `air.field`, `set_ground/set_day/set_wind/set_weather/set_air_field`, `step`; файлы GDScript-слагаемых удаляет RW-13. `refresh_scale`, `focus_node`, `configure(Variant, Variant)` — как в v2, до RW-13.
 
 - **v5 (2026-10-29, решение пользователя: упрощённый режим ветра убрать):** `WIND_API_VERSION = 5`. Режима поля нет: удалены `set_air_mode`, ключ `air_model.enabled` в `configs/atmosphere.json` и его чтение, пункт настроек «Ветер над рельефом» (`settings_wind_model*`) и сохранённое значение, ветка `off` в фасаде, `DpAir.set_field_enabled` (W3 v6). Поле Пикара на месте считается всегда, в том числе в headless (тесты, которым поле не нужно, берут `CalmAir` или маленькое место/запечённое поле). Остаются, это не режим: FAILED (подготовка не удалась — опросы по запасному пути, W1) и «нет расширения — ветер без поля» (W9, до RW-13). Абзац «Режим поля» и пункт v4 «Режим поля `off`» не действуют.
+- **v6 (2026-10-30, решение пользователя: экран загрузки):** `WIND_API_VERSION = 6`. `status()` += `run: int`, `runs: int` (W4 v9): прогон — вход задачи поля в этап с итерациями решателя (`coarse`, `solve_mech`, `solve_heat`, в каждом проходе `max_passes`); `iters` при каждом входе считается с нуля. `run` — номер текущего прогона с 1 (0 — этапа с итерациями сейчас нет); `runs` — число прогонов по текущему плану задачи, `runs ≥ run` (может вырасти, когда понадобился следующий проход; 0 — этапа с итерациями нет). `CalmAir`: `run = runs = 0`. Экран загрузки (`scripts/game/game.gd`): подпись этапа — своей строкой; итерации — отдельной строкой «Итерация: N»; при `runs > 1` — «Прогон r из n · Итерация: N».
