@@ -155,13 +155,6 @@ impl DpAir {
             surface_moist.as_slice(),
         )
     }
-    /// Запечённое поле места (TI-К3 v3): `header_json` и тело `.bin` как есть; сразу после
-    /// `load_place`, до READY. Коды W1.
-    #[func]
-    fn add_baked_field(&mut self, header_json: GString, data: PackedByteArray) -> i64 {
-        self.bridge
-            .add_baked_field(&header_json.to_string(), data.as_slice())
-    }
     /// Переходное (W3 v4): закрепить снимок последней подачи поля; номер подачи (`0` — поля нет).
     #[func]
     fn field_export(&mut self) -> i64 {

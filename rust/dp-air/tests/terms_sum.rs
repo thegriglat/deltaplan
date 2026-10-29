@@ -56,45 +56,12 @@ fn configs() -> Configs {
     Configs::new(files)
 }
 
-fn island_files() -> Vec<(String, Vec<u8>)> {
-    let dir = repo().join("data/locations/training_island/air");
-    let mut names: Vec<_> = std::fs::read_dir(&dir)
-        .unwrap()
-        .map(|e| e.unwrap().path())
-        .filter(|p| p.extension().is_some_and(|x| x == "json"))
-        .collect();
-    names.sort();
-    names
-        .into_iter()
-        .map(|p| {
-            (
-                std::fs::read_to_string(&p).unwrap(),
-                std::fs::read(p.with_extension("bin")).unwrap(),
-            )
-        })
-        .collect()
-}
-
 fn island_place() -> Place {
-    let files = island_files();
-    let v: Value = serde_json::from_str(&files[0].0).unwrap();
-    let hash = v["model_hash"].as_str().unwrap().to_string();
-    let sites: Vec<String> = files
-        .iter()
-        .map(|(h, _)| {
-            let v: Value = serde_json::from_str(h).unwrap();
-            let st = &v["key"]["start"];
-            format!(r#"{{"x":{},"z":{},"h_msl":100.0}}"#, st[0], st[1])
-        })
-        .collect();
-    let header = format!(
-        r#"{{"version":1,"loc":{{"id":"training_island","center_lat":43.2,"center_lon":34.0,
-"utc_offset_h":2.0,"month":7,"day":15}},"grid":{{"origin_x":-10000,"origin_z":-10000,"spacing":25,
-"width":801,"height":801}},"surface_classes":{{"grass":1}},"start_sites":[{}],
-"model_hash":"{hash}"}}"#,
-        sites.join(",")
-    );
-    let h = dp_air::PlaceHeader::from_json(&header).unwrap();
+    let header = r#"{"version":1,"loc":{"id":"training_island","center_lat":43.2,"center_lon":34.0,
+"utc_offset_h":2.0,"month":7,"day":15},"grid":{"origin_x":-10000,"origin_z":-10000,"spacing":25,
+"width":801,"height":801},"surface_classes":{"grass":1},
+"start_sites":[{"x":3510.0,"z":-1510.0,"h_msl":100.0}]}"#;
+    let h = dp_air::PlaceHeader::from_json(header).unwrap();
     let n = h.cells();
     Place::new(h, vec![100.0; n], vec![0; n], vec![1; n], vec![0.5; n]).unwrap()
 }
@@ -114,7 +81,7 @@ fn focus() -> Focus {
     }
 }
 
-/// Рабочая `Formula` с запечённым полем: место, условия, фокус, поля; ждёт `Ready` с полем.
+/// Рабочая `Formula` с посчитанным полем: место, условия, фокус, поля; ждёт `Ready` с полем.
 fn ready_model(windows: bool) -> (Formula, Place) {
     let pl = island_place();
     let mut m = Formula::new();
@@ -125,9 +92,6 @@ fn ready_model(windows: bool) -> (Formula, Place) {
     m.set_conditions(&landing_cond()).unwrap();
     m.set_focuses(&[focus()]).unwrap();
     m.load_place(pl.clone()).unwrap();
-    for (h, b) in island_files() {
-        m.add_baked_field(&h, &b).unwrap();
-    }
     wait_field(&mut m);
     (m, pl)
 }
@@ -438,8 +402,8 @@ fn sum_order_without_field() {
 #[test]
 fn edge_band_mixes_noise_with_variance_kept() {
     let (m, pl) = ready_model(false);
-    // широкая полоса края (60 клеток), чтобы в области нашлась точка со смесью
-    let fs = field_set_of(&m, Some(60.0));
+    // широкая полоса края (10 клеток при 18 клетках области 7,2 км), чтобы нашлась точка со смесью
+    let fs = field_set_of(&m, Some(10.0));
     // точка полосы края области: доля поля между 0,2 и 0,8
     let mut found = None;
     'o: for i in -40..40 {

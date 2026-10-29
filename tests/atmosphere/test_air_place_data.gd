@@ -33,6 +33,7 @@ func test_const_loc_fill_climate() -> void:
 func test_const_sites_fill_crate_inputs() -> void:
 	var p := AirPlaceData.from_functions(_flat, _one, LOC, -500.0, -500.0, 100.0, 11, 11, SITES)
 	p.fill_crate_inputs()
-	check(p.header.has("model_hash") and p.header.has("data_hash"), "хеши заданы")
-	check(p.baked.is_empty(), "место без данных на диске: запечённых нет")
+	check(p.header.has("model_hash"), "model_hash задан (ключ кеша полей)")
+	check(not p.header.has("data_hash"), "data_hash больше не передаётся (W5 v9)")
+	check(not ("baked" in p), "AirPlaceData.baked удалено (W5 v9)")
 	check(JSON.parse_string(p.header_json()) is Dictionary, "заголовок для крейта — json")

@@ -26,10 +26,8 @@
 //! | T4a (5) отказ грубого → с фона | `t4a_failed_coarse_*` | `runtime.rs` |
 //! | T4a (6) грубый пропускается | `t4a_warm_pair_skips_coarse` | `runtime.rs` |
 //! | T8 один вход — одно поле, 2/4/20 | `t8_*` | `runtime.rs`, `clipmap.rs` |
-use dp_air::field::baked::parse_baked;
 use dp_air::field::runtime::*;
 use dp_air::field::weather_core::{WeatherInputs, hour_at};
-use dp_air::field::wind_field::Field;
 use dp_air::fixtures::read_place;
 use dp_air::{AirModel, Conditions, Configs, Focus, Formula, Place, SampleMode, State};
 use picard_rs::api::StopReason as Stop;
@@ -209,7 +207,6 @@ fn job_in_at(
         cancel: Arc::new(AtomicBool::new(false)),
         progress: Arc::new(AtomicU32::new(0)),
         stage: Arc::new(StageCounter::default()),
-        baked: Arc::new(Vec::new()),
         cache: None,
         place_hash: Arc::new(OnceLock::new()),
         clip: None,
@@ -654,41 +651,13 @@ fn t4a_iterations_ongudai() {
 
 // ---------------------------------------------------------------- RW-6o/6t: хвосты приёмки
 
-fn island_files() -> Vec<(String, Vec<u8>)> {
-    let dir = repo().join("data/locations/training_island/air");
-    let mut names: Vec<_> = std::fs::read_dir(&dir)
-        .unwrap()
-        .map(|e| e.unwrap().path())
-        .filter(|p| p.extension().is_some_and(|x| x == "json"))
-        .collect();
-    names.sort();
-    names
-        .into_iter()
-        .map(|p| {
-            (
-                std::fs::read_to_string(&p).unwrap(),
-                std::fs::read(p.with_extension("bin")).unwrap(),
-            )
-        })
-        .collect()
-}
-
-/// Плоское место «training_island» с площадками старта из заголовков файлов.
+/// Плоское место «training_island» с одной площадкой старта в центре области и `model_hash` для кеша.
 fn island_place(model_hash: &str) -> Place {
-    let sites: Vec<String> = island_files()
-        .iter()
-        .map(|(h, _)| {
-            let v: Value = serde_json::from_str(h).unwrap();
-            let st = &v["key"]["start"];
-            format!(r#"{{"x":{},"z":{},"h_msl":100.0}}"#, st[0], st[1])
-        })
-        .collect();
     let header = format!(
         r#"{{"version":1,"loc":{{"id":"training_island","center_lat":43.2,"center_lon":34.0,
 "utc_offset_h":2.0,"month":7,"day":15}},"grid":{{"origin_x":-10000,"origin_z":-10000,"spacing":25,
-"width":801,"height":801}},"surface_classes":{{"grass":1}},"start_sites":[{}],
-"model_hash":"{model_hash}"}}"#,
-        sites.join(",")
+"width":801,"height":801}},"surface_classes":{{"grass":1}},
+"start_sites":[{{"x":3510.0,"z":-1510.0,"h_msl":100.0}}],"model_hash":"{model_hash}"}}"#
     );
     let h = dp_air::PlaceHeader::from_json(&header).unwrap();
     let n = h.cells();
@@ -703,10 +672,10 @@ fn landing_cond() -> Conditions {
     .unwrap()
 }
 
-/// Фокус на площадке `landing_hill`, сдвинутый на `dx` м на восток.
+/// Фокус на площадке (центр места), сдвинутый на `dx` м на восток.
 fn landing_focus(dx: f32) -> Focus {
     Focus {
-        pos: [3510.0 + dx, 110.0, -1510.0],
+        pos: [dx, 110.0, 0.0],
         weight: 1.0,
     }
 }
@@ -721,23 +690,33 @@ fn pilot_left_baked_follows_the_game_skips_the_finest_window() {
         cheap(v);
         v["air"]["deterministic"] = json!(false);
     });
-    let files = island_files();
-    let hash = {
-        let v: Value = serde_json::from_str(&files[0].0).unwrap();
-        v["model_hash"].as_str().unwrap().to_string()
-    };
-    for (dx, relaunch) in [(0.0f32, false), (1000.0, false), (1700.0, true)] {
+    // поле для кеша: считается один раз (с окнами), дальше три загрузки из кеша
+    let dir = std::env::temp_dir().join(format!("dp-air-plb-{}", std::process::id()));
+    std::fs::create_dir_all(&dir).unwrap();
+    let load = |dx: f32| {
         let mut m = Formula::new();
         m.configure(&cfg, 1).unwrap();
+        m.set_cache_dir(dir.to_str().unwrap()).unwrap();
         m.set_conditions(&landing_cond()).unwrap();
-        m.set_focuses(&[landing_focus(0.0)]).unwrap();
-        m.load_place(island_place(&hash)).unwrap();
-        for (h, b) in &files {
-            m.add_baked_field(h, b).unwrap();
-        }
-        wait_ready(&mut m, 120.0);
+        m.set_focuses(&[landing_focus(dx)]).unwrap();
+        m.load_place(island_place("model-1")).unwrap();
+        wait_ready(&mut m, 600.0);
+        m
+    };
+    let first = load(0.0);
+    assert_eq!(first.report().unwrap().source, Source::Computed);
+    drop(first);
+    let t = Instant::now();
+    while !std::fs::read_dir(&dir).is_ok_and(|mut d| {
+        d.any(|e| e.is_ok_and(|e| e.path().extension().is_some_and(|x| x == "dpac")))
+    }) {
+        assert!(t.elapsed().as_secs() < 60, "кеш не записан");
+        std::thread::sleep(Duration::from_millis(20));
+    }
+    for (dx, relaunch) in [(0.0f32, false), (1000.0, false), (1700.0, true)] {
+        let mut m = load(0.0);
         let r = m.report().unwrap();
-        assert_eq!(r.source, Source::Baked, "{:?}", r.notes);
+        assert_eq!(r.source, Source::Cache, "{:?}", r.notes);
         assert_eq!(m.level_count(), 3);
         m.advance_to(1.0).unwrap();
         m.set_focuses(&[landing_focus(dx)]).unwrap();
@@ -747,6 +726,7 @@ fn pilot_left_baked_follows_the_game_skips_the_finest_window() {
         eprintln!("pilot_left_baked: фокус +{dx} м → пересчёт запущен: {running}");
         assert_eq!(running, relaunch, "фокус +{dx} м");
     }
+    let _ = std::fs::remove_dir_all(&dir);
 }
 
 /// История решателя при `Cancelled` до первой итерации содержит NaN-невязки (ревью RW-6t): отмена
@@ -862,319 +842,6 @@ fn t8_windows_same_field_at_2_4_20_threads() {
     assert_eq!(a, c, "2 vs 20 потоков");
 }
 
-// ---------------------------------------------------------------- T1
-
-/// Полкванта f16 при значении `x`: `2^(e − 10) / 2`, `e = floor(log2 |x|)` (нормальные числа).
-fn half_f16_ulp(x: f64) -> f64 {
-    if x == 0.0 || !x.is_finite() {
-        return 0.0;
-    }
-    let e = x.abs().log2().floor().max(-14.0);
-    0.5 * (e - 10.0).exp2()
-}
-
-fn max_abs(a: &[f32]) -> f64 {
-    a.iter().map(|x| f64::from(x.abs())).fold(0.0, f64::max)
-}
-
-fn max_diff(a: &[f32], b: &[f32]) -> f64 {
-    assert_eq!(a.len(), b.len());
-    a.iter()
-        .zip(b)
-        .map(|(x, y)| (f64::from(*x) - f64::from(*y)).abs())
-        .fold(0.0, f64::max)
-}
-
-/// Условия набора погоды запечённого поля (`AirBakedField.conditions_of`).
-fn baked_conditions(w: &Value) -> Conditions {
-    let num = |k: &str| w[k].as_f64().unwrap_or_else(|| panic!("weather.{k}"));
-    let inflow = w["wind_ref"].as_str().unwrap_or("start") == "inflow";
-    Conditions::from_json(
-        &json!({
-            "forecast": {
-                "temperature_c": num("temperature_c"),
-                "wind_speed_kmh": num("wind_speed_ms") * 3.6,
-                "wind_from_deg": num("wind_from_deg"),
-                "sky": w["sky"].as_str().unwrap(),
-            },
-            "start_hour": num("start_hour"),
-            "speed": 1.0,
-            "quantum_h": 0.5,
-            "blend_s": null,
-            "rebuild": false,
-            "inflow_mode": if inflow { "inflow" } else { "start" },
-        })
-        .to_string(),
-    )
-    .unwrap()
-}
-
-/// Числа сверки одного уровня.
-struct LevelDiff {
-    name: String,
-    u0: f64,
-    /// max |Δ| по каналам u, v, w_mech, w_conv (м/с) и θ′ (К).
-    du: [f64; 4],
-    dth: f64,
-    /// Пределы: `1e-3·u0 + полкванта f16` по каналам; `0,05 К + полкванта`.
-    bound_u: [f64; 4],
-    bound_th: f64,
-}
-
-impl LevelDiff {
-    fn ok(&self) -> bool {
-        self.du.iter().zip(&self.bound_u).all(|(d, b)| d <= b) && self.dth <= self.bound_th
-    }
-}
-
-/// Сверка уровня крейта `got` с уровнем файла `want` (f16): допуски W8/air-cascade
-/// (`u_rel ≤ 1e-3`, `th_abs ≤ 0,05 К`) плюс полкванта f16 от максимума канала.
-fn diff_level(name: &str, got: &Field, want: &Field) -> LevelDiff {
-    let (g, w) = (got.grid(), want.grid());
-    assert_eq!(
-        (g.nx, g.ny, g.nz),
-        (w.nx, w.ny, w.nz),
-        "{name}: размеры сетки {:?} против файла {:?}",
-        (g.nx, g.ny, g.nz),
-        (w.nx, w.ny, w.nz)
-    );
-    for (a, b, what) in [
-        (g.dx, w.dx, "dx"),
-        (g.dz, w.dz, "dz"),
-        (g.x0, w.x0, "x0"),
-        (g.y0, w.y0, "y0"),
-        (g.z_bot, w.z_bot, "z_bot"),
-    ] {
-        assert!(
-            (a - b).abs() < 1e-6,
-            "{name}: сетка {what} {a} против файла {b}"
-        );
-    }
-    let u0 = want
-        .raw_u()
-        .iter()
-        .zip(want.raw_v())
-        .map(|(u, v)| f64::from(*u).hypot(f64::from(*v)))
-        .fold(0.0, f64::max);
-    let chans: [(&[f32], &[f32]); 4] = [
-        (got.raw_u(), want.raw_u()),
-        (got.raw_v(), want.raw_v()),
-        (got.raw_w_mech(), want.raw_w_mech()),
-        (got.raw_w_conv(), want.raw_w_conv()),
-    ];
-    // где u расходится сильнее всего и среднеквадратичное расхождение скорости (диагностика)
-    {
-        let (nx, ny) = (g.nx, g.ny);
-        let (mut best, mut at) = (0.0f64, 0usize);
-        let (mut sq, mut sq_ref) = (0.0f64, 0.0f64);
-        for (c, ((a, b), (a2, b2))) in got
-            .raw_u()
-            .iter()
-            .zip(want.raw_u())
-            .zip(got.raw_v().iter().zip(want.raw_v()))
-            .enumerate()
-        {
-            let d = f64::from(a - b).hypot(f64::from(a2 - b2));
-            sq += d * d;
-            sq_ref += f64::from(*b).hypot(f64::from(*b2)).powi(2);
-            if d > best {
-                best = d;
-                at = c;
-            }
-        }
-        let n = got.raw_u().len() as f64;
-        eprintln!(
-            "  {name}: max |Δ(u,v)| {best:.3} в клетке k {} j {} i {}; rms Δ {:.3e}, rms поля файла {:.3e}; max |u,v| крейта {:.3}",
-            at / (nx * ny),
-            (at / nx) % ny,
-            at % nx,
-            (sq / n).sqrt(),
-            (sq_ref / n).sqrt(),
-            got.raw_u()
-                .iter()
-                .zip(got.raw_v())
-                .map(|(u, v)| f64::from(*u).hypot(f64::from(*v)))
-                .fold(0.0, f64::max)
-        );
-    }
-    let mut du = [0.0; 4];
-    let mut bound_u = [0.0; 4];
-    for (i, (a, b)) in chans.iter().enumerate() {
-        du[i] = max_diff(a, b);
-        bound_u[i] = 1e-3 * u0 + half_f16_ulp(max_abs(b));
-    }
-    LevelDiff {
-        name: name.to_string(),
-        u0,
-        du,
-        dth: max_diff(got.raw_theta(), want.raw_theta()),
-        bound_u,
-        bound_th: 0.05 + half_f16_ulp(max_abs(want.raw_theta())),
-    }
-}
-
-/// Один запечённый файл острова: Formula с местом и условиями из `key`, без запечённого и кеша,
-/// `tol_scale` 1, фокус в старте — три уровня против файла. Возвращает число проходов и стену.
-fn t1_field(loc: &str, site: &str, threads: u64) -> (Vec<LevelDiff>, f64, f64, usize) {
-    let dir = repo().join("data/locations").join(loc).join("air");
-    let head = std::fs::read_to_string(dir.join(format!("{site}.json"))).unwrap();
-    let bin = std::fs::read(dir.join(format!("{site}.bin"))).unwrap();
-    let baked = parse_baked(&head, &bin).unwrap_or_else(|e| panic!("{loc}/{site}: {}", e.msg));
-    let key = &baked.key;
-    assert_eq!(key["location"], loc);
-    assert_eq!(key["site"], site);
-    let cond = baked_conditions(&key["weather"]);
-    let start = key["start"].as_array().unwrap();
-    let (sx, sz) = (
-        start[0].as_f64().unwrap() as f32,
-        start[1].as_f64().unwrap() as f32,
-    );
-    let cfg = configs_with(|v| {
-        v["air"]["deterministic"] = json!(true);
-        v["air"]["tol_scale"] = json!(1.0);
-        v["air"]["threads"] = json!(threads);
-        v["air"]["timeout_s"] = json!(1800.0);
-        assert_eq!(
-            v["air_model"]["window_levels_m"],
-            json!(key["window_dx"]),
-            "{loc}/{site}: окна файла не как в конфиге"
-        );
-    });
-    let pl = place(loc);
-    let focus = Focus {
-        pos: [sx, ground_height(&pl, sx, sz) + 10.0, sz],
-        weight: 1.0,
-    };
-    let t0 = Instant::now();
-    let mut m = Formula::new();
-    m.configure(&cfg, 1).unwrap();
-    m.set_conditions(&cond).unwrap();
-    m.set_focuses(&[focus]).unwrap();
-    m.load_place(pl).unwrap();
-    wait_ready(&mut m, 1800.0);
-    let wall = t0.elapsed().as_secs_f64();
-    let r = m.report().unwrap();
-    assert!(
-        r.windows_error.is_none(),
-        "{loc}/{site}: {:?}",
-        r.windows_error
-    );
-    assert_eq!(
-        r.source,
-        Source::Computed,
-        "{loc}/{site}: поле не посчитано"
-    );
-    let got = m.clip().expect("окна клипмапа").levels();
-    assert_eq!(got.len(), baked.levels.len(), "{loc}/{site}: число уровней");
-    let diffs: Vec<LevelDiff> = got
-        .iter()
-        .zip(&baked.levels)
-        .zip(&baked.names)
-        .map(|((g, w), n)| diff_level(n, g, w))
-        .collect();
-    let k_file = baked.inflow_k;
-    for d in &diffs {
-        eprintln!(
-            "T1 {loc}/{site} {}: u0 {:.3} м/с; Δu {:.3e} Δv {:.3e} Δw_mech {:.3e} Δw_conv {:.3e} (пределы {:.3e} {:.3e} {:.3e} {:.3e}); Δθ {:.3e} К (предел {:.3e}) {}",
-            d.name,
-            d.u0,
-            d.du[0],
-            d.du[1],
-            d.du[2],
-            d.du[3],
-            d.bound_u[0],
-            d.bound_u[1],
-            d.bound_u[2],
-            d.bound_u[3],
-            d.dth,
-            d.bound_th,
-            if d.ok() {
-                "ok"
-            } else {
-                "ВНЕ ДОПУСКА"
-            }
-        );
-    }
-    let p = r.passes.last().unwrap();
-    eprintln!(
-        "T1 {loc}/{site}: стена {wall:.1} с, k {:.4} (файл {k_file:.4}), проходов {}, итерации области {:?}{}, окна {:?}",
-        m.inflow_k(),
-        r.passes.len(),
-        p.iters,
-        p.coarse_iters
-            .map_or(String::new(), |c| format!(" (грубые {c:?})")),
-        r.windows
-            .iter()
-            .map(|w| (w.dx, w.iters))
-            .collect::<Vec<_>>()
-    );
-    (diffs, m.inflow_k() - k_file, wall, r.passes.len())
-}
-
-/// Сверка одного запечённого поля. `only` — уровни (`dx400` и т. п.), по которым допуск проверяется;
-/// пусто — все уровни. `k` сверяется всегда (допуск 0,02).
-fn t1(loc: &str, site: &str, only: &[&str]) {
-    let _g = heavy();
-    let threads = std::env::var("RW6Q_THREADS")
-        .ok()
-        .and_then(|s| s.parse().ok())
-        .unwrap_or(8u64);
-    let (diffs, dk, _, _) = t1_field(loc, site, threads);
-    assert!(dk.abs() < 0.02, "{loc}/{site}: k расходится на {dk}");
-    for d in &diffs {
-        if only.is_empty() || only.iter().any(|n| d.name.contains(n)) {
-            assert!(d.ok(), "{loc}/{site} {}: вне допуска", d.name);
-        }
-    }
-}
-
-/// Поля в допуске W8 (`1e-3·u0` плюс полкванта f16, θ′ 0,05 К) на состоянии крейта после
-/// RW-6x (дальние грани тёплых стартов - граничные значения случая, W11 v9): `lee_bowl`,
-/// `crater_ridge`, `east_cliffs` - область 400 м и окна 50/100 м (отдельные тесты); `thermal_plain` - окна 50/100 м (область 400 м
-/// открыта: `t1_open_training_island_thermal_plain`). Остальное - `t1_open_*` ниже.
-macro_rules! t1_ok_tests {
-    ($($name:ident: $loc:literal, $site:literal, $levels:expr;)*) => {$(
-        #[test]
-        #[ignore = "release, тяжёлый: cargo test --release -p dp-air --test acceptance -- --ignored --nocapture"]
-        fn $name() {
-            t1($loc, $site, $levels);
-        }
-    )*};
-}
-
-t1_ok_tests! {
-    t1_training_island_lee_bowl_area: "training_island", "lee_bowl", &["dx400"];
-    t1_training_island_lee_bowl_windows: "training_island", "lee_bowl", &["dx50", "dx100"];
-    t1_volcano_island_crater_ridge_area: "volcano_island", "crater_ridge", &["dx400"];
-    t1_volcano_island_crater_ridge_windows: "volcano_island", "crater_ridge", &["dx50", "dx100"];
-    t1_volcano_island_east_cliffs_area: "volcano_island", "east_cliffs", &["dx400"];
-    t1_volcano_island_east_cliffs_windows: "volcano_island", "east_cliffs", &["dx50", "dx100"];
-    t1_training_island_thermal_plain_windows: "training_island", "thermal_plain", &["dx50", "dx100"];
-}
-
-/// Открытые расхождения T1: все уровни и `k` поля против запечённого (`--skip t1_open_` в приёмке).
-/// Причины (числа - docs/research/rust-wind-rw6-acceptance.md, «T1 после RW-6x»):
-/// - `landing_hill`: слабый ветер, окна и область расходятся в 300-550 раз (RW-6u);
-/// - `ridge_west`, `plateau_landing`, `thermal_slope`: сдвиг `k` второго прохода и поле (RW-6w);
-/// - `thermal_plain`, область 400 м: 9,8 допуска.
-macro_rules! t1_open_tests {
-    ($($name:ident: $loc:literal, $site:literal;)*) => {$(
-        #[test]
-        #[ignore = "открыто: расхождение T1, см. doc-комментарий макроса и docs/research/rust-wind-rw6-acceptance.md"]
-        fn $name() {
-            t1($loc, $site, &[]);
-        }
-    )*};
-}
-
-t1_open_tests! {
-    t1_open_training_island_landing_hill: "training_island", "landing_hill";
-    t1_open_training_island_ridge_west: "training_island", "ridge_west";
-    t1_open_training_island_thermal_plain: "training_island", "thermal_plain";
-    t1_open_volcano_island_plateau_landing: "volcano_island", "plateau_landing";
-    t1_open_volcano_island_thermal_slope: "volcano_island", "thermal_slope";
-}
-
 // ---------------------------------------------------------------- замеры (RW6Q_MEASURE=1)
 
 fn measure_on() -> bool {
@@ -1285,93 +952,5 @@ fn measure_ongudai_input_prep() {
                 bm.len()
             );
         });
-    }
-}
-
-/// Диагностика: область запечённого поля против области крейта с обрывом на `n` итерациях
-/// (`RW6Q_MEASURE=1`): ищем число итераций игры, при котором поля сходятся.
-#[test]
-#[ignore = "диагностика, RW6Q_MEASURE=1, release"]
-fn explore_area_iterations() {
-    if !measure_on() {
-        return;
-    }
-    let _g = heavy();
-    let loc = std::env::var("RW6Q_LOC").unwrap_or("volcano_island".into());
-    let site = std::env::var("RW6Q_SITE").unwrap_or("east_cliffs".into());
-    let dir = repo().join("data/locations").join(&loc).join("air");
-    let head = std::fs::read_to_string(dir.join(format!("{site}.json"))).unwrap();
-    let bin = std::fs::read(dir.join(format!("{site}.bin"))).unwrap();
-    let baked = parse_baked(&head, &bin).unwrap();
-    let cond = baked_conditions(&baked.key["weather"]);
-    let start = baked.key["start"].as_array().unwrap();
-    let (sx, sz) = (
-        start[0].as_f64().unwrap() as f32,
-        start[1].as_f64().unwrap() as f32,
-    );
-    let cfg = configs_with(|v| {
-        v["air"]["deterministic"] = json!(true);
-        v["air"]["tol_scale"] = json!(1.0);
-        v["air"]["threads"] = json!(8);
-        v["air"]["timeout_s"] = json!(1800.0);
-        if let Ok(st) = std::env::var("RW6Q_START") {
-            v["air_model"]["picard_start"] = json!(st);
-        }
-    });
-    let want = baked.levels.last().unwrap();
-    for n in [100usize] {
-        let o = job_in_at(
-            &cfg,
-            |c| {
-                c.max_iters = n;
-                c.faults.no_windows = true;
-            },
-            place(&loc),
-            &cond,
-            true,
-            None,
-            Some([sx, sz]),
-        );
-        let out = run_job(o).unwrap();
-        let p = out.report.passes.last().unwrap();
-        let d = diff_level("dx400", &out.levels[0], want);
-        {
-            let got = &out.levels[0];
-            let g = got.grid();
-            let (nx, ny, nz) = (g.nx, g.ny, g.nz);
-            let (mut best, mut at) = (0.0f64, 0usize);
-            let (mut sw, mut nw, mut sl, mut nl) = (0.0f64, 0usize, 0.0f64, 0usize);
-            for c in 0..nx * ny * nz {
-                let d = f64::from(got.raw_theta()[c] - want.raw_theta()[c]);
-                let hc = f64::from(got.raw_hc()[c % (nx * ny)]);
-                if d.abs() > best {
-                    best = d.abs();
-                    at = c;
-                }
-                if hc < 1.0 {
-                    sw += d * d;
-                    nw += 1;
-                } else {
-                    sl += d * d;
-                    nl += 1;
-                }
-            }
-            let col = at % (nx * ny);
-            eprintln!(
-                "  θ′: max |Δ| {best:.3} в k {} j {} i {} (hc {:.0} м, θ′ крейта {:.3} файла {:.3}); rms Δ над водой {:.3e} ({nw}), над сушей {:.3e} ({nl})",
-                at / (nx * ny),
-                (at / nx) % ny,
-                at % nx,
-                got.raw_hc()[col],
-                got.raw_theta()[at],
-                want.raw_theta()[at],
-                (sw / nw.max(1) as f64).sqrt(),
-                (sl / nl.max(1) as f64).sqrt()
-            );
-        }
-        eprintln!(
-            "EXPLORE n {n}: итерации {:?} stop {:?} k {:.3}; Δu {:.3e} Δv {:.3e} Δw_mech {:.3e} Δw_conv {:.3e} Δθ {:.3e}",
-            p.iters, p.stop, out.k, d.du[0], d.du[1], d.du[2], d.du[3], d.dth
-        );
     }
 }
