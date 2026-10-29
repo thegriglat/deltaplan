@@ -945,3 +945,5 @@
 {"t": "2026-10-29T14:48:23", "by": "coordinator", "task": "RW-12w", "ev": "checked", "note": "5/5 dp_gd_tests=ok:1; cargo_test=ok:exit 0; clippy=ok:exit 0; fmt=ok:exit 0; dp_air_no_godot=ok:0"}
 {"t": "2026-10-29T14:48:40", "by": "coordinator", "task": "RW-12w", "ev": "accepted", "note": "ревью не нужно (решение «проверки по цене»)"}
 {"t": "2026-10-29T14:48:41", "by": "coordinator", "task": "RW-12v", "ev": "note", "note": "RW-12w влит (DpAir W3 v5). Добавь impl F32Record for ObjRecord в dp-air (если трейт F32Record в dp-gd — сообщи «RW-12v contract:»), чтобы dp-gd убрал unsafe-каст obj_f32s — это сделает отдельная правка после тебя.", "addendum": true}
+{"t": "2026-10-29T14:50:00", "by": "coordinator", "task": "RW-9", "ev": "checked", "note": "5/5 terms_analytic=ok:11; cargo_test=ok:exit 0; clippy=ok:exit 0; fmt=ok:exit 0; dp_air_no_godot=ok:0"}
+{"t": "2026-10-29T14:50:15", "by": "coordinator", "task": "RW-9", "ev": "accepted", "note": "после доработки и слияния с feature (RW-8, RW-10e/f, RW-11d/f, RW-12u): cargo test --workspace на слитом зелёный; σ ротора волны в 4/93 точках synth_wave — RW-11g"}
