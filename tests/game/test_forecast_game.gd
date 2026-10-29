@@ -40,7 +40,19 @@ func test_game_uses_forecast() -> void:
 			deg_to_rad(float(start.heading_deg)))) < 0.01,
 		"встречный: ветер с %.0f°, курс %.0f°" % [air.weather().wind_from_deg, start.heading_deg]
 	)
-	check(is_equal_approx(air.wind.ref_msl, (start.position as Vector3).y), "опора ветра — старт")
+	# Опора ветра — старт (W5 Conditions.wind_ref): на высоте старта фоновый ветер идёт по румбу
+	# прогноза (на «встречный» — против курса), не слабеет с высотой и не нулевой.
+	var y0 := (start.position as Vector3).y
+	var bw := air.background_wind(PackedFloat32Array([y0, y0 + 1000.0]))
+	var v0 := Vector2(bw[0], bw[1])
+	var v1 := Vector2(bw[2], bw[3])
+	var hd := deg_to_rad(float(start.heading_deg))
+	check(v0.length() > 0.5, "ветер на высоте старта: %.2f м/с" % v0.length())
+	check(
+		absf(v0.normalized().angle_to(Vector2(-sin(hd), cos(hd)))) < 0.2 and absf(v0.angle_to(v1)) < 0.5,
+		"фоновый ветер на старте идёт по курсу прогноза (против курса старта)"
+	)
+	check(v1.length() >= v0.length() - 0.01, "ветер с высотой не слабее: %.2f → %.2f" % [v0.length(), v1.length()])
 	var ctx := game._weather_context()
 	var w := WeatherModel.derive(s.forecast(), ctx, {}, 14.0)
 	var cb := float(air.weather().cloudbase_agl_m)

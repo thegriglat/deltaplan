@@ -80,10 +80,12 @@ func test_sort_and_drop_equal_old() -> void:
 	a.set_focus(EYE)
 	a.step(0.0)
 	a.step(60.0)
-	var m: CloudModel = a.cloud_phys.model
+	var m := CloudModel.new()
+	m.setup(Config.get_config("atmosphere").clouds)
+	var objs := CloudModel.parse(a.cloud_objects(Vector3.ZERO, -1.0, a.time_s), a.time_s)
 	var cand: Array = []
-	for id in a.field.thermals:
-		var e := m.select_entry(a.field.thermals[id], a.time_s, EYE, {})
+	for id in objs:
+		var e := m.select_entry(objs[id], a.time_s, EYE, {})
 		if not e.is_empty():
 			cand.append(e)
 	var old := cand.duplicate()
@@ -97,8 +99,8 @@ func test_sort_and_drop_equal_old() -> void:
 	var ia: Array = []
 	var ib: Array = []
 	for e: Array in old_list:
-		ia.append((e[1] as AtmoThermal).id)
+		ia.append((e[1] as CloudModel.Obj).id)
 	for e: Array in st.out:
-		ib.append((e[1] as AtmoThermal).id)
+		ib.append((e[1] as CloudModel.Obj).id)
 	check(ia == ib and not ia.is_empty(), "тот же список после слияния (%d / %d), шагов %d" % [ia.size(), ib.size(), steps])
 	a.free()

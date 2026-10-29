@@ -59,23 +59,24 @@ func _check_site(game: Game, site: String) -> void:
 		return
 	game.restart()
 	var p: Vector3 = game.glider.model.position + Vector3.UP * 1.5
-	var gs := air.ground.sample(p.x, p.z)
-	var agl := p.y - gs.x
-	var fw := air.air_field.sample(p, gs.x)
+	# Высота рельефа под стартом — из рельефа сцены игры (место воздуху даёт загрузка места, W5).
+	var ground_h: float = game.terrain.height_at(p.x, p.z)
+	var agl := p.y - ground_h
+	var fw: Variant = air.air_field.sample(p, ground_h)
 	check(fw.w > 0.99, "%s: старт внутри поля (доля %.2f)" % [site, fw.w])
-	var tb := air.air_field.sample_turb(p, gs.x)
+	var tb: Variant = air.air_field.sample_turb(p, ground_h)
 	var uf := Vector2(fw.x, fw.z).length() / maxf(fw.w, 1.0e-3)
-	var ft := air.field_turb
+	var ft: Variant = air.field_turb
 	# теория подобия в точке
 	var z := maxf(agl, 1.0)
 	var us := KAPPA * uf / log(z / ft.z0)
-	var ws := tb[WindField.T_WSTAR]
-	var zi := tb[WindField.T_HMIX]
+	var ws: Variant = tb[WindField.T_WSTAR]
+	var zi: Variant = tb[WindField.T_HMIX]
 	var th := _theory(us, ws, zi, z)
 	# модель в точке
-	var sg := ft.sigma(agl, tb, Vector2.ZERO, uf)
-	var sv := ft.last_sv
-	var lee_f := ft.lee(uf, agl, tb)
+	var sg: Variant = ft.sigma(agl, tb, Vector2.ZERO, uf)
+	var sv: Variant = ft.last_sv
+	var lee_f: Variant = ft.lee(uf, agl, tb)
 	# ряды
 	var var_u := 0.0
 	var var_v := 0.0

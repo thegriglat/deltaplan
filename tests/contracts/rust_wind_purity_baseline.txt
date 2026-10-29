@@ -1,6 +1,1 @@
-# Храповик чистоты W10: файл:шаблон<TAB>число вхождений. Только вниз; обновление — см. test_rust_wind_purity.gd
-scripts/atmosphere/cloud_layer.gd:\bAtmoThermal\b	7
-scripts/atmosphere/cloud_layer.gd:\bCloudField\b	3
-scripts/atmosphere/cloud_layer.gd:\bCloudPhysics\b	1
-scripts/atmosphere/cloud_layer.gd:\bThermalField\b	2
-scripts/atmosphere/cloud_layer.gd:\b_?(?:air|atmo|atmosphere)\w*\.(?:field|wind|ground|cloud_phys|wave|storm)\b	15
+# Храповик чистоты W10: файл:шаблон<TAB>число вхождений. Пуст с RW-12z — тест = W10 целиком (test_rust_wind_purity.gd).

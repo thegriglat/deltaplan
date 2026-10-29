@@ -1,11 +1,14 @@
+# gdlint: disable=max-file-lines, class-definitions-order
 class_name CloudLayer
 extends Node3D
 ## Облака и их тени на земле (CloudShadowMap). Всё видимое — строго из физической модели (VR-0):
 ## - кучевые над термиками: рост → зрелость (плотное, чёткие клубы, тёмное плоское основание) →
 ##   распад (рваное, тает, уплывает); Cb — башня до тропопаузы, наковальня, вирга (VR-26);
 ## - лентикулярные в гребнях подветренных волн, шапка на гребне хребта, роторные клочья (VR-27).
-## Кучевые региона — слой поля облачности (CloudField из atmo.cloud_phys, текстура CLF-К2, CLF-5):
+## Кучевые региона — слой поля облачности (растр atmo.cloud_raster(), текстура CLF-К2, CLF-5):
 ## в compute-проходе и в карте теней; записи — только линзы, шапка, роторные клочья, Cb.
+## Облака над термиками (Cb) — объекты atmo.cloud_objects() (W2 v4, W6 v4): стадия, размеры, центр
+## и гроза приходят в записи, здесь только выбор, слияние, видимость и рисование.
 ## Два способа рисовать (общий код — cloud_common.gdshaderinc):
 ## - compute (Forward+/Mobile): все облака одним raymarch-проходом в буфере пониженного
 ##   разрешения с апскейлом (CloudCompositorEffect на активной камере);
@@ -16,6 +19,8 @@ const FLOATS_PER_CLOUD := 24
 
 var atmo: Atmosphere
 var cfg: Dictionary
+## Конфиг атмосферы (configs/atmosphere.json): рисование читает его само, не через фасад.
+var acfg: Dictionary
 ## Высота рельефа (x, z) -> м MSL (NAN — нет земли): даёт Atmosphere при создании слоя; рельеф
 ## места — не воздух, слой не ходит в ground сам (W10). Положение наблюдателя — по умолчанию камера.
 var ground_fn: Callable = Callable()
@@ -33,10 +38,11 @@ var _sj_eye := Vector3.ZERO
 var _sj_us := 0
 var _sj_shown: Dictionary = {}
 var _sj_keys: Array = []
+var _sj_objs: Dictionary = {}
 var _sj_cand: Array = []
 var _sj_drop: Dictionary = {}
 var _sj_crests: Array = []
-## Логика: стадии, размеры, выбор видимых облаков (общая с физикой: atmo.cloud_phys.model).
+## Логика: выбор видимых облаков, слияние, видимость по жизни и дальности (по записям).
 var model: CloudModel
 ## Выбор без памяти о кадрах (только сетевая игра, ставит NetFlight): набор облаков и их
 ## видимость — функция времени атмосферы, одинаковая у всех клиентов зоны (NET-00). В одиночной
@@ -47,14 +53,14 @@ var history_free := false
 var _material: ShaderMaterial
 var _box: BoxMesh
 var _shadow_map: CloudShadowMap
-## Слоты облаков над термиками: термик в слоте (null — свободен), id -> слот, свободные слоты.
-var _slot_th: Array = []
+## Слоты облаков над термиками: объект в слоте (null — свободен), id -> слот, свободные слоты.
+var _slot_obj: Array = []
 var _slot_of: Dictionary = {}
 var _free: Array[int] = []
 ## Записи облаков по слотам (по FLOATS_PER_CLOUD чисел) и облаков волны (неподвижные).
 var _rec: Array[PackedFloat32Array] = []
 var _wave_rec: Array[PackedFloat32Array] = []
-## Распадающиеся облака (слот -> термик) — их снос обновляется каждый кадр.
+## Распадающиеся облака (слот -> объект) — их снос обновляется каждый кадр.
 var _drifting: Dictionary = {}
 ## Видимость по слотам (облако никогда не выключается за кадр, а тает):
 ## _sel — доля выбора 0..1. Одиночная игра: идёт к _want за fade_in_s / fade_out_s (_want — 1,
@@ -76,7 +82,7 @@ var _cnt: Dictionary = {}
 var _last_k: int = -(1 << 62)
 var _interval: float = 1.0
 var _win_n: int = 60
-## Термики живут в этом радиусе вокруг пилота (ThermalField) — к нему облако тает.
+## Термики живут в этом радиусе вокруг пилота — к нему облако тает.
 var _gen_r: float = 20000.0
 var _next_slot: int = 0
 var _basis_axes: Array = [Vector3.RIGHT, Vector3.UP, Vector3.BACK]
@@ -144,17 +150,20 @@ func _wind_dir() -> Vector3:
 	return Vector3(v.x, 0.0, v.y).normalized() if v.length_squared() > 1.0e-6 else Vector3(1, 0, 0)
 
 
-func setup(atmosphere: Atmosphere) -> void:
+## atmo_cfg — конфиг атмосферы для рисования (пусто — configs/atmosphere.json).
+func setup(atmosphere: Atmosphere, atmo_cfg: Dictionary = {}) -> void:
 	atmo = atmosphere
-	cfg = atmo.cfg.clouds
-	model = atmo.cloud_phys.model
-	_gen_r = float(atmo.cfg.thermal.generation_radius_m)
+	acfg = atmo_cfg if not atmo_cfg.is_empty() else Config.get_config("atmosphere")
+	cfg = acfg.clouds
+	model = CloudModel.new()
+	model.setup(cfg)
+	_gen_r = float(acfg.thermal.generation_radius_m)
 	_interval = maxf(float(cfg.update_interval_s), 0.05)
 	_win_n = maxi(1, roundi(float(cfg.get("fade_out_s", 60.0)) / _interval))
 	atmo.weather_changed.connect(_on_weather_changed)
 	_material = ShaderMaterial.new()
 	_material.shader = load("res://scripts/atmosphere/cloud_volume.gdshader")
-	var seed_value := int(atmo.cfg.seed)
+	var seed_value := int(acfg.seed)
 	_material.set_shader_parameter(
 		"noise_shape",
 		_noise_texture(
@@ -200,7 +209,7 @@ func setup(atmosphere: Atmosphere) -> void:
 	}
 	for u in params:
 		_material.set_shader_parameter(u, float(cfg[params[u]]))
-	var st: Dictionary = atmo.cfg.storm
+	var st: Dictionary = acfg.storm
 	for u in ["anvil_spread", "anvil_shift", "virga_depth_m", "virga_density", "virga_period_m"]:
 		_material.set_shader_parameter(u, float(st[u]))
 	_material.set_shader_parameter("shape_tex_size", float(cfg.noise_shape_size))
@@ -256,7 +265,7 @@ func textures_ready() -> bool:
 func records() -> Array[PackedFloat32Array]:
 	var out: Array[PackedFloat32Array] = []
 	for i in _rec.size():
-		if _slot_th[i] != null and not _rec[i].is_empty():
+		if _slot_obj[i] != null and not _rec[i].is_empty():
 			out.append(_rec[i])
 	out.append_array(_wave_rec)
 	return out
@@ -315,9 +324,8 @@ func _make_multimesh() -> void:
 
 
 func _on_weather_changed() -> void:
-	# Модель облаков — общая с физикой (подсос считается по тем же стадиям и размерам).
-	model = atmo.cloud_phys.model
 	_acc = 1.0e9
+	_cf_key = ""
 	_instant = true
 	_hist.clear()
 	_cnt.clear()
@@ -491,8 +499,9 @@ func _update_light() -> void:
 		var az := deg_to_rad(float(cfg.sun_azimuth_deg))
 		_sun_dir = Vector3(sin(az) * cos(el), sin(el), -cos(az) * cos(el))
 	_material.set_shader_parameter("sun_dir", _sun_dir)
-	# Свет окружения (рассеянный свет неба и дымка) следует закату: яркость — sky_k сцены (SunTransmission.sky_k,
-	# одна с рельефом, небом и дымкой SkyEnvironment, HH4 v3); цвет низа окружения и дымки — × horizon_tint,
+	# Свет окружения (рассеянный свет неба и дымка) следует закату: яркость — sky_k сцены
+	# (SunTransmission.sky_k, одна с рельефом, небом и дымкой SkyEnvironment, HH4 v3);
+	# цвет низа окружения и дымки — × horizon_tint,
 	# верх окружения (ambient_top, зенит) не подкрашивается — на закате зенит синий.
 	var tint := Color.WHITE
 	var sky_k := 1.0
@@ -532,7 +541,8 @@ func _update_light() -> void:
 
 
 ## Свет облаков по пропусканию атмосферы (HH4): обновляет таблицу, T_ref, настоящее направление на
-## солнце и параметры шейдеров; возвращает {toa: Vector3, energy_k: float} — солнце на опорной высоте
+## солнце и параметры шейдеров; возвращает {toa: Vector3, energy_k: float} — солнце на опорной
+## высоте
 ## (в линейном RGB, с поправкой за краем таблицы) и его яркость без перистой пелены, либо {} —
 ## свет прежний (нет дымки/часов или выключено в конфиге).
 func _update_sun_transmission() -> Dictionary:
@@ -678,19 +688,19 @@ func _select(t: float, eye: Vector3) -> void:
 		return
 	_sync_history(floori(t / _interval))
 	var cnt := _cnt
-	var ths: Dictionary = atmo.field.thermals
+	var ths := _objs(t)
 	var e2 := Vector2(eye.x, eye.z)
 	var cand: Array = []
 	for id in cnt:
-		var th: AtmoThermal = ths.get(id)
-		if th == null or model.stage(th, t).x < 0.0:
+		var ob: CloudModel.Obj = ths.get(id)
+		if ob == null or not ob.alive(t):
 			continue
-		var c := model.center(th, t)
+		var c := ob.center_at(t)
 		var d := e2.distance_to(c)
-		if d > model.far_m(th):
+		if d > model.far_m(ob):
 			continue
 		var f := float(cnt[id]) / float(_win_n)
-		cand.append([d, id, f, f * model.life_fade(th, t) * _range_vis(th, t, c, eye)])
+		cand.append([d, id, f, f * model.life_fade(ob, t) * _range_vis(ob, t, c, eye)])
 	var want: Dictionary = {}
 	var d_cap := _cap_distance(cand, float(cfg.max_clouds))
 	var band := float(cfg.get("fade_band_m", 3000.0))
@@ -705,13 +715,13 @@ func _select(t: float, eye: Vector3) -> void:
 			continue
 		if _slot_of.has(id):
 			var s: int = _slot_of[id]
-			_slot_th[s] = ths[id]
+			_slot_obj[s] = ths[id]
 			_sel[s] = v
 			if not _rec[s].is_empty():
 				_rec[s][20] = _base_vis[s] * v
 			continue
 		var slot: int = _free.pop_back() if not _free.is_empty() else _add_slot()
-		_slot_th[slot] = ths[id]
+		_slot_obj[slot] = ths[id]
 		_slot_of[id] = slot
 		_sel[slot] = v
 		_place(slot, t, eye)
@@ -722,7 +732,12 @@ func _select(t: float, eye: Vector3) -> void:
 ## Одиночная игра: нарисованные (не тающие) облака в приоритете при наложении и обрезке по
 ## лимиту (гистерезис); выбывшее тает (_update_fades), слот освобождается при нуле.
 func _select_with_fades(t: float, eye: Vector3) -> void:
-	_apply_selection(model.select(atmo.field.thermals, t, eye, _shown_ids()), t, eye)
+	_apply_selection(model.select(_objs(t), t, eye, _shown_ids()), t, eye)
+
+
+## Объекты-облака на момент t (W2 v4): {id: CloudModel.Obj}; весь набор, без ограничения по радиусу.
+func _objs(t: float) -> Dictionary:
+	return CloudModel.parse(atmo.cloud_objects(Vector3.ZERO, -1.0, t), t)
 
 
 ## Уже нарисованные (не тающие) облака: id -> true.
@@ -735,7 +750,8 @@ func _shown_ids() -> Dictionary:
 
 
 ## Выбор порциями (PF-8): тот же результат, что _select для одиночной игры, но набор кандидатов,
-## слияние и волновые облака — по шагам за кадр (_select_pump); t, камера и «нарисованные» — на начало.
+## слияние и волновые облака — по шагам за кадр (_select_pump); t, камера и «нарисованные» —
+## на начало.
 func _select_begin(t: float, eye: Vector3) -> void:
 	var wd := _wind_dir()
 	_basis_axes = [wd, Vector3.UP, wd.cross(Vector3.UP)]
@@ -746,7 +762,8 @@ func _select_begin(t: float, eye: Vector3) -> void:
 	_sj_eye = eye
 	_sj_us = 0
 	_sj_shown = _shown_ids()
-	_sj_keys = atmo.field.thermals.keys()
+	_sj_objs = _objs(t)
+	_sj_keys = _sj_objs.keys()
 	_sj_cand = []
 
 
@@ -754,13 +771,12 @@ func _select_pump() -> void:
 	var t0 := Time.get_ticks_usec()
 	var dl := t0 + select_budget_us
 	if _sj_ph == 0:
-		var ths: Dictionary = atmo.field.thermals
 		var n := _sj_keys.size()
 		while _sj_i < n:
-			var th: AtmoThermal = ths.get(_sj_keys[_sj_i])
+			var ob: CloudModel.Obj = _sj_objs.get(_sj_keys[_sj_i])
 			_sj_i += 1
-			if th != null:
-				var e := model.select_entry(th, _sj_t, _sj_eye, _sj_shown)
+			if ob != null:
+				var e := model.select_entry(ob, _sj_t, _sj_eye, _sj_shown)
 				if not e.is_empty():
 					_sj_cand.append(e)
 			if (_sj_i & 7) == 0 and Time.get_ticks_usec() >= dl:
@@ -789,13 +805,13 @@ func _select_pump() -> void:
 		_sj_us += Time.get_ticks_usec() - t0
 		return
 	if _sj_ph == 4:
-		var wf := atmo.wave
-		_sj_crests = _wave_crests(_sj_eye) if wf != null and wf.enabled and wf.ground.has_ground else []
+		_sj_crests = _wave_crests(_sj_eye) if _wave_enabled() else []
 		_sj_ph = 5
 		_sj_us += Time.get_ticks_usec() - t0
 		return
 	_wave_rec = _wave_clouds(_sj_eye, _sj_crests)
 	_sj_crests = []
+	_sj_objs = {}
 	_sj = false
 	last_rebuild_us = _sj_us + Time.get_ticks_usec() - t0
 
@@ -804,7 +820,7 @@ func _select_pump() -> void:
 func _apply_selection(list: Array, t: float, eye: Vector3) -> void:
 	var keep: Dictionary = {}
 	for e: Array in list:
-		keep[(e[1] as AtmoThermal).id] = e[1]
+		keep[(e[1] as CloudModel.Obj).id] = e[1]
 	for id in _slot_of.keys():
 		if not keep.has(id):
 			if _instant:
@@ -813,10 +829,12 @@ func _apply_selection(list: Array, t: float, eye: Vector3) -> void:
 				_want[_slot_of[id]] = 0
 	for id in keep:
 		if _slot_of.has(id):
-			_want[_slot_of[id]] = 1
+			var cur: int = _slot_of[id]
+			_want[cur] = 1
+			_slot_obj[cur] = keep[id]
 			continue
 		var slot: int = _free.pop_back() if not _free.is_empty() else _add_slot()
-		_slot_th[slot] = keep[id]
+		_slot_obj[slot] = keep[id]
 		_slot_of[id] = slot
 		_want[slot] = 1
 		_sel[slot] = 1.0 if _instant else 0.0
@@ -827,8 +845,8 @@ func _apply_selection(list: Array, t: float, eye: Vector3) -> void:
 ## Одиночная игра: выбранные облака проявляются, выбывшие тают (время атмосферы); растаявшее
 ## освобождает слот.
 func _update_fades(dt: float) -> void:
-	for i in _slot_th.size():
-		if _slot_th[i] == null:
+	for i in _slot_obj.size():
+		if _slot_obj[i] == null:
 			continue
 		var target := float(_want[i])
 		if _sel[i] == target:
@@ -879,7 +897,8 @@ func _sync_history(k: int) -> void:
 			_hist.erase(kk)
 	for kk in range(k - _win_n + 1, k + 1):
 		if not _hist.has(kk):
-			var won := model.merge_winners(atmo.field.thermals, kk * _interval, _win_n * _interval)
+			var tk := kk * _interval
+			var won := model.merge_winners(_objs(tk), tk, _win_n * _interval)
 			_hist[kk] = won
 			for id in won:
 				_cnt[id] = int(_cnt.get(id, 0)) + 1
@@ -887,10 +906,10 @@ func _sync_history(k: int) -> void:
 
 
 func _release(slot: int) -> void:
-	var th: AtmoThermal = _slot_th[slot]
-	if th != null:
-		_slot_of.erase(th.id)
-	_slot_th[slot] = null
+	var ob: CloudModel.Obj = _slot_obj[slot]
+	if ob != null:
+		_slot_of.erase(ob.id)
+	_slot_obj[slot] = null
 	_want[slot] = 0
 	_sel[slot] = 0.0
 	_drifting.erase(slot)
@@ -900,23 +919,23 @@ func _release(slot: int) -> void:
 
 ## Обновить форму и стадию части облаков за кадр (по кругу) — без пиков нагрузки.
 func _update_some(t: float, eye: Vector3) -> void:
-	var n := _slot_th.size()
+	var n := _slot_obj.size()
 	if n == 0:
 		return
 	var per_frame := ceili(float(n) / maxf(float(cfg.update_spread_frames), 1.0))
 	for k in per_frame:
 		_next_slot = (_next_slot + 1) % n
-		if _slot_th[_next_slot] != null:
+		if _slot_obj[_next_slot] != null:
 			_place(_next_slot, t, eye)
 
 
 func _add_slot() -> int:
 	_rec.append(PackedFloat32Array())
-	_slot_th.append(null)
+	_slot_obj.append(null)
 	_sel.append(0.0)
 	_want.append(0)
 	_base_vis.append(0.0)
-	return _slot_th.size() - 1
+	return _slot_obj.size() - 1
 
 
 ## Запись облака: бокс с запасом (контур шумит, верх растекается, у Cb — наковальня и вирга);
@@ -939,38 +958,38 @@ static func make_record(
 
 
 func _place(i: int, t: float, eye: Vector3) -> void:
-	var th: AtmoThermal = _slot_th[i]
-	var st := model.stage(th, t)
-	if st.x < 0.0:
+	var ob: CloudModel.Obj = _slot_obj[i]
+	if not ob.alive(t):
 		_release(i)
 		return
-	var c := model.center(th, t)
+	var st := ob.stage
+	var c := ob.center_at(t)
 	var axes := _basis_axes
-	if st.y > 0.0 or (not th.is_static and t > th.drift_start()):
-		_drifting[i] = th
-	var sz4 := model.size(th, st)
-	var base := th.top
+	if st.y > 0.0 or (not ob.is_static and t > ob.drift_t0):
+		_drifting[i] = ob
+	var sz4 := ob.size
+	var base := ob.base_msl
 	var anvil := 0.0
 	var rain := 0.0
-	var scfg: Dictionary = atmo.cfg.storm
-	if th.is_cb:
+	var scfg: Dictionary = acfg.storm
+	if ob.is_cb:
 		# Наковальня растёт к началу бури, осадки — во время бури.
-		var s0 := atmo.storm.storm_start(th)
+		var s0 := ob.storm_t0
 		anvil = smoothstep(s0 - 900.0, s0 + 600.0, t)
-		rain = atmo.storm.intensity(th, t)
+		rain = ob.storm_k
 	var below := 10.0 + (float(scfg.virga_depth_m) if rain > 0.0 else 0.0)
 	var anvil_pad := float(scfg.anvil_spread) + float(scfg.anvil_shift)
-	var vis := model.life_fade(th, t) * _range_vis(th, t, c, eye)
+	var vis := model.life_fade(ob, t) * _range_vis(ob, t, c, eye)
 	_base_vis[i] = vis
 	_rec[i] = make_record(
 		c, axes[0], base, sz4.z, sz4.x, sz4.y,
-		Vector4(st.x, st.y, st.z, float(th.noise_seed % 9973)),
-		Vector4(sz4.w, anvil, rain, 3.0 if th.is_cb else 0.0), anvil_pad, below, vis * _sel[i]
+		Vector4(st.x, st.y, st.z, float(ob.vis_seed)),
+		Vector4(sz4.w, anvil, rain, 3.0 if ob.is_cb else 0.0), anvil_pad, below, vis * _sel[i]
 	)
 
 
 ## Видимость по дальности: облако тает к max_distance_m (от камеры) и к радиусу, где живут
-## термики (от пилота, по основанию столба — как ThermalField удаляет), а не срезается.
+## термики (от пилота, по основанию столба — как удаляет набор термиков), а не срезается.
 ## Положение наблюдателя: eye_fn, иначе активная камера, иначе начало координат.
 func _eye_pos() -> Vector3:
 	if eye_fn.is_valid():
@@ -979,12 +998,11 @@ func _eye_pos() -> Vector3:
 	return cam.global_position if cam != null else Vector3.ZERO
 
 
-func _range_vis(th: AtmoThermal, t: float, c: Vector2, eye: Vector3) -> float:
-	var v := model.range_fade(Vector2(eye.x, eye.z).distance_to(c), model.far_m(th))
-	if not th.is_static:
+func _range_vis(ob: CloudModel.Obj, t: float, c: Vector2, eye: Vector3) -> float:
+	var v := model.range_fade(Vector2(eye.x, eye.z).distance_to(c), model.far_m(ob))
+	if not ob.is_static:
 		var f := _eye_pos()
-		var sd := th.drift_at(t)
-		var src := Vector2(th.src.x + sd.x, th.src.z + sd.y)
+		var src := ob.src + ob.drift_at(t)
 		v = minf(v, model.range_fade(Vector2(f.x, f.z).distance_to(src), _gen_r))
 	return v
 
@@ -992,8 +1010,8 @@ func _range_vis(th: AtmoThermal, t: float, c: Vector2, eye: Vector3) -> float:
 ## Облака уплывают по ветру вместе с термиками — двигаем их каждый кадр, чтобы не дёргались.
 func _update_drift(t: float) -> void:
 	for i in _drifting:
-		var th: AtmoThermal = _drifting[i]
-		var c := model.center(th, t)
+		var ob: CloudModel.Obj = _slot_obj[i]
+		var c := ob.center_at(t)
 		if not _rec[i].is_empty():
 			_rec[i][0] = c.x
 			_rec[i][2] = c.y
@@ -1003,13 +1021,12 @@ func _update_drift(t: float) -> void:
 ## шапка на самой высокой точке рельефа против ветра, роторные клочья под первым гребнем.
 func _wave_clouds(eye: Vector3, crests_in: Variant = null) -> Array[PackedFloat32Array]:
 	var out: Array[PackedFloat32Array] = []
-	var wf := atmo.wave
-	if wf == null or not wf.enabled:
+	if not _wave_enabled():
 		return out
-	var w: Dictionary = atmo.cfg.wave
+	var w: Dictionary = acfg.wave
 	var ax: Vector3 = _basis_axes[0]
 	var crests: Array = crests_in if crests_in != null else _wave_crests(eye)
-	var lam := wf.wavelength()
+	var lam := _wave_length()
 	var above := float(atmo.weather().get("lens_level_above_crest_m", 2000.0))
 	var eta_ref := float(w.lens_eta_ref_m)
 	var n := 0
@@ -1048,13 +1065,37 @@ func _wave_clouds(eye: Vector3, crests_in: Variant = null) -> Array[PackedFloat3
 	return out
 
 
-## Гребни волны вокруг камеры (первая, тяжёлая половина _wave_clouds).
+## Волна есть (wave_info, W6 v4): включена и место загружено.
+func _wave_enabled() -> bool:
+	var info := atmo.wave_info()
+	return info.size() > Atmosphere.WAVE_INFO_ENABLED and info[Atmosphere.WAVE_INFO_ENABLED] > 0.5
+
+
+## Длина подветренной волны, м (wave_info).
+func _wave_length() -> float:
+	var info := atmo.wave_info()
+	if info.size() <= Atmosphere.WAVE_INFO_LENGTH:
+		return 0.0
+	return float(info[Atmosphere.WAVE_INFO_LENGTH])
+
+
+## Гребни волны вокруг камеры (первая, тяжёлая половина _wave_clouds): словари {pos, eta, crest}
+## из записей wave_crests (шаг CREST_STRIDE: x, z, eta, crest).
 func _wave_crests(eye: Vector3) -> Array[Dictionary]:
-	var wf := atmo.wave
-	var w: Dictionary = atmo.cfg.wave
-	return wf.crests(
-		eye, float(w.lens_radius_m), float(w.lens_min_eta_m), float(w.lens_length_m[1]) * 0.9
+	var w: Dictionary = acfg.wave
+	var raw := atmo.wave_crests(
+		Vector2(eye.x, eye.z),
+		float(w.lens_radius_m),
+		float(w.lens_min_eta_m),
+		float(w.lens_length_m[1]) * 0.9
 	)
+	var out: Array[Dictionary] = []
+	@warning_ignore("integer_division")
+	var n := raw.size() / Atmosphere.CREST_STRIDE
+	for i in n:
+		var o := i * Atmosphere.CREST_STRIDE
+		out.append({"pos": Vector2(raw[o], raw[o + 1]), "eta": raw[o + 2], "crest": raw[o + 3]})
+	return out
 
 
 ## Самая высокая точка рельефа рядом (для шапки): Vector3(x, z, высота) или z < 0.
@@ -1079,28 +1120,57 @@ func _highest_ground(eye: Vector3, radius: float) -> Vector3:
 ## поля (новый шаг step_s, смена сетки, основания, фона), между шагами — переход от прошлого
 ## шага к новому за step_s (поле само сносится ветром; без перехода облака прыгали бы раз в шаг).
 func _update_field(t: float) -> void:
-	var cp: CloudPhysics = atmo.cloud_phys
-	if cp != null:
-		cp.poll()  # результат разгона/шага подхватить в этом же кадре
-	var f: CloudField = cp.field if cp != null and cp.field_enabled() else null
-	if f == null or f.nx == 0 or f.cover.size() != f.nx * f.ny or not textures_ready():
+	var ver := atmo.cloud_raster_version()
+	if ver <= 0 or not textures_ready():
 		field_params["cf_on"] = 0.0
 		return
-	var key := "%s|%d|%s|%s|%s|%s" % [
-		f.signature(), cp.field_version, f.time, f.base_msl, f.bg_cover, f.bg_depth
-	]
+	var key := str(ver)
 	if key != _cf_key:
+		var r := atmo.cloud_raster()
+		if int(r.get("nx", 0)) <= 0 or int(r.get("ny", 0)) <= 0:
+			field_params["cf_on"] = 0.0
+			return
 		_cf_key = key
-		_upload_field(f, t)
+		_upload_field(r, t)
 	var misc: Vector4 = field_params.get("cf_misc", Vector4.ZERO)
 	misc.w = clampf((t - _cf_t_upd) / _cf_step, 0.0, 1.0)
 	field_params["cf_misc"] = misc
 
 
-func _upload_field(f: CloudField, t: float) -> void:
-	var fc: Dictionary = f.cfg
+## Растр cloud_raster() -> RGBA8 (CLF-К2): R = покрытие, G = мощность / depth_max_m,
+## B = (стадия + 1)/2, A = активность; строка растёт к +Z, как строка текстуры.
+func _raster_image(r: Dictionary, dmax: float) -> Image:
+	var nx := int(r.nx)
+	var ny := int(r.ny)
+	var cover: PackedFloat32Array = r.cover
+	var depth: PackedFloat32Array = r.depth
+	var stage: PackedFloat32Array = r.stage
+	var act: PackedFloat32Array = r.activity
+	var out := PackedByteArray()
+	out.resize(nx * ny * 4)
+	var inv := 1.0 / dmax
+	for c in nx * ny:
+		var o := c * 4
+		out[o] = int(round(clampf(cover[c], 0.0, 1.0) * 255.0))
+		out[o + 1] = int(round(clampf(depth[c] * inv, 0.0, 1.0) * 255.0))
+		out[o + 2] = int(round(clampf((stage[c] + 1.0) * 0.5, 0.0, 1.0) * 255.0))
+		out[o + 3] = int(round(clampf(act[c], 0.0, 1.0) * 255.0))
+	return Image.create_from_data(nx, ny, false, Image.FORMAT_RGBA8, out)
+
+
+func _upload_field(r: Dictionary, t: float) -> void:
+	var fc: Dictionary = acfg.get("cloud_field", {})
 	_cf_step = maxf(float(fc.get("step_s", 20.0)), 0.1)
-	var img := f.to_image()
+	var nx := int(r.nx)
+	var ny := int(r.ny)
+	var dx := float(r.dx)
+	var base_msl := float(r.base_msl)
+	var bg_c: PackedFloat32Array = r.bg_cover
+	var bg_d: PackedFloat32Array = r.bg_depth
+	var bg_cover := bg_c[0] if not bg_c.is_empty() else 0.0
+	var bg_depth := bg_d[0] if not bg_d.is_empty() else 0.0
+	var dmax := maxf(float(fc.get("depth_max_m", 2500.0)), 1.0)
+	var img := _raster_image(r, dmax)
 	var same_grid := field_tex != null and _cf_img != null and _cf_img.get_size() == img.get_size()
 	# Переход от прошлого шага — только к соседнему шагу (скачок времени, сброс — сразу новое).
 	var dt := t - _cf_t_upd
@@ -1114,27 +1184,27 @@ func _upload_field(f: CloudField, t: float) -> void:
 	_cf_img = img
 	_cf_t_upd = t
 	field_uploads += 1
-	var dmax := maxf(float(fc.get("depth_max_m", 2500.0)), 1.0)
-	var mm := field_max_map(prev, img, f.nx, f.ny)
+	var mm := field_max_map(prev, img, nx, ny)
 	var b: int = mm.block
 	var mimg: Image = mm.image
 	if field_max_tex != null and field_max_tex.get_size() == Vector2(mimg.get_size()):
 		field_max_tex.update(mimg)
 	else:
 		field_max_tex = ImageTexture.create_from_image(mimg)
-	var top := maxf(float(mm.g_max) / 255.0 * dmax, f.bg_depth)
-	var any_cloud := int(mm.r_max) > 0 or f.bg_cover > 0.0
-	var x_min := f.x0
-	var z_min := -(f.y0 + f.ny * f.dx)
-	field_params["cf_rect"] = Vector4(x_min, z_min, 1.0 / (f.nx * f.dx), 1.0 / (f.ny * f.dx))
-	field_params["cf_base"] = Vector4(f.base_msl, dmax, f.bg_cover, f.bg_depth)
+	var top := maxf(float(mm.g_max) / 255.0 * dmax, bg_depth)
+	var any_cloud := int(mm.r_max) > 0 or bg_cover > 0.0
+	# Растр W6: x0, z0 — центр ячейки (0, 0), строка растёт к +Z; рамка — от края ячейки.
+	var x_min := float(r.x0) - 0.5 * dx
+	var z_min := float(r.z0) - 0.5 * dx
+	field_params["cf_rect"] = Vector4(x_min, z_min, 1.0 / (nx * dx), 1.0 / (ny * dx))
+	field_params["cf_base"] = Vector4(base_msl, dmax, bg_cover, bg_depth)
 	field_params["cf_edge"] = float(fc.get("edge_fade_m", 2000.0))
 	field_params["cf_shell_w"] = float(cfg.get("field_shell_width_m", 40.0))
 	field_params["cf_shell_dens"] = float(cfg.get("field_shell_density", 0.25))
 	field_params["cf_shell_h"] = float(cfg.get("field_shell_out_m", 25.0))
 	field_params["cf_base_soft"] = float(cfg.get("field_base_soft_m", 60.0))
 	field_params["cf_mrect"] = Vector4(
-		x_min, z_min, 1.0 / (mimg.get_width() * b * f.dx), 1.0 / (mimg.get_height() * b * f.dx)
+		x_min, z_min, 1.0 / (mimg.get_width() * b * dx), 1.0 / (mimg.get_height() * b * dx)
 	)
 	# Верх слоя: купол не выше мощности поля, оболочка — с запасом (cf_envelope: ×1,2 + 40 м).
 	field_params["cf_misc"] = Vector4(
@@ -1148,7 +1218,8 @@ func _upload_field(f: CloudField, t: float) -> void:
 
 ## Грубая карта поля: блок B × B клеток (B — делитель nx и ny из 4, 3, 2, 1), в блоке — наибольшие
 ## покрытие (R) и мощность (G) по клеткам блока и соседним (билинейная выборка заходит на соседа)
-## у прошлого и нового шага. {image: RG8 nbx × nby (строки — как у текстуры К2), block, r_max, g_max}.
+## у прошлого и нового шага. {image: RG8 nbx × nby (строки — как у текстуры К2), block, r_max,
+## g_max}.
 static func field_max_map(prev: Image, cur: Image, nx: int, ny: int) -> Dictionary:
 	var b := 1
 	for c in [4, 3, 2]:
@@ -1204,7 +1275,8 @@ static func field_max_map(prev: Image, cur: Image, nx: int, ny: int) -> Dictiona
 	return {"image": img, "block": b, "r_max": r_max, "g_max": g_max}
 
 
-## Квантили маски на долях 0, 1/15 … 1 (сумма двух выборок канала G текстуры шума): порог покрытия c —
+## Квантили маски на долях 0, 1/15 … 1 (сумма двух выборок канала G текстуры шума): порог
+## покрытия c —
 ## квантиль 1 − c, над ним ровно доля c объёма маски (площадь под облаком = покрытие поля).
 func _cf_quantiles() -> PackedFloat32Array:
 	if _cf_quant.size() == 16:
@@ -1219,7 +1291,8 @@ func _cf_quantiles() -> PackedFloat32Array:
 
 ## Последний квантиль — не предел носителя (2·max G — нигде не достижим), а 1 − MASK_TOP_TAIL.
 ## 16 квантилей суммы двух независимых выборок канала G 3D-текстуры (cloud_shape.png, RGB; cf_mask в
-## cloud_common.gdshaderinc берёт две выборки в разных точках): гистограмма G (каждый 4-й срез, каждый 7-й
+## cloud_common.gdshaderinc берёт две выборки в разных точках): гистограмма G (каждый 4-й срез,
+## каждый 7-й
 ## тексель) сворачивается сама с собой. Значения — в долях 1 (сумма 0…2).
 static func noise_quantiles(tex: Texture3D) -> PackedFloat32Array:
 	return slice_quantiles(tex.get_data())
