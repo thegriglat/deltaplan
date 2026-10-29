@@ -1,0 +1,41 @@
+{
+  "status": "done",
+  "summary": "tools/dp_air_purity.sh: 5 категорий (godot, paths, cfgnames, game, compat), печатает 'нарушений: 458' (код 132, комментарии 332; строка может быть в двух категориях). Документ rw16-purity.md: предложения и влияние на W3/W4/W5, все строки файл:строка.",
+  "commits": [
+    "ee4a70f65 RW-16a: аудит чистоты dp-air"
+  ],
+  "checks": [
+    {
+      "name": "purity_runs",
+      "value": "нарушений: 458",
+      "pass": true
+    },
+    {
+      "name": "report_doc",
+      "value": "exit=0",
+      "pass": true
+    },
+    {
+      "name": "docs_check",
+      "value": "ошибок 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "tests/ и benches/ dp-air вне границ скрипта"
+  ],
+  "questions": [
+    "Расхождение: контракт говорит 'baked удалены' (RP11), а add_baked_field и Source::Baked ещё в трейте W4 и dp-gd"
+  ],
+  "how_to_check": ".dpcli/dpcli accept RW-16a",
+  "uncertain": [
+    {
+      "where": "tools/dp_air_purity.sh:CATS",
+      "why": "регэкспы грубые: возможны пропуски слов вне списка и ложные срабатывания (pilot как позиция)",
+      "checked": "ложные bot/gd/Variant убраны вручную; код-строки просмотрены целиком"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-30T01:27:31",
+  "by": "executor"
+}
