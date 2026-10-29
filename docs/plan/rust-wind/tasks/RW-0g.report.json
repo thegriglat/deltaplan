@@ -1,0 +1,54 @@
+{
+  "status": "done",
+  "summary": "Два тайминговых теста runtime.rs (ongudai_size_cancel_in_every_stage_returns_within_a_second, picard_cancel_during_the_setup_returns_within_the_limit) помечены #[ignore = \"тайминг: итоговый прогон\"]; тело не менялось. load() в terms_thermal_field.rs использует уникальный каталог на вызов (static AtomicUsize). Dry-acceptance 5/5 PASS.",
+  "commits": [
+    "1d120a2ea RW-0g: тайминговые тесты runtime.rs под #[ignore], load() в terms_thermal_field.rs — уникальный каталог на вызов"
+  ],
+  "checks": [
+    {
+      "name": "ignored_timing",
+      "value": "2",
+      "pass": true
+    },
+    {
+      "name": "thermal_field_x3",
+      "value": "exit 0 (3 прогона, 15 с)",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "exit 0 (259 с)",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "2 файла в границах",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-0g --dry",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/tests/terms_thermal_field.rs:66",
+      "why": "Каталог tmp остаётся после прогона (как и раньше, с pid); на каждый вызов load() создаётся новый каталог, очистки нет.",
+      "checked": "cargo_test и 3 прогона terms_thermal_field проходят; очистка не была в карточке и не добавлялась"
+    }
+  ],
+  "dp_feedback": "task show RW-0g без --full обрезает строку «Дополнения» (текст после «terms_th…» виден только в --full); стоит показывать полный текст дополнений. accept --dry занимает ~5 мин и в foreground упирается в лимит 120 с — нужен явный job/фон в подсказке.",
+  "extra": {},
+  "t": "2026-10-29T14:54:13",
+  "by": "main"
+}
