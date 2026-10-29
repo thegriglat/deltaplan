@@ -1,0 +1,41 @@
+{
+  "id": "RW-15c",
+  "module": "rust-wind",
+  "type": "dp-mechanic",
+  "title": "Пересъёмка эталона step_cost_same после W5 v10",
+  "goal": "Подтвердить, что step_cost_same падает из-за слияния RW-14c (климат места из Weather вместо loc.climate, W5 v10), а не из-за других слияний, и переснять эталон rust/dp-air/tests/data/RW-15/ref.json штатной командой из manifest.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "W5",
+      "version": "10",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-15c",
+  "branch": "rust-wind/RW-15c",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/tests/data/RW-15/"
+  ],
+  "dont_touch": [
+    "rust/dp-air/src/",
+    "rust/dp-air/tests/step_cost_same.rs",
+    "scripts/"
+  ],
+  "accept": [
+    {
+      "name": "step_same",
+      "cmd": "cargo test --release --manifest-path rust/Cargo.toml -p dp-air --test step_cost_same",
+      "expect": "exit=0"
+    },
+    {
+      "name": "manifest",
+      "cmd": "grep -c 'W5 v10' rust/dp-air/tests/data/RW-15/manifest.json",
+      "expect": "num:^(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-30T03:36:02"
+}

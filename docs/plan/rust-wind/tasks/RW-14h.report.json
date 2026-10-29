@@ -1,0 +1,65 @@
+{
+  "status": "partial",
+  "summary": "weather_ported.rs: 29 тестов (surface_heat 9, heating 2, шанс гроз по запасу 1, ClimateGrid HH7 12, климат со сдвигом 4, рост ветра 2 + HH 2 в тот же набор); E6 добавлен в weather_ref2; рост ветра без gain_per_km и Weather - запасной климат (weather_link.rs).",
+  "commits": [
+    "см. git log: RW-14h: порт GD-тестов погоды в cargo"
+  ],
+  "checks": [
+    {
+      "name": "ported",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "ported_count",
+      "value": "29",
+      "pass": true
+    },
+    {
+      "name": "weather_ref2",
+      "value": "exit 0 (E6: 48 строк, разность с растром GD 0,0000 м)",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "падает step_cost_same::step_result_same_as_before - то же на базе без моих правок",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "cargo_test workspace красный не по моей вине: tests/step_cost_same.rs (RW-15) падает на feature/rust-wind без моих правок (1066531293 vs 1067022696; в заголовке места ещё loc.climate/climate_lag, удалённые W5 v10). Вне скоупа - нужна пересъёмка эталона или правка fixture у владельца RW-15.",
+    "Не перенесено: test_storm_rarity test_clear_26_almost_never и test_hot_34_occasional - в GD уже пропускаются (pending), нужна статистика по сидам эталонного мира (AtmoFingerprint) и decompose по миру целиком; нужна функция уровня мира-отпечатка, в крейте нет.",
+    "Не перенесено: GD-механика: test_doc_heading, test_brotli_native, test_grid_format/upper_air/surface_t/upper_misc формат (HH-1…5 - распаковка и файлы, не ClimateGrid), загрузка файлов, set_paths; sky_heat аргумента shortwave в Rust нет (утверждение тривиально); loc.climate_lag как ключ заголовка удалён (W5 v10) - заменено проверкой climate_place на сдвинутой дате и water_temp_c = среднее по сдвинутой дате.",
+    "test_climate_grid_speed перенесён с порогом 300 мкс в release и 3000 мкс в debug."
+  ],
+  "questions": [],
+  "how_to_check": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test weather_ported; --test weather_ref2",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/src/terms/weather_link.rs:~190",
+      "why": "без места базой служит NO_PLACE (7/15, lat/lon NaN -> 52/0 в climate_place); без weather_model рост не меняется",
+      "checked": "тесты gain_without_weather_is_climate_fallback, gain_with_weather_without_place_comes_from_climate"
+    },
+    {
+      "where": "rust/dp-air/tests/weather_ported.rs: ранние return",
+      "why": "тесты altai_raw/southern/gain_* выходят молча, если сеток нет (как GD); в репозитории сетки есть, ветки не срабатывают",
+      "checked": "data/climate/*.bin присутствуют"
+    }
+  ],
+  "dp_feedback": "accept cargo_test --workspace не отличает красное от базы; удобно было бы 'accept --dry --vs-base' для падений, не связанных с задачей.",
+  "extra": {
+    "tests_total": 29
+  },
+  "t": "2026-10-30T03:35:34",
+  "by": "executor"
+}

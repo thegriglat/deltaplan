@@ -1,0 +1,79 @@
+{
+  "verdict": "rework",
+  "summary": "Удаление кода и тестов чистое, скоуп и dont_touch соблюдены, константы перенесены 1:1 (400/0.05/1.0/0.25), дешёвые проверки воспроизводятся. Но не выполнено решение координатора (1): manifest эталонов без generator_removed_at, а документ без обязательных разделов (ревизия, таблица, непокрытые проверки, изменённые manifest).",
+  "issues": [
+    {
+      "file": "rust/dp-air/tests/data/RW-10d/manifest.json",
+      "line": 4,
+      "severity": "blocker",
+      "what": "Решение (1) координатора: в manifest.json каждой папки, где удалён генератор, нужно дописать \"generator_removed_at\": <ревизия feature/rust-wind до удаления> и путь генератора. Это не сделано ни в одной папке (RW-10d, RW-10e, RW-10f, RW-11d, day_dump); у RW-11b, RW-11f и RW-12d manifest нет совсем. Отчёт заявляет done. Происхождение эталонов теперь прослеживается только раскопками git.",
+      "fix": "Дописать в эти manifest generator_removed_at=a5d9387c3 (база) и пути удалённых генераторов. Для папок без manifest записать то же самое в документ (или завести manifest, если это в скоупе)."
+    },
+    {
+      "file": "docs/research/rust-wind-stage3/rw13-cleanup.md",
+      "line": 1,
+      "severity": "major",
+      "what": "Нет разделов, которые требует карточка: ревизии до удаления; таблицы «файл — удалён/оставлен — почему (кто зовёт)» (сейчас там список без «кто зовёт»); списка удалённых тестов с проверками, которых нет в cargo; списка изменённых manifest. Ревизия GD дана ссылкой на fixtures-tolerances.md, а не числом.",
+      "fix": "Дописать ревизию a5d9387c3, таблицу по каждому файлу, построчный список непокрытых cargo проверок (минимум test_air_contracts c1–c9, test_load_order, test_air_place: домен Пикара, test_storm_rarity, test_subsidence, test_zi_terrain) и список manifest."
+    },
+    {
+      "file": "rust/dp-air/tests/data/RW-11f/run_dump.sh",
+      "line": 9,
+      "severity": "major",
+      "what": "Остались огрызки генераторов, которые ссылаются на удалённые .gd: RW-10d/run_dump.sh и dump_air_thermals.tscn, RW-10e/run_cases.sh и gen_cases_baked.tscn, RW-10f/run_cloud_cases.sh, RW-11d/run_dump.sh, RW-11f/run_dump.sh и dump_cloud_objects.tscn. Они копируют $here/*.gd, а этих файлов больше нет, так что пересъёмка ломается молча.",
+      "fix": "Удалить вместе с .gd по правилу (1) и записать в manifest путь и ревизию. Либо оставить, но в manifest указать, что .gd восстанавливается из a5d9387c3."
+    },
+    {
+      "file": "tests/contracts/test_air_contracts.gd",
+      "line": 636,
+      "severity": "major",
+      "what": "Файл удалён целиком, хотя примерно половина проверок касается живого кода: test_c3_* (WindField.from_arrays: оси, единицы, маска, sanitize), test_c4_* (AirFieldSet Vector4, turb_at, sample_dx, ключи lee/config), test_c6_field_version, test_c8_blend*, test_c1_* (формат эталона). По карточке такие проверки нужно перевести на фасад или перечислить в документе. Сделано ни то, ни другое. Покрывает ли их test_wind_field.gd или cargo, не проверено.",
+      "fix": "Тесты живых классов, которые не трогают удалённые (c3, c4 кроме turb_at при FieldTurbulence, c6, c8), вернуть в отдельный файл. Остальное перечислить в документе с пометкой, что покрывает cargo, а что нет."
+    },
+    {
+      "file": "scripts/atmosphere/air_model/air_baked_field.gd",
+      "line": 16,
+      "severity": "minor",
+      "what": "DOMAIN_DX, WIND_TOL_MS, DIR_TOL_DEG и TMAX_TOL_C теперь дублируют константы dp-air/src/field/runtime.rs. Сверку с GD из runtime.rs убрали, поэтому дубль больше ничем не охраняется. Значения сейчас совпадают.",
+      "fix": "В документе отметить, что константы продублированы без сверки (для координатора: вернуть сверку с air_baked_field.gd или брать значения из DpAir)."
+    },
+    {
+      "file": "rust/dp-air/tests/weather_day.rs",
+      "line": 2,
+      "severity": "minor",
+      "what": "weather_day.rs:2 и docs/contracts/rust-wind/fixtures-tolerances.md:25 ссылаются на удалённые tools/wind_fixtures/day_dump.sh и gen_fixtures.gd. Оба файла вне скоупа.",
+      "fix": "Записать в документ как хвост для координатора (правка контракта/крейта не в этой задаче)."
+    },
+    {
+      "file": "tools/terrain/island/air_check_run.gd",
+      "line": 83,
+      "severity": "minor",
+      "what": "Узел 'AirRuntime' формально заменён на 'AirField', но инструмент от этого не заработал (так сказано в uncertain). Это мёртвый код с видимостью починки.",
+      "fix": "Удалить air_check_run (island/volcano), если он только про старый путь, либо в документе пометить «не рабочий»."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "old_refs",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "old_files",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "report_doc",
+      "value": "exit=0",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "124 файла в границах; dont_touch не тронут",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-30T03:33:04",
+  "by": "reviewer"
+}
