@@ -66,6 +66,7 @@ generated: true
   - [docs/research/rust-wind-stage3/rw12-weather.md](research/rust-wind-stage3/rw12-weather.md) — RW-8a: разбор RW-12 (погода из прогноза, AtmoDay, коэффициенты): что есть в крейте, чего нет, климат места, эталоны.
   - [docs/research/rust-wind-stage3/rw8-rw9.md](research/rust-wind-stage3/rw8-rw9.md) — RW-8a: разбор RW-8 (болтанка поля, шум порывов) и RW-9 (аналитика, полоса края, off): входы, выходы, крейт, тесты.
   - [docs/research/rust-wind-stage3-path.md](research/rust-wind-stage3-path.md) — RW-8a: слагаемые ветра на GDScript → крейт (RW-8…12): сумма air_velocity_at, разбор задач, порядок, пробелы контракта, переход фасада.
+  - [docs/research/rust-wind-t1-audit-landing-hill.md](research/rust-wind-t1-audit-landing-hill.md) — RW-U1: расхождение landing_hill — ошибка GPU: вес F в float32 ровно 1, механические веса 0, смесь даёт u = v = 0 над сушей; Rust прав
   - [docs/research/rust-wind-t1-stability.md](research/rust-wind-t1-stability.md) — RW-6z: крейт сходится и не чувствителен к CHUNK и возмущению 1e-6 (R ≤ 2,6e-3) — расхождение T1 не от неустойчивости крейта
   - [tools/research/rust_wind/README.md](../tools/research/rust_wind/README.md) — RW-6a: расчёт размера окон 100/50 м и времени picard_rs на CPU, приложение с таблицами шагов и задач RW-6
   - [tools/research/rust_wind_t1_stability/README.md](../tools/research/rust_wind_t1_stability/README.md) — RW-6z: команды воспроизведения опыта устойчивости открытых полей T1 (варианты CHUNK и возмущения), определения R и классов клеток
