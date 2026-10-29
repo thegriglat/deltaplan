@@ -92,7 +92,7 @@ contracts: [{"id": "VI-К1", "version": 3}, {"id": "VI-К2", "version": 2}, {"id
 ## VI-К3. Запекание полей всех встроенных мест — версия 1
 
 - Владелец: VI-4. Потребители: new-release (`.claude/skills/new-release/SKILL.md`), VI-5, `docs/guide/location-data.md`.
-- `tools/terrain/bake_all.sh [--check] [--id <место>]` — для каждого места с `"bundled": true` в `configs/locations/*.json` (или одного `--id`) и каждого его
+- (УСТАРЕЛО, удалён в rust-wind RW-P10, замены нет) `tools/terrain/bake_all.sh [--check] [--id <место>]` — для каждого места с `"bundled": true` в `configs/locations/*.json` (или одного `--id`) и каждого его
   старта с `weather`: запечь (`tools/terrain/bake_air.tscn`, GPU, окно) или проверить (`--check`, без GPU). Список мест и стартов — из конфигов, не в скрипте.
   `--check`: код 0 — все поля свежие; код 1 — хоть один устарел или нет файла (строка на каждый); код 2 — ошибка запуска.
   Профиль Godot — `XDG_DATA_HOME` из окружения; после прогона `git checkout -- project.godot`.
