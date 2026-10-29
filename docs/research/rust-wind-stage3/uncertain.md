@@ -63,3 +63,6 @@ related: ["docs/research/rust-wind-stage3-path.md", "docs/plan/rust-wind.md"]
 | RW-11d | `terms/clouds` chaos_noise | бурление в облаке — нули (gust_unit ветровой рамки нет до RW-9) | после RW-9 |
 | RW-11d | `terms/mod.rs` `Terms.clouds` | слот облаков в Terms, не в Slots | RW-12z |
 | RW-11d | `tests/terms_clouds.rs:828`, `:1078` | assert «установилось» почти пуст (`|| q_full > 0.0`); слагаемое cloud против W8 — 9 ненулевых из 516 точек | RW-10f: сверка above_base шире |
+| RW-10f | `terms/thermal/mod.rs` `rebuild`, `Terms::advance` `synced_with_clouds` | порядок шага (порождение — облака до шага, подсос — после) выведен из GD refresh_now; T6 start_at ≠ прогон с 0 при облаках (и в GD) | RW-12z: W2 v4 формулировка start_at |
+| RW-10f | `terms/thermal/mod.rs` `cloud_changed` | смена только cloud_size_factor без шага поля подхватится при следующей version | итоговый прогон |
+| RW-10f | `tests/terms_thermal_cloud.rs` `AirInputs` | входы поля облаков собраны в тесте (аналог CloudFieldSources.prepare с air); в игре — RW-12z | RW-12z: подключить CloudInputs из Field+AirThermals в Terms |
