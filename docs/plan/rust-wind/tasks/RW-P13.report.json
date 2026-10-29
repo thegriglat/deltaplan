@@ -1,0 +1,59 @@
+{
+  "status": "partial",
+  "summary": "Status += run/runs (API 6): StageCounter считает входы в coarse/solve_mech/solve_heat с планом по проходам; мост run()/runs(), фасад и CalmAir отдают run/runs; экран загрузки показывает этап и отдельной строкой «Итерация: N» / «Прогон r из n · Итерация: N». Все проверки карточки зелёные, кроме scope (rust/dp-gd/tests/bridge.rs) и флака field_export по таймауту.",
+  "commits": [
+    "f3ead6405 RW-P13: экран загрузки — «Итерация: N» отдельной строкой, номер прогона"
+  ],
+  "checks": [
+    {
+      "name": "rust_wind_contracts",
+      "value": "27/27",
+      "pass": true
+    },
+    {
+      "name": "run_runs_crate",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy/fmt/api6/contracts_const/locale",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "field_export: 'no field in 120 s' под нагрузкой; отдельно проходит за 119 с",
+      "pass": false
+    },
+    {
+      "name": "scope",
+      "value": "вне scope: rust/dp-gd/tests/bridge.rs",
+      "pass": false
+    }
+  ],
+  "not_done": [],
+  "questions": [
+    "Добавить rust/dp-gd/tests/bridge.rs в scope (правка: assert WIND_API_VERSION == 6 вместо 5, без неё cargo test dp-gd падает) — нужно подтверждение координатора."
+  ],
+  "how_to_check": ".dpcli/dpcli accept RW-P13 --dry; cargo test -p dp-air --test stage_runs",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/src/field/runtime.rs (StageCounter::plan, solve_pass перед coarse)",
+      "why": "runs — оценка плана: 2 прогона на проход (+1 coarse); дополнительные проходы сверх max_passes растят runs по факту; enter(coarse) теперь только если coarse реально выполняется",
+      "checked": "stage_runs: 1<=run<=runs, run не убывает, вне решателя 0/0; итерации с нуля при входе в enter (проверка iters в тесте не делается: опрос редкий, гонка)"
+    },
+    {
+      "where": "rust/dp-air/tests/field_export.rs:103",
+      "why": "таймаут 120 с в debug близок к фактическому времени (119 с) — флак под нагрузкой, не связан с правкой",
+      "checked": "прогон отдельно проходит"
+    },
+    {
+      "where": "scripts/ui/loading_screen.gd, scripts/game/game.gd",
+      "why": "внешний вид не смотрел (по карточке проверит пользователь)",
+      "checked": "тест контрактов зелёный"
+    }
+  ],
+  "dp_feedback": "accept для Godot-тестов без .godot (нет импорта) молча висит 13+ мин; хорошо бы проверка/сообщение 'сделай --import'. Копия без addons/dp_air/bin требует ручной сборки tune.",
+  "t": "2026-10-30T02:27:39",
+  "by": "executor"
+}

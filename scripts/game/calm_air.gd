@@ -12,7 +12,7 @@ signal state_changed(state: int)
 
 # Фасад W2 (docs/contracts/rust-wind.md): те же константы, что у Atmosphere (копия — запасной
 # воздух не должен зависеть от основной атмосферы).
-const WIND_API_VERSION := 5
+const WIND_API_VERSION := 6
 const STATE_EMPTY := 0
 const STATE_LOADING := 1
 const STATE_READY := 2
@@ -159,6 +159,8 @@ func status() -> Dictionary:
 		"stage": "",
 		"field_on": false,
 		"iters": 0,
+		"run": 0,
+		"runs": 0,
 	}
 
 

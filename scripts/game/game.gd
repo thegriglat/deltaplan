@@ -502,9 +502,9 @@ func _air_field_job(progress: LoadProgress, job: Dictionary) -> void:
 					progress.note = tr("loading_objects")
 				wind_stage = true
 				wind_seen = true
-			var iters := int(st.get("iters", 0))
-			# прогресс решателя заранее не известен: рядом с этапом — число итераций
-			progress.text = label if iters <= 0 else tr("loading_wind_iters") % [label, iters]
+			progress.text = label
+			# прогресс решателя заранее не известен: отдельной строкой — итерации (и номер прогона)
+			progress.iter_line = _wind_iter_line(st)
 			progress.sub(float(st.get("progress", 0.0)), 1.0)
 		var field_done := (wind_seen and label == "") or bool(st.get("field_on", false)) or state != 1
 		if field_done and bool(job.air):
@@ -512,6 +512,7 @@ func _air_field_job(progress: LoadProgress, job: Dictionary) -> void:
 				progress.stage("objects", tr("loading_objects"))  # ветер готов, объекты ещё строятся
 				progress.note = ""
 			wind_stage = false
+			progress.iter_line = ""
 			job.air = false
 		if state != 1:  # READY (или FAILED/EMPTY — дальше без ожидания)
 			break
@@ -601,6 +602,19 @@ const AIR_FOCUS_OTHERS_MAX := 16
 ## Точки внимания воздуха (вокруг кого живут термики и облака; индекс 0 — игрок): игрок — крыло
 ## (камера в режиме осмотра); на загрузке — старт; в полёте — ещё боты в воздухе и пилоты сети.
 ## Зовём, когда любая точка сдвинулась не меньше чем на метр или их число изменилось.
+## Строка итераций экрана загрузки по status() воздуха ("" — итераций нет): «Итерация: N», при
+## нескольких прогонах решателя — «Прогон r из n · Итерация: N».
+static func _wind_iter_line(st: Dictionary) -> String:
+	var iters := int(st.get("iters", 0))
+	if iters <= 0:
+		return ""
+	var run := int(st.get("run", 0))
+	var runs := int(st.get("runs", 0))
+	if runs > 1 and run >= 1:
+		return tr("loading_wind_run_iter") % [run, runs, iters]
+	return tr("loading_wind_iter") % iters
+
+
 func _air_set_focus(force := false) -> void:
 	var p := _start_pos
 	if flying_enabled or not force:

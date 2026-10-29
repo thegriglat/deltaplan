@@ -66,7 +66,7 @@ pub struct DpAir {
 #[godot_api]
 impl DpAir {
     #[constant]
-    pub const WIND_API_VERSION: i64 = 5;
+    pub const WIND_API_VERSION: i64 = 6;
     #[constant]
     pub const STATE_EMPTY: i64 = 0;
     #[constant]
@@ -127,6 +127,16 @@ impl DpAir {
     #[func]
     fn iters(&self) -> i64 {
         self.bridge.iters()
+    }
+    /// Номер прогона решателя в задаче поля, с 1 (W3 v8; 0 — нет этапа с итерациями).
+    #[func]
+    fn run(&self) -> i64 {
+        self.bridge.run()
+    }
+    /// Прогонов по текущему плану (W3 v8; `>= run`).
+    #[func]
+    fn runs(&self) -> i64 {
+        self.bridge.runs()
     }
     /// Причина состояния FAILED (или пусто).
     #[func]

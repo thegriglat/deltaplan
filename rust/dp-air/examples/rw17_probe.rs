@@ -56,14 +56,20 @@ fn main() {
         a ^= g.randi();
     }
     black_box(a);
-    println!("Pcg32::randi: {:.2} ns", t.elapsed().as_nanos() as f64 / f64::from(n));
+    println!(
+        "Pcg32::randi: {:.2} ns",
+        t.elapsed().as_nanos() as f64 / f64::from(n)
+    );
     let t = Instant::now();
     let mut a = 0u64;
     for i in 0..1_000_000u64 {
         a += u64::from(Pcg32::from_seed(i).randi());
     }
     black_box(a);
-    println!("Pcg32::from_seed+randi: {:.1} ns", t.elapsed().as_nanos() as f64 / 1e6);
+    println!(
+        "Pcg32::from_seed+randi: {:.1} ns",
+        t.elapsed().as_nanos() as f64 / 1e6
+    );
     let d: [i64; 12] = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
     let t = Instant::now();
     let mut a = 0i64;

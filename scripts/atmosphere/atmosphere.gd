@@ -24,7 +24,7 @@ signal weather_updated
 signal state_changed(state: int)
 
 # ---- Фасад W2 (docs/contracts/rust-wind/facade.md): константы ----
-const WIND_API_VERSION := 5
+const WIND_API_VERSION := 6
 const STATE_EMPTY := 0
 const STATE_LOADING := 1
 const STATE_READY := 2
@@ -411,7 +411,8 @@ func pump(_budget_us: int) -> void:
 	_dp_poll()
 
 
-## {state, progress 0..1, time_s, reason, stage, field_on, iters} (W2 v3).
+## {state, progress 0..1, time_s, reason, stage, field_on, iters, run, runs} (W2 v6).
+## run/runs — номер прогона решателя и их число по плану (0, 0 — этап без итераций).
 ## stage — подпись этапа для экрана загрузки («» — этапа нет); iters — итерации решателя в этапе.
 func status() -> Dictionary:
 	_dp_poll()
@@ -426,6 +427,8 @@ func status() -> Dictionary:
 		"stage": label,
 		"field_on": is_air_field_on(),
 		"iters": int(_dp.iters()) if label != "" else 0,
+		"run": int(_dp.run()) if label != "" else 0,
+		"runs": int(_dp.runs()) if label != "" else 0,
 	}
 
 
