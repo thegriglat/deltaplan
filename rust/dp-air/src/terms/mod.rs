@@ -125,7 +125,7 @@ impl Slots {
             extra: Arc::new(ExtraSet::new(vec![
                 Arc::new(storm::StormExtra::new()), // RW-11c
             ])), // RW-11: гроза, волна (RW-11b), облако (RW-11d)
-            turb: Arc::new(NoTurb), // RW-8
+            turb: Arc::new(NoTurb),                                     // RW-8
         }
     }
 }
