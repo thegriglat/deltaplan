@@ -118,6 +118,7 @@ fn load(name: &str) -> Loaded {
 fn terms_for(case: &Case, ground: Arc<dyn GroundSource>) -> Terms {
     let mut t = Terms::default();
     t.configure(&configs(), case.seed);
+    t.thermal_async = false;
     t.set_conditions(&case.conditions);
     // синтетика идёт с `air_model.enabled = off`: упрощённый профиль 0.8.0 (README фикстур)
     t.wind.set_simple_profile(true, None);

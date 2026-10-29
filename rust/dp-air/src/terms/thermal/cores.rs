@@ -6,8 +6,16 @@ use super::sample::State;
 use crate::Core;
 use std::sync::Arc;
 
+/// Интенсивность грозы ядра 0..1 на момент `t` (`StormField.intensity` для Cb, иначе 0).
+pub type StormFn<'a> = &'a dyn Fn(&AtmoThermal, f64) -> f64;
+
+/// Грозы нет: поле `storm` ядра 0.
+fn no_storm(_: &AtmoThermal, _: f64) -> f64 {
+    0.0
+}
+
 /// Запись ядра термика `th` на момент `t`.
-fn core_of(th: &AtmoThermal, t: f64) -> (Core, f64) {
+fn core_of(th: &AtmoThermal, t: f64, storm: StormFn) -> (Core, f64) {
     let ph = th.phase(t);
     let ax = th.axis_at(f64::from(th.src[1]), ph.drift);
     let flags = u8::from(th.is_static) | (u8::from(th.has_cloud) << 1) | (u8::from(th.is_cb) << 2);
@@ -31,8 +39,8 @@ fn core_of(th: &AtmoThermal, t: f64) -> (Core, f64) {
         },
         stage: th.stage(t) as f32,
         vis_seed: th.noise_seed as f32,
-        // интенсивность грозы у Cb — RW-11
-        storm: 0.0,
+        // интенсивность грозы у Cb (RW-11f): `storm::core_intensity`
+        storm: if th.is_cb { storm(th, t) as f32 } else { 0.0 },
     };
     (c, w)
 }
@@ -50,9 +58,21 @@ fn sorted(list: &[Arc<AtmoThermal>]) -> Vec<&Arc<AtmoThermal>> {
 /// Ядра W6 на момент `t`; `out` очищается. Только активные (радиус физики вокруг фокуса) и
 /// живые (`w > 0`).
 pub fn cores(state: &State, center: [f32; 3], radius: f32, t: f64, out: &mut Vec<Core>) {
+    cores_with(state, center, radius, t, out, &no_storm);
+}
+
+/// [`cores`] с интенсивностью грозы Cb из `storm` (поле `storm` ядра).
+pub fn cores_with(
+    state: &State,
+    center: [f32; 3],
+    radius: f32,
+    t: f64,
+    out: &mut Vec<Core>,
+    storm: StormFn,
+) {
     out.clear();
     for th in sorted(&state.active) {
-        let (c, w) = core_of(th, t);
+        let (c, w) = core_of(th, t, storm);
         if w > 0.0 && within(&c, center, radius) {
             out.push(c);
         }
@@ -63,9 +83,21 @@ pub fn cores(state: &State, center: [f32; 3], radius: f32, t: f64, out: &mut Vec
 /// без фильтра активности и силы: то, что держит `ThermalField.thermals`. Сверка с дампом W8,
 /// RW-11 (облака над доживающими).
 pub fn all_cores(state: &State, center: [f32; 3], radius: f32, t: f64, out: &mut Vec<Core>) {
+    all_cores_with(state, center, radius, t, out, &no_storm);
+}
+
+/// [`all_cores`] с интенсивностью грозы Cb из `storm`.
+pub fn all_cores_with(
+    state: &State,
+    center: [f32; 3],
+    radius: f32,
+    t: f64,
+    out: &mut Vec<Core>,
+    storm: StormFn,
+) {
     out.clear();
     for th in sorted(&state.all) {
-        let (c, _) = core_of(th, t);
+        let (c, _) = core_of(th, t, storm);
         if within(&c, center, radius) {
             out.push(c);
         }

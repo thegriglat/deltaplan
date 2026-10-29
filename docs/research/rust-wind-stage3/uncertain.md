@@ -54,3 +54,6 @@ related: ["docs/research/rust-wind-stage3-path.md", "docs/plan/rust-wind.md"]
 | RW-12d | `terms/weather_link.rs` `PlaceLink::of`, `ref_msl` | start_msl_m и ref_msl = NaN (GD ставит h_msl старта для ref_msl); t0 хода дня = 0 как в GD `_f_build` | RW-12z: сверка фасада с Godot в итоговом прогоне |
 | RW-12d | `weather_link.rs` `advance_weather` | true на каждом слоте 0,1 с хода дня — фасад будет пересобирать часто | RW-12z: порог изменения |
 | RW-9 | `tests/terms_analytic.rs:248` после слияния с RW-11b | synth_wave: σ аналитики больше эталона на 0,079 (90/93) — волна попадает в σ аналитики? | RW-9 доработка (note) |
+| RW-10e | `terms/thermal/air.rs` `PickAdapter` / растр места W5 | на растровой силе 4,8 % ядер (81/1692) с другим местом: класс узла 25 м против маски 10 м у границ классов; на силе из журнала GD — в допуске W8 | итоговая проверка: маска 10 м в растре места (W5) или принять |
+| RW-10e | `tests/data/RW-10e` | 4,96 МиБ — у края бюджета 5 МБ; журнал силы strong/wave в f32 (GD — f64) | RW-12z/итог: не расти |
+| RW-10e | `terms/thermal/mod.rs` `advance_bg` | фоновая пересборка под нагрузкой не проверялась | итоговый прогон T1 |

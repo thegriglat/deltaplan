@@ -13,7 +13,8 @@ pub struct State {
     pub t: f64,
     /// Запас на снос между обновлениями, с.
     pub margin: f64,
-    pub focus: [f64; 2],
+    /// Фокусы: действует на воздух и отдаётся в `cores` то, что ближе радиуса физики к любому.
+    pub focuses: Vec<[f64; 2]>,
     /// Номер ячейки обновления: `floor(t / dt)`.
     pub slot: i64,
     /// Все живые на `t` (динамические и статичные).
@@ -25,12 +26,26 @@ pub struct State {
 }
 
 impl State {
+    /// Пустой снимок с номером ячейки обновления (для фоновой задачи: нужен только `slot`).
+    pub fn stub(slot: i64) -> State {
+        State {
+            t: 0.0,
+            margin: 0.0,
+            focuses: Vec::new(),
+            slot,
+            all: Vec::new(),
+            active: Vec::new(),
+            buckets: HashMap::new(),
+            inv_bucket: 1.0,
+        }
+    }
+
     /// `begin_refresh` + `step_refresh`: сетка поиска по живым `all` на момент `t`.
     pub fn build(
         setup: &Setup,
         all: Vec<Arc<AtmoThermal>>,
         t: f64,
-        focus: [f64; 2],
+        focuses: &[[f64; 2]],
         margin: f64,
         slot: i64,
     ) -> State {
@@ -39,7 +54,7 @@ impl State {
         let mut st = State {
             t,
             margin,
-            focus,
+            focuses: focuses.to_vec(),
             slot,
             all,
             active: Vec::new(),
@@ -62,10 +77,11 @@ impl State {
                 p1[1] += dv[1] * margin;
             }
             let mid = [(p0[0] + p1[0]) * 0.5, (p0[1] + p1[1]) * 0.5];
-            let near_d = (focus[0] - mid[0]).hypot(focus[1] - mid[1])
-                - (p0[0] - p1[0]).hypot(p0[1] - p1[1]) * 0.5
-                - pad;
-            if near_d <= cfg.physics_radius_m {
+            let half = (p0[0] - p1[0]).hypot(p0[1] - p1[1]) * 0.5;
+            let near = focuses
+                .iter()
+                .any(|f| (f[0] - mid[0]).hypot(f[1] - mid[1]) - half - pad <= cfg.physics_radius_m);
+            if near {
                 let off = st.active.len() as u32;
                 st.active.push(th.clone());
                 st.insert_capsule(p0, p1, pad, off, bucket);
