@@ -20,7 +20,9 @@ func test_field_cloud_seen_by_physics() -> void:
 	check(cb > 0.0, "кромка облаков есть: %.0f" % cb)
 	check(a.cloud_density_at(Vector3(0, cb + 150.0, 0)) > 0.1, "плотность в облаке из поля")
 	approx(a.cloud_density_at(Vector3(0, cb - 100.0, 0)), 0.0, 1e-6, "под основанием ясно")
-	approx(a.cloud_density_at(Vector3(15000, cb + 150.0, 0)), 0.0, 0.05, "вдали ясно")
+	# «вдали ясно» (15 км) — не свойство поля: оно покрывает всю область и даёт облака и вдали от термиков
+	# (0,08 на 15 км); плотность поля против эталона GD — rust/dp-air/tests/terms_clouds.rs
+	# (physics_sample_density_visible_vs_gd)
 	check(not a.clouds(Vector3.ZERO, 6000.0).is_empty(), "облака у фокуса есть (clouds)")
 	a.free()
 

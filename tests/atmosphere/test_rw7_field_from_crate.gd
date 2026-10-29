@@ -216,6 +216,12 @@ func test_background_feed_gives_the_same_field() -> void:
 	var h := _baked_header()
 	var a := _facade(h, false)
 	check(a.is_ready(), "READY")
+	# уровни снимка собираются в фоне: до 3 с на подачу после READY (RW-P7: пробой — без неё 0 уровней)
+	for i in 1500:
+		if a.air_field.levels.size() == 3:
+			break
+		a.pump(4000)
+		OS.delay_msec(2)
 	check(bool(a.status().field_on), "field_on после READY (подача в фоне закончена)")
 	check(a.air_field.levels.size() == 3, "уровней 3, есть %d" % a.air_field.levels.size())
 	var worst := _max_diff(a, _points(a, 30))

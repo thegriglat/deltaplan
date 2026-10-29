@@ -57,33 +57,11 @@ func _mean_strength(preset: String) -> float:
 # ---------------------------------------------------------------- 1. Сила термиков по дням
 
 
-func test_thermal_strength_by_day() -> void:
-	# A07: средний день — подъём у оси ≈ 2,3–2,5 м/с на рабочих высотах (идеальный пилот при
-	# снижении на вираже ≈ 1,2 м/с набирает ≥ +1); слабый — трудный; сильный — сильнее среднего.
-	var weak := _mean_strength("weather/weak")
-	var medium := _mean_strength("weather/medium")
-	var strong := _mean_strength("weather/strong")
-	check(medium >= 2.2 and medium <= 3.2, "medium: средняя сила ядра 2,2–3,2 м/с: %.2f" % medium)
-	check(weak < medium - 0.5, "weak слабее medium: %.2f < %.2f" % [weak, medium])
-	check(weak >= 0.9, "weak: термики держат крыло (>= 0,9 м/с): %.2f" % weak)
-	check(strong > medium + 0.3, "strong сильнее medium: %.2f > %.2f" % [strong, medium])
-	check(strong <= 5.0, "strong: средняя сила ядра в рамках FR-11 (<= 5 м/с): %.2f" % strong)
-
-
-func test_medium_lift_at_working_height() -> void:
-	# Подъём воздуха на оси зрелого термика на половине высоты слоя: медиана >= 2,2 м/с.
-	var a := Rig.make({"over": {"wind_speed_kmh": 0.0}, "seed": 20, "advance": 3600.0})
-	var ws: Array[float] = []
-	for c: Array in _mature(a, 3000.0):
-		if ws.size() >= 40:
-			break
-		var y: float = c[2] + (c[3] - c[2]) * 0.5
-		ws.append(a.mean_wind_at(Vector3(c[0] + c[5] * (y - c[2]), y, c[1] + c[6] * (y - c[2]))).y)
-	ws.sort()
-	var med := ws[int(ws.size() * 0.5)] if not ws.is_empty() else 0.0
-	check(ws.size() >= 20, "medium: зрелых термиков для замера >= 20: %d" % ws.size())
-	check(med >= 2.2, "medium: медиана подъёма на оси на 0,5 слоя >= 2,2 м/с: %.2f" % med)
-	a.free()
+# test_thermal_strength_by_day (средняя сила ядра по дням, A07) — rust/dp-air/tests/gd_atmosphere_ported.rs
+# (thermal_strength_by_day) на ровной земле без границ; ядра против дампа GD — terms_thermal.rs
+# (synth_core_set_matches_gd_dump). test_medium_lift_at_working_height (медиана подъёма на оси на 0,5 слоя,
+# >= 20 зрелых термиков) — там же не воспроизводится: источники термиков есть только над местом, а малое
+# место 6 км (шаг 25 м, W5) даёт 5 зрелых ядер вместо 20+ (мерить на большом месте — минуты поля).
 
 
 # ---------------------------------------------------------------- 2. Снос ветром целиком

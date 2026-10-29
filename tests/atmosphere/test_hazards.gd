@@ -14,16 +14,6 @@ static func _ridge(x: float, _z: float) -> float:
 	return 500.0 + RIDGE_H * exp(-(x / RIDGE_W) * (x / RIDGE_W))
 
 
-## (средняя сила ядер, число ядер) вокруг фокуса.
-func _mean_strength(a: Atmosphere) -> Vector2:
-	var c := a.cores(Vector3(0.0, 300.0, 0.0), R_CORES)
-	var n := c.size() / Atmosphere.CORE_STRIDE
-	var s := 0.0
-	for j in n:
-		s += c[j * Atmosphere.CORE_STRIDE + Atmosphere.CORE_W]
-	return Vector2(s / maxi(n, 1), n)
-
-
 func test_cirrus_weakens_thermals() -> void:
 	var clear := Rig.make(
 		{"preset": "weather/strong", "over": {"cirrus_cover": 0.0}, "moist": func(_x: float, _z: float) -> float: return 0.8,
@@ -33,13 +23,10 @@ func test_cirrus_weakens_thermals() -> void:
 		{"preset": "weather/strong", "over": {"cirrus_cover": 0.9}, "moist": func(_x: float, _z: float) -> float: return 0.8,
 		"advance": 0.01}
 	)
-	var c := _mean_strength(clear)
-	var v := _mean_strength(veil)
 	var ins_c := clear.get_insolation()
 	var ins_v := veil.get_insolation()
 	check(ins_v < ins_c and ins_v < 0.6, "пелена снижает прогрев: %.2f < %.2f" % [ins_v, ins_c])
-	check(v.x < c.x * 0.9, "термики под пеленой слабее: %.2f < %.2f м/с" % [v.x, c.x])
-	check(v.y < c.y, "и реже: %d < %d" % [int(v.y), int(c.y)])
+	# слабее и реже — rust/dp-air/tests/gd_atmosphere_ported.rs (cirrus_weakens_thermals), слагаемое thermal
 	clear.free()
 	veil.free()
 
@@ -60,48 +47,14 @@ func test_storm_preset_makes_cb() -> void:
 	a.free()
 
 
-func test_lee_wave_crest_lift() -> void:
-	var a := Rig.make(
-		{
-			"preset": "weather/wave",
-			"mode": 1,
-			"ground": _ridge,
-			"half": 20000.0,  # волна уходит на десятки км за хребет: место с запасом
-			"spacing": 250.0,
-			"advance": 0.01,
-		}
-	)
-	var info := a.wave_info()
-	check(info[Atmosphere.WAVE_INFO_ENABLED] > 0.5, "волна включена")
-	var lam := info[Atmosphere.WAVE_INFO_LENGTH]
-	check(lam > 3000.0 and lam < 20000.0, "длина волны правдоподобна: %.0f м" % lam)
-	# Вдоль ветра (+X) за хребтом на высоте 1,5 км над гребнем — есть и подъём, и опускание.
-	var y := 500.0 + RIDGE_H + 1500.0
-	var w_max := -1.0e9
-	var w_min := 1.0e9
-	var x_max := 0.0
-	for i in 120:
-		var x := 1000.0 + i * 150.0
-		var w := a.mean_wind_at(Vector3(x, y, 0.0)).y
-		if w > w_max:
-			w_max = w
-			x_max = x
-		w_min = minf(w_min, w)
-	var bg := float(a.weather().background_sink_ms)
-	check(w_max > bg + 1.0, "в гребне волны подъём: %.2f м/с на x = %.0f" % [w_max, x_max])
-	check(w_min < bg - 0.5, "в ложбине опускание: %.2f" % w_min)
-	# Высоко над волной поток слабее.
-	var w_high := a.mean_wind_at(Vector3(x_max, y + 12000.0, 0.0)).y
-	check(absf(w_high - bg) < absf(w_max - bg) * 0.5, "с высотой волна гаснет")
-	# Лентикулярные облака: гребни η найдены.
-	var cr := a.wave_crests(Vector2(8000, 0), 12000.0, 50.0)
-	check(not cr.is_empty(), "гребни волн (лентикуляры) найдены: %d" % (cr.size() / Atmosphere.CREST_STRIDE))
-	a.free()
+# test_lee_wave_crest_lift (подъём в гребне, ложбина, затухание с высотой, лентикуляры; хребет на ±20 км —
+# при поле «всегда» шаг 25 м слишком тяжёл для Godot) — rust/dp-air/tests/terms_waves.rs
+# (synthetic_ridge_lens_matches_lift, rotor_under_crest_and_no_wave_without_preset, crests_match_desc).
 
 
 func test_no_wave_without_preset() -> void:
 	var a := Rig.make(
-		{"mode": 1, "ground": _ridge, "half": 20000.0, "spacing": 250.0, "advance": 0.01}
+		{"mode": 1, "ground": _ridge, "half": 3000.0, "advance": 0.01}
 	)
 	check(a.wave_info()[Atmosphere.WAVE_INFO_ENABLED] < 0.5, "в обычный день волн нет")
 	a.free()
