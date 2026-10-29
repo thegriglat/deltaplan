@@ -40,6 +40,7 @@ mod decompose;
 mod frame;
 mod slots;
 mod sum;
+pub mod thermal_air;
 
 use crate::field::field_set::FieldSet;
 use crate::place::Place;
