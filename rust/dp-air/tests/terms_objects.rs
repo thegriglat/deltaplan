@@ -86,7 +86,7 @@ fn terms_for(case: &Case) -> Terms {
     let mut t = Terms::default();
     t.configure(&configs(), case.seed);
     t.set_conditions(&case.conditions);
-    // синтетика идёт с `air_model.enabled = off`: упрощённый профиль (README фикстур)
+    // эталоны synth_* сняты с упрощённым профилем 0.8.0 (README фикстур)
     t.wind.set_simple_profile(true, None);
     t.statics = case.static_thermals.clone();
     t.statics_mode = case.static_mode;

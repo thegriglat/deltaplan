@@ -1,6 +1,6 @@
 //! RW-12v: `Formula` отдаёт опросы W4 v6 из `Terms` (место, поле, облака, слоты, ключ места, фон)
 //! вместо заглушек. Синтетика (`tests/fixtures/wind/places/synthetic`) с малой областью поля в
-//! детерминированном режиме и Онгудай без поля (`set_field_enabled(false)`) с прогнозом случая
+//! детерминированном режиме и Онгудай с прогнозом случая
 //! `ongudai_day_1`.
 #![allow(clippy::needless_range_loop)]
 use dp_air::field::runtime::ground_height;
@@ -104,12 +104,11 @@ fn synth_with_field(name: &str, t: f64) -> Formula {
     m
 }
 
-/// Онгудай без поля: прогноз `ongudai_day_1`, термики по клеткам, погода по часу.
-fn ongudai_no_field(t: f64) -> Formula {
+/// Онгудай: прогноз `ongudai_day_1`, термики по клеткам, погода по часу.
+fn ongudai_ready(t: f64) -> Formula {
     let (c, f) = ongudai_day();
     let mut m = Formula::new();
     m.configure(&configs(true), 7).unwrap();
-    m.set_field_enabled(false).unwrap();
     m.set_conditions(&c).unwrap();
     m.set_focuses(&f).unwrap();
     m.load_place(read_place(&repo().join("tests/fixtures/wind/places/ongudai.json")).unwrap())
@@ -294,7 +293,7 @@ fn cloud_objects_time_is_clamped_to_history_window() {
 
 #[test]
 fn weather_sun_and_version_follow_the_day() {
-    let mut m = ongudai_no_field(30.0);
+    let mut m = ongudai_ready(30.0);
     let w: Value = serde_json::from_str(&m.weather_json()).unwrap();
     assert!(
         w.get("wind_speed_kmh").is_some() && w.get("_derived").is_some(),
@@ -327,7 +326,7 @@ fn weather_sun_and_version_follow_the_day() {
 
 #[test]
 fn background_wind_follows_profile_and_direction() {
-    let m = ongudai_no_field(60.0);
+    let m = ongudai_ready(60.0);
     let t = terms_of(&m);
     let pl = read_place(&repo().join("tests/fixtures/wind/places/ongudai.json")).unwrap();
     let cb = f64::from(m.cloudbase_msl());
@@ -368,7 +367,6 @@ fn reload_other_place_does_not_reuse_wave_cache() {
     let run = |names: &[&str]| {
         let mut m = Formula::new();
         m.configure(&configs(true), 3).unwrap();
-        m.set_field_enabled(false).unwrap();
         m.set_conditions(&c).unwrap();
         m.set_focuses(&f).unwrap();
         let mut last = Vec::new();
@@ -384,27 +382,6 @@ fn reload_other_place_does_not_reuse_wave_cache() {
     let after = run(&["synthetic", "training_island"]);
     assert_eq!(direct, after);
     assert!(direct.1[0] == 1.0 && direct.1[1] > 100.0, "{:?}", direct.1);
-}
-
-#[test]
-fn field_off_drops_air_sources_and_back() {
-    let mut m = synth_with_field("strong", 600.0);
-    let t = terms_of(&m);
-    assert!(t.air.is_some(), "the field is not wired into terms");
-    assert!(
-        t.slots.thermal.as_slot().unwrap().air().is_some(),
-        "thermal sources are not from the field"
-    );
-    m.set_field_enabled(false).unwrap();
-    m.advance_to(660.0).unwrap();
-    let t = terms_of(&m);
-    assert!(t.air.is_none());
-    assert!(t.slots.thermal.as_slot().unwrap().air().is_none());
-    m.set_field_enabled(true).unwrap();
-    wait_ready(&m);
-    m.advance_to(720.0).unwrap();
-    m.advance_to(780.0).unwrap();
-    assert!(terms_of(&m).air.is_some());
 }
 
 #[test]
@@ -445,7 +422,6 @@ fn background_cloud_step_does_not_block_advance() {
     let pl = place("synthetic");
     let mut m = Formula::new();
     m.configure(&configs(false), 1).unwrap();
-    m.set_field_enabled(false).unwrap();
     m.set_conditions(&preset("strong")).unwrap();
     m.set_focuses(&[Focus {
         pos: [1000.0, ground_height(&pl, 1000.0, 1000.0) + 10.0, 1000.0],

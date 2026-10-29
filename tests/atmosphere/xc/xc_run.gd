@@ -130,7 +130,7 @@ func simulate(opts: Dictionary) -> Dictionary:
 	atmo.cfg_override = atmo_cfg  # сид, радиусы генерации и физики — крейту текстом вместо файла
 	atmo.configure(atmo_cfg)  # конфиг визуальных слоёв
 	atmo.configure(int(atmo_cfg.seed))
-	atmo.set_conditions({"preset": weather})
+	atmo.set_conditions({"preset": weather, "start_hour": 12.0, "speed": 1.0})
 	# Синтетика — идеальный воздух (без болтанки), если не попросили иначе.
 	_turbulence = int(opts.get("turbulence", 0 if synthetic else 1)) != 0
 	var statics := PackedFloat32Array()

@@ -95,12 +95,11 @@ func _focus(h: Dictionary) -> PackedVector3Array:
 	return PackedVector3Array([Vector3(float(h.key.start[0]), 110.0, float(h.key.start[1]))])
 
 
-## Фасад с местом острова до READY. mode — set_air_mode; deterministic — подача поля синхронно.
-func _facade(h: Dictionary, mode: String, det := true) -> Atmosphere:
+## Фасад с местом острова до READY. deterministic — подача поля синхронно.
+func _facade(h: Dictionary, det := true) -> Atmosphere:
 	var a := Atmosphere.new()
 	a.visuals_enabled = false
 	a.deterministic = det
-	a.set_air_mode(mode)
 	check(a.configure(5) == 0, "configure")
 	check(a.set_conditions(_cond(h)) == 0, "set_conditions")
 	check(a.load_place(_place(h)) == 0, "load_place " + a.last_error())
@@ -151,20 +150,10 @@ func _max_diff(a: Atmosphere, pts: PackedVector3Array) -> float:
 	return worst
 
 
-func _wait_field(a: Atmosphere, on: bool, seconds: float = 60.0) -> bool:
-	var t0 := Time.get_ticks_msec()
-	while Time.get_ticks_msec() - t0 < seconds * 1000.0:
-		if a.is_air_field_on() == on and bool(a.status().field_on) == on:
-			return true
-		a.advance_to(a.time_s + 0.05)
-		OS.delay_msec(10)
-	return a.is_air_field_on() == on
-
-
 ## (1) Слагаемое field фасада в 50 точках области и окон равно DpAir.sample_many(MEAN) (1e-4 м/с).
 func test_field_term_equals_crate_sample() -> void:
 	var h := _baked_header()
-	var a := _facade(h, "on")
+	var a := _facade(h)
 	check(a.is_ready(), "READY")
 	check(bool(a.status().field_on), "field_on после READY")
 	check(a.air_field.levels.size() == 3, "уровней 3 (область и окна), есть %d" % a.air_field.levels.size())
@@ -180,65 +169,21 @@ func test_field_term_equals_crate_sample() -> void:
 	a.free()
 
 
-## (2) off снимает поле (state READY не меняется), on возвращает.
-func test_mode_off_and_on() -> void:
-	var h := _baked_header()
-	var a := _facade(h, "on")
-	var pts := _points(a, 20)
-	var before := 0.0
-	for p in pts:
-		before = maxf(before, _field_of(a, p).length())
-	check(before > 1.0e-3, "поле есть до выключения")
-	a.set_air_mode("off")
-	check(a.is_ready(), "off: READY")
-	check(not bool(a.status().field_on), "off: field_on = false")
-	var worst := 0.0
-	for p in pts:
-		worst = maxf(worst, _field_of(a, p).length())
-	check(worst == 0.0, "off: field = 0, есть %s" % worst)
-	check(a.is_ready(), "off: READY после опросов")
-	a.set_air_mode("on")
-	check(a.is_ready(), "on: READY сразу")
-	check(_wait_field(a, true), "on: поле вернулось")
-	check(a.is_ready(), "on: READY всё время")
-	var diff := _max_diff(a, pts)
-	check(diff <= TOL, "on: field = DpAir.sample_many(MEAN): max |Δ| = %s" % diff)
-	a.free()
-
-
-## (3) headless + auto — поля нет: крейту set_field_enabled(false).
-func test_headless_auto_has_no_field() -> void:
-	if DisplayServer.get_name() != "headless":
-		return
-	var h := _baked_header()
-	var a := _facade(h, "auto")
-	check(a.is_ready(), "READY без поля")
-	check(not bool(a.status().field_on) and a.air_field.levels.is_empty(), "поля нет")
-	var dp: RefCounted = a.get("_dp")
-	dp.field_export()
-	check(dp != null and dp.field_export_header() == "", "крейт поле не ведёт: снимок пуст")
-	var worst := 0.0
-	for p in [Vector3(-3620, 300, 3510), Vector3(0, 500, 0), Vector3(2000, 800, -2000)]:
-		worst = maxf(worst, _field_of(a, p).length())
-	check(worst == 0.0, "слагаемое field = 0")
-	a.free()
-
-
-## (4) У фасада нет AirRuntime: ни дочернего узла, ни поля.
+## (2) У фасада нет AirRuntime: ни дочернего узла, ни поля.
 func test_no_air_runtime_in_facade() -> void:
 	var h := _baked_header()
-	var a := _facade(h, "on")
+	var a := _facade(h)
 	for c in a.get_children():
 		check(not c is AirRuntime, "дочерний AirRuntime: " + c.name)
 	check(a.get("runtime") == null, "поля runtime нет")
 	a.free()
 
 
-## (5) Смена условий (rebuild: false, другой час в пределах допуска набора погоды) — новый номер
+## (3) Смена условий (rebuild: false, другой час в пределах допуска набора погоды) — новый номер
 ## подачи; подмена за blend_s: доля нового поля растёт и приходит к 1.
 func test_condition_change_blends_over_blend_s() -> void:
 	var h := _baked_header()
-	var a := _facade(h, "on")
+	var a := _facade(h)
 	var dp: RefCounted = a.get("_dp")
 	var v0: int = dp.field_version()
 	check(v0 > 0, "после загрузки поле подано (номер %d)" % v0)
@@ -269,7 +214,7 @@ func test_condition_change_blends_over_blend_s() -> void:
 ## главный поток уровни не ждёт, итог тот же, что в синхронном режиме.
 func test_background_feed_gives_the_same_field() -> void:
 	var h := _baked_header()
-	var a := _facade(h, "on", false)
+	var a := _facade(h, false)
 	check(a.is_ready(), "READY")
 	check(bool(a.status().field_on), "field_on после READY (подача в фоне закончена)")
 	check(a.air_field.levels.size() == 3, "уровней 3, есть %d" % a.air_field.levels.size())

@@ -102,31 +102,3 @@ func test_reload_place_n_times() -> void:
 	check(catcher.errors.is_empty(), "ни одной ошибки движка/RD (%d): %s" % [catcher.errors.size(), "; ".join(catcher.errors.slice(0, 3))])
 	rt.queue_free()
 	atmo.free()
-
-
-## «Упрощённый ветер» включён после запуска: RD отдаётся и заново не создаётся.
-func test_simple_wind_releases_rd() -> void:
-	var lw := TestAirPlace.load_detail("ongudai")
-	var loc := TestAirPlace.load_loc("ongudai")
-	var detail: HeightLayer = lw[0]
-	var atmo := _atmo(detail)
-	var rt := AirRuntime.new()
-	await Engine.get_main_loop().process_frame
-	(Engine.get_main_loop() as SceneTree).root.add_child(rt)
-	check(rt._gpu != null, "режим «расчёт»: RD есть")
-	var saved: Variant = Config._cache.get("atmosphere")
-	var cfg: Dictionary = Config.get_config("atmosphere").duplicate(true)
-	cfg.air_model = cfg.get("air_model", {}).duplicate(true)
-	cfg.air_model.enabled = "off"
-	Config._cache["atmosphere"] = cfg
-	_c = {hour = 12.0, u10 = 3.0, wdir = 150.0, t_max = NAN, sky = "clear"}
-	rt.setup(atmo, {detail = detail, water = lw[1], loc = loc}, _cond)
-	check(rt._gpu == null, "«упрощённый» после запуска: RD отдан")
-	check(rt._device() == null, "«упрощённый»: RD заново не создаётся")
-	check(rt.unavailable_reason() == "air_model.enabled = off", "расчёт выключен: %s" % rt.unavailable_reason())
-	if saved != null:
-		Config._cache["atmosphere"] = saved
-	else:
-		Config.reload()
-	rt.queue_free()
-	atmo.free()

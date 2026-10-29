@@ -30,7 +30,7 @@ pub use types::{
 };
 
 /// Версия границы; равна версии в заголовке W2 `docs/contracts/rust-wind.md`.
-pub const API_VERSION: u32 = 4;
+pub const API_VERSION: u32 = 5;
 
 /// Число полей записи объекта-облака (`OBJ_STRIDE`, W6 v4).
 pub const OBJ_STRIDE: usize = 22;
@@ -134,12 +134,6 @@ pub trait AirModel: Send + Sync {
     }
     /// W4 v3: каталог кеша полей реализации (абсолютный путь); пусто — без кеша. По умолчанию — ничего.
     fn set_cache_dir(&mut self, _path: &str) -> Result<(), Error> {
-        Ok(())
-    }
-    /// W4 v5: режим поля. `false` — поле снимается сразу, расчётов нет, `Loading` из-за поля →
-    /// `Ready`; `true` — поле возвращается фоном (запечённое, кеш, расчёт), `state` не меняется.
-    /// Повтор значения — `Ok`, ничего. По умолчанию — ничего (`Calm`).
-    fn set_field_enabled(&mut self, _on: bool) -> Result<(), Error> {
         Ok(())
     }
     /// W4 v5, переходное (W3 v4): снимок последней подачи поля — целевой набор уровней в формате

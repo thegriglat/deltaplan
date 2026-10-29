@@ -104,7 +104,7 @@ fn terms_for(case: &Case, ground: Arc<dyn GroundSource>) -> Terms {
     t.configure(&configs(), case.seed);
     t.thermal_async = false;
     t.set_conditions(&case.conditions);
-    // синтетика идёт с `air_model.enabled = off`: упрощённый профиль 0.8.0 (README фикстур)
+    // эталоны synth_* сняты с упрощённым профилем 0.8.0 (README фикстур)
     t.wind.set_simple_profile(true, None);
     t.statics = case.static_thermals.clone();
     t.statics_mode = case.static_mode;
@@ -538,13 +538,12 @@ fn near_cloud(name: &str, src: Src) -> Stats {
     st
 }
 
-const SYNTH: [&str; 6] = [
+const SYNTH: [&str; 5] = [
     "synth_weak",
     "synth_medium",
     "synth_strong",
     "synth_storm",
     "synth_wave",
-    "synth_off",
 ];
 const ONG: [&str; 3] = ["ongudai_medium", "ongudai_strong", "ongudai_wave"];
 const OWN: [&str; 7] = [

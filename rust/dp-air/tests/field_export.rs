@@ -1,7 +1,7 @@
-//! RW-7a: режим поля и выдача поля фасаду (W4 v5, W3 v4) — запечённое поле острова, без Пикара.
+//! RW-7a: выдача поля фасаду (W4 v5, W3 v4) — запечённое поле острова, без Пикара.
 //!
 //! Снимок (`field_export`) разбирается `parse_baked` обратно бит в бит; опрос набора по нему
-//! совпадает с опросом `Formula`; `set_field_enabled` снимает и возвращает поле, не трогая `state`.
+//! совпадает с опросом `Formula`.
 use dp_air::field::baked::parse_baked;
 use dp_air::field::field_set::FieldSet;
 use dp_air::field::runtime::{Faults, RtCfg, ground_height};
@@ -177,11 +177,6 @@ fn sample(m: &dyn AirModel, pts: &[[f32; 3]]) -> Vec<[f32; 4]> {
         .collect()
 }
 
-/// Слагаемое `field` (первое в разложении): аналитика (RW-9) активна без поля и даёт свой ветер.
-fn field_part(m: &dyn AirModel, pts: &[[f32; 3]]) -> Vec<[f32; 3]> {
-    pts.iter().map(|p| m.decompose(*p).vel[0]).collect()
-}
-
 fn bits(v: &[[f32; 4]]) -> Vec<u32> {
     v.iter().flatten().map(|x| x.to_bits()).collect()
 }
@@ -240,76 +235,6 @@ fn parse_ok_format(e: &dp_air::FieldExport) -> Value {
     h["format"].clone()
 }
 
-/// (3) `set_field_enabled(false)`: поля нет, номер растёт, снимок пуст, `state` всё время `Ready`;
-/// `true` — то же запечённое поле возвращается, подача сразу.
-#[test]
-fn field_off_and_on_again() {
-    let (mut m, pl) = ready_model(false);
-    let pts = probes(&pl);
-    let before = sample(&m, &pts);
-    let v0 = m.field_version();
-    let first = m.field_export();
-    assert!(m.set_field_enabled(true).is_ok(), "повтор — Ok");
-    assert_eq!(m.field_version(), v0);
-
-    m.set_field_enabled(false).unwrap();
-    assert_eq!(m.status().state, State::Ready);
-    assert!(m.field_version() > v0);
-    assert!(
-        field_part(&m, &pts).iter().flatten().all(|x| *x == 0.0),
-        "поле снято сразу"
-    );
-    let off = m.field_export();
-    assert_eq!(off.version, m.field_version());
-    assert!(off.header_json.is_empty() && off.data.is_empty());
-
-    m.set_field_enabled(true).unwrap();
-    assert_eq!(m.status().state, State::Ready);
-    let t0 = Instant::now();
-    while m.field_export().header_json.is_empty() {
-        m.poll();
-        assert_eq!(m.status().state, State::Ready, "state не меняется");
-        assert!(t0.elapsed() < Duration::from_secs(120));
-        std::thread::sleep(Duration::from_millis(2));
-    }
-    let back = m.field_export();
-    assert!(back.version > off.version);
-    assert_eq!(back.blend_s, 0.0, "первое поле — сразу");
-    let a = parse_baked(&first.header_json, &first.data).unwrap();
-    let b = parse_baked(&back.header_json, &back.data).unwrap();
-    assert_eq!(a.levels.len(), b.levels.len());
-    assert_eq!(a.levels[0].raw_u(), b.levels[0].raw_u());
-    assert_eq!(sample(&m, &pts).len(), before.len());
-    assert!(sample(&m, &pts).iter().flatten().any(|x| *x != 0.0));
-}
-
-/// (3б) Выключение до `load_place` запоминается: поля нет, `Ready` сразу; включение — поле.
-#[test]
-fn field_off_before_load_is_remembered() {
-    let pl = island_place();
-    let mut m = Formula::new().with_faults(NO_WIN);
-    m.configure(&configs(), 1).unwrap();
-    m.set_conditions(&landing_cond()).unwrap();
-    m.set_focuses(&[focus()]).unwrap();
-    m.set_field_enabled(false).unwrap();
-    m.load_place(pl.clone()).unwrap();
-    for (h, b) in island_files() {
-        m.add_baked_field(&h, &b).unwrap();
-    }
-    m.advance_to(1.0).unwrap();
-    assert_eq!(m.status().state, State::Ready);
-    assert!(m.field_export().header_json.is_empty());
-    assert!(
-        field_part(&m, &probes(&pl))
-            .iter()
-            .flatten()
-            .all(|x| *x == 0.0)
-    );
-    m.set_field_enabled(true).unwrap();
-    wait_field(&mut m);
-    assert!(!m.field_export().header_json.is_empty());
-}
-
 /// (4) `unload_place` — снимок пуст, номер растёт.
 #[test]
 fn unload_place_empties_the_export() {
@@ -322,43 +247,11 @@ fn unload_place_empties_the_export() {
     assert!(e.header_json.is_empty() && e.data.is_empty());
 }
 
-/// (5) `Calm` — пустой снимок, `set_field_enabled` — `Ok`.
+/// (5) `Calm` — пустой снимок.
 #[test]
 fn calm_has_empty_export() {
-    let mut c = Calm::new();
-    c.set_field_enabled(false).unwrap();
-    c.set_field_enabled(true).unwrap();
+    let c = Calm::new();
     assert_eq!(c.field_version(), 0);
     let e = c.field_export();
     assert_eq!(e, dp_air::FieldExport::default());
-}
-
-/// (6) Пока поле выключено, смена условий и время расчётов не запускают: задачи нет, `state`
-/// `Ready`, поле пусто, номер подачи не растёт.
-#[test]
-fn no_recompute_while_field_is_off() {
-    let (mut m, pl) = ready_model(false);
-    m.set_field_enabled(false).unwrap();
-    let v = m.field_version();
-    let other = Conditions::from_json(
-        r#"{"forecast":{"temperature_c":30,"wind_speed_kmh":18,"wind_from_deg":90,"sky":"clear"},
-"quantum_h":1,"start_hour":9,"speed":1,"blend_s":null,"rebuild":true}"#,
-    )
-    .unwrap();
-    m.set_conditions(&other).unwrap();
-    for t in [1.0, 600.0, 4000.0] {
-        m.advance_to(t).unwrap();
-        assert!(m.wait_job(Duration::ZERO), "расчёта нет");
-        assert_eq!(m.status().state, State::Ready);
-    }
-    m.start_at(5000.0).unwrap();
-    assert!(m.wait_job(Duration::ZERO));
-    assert_eq!(m.status().state, State::Ready);
-    assert_eq!(m.field_version(), v);
-    assert!(
-        field_part(&m, &probes(&pl))
-            .iter()
-            .flatten()
-            .all(|x| *x == 0.0)
-    );
 }

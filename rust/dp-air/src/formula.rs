@@ -532,10 +532,7 @@ pub struct Formula {
     shifts: Vec<ShiftRec>,
     /// Подставные отказы окон (тесты).
     win_fail: Arc<AtomicUsize>,
-    /// Режим поля (`set_field_enabled`); по умолчанию включено.
-    field_on: bool,
     /// Следующая загрузка — включение поля при `Ready`: состояние не меняется.
-    quiet_load: bool,
     /// Номер подачи поля (`ExpState::version`), с которым собраны источники термиков и входы облаков
     /// в `terms` (`u64::MAX` — не подавалось).
     fed_ver: u64,
@@ -622,8 +619,6 @@ impl Formula {
             shift_req: None,
             shifts: Vec::new(),
             win_fail: Arc::new(AtomicUsize::new(0)),
-            field_on: true,
-            quiet_load: false,
             fed_ver: u64::MAX,
             cloud_air: false,
             wired_sig: None,
@@ -797,7 +792,7 @@ impl Formula {
     }
 
     /// Новая подача поля (`note_feed`) - в источники термиков и входы облаков `terms`. `true` -
-    /// `terms` изменились, нужна публикация. Режим `off` (поля нет) - источников нет.
+    /// `terms` изменились, нужна публикация.
     fn sync_field(&mut self) -> bool {
         let (ver, levels) = {
             let e = lock(&self.sh.exp);
@@ -977,12 +972,7 @@ impl Formula {
                 Arc::new(StageCounter::default()),
             )
         } else {
-            if std::mem::take(&mut self.quiet_load) {
-                self.sh.progress.store(0f32.to_bits(), Ordering::Relaxed);
-                self.sh.stage.clear();
-            } else {
-                self.sh.set_state(State::Loading, 0.0, "");
-            }
+            self.sh.set_state(State::Loading, 0.0, "");
             (self.sh.progress.clone(), self.sh.stage.clone())
         };
         let loading = kind == Kind::Load;
@@ -1045,7 +1035,7 @@ impl Formula {
     /// Нужен ли пересчёт на моменте `t`; запускает задачу. `cursor` — игровое время, до
     /// которого подмена уже продвинута.
     fn try_launch(&mut self, t: f64, cursor: f64) -> bool {
-        if self.failed || self.place.is_none() || !self.field_on {
+        if self.failed || self.place.is_none() {
             return false;
         }
         let plan = self.plan(t, cursor);
@@ -1251,9 +1241,6 @@ impl AirModel for Formula {
         }));
         self.recompute_inputs();
         self.terms.configure(&self.configs, seed);
-        if !self.field_on {
-            self.terms.set_air_off(true);
-        }
         let bg = !self.det();
         self.terms.thermal_async = bg;
         self.terms.clouds_async = bg;
@@ -1295,9 +1282,6 @@ impl AirModel for Formula {
         self.sync_field();
         self.publish_terms();
         self.sh.set_state(State::Ready, 1.0, "");
-        if !self.field_on {
-            return Ok(());
-        }
         if let (Some(cond), Some(inputs)) = (self.cond.clone(), self.inputs.clone()) {
             match inputs {
                 Ok(i) => {
@@ -1339,7 +1323,6 @@ impl AirModel for Formula {
         self.publish_terms();
         self.sh.note_feed(&[], 0.0, 0.0, ExpMeta::default());
         self.fed_ver = lock(&self.sh.exp).version;
-        self.quiet_load = false;
         self.sh.set_state(State::Empty, 0.0, "");
     }
 
@@ -1432,7 +1415,7 @@ impl AirModel for Formula {
             self.sh.set_state(State::Ready, 1.0, "");
         }
         self.cond_t = t;
-        if self.failed || !self.field_on {
+        if self.failed {
             return Ok(());
         }
         let (Some(cond), Some(Ok(inputs)), Ok(cfg)) =
@@ -1484,49 +1467,6 @@ impl AirModel for Formula {
             return Err(Error::bad_input("set_cache_dir: NUL in the path"));
         }
         self.cache_dir = (!path.is_empty()).then(|| PathBuf::from(path));
-        Ok(())
-    }
-
-    fn set_field_enabled(&mut self, on: bool) -> Result<(), Error> {
-        if on == self.field_on {
-            return Ok(());
-        }
-        self.field_on = on;
-        // режим `off` W2 v4: упрощённый профиль и аналитика без поля
-        self.terms.set_air_off(!on);
-        self.publish_terms();
-        if self.place.is_none() {
-            return Ok(());
-        }
-        self.reap();
-        if !on {
-            // поле снимается сразу, без подмены; задача отменяется, расчётов больше нет
-            self.cancel_job();
-            self.quiet_load = false;
-            self.cur = None;
-            self.warm = None;
-            self.inflow_k = 1.0;
-            self.failed = false;
-            self.reset_clip();
-            self.sh.modify(|p| p.fs.set_levels(Vec::new(), 0.0));
-            self.sh.note_feed(&[], 0.0, self.time_s, ExpMeta::default());
-            // источников термиков из снятого поля больше нет (соберутся заново на ближайшем шаге)
-            if self.sync_field() {
-                self.publish_terms();
-            }
-            if self.sh.state() != State::Empty {
-                self.sh.set_state(State::Ready, 1.0, "");
-            }
-            return Ok(());
-        }
-        // включение: загрузка фоном как при load_place, состояние не меняется, подача сразу
-        self.quiet_load = true;
-        if let (Some(cond), Some(Ok(inputs))) = (self.cond.clone(), self.inputs.clone()) {
-            let rec = CondRec::new(&inputs, &cond, hour_at(&cond, self.time_s));
-            self.launch(Kind::Load, rec, self.time_s);
-            // нет конфига: launch отказал, а режим «тихо» не нужен
-            self.quiet_load = false;
-        }
         Ok(())
     }
 
