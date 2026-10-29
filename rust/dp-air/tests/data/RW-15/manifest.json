@@ -1,1 +1,1 @@
-{"file":"ref.json","made_by":"RW15_WRITE=1 cargo test --release --manifest-path rust/Cargo.toml -p dp-air --test step_cost_same","what":"f32 bits: sample_many(Full) 15x15 + cores() after 60 s on flat 401^2 place, before RW-15 changes"}
+{"file":"ref.json","made_by":"RW15_WRITE=1 cargo test --release --manifest-path rust/Cargo.toml -p dp-air --test step_cost_same","what":"f32 bits: sample_many(Full) 15x15 + cores() after 60 s on flat 401^2 place, before RW-15 changes; пересъёмка после W5 v10 (климат места из Weather, RW-14c), 2026-10-30, база ddbbfd990"}
