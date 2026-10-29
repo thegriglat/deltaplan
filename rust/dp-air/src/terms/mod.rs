@@ -43,6 +43,7 @@ pub mod objects;
 mod slots;
 pub mod storm;
 mod sum;
+pub mod surface_gust;
 pub mod thermal;
 pub mod thermal_air;
 pub mod thermal_src;
@@ -64,7 +65,7 @@ pub use slots::{
     Analytic, AnalyticMean, AnalyticTurb, Extra, ExtraOut, ExtraSet, NoAnalytic, NoExtra,
     NoThermal, NoTurb, Thermal, ThermalOut, Turb, TurbMean, TurbOut,
 };
-use std::sync::Arc;
+use std::sync::{Arc, OnceLock};
 pub use sum::{Mid, sum};
 pub use weather_link::PlaceLink;
 
@@ -169,6 +170,8 @@ pub struct Terms {
     pub slots: Slots,
     /// Облака (RW-11d): снимок физики облаков, обновляет `advance`/`start_at`.
     pub clouds: Arc<clouds::CloudSlot>,
+    /// Шум и константы поверхностного порыва (RW-8s): строится при первом вызове, `configure` сбрасывает.
+    surface_gust: Arc<OnceLock<surface_gust::SurfaceGust>>,
     /// Погода во времени (RW-12d, `weather_link.rs`): состояние, место, версии.
     link: weather_link::WeatherLink,
 }
@@ -191,6 +194,7 @@ impl Default for Terms {
             thermal_async: false,
             slots: Slots::new(),
             clouds: Arc::new(clouds::CloudSlot::analytic()),
+            surface_gust: Default::default(),
             link: Default::default(),
         }
     }
@@ -201,6 +205,7 @@ impl Terms {
         self.configs = configs.clone();
         self.seed = seed;
         self.cfg = SumCfg::from_configs(configs);
+        self.surface_gust = Default::default();
         // детерминированный режим (`air.deterministic`): фона нет, всё считается в `advance`
         let det = named_json(configs, "atmosphere")
             .and_then(|a| a.pointer("/air/deterministic").and_then(Value::as_bool))
@@ -216,6 +221,12 @@ impl Terms {
         if let Some(c) = cond {
             self.set_conditions(&c);
         }
+    }
+
+    /// Шум порывов у земли для пыли (`surface_gust::surface_gust_many`): по конфигам и сиду.
+    pub fn surface_gust(&self) -> &surface_gust::SurfaceGust {
+        self.surface_gust
+            .get_or_init(|| surface_gust::SurfaceGust::new(&self.configs, self.seed))
     }
 
     /// Погода и ветер из условий (`weather_link.rs`): эталон-пресет или прогноз; прогноз с местом
