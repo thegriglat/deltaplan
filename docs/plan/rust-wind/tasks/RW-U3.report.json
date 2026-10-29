@@ -1,0 +1,61 @@
+{
+  "status": "done",
+  "summary": "calm::mix при Σ механических весов колонны < MECH_EPS=1e-9 непрерывно подмешивает базовый ветер колонны F (смесь по весам до r, Classified.base; при пустых — поле A); при Σ >= eps побитно прежняя формула. Тест phase_f_base_wind (2 теста), описание в phases.md.",
+  "commits": [
+    "3af043d5b rust-wind RW-U3: базовый ветер колонны F в смеси механизмов"
+  ],
+  "checks": [
+    {
+      "name": "f_base_wind",
+      "value": "ok. 2 passed",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "exit 0 (фикстуры decompose/W7, contract.rs зелёные)",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "1 ошибка, не моя: docs/plan/rust-wind.md 44 КБ > 40 КБ (есть и на базе без моих правок)",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "Приёмка docs красная из-за размера docs/plan/rust-wind.md (вне скоупа; план нужно разбить на разделы-файлы)."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RW-U3",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/src/field/phase/calm.rs:mix",
+      "why": "Непрерывность обеспечена добавкой веса (eps − Σ) для базового поля, а не жёстким переключением на пороге: в диапазоне Σ < eps результат — взвешенная смесь прежней и базовой, при Σ=eps совпадает с прежней. Это моё уточнение формулы 'смесь по base при Σ<eps' ради требования скачка < 1 %.",
+      "checked": "тест continuous_across_eps: шаг по масштабу весов 1 %, скачок < 1 % |U|; предел Σ=0 даёт чистый base; base пустой -> поле A"
+    },
+    {
+      "where": "rust/dp-air/src/field/phase/classifier.rs: Classified.base",
+      "why": "Базовые веса сглаживаются тем же гауссом, но не нормируются на Σ по K; в mix нормируются на свою сумму. Для Mech-варианта (r=1) base совпадает с механическими весами.",
+      "checked": "побитно прежние weights/freeze (smooth вынесен в smooth_planes без изменения порядка операций); cargo test --workspace зелёный"
+    }
+  ],
+  "dp_feedback": "docs check падает на размере docs/plan/rust-wind.md, а пункт docs в карточке требует 'ошибок 0' — для задач вне плана приёмка не может пройти.",
+  "extra": {
+    "MECH_EPS": 1e-09,
+    "tests": [
+      "f_columns_keep_base_wind",
+      "continuous_across_eps"
+    ]
+  },
+  "t": "2026-10-29T05:21:22",
+  "by": "executor"
+}

@@ -35,3 +35,5 @@ related: ["docs/research/rust-wind-stage3-path.md", "docs/plan/rust-wind.md"]
 | RW-8b | `rust/dp-air/src/terms/frame.rs` | высота солнца в рамке — 52° (до RW-12c), `AirCase.Z0`, `F_COR` — константы | RW-12c подключение; T1 `analytic` дневных случаев |
 | RW-8b | `rust/dp-air/tests/terms_frame.rs` | эталон `synth_medium` содержит тень гребня; сверка рамки — только в свободном воздухе | RW-9 (линия тени) |
 | RW-8b | `rust/dp-air/tests/runtime.rs` | в accept упал без вывода теста под нагрузкой (вероятно, сигнал/таймаут), повтор 35/35 PASS | итоговый прогон: следить за runtime под нагрузкой |
+| RW-12c | `rust/dp-air/tests/runtime.rs:983` `ongudai_size_cancel_in_every_stage_returns_within_a_second` | тайминговый порог 1 с, под нагрузкой 1,016 с (флейк) | итоговый прогон отдельно; при повторе — поднять порог или гонять с --test-threads=1 |
+| RW-12c | `rust/dp-air/src/weather/` | эталон W8 v2 `cases/<имя>.weather.json` не делался (дамп функций) | при подключении погоды к сумме (RW-12z) — дневные случаи |

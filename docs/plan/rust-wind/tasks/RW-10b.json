@@ -1,0 +1,81 @@
+{
+  "id": "RW-10b",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Термики по клеткам в крейте: AtmoThermal, жизнь термиков (аналитический путь), статичные, профиль и sample, фоновое опускание, cores — слот Thermal",
+  "goal": "Слот Thermal воспроизводит термики GD на пути клеток (synth_*): рождение по циклам клеток (PCG32/hash из compat), жизнь, профиль, статичные термики, фоновое опускание, описания ядер W6; слагаемое thermal в точках без облаков и ядра desc.json synth_* — в допуске W8; облачные крючки (подсос, тень) — нулевые до RW-11.",
+  "plan_ref": "План переноса",
+  "contracts": [
+    {
+      "name": "W4",
+      "version": "5",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W7",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W10",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-10b",
+  "branch": "rust-wind/RW-10b",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/terms/thermal/",
+    "rust/dp-air/src/terms/mod.rs",
+    "rust/dp-air/src/terms/slots.rs",
+    "rust/dp-air/tests/terms_thermal.rs",
+    "rust/dp-air/tests/data/RW-10b/"
+  ],
+  "dont_touch": [
+    "rust/dp-air/src/formula.rs",
+    "rust/dp-air/src/field/",
+    "rust/picard_rs/",
+    "rust/dp-gd/",
+    "scripts/",
+    "tests/fixtures/",
+    "docs/contracts/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "terms_thermal",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test terms_thermal",
+      "expect": "num:test result: ok\\. (\\d+) >=8"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dp_air_no_godot",
+      "cmd": "cargo tree --manifest-path rust/Cargo.toml -p dp-air -e normal | grep -ci godot || true",
+      "expect": "num:^(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-29T05:06:09",
+  "edited": "2026-10-29T05:29:05"
+}
