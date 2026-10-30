@@ -1,0 +1,29 @@
+{
+  "verdict": "accept",
+  "summary": "Фасад W2 вместо удалённого API, скоуп чист, tools_run перезапущен: PASS. Замечания только про охват.",
+  "issues": [
+    {
+      "file": "tests/atmosphere/test_ridge_starts.gd",
+      "line": 270,
+      "severity": "minor",
+      "what": "По умолчанию гоняется 1 старт из 10 (остальные с --ridge-full); приёмка 2/2 покрывает один старт. Пороги не ослаблены, оговорено в отчёте.",
+      "fix": "При случае прогнать --ridge-full отдельно."
+    },
+    {
+      "file": "tools/terrain/island/air_probe_main.gd",
+      "line": 1,
+      "severity": "minor",
+      "what": "Прогноз вместо preset: прежние числа не воспроизводятся; --field/--kayancha не прогонялись.",
+      "fix": "Нет, учтено."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "tools_run",
+      "value": "exit 0, 12 с",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-30T13:05:01",
+  "by": "reviewer"
+}

@@ -1,0 +1,90 @@
+{
+  "id": "RW-26",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Термики в игре зависят от часа: вечером меньше",
+  "goal": "Число термиков в игре падает к вечеру вслед за thermal_duty погоды (как в крейте на rig), тест forecast_game проходит; 0,3 с реального ожидания в тесте заменены ожиданием готовности.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "W4",
+      "version": "10",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W5",
+      "version": "11",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W6",
+      "version": "4",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W12",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-26",
+  "branch": "rust-wind/RW-26",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/",
+    "rust/dp-air/tests/",
+    "rust/dp-gd/src/",
+    "tests/game/test_forecast_game.gd",
+    "docs/research/rust-wind-stage3/rw26-thermals-hour.md"
+  ],
+  "dont_touch": [
+    "rust/dp-air/tests/data/",
+    "configs/",
+    "docs/contracts/",
+    "scripts/"
+  ],
+  "accept": [
+    {
+      "name": "forecast_game",
+      "tests": "forecast_game"
+    },
+    {
+      "name": "regression",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test game_thermals",
+      "expect": "exit=0"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "purity",
+      "cmd": "bash tools/dp_air_purity.sh | tail -1",
+      "expect": "num:нарушений: (\\d+) <=0"
+    },
+    {
+      "name": "no_realtime_wait",
+      "cmd": "grep -c 'create_timer(0.3' tests/game/test_forecast_game.gd",
+      "expect": "num:(\\d+) <=0"
+    },
+    {
+      "name": "report_doc",
+      "cmd": "test -s docs/research/rust-wind-stage3/rw26-thermals-hour.md",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-30T13:05:04"
+}
