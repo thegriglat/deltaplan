@@ -162,6 +162,7 @@ var _dp: RefCounted
 var _dp_missing := false
 var _dp_failed := false
 ## Подпись последнего configure крейта (сид, режим, конфиг): повторный configure — только при смене.
+var _dp_weather: RefCounted = null  ## DpWeather, уже переданный крейту (attach_weather)
 var _dp_cfg_sig := ""
 ## load_place отправлен крейту и место не выгружено.
 var _dp_placed := false
@@ -969,11 +970,19 @@ func _dp_start() -> void:
 			_dp_failed_with("configure")
 			return
 		_dp_cfg_sig = sig
+		_dp_weather = null  # configure заводит модель заново
 	# Погода у крейта одна на игру (W12): климат места и ход дня считает она (attach_weather до load_place).
+	# Повторный attach перестраивает уже заданные условия, поэтому — только после configure.
 	var wx := Weather.dp()
-	if wx == null or dp.attach_weather(wx) != 0:
-		_dp_failed_with("attach_weather")
+	if wx == null:
+		_dp_failed = true
+		_f_err = "dp_air: нет погоды DpWeather"
 		return
+	if _dp_weather != wx:
+		if dp.attach_weather(wx) != 0:
+			_dp_failed_with("attach_weather")
+			return
+		_dp_weather = wx
 	dp.set_cache_dir(
 		ProjectSettings.globalize_path("user://air_cache") if air_cache_enabled else ""
 	)
