@@ -145,8 +145,8 @@ func test_place_climate_wired() -> void:
 	var cell := Weather.climate_cell(cairns.lat, cairns.lon, 1, 15)
 	var r: Array = c.ui.temperature_c
 	approx(
-		Weather.typical_max_c(1, 15, cairns.lat, cairns.lon, 0.0),
-		clampf(float(cell.tx_c), float(r[0]), float(r[1])), 0.05, "Tx места (долина на высоте ячейки)"
+		Weather.typical_max_c(1, 15, cairns.lat, cairns.lon, float(cell.z_cell_m)),
+		clampf(float(cell.tx_c), float(r[0]), float(r[1])), 0.05, "Tx места (долина на высоте ячейки z_cell)"
 	)
 	var ctx := cairns.duplicate()
 	ctx.mean_msl_m = 0.0

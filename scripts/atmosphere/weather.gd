@@ -188,7 +188,9 @@ static func derive(forecast: Dictionary, ctx: Dictionary, hour: float = NAN) -> 
 	var w := dp()
 	if w == null:
 		return {}
-	var out := _dict(w.derive(JSON.stringify(forecast), JSON.stringify(ctx), hour))
+	var fc := {"temperature_c": 20.0, "wind_speed_kmh": 0.0, "wind_from_deg": 270.0, "sky": "clear"}
+	fc.merge(forecast, true)  # недостающие ключи прогноза — как в прежнем GD (ясно, 20 °C, штиль, запад)
+	var out := _dict(w.derive(JSON.stringify(fc), JSON.stringify(ctx), hour))
 	var dv: Variant = out.get("_derived")
 	if dv is Dictionary and (dv as Dictionary).has("cap_agl_m") and dv["cap_agl_m"] == null:
 		dv["cap_agl_m"] = INF  # инверсия пробита: JSON не знает бесконечности
