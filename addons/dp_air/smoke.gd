@@ -1,12 +1,13 @@
 extends Node
 ## Дымовой тест поставки DpAir (W9): запускается экспортированной сборкой headless сценой
 ## smoke.tscn (tools/dp_air_smoke.sh; `-s` и путь сцены в релизном шаблоне не работают).
-## Проверяет то, что нужно игре в полёте: расширение загрузилось, api_version = 4, конфиги из
-## pck принимаются, поле Пикара (режим on — в headless auto его не включает) на плоском месте
+## Проверяет то, что нужно игре в полёте: расширение загрузилось, api_version = WIND_API_VERSION фасада (6), конфиги из
+## pck принимаются, поле Пикара (с API 5 считается всегда, режима нет) на плоском месте
 ## доходит до READY, поле подано (field_version > 0, снимок не пуст), ветер у земли ≠ 0.
 ## Стадии печатаются строкой на смену этапа. Печатает DP_AIR_SMOKE OK, exit 0.
 
-const API_VERSION := 4
+## Ожидаемая версия API — одно место в GD: константа фасада W2 (scripts/atmosphere/atmosphere.gd).
+const API_VERSION := Atmosphere.WIND_API_VERSION
 const TIMEOUT_S := 240.0
 const CONFIGS := ["atmosphere", "weather_model", "surface_heat", "world"]
 ## Плоское место 10 × 10 км, клетка 25 м; площадка в центре.
@@ -80,9 +81,6 @@ func _ready() -> void:
 		return
 	if _dp.set_conditions(COND) != 0:
 		_fail("set_conditions: %s" % _dp.last_error())
-		return
-	if _dp.set_field_enabled(true) != 0:
-		_fail("set_field_enabled: %s" % _dp.last_error())
 		return
 	_dp.set_focuses(PackedVector3Array([Vector3(0, 110, 0)]), PackedFloat32Array([1.0]))
 	var n := 400 * 400

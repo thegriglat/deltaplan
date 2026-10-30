@@ -62,6 +62,7 @@ var flying_enabled := false
 ## air_start_agl_m м над рельефом, на скорости трима; < 0 — обычный старт с земли.
 var air_start_m := -1.0
 var air_start_agl_m := 300.0
+var _probe_flight_no := -1  # номер полёта, для которого строка _log_flight_probe уже в журнале
 ## Сид мира (термики, порывы); < 0 — atmosphere.json → seed. Задать до start(): «Лететь» из
 ## меню — новый случайный, «Ещё раз» его не меняет; сеть — сид зоны.
 var world_seed := -1
@@ -262,6 +263,17 @@ func _publish_activity(phase: String) -> void:
 	Activity.set_state(d)
 
 
+## Одна строка в журнал на полёт (признак для smoke собранной игры, RW-29): фаза flying и ветер
+## у крыла ≠ 0 при готовом воздухе. Не чаще раза за полёт.
+func _log_flight_probe(phase: String) -> void:
+	if phase != "flying" or _probe_flight_no == flight_no or not bool(air.call("is_ready")):
+		return
+	_probe_flight_no = flight_no
+	var t := glider.get_telemetry()
+	var w: Vector3 = air.call("mean_wind_at", t.position)
+	print("game: фаза flying, ветер у крыла %.2f м/с, t=%.1f с" % [w.length(), sim_time_s])
+
+
 ## Один шаг симуляции в явном порядке. Тесты зовут его напрямую.
 func tick(dt: float) -> void:
 	if settings == null:
@@ -282,6 +294,7 @@ func tick(dt: float) -> void:
 		return
 	var phase := glider.phase()
 	_publish_activity(phase)
+	_log_flight_probe(phase)
 	if autopilot != null:
 		autopilot.hold = input_controller.run_blocked or not queue_walk.is_empty()
 		autopilot.drive(glider.get_telemetry(), dt)
