@@ -39,6 +39,7 @@ generated: true
 - feedback-1012: FB-К1 v1, FB-К2 v1 — [docs/contracts/feedback-1012.md](../contracts/feedback-1012.md)
 - feedback-1013: FBW-К2 v3 — [docs/contracts/feedback-1013.md](../contracts/feedback-1013.md)
 - goals: GL-К1 v1, GL-К2 v2, GL-К3 v2, GL-К4 v2, GL-К5 v3, GL-К6 v2 — [docs/contracts/goals.md](../contracts/goals.md)
+- grass-near: GN-К1 v1 — [docs/contracts/grass-near.md](../contracts/grass-near.md)
 - grass-rocks: G1 v1, G2 v2, G3 v2, G4 v5 — [docs/contracts/grass-rocks.md](../contracts/grass-rocks.md)
 - haze-humidity: HH1 v1, HH2 v2, HH3 v1, HH4 v3, HH5 v1, HH6 v2, HH7 v2 — [docs/contracts/haze-humidity.md](../contracts/haze-humidity.md)
 - menu-shots-pose: MSP-К1 v2 — [docs/contracts/menu-shots-pose.md](../contracts/menu-shots-pose.md)
