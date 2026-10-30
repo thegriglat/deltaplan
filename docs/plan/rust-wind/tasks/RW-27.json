@@ -1,0 +1,53 @@
+{
+  "id": "RW-27",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Рабочие вызовы вместо удалённых: test_ridge_starts и инструменты",
+  "goal": "tests/atmosphere/test_ridge_starts.gd и инструменты tools/bench/air_velocity_bench.gd, tools/terrain/island/air_probe.gd, tools/terrain/volcano/air_probe.gd вызывают существующий API (фасад Atmosphere/DpAir/Weather) и действительно работают, а не только проходят grep; нерабочий и ненужный инструмент — удалить.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "W2",
+      "version": "6",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W6",
+      "version": "4",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-27",
+  "branch": "rust-wind/RW-27",
+  "base": "feature/rust-wind",
+  "scope": [
+    "tests/atmosphere/test_ridge_starts.gd",
+    "tools/bench/",
+    "tools/terrain/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "rust/",
+    "configs/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "ridge_starts",
+      "tests": "ridge_starts"
+    },
+    {
+      "name": "tools_run",
+      "cmd": "for f in tools/bench/air_velocity_bench.gd tools/terrain/island/air_probe.gd tools/terrain/volcano/air_probe.gd; do test -e $f || continue; timeout 900 godot --headless --path . --script res://$f -- --smoke 2>&1 | grep -E 'SCRIPT ERROR|Invalid call|Nonexistent' && exit 1; done; exit 0",
+      "expect": "exit=0"
+    },
+    {
+      "name": "gd_check",
+      "cmd": "python3 tools/check_gd.py --timeout 600 $(git ls-files 'tools/*.gd' 'tests/*.gd' | grep -v '^tools/research/')",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-30T12:19:08"
+}

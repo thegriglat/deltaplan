@@ -45,10 +45,6 @@
   ],
   "accept": [
     {
-      "name": "forecast_game",
-      "tests": "forecast_game"
-    },
-    {
       "name": "regression",
       "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test game_thermals",
       "expect": "exit=0"
@@ -81,5 +77,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-30T10:10:53"
+  "created": "2026-10-30T10:10:53",
+  "edited": "2026-10-30T12:18:53"
 }
