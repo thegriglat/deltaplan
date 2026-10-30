@@ -116,6 +116,9 @@ func test_forest_grass_reaches_material() -> void:
 		cfg.forest_density = density
 		var gf := _make_field(cfg)
 		for m in gf.materials():
+			# карточки среднего слоя (режим angle, GR-23) леса не знают — у них параметра нет
+			if m.get_shader_parameter("forest_density") == null or m.get_shader_parameter("forest_shade") == null:
+				continue
 			var v := float(m.get_shader_parameter("forest_density"))
 			check(is_equal_approx(v, density), "uniform forest_density = %.2f (%.2f)" % [v, density])
 			var h: Vector2 = m.get_shader_parameter("forest_height_m")

@@ -67,6 +67,10 @@ jobs:
   cpu_slots: 18
   # Вес запуска (первое совпадение регэкспа по строке команды; иначе 1). Агенты вес не задают.
   cpu_weights:
+    # Замеры времени (Rust и Godot) — вся машина: без квоты и без соседей, иначе время шумит. Не под lock gpu:
+    # он не останавливает CPU-задачи и занят зря (решение пользователя 2026-10-30).
+    - match: "cargo bench|--bench|tools/profile/|tools/bench/[a-z_]*bench|collect_baseline\\.py"
+      slots: 18
     # Любой запуск Godot (тесты, кадры, автопилот, --import, приёмка, сборка) — 6 слотов (решение пользователя 2026-10-23, три Godot параллельно в 18): Godot сам
     # распараллеливается на ~8–10 ядер (замер 2026-10-23: --import ≈ 900 % CPU) — решение пользователя.
     - match: "dpcli accept|tools/build\\.sh|tests_vs_base\\.sh|godot|run_tests|xvfb-run|tools/shots/|gpu_tests\\.sh|gpu_validate\\.sh"

@@ -1,0 +1,176 @@
+{
+  "end_reason": "time_limit",
+  "distance_km": 0.831,
+  "time_s": 120.02,
+  "avg_speed_kmh": 24.94,
+  "circling_fraction": 0.5145,
+  "thermals": 0,
+  "thermal_attempts": 0,
+  "circles": 5,
+  "avg_climb_ms": 0.921,
+  "climb_histogram_0_5ms": {
+    "0.0": 1,
+    "0.5": 1,
+    "1.0": 3
+  },
+  "glide_avg_sink_ms": 0.881,
+  "glide_ratio_eff": 15.59,
+  "max_vario_ms": 2.41,
+  "time_vario_ge_7_s": 0.0,
+  "time_in_cloud_s": 0.0,
+  "no_cloud_thermal_fraction": 0.0,
+  "start_alt_msl_m": 300.0,
+  "end_alt_msl_m": 307.6,
+  "thermal_list": [],
+  "circling_air": {
+    "thermal_lift_ms": 2.121,
+    "air_w_ms": 2.447,
+    "vario_ms": 0.955
+  },
+  "profile": {
+    "set_focuses": {
+      "ms_per_game_s": 0.368,
+      "calls": 121,
+      "us_per_call": 364.9
+    },
+    "advance_to": {
+      "ms_per_game_s": 16.334,
+      "calls": 7201,
+      "us_per_call": 272.2
+    },
+    "bot.drive": {
+      "ms_per_game_s": 0.842,
+      "calls": 3601,
+      "us_per_call": 28.1
+    },
+    "air_fn:mean_wind_at": {
+      "ms_per_game_s": 1.217,
+      "calls": 21604,
+      "us_per_call": 6.8
+    },
+    "fm.step(total, incl air_fn)": {
+      "ms_per_game_s": 4.778,
+      "calls": 7201,
+      "us_per_call": 79.6
+    },
+    "loop_after_advance(total)": {
+      "ms_per_game_s": 6.183,
+      "calls": 7201,
+      "us_per_call": 103.0
+    },
+    "cloud_density_at": {
+      "ms_per_game_s": 0.064,
+      "calls": 1200,
+      "us_per_call": 6.4
+    },
+    "_total_wall_ms_per_game_s": 23.02,
+    "_game_s": 120.016666666661
+  },
+  "config": {
+    "location": "synthetic",
+    "weather": "medium",
+    "seed": 1,
+    "wind_kmh": 0.0,
+    "wind_from_deg": 270.0,
+    "course_deg": 90.0,
+    "km": 30.0,
+    "wing": "sport",
+    "clouds": false,
+    "start_agl_m": 300.0,
+    "cloudbase_msl_m": 1800.0,
+    "background_sink_ms": -0.5,
+    "turbulence": false,
+    "generation_radius_m": 7000.0,
+    "physics_radius_m": 3000.0
+  },
+  "polar": {
+    "best_glide": 15.0,
+    "best_glide_kmh": 49.0,
+    "min_sink_ms": 0.891
+  },
+  "synthetic": {
+    "thermals": [
+      {
+        "along_m": 761.2,
+        "lateral_m": 20.0,
+        "found": true
+      },
+      {
+        "along_m": 3288.2,
+        "lateral_m": 36.7,
+        "found": false
+      },
+      {
+        "along_m": 5175.5,
+        "lateral_m": 116.5,
+        "found": false
+      },
+      {
+        "along_m": 7280.3,
+        "lateral_m": 13.1,
+        "found": false
+      },
+      {
+        "along_m": 8975.9,
+        "lateral_m": 180.2,
+        "found": false
+      },
+      {
+        "along_m": 10870.3,
+        "lateral_m": 101.9,
+        "found": false
+      },
+      {
+        "along_m": 13256.6,
+        "lateral_m": 19.5,
+        "found": false
+      },
+      {
+        "along_m": 14914.7,
+        "lateral_m": 128.1,
+        "found": false
+      },
+      {
+        "along_m": 17006.4,
+        "lateral_m": 59.9,
+        "found": false
+      },
+      {
+        "along_m": 19255.1,
+        "lateral_m": 95.0,
+        "found": false
+      },
+      {
+        "along_m": 20934.5,
+        "lateral_m": 105.4,
+        "found": false
+      },
+      {
+        "along_m": 23289.5,
+        "lateral_m": 39.3,
+        "found": false
+      },
+      {
+        "along_m": 25111.3,
+        "lateral_m": 22.9,
+        "found": false
+      },
+      {
+        "along_m": 26992.7,
+        "lateral_m": 93.4,
+        "found": false
+      },
+      {
+        "along_m": 28927.2,
+        "lateral_m": 128.7,
+        "found": false
+      }
+    ],
+    "near_total": 14,
+    "near_found": 1,
+    "found_total": 1,
+    "core_ms": 3.0,
+    "turn_sink_ms": 1.234,
+    "climb_ratio": 0.522
+  }
+}

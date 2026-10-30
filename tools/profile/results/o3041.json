@@ -1,0 +1,269 @@
+{
+  "end_reason": "time_limit",
+  "distance_km": 5.099,
+  "time_s": 1200.02,
+  "avg_speed_kmh": 15.3,
+  "circling_fraction": 0.7142,
+  "thermals": 2,
+  "thermal_attempts": 5,
+  "circles": 87,
+  "avg_climb_ms": 0.707,
+  "climb_histogram_0_5ms": {
+    "-1.5": 1,
+    "-1.0": 3,
+    "-0.5": 2,
+    "0.0": 8,
+    "0.5": 73
+  },
+  "glide_avg_sink_ms": 1.081,
+  "glide_ratio_eff": 13.99,
+  "max_vario_ms": 2.18,
+  "time_vario_ge_7_s": 0.0,
+  "time_in_cloud_s": 0.0,
+  "no_cloud_thermal_fraction": 0.0,
+  "start_alt_msl_m": 300.0,
+  "end_alt_msl_m": 528.9,
+  "thermal_list": [
+    {
+      "x_m": 51.9,
+      "z_m": -48.4,
+      "circles": 78,
+      "gain_m": 633.6,
+      "climb_ms": 0.831,
+      "top_m": 934.1
+    },
+    {
+      "x_m": 62.3,
+      "z_m": -55.4,
+      "circles": 3,
+      "gain_m": 1.7,
+      "climb_ms": 0.055,
+      "top_m": 938.4
+    },
+    {
+      "x_m": 90.1,
+      "z_m": -73.8,
+      "circles": 2,
+      "gain_m": -13.5,
+      "climb_ms": -0.651,
+      "top_m": 926.2
+    },
+    {
+      "x_m": 2257.0,
+      "z_m": 16.1,
+      "circles": 2,
+      "gain_m": -9.1,
+      "climb_ms": -0.412,
+      "top_m": 751.3
+    },
+    {
+      "x_m": 4694.6,
+      "z_m": 15.8,
+      "circles": 2,
+      "gain_m": -13.0,
+      "climb_ms": -0.598,
+      "top_m": 562.9
+    }
+  ],
+  "circling_air": {
+    "thermal_lift_ms": 1.96,
+    "air_w_ms": 1.581,
+    "vario_ms": 0.7
+  },
+  "profile": {
+    "set_focuses": {
+      "ms_per_game_s": 0.856,
+      "calls": 1201,
+      "max_ms": 4.36,
+      "calls_over_2ms": 15,
+      "us_per_call": 854.9
+    },
+    "advance_to": {
+      "ms_per_game_s": 8.846,
+      "calls": 72001,
+      "max_ms": 6.71,
+      "calls_over_2ms": 82,
+      "us_per_call": 147.4
+    },
+    "clouds(8km)": {
+      "ms_per_game_s": 0.189,
+      "calls": 66,
+      "max_ms": 5.55,
+      "calls_over_2ms": 65,
+      "us_per_call": 3444.9
+    },
+    "bot.drive": {
+      "ms_per_game_s": 1.749,
+      "calls": 36001,
+      "max_ms": 6.29,
+      "calls_over_2ms": 67,
+      "us_per_call": 58.3
+    },
+    "air_fn:mean_wind_at": {
+      "ms_per_game_s": 3.432,
+      "calls": 216004,
+      "max_ms": 3.4,
+      "calls_over_2ms": 6,
+      "us_per_call": 19.1
+    },
+    "fm.step(total, incl air_fn)": {
+      "ms_per_game_s": 9.373,
+      "calls": 72001,
+      "max_ms": 8.37,
+      "calls_over_2ms": 14,
+      "us_per_call": 156.2
+    },
+    "loop_after_advance(total)": {
+      "ms_per_game_s": 15.771,
+      "calls": 72001,
+      "max_ms": 9.57,
+      "calls_over_2ms": 1281,
+      "us_per_call": 262.9
+    },
+    "cloud_density_at": {
+      "ms_per_game_s": 0.154,
+      "calls": 12000,
+      "max_ms": 0.95,
+      "calls_over_2ms": 0,
+      "us_per_call": 15.4
+    },
+    "cloud_objects(all)": {
+      "ms_per_game_s": 2.28,
+      "calls": 1200,
+      "max_ms": 8.36,
+      "calls_over_2ms": 821,
+      "us_per_call": 2280.0
+    },
+    "CloudModel.parse": {
+      "ms_per_game_s": 0.01,
+      "calls": 1200,
+      "max_ms": 2.11,
+      "calls_over_2ms": 1,
+      "us_per_call": 10.3
+    },
+    "cores(6km)": {
+      "ms_per_game_s": 0.954,
+      "calls": 1200,
+      "max_ms": 3.8,
+      "calls_over_2ms": 30,
+      "us_per_call": 954.1
+    },
+    "background_wind": {
+      "ms_per_game_s": 0.019,
+      "calls": 1200,
+      "max_ms": 0.43,
+      "calls_over_2ms": 0,
+      "us_per_call": 18.8
+    },
+    "_total_wall_ms_per_game_s": 25.764,
+    "_game_s": 1200.0166666659,
+    "_cloud_objects_last": 0
+  },
+  "config": {
+    "location": "synthetic",
+    "weather": "medium",
+    "seed": 1,
+    "wind_kmh": 0.0,
+    "wind_from_deg": 270.0,
+    "course_deg": 90.0,
+    "km": 30.0,
+    "wing": "sport",
+    "clouds": true,
+    "start_agl_m": 300.0,
+    "cloudbase_msl_m": 1800.0,
+    "background_sink_ms": -0.5,
+    "turbulence": false,
+    "generation_radius_m": 9000.0,
+    "physics_radius_m": 3000.0
+  },
+  "polar": {
+    "best_glide": 15.0,
+    "best_glide_kmh": 49.0,
+    "min_sink_ms": 0.891
+  },
+  "synthetic": {
+    "thermals": [
+      {
+        "along_m": 761.2,
+        "lateral_m": 20.0,
+        "found": false
+      },
+      {
+        "along_m": 3288.2,
+        "lateral_m": 36.7,
+        "found": false
+      },
+      {
+        "along_m": 5175.5,
+        "lateral_m": 116.5,
+        "found": false
+      },
+      {
+        "along_m": 7280.3,
+        "lateral_m": 13.1,
+        "found": false
+      },
+      {
+        "along_m": 8975.9,
+        "lateral_m": 180.2,
+        "found": false
+      },
+      {
+        "along_m": 10870.3,
+        "lateral_m": 101.9,
+        "found": false
+      },
+      {
+        "along_m": 13256.6,
+        "lateral_m": 19.5,
+        "found": false
+      },
+      {
+        "along_m": 14914.7,
+        "lateral_m": 128.1,
+        "found": false
+      },
+      {
+        "along_m": 17006.4,
+        "lateral_m": 59.9,
+        "found": false
+      },
+      {
+        "along_m": 19255.1,
+        "lateral_m": 95.0,
+        "found": false
+      },
+      {
+        "along_m": 20934.5,
+        "lateral_m": 105.4,
+        "found": false
+      },
+      {
+        "along_m": 23289.5,
+        "lateral_m": 39.3,
+        "found": false
+      },
+      {
+        "along_m": 25111.3,
+        "lateral_m": 22.9,
+        "found": false
+      },
+      {
+        "along_m": 26992.7,
+        "lateral_m": 93.4,
+        "found": false
+      },
+      {
+        "along_m": 28927.2,
+        "lateral_m": 128.7,
+        "found": false
+      }
+    ],
+    "near_total": 14,
+    "near_found": 0,
+    "found_total": 0,
+    "core_ms": 3.0,
+    "turn_sink_ms": 1.257,
+    "climb_ratio": 0.406
+  }
+}
