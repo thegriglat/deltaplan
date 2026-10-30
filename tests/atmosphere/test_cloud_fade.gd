@@ -127,7 +127,7 @@ func _fly(weather: String, seconds: int) -> Dictionary:
 	var pos := Vector3(0, 1200, 0)
 	var a := Rig.make(
 		{
-			"cfg": acfg, "preset": weather, "over": {"wind_speed_kmh": 15.0}, "moist": _moist,
+			"cfg": acfg, "preset": weather, "over": {"wind_speed_kmh": 15.0, "temperature_c": Rig.STORM_TMAX_C}, "moist": _moist,
 			"start_at": 3600.0, "focus": pos, "advance": 0.0
 		}
 	)

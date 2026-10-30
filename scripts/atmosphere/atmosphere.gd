@@ -579,7 +579,9 @@ func weather() -> Dictionary:
 	if v != _w_cache_ver:
 		var parsed: Variant = JSON.parse_string(String(_dp.weather_json()))
 		_w_cache = parsed if parsed is Dictionary else {}
-		_w_cache_ver = v
+		# Пока место грузится, крейт отдаёт «{}» при той же версии: пустое не кешируем, иначе после READY
+		# погода так и осталась бы пустой (версия не менялась).
+		_w_cache_ver = v if not _w_cache.is_empty() else Vector2i(-1, -1)
 	return _w_cache.duplicate(true)
 
 
@@ -893,6 +895,16 @@ func _dp_object() -> RefCounted:
 	return _dp
 
 
+## Погода крейта с сетками климата (W4 v10): климат места поля и ветер прогноза берутся у неё; без неё —
+## запасные таблицы. До load_place; после смены конфигов создаётся заново.
+func _dp_attach_weather(dp: RefCounted) -> void:
+	var w := AirWeatherLink.make(_dp_configs())
+	if w != null:
+		var code: int = dp.attach_weather(w)
+		if code != 0:
+			push_error("dp_air: attach_weather = %d" % code)
+
+
 func _dp_log(line: String) -> void:
 	if line != _air_log_last:
 		_air_log_last = line
@@ -985,6 +997,7 @@ func _dp_start() -> void:
 			_dp_failed_with("configure")
 			return
 		_dp_cfg_sig = sig
+		_dp_attach_weather(dp)
 	dp.set_cache_dir(
 		ProjectSettings.globalize_path("user://air_cache") if air_cache_enabled else ""
 	)

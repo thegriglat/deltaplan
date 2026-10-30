@@ -32,6 +32,9 @@ func _atmo(wind_ms: float) -> Atmosphere:
 		"wind_from_deg": 270.0,
 		"background_sink_ms": 0.0,
 		"convective_turbulence_ms": 0.0,
+		# Не жаркий день: опыт про тень за гребнем, а не про конвекцию. Без температуры максимум берётся из
+		# климата места (27 °C на ровном rig) и штиль в 30 с после гребня попадает в нисходящий поток.
+		"temperature_c": 20.0,
 	}
 	return Rig.make(
 		{"over": over, "mode": 1, "ground": _ridge, "half": 3000.0, "advance": 0.01}
