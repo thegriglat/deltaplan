@@ -6,8 +6,8 @@
 //! котором GD строил источники; остальные входы — случай W8.
 #![allow(clippy::needless_range_loop)]
 use dp_air::Configs;
-use dp_air::field::baked::parse_baked;
 use dp_air::field::field_set::FieldSet;
+use dp_air::field::solved::parse_solved;
 use dp_air::field::wind_field::{Field, FieldGrid, FieldMeta, Limits, Z0};
 use dp_air::fixtures::{self, Case, Frame};
 use dp_air::terms::thermal::GroundSource;
@@ -27,7 +27,10 @@ fn collect(dir: &Path, prefix: &str, out: &mut Vec<(String, String)>) {
         if p.is_dir() {
             collect(&p, &format!("{name}/"), out);
         } else if p.extension().is_some_and(|x| x == "json") {
-            out.push((name, std::fs::read_to_string(&p).unwrap()));
+            out.push((
+                name.trim_end_matches(".json").to_string(),
+                std::fs::read_to_string(&p).unwrap(),
+            ));
         }
     }
 }
@@ -89,7 +92,7 @@ fn load(name: &str) -> Ong {
     let d = field_dir(name);
     let hdr = std::fs::read_to_string(d.join("field.json")).unwrap();
     let bin = std::fs::read(d.join("field.bin")).unwrap();
-    let b = parse_baked(&hdr, &bin).unwrap();
+    let b = parse_solved(&hdr, &bin).unwrap();
     let mut fs = FieldSet::new(Limits::default(), 5.0);
     fs.set_field(b.levels, 0.0);
     Ong {
@@ -613,7 +616,7 @@ fn syn_terms(field: &Arc<Field>, u10: f64, focuses: Vec<[f32; 2]>) -> Terms {
     let mut files = Vec::new();
     collect(&repo().join("configs"), "", &mut files);
     for (n, t) in &mut files {
-        if n == "atmosphere.json" {
+        if n == "atmosphere" {
             let mut v: serde_json::Value = serde_json::from_str(t).unwrap();
             v["thermal"]["generation_radius_m"] = serde_json::json!(6000.0);
             *t = serde_json::to_string(&v).unwrap();

@@ -21,7 +21,10 @@ fn collect(dir: &Path, prefix: &str, out: &mut Vec<(String, String)>) {
         if p.is_dir() {
             collect(&p, &format!("{name}/"), out);
         } else if p.extension().is_some_and(|x| x == "json") {
-            out.push((name, std::fs::read_to_string(&p).unwrap()));
+            out.push((
+                name.trim_end_matches(".json").to_string(),
+                std::fs::read_to_string(&p).unwrap(),
+            ));
         }
     }
 }
@@ -31,7 +34,7 @@ fn configs() -> Configs {
     let mut files = Vec::new();
     collect(&root.join("configs"), "", &mut files);
     for (n, t) in &mut files {
-        if n == "atmosphere.json" {
+        if n == "atmosphere" {
             let mut v: Value = serde_json::from_str(t).unwrap();
             v["air"]["deterministic"] = serde_json::json!(true);
             v["air"]["domain_l_m"] = serde_json::json!(7200.0);

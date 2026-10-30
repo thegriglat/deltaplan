@@ -1,5 +1,5 @@
-//! Конфиги облаков: `atmosphere.json → cloud_field`, подсос и поток в облаке (запасные значения —
-//! как в `configs/atmosphere.json`).
+//! Конфиги облаков: секция `atmosphere → cloud_field`, подсос и поток в облаке (запасные значения —
+//! как в секция `atmosphere`).
 use crate::Configs;
 use crate::terms::named_json;
 use serde_json::Value;

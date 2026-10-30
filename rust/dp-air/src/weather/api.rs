@@ -83,10 +83,7 @@ impl Weather {
     pub fn new(cfgs: &Configs, grids: ClimateGrids) -> Result<Weather, Error> {
         let cfg = WeatherConfigs::from_configs(cfgs)?;
         let world = cfgs
-            .files
-            .iter()
-            .find(|(n, _)| n == "world" || n.strip_suffix(".json") == Some("world"))
-            .and_then(|(_, t)| serde_json::from_str::<Value>(t).ok())
+            .value("world")
             .map_or_else(WorldTime::default, |w| WorldTime::from_world(&w));
         let quantum_h = num(&cfg.wm.raw, &["diurnal", "update_s"], 60.0) / 3600.0;
         Ok(Weather {
@@ -108,6 +105,11 @@ impl Weather {
     }
 
     /// Часы мира (`world.time.*`): границы времени и минимальная высота света.
+    /// Час суток по времени полёта `t` с зажимом `world.time` секции `world` (W12 v3).
+    pub fn hour_at(&self, start_hour: f64, speed: f64, t: f64) -> f64 {
+        hour_at(start_hour, speed, t, &self.world)
+    }
+
     pub fn world_time(&self) -> WorldTime {
         self.world
     }

@@ -39,7 +39,7 @@ fn collect_configs(
         } else if p.extension().is_some_and(|e| e == "json") && p.is_file() {
             let text =
                 std::fs::read_to_string(&p).map_err(|e| format!("'{}': {e}", p.display()))?;
-            files.push((name, text));
+            files.push((name.trim_end_matches(".json").to_string(), text));
         }
     }
     Ok(())
@@ -52,7 +52,7 @@ pub fn config_warnings(case: &Case, cfg: &Configs) -> Vec<String> {
         let found = cfg
             .files
             .iter()
-            .find(|(n, _)| n == name || n.strip_suffix(".json") == Some(name.as_str()));
+            .find(|(n, _)| n == name.strip_suffix(".json").unwrap_or(name));
         match found {
             None => out.push(format!(
                 "config '{name}' from the case is not in configs dir"

@@ -1,10 +1,10 @@
 //! Поверхностный порыв на 10 м для пыли (RW-8s, W6 v4): `GustDustModel.gust_ms`
-//! (`scripts/atmosphere/gust_dust_model.gd`, ревизия `c591b1026`).
+//!.
 //!
 //! `порыв = max(u + σ·(g·dir), 0)`, где `u` — профиль ветра на 10 м над землёй (`WindModel.speed_at(10)`),
 //! `σ = √((gust_sigma_frac·u)² + (conv_sigma_k·convective_turbulence_ms)²)`, `g = gust_unit((x, 10, z),
 //! t, u, gust_large_k)` (шум порывов `terms::turb::gust`, переносимый ветром `u`), `dir` — куда дует ветер.
-//! Константы — `configs/atmosphere.json → gust_dust`. Ветер и `convective_turbulence_ms` берутся из
+//! Константы — секция `atmosphere → gust_dust`. Ветер и `convective_turbulence_ms` берутся из
 //! `Terms` на момент вызова; `t` — только фаза шума, любой (в том числе прошлые слоты). Чистая функция
 //! `(x, z, t)` при зафиксированных ветре и погоде.
 //!
@@ -18,7 +18,7 @@ use super::{
 use crate::Configs;
 use serde_json::Value;
 
-/// Константы `atmosphere.json → gust_dust` (запасные — как в `GustDustModel`).
+/// Константы секция `atmosphere → gust_dust` (запасные — как в `GustDustModel`).
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct GustDustCfg {
     /// `gust_sigma_frac`: СКО продольной пульсации у земли — доля среднего ветра.

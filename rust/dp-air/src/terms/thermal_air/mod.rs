@@ -1,5 +1,4 @@
-//! Источники термиков из поля Пикара (RW-10d): перенос `AirThermals` (GDScript,
-//! `scripts/atmosphere/air_model/air_thermals.gd`, AM-07; `docs/guide/air-model.md` →
+//! Источники термиков из поля Пикара (RW-10d): перенос `AirThermals` (AM-07; `docs/guide/air-model.md` →
 //! «Масштаб 2: термики из поля»).
 //!
 //! `AirThermals::build` по среднему полю одного уровня (`Field`) и входам (поток тепла `H`, `z_i`,
@@ -9,7 +8,7 @@
 //! (`owner`, `area`, `flux`), и «между» пузырями — `expected_net`/`expected_up`: сколько
 //! конвективной вертикали поля уже несут пузыри (`with_between` RW-10e вычитает это из `w_conv`).
 //!
-//! Законы (подробно — шапка `air_thermals.gd`): `w* = (g/θ0·H_kin·h)^(1/3)`, `h = max(z_i − hc,
+//! Законы: `w* = (g/θ0·H_kin·h)^(1/3)`, `h = max(z_i − hc,
 //! 300)`; `w_m = (u*³ + 0,28 w*³)^(1/3)`, `Δθ = 6,5·H_kin/w_m`; `Φ = F̄ + max(W̄, 0)` — восходящий
 //! поток поля; компенсирующее опускание `W̄_м` (гаусс `subsidence_smooth_m`) опускает верх слоя
 //! столбца на `|W̄_м⁻|·τ_s`; плотность источников `n = n_A·Φ/Φ̂`, не больше `Φ/(w0·K̄)`; выбор по
@@ -17,10 +16,10 @@
 //! (2 радиуса); вода (VI-7): точка источника только на суше, поток столбца источникам — с его суши.
 //!
 //! ## Числа
-//! GDScript хранит массивы `Packed*` в `f32`, а скаляры и временные — в `f64`. Здесь так же:
+//! Эталон хранит массивы `Packed*` в `f32`, а скаляры и временные — в `f64`. Здесь так же:
 //! массивы — `Vec<f32>`, арифметика — `f64`, а запись в массив округляет до `f32` ровно там, где
 //! это делает GD (в том числе чтение «обратно» из округлённого массива: `kbar` берёт `radius[l]`
-//! после округления). Сравнение `min`/`max`/`clamp` — как в GDScript (`gmin`/`gmax`/`gclamp`:
+//! после округления). Сравнение `min`/`max`/`clamp` — как в эталоне (`gmin`/`gmax`/`gclamp`:
 //! при NaN выбирается второй/нижний аргумент, не как у `f64::min`).
 //!
 //! ## Параллельность
@@ -28,7 +27,7 @@
 //! (`BuildIn::bands`: 0 — по числу потоков, 1 — последовательно); каждая единица работы — чистая
 //! функция столбца/источника, склейка — по порядку полос, поэтому итог от числа полос не зависит
 //! побитно. Выбор источников (жадный по убыванию Φ) и суммы потоков водосборов — последовательные,
-//! в порядке столбцов, как в GD.
+//! в порядке столбцов, как в эталоне.
 //!
 //! ## Границы модели
 //! - Сила источника (`sun`), вода (`is_water`) и высота земли (`height_fn`) приходят снаружи
@@ -67,7 +66,7 @@ pub const HB_B: f64 = 6.5;
 /// Мин. толщина слоя перемешивания, м.
 pub const ZI_MIN: f64 = 300.0;
 /// Пик Гедеона / средний подъём Аллена: пик = e·среднее; среднее Аллена максимально 0,4575.
-// литерал e как в GD (`2.718281828`): сила источника совпадает с ним, а не с `E`
+// литерал e как в эталоне (`2.718281828`): сила источника совпадает с ним, а не с `E`
 #[allow(clippy::approx_constant)]
 pub const K_ALLEN: f64 = 2.718281828 * 0.4575;
 /// Доля ядра Гедеона в потоке (`∫₀¹ e^(−u)(1 − u) du = e⁻¹`).
@@ -89,8 +88,8 @@ pub const B: usize = 4;
 /// Доля суши столбца — по `LAND_N × LAND_N` точкам.
 pub const LAND_N: usize = 4;
 
-/// `MAX`/`MIN`/`CLAMP` Godot (`maxf`, `minf`, `clampf`): сравнением, а не `f64::max` — при NaN
-/// результат тот же, что у GDScript.
+/// `MAX`/`MIN`/`CLAMP` эталона (`maxf`, `minf`, `clampf`): сравнением, а не `f64::max` — при NaN
+/// результат тот же, что у эталона.
 #[inline]
 pub fn gmax(a: f64, b: f64) -> f64 {
     if a > b { a } else { b }
@@ -110,7 +109,7 @@ pub fn gclamp(x: f64, lo: f64, hi: f64) -> f64 {
     }
 }
 
-/// `smoothstep(from, to, x)` Godot.
+/// `smoothstep(from, to, x)` эталона.
 pub fn smoothstep(from: f64, to: f64, x: f64) -> f64 {
     if (from - to).abs() <= 1.0e-5 * from.abs().max(1.0) {
         return if x <= from { 0.0 } else { 1.0 };
@@ -140,7 +139,7 @@ pub fn allen_density(zi: f64) -> f64 {
     ALLEN_N / (zi * allen_r2(0.5, zi))
 }
 
-/// Конфиг сборки: `atmosphere.json → thermal` (+ погода: доля жизни `duty`, кромка `cloudbase_msl`).
+/// Конфиг сборки: секция `atmosphere → thermal` (+ погода: доля жизни `duty`, кромка `cloudbase_msl`).
 #[derive(Clone, Debug, PartialEq)]
 pub struct AirThermalsCfg {
     /// Доля циклов с термиком (`thermal_duty` погоды).
@@ -163,7 +162,7 @@ pub struct AirThermalsCfg {
 }
 
 impl Default for AirThermalsCfg {
-    /// Значения `configs/atmosphere.json → thermal`.
+    /// Значения секция `atmosphere → thermal`.
     fn default() -> Self {
         AirThermalsCfg {
             duty: 1.0,
@@ -194,7 +193,7 @@ fn mid(v: Option<&Value>, dv: f64) -> f64 {
 }
 
 impl AirThermalsCfg {
-    /// Из секции `thermal` конфига `atmosphere.json`; `duty` и `cloudbase_msl` — из погоды и облаков.
+    /// Из секции `thermal` конфига секция `atmosphere`; `duty` и `cloudbase_msl` — из погоды и облаков.
     /// Нет ключа — значение по умолчанию (`Default`).
     pub fn from_thermal(thermal: &Value, duty: f64, cloudbase_msl: f64) -> Self {
         let d = AirThermalsCfg::default();

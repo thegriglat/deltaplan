@@ -18,7 +18,7 @@ fn data_dir() -> PathBuf {
 
 fn configs() -> Arc<Configs> {
     let t = std::fs::read_to_string(repo().join("configs/atmosphere.json")).unwrap();
-    Arc::new(Configs::new(vec![("atmosphere.json".into(), t)]))
+    Arc::new(Configs::new(vec![("atmosphere".into(), t)]))
 }
 
 fn terms_for(seed: u64, speed: f64, from: f64, sun: f64, cover: f64, conv: f64) -> Terms {

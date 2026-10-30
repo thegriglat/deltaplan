@@ -1,7 +1,7 @@
 //! Логика `DpWeather` (W12 v2) без типов Godot: разбор JSON, коды W1, вызовы `dp_air::weather`.
 //! Класс gdext в `lib.rs` только переводит типы Godot. Состояние — один `Arc<Weather>`;
 //! до `configure` числа — NaN, словари (JSON-строки) — `{}`, `sky_params` — пусто.
-use dp_air::weather::{ClimateGrids, PlaceCtx, Weather, hour_at, valley_of};
+use dp_air::weather::{ClimateGrids, PlaceCtx, Weather, valley_of};
 use dp_air::{Configs, Forecast};
 use serde_json::{Value, json};
 use std::sync::Arc;
@@ -170,12 +170,10 @@ impl WeatherBridge {
         self.weather.as_ref().map_or(f64::NAN, |w| w.quantum_h())
     }
 
-    pub fn hour_at(&self, start_hour: f64, speed: f64, t: f64, world_time: f64) -> f64 {
-        // `world_time` — зарезервированный аргумент W12 §2 (границы времени берутся из конфига).
-        let _ = world_time;
+    pub fn hour_at(&self, start_hour: f64, speed: f64, t: f64) -> f64 {
         self.weather
             .as_ref()
-            .map_or(f64::NAN, |w| hour_at(start_hour, speed, t, &w.world_time()))
+            .map_or(f64::NAN, |w| w.hour_at(start_hour, speed, t))
     }
 
     pub fn valley_of(&self, samples: &[f32], percentile: f64) -> f64 {

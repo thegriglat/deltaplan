@@ -15,7 +15,7 @@
 //!   дальше задача отпускается сменой поколения, её поле не подаётся, она сама доходит до
 //!   ближайшей проверки отмены).
 //! - Загрузка и `start_at` подаются сами фоном (без подмены), пересчёт в полёте — главным
-//!   потоком в `advance_to`: при `air.deterministic = true` `advance_to` на игровом моменте
+//!   потоком в `advance_to`: при `air.deterministic = true` `advance_to` на моменте
 //!   подачи (начало срока `recompute_game_min` или момент смены условий) ждёт фон и подаёт поле
 //!   с началом подмены в этот момент; иначе не ждёт и подаёт готовое при следующем `advance_to`.
 //!
@@ -41,7 +41,6 @@
 //! ## Кеш полей (W3 v2/W4 v3)
 //! `set_cache_dir` — до `load_place` (или до первой загрузки): каталог читает и пишет задача
 //! загрузки (`field::runtime`); пусто — без кеша. Нужен `header.model_hash` места.
-use crate::field::baked::{BakedField, encode_baked};
 use crate::field::clipmap::{ClipMap, WinReport, run_shift};
 use crate::field::field_cache::FieldCache;
 use crate::field::field_set::FieldSet;
@@ -49,6 +48,7 @@ use crate::field::runtime::{
     CondRec, Faults, JobErr, JobIn, JobOut, JobReport, Pair, RtCfg, Source, StageCounter, dir_key,
     needs_recompute, run_job, slot, slot_hour,
 };
+use crate::field::solved::{SolvedField, encode_solved};
 use crate::field::weather_core::{WeatherInputs, hour_at};
 use crate::field::wind_field::{Field, Limits};
 use crate::terms::{self, Terms};
@@ -260,7 +260,7 @@ impl Shared {
         }
         let mut meta = serde_json::Map::new();
         meta.insert("inflow_k".into(), serde_json::json!(e.k));
-        let b = BakedField {
+        let b = SolvedField {
             location: e.location.clone(),
             site: String::new(),
             model_hash: e.model_hash.clone(),
@@ -275,7 +275,7 @@ impl Shared {
         extra.insert("blend_s".into(), serde_json::json!(e.blend_s));
         extra.insert("blend_t0".into(), serde_json::json!(e.blend_t0));
         let key = serde_json::json!({});
-        match encode_baked(&b, &key, &extra) {
+        match encode_solved(&b, &key, &extra) {
             Ok((header_json, data)) => FieldExport {
                 version: e.version,
                 blend_s: e.blend_s,
@@ -430,7 +430,7 @@ fn job_main(
     let cfg = job.cfg.clone();
     let place_meta = ExpMeta::of(&job.place, 1.0);
     let res = std::panic::catch_unwind(AssertUnwindSafe(|| match shift {
-        Some((q, pilot)) => run_shift(job, q, pilot),
+        Some((q, focus)) => run_shift(job, q, focus),
         None => run_job(job),
     }))
     .unwrap_or_else(|_| Err(JobErr::Failed("internal error in the field task".into())));
@@ -520,8 +520,8 @@ pub struct Formula {
     /// Окна клипмапа и область поля в атмосфере (`None` — окон нет: выключены, нет фокуса, поле
     /// из файла).
     clip: Option<Arc<ClipMap>>,
-    /// Поле из файла (запечённое, кеш) с окнами: окна пересчитываются, когда фокус вышел из них.
-    baked_pending: bool,
+    /// Поле из файла (решённое, кеш) с окнами: окна пересчитываются, когда фокус вышел из них.
+    file_pending: bool,
     /// Отказ окон: новая попытка не раньше этого времени атмосферы.
     retry_at: f64,
     /// `Status.reason` занят отказом окон (сбросится, когда окна посчитаются).
@@ -612,7 +612,7 @@ impl Formula {
             cache_dir: None,
             place_hash: Arc::new(OnceLock::new()),
             clip: None,
-            baked_pending: false,
+            file_pending: false,
             retry_at: 0.0,
             win_failed: false,
             shift_req: None,
@@ -638,7 +638,7 @@ impl Formula {
     }
 
     /// Дождаться фоновых шагов слагаемых (термики, облака); `false` - вышло время. Для тестов
-    /// и бенчей: игра не ждёт.
+    /// и бенчей: эталон не ждёт.
     pub fn wait_terms(&self, limit: Duration) -> bool {
         let tm = self.sh.snapshot().terms.clone();
         tm.slots
@@ -933,10 +933,10 @@ impl Formula {
             _ => {}
         }
         if job.kind == Kind::Load {
-            self.baked_pending =
+            self.file_pending =
                 out.report.source != Source::Computed && self.sh.snapshot().fs.levels().len() >= 2;
         } else {
-            self.baked_pending = false;
+            self.file_pending = false;
         }
         self.clip = out.clip;
         if job.kind == Kind::Flight {
@@ -1025,7 +1025,7 @@ impl Formula {
         });
     }
 
-    /// Нужен ли пересчёт на моменте `t`; запускает задачу. `cursor` — игровое время, до
+    /// Нужен ли пересчёт на моменте `t`; запускает задачу. `cursor` — время, до
     /// которого подмена уже продвинута.
     fn try_launch(&mut self, t: f64, cursor: f64) -> bool {
         if self.failed || self.place.is_none() {
@@ -1098,15 +1098,15 @@ impl Formula {
     }
 
     /// Окна в покое (пересчёта поля нет): сдвиг за первым фокусом или, для поля из файла с окнами,
-    /// пересчёт, когда фокус вышел из окон файла (`_pilot_left_baked_windows`).
+    /// пересчёт, когда фокус вышел из окон файла.
     fn plan_windows(&mut self, cfg: &RtCfg, t: f64, cursor: f64) -> Option<(Kind, CondRec, f64)> {
         if !cfg.windows_wanted || cfg.faults.no_windows {
             return None;
         }
         let f = self.focuses.first()?;
-        let pilot = [f64::from(f.pos[0]), -f64::from(f.pos[2])];
-        if self.baked_pending {
-            if !self.pilot_left_baked(cfg, pilot) {
+        let focus = [f64::from(f.pos[0]), -f64::from(f.pos[2])];
+        if self.file_pending {
+            if !self.focus_left_windows(cfg, focus) {
                 return None;
             }
             let (cond, inputs) = (self.cond.as_ref()?, self.inputs.as_ref()?.as_ref().ok()?);
@@ -1121,17 +1121,17 @@ impl Formula {
         if t < self.retry_at {
             return None;
         }
-        let q = clip.shift_target(pilot, cfg.shift_frac)?;
+        let q = clip.shift_target(focus, cfg.shift_frac)?;
         let rec = clip.rec.clone();
-        self.shift_req = Some((q, pilot));
+        self.shift_req = Some((q, focus));
         Some((Kind::Shift, rec, t.max(cursor)))
     }
 
     /// Фокус вышел из окон поля из файла: дальше `window_shift_frac` стороны от центра уровня.
-    /// Как `AirRuntime._pilot_left_baked_windows`: меньше двух уровней — нет; проверяются уровни с
+    /// Меньше двух уровней — нет; проверяются уровни с
     /// индекса 1 (от мелкого к грубому): мелкое окно (50 м) пропускается, окно 100 м и область
     /// проверяются.
-    fn pilot_left_baked(&self, cfg: &RtCfg, pilot: [f64; 2]) -> bool {
+    fn focus_left_windows(&self, cfg: &RtCfg, focus: [f64; 2]) -> bool {
         let pb = self.sh.snapshot();
         let lv = pb.fs.levels();
         if lv.len() < 2 {
@@ -1141,7 +1141,7 @@ impl Formula {
             let g = f.grid();
             let side = g.nx as f64 * g.dx;
             let (cx, cy) = (g.x0 + 0.5 * side, g.y0 + 0.5 * g.ny as f64 * g.dx);
-            (pilot[0] - cx).abs().max((pilot[1] - cy).abs()) > cfg.shift_frac * side
+            (focus[0] - cx).abs().max((focus[1] - cy).abs()) > cfg.shift_frac * side
         })
     }
 
@@ -1181,7 +1181,7 @@ impl Formula {
 
     fn reset_clip(&mut self) {
         self.clip = None;
-        self.baked_pending = false;
+        self.file_pending = false;
         self.retry_at = 0.0;
         self.win_failed = false;
         self.shift_req = None;

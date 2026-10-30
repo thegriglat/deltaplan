@@ -19,7 +19,12 @@ half = "2"
 sha2 = "0.10"
 picard_rs = { path = "../picard_rs" }
 
+[features]
+# Читалка фикстур (tests/support/fixtures.rs) для тестов, бенчей и стенда.
+fixtures = []
+
 [dev-dependencies]
+dp-air = { path = ".", features = ["fixtures"] }
 criterion = { version = "0.5", default-features = false }
 brotli-decompressor = "2.5"
 

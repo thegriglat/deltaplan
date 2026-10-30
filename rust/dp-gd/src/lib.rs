@@ -288,13 +288,13 @@ impl DpAir {
     #[func]
     fn cores(&mut self, center: Vector3, radius: f64) -> PackedFloat32Array {
         let c = [center.x, center.y, center.z];
-        packed(self.bridge.cores(c, radius as f32, &mut self.cores))
+        packed(&self.bridge.cores(c, radius as f32, &mut self.cores))
     }
     /// Облака, шаг `CLOUD_STRIDE`.
     #[func]
     fn clouds(&mut self, center: Vector3, radius: f64) -> PackedFloat32Array {
         let c = [center.x, center.y, center.z];
-        packed(self.bridge.clouds(c, radius as f32, &mut self.clouds))
+        packed(&self.bridge.clouds(c, radius as f32, &mut self.clouds))
     }
     /// Гребни волн, шаг `CREST_STRIDE`; `center` — (x, z).
     #[func]
@@ -312,7 +312,7 @@ impl DpAir {
             spacing as f32,
             &mut self.crests,
         );
-        packed(r)
+        packed(&r)
     }
     /// Объекты-облака W6 v4, шаг `OBJ_STRIDE`; `radius < 0` - без ограничения, `t` не конечно -
     /// текущее время.
@@ -320,7 +320,8 @@ impl DpAir {
     fn cloud_objects(&mut self, center: Vector3, radius: f64, t: f64) -> PackedFloat32Array {
         let c = [center.x, center.y, center.z];
         packed(
-            self.bridge
+            &self
+                .bridge
                 .cloud_objects(c, radius as f32, t, &mut self.objects),
         )
     }
@@ -458,8 +459,8 @@ impl DpWeather {
         self.inner.quantum_h()
     }
     #[func]
-    fn hour_at(&self, start_hour: f64, speed: f64, t: f64, world_time: f64) -> f64 {
-        self.inner.hour_at(start_hour, speed, t, world_time)
+    fn hour_at(&self, start_hour: f64, speed: f64, t: f64) -> f64 {
+        self.inner.hour_at(start_hour, speed, t)
     }
     #[func]
     fn valley_of(&self, samples: PackedFloat32Array, percentile: f64) -> f64 {

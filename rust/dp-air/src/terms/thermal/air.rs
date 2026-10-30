@@ -6,8 +6,8 @@
 use super::cells::{AIR_IA, Setup};
 use super::life::{AtmoThermal, pair};
 use super::{CloudHooks, GroundSource};
-use crate::compat::rng::Pcg32;
 use crate::field::wind_field::Field;
+use crate::rand::Pcg32;
 use crate::terms::thermal_air::{
     AirThermals, AirThermalsCfg, BuildIn, FillWeather, PickGround, has_inputs, pick_in_column,
     signature,
@@ -79,7 +79,7 @@ pub type LandCache = Option<(String, Arc<Vec<f32>>)>;
 pub struct AirBuild {
     pub level: Arc<Field>,
     pub ground: Arc<dyn GroundSource>,
-    /// Секция `thermal` конфига `atmosphere.json`.
+    /// Секция `thermal` конфига секция `atmosphere`.
     pub thermal: Value,
     pub key: AirKey,
     pub u10: f64,

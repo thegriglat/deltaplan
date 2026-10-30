@@ -1,9 +1,9 @@
 //! RW-8b: каркас суммы ветра (`terms::sum`, `terms::decompose`) — при нулевых слотах опрос
 //! побитно как прежний `sample_point` (копия старой функции здесь), `decompose` по именам W7 с
 //! инвариантами, порядок суммы и ограничители на слотах-пробниках, полоса края `a < 1`.
-use dp_air::field::baked::parse_baked;
 use dp_air::field::field_set::FieldSet;
 use dp_air::field::runtime::{Faults, RtCfg, ground_height};
+use dp_air::field::solved::parse_solved;
 use dp_air::terms::{
     self, Analytic, AnalyticMean, AnalyticTurb, Ctx, Extra, ExtraOut, Rec, Slots, Terms, Thermal,
     ThermalOut, Turb, TurbMean, TurbOut, WeatherView,
@@ -32,7 +32,10 @@ fn collect(dir: &Path, prefix: &str, out: &mut Vec<(String, String)>) {
         if p.is_dir() {
             collect(&p, &format!("{name}/"), out);
         } else if p.extension().is_some_and(|x| x == "json") {
-            out.push((name, std::fs::read_to_string(&p).unwrap()));
+            out.push((
+                name.trim_end_matches(".json").to_string(),
+                std::fs::read_to_string(&p).unwrap(),
+            ));
         }
     }
 }
@@ -42,7 +45,7 @@ fn configs() -> Configs {
     let mut files = Vec::new();
     collect(&repo().join("configs"), "", &mut files);
     for (n, t) in &mut files {
-        if n == "atmosphere.json" {
+        if n == "atmosphere" {
             let mut v: Value = serde_json::from_str(t).unwrap();
             v["air"]["deterministic"] = serde_json::json!(true);
             v["air"]["domain_l_m"] = serde_json::json!(7200.0);
@@ -133,7 +136,7 @@ fn old_sample_point(fs: &FieldSet, place: &Place, p: [f32; 3]) -> [f32; 4] {
 /// Набор уровней из выдачи поля `Formula` (те же уровни, что у опросов).
 fn field_set_of(m: &Formula, edge_cells: Option<f64>) -> FieldSet {
     let e = m.field_export();
-    let b = parse_baked(&e.header_json, &e.data).unwrap();
+    let b = parse_solved(&e.header_json, &e.data).unwrap();
     let rt = RtCfg::from_configs(&configs()).unwrap();
     let mut fs = FieldSet::new(rt.limits, edge_cells.unwrap_or(rt.edge_blend_cells));
     fs.set_field(b.levels, 0.0);

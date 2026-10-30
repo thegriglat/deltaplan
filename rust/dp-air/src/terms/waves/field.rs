@@ -1,4 +1,4 @@
-//! `WaveField` (`scripts/atmosphere/wave_field.gd`, VR-27): подветренные волны — упрощённая
+//! `WaveField`: подветренные волны — упрощённая
 //! линейная теория захваченных волн за хребтом.
 //!
 //! При устойчивой стратификации (частота Брента — Вяйсяля N) поток, перевалив хребет, колеблется
@@ -24,7 +24,7 @@ const KEY_MUL: i64 = 1 << 21;
 /// η, ∂η/∂x (на 1 м/с ветра), высота гребня хребта против ветра.
 const FIELDS: usize = 3;
 
-/// `atmosphere.json` → `wave` (запасные значения — как в `configs/atmosphere.json`).
+/// секция `atmosphere` → `wave` (запасные значения — как в секция `atmosphere`).
 #[derive(Clone, Debug, PartialEq)]
 pub struct WaveCfg {
     pub default_n_per_s: f64,
@@ -109,7 +109,7 @@ impl WaveCfg {
     }
 }
 
-/// `smoothstep` Godot: при `from == to` — ступенька.
+/// `smoothstep` эталона: при `from == to` — ступенька.
 pub(super) fn smoothstep(from: f64, to: f64, x: f64) -> f64 {
     if from == to {
         return if x < from { 0.0 } else { 1.0 };
@@ -122,7 +122,7 @@ fn lerp(a: f64, b: f64, t: f64) -> f64 {
     a + (b - a) * t
 }
 
-/// Направление ветра (куда дует) как `Vector2` Godot: `f32`, нормировано при длине² > 1e-6.
+/// Направление ветра (куда дует) как `Vector2` эталона: `f32`, нормировано при длине² > 1e-6.
 pub fn dir_f32(d: [f64; 2]) -> [f32; 2] {
     let (x, y) = (d[0] as f32, d[1] as f32);
     let l2 = x * x + y * y;
@@ -308,7 +308,7 @@ impl WaveField {
         let mut cand: Vec<Crest> = Vec::new();
         for j in -n..=n {
             for i in -n..=n {
-                // `Vector2` Godot — f32: точка сетки округляется, шаг к соседям считается в f64
+                // `Vector2` эталона — f32: точка сетки округляется, шаг к соседям считается в f64
                 let p = [
                     (f64::from(center[0]) + f64::from(i) * step) as f32,
                     (f64::from(center[1]) + f64::from(j) * step) as f32,

@@ -2,8 +2,8 @@
 //! Класс gdext в `lib.rs` только переводит типы Godot в срезы и обратно, поэтому всё здесь
 //! проверяется `cargo test` без запуска Godot.
 use dp_air::{
-    AirModel, Cloud, Conditions, Configs, Core, Crest, FieldExport, Focus, OBJ_STRIDE, ObjRecord,
-    Place, PlaceHeader, SampleMode, as_f32s,
+    AirModel, Cloud, Conditions, Configs, Core, Crest, FieldExport, Focus, ObjRecord, Place,
+    PlaceHeader, SampleMode,
 };
 use std::sync::{Arc, OnceLock};
 
@@ -341,45 +341,45 @@ impl Bridge {
     }
 
     /// Описания W6 плоским массивом (`CORE_STRIDE` = 15 и т. д.) в переданный буфер.
-    pub fn cores<'a>(&self, center: [f32; 3], radius: f32, buf: &'a mut Vec<Core>) -> &'a [f32] {
+    pub fn cores(&self, center: [f32; 3], radius: f32, buf: &mut Vec<Core>) -> Vec<f32> {
         self.model.cores(center, radius, buf);
-        as_f32s(buf)
+        buf.iter().flat_map(Core::to_array).collect()
     }
 
-    pub fn clouds<'a>(&self, center: [f32; 3], radius: f32, buf: &'a mut Vec<Cloud>) -> &'a [f32] {
+    pub fn clouds(&self, center: [f32; 3], radius: f32, buf: &mut Vec<Cloud>) -> Vec<f32> {
         self.model.clouds(center, radius, buf);
-        as_f32s(buf)
+        buf.iter().flat_map(Cloud::to_array).collect()
     }
 
-    pub fn wave_crests<'a>(
+    pub fn wave_crests(
         &self,
         center: [f32; 2],
         radius: f32,
         min_eta: f32,
         spacing: f32,
-        buf: &'a mut Vec<Crest>,
-    ) -> &'a [f32] {
+        buf: &mut Vec<Crest>,
+    ) -> Vec<f32> {
         self.model
             .wave_crests(center, radius, min_eta, spacing, buf);
-        as_f32s(buf)
+        buf.iter().flat_map(Crest::to_array).collect()
     }
 
     /// Объекты-облака W6 v4, шаг `OBJ_STRIDE`: `radius < 0` - без ограничения, `t` не конечно -
     /// текущее время модели; центр или радиус не числа - пусто.
-    pub fn cloud_objects<'a>(
+    pub fn cloud_objects(
         &self,
         center: [f32; 3],
         radius: f32,
         t: f64,
-        buf: &'a mut Vec<ObjRecord>,
-    ) -> &'a [f32] {
+        buf: &mut Vec<ObjRecord>,
+    ) -> Vec<f32> {
         if !finite3(&center) || radius.is_nan() {
             buf.clear();
-            return &[];
+            return Vec::new();
         }
         let t = if t.is_finite() { t } else { self.time_s() };
         self.model.cloud_objects(center, radius, t, buf);
-        obj_f32s(buf)
+        buf.iter().flat_map(ObjRecord::to_array).collect()
     }
 
     /// `[enabled, wavelength_m]`; нечисло в ответе модели - 0.
@@ -473,13 +473,6 @@ fn layer(r: Option<Arc<dp_air::Raster>>, name: &str) -> Vec<f32> {
             .map(|(_, d)| d.clone())
     })
     .unwrap_or_default()
-}
-
-/// Записи объектов как плоский `&[f32]` без копирования.
-fn obj_f32s(v: &[ObjRecord]) -> &[f32] {
-    const { assert!(size_of::<ObjRecord>() == OBJ_STRIDE * 4 && align_of::<ObjRecord>() == 4) };
-    // SAFETY: ObjRecord - repr(C) из 22 f32 без отступов (const-assert здесь и в dp-air).
-    unsafe { std::slice::from_raw_parts(v.as_ptr().cast::<f32>(), v.len() * OBJ_STRIDE) }
 }
 
 #[cfg(test)]

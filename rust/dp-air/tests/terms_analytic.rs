@@ -6,9 +6,9 @@
 //! восстанавливается по эталону — поля Пикара в тесте нет), шум `gust_unit` и `GroundField` — по
 //! дампу Godot (`tests/data/RW-9/`, опорная ревизия `c591b1026`, `dump.sh`). Допуски — W8:
 //! `|Δv| ≤ 0,05 м/с + 2 % |v_ref|`, σ `0,02 + 5 %`.
-use dp_air::compat::noise::{FastNoise, Fractal};
 use dp_air::field::field_set::FieldSet;
 use dp_air::fixtures::{Case, CaseData, read_case, read_case_data, read_place};
+use dp_air::noise::{FastNoise, Fractal};
 use dp_air::terms::analytic::ground::{GroundField, PlaceSig};
 use dp_air::terms::analytic::lee::smoothstep;
 use dp_air::terms::analytic::noise::{GustNoise, NoiseCfg};
@@ -29,7 +29,10 @@ fn collect(dir: &Path, prefix: &str, out: &mut Vec<(String, String)>) {
         if p.is_dir() {
             collect(&p, &format!("{name}/"), out);
         } else if p.extension().is_some_and(|x| x == "json") {
-            out.push((name, std::fs::read_to_string(&p).unwrap()));
+            out.push((
+                name.trim_end_matches(".json").to_string(),
+                std::fs::read_to_string(&p).unwrap(),
+            ));
         }
     }
 }
@@ -39,7 +42,7 @@ fn configs_with(patch: impl Fn(&mut Value)) -> Arc<Configs> {
     let mut files = Vec::new();
     collect(&repo().join("configs"), "", &mut files);
     for (n, t) in &mut files {
-        if n == "atmosphere.json" {
+        if n == "atmosphere" {
             let mut v: Value = serde_json::from_str(t).unwrap();
             patch(&mut v);
             *t = serde_json::to_string(&v).unwrap();

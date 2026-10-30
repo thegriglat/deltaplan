@@ -1,5 +1,5 @@
-//! Коэффициенты суммы ветра из конфига `atmosphere.json` и словаря погоды (`Atmosphere._cache_coefficients`
-//! и стартовые значения `_configure_legacy`, RW-12c). Чистые числа без Godot.
+//! Коэффициенты суммы ветра из конфига секция `atmosphere` и словаря погоды (`Atmosphere._cache_coefficients`
+//! и стартовые значения `_configure_legacy`, RW-12c). Чистые числа без движка.
 //!
 //! Не здесь: `_advect` (скорость ветра на высоте сноса — зависит от профиля ветра, RW-9).
 use serde_json::{Map, Value};
@@ -70,7 +70,7 @@ pub struct Coefficients {
 }
 
 impl Coefficients {
-    /// Из `atmosphere.json` и словаря погоды. Ключ блока, которого нет в конфиге, — 0 (в GD — ошибка;
+    /// Из секция `atmosphere` и словаря погоды. Ключ блока, которого нет в конфиге, — 0 (в GD — ошибка;
     /// отгруженный конфиг ключи содержит); необязательные ключи `lee` — запасные значения GD.
     pub fn new(atm: &Value, weather: &Map<String, Value>) -> Self {
         let g = |sec: &str, k: &str, def: f64| num(atm, &[sec, k], def);
@@ -192,7 +192,7 @@ impl Coefficients {
 
 /// Условия устойчивости профиля ветра из погоды (`Atmosphere._wind_conditions`): (высота солнца часа, °;
 /// облачность 0..1). Час — `_derived.sun_elev_deg` (пресет без часа — `clouds.sun_elevation_deg` из
-/// `atmosphere.json`), облачность — `sky_params(_derived.sky).cover` (пресет — ясно, 0).
+/// секция `atmosphere`), облачность — `sky_params(_derived.sky).cover` (пресет — ясно, 0).
 pub fn wind_conditions(atm: &Value, weather: &WeatherMap, wm: &WeatherModelCfg) -> (f64, f64) {
     let dv = weather.get("_derived").and_then(Value::as_object);
     let sun = dv

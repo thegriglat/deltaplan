@@ -2,16 +2,16 @@
 //!
 //! Две группы:
 //! - **против дампа GD** (`tests/data/RW-10d/`, опорная ревизия `c591b1026`, `ongudai_medium`): крейт
-//!   строит источники из того же поля (запечённое TI-К3 f16, `field::baked::parse_baked`), что и GD
+//!   строит источники из того же поля (запечённое TI-К3 f16, `field::solved::parse_solved`), что и GD
 //!   в дампе; сила источника (`pick_in_column`) и вода (`land_fraction`) берутся из журнала вызовов
 //!   GD по точкам — любое расхождение RNG или порядка вызовов даёт промах таблицы, а не тихую
 //!   подмену;
 //! - **перенос тестов GDScript** `test_air_thermals.gd` (без частей, где нужна атмосфера),
 //!   `test_air_thermals_parallel.gd`, `test_air_thermals_relief.gd`, `test_subsidence.gd` (без
 //!   части с `CloudField`) на синтетическом поле.
-use dp_air::compat::rng::Pcg32;
-use dp_air::field::baked::parse_baked;
+use dp_air::field::solved::parse_solved;
 use dp_air::field::wind_field::{Field, FieldGrid, FieldMeta, Limits, Z0};
+use dp_air::rand::Pcg32;
 use dp_air::terms::thermal_air::{
     AirThermals, AirThermalsCfg, BuildIn, FillWeather, K_ALLEN, PickGround, ZI_MIN, allen_r2,
     has_inputs, land_fraction, pick_in_column,
@@ -102,7 +102,7 @@ fn load_case(name: &str) -> Case {
         .join(name);
     let hdr = std::fs::read_to_string(dir.join("field.json")).unwrap();
     let bin = std::fs::read(dir.join("field.bin")).unwrap();
-    let mut b = parse_baked(&hdr, &bin).unwrap();
+    let mut b = parse_solved(&hdr, &bin).unwrap();
     let mut field = b.levels.remove(0);
     field.edge_cells = r.num("edge_cells");
     let cfg =
@@ -1013,7 +1013,7 @@ fn pick_det(i: usize, j: usize) -> Option<[f32; 2]> {
     if (i * 31 + j * 17).is_multiple_of(7) {
         return None;
     }
-    let mut rng = Pcg32::from_seed(dp_air::compat::hash::hash_v3i(5, i as i32, j as i32) as u64);
+    let mut rng = Pcg32::from_seed(dp_air::hash::hash_v3i(5, i as i32, j as i32) as u64);
     let o = -(N as f64) * DX * 0.5;
     let x = o + (i as f64 + rng.randf_range(0.1, 0.9) as f64) * DX;
     let z = -(o + (j as f64 + rng.randf_range(0.1, 0.9) as f64) * DX);

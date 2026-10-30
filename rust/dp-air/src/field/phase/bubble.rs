@@ -8,7 +8,7 @@ use super::prepare::Prepared;
 ///
 /// Скорость пузыря: `u_top·(−r + (1 + r)·t²)`, `t = z_agl/depth` (от обратного потока у земли к
 /// `u_top` на кромке), `u_top` — модуль скорости на нижнем уровне линейной теории.
-/// Модуль `u_top` — в f32, как `Vector2.length()` GDScript.
+/// Модуль `u_top` — в f32, как `Vector2.length()` эталона.
 pub fn wind_b(p: &Prepared, sl: &Slab, c: usize, zmsl: f64) -> Option<[f64; 3]> {
     let hc = p.cols.hc[c];
     let zagl = zmsl - hc;
