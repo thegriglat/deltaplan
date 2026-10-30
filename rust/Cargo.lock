@@ -312,6 +312,7 @@ dependencies = [
  "criterion",
  "dp-air",
  "half",
+ "multiversion",
  "picard_rs",
  "rayon",
  "serde",

@@ -96,6 +96,20 @@ pub fn surface_gust_many(terms: &Terms, xz: &[[f32; 2]], t: &[f64], out: &mut [f
     let u = terms.wind.speed_at(10.0);
     let dir = terms.wind.dir();
     let conv = terms.weather.f64_or("convective_turbulence_ms", 0.0);
+    gust_batch(sg, (u, dir, conv), xz, t, out);
+}
+
+#[cfg_attr(
+    target_arch = "x86_64",
+    multiversion::multiversion(targets("x86_64+avx2+fma"))
+)]
+fn gust_batch(
+    sg: &SurfaceGust,
+    (u, dir, conv): (f64, [f64; 2], f64),
+    xz: &[[f32; 2]],
+    t: &[f64],
+    out: &mut [f32],
+) {
     for ((o, p), &ti) in out.iter_mut().zip(xz).zip(t) {
         *o = sg.gust_ms(p[0], p[1], ti, u, dir, conv);
     }

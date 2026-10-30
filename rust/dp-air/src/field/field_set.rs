@@ -197,12 +197,7 @@ impl FieldSet {
             .par_chunks_mut(256)
             .zip(pos[..n].par_chunks(256))
             .zip(ground_h[..n].par_chunks(256))
-            .for_each(|((o, p), g)| {
-                for q in 0..o.len() {
-                    let r = self.sample(p[q], g[q]);
-                    o[q] = [r.v[0] as f32, r.v[1] as f32, r.v[2] as f32, r.share as f32];
-                }
-            });
+            .for_each(|((o, p), g)| sample_chunk(self, o, p, g));
     }
 
     /// θ′ (К), взвешенная долей поля: `(вклад, доля)`.
@@ -349,4 +344,16 @@ fn turb_levels(lv: &[Arc<Field>], pos: [f32; 3], ground_h: f32) -> [f32; T_SIZE 
     }
     acc[T_SIZE] = share as f32;
     acc
+}
+
+#[cfg_attr(
+    target_arch = "x86_64",
+    multiversion::multiversion(targets("x86_64+avx2+fma"))
+)]
+fn sample_chunk(this: &FieldSet, o: &mut [[f32; 4]], p: &[[f32; 3]], g: &[f32]) {
+    let n = o.len().min(p.len()).min(g.len());
+    for ((o, &p), &g) in o[..n].iter_mut().zip(&p[..n]).zip(&g[..n]) {
+        let r = this.sample(p, g);
+        *o = [r.v[0] as f32, r.v[1] as f32, r.v[2] as f32, r.share as f32];
+    }
 }

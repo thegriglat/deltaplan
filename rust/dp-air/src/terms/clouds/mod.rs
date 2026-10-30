@@ -431,7 +431,14 @@ pub fn clouds(terms: &Terms, center: [f32; 3], radius: f32, t: f64, out: &mut Ve
 
 /// Плотность облака в точках (`cloud_density_many`); не конечная точка - 0.
 pub fn cloud_density_many(terms: &Terms, pts: &[[f32; 3]], out: &mut [f32]) {
-    let ph = terms.clouds.physics();
+    density_batch(terms.clouds.physics(), pts, out);
+}
+
+#[cfg_attr(
+    target_arch = "x86_64",
+    multiversion::multiversion(targets("x86_64+avx2+fma"))
+)]
+fn density_batch(ph: &CloudPhysics, pts: &[[f32; 3]], out: &mut [f32]) {
     for (o, p) in out.iter_mut().zip(pts) {
         *o = 0.0;
         if p.iter().all(|v| v.is_finite()) {
