@@ -29,7 +29,6 @@ const SECTIONS := ["atmosphere", "weather_model", "surface_heat", "world"]
 static var paths := DEFAULT_PATHS.duplicate()
 static var _dp: RefCounted = null
 static var _missing := false
-static var _hour_at_args := -1
 
 
 ## Подменить пути сеток (тесты) и пересоздать DpWeather; пустой словарь — пути по умолчанию.
@@ -101,9 +100,6 @@ static func dp() -> RefCounted:
 		push_error("Weather: DpWeather.configure вернул %d" % code)
 		_missing = true
 		return null
-	for m: Dictionary in w.get_method_list():
-		if m.name == "hour_at":
-			_hour_at_args = (m.args as Array).size()
 	_dp = w
 	return _dp
 
@@ -239,8 +235,6 @@ static func hour_at(start_hour: float, speed: float, t: float) -> float:
 	var w := dp()
 	if w == null:
 		return start_hour
-	if _hour_at_args == 4:
-		return float(w.hour_at(start_hour, speed, t, 0.0))
 	return float(w.hour_at(start_hour, speed, t))
 
 

@@ -5,7 +5,7 @@ module: "haze-humidity"
 area: "air"
 updated: "2026-10-23"
 summary: "Точка росы по климату места (сетка реанализа) + разброс по дням → дымка по влажности; цвет солнца на облаках по пропусканию атмосферы."
-related: ["scripts/atmosphere/weather_model.gd", "configs/weather_model.json", "scripts/world/haze.gdshader", "scripts/world/sky_environment.gd", "scripts/atmosphere/cloud_common.gdshaderinc", "TODO.md"]
+related: ["scripts/atmosphere/weather.gd", "configs/weather_model.json", "scripts/world/haze.gdshader", "scripts/world/sky_environment.gd", "scripts/atmosphere/cloud_common.gdshaderinc", "TODO.md"]
 ---
 
 # haze-humidity — влажность места, дымка и свет облаков (код задач HH)
