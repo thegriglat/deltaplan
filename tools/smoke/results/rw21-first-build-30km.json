@@ -1,0 +1,35 @@
+{
+ "first_ms_median": 62.404813000000004,
+ "n": 1201,
+ "reps": [
+  {
+   "cores": 131,
+   "first_air_builds": 1,
+   "first_ms": 74.584155,
+   "ready_s": 4.609849982,
+   "rest_max_ms": 0.916952,
+   "rest_median_ms": 0.026737,
+   "state": "Ready"
+  },
+  {
+   "cores": 131,
+   "first_air_builds": 1,
+   "first_ms": 62.404813000000004,
+   "ready_s": 4.633944765,
+   "rest_max_ms": 1.384924,
+   "rest_median_ms": 0.024646,
+   "state": "Ready"
+  },
+  {
+   "cores": 131,
+   "first_air_builds": 1,
+   "first_ms": 62.352931,
+   "ready_s": 4.719305891,
+   "rest_max_ms": 1.401003,
+   "rest_median_ms": 0.027082,
+   "state": "Ready"
+  }
+ ],
+ "size_km": 30.0,
+ "note": "size_km исправлен вручную (в выводе стояло 0.03: ошибка делителя)"
+}
