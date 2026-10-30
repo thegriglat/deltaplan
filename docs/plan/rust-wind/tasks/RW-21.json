@@ -1,0 +1,80 @@
+{
+  "id": "RW-21",
+  "module": "rust-wind",
+  "type": "dp-researcher",
+  "title": "Итоговая проверка модуля: тесты против main, T9 30 км, цена первой сборки термиков",
+  "goal": "На ветке модуля после RW-25…28: GDScript-тесты без новых падений против main, cargo/clippy/fmt/чистота зелёные, T9 synthetic 30 км доходит до цели, цена синхронной первой сборки термиков (RW-25) на месте 30 км замерена; итог — таблица в rw21-final.md.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "W2",
+      "version": "6",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W9",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-21",
+  "branch": "rust-wind/RW-21",
+  "base": "feature/rust-wind",
+  "scope": [
+    "docs/research/rust-wind-stage3/rw21-final.md",
+    "tools/smoke/results/",
+    "tools/smoke/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "rust/",
+    "configs/",
+    "tests/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "godot_vs_main",
+      "cmd": "tools/tests_vs_base.sh --base main -j 8",
+      "expect": "exit=0"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "purity",
+      "cmd": "bash tools/dp_air_purity.sh | tail -1",
+      "expect": "num:нарушений: (\\d+) <=0"
+    },
+    {
+      "name": "t9_30km",
+      "cmd": "bash tools/smoke/t9_30km.sh 2400",
+      "expect": "exit=0"
+    },
+    {
+      "name": "results",
+      "cmd": "cat docs/research/rust-wind-stage3/rw21-final.md | grep -cE '^\\| (тесты против main|cargo|T9 30 км|первая сборка 30 км)'",
+      "expect": "num:(\\d+) >=4"
+    },
+    {
+      "name": "docs_check",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-30T15:16:30"
+}

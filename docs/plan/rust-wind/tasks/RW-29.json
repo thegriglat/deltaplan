@@ -1,0 +1,72 @@
+{
+  "id": "RW-29",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Smoke собранной игры: ветер ≠ 0 и фаза flying явно, smoke.gd на API 6",
+  "goal": "Smoke экспорта (Linux и Windows под wine) явно проверяет решение пользователя: место грузится, dp_air подхватилась, ветер ≠ 0, фаза flying — по строке в журнале, не косвенно; addons/dp_air/smoke.gd работает с API 6.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "W2",
+      "version": "6",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W9",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-29",
+  "branch": "rust-wind/RW-29",
+  "base": "feature/rust-wind",
+  "scope": [
+    "addons/dp_air/smoke.gd",
+    "tools/smoke/",
+    "tools/dp_air_smoke.sh",
+    "scripts/",
+    "docs/research/rust-wind-stage3/rw29-smoke.md"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/",
+    "rust/",
+    "configs/",
+    "docs/contracts/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "build_all",
+      "cmd": "bash tools/smoke/build_all_release.sh",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dp_air_smoke",
+      "cmd": "bash tools/dp_air_smoke.sh",
+      "expect": "exit=0"
+    },
+    {
+      "name": "export_linux",
+      "cmd": "bash tools/smoke/export_smoke.sh linux",
+      "expect": "exit=0"
+    },
+    {
+      "name": "export_windows",
+      "cmd": "bash tools/smoke/export_smoke.sh windows",
+      "expect": "exit=0"
+    },
+    {
+      "name": "gd_check",
+      "cmd": "python3 tools/check_gd.py --timeout 600 $(git diff --name-only feature/rust-wind...HEAD -- '*.gd')",
+      "expect": "exit=0"
+    },
+    {
+      "name": "report_doc",
+      "cmd": "test -s docs/research/rust-wind-stage3/rw29-smoke.md",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-30T15:15:51"
+}
