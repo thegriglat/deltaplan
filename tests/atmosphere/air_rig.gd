@@ -23,6 +23,15 @@ const LOC := {
 }
 
 
+## Дневной максимум «сильного дня», °C. Пресет без temperature_c берёт максимум из климата места (W5 v10), а
+## rig - ровная земля 0 м на ячейке Алтая 1136 м: после перехода на одну поправку на высоту (RW-14c) это
+## 27,4 °C вместо прежних 34,5 (поправка применялась дважды) - день слабее, облака поля не растут. Сильный
+## день задаём температурой явно.
+const STRONG_TMAX_C := 34.5
+## То же для грозового дня (weather/storm): при 27 °C из климата облаков-объектов недостаточно.
+const STORM_TMAX_C := 37.0
+
+
 static func flat(_x: float, _z: float) -> float:
 	return 0.0
 
@@ -102,7 +111,7 @@ static func cloud_day(
 	return make(
 		{
 			"preset": "weather/strong",
-			"over": {"wind_speed_kmh": 0.0},
+			"over": {"wind_speed_kmh": 0.0, "temperature_c": STRONG_TMAX_C},
 			"seed": seed_v,
 			"statics": statics,
 			"start_at": 3000.0,
