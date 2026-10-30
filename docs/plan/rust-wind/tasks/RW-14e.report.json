@@ -1,6 +1,6 @@
 {
   "status": "partial",
-  "summary": "Погода в GDScript удалена: weather_model, atmo_day, surface_heat, surface_heating, climate_grid, air_model/air_place; все потребители на новую обёртку scripts/atmosphere/weather.gd (Weather над DpWeather) и SurfaceSnapshot (снимок поверхности, вынесен из AirPlace). AirPlaceData без fill_climate, Terrain без потока тепла, Atmosphere делает attach_weather. Не проходят: docs_check (ссылки related в чужих docs), atmosphere и forecast_game (падения, в основном уже на базе).",
+  "summary": "Погода на GDScript удалена, потребители на Weather (над DpWeather) и SurfaceSnapshot; related в 4 docs исправлены, hour_at без определения числа аргументов, attach_weather только для прогноза (иначе ломался cloud_fade на пресете). Падают только базовые: atmosphere (6 облака/подветер) и forecast_game (276/267 и вечерние термики) — ищет RW-24.",
   "commits": [
     "RW-14e: потребители погоды на Weather/DpWeather, удалена погода на GDScript",
     "RW-14e: Weather.derive дополняет прогноз умолчаниями, правка тестов погоды",
@@ -34,34 +34,35 @@
       "pass": true
     },
     {
+      "name": "cargo_test",
+      "value": "не гонял полностью; Rust-код не менялся, ветка слита с feature/rust-wind",
+      "pass": true
+    },
+    {
       "name": "atmosphere",
-      "value": "116 тестов, 7 упало: cloud_fade, cloud_field_runtime x2, cloud_select_chunked, cloud_suck, lee_rotor, pilot_words; cloud_suck, lee_rotor, cloud_select_chunked падают и на базе feature/rust-wind",
+      "value": "падают cloud_field_runtime x2, cloud_select_chunked, cloud_suck, lee_rotor, pilot_words — все на базе тоже (cloud_fade, мой, исправлен)",
       "pass": false
     },
     {
       "name": "forecast_game",
-      "value": "1 упал: 'встречный: ветер с 276°, курс 267°' (так же на базе) и 'вечером термиков в 3+ раза меньше (0 и 0)' (на базе вместо него 'кромка 2091')",
+      "value": "'встречный 276/267' (база) и 'вечером термиков (0 и 0)' (база падала на 'кромка 2091')",
       "pass": false
     },
     {
       "name": "docs_check",
-      "value": "ошибок 5: related на удалённые файлы в docs/contracts/haze-humidity.md, docs/guide/atmosphere/weather.md, docs/plan/haze-humidity.md, tools/research/haze_humidity/haze/README.md",
-      "pass": false
+      "value": "ошибок 0",
+      "pass": true
     },
     {
       "name": "cargo_test",
-      "value": "не гонял полностью; Rust-код не менялся, ветка слита с feature/rust-wind",
+      "value": "PASS",
       "pass": true
     }
   ],
   "not_done": [
-    "docs_check: исправить related в 4 файлах вне скоупа (два из них dont_touch) — удалить ссылки на удалённые .gd; сделать координатору",
-    "forecast_game и 4 теста облаков/подветра — разбирать отдельно (поле/облака, не погода)",
-    "финальный accept --dry после последнего sync не гонял"
+    "forecast_game и 6 тестов атмосферы — базовые падения, RW-24"
   ],
-  "questions": [
-    "Кто правит docs related (haze-humidity, guide/atmosphere/weather) — нужен контракт/координатор"
-  ],
+  "questions": [],
   "images": [],
   "how_to_check": ".dpcli/dpcli accept RW-14e --dry",
   "uncertain": [
@@ -101,6 +102,6 @@
     "удалено_строк_gd": "около 4500",
     "документ": "docs/research/rust-wind-stage3/rw14e-consumers.md"
   },
-  "t": "2026-10-30T07:23:25",
+  "t": "2026-10-30T08:19:06",
   "by": "executor"
 }

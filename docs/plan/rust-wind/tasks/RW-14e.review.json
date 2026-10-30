@@ -1,0 +1,72 @@
+{
+  "verdict": "rework",
+  "summary": "Удаление погоды на GDScript и переход на Weather/DpWeather сделаны аккуратно: контракт W3 v9, W5 v10–11 и W12 v3 соблюдён, SurfaceSnapshot перенесён один в один (убран только precompute домена, который был нужен только GD). Но в forecast_game на ветке нет ни одного термика ни в 14 ч, ни в 19 ч (0 и 0), а на базе этот check вообще не выполняется: значит, в отчёте его неверно записали в базовые падения. Плюс в tools/ и tests/ остались вызовы удалённого Terrain.thermal_source_strength_at.",
+  "issues": [
+    {
+      "file": "tests/game/test_forecast_game.gd",
+      "line": 69,
+      "severity": "major",
+      "what": "Отчёт расходится с фактом. Перезапустил test_forecast_game на ветке и на базе (~/worktrees/deltaplan/rust-wind, 3e4ee334b) под lock cpu. На ветке: «встречный 276/267» и «термиков 14 ч — 0, 19 ч — 0». На базе тест обрывается с SCRIPT ERROR в строке 64 (weather() без wind_from_deg), до подсчёта термиков дело не доходит. То есть «0 и 0» не показан как базовый. 0 термиков в 5 км в июле при +26 °C на Алтае физически неправдоподобно. Это центральная проверка задачи: доходит ли погода и поток тепла до крейта (вопрос (б) координатора).",
+      "fix": "Выяснить причину нуля: на базе обойти строку 64 во временной копии теста или вызвать _count_thermals отдельно, на ветке посмотреть air.weather() и _derived (thermal_strength_ms, cap_agl_m) в 14 ч. Если ноль даёт RW-14e (например, прогнозный климат через attach_weather или quantum_h/hour_at), исправить. Если ноль базовый, доказать прогоном и передать в RW-24 с числами."
+    },
+    {
+      "file": "tools/bench/air_velocity_bench.gd",
+      "line": 116,
+      "severity": "major",
+      "what": "Остались потребители удалённого Terrain.thermal_source_strength_at: tools/bench/air_velocity_bench.gd:116, tools/terrain/island/air_probe.gd:98, tools/terrain/volcano/air_probe.gd:99, tests/atmosphere/test_ridge_starts.gd:79. check_gd их пропускает (Godot не ругается при разборе), но при запуске они упадут на доступе к несуществующему методу. test_ridge_starts сейчас pending и поэтому не падает. Все четыре файла в scope, а карточка требует перевести всех потребителей. Сюда же вопрос (в): ветку Terrain удалили законно. На базе её вызывали только эти инструменты и удаляемые GD-тесты, а источники термиков игры уже считает крейт (field/surface_heat.rs, terms/thermal_src: edge_boost, вода, застройка).",
+      "fix": "Перевести на terrain.sun_exposure_at или другую замену либо убрать аргумент/колонку. Удалить инструмент, если ему нужен GD-поток тепла. Записать это в rw14e-consumers.md."
+    },
+    {
+      "file": "scripts/atmosphere/atmosphere.gd",
+      "line": 978,
+      "severity": "minor",
+      "what": "По вопросу (а) замечание снимаю: в крейте пресет (Source::Preset) берёт словарь пресета как есть, а place_climate используется только для Source::Forecast (weather_link.rs:197, 244). На базе крейт loc.climate* уже не читал (W5 v10), так что физика пресетов против базы не меняется. Расхождение с формулировкой карточки в другом: attach_weather зовётся в Atmosphere._dp_start и только при прогнозе, а не в game.gd до load_place. Корень повторного attach (пустая weather() при втором _fly) в отчёте не установлен.",
+      "fix": "Описать это решение в rw14e-consumers.md: где зовётся attach и почему пресету он не нужен. Причину пустой weather() после повторного attach передать координатору как вопрос к крейту (W3), не маскировать обходом в GD."
+    },
+    {
+      "file": "rust/dp-air/tests/data/weather_dump/manifest.json",
+      "line": 1,
+      "severity": "minor",
+      "what": "Генераторы weather_dump.*, weather_ref2.* и RW-10c/dump_source.* удалены, но в manifest.json их папок данных (weather_dump, RW-10c, данные weather_ref2) нет generator_removed_at и пути генератора, хотя карточка этого требует (как в RW-13).",
+      "fix": "Дописать generator_removed_at: <ревизия feature/rust-wind до задачи> и путь генератора в эти манифесты."
+    },
+    {
+      "file": "tests/contracts/test_air_field_contracts.gd",
+      "line": 7,
+      "severity": "minor",
+      "what": "Хвост ревью RW-13 не закрыт: константа DOC по-прежнему нигде не используется.",
+      "fix": "Вернуть сверку версий C1, C3, C4, C6, C8 из docs/contracts/air-model.md или удалить DOC и указать, какого раздела больше нет."
+    },
+    {
+      "file": "docs/plan/rust-wind/tasks/RW-14e.report.json",
+      "line": 1,
+      "severity": "minor",
+      "what": "В отчёте две записи cargo_test, и они противоречат друг другу («не гонял полностью» с pass=true и PASS). Кроме того, uncertain про hour_at устарел: определения числа аргументов в коде больше нет.",
+      "fix": "Оставить один фактический результат cargo_test и убрать устаревший пункт uncertain."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "forecast_game (ветка d0c017f57)",
+      "value": "1 упало: встречный 276/267; термиков 14 ч — 0, 19 ч — 0; кромка проходит",
+      "pass": false
+    },
+    {
+      "name": "forecast_game (база feature/rust-wind 3e4ee334b)",
+      "value": "1 упало: встречный 276/267, кромка 2091, SCRIPT ERROR в строке 64 — до термиков не доходит",
+      "pass": false
+    },
+    {
+      "name": "check_gd на 4 файлах с thermal_source_strength_at",
+      "value": "ок (разбор не ловит)",
+      "pass": true
+    },
+    {
+      "name": "test_ridge_starts",
+      "value": "0 тестов, 2 pending",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-30T09:33:25",
+  "by": "reviewer"
+}
