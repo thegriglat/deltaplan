@@ -1397,7 +1397,11 @@ impl AirModel for Formula {
         // поле только что загружено: первые термики по его источникам - синхронно (как `start_at`), иначе
         // игра в первые секунды после готовности видит воздух без термиков (RW-25)
         let first_air = fed
-            && self.terms.air.is_some()
+            && self
+                .terms
+                .air
+                .as_ref()
+                .is_some_and(|f| terms::thermal_air::has_inputs(f))
             && self
                 .terms
                 .slots
