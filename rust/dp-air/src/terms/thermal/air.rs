@@ -87,6 +87,8 @@ pub struct AirBuild {
     /// Момент сборки: на него берётся сила источника в `pick_in_column`.
     pub t: f64,
     pub land: LandCache,
+    /// RW-26: источники по циклу без `duty` ([`BuildIn::count_by_cycle`]).
+    pub count_by_cycle: bool,
 }
 
 impl AirBuild {
@@ -108,6 +110,7 @@ impl AirBuild {
         inp.height_fn = Some(&height);
         inp.pick_fn = Some(&pick);
         inp.water_fn = Some(&water);
+        inp.count_by_cycle = self.count_by_cycle;
         let sig = signature(&self.level);
         if let Some((s, l)) = &self.land
             && *s == sig

@@ -180,7 +180,9 @@ fn game_order_no_rebuild_has_cores() {
 #[test]
 fn game_order_evening_has_fewer_cores() {
     let (n14, n19) = (run(true, false, 14), run(true, false, 19));
-    assert!(n14 > 0 && n19 < n14, "14 h: {n14}, 19 h: {n19}");
+    // RW-26: число термиков идёт за thermal_duty (0,82 -> 0,34), а не держится по плотности Аллена
+    // (до правки на rig 1130 и 520, в 2,2 раза; теперь 1100 и 411)
+    assert!(n14 > 0 && n14 >= 2 * n19, "14 h: {n14}, 19 h: {n19}");
 }
 
 #[test]

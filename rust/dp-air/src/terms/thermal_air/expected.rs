@@ -15,6 +15,8 @@ pub struct Shape {
     pub life_mean: f64,
     /// Доля времени, когда термик источника жив.
     pub alive_frac: f64,
+    /// Доля времени, когда термик источника жив, если бы `duty` было 1.
+    pub cycle_frac: f64,
     /// `e⁻¹·π·q_mean`.
     pub shape_area: f64,
 }
@@ -47,7 +49,8 @@ impl Shape {
     pub fn new(cfg: &AirThermalsCfg) -> Shape {
         let (g, m, d, gap) = (cfg.grow_s, cfg.mature_s, cfg.decay_s, cfg.gap_s);
         let life_mean = (0.5 * g + m + 0.5 * d) / (g + m + d + gap) * cfg.duty;
-        let alive_frac = (g + m + d) / (g + m + d + gap) * cfg.duty;
+        let cycle_frac = (g + m + d) / (g + m + d + gap);
+        let alive_frac = cycle_frac * cfg.duty;
         let d0 = 1000.0;
         let mut q = vec![0f32; NQ];
         let mut s = 0.0f64;
@@ -66,6 +69,7 @@ impl Shape {
             sm,
             life_mean,
             alive_frac,
+            cycle_frac,
             shape_area: CORE_FLUX * std::f64::consts::PI * q_mean,
         }
     }

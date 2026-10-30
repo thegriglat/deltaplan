@@ -168,6 +168,9 @@ pub struct Terms {
     pub air_u10: Option<f64>,
     /// Термики пересобираются в фоне (`advance` не ждёт): `true` при `air.deterministic = false`.
     pub thermal_async: bool,
+    /// RW-26: число источников термиков из поля по циклу без `thermal_duty` (живых - `Аллен · duty`,
+    /// вечером меньше). Ставит `Formula`; по умолчанию `false` - как эталон GD (живых от `duty` не зависит).
+    pub air_count_by_cycle: bool,
     /// Поле облаков шагает в фоне (`advance` не ждёт). Ставит `Formula` (`air.deterministic = false`);
     /// по умолчанию - синхронно.
     pub clouds_async: bool,
@@ -204,6 +207,7 @@ impl Default for Terms {
             air: None,
             air_u10: None,
             thermal_async: false,
+            air_count_by_cycle: false,
             clouds_async: false,
             place_key: 0,
             slots: Slots::new(),

@@ -21,6 +21,8 @@ func test_game_uses_forecast() -> void:
 	if game.settings == null:
 		main.queue_free()
 		return
+	# Детерминированный режим крейта: advance_to ждёт фоновую пересборку термиков (без реального времени в тесте).
+	(game.air as Atmosphere).deterministic = true
 	var s := FlightSettings.defaults()
 	s.location_id = "altai"
 	s.site_id = "sinyukha_west"
@@ -66,11 +68,13 @@ func test_game_uses_forecast() -> void:
 	s.wind_from_deg = 225.0
 	await main.call("_fly", s)
 	check(is_equal_approx(float(air.weather().wind_from_deg), 225.0), "румб ЮЗ")
-	# Пилот: «вечером термиков мало» — в 19 ч в разы меньше, чем в 14 ч (прогрев, солнце низко).
+	# Пилот: «вечером термиков мало» — в 19 ч заметно меньше, чем в 14 ч. Число живых падает вслед за thermal_duty
+	# (0,82 -> 0,34, в 2,4 раза), но не полностью: слой перемешивания к вечеру тоньше, плотность потоков Аллена
+	# растёт (RW-26: 14 ч - 3676, 19 ч - 1927, в 1,9 раза), поэтому порог 1,5, а не 3.
 	var n14 := await _count_thermals(main, game, s, 14.0)
 	var n19 := await _count_thermals(main, game, s, 19.0)
 	print("         термиков в 5 км: 14 ч — %d, 19 ч — %d" % [n14, n19])
-	check(n14 >= 3 * maxi(n19, 1), "вечером термиков в 3+ раза меньше (%d и %d)" % [n14, n19])
+	check(2 * n14 >= 3 * maxi(n19, 1) and n14 > 0, "вечером термиков в 1,5+ раза меньше (%d и %d)" % [n14, n19])
 	main.queue_free()
 
 
@@ -85,9 +89,7 @@ func _count_thermals(main: Node, game: Game, s: FlightSettings, hour: float) -> 
 	var t := float(air.status().time_s)
 	for i in 40:
 		t += 15.0
-		air.advance_to(t)
-		# Термики крейт пересобирает фоном: без реального времени между шагами снимок не успевает.
-		await get_tree().create_timer(0.3).timeout
+		air.advance_to(t)  # deterministic: снимок термиков готов к возврату
 		if i >= 10:
 			total += air.thermals_near(p, 5000.0).size()
 	return total
