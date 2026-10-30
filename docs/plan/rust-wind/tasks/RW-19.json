@@ -87,9 +87,15 @@
       "name": "docs_check",
       "cmd": ".dpcli/dpcli docs check",
       "expect": "re:ошибок 0"
+    },
+    {
+      "name": "build_windows_release",
+      "cmd": "tools/build_rust.sh release windows && test -s addons/dp_air/bin/dp_air_release.dll",
+      "expect": "exit=0"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-30T05:18:51"
+  "created": "2026-10-30T05:18:51",
+  "edited": "2026-10-30T05:33:47"
 }

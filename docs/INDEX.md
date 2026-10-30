@@ -185,6 +185,7 @@ generated: true
 - **bar-mouse** — Штанга мышью: ход в отсчётах мыши без привязки к окну, свой слайдер, мёртвая зона без скачка; диагностика камер и сырого ввода. [closed 2026-10-23] — [план](plan/bar-mouse.md) · [контракты](contracts/bar-mouse.md) · [решения](plan/bar-mouse/decisions.md) · [сводка](plan/bar-mouse/summary.md) · полный журнал: `archive/bar-mouse`
   - [docs/research/bar-mouse-raw-input.md](research/bar-mouse-raw-input.md) — Захват мыши в Godot 4.7.2: Windows и X11 — сырые отсчёты, Wayland и macOS — с ускорением ОС; брать screen_relative
 - **menu-shots-pose** — Кадры фона меню (tools/shots/menu_art.py): планер на всех кадрах — в установившемся полёте, без крутого крена и «кивка». [closed 2026-10-23] — [план](plan/menu-shots-pose.md) · [контракты](contracts/menu-shots-pose.md) · [решения](plan/menu-shots-pose/decisions.md) · [сводка](plan/menu-shots-pose/summary.md) · полный журнал: `archive/menu-shots-pose`
+- **grass-near** — Ошибка: ближние травинки видны только в пятне тени/проекции дельтаплана; найти причину и рисовать их вокруг пилота по всей дальности. [closed 2026-10-29] — [план](plan/grass-near.md) · [контракты](contracts/grass-near.md) · [решения](plan/grass-near/decisions.md) · [сводка](plan/grass-near/summary.md) · полный журнал: `archive/grass-near`
 
 ## perf
 

@@ -1,0 +1,73 @@
+Initialize godot-rust (API v4.7.stable.official, runtime v4.7.2.stable.official, safeguards strict)
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+steam: inactive (no_feature)
+dp_air: расширение загружено, api_version=6
+dp_air: подготовка места начата, место xc
+dp_air: 0.0 с, этап prepare, итераций 0
+dp_air: 0.0 с, этап phases, итераций 0
+dp_air: 0.0 с, этап solve_mech, итераций 0
+dp_air: 0.7 с, этап solve_heat, итераций 0
+dp_air: 1.2 с, этап windows, итераций 0
+dp_air: READY за 4.3 с, поле подано, last_error=
+prof t=60 wall=2.2 s adv_ms=1845 loop_ms=355 other_ms=28 x=822
+prof t=120 wall=3.1 s adv_ms=210 loop_ms=594 other_ms=44 x=746
+prof t=180 wall=3.9 s adv_ms=216 loop_ms=594 other_ms=49 x=755
+prof t=240 wall=4.8 s adv_ms=218 loop_ms=573 other_ms=48 x=763
+prof t=300 wall=5.5 s adv_ms=198 loop_ms=532 other_ms=44 x=768
+prof t=360 wall=6.2 s adv_ms=152 loop_ms=439 other_ms=32 x=768
+prof t=420 wall=7.0 s adv_ms=222 loop_ms=581 other_ms=47 x=776
+prof t=480 wall=7.8 s adv_ms=189 loop_ms=524 other_ms=40 x=780
+prof t=540 wall=8.3 s adv_ms=122 loop_ms=386 other_ms=27 x=778
+prof t=600 wall=8.8 s adv_ms=123 loop_ms=388 other_ms=27 x=780
+prof t=660 wall=9.4 s adv_ms=126 loop_ms=396 other_ms=27 x=782
+prof t=720 wall=9.9 s adv_ms=122 loop_ms=388 other_ms=27 x=779
+prof t=780 wall=10.5 s adv_ms=122 loop_ms=387 other_ms=27 x=780
+prof t=840 wall=11.0 s adv_ms=122 loop_ms=385 other_ms=27 x=778
+prof t=900 wall=14.9 s adv_ms=3487 loop_ms=391 other_ms=28 x=768
+prof t=960 wall=15.5 s adv_ms=137 loop_ms=422 other_ms=29 x=757
+prof t=1020 wall=16.1 s adv_ms=147 loop_ms=458 other_ms=32 x=743
+prof t=1080 wall=16.7 s adv_ms=139 loop_ms=404 other_ms=31 x=1454
+prof t=1140 wall=25.1 s adv_ms=7888 loop_ms=490 other_ms=40 x=2518
+prof t=1200 wall=37.2 s adv_ms=11428 loop_ms=554 other_ms=42 x=3319
+prof t=1260 wall=38.0 s adv_ms=217 loop_ms=630 other_ms=45 x=3312
+prof t=1320 wall=38.7 s adv_ms=155 loop_ms=487 other_ms=34 x=3340
+prof t=1380 wall=45.9 s adv_ms=6596 loop_ms=574 other_ms=45 x=4372
+prof t=1440 wall=50.2 s adv_ms=3738 loop_ms=506 other_ms=39 x=5446
+prof t=1500 wall=51.1 s adv_ms=232 loop_ms=641 other_ms=48 x=5160
+prof t=1560 wall=51.9 s adv_ms=167 loop_ms=518 other_ms=35 x=5176
+prof t=1620 wall=52.7 s adv_ms=206 loop_ms=607 other_ms=42 x=5189
+prof t=1680 wall=56.4 s adv_ms=3010 loop_ms=586 other_ms=46 x=5651
+prof t=1740 wall=60.2 s adv_ms=3395 loop_ms=451 other_ms=34 x=6715
+prof t=1800 wall=70.4 s adv_ms=9437 loop_ms=642 other_ms=49 x=7294
+prof t=1860 wall=71.1 s adv_ms=185 loop_ms=553 other_ms=39 x=7297
+prof t=1920 wall=72.0 s adv_ms=221 loop_ms=632 other_ms=46 x=7941
+prof t=1980 wall=81.0 s adv_ms=8482 loop_ms=457 other_ms=33 x=9005
+prof t=2040 wall=109.0 s adv_ms=27413 loop_ms=516 other_ms=42 x=10072
+prof t=2100 wall=112.3 s adv_ms=2769 loop_ms=554 other_ms=37 x=11170
+prof t=2160 wall=113.2 s adv_ms=227 loop_ms=569 other_ms=49 x=10835
+prof t=2220 wall=114.0 s adv_ms=228 loop_ms=575 other_ms=49 x=10895
+prof t=2280 wall=114.7 s adv_ms=177 loop_ms=482 other_ms=36 x=10858
+prof t=2340 wall=115.5 s adv_ms=209 loop_ms=528 other_ms=43 x=10858
+prof t=2400 wall=116.4 s adv_ms=238 loop_ms=603 other_ms=50 x=10885
+prof t=2460 wall=117.1 s adv_ms=190 loop_ms=470 other_ms=40 x=11744
+prof t=2520 wall=117.9 s adv_ms=206 loop_ms=522 other_ms=41 x=12857
+prof t=2580 wall=118.6 s adv_ms=212 loop_ms=515 other_ms=42 x=13250
+prof t=2640 wall=119.5 s adv_ms=236 loop_ms=561 other_ms=51 x=13260
+prof t=2700 wall=125.7 s adv_ms=5560 loop_ms=588 other_ms=50 x=13239
+prof t=2760 wall=126.4 s adv_ms=191 loop_ms=452 other_ms=39 x=14261
+prof t=2820 wall=127.1 s adv_ms=211 loop_ms=493 other_ms=43 x=15101
+prof t=2880 wall=127.9 s adv_ms=235 loop_ms=543 other_ms=50 x=14922
+prof t=2940 wall=128.8 s adv_ms=229 loop_ms=553 other_ms=47 x=14933
+prof t=3000 wall=129.6 s adv_ms=233 loop_ms=555 other_ms=48 x=14909
+prof t=3060 wall=130.5 s adv_ms=244 loop_ms=564 other_ms=51 x=14896
+prof t=3120 wall=131.6 s adv_ms=366 loop_ms=704 other_ms=83 x=15911
+prof t=3180 wall=132.4 s adv_ms=240 loop_ms=539 other_ms=46 x=17009
+prof t=3240 wall=133.3 s adv_ms=226 loop_ms=543 other_ms=44 x=17003
+prof t=3300 wall=134.1 s adv_ms=231 loop_ms=551 other_ms=46 x=17027
+prof t=3360 wall=134.9 s adv_ms=224 loop_ms=528 other_ms=46 x=17012
+prof t=3420 wall=135.4 s adv_ms=144 loop_ms=375 other_ms=31 x=17946
+prof t=3480 wall=136.2 s adv_ms=228 loop_ms=503 other_ms=46 x=19022
+prof t=3540 wall=137.0 s adv_ms=222 loop_ms=502 other_ms=44 x=20119
+prof t=3600 wall=141.7 s adv_ms=4253 loop_ms=451 other_ms=38 x=21209
+xc_run: 21.2 км за 3600 с полёта, time_limit; CPU 146.9 с (полёт 141.7 с)
