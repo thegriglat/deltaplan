@@ -1447,3 +1447,4 @@
 {"t": "2026-10-30T13:45:13", "by": "coordinator", "task": "RW-28", "ev": "checked", "note": "8/8 quit_race=ok:exit 0; bench_smoke=ok:exit 0; cargo_test=ok:exit 0; clippy=ok:exit 0; fmt=ok:exit 0; purity=ok:0; gd_check=ok:exit 0; report_doc=ok:exit 0"}
 {"t": "2026-10-30T13:46:35", "by": "reviewer", "task": "RW-28", "ev": "reviewed", "note": "Корень найден (запись кеша после slot.put в потоке пула при dlclose), фикс в скоупе, без unsafe, контракты не тронуты, пауза убрана. quit_race перезапущен: PAS…", "verdict": "accept", "issues": {"minor": 1}, "review": "docs/plan/rust-wind/tasks/RW-28.review.json"}
 {"t": "2026-10-30T13:46:46", "by": "coordinator", "task": "RW-28", "ev": "accepted"}
+{"t": "2026-10-30T13:46:51", "by": "coordinator", "task": "RW-28", "ev": "merged"}
