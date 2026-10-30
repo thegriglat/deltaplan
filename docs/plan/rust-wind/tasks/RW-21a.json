@@ -1,0 +1,55 @@
+{
+  "id": "RW-21a",
+  "module": "rust-wind",
+  "type": "dp-researcher",
+  "title": "Предпроверка сдачи: T9 30 км, сборки, smoke Windows под wine",
+  "goal": "На текущей ветке модуля (до RW-14e/RW-19): T9 synthetic 30 км доходит до итога за разумное время (Q3), tools/build.sh all --release собирается, Windows-сборка под wine — место грузится, DLL dp_air подхватилась, ветер ≠ 0, фаза flying; Linux-экспорт — то же. Проблемы — найти и описать, код игры не менять.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "W9",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W2",
+      "version": "6",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-21a",
+  "branch": "rust-wind/RW-21a",
+  "base": "feature/rust-wind",
+  "scope": [
+    "docs/research/rust-wind-stage3/rw21a-precheck.md",
+    "tools/smoke/",
+    "tools/dp_air_smoke.sh"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "rust/",
+    "configs/",
+    "docs/contracts/",
+    "tests/"
+  ],
+  "accept": [
+    {
+      "name": "report_doc",
+      "cmd": "test -s docs/research/rust-wind-stage3/rw21a-precheck.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "results",
+      "cmd": "grep -cE '^\\| *(T9 30 км|build all|wine smoke|linux smoke)' docs/research/rust-wind-stage3/rw21a-precheck.md",
+      "expect": "num:^(\\d+) >=4"
+    },
+    {
+      "name": "docs_check",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-30T06:13:29"
+}
