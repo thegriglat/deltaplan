@@ -156,8 +156,9 @@ func test_forecast_settings() -> void:
 	var r := FlightSettings.from_dict(JSON.parse_string(JSON.stringify(s.to_dict())))
 	check(r.forecast() == s.forecast(), "прогноз туда-обратно")
 	check(not r.wind_into_launch, "направление туда-обратно")
-	# По умолчанию — обычный максимум для даты по умолчанию.
-	approx(def.temperature_c, roundf(WeatherModel.typical_max_c(def.month, def.day)), 1.0, "умолчание")
+	# По умолчанию — обычный максимум (Tx климата ERA5) для даты и места по умолчанию.
+	var ll := WorldKey.launch_latlon(def)
+	approx(def.temperature_c, roundf(Weather.typical_max_c(def.month, def.day, ll.x, ll.y)), 1.0, "умолчание")
 
 
 func test_unknown_wing_default() -> void:

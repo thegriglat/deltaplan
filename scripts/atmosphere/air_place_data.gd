@@ -10,27 +10,21 @@ extends RefCounted
 ## heights — м MSL по узлам (NaN недопустим); water — 0/1; surface_cls — код класса поверхности
 ## (SurfaceLayer.CLASS_NAMES); surface_moist — 0..1; все четыре массива — на одной сетке.
 ##
-## Переходное (только реализация gd, до RW-13): terrain — рельеф игры, если место собрано из него
-## (from_terrain): тогда height_fn/sun_fn/surface_fn остаются прежними (terrain.height_at,
-## thermal_source_strength_at, surface_at) и физика не меняется; без terrain высота — билинейно
-## по растру, сила источника — по нормали растра и влажности (как AtmoFingerprint.source_static).
+## terrain — рельеф игры, если место собрано из него (from_terrain): height_at/surface_at берутся из
+## него; без terrain высота — билинейно по растру, класс — ближайший узел.
 
 const VERSION := 1
-## Направление «на солнце» для силы источника без времени (как AtmoFingerprint.source_static).
-const SUN_FOR_SOURCE := Vector3(0.3, 0.8, 0.5)
 
 var header: Dictionary = {}
 var heights := PackedFloat32Array()
 var water := PackedByteArray()
 var surface_cls := PackedByteArray()
 var surface_moist := PackedFloat32Array()
-## Рельеф игры (gd, переходное); null — место задано одними растрами.
+## Рельеф игры; null — место задано одними растрами.
 var terrain: Node = null
 
-var _sun_n := SUN_FOR_SOURCE.normalized()
 
-
-## Коды классов поверхности: имя → код (как AirPlace.Surface / SurfaceLayer.CLASS_NAMES).
+## Коды классов поверхности: имя → код (как SurfaceSnapshot / SurfaceLayer.CLASS_NAMES).
 static func surface_classes() -> Dictionary:
 	var out := {}
 	for i in SurfaceLayer.CLASS_NAMES.size():
@@ -102,7 +96,7 @@ static func terrain_snapshot(
 	return {
 		detail = detail,
 		water = water,
-		surface = AirPlace.surface_start(p_terrain, detail, water),
+		surface = SurfaceSnapshot.start(p_terrain, detail, water),
 		loc = loc,
 		start_sites = sites,
 	}
@@ -112,7 +106,7 @@ static func terrain_snapshot(
 ## снимка поверхности, сетки не совпали (причина — в push_error).
 static func from_snapshot(snap: Dictionary, p_terrain: Node, month: int, day: int) -> AirPlaceData:
 	var detail: HeightLayer = snap.detail
-	var sf: AirPlace.Surface = snap.surface
+	var sf: SurfaceSnapshot = snap.surface
 	if detail == null or sf == null:
 		push_error("AirPlaceData: нет слоя detail или снимка поверхности")
 		return null
@@ -147,7 +141,6 @@ static func from_snapshot(snap: Dictionary, p_terrain: Node, month: int, day: in
 		sf.moist
 	)
 	p.terrain = p_terrain
-	p.fill_climate()
 	return p
 
 
@@ -162,7 +155,7 @@ static func from_terrain(
 ## Место из функций (превью и эталонный мир без карты): сетка width × height узлов с шагом spacing
 ## от (origin_x, origin_z); высота — height_fn(x, z), влажность поверхности — moist_fn(x, z) (0..1;
 ## множитель силы источников), вода нет, класс — луг. loc — {id, center_lat, center_lon,
-## utc_offset_h, month, day}; климат — fill_climate().
+## utc_offset_h, month, day}.
 static func from_functions(
 	height_fn: Callable, moist_fn: Callable, loc: Dictionary, origin_x: float, origin_z: float,
 	spacing: float, width: int, height: int, start_sites: Array = []
@@ -187,7 +180,6 @@ static func from_functions(
 	}
 	var p := from_arrays(make_header(loc, grid, start_sites), hs, PackedByteArray(), cls, moist)
 	p.water.resize(n)
-	p.fill_climate()
 	return p
 
 
@@ -241,63 +233,6 @@ func validate() -> String:
 	return ""
 
 
-## Климат центра места (W5 v3, v7): loc.climate на дату loc.month/day и loc.climate_lag на дату
-## month/day − round(water.lag_days) (с переходом через год, как SurfaceHeat.water_temp_c) — для
-## температуры воды. Оба = {tx_c, dtr_k, z_cell_m, has_hh1, has_hh5} — ClimateGrid.place так,
-## как строит ctx weather_model.gd (высота долины из рельефа места). Нет сетки — has_* = false
-## и запасные значения ClimateGrid. Возвращает climate.
-func fill_climate() -> Dictionary:
-	# Копия: вход может быть const/read-only словарём (синтетика тестов, конфиг места).
-	var loc: Dictionary = (header.loc as Dictionary).duplicate()
-	var g: Dictionary = Config.get_config("atmosphere").ground
-	var ctx := WeatherModel.ground_context(
-		Callable(self, "height_at"),
-		float(g.reference_radius_m),
-		int(g.reference_samples),
-		float(WeatherModel.config().valley_percentile)
-	)
-	var month := int(loc.get("month", 7))
-	var day := int(loc.get("day", 15))
-	ctx.merge(
-		{
-			"month": month,
-			"day": day,
-			"lat": float(loc.get("center_lat", 52.0)),
-			"lon": float(loc.get("center_lon", 0.0)),
-		}
-	)
-	var climate := _climate_cell(ctx)
-	# Дата воды: SurfaceHeat.water_temp_c (surface_heat.gd:93-98).
-	var lag := int(round(float(SurfaceHeat.config().get("water", {}).get("lag_days", 30.0))))
-	var doy := SunClock.day_of_year(month, day) - lag
-	if doy < 1:
-		doy += 365
-	var md := SurfaceHeat._month_day(doy)
-	var ctx_lag := ctx.duplicate()
-	ctx_lag["month"] = md.x
-	ctx_lag["day"] = md.y
-	loc.climate = climate
-	loc.climate_lag = _climate_cell(ctx_lag)
-	# W5 v8: сырая ячейка климата (без поправки на высоту; поправку считает крейт) на дату места и
-	# на дату сдвига воды — как есть, числа и src.
-	loc.climate_cell = ClimateGrid.at(float(ctx.lat), float(ctx.lon), month, day)
-	loc.climate_cell_lag = ClimateGrid.at(float(ctx.lat), float(ctx.lon), int(md.x), int(md.y))
-	header.loc = loc
-	return climate
-
-
-static func _climate_cell(ctx: Dictionary) -> Dictionary:
-	var cp := ClimateGrid.place(ctx)
-	var src: Dictionary = cp.src
-	return {
-		"tx_c": float(cp.tx_c),
-		"dtr_k": float(cp.dtr_k),
-		"z_cell_m": float(cp.z_cell_m),
-		"has_hh1": String(src.hh1) != "none",
-		"has_hh5": String(src.hh5) != "none",
-	}
-
-
 ## Входы крейта, которых нет в растрах (W5 v5, v9): header.model_hash (хеш GD-модели воздуха — нужен
 ## только ключу кеша полей; пусто — кеша нет). Уже заданное не перезаписывается.
 func fill_crate_inputs() -> void:
@@ -346,19 +281,6 @@ func raster_height(x: float, z: float) -> float:
 	var top := heights[k] + (heights[k + 1] - heights[k]) * fx
 	var bot := heights[k + w] + (heights[k + w + 1] - heights[k + w]) * fx
 	return top + (bot - top) * fz
-
-
-## Сила источника термиков 0..1 без времени: рельеф игры или растр (нормаль × влажность).
-func source_at(x: float, z: float) -> float:
-	if terrain != null and is_instance_valid(terrain):
-		if terrain.has_method("thermal_source_strength_at"):
-			return float(terrain.call("thermal_source_strength_at", x, z))
-		return float(terrain.call("sun_exposure_at", x, z))
-	var e := maxf(float(header.grid.spacing), 1.0)
-	var dx := (raster_height(x + e, z) - raster_height(x - e, z)) / (2.0 * e)
-	var dz := (raster_height(x, z + e) - raster_height(x, z - e)) / (2.0 * e)
-	var n := Vector3(-dx, 1.0, -dz).normalized()
-	return clampf(raster_moist(x, z) * (0.35 + 0.8 * n.dot(_sun_n)), 0.0, 1.0)
 
 
 ## Влажность поверхности в ближайшем узле.

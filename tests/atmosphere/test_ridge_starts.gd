@@ -76,7 +76,7 @@ func _make_atmo(terrain: Terrain, wind_kmh: float, wind_from_deg: float) -> Atmo
 	atmo.visuals_enabled = false
 	atmo.configure(atmo_cfg, weather)
 	atmo.turbulence_enabled = true
-	atmo.set_ground(terrain.height_at, terrain.thermal_source_strength_at, terrain.surface_at)
+	atmo.set_ground(terrain.height_at, terrain.sun_exposure_at, terrain.surface_at)
 	return atmo
 
 

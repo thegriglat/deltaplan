@@ -113,7 +113,7 @@ func _kayancha(field_path: String) -> void:
 	a.visuals_enabled = false
 	a.seed_value = 4242
 	a.configure(Config.get_config("atmosphere").duplicate(true), w)
-	a.set_ground(terrain.height_at, terrain.thermal_source_strength_at, terrain.surface_at)
+	a.set_ground(terrain.height_at, terrain.sun_exposure_at, terrain.surface_at)
 	var pos0: Vector3 = site.position
 	a.set_focus(pos0)
 	a.step(1.0)

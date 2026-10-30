@@ -389,19 +389,21 @@ func _update_temp_hint(month: int = 0) -> void:
 	if _temp_hint == null or _month_opt == null:
 		return
 	var m := month if month > 0 else _month_opt.selected + 1
-	var ctx := {}
+	var lat := NAN
+	var lon := NAN
 	if _row != null and _row.settings != null:
 		var ll := WorldKey.launch_latlon(_row.settings)
-		ctx = {"lat": ll.x, "lon": ll.y}
+		lat = ll.x
+		lon = ll.y
 	_temp_hint.text = (
 		tr("setup_temperature_typical")
-		% roundi(WeatherModel.typical_max_c(m, int(_day.value) if _day != null else 15, {}, ctx))
+		% roundi(Weather.typical_max_c(m, int(_day.value) if _day != null else 15, lat, lon))
 	)
 
 
 ## Прогноз (FR-16): температура днём, ветер на старте (м/с), откуда ветер, облачность.
 func _build_forecast(box: Control) -> void:
-	var ui: Dictionary = WeatherModel.config().get("ui", {})
+	var ui: Dictionary = Weather.config().get("ui", {})
 	var t_range: Array = ui.get("temperature_c", [0, 40, 1])
 	_temp = UiKit.slider_row(
 		box,
@@ -436,7 +438,7 @@ func _build_forecast(box: Control) -> void:
 	_dir_hint = UiKit.label(box, "", "HintLabel")
 	_dir_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_sky_opt = OptionButton.new()
-	_skies = WeatherModel.config().get("sky", {}).get("options", ["clear"])
+	_skies = Weather.config().get("sky", {}).get("options", ["clear"])
 	for k: String in _skies:
 		var key := "setup_sky_" + k  # setup_sky_clear / _partly / _overcast
 		_sky_opt.add_item(tr(key))

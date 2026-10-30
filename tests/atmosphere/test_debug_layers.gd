@@ -66,7 +66,6 @@ static func _place() -> AirPlaceData:
 	var p := AirPlaceData.from_arrays(
 		AirPlaceData.make_header(LOC.duplicate(), grid, []), h, water, cls, moist
 	)
-	p.fill_climate()
 	p.fill_crate_inputs()
 	return p
 

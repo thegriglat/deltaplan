@@ -162,6 +162,7 @@ var _dp: RefCounted
 var _dp_missing := false
 var _dp_failed := false
 ## Подпись последнего configure крейта (сид, режим, конфиг): повторный configure — только при смене.
+var _dp_weather: RefCounted = null  ## DpWeather, уже переданный крейту (attach_weather)
 var _dp_cfg_sig := ""
 ## load_place отправлен крейту и место не выгружено.
 var _dp_placed := false
@@ -316,8 +317,6 @@ func load_place(place: AirPlaceData) -> int:
 		return _fail(BAD_INPUT, "load_place: " + why)
 	if _f_place != null:
 		unload_place()
-	if not (place.header.loc as Dictionary).has("climate"):
-		place.fill_climate()  # W5 v3: климат центра места считает фасад
 	_f_place = place
 	_f_err = ""
 	_f_t_req = 0.0
@@ -462,7 +461,7 @@ func place_from_terrain(
 	p_terrain: Node, utc_offset_h: float, month: int, day_of_month: int
 ) -> AirPlaceData:
 	var snap := AirPlaceData.terrain_snapshot(p_terrain, utc_offset_h, month, day_of_month)
-	var sf: AirPlace.Surface = snap.surface
+	var sf: SurfaceSnapshot = snap.surface
 	if snap.detail == null or sf == null:
 		return null
 	while not sf.is_ready() and is_inside_tree():
@@ -895,16 +894,6 @@ func _dp_object() -> RefCounted:
 	return _dp
 
 
-## Погода крейта с сетками климата (W4 v10): климат места поля и ветер прогноза берутся у неё; без неё —
-## запасные таблицы. До load_place; после смены конфигов создаётся заново.
-func _dp_attach_weather(dp: RefCounted) -> void:
-	var w := AirWeatherLink.make(_dp_configs())
-	if w != null:
-		var code: int = dp.attach_weather(w)
-		if code != 0:
-			push_error("dp_air: attach_weather = %d" % code)
-
-
 func _dp_log(line: String) -> void:
 	if line != _air_log_last:
 		_air_log_last = line
@@ -933,29 +922,15 @@ func _dp_deterministic() -> bool:
 func _dp_config_text(config_name: String) -> String:
 	if config_name == "atmosphere" and not cfg_override.is_empty():
 		return JSON.stringify(cfg_override)
-	var texts := PackedStringArray()
-	for dir: String in Config.search_dirs():
-		var path: String = dir.path_join(config_name + ".json")
-		if FileAccess.file_exists(path):
-			texts.append(FileAccess.get_file_as_string(path))
-	if texts.size() == 1:
-		return texts[0]
-	return JSON.stringify(_conf(config_name))
+	return Weather.config_text(config_name)
 
 
 func _dp_configs() -> PackedStringArray:
-	var out := PackedStringArray()
-	for n: String in ["atmosphere", "weather_model", "surface_heat", "world"]:
-		var text := _dp_config_text(n)
-		if n == "atmosphere" and _dp_deterministic():
-			var re := RegEx.create_from_string('"deterministic"\\s*:\\s*false')
-			text = re.sub(text, '"deterministic": true')
-		out.append(n)
-		out.append(text)
-	for n: String in Config.list_configs("weather"):
-		out.append(n)
-		out.append(_dp_config_text(n))
-	return out
+	var text := _dp_config_text("atmosphere")
+	if _dp_deterministic():
+		var re := RegEx.create_from_string('"deterministic"\\s*:\\s*false')
+		text = re.sub(text, '"deterministic": true')
+	return Weather.config_pairs({"atmosphere": text})
 
 
 func _dp_seed() -> int:
@@ -997,7 +972,21 @@ func _dp_start() -> void:
 			_dp_failed_with("configure")
 			return
 		_dp_cfg_sig = sig
-		_dp_attach_weather(dp)
+		_dp_weather = null  # configure заводит модель заново
+	# Погода у крейта одна на игру (W12): климат места и ход дня считает она (attach_weather до load_place).
+	# Только для прогноза игры: эталон-пресет (превью, тесты) идёт с запасным климатом, как раньше.
+	# Повторный attach перестраивает уже заданные условия, поэтому — только после configure.
+	if _dp_field_wanted():
+		var wx := Weather.dp()
+		if wx == null:
+			_dp_failed = true
+			_f_err = "dp_air: нет погоды DpWeather"
+			return
+		if _dp_weather != wx:
+			if dp.attach_weather(wx) != 0:
+				_dp_failed_with("attach_weather")
+				return
+			_dp_weather = wx
 	dp.set_cache_dir(
 		ProjectSettings.globalize_path("user://air_cache") if air_cache_enabled else ""
 	)
@@ -1191,8 +1180,8 @@ func _check_forecast(cond: Dictionary) -> String:
 	if not (fc as Dictionary).has("sky"):
 		return "forecast.sky отсутствует"
 	var wr: Variant = cond.get("wind_ref")
-	if wr != null and not (wr is Dictionary and wr.has("ref_msl") and wr.has("gain_per_km")):
-		return "wind_ref: {ref_msl, gain_per_km} или null"
+	if wr != null and not (wr is Dictionary and wr.has("ref_msl")):
+		return "wind_ref: {ref_msl[, gain_per_km]} или null"  # нет gain_per_km — из климата места (W5 v10)
 	if cond.has("overrides") and not cond.overrides is Dictionary:
 		return "overrides не словарь"
 	return ""

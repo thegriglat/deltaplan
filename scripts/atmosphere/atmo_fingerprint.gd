@@ -5,7 +5,7 @@ extends RefCounted
 ## вокруг центра. Два клиента с одинаковыми параметрами зоны должны получать одно и то же.
 ##
 ## Эталонный мир без рельефа из данных: аналитические холмы (растр места W5), источники термиков по
-## солнцу, ход дня (прогноз → WeatherModel.derive по часам внутри фасада) — всё, что есть в игре,
+## солнцу, ход дня (прогноз → Weather.derive по часам внутри фасада) — всё, что есть в игре,
 ## кроме загрузки карты. Только фасад W2 и описания W6: термики — cores(), облака — clouds() и
 ## cloud_raster(), воздух — air_velocity_at(). Тест — tests/atmosphere/test_determinism.gd; сравнить
 ## Linux и Windows — scripts/atmosphere/atmo_fingerprint_cli.gd (docs/guide/atmosphere.md →
@@ -74,7 +74,9 @@ static func source_static(x: float, z: float) -> float:
 
 
 static func sun_at_hour(hour: float) -> Vector3:
-	return AtmoDay.sun_direction(hour, _lat, _lon, _month, _day, _utc)
+	var a := SunClock.solar_position(_lat, _lon, SunClock.day_of_year(_month, _day), hour, _utc)
+	var el := maxf(a.y, float(Config.value("world", "time.min_light_elevation_deg", 2.0)))
+	return TerrainGeo.sun_direction(a.x, el)
 
 
 ## Сила источника в час hour: склон к солнцу × поверхность (как Terrain.thermal_source_strength_at).
@@ -88,17 +90,17 @@ static func source_at(x: float, z: float, hour: float) -> float:
 
 
 static func weather_ctx() -> Dictionary:
-	var ctx := WeatherModel.reference_context()
+	var ctx := Weather.reference_context()
 	ctx.merge(
 		{"month": _month, "day": _day, "lat": _lat, "lon": _lon, "utc_offset_h": _utc}, true
 	)
 	var g: Dictionary = Config.get_config("atmosphere").ground
 	ctx.merge(
-		WeatherModel.ground_context(
+		Weather.ground_context(
 			height,
 			float(g.reference_radius_m),
 			int(g.reference_samples),
-			float(WeatherModel.config().valley_percentile)
+			float(Weather.config().valley_percentile)
 		),
 		true
 	)

@@ -96,7 +96,7 @@ func _run() -> void:
 		var m: Vector3 = v
 		rows.append([
 			x, z, float(p[2]), snappedf(gh, 0.01), terrain.surface_at(x, z),
-			snappedf(terrain.thermal_source_strength_at(x, z), 0.001),
+			snappedf(terrain.sun_exposure_at(x, z), 0.001),
 			snappedf(v.x, 0.001), snappedf(-v.z, 0.001), snappedf(v.y, 0.001), snappedf(m.y, 0.001),
 			0.0, 0.0,  # w_conv и доля поля: на границе W2 v4 их нет
 		])

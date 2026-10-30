@@ -1182,5 +1182,11 @@
 		}
 	],
 	"revision": "c591b10260eaedf408056c2dadd2d1e1be2a556d",
-	"step_m": 50.0
+	"step_m": 50.0,
+	"generator_removed_at": "676c59b5d",
+	"generator_files_removed": [
+		"rust/dp-air/tests/data/RW-10c/dump_source.gd",
+		"rust/dp-air/tests/data/RW-10c/dump_source.tscn"
+	],
+	"restore": "git show 676c59b5d:<путь> — генератор восстанавливается из ревизии до удаления (RW-14e)"
 }

@@ -1,7 +1,7 @@
 class_name GoalEstimator
 extends RefCounted
 ## Оценка погоды → значения целей окна «Полёт…» (GL-К2, docs/contracts/goals.md).
-## До старта, без рельефа: погода на час старта (WeatherModel.derive) → сила термиков, база
+## До старта, без рельефа: погода на час старта (Weather.derive) → сила термиков, база
 ## облаков, ветер, часы до заката → числа лёгкой / средней / трудной цели. Детерминированно;
 ## формулы и коэффициенты — configs/goals/estimate.json (обоснование — в _doc).
 ##
@@ -21,11 +21,10 @@ static func config() -> Dictionary:
 ## Погода до старта для места и часа FlightSettings: {cloudbase_agl_m, thermal_ms, wind_ms,
 ## wind_from_deg, sky, hours_left, start_hour}.
 static func weather_for(s: FlightSettings) -> Dictionary:
-	var wc := WeatherModel.config()
-	var ctx := _context(s, wc)
-	var w := WeatherModel.derive(s.forecast(), ctx, wc, s.start_hour)
+	var ctx := _context(s)
+	var w := Weather.derive(s.forecast(), ctx, s.start_hour)
 	var ts: Array = w.get("thermal_strength_ms", [0.0, 0.0])
-	var day := WeatherModel.diurnal_state(s.temperature_c, s.start_hour, ctx, wc)
+	var day := Weather.diurnal_state(s.temperature_c, s.start_hour, ctx)
 	var max_hour := float(Config.value("world", "time.max_hour", 24.0))
 	var end_h := minf(float(day.sunset_h), max_hour)
 	return {
@@ -40,8 +39,8 @@ static func weather_for(s: FlightSettings) -> Dictionary:
 
 
 ## Место погоды как у Game._weather_context, но высоты — опорные (рельефа ещё нет).
-static func _context(s: FlightSettings, wc: Dictionary) -> Dictionary:
-	var ctx := WeatherModel.reference_context(wc)
+static func _context(s: FlightSettings) -> Dictionary:
+	var ctx := Weather.reference_context()
 	ctx.month = s.month
 	ctx.day = s.day
 	var loc := Locations.config(s.location_id)

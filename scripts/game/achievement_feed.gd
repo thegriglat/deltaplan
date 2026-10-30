@@ -188,20 +188,12 @@ func _temp_at(alt_msl: float) -> float:
 	return temp_at_altitude(w, alt_msl, _game.settings.month, _game.settings.day)
 
 
-## Чистая функция профиля: w — погода WeatherModel.derive (с _derived), высота в м над морем.
+## Чистая функция профиля: w — погода Weather.derive (с _derived), высота в м над морем.
 static func temp_at_altitude(w: Dictionary, alt_msl: float, month: int, day: int) -> float:
 	var d: Dictionary = w.get("_derived", {})
 	if not d.has("temperature_c") or not d.has("valley_msl_m"):
 		return NAN
-	var c := WeatherModel.config()
-	var ua: Dictionary = c.upper_air
-	var dry := float(c.get("dry_adiabat_k_per_km", 9.8))
-	var gam := float(ua.lapse_k_per_km)
-	var t_u := WeatherModel.monthly(ua.temp_c, clampi(month, 1, 12), day)
-	var z_u := float(ua.z_msl_m) / 1000.0
-	var h_v := float(d.valley_msl_m) / 1000.0
-	var z := alt_msl / 1000.0
-	return maxf(float(d.temperature_c) - dry * (z - h_v), t_u + gam * (z_u - z))
+	return Weather.temp_at_altitude(w, alt_msl, month, day)
 
 
 func _derived_weather(key: String) -> float:

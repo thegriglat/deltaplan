@@ -4,7 +4,6 @@ extends TestCase
 ## test_air_contracts (RW-13): WindField, AirFieldSet, Atmosphere; без GPU и удалённых классов.
 
 const Rig := preload("res://tests/atmosphere/air_rig.gd")
-const DOC := "res://docs/contracts/air-model.md"
 const FIX := "res://tests/atmosphere/fixtures/air_model/"
 const REF_CASES := ["agnesi", "flat_wind", "heated_slope", "saddle"]
 const GAME_FIELDS := [

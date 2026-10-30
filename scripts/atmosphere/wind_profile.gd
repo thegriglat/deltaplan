@@ -1,6 +1,6 @@
 class_name WindProfile
 extends RefCounted
-## Профиль ветра притока по высоте — одна функция для решателя (AirPlace.domain_case,
+## Профиль ветра притока по высоте — одна функция для решателя (domain_case крейта,
 ## AirWindowCase → AirCase.p.alpha, p.max_profile) и аналитического ветра WindModel (Atmosphere),
 ## контракт C2 v4.
 ## Эталон — tools/research/air3d/wind_prof.py (те же таблицы и правила).
@@ -152,8 +152,8 @@ static func sun_elevation(ctx: Dictionary, hour: float) -> float:
 	return sp.y
 
 
-## α и max_profile случая решателя на час (AirPlace.domain_case, AirWindowCase): ветер случая,
-## солнце места, облачность cover (WeatherModel.sky_params(sky).cover); z0 и f — из c.p.
+## α и max_profile случая решателя на час (domain_case крейта, AirWindowCase): ветер случая,
+## солнце места, облачность cover (Weather.sky_params(sky).cover); z0 и f — из c.p.
 static func apply_to_case(c: AirCase, ctx: Dictionary, hour: float, cover: float) -> void:
 	var sun := sun_elevation(ctx, hour)
 	var k := stability_class(c.u10, sun, cover)

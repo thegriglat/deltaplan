@@ -34,7 +34,7 @@ func _rig(ref_msl: Variant) -> Atmosphere:
 
 
 func test_wind_grows_above_launch() -> void:
-	# Профиль W5 v8: ветер растёт с высотой над опорной по gain_per_km (в игре — ClimateGrid, запасной
+	# Профиль W5 v8: ветер растёт с высотой над опорной по gain_per_km (в игре — climate_place крейта, запасной
 	# 0,6/км): ×(1 + gain·км); прежняя оценка «до 15 м/с на 1 км выше старта» была у старого профиля по
 	# устойчивости (WindProfile) и условиям без gain. Точный множитель — rust/dp-air/tests/terms_frame.rs
 	# (altitude_factor); здесь — потребитель: в сумме с полем Пикара он сохраняется в пределах нескольких %.

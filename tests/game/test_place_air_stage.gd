@@ -99,7 +99,6 @@ func test_small_place_ready_with_wind() -> void:
 	}
 	var grid := {"origin_x": -HALF, "origin_z": -HALF, "spacing": 25.0, "width": N, "height": N}
 	var place := AirPlaceData.from_arrays(AirPlaceData.make_header(loc, grid, []), heights, water, cls, moist)
-	place.fill_climate()
 	place.fill_crate_inputs()
 	var a := Atmosphere.new()
 	a.visuals_enabled = false
@@ -116,7 +115,7 @@ func test_small_place_ready_with_wind() -> void:
 		"forecast": {"temperature_c": 26.0, "wind_speed_kmh": 14.4, "wind_from_deg": 270.0, "sky": "clear"},
 		"start_hour": 13.0,
 		"speed": 1.0,
-		"quantum_h": AtmoDay.new().quantum_h,
+		"quantum_h": Weather.quantum_h(),
 		"inflow_mode": "start",
 	}
 	check(a.set_conditions(cond) == 0, "условия приняты")

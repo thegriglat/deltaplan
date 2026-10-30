@@ -1,6 +1,6 @@
 extends Node
 ## Таблица «прогноз → день» (docs/archive/plan/weather-by-temperature.md, карточка 1): для 4 локаций
-## замеряет высоту долины и среднюю высоту рельефа (WeatherModel.ground_context) и печатает, что
+## замеряет высоту долины и среднюю высоту рельефа (Weather.ground_context) и печатает, что
 ## выводит модель при разных температуре, ветре и месяце. Та же таблица простым языком — в
 ## <out> (по умолчанию tmp_weather_table.md) для пилота.
 ## Запуск:
@@ -22,7 +22,7 @@ func _ready() -> void:
 		elif a.begins_with("--hours="):
 			for h in a.substr(8).split(","):
 				hours.append(float(h))
-	var cfg := WeatherModel.config()
+	var cfg := Weather.config()
 	var g: Dictionary = Config.get_config("atmosphere").ground
 	var md: PackedStringArray = [
 		"# Какой день получается из прогноза",
@@ -39,7 +39,7 @@ func _ready() -> void:
 			terrain.free()
 			continue
 		var t0 := Time.get_ticks_usec()
-		var ctx := WeatherModel.ground_context(
+		var ctx := Weather.ground_context(
 			terrain.height_at,
 			float(g.reference_radius_m),
 			int(g.reference_samples),
@@ -47,6 +47,7 @@ func _ready() -> void:
 		)
 		var ms := (Time.get_ticks_usec() - t0) / 1000.0
 		ctx.lat = terrain.center_lat
+		ctx.lon = terrain.center_lon
 		print(
 			"\n== %s: долина %.0f м, средняя %.0f м, широта %.2f (ground_context %.1f мс)"
 			% [loc_id, ctx.valley_msl_m, ctx.mean_msl_m, ctx.lat, ms]
@@ -58,7 +59,7 @@ func _ready() -> void:
 			ctx.day = 15
 			md.append("")
 			md.append("### Месяц %d (обычно днём %+.0f °C)" % [
-				month, WeatherModel.typical_max_c(month, 15, cfg)])
+				month, Weather.typical_max_c(month, 15)])
 			md.append("")
 			md.append(
 				"| °C | ветер м/с | кромка над землёй, м | термики, м/с | шаг, м | сухие | термиков в Cb"
@@ -70,7 +71,7 @@ func _ready() -> void:
 			for t in TEMPS:
 				for u in WINDS_MS:
 					var f := {"temperature_c": t, "wind_speed_kmh": u * 3.6, "wind_from_deg": 270.0}
-					var w := WeatherModel.derive(f, ctx, cfg)
+					var w := Weather.derive(f, ctx)
 					var d: Dictionary = w._derived
 					print(
 						"    %+3.0f %2.0f | %5.0f %5.0f %5.0f | %5.0f %.1f–%.1f %5.0f %.2f %.2f %.2f"
@@ -97,7 +98,7 @@ func _ready() -> void:
 			for h in hours:
 				for t in [20.0, 26.0, 31.0]:
 					var f := {"temperature_c": t, "wind_speed_kmh": 11.0, "wind_from_deg": 270.0}
-					var w := WeatherModel.derive(f, ctx, cfg, h)
+					var w := Weather.derive(f, ctx, h)
 					var d: Dictionary = w._derived
 					print(
 						"    %02.0f ч %+3.0f°: T %.1f кромка %5.0f m %5.0f сила %.1f–%.1f Cb‰ %.2f "

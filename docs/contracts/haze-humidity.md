@@ -5,7 +5,7 @@ module: "haze-humidity"
 area: "air"
 updated: "2026-10-23"
 summary: "Стыки haze-humidity: сетки ERA5 (HH1 Td, HH2 700 гПа, HH5 Tmax, HH6 ветер/тропопауза/перистые), HH7 чтение, HH3 дымка, HH4 свет."
-related: ["docs/plan/haze-humidity.md", "scripts/atmosphere/weather_model.gd", "configs/weather_model.json"]
+related: ["docs/plan/haze-humidity.md", "scripts/atmosphere/weather.gd", "configs/weather_model.json"]
 contracts: [{"id": "HH1", "version": 1}, {"id": "HH2", "version": 2}, {"id": "HH3", "version": 1}, {"id": "HH4", "version": 3}, {"id": "HH5", "version": 1}, {"id": "HH6", "version": 2}, {"id": "HH7", "version": 2}]
 ---
 
