@@ -1470,3 +1470,4 @@
 {"t": "2026-10-30T15:45:55", "by": "coordinator", "task": "RW-29", "ev": "checked", "note": "6/6 build_all=ok:exit 0; dp_air_smoke=ok:exit 0; export_linux=ok:exit 0; export_windows=ok:exit 0; gd_check=ok:exit 0; report_doc=ok:exit 0"}
 {"t": "2026-10-30T15:46:41", "by": "reviewer", "task": "RW-29", "ev": "reviewed", "note": "Скоуп и контракты соблюдены (W2 v6 через WIND_API_VERSION, atmosphere/rust/configs не тронуты). smoke.gd, строка журнала и явные проверки export_smoke.sh корре…", "verdict": "accept", "issues": {"minor": 2}, "review": "docs/plan/rust-wind/tasks/RW-29.review.json"}
 {"t": "2026-10-30T15:46:54", "by": "coordinator", "task": "RW-29", "ev": "accepted", "note": "minor: wine READY игры 45,9 против 7,7 с не сравнён на тихой машине — открытый вопрос в итоговом отчёте; формат строки журнала другой, проверка явная"}
+{"t": "2026-10-30T15:47:00", "by": "coordinator", "task": "RW-29", "ev": "merged"}
