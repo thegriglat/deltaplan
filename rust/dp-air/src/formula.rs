@@ -1256,6 +1256,7 @@ impl AirModel for Formula {
         self.terms.configure(&self.configs, seed);
         let bg = !self.det();
         self.terms.thermal_async = bg;
+        self.terms.air_count_by_cycle = true;
         self.terms.clouds_async = bg;
         self.fade_out_s = terms::named_json(&self.configs, "atmosphere")
             .and_then(|a| a.pointer("/clouds/fade_out_s").and_then(Value::as_f64))

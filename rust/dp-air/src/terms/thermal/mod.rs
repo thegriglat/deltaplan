@@ -325,6 +325,7 @@ impl ThermalSlot {
                         seed: terms.seed,
                         t,
                         land: land.clone(),
+                        count_by_cycle: terms.air_count_by_cycle,
                     };
                     let built = b.run();
                     if let Some(a) = &built

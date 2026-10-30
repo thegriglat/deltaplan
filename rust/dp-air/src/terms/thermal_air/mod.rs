@@ -237,6 +237,11 @@ pub struct BuildIn<'a> {
     pub forced: Option<&'a [u8]>,
     /// Полос параллельной сборки: 0 — по числу потоков, 1 — последовательно.
     pub bands: usize,
+    /// Число источников по циклу без `duty` (RW-26): живых термиков в итоге `Аллен · duty`, т. е.
+    /// падает вместе с `thermal_duty` погоды; сила источника по-прежнему с `duty` (поток тот же,
+    /// термиков меньше - каждый сильнее). `false` - как эталон: источников столько, чтобы живых
+    /// при `duty` было `Аллен` (число живых от `duty` не зависит).
+    pub count_by_cycle: bool,
 }
 
 impl<'a> BuildIn<'a> {
@@ -250,6 +255,7 @@ impl<'a> BuildIn<'a> {
             water_fn: None,
             forced: None,
             bands: 0,
+            count_by_cycle: false,
         }
     }
 }
@@ -524,12 +530,16 @@ impl AirThermals {
             s_naphi += c_na[c] as f64 * phi[c] as f64;
         }
         let phi_ref = if s_na > 0.0 { s_naphi / s_na } else { 0.0 };
+        let count_frac = if inp.count_by_cycle {
+            shape.cycle_frac
+        } else {
+            shape.alive_frac
+        };
         for c in 0..n_col {
             if c_na[c] <= 0.0 || phi_ref <= 0.0 {
                 continue;
             }
-            let mut dens =
-                c_na[c] as f64 * phi[c] as f64 / phi_ref / gmax(shape.alive_frac, 1.0e-3);
+            let mut dens = c_na[c] as f64 * phi[c] as f64 / phi_ref / gmax(count_frac, 1.0e-3);
             let cap = phi[c] as f64 / gmax(K_ALLEN * col_wstar[c] as f64 * c_k[c] as f64, 1.0e-9);
             dens = gmin(dens, cap);
             let rc = cand_r[c] as f64;
