@@ -1,0 +1,72 @@
+{
+  "status": "done",
+  "summary": "Причина SIGSEGV: после подачи поля задача пула ещё пишет кеш (zstd), а Godot выгружает библиотеку. Добавлены join_background (счётчик фоновых задач) и ожидание в on_stage_deinit(Core); пауза 2 с в бенче убрана.",
+  "commits": [
+    "RW-28: выход из Godot ждёт фоновые задачи крейта, без SIGSEGV"
+  ],
+  "checks": [
+    {
+      "name": "quit_race",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "bench_smoke",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "purity",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "gd_check",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "report_doc",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "bench --smoke без паузы, кеш тёплый, 30 запусков",
+      "value": "0 падений (до правки 3 из 3 rc=139)",
+      "pass": true
+    },
+    {
+      "name": "bench --smoke без паузы, холодный кеш, 15 запусков",
+      "value": "0 падений",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RW-28",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/src/formula.rs: spawn_bg/BgGuard",
+      "why": "один из 8 запусков после правки дал rc=139 (первый прогон сразу после пересборки); затем 57 запусков без падений, повторить и снять трассу не удалось. Возможно остаточное окно: счётчик снимается до возврата потока в цикл rayon.",
+      "checked": "gdb 42 запуска, без gdb 45 запусков (тёплый и холодный кеш) — 0 падений; quit_during_build 37 запусков rc=0. quit_during_build падение не воспроизводил и до правки (сборка отменяется флагом, падала запись кеша после готовности)."
+    }
+  ],
+  "dp_feedback": "job wait и accept --dry в фоне: нет способа дождаться итога без своих until-циклов; хотелось бы job wait, не уходящий в фон.",
+  "t": "2026-10-30T13:37:17",
+  "by": "executor"
+}
