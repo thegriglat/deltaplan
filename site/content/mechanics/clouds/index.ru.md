@@ -240,8 +240,8 @@ description: "Поле облачности: как кучевые рождаю�
 - Исследование поля облачности (формулы, параметры с источниками, карты по местам):
   [docs/research/cloud_field.md](/docs/research/cloud_field.md) и
   [docs/research/cloud_field/subsidence.md](/docs/research/cloud_field/subsidence.md).
-- Код поля: [scripts/atmosphere/cloud_field.gd](/scripts/atmosphere/cloud_field.gd),
-  [scripts/atmosphere/cloud_field_sources.gd](/scripts/atmosphere/cloud_field_sources.gd), верх слоя по рельефу —
+- Код поля: [rust/dp-air/src/terms/clouds/field.rs](/rust/dp-air/src/terms/clouds/field.rs),
+  [rust/dp-air/src/terms/clouds/sources.rs](/rust/dp-air/src/terms/clouds/sources.rs), верх слоя по рельефу —
   [scripts/atmosphere/air_model/air_zi_terrain.gd](/scripts/atmosphere/air_model/air_zi_terrain.gd); параметры —
   `configs/atmosphere.json`, раздел `cloud_field`. В сетевой игре поле считает каждый клиент, ведущий раз в 30 с
   присылает снимок, остальные подтягиваются к нему за 10 с.

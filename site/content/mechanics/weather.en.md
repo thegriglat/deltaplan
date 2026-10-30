@@ -190,7 +190,7 @@ an input parameter stayed the same; the field takes them as input. More: [air mo
   the game.
 - [docs/research/calibration_data.md](/docs/research/calibration_data.md): tables for calibration
   (§1 "Thermals", §6 "Atmosphere profiles, clouds").
-- [scripts/atmosphere/weather_model.gd](/scripts/atmosphere/weather_model.gd),
-  [scripts/atmosphere/surface_heating.gd](/scripts/atmosphere/surface_heating.gd): the code.
+- [rust/dp-air/src/weather/derive.rs](/rust/dp-air/src/weather/derive.rs),
+  [rust/dp-air/src/field/surface_heat.rs](/rust/dp-air/src/field/surface_heat.rs): the code.
 - [configs/weather_model.json](/configs/weather_model.json): all the numbers of the weather model.
 - [CHANGELOG.md](/CHANGELOG.md): what changed for the pilot, by date.

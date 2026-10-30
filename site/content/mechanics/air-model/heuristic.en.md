@@ -152,5 +152,5 @@ for example, the speed-up at the brow is underestimated by 15–20 %, and the sa
 - [docs/guide/atmosphere.md](/docs/guide/atmosphere.md) — the structure of the atmosphere module as a whole.
 - [scripts/atmosphere/atmosphere.gd](/scripts/atmosphere/atmosphere.gd),
   [scripts/atmosphere/ground_field.gd](/scripts/atmosphere/ground_field.gd),
-  [scripts/atmosphere/wave_field.gd](/scripts/atmosphere/wave_field.gd) — the code.
+  [rust/dp-air/src/terms/waves/field.rs](/rust/dp-air/src/terms/waves/field.rs) — the code.
 - [configs/atmosphere.json](/configs/atmosphere.json) — all numeric parameters (`ridge`, `lee`, `wave`).

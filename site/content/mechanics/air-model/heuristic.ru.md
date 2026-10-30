@@ -152,5 +152,5 @@ $$ w_{ridge} = \mathrm{clamp}\Big(0{,}85 \cdot u \cdot (\hat w \cdot \nabla h) \
 - [docs/guide/atmosphere.md](/docs/guide/atmosphere.md) — устройство модуля атмосферы целиком.
 - [scripts/atmosphere/atmosphere.gd](/scripts/atmosphere/atmosphere.gd),
   [scripts/atmosphere/ground_field.gd](/scripts/atmosphere/ground_field.gd),
-  [scripts/atmosphere/wave_field.gd](/scripts/atmosphere/wave_field.gd) — код.
+  [rust/dp-air/src/terms/waves/field.rs](/rust/dp-air/src/terms/waves/field.rs) — код.
 - [configs/atmosphere.json](/configs/atmosphere.json) — все числовые параметры (`ridge`, `lee`, `wave`).

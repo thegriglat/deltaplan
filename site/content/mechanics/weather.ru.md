@@ -181,7 +181,7 @@ LCL (уровень конденсации) ≈ 122–125 м на градус �
 - [docs/guide/atmosphere/weather.md](/docs/guide/atmosphere/weather.md) → «Погода из прогноза» — как это подключено в игре.
 - [docs/research/calibration_data.md](/docs/research/calibration_data.md) — таблицы для калибровки
   (§1 «Термики», §6 «Профили атмосферы, облака»).
-- [scripts/atmosphere/weather_model.gd](/scripts/atmosphere/weather_model.gd),
-  [scripts/atmosphere/surface_heating.gd](/scripts/atmosphere/surface_heating.gd) — код.
+- [rust/dp-air/src/weather/derive.rs](/rust/dp-air/src/weather/derive.rs),
+  [rust/dp-air/src/field/surface_heat.rs](/rust/dp-air/src/field/surface_heat.rs) — код.
 - [configs/weather_model.json](/configs/weather_model.json) — все числа модели погоды.
 - [CHANGELOG.md](/CHANGELOG.md) — что для пилота изменилось по датам.

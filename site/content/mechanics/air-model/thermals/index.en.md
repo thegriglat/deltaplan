@@ -185,8 +185,8 @@ strength is a rare natural disaster, not an ordinary thunderstorm).
   (climb, share of time spent circling, number of thermals per 10 km).
 - [docs/guide/atmosphere.md](/docs/guide/atmosphere.md): the structure of the atmosphere module; the table "pilot's words
   in numbers" is in [docs/guide/atmosphere/wind-field.md](/docs/guide/atmosphere/wind-field.md).
-- [scripts/atmosphere/thermal_field.gd](/scripts/atmosphere/thermal_field.gd),
+- [rust/dp-air/src/terms/thermal/](/rust/dp-air/src/terms/thermal/mod.rs),
   [scripts/atmosphere/atmo_thermal.gd](/scripts/atmosphere/atmo_thermal.gd),
-  [scripts/atmosphere/storm_field.gd](/scripts/atmosphere/storm_field.gd),
+  [rust/dp-air/src/terms/storm/field.rs](/rust/dp-air/src/terms/storm/field.rs),
   [scripts/atmosphere/dust_devils.gd](/scripts/atmosphere/dust_devils.gd): code.
 - [configs/atmosphere.json](/configs/atmosphere.json), [configs/weather_model.json](/configs/weather_model.json): parameters.

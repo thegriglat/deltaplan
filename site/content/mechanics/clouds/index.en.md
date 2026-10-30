@@ -251,8 +251,8 @@ the same division of the ground into "heating" and "not heating" that the model 
 - Research on the cloud field (formulas, parameters with sources, maps by place):
   [docs/research/cloud_field.md](/docs/research/cloud_field.md) and
   [docs/research/cloud_field/subsidence.md](/docs/research/cloud_field/subsidence.md).
-- Field code: [scripts/atmosphere/cloud_field.gd](/scripts/atmosphere/cloud_field.gd),
-  [scripts/atmosphere/cloud_field_sources.gd](/scripts/atmosphere/cloud_field_sources.gd), the layer top by terrain:
+- Field code: [rust/dp-air/src/terms/clouds/field.rs](/rust/dp-air/src/terms/clouds/field.rs),
+  [rust/dp-air/src/terms/clouds/sources.rs](/rust/dp-air/src/terms/clouds/sources.rs), the layer top by terrain:
   [scripts/atmosphere/air_model/air_zi_terrain.gd](/scripts/atmosphere/air_model/air_zi_terrain.gd); parameters in
   `configs/atmosphere.json`, section `cloud_field`. In multiplayer every client computes the field, the host sends a
   snapshot every 30 s and the others catch up to it over 10 s.

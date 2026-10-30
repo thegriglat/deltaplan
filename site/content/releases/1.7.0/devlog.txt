@@ -1,0 +1,32 @@
+Deltaplan 1.7.0 — wind without the graphics card
+
+This release changes how the air is made. The wind field, thermals, waves, storms, turbulence and the daily weather are no longer computed by shaders on your graphics card and GDScript in the game. They now live in a separate library written in Rust, called dp-air, that runs on the CPU. The game itself only asks it one question: what is the wind here, right now.
+
+You will not see new features in the sky, and that is the point: the air should feel the same, but it is now built on a much more solid base.
+
+Why we moved the wind off the GPU:
+- Crashes and graphics drivers. The wind field over the terrain is solved for the whole area at once, hundreds of thousands of cells, and on the GPU this was a long heavy compute job. On some cards and drivers it was a place where the game broke off or the graphics device was lost. In 1.6.0 we added a GPU failure window, Safe graphics and driver diagnostics in crash reports, but the cause of those breaks was not removed. Now the wind does not touch the graphics card at all, so it cannot take it down.
+- The same wind on every machine. On the GPU the result depended on the card, the driver and the renderer. On the CPU every pilot gets the same calculation.
+- Freedom to change the physics. Every change to the wind used to mean editing shaders and game scripts together. Now the whole air model sits behind one small boundary: the game passes the terrain once, then only time and weather, and asks for the wind. We can change how the wind is computed without touching the game.
+- The road to living air. The next big step is air that evolves in time: a large-scale flow over the region and finer boxes of air that travel with the pilot, where thermals, slope lift, separation and turbulence come from the cells themselves instead of formulas. That only makes sense if all the wind is in one place, and now it is.
+- Speed was not the goal, but the CPU solver keeps up. We optimized the Rust Picard solver about 2x before moving it in. The cost of one step of air does not grow with the size of the location, and a test bot flew a 30 km cross-country task to the goal on it.
+
+What moved into the library:
+- The wind field over the terrain (Picard solver) with background recomputation as the day goes on
+- Thermals and sink between them, waves and rotors, thunderstorms, outflow from clouds
+- Turbulence and gusts
+- Daily weather: dew point, 700 hPa air, wind profile, air and water temperature, sun, sky and haze, from the same ERA5 climate grids; it matches the old code on every reference set
+- About 2200 lines of shader code and 15800 lines of GDScript for the wind and its tests were removed
+
+Other changes:
+- The loading screen shows the wind computation: a separate "Iteration: N" line, and "Run r of n" when the solver runs several passes
+- Wind is always a field: the simplified "wind without field" mode and the "Wind over terrain" setting are gone
+- Baked wind fields for the islands (about 45 MB) are gone, they were never used
+- Wind is no longer zero at a random location
+- Wind debug layers F3, F4 and F7 show the field again
+- Grass in Look around mode follows the camera while paused
+
+Known issues:
+- Loading a location takes longer on slow CPUs, because the wind is solved on the processor
+- In weak summer wind at a high gentle launch above a valley the solver may reach its 3000 iteration limit; the game still flies with the field from the last iteration
+- No macOS build in this version: the Rust library does not build for macOS yet, Mac stays on 1.6.1

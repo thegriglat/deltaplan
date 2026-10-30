@@ -185,8 +185,8 @@ $$ \hat w / w_* = (z/z_i)^{1/3} (1 - 1{,}1\, z/z_i) $$
   (набор, доля времени в кружении, число термиков на 10 км).
 - [docs/guide/atmosphere.md](/docs/guide/atmosphere.md) — устройство модуля атмосферы; таблица «слова пилота в
   числах» — [docs/guide/atmosphere/wind-field.md](/docs/guide/atmosphere/wind-field.md).
-- [scripts/atmosphere/thermal_field.gd](/scripts/atmosphere/thermal_field.gd),
+- [rust/dp-air/src/terms/thermal/](/rust/dp-air/src/terms/thermal/mod.rs),
   [scripts/atmosphere/atmo_thermal.gd](/scripts/atmosphere/atmo_thermal.gd),
-  [scripts/atmosphere/storm_field.gd](/scripts/atmosphere/storm_field.gd),
+  [rust/dp-air/src/terms/storm/field.rs](/rust/dp-air/src/terms/storm/field.rs),
   [scripts/atmosphere/dust_devils.gd](/scripts/atmosphere/dust_devils.gd) — код.
 - [configs/atmosphere.json](/configs/atmosphere.json), [configs/weather_model.json](/configs/weather_model.json) — параметры.
