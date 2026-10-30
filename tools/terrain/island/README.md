@@ -47,7 +47,7 @@ python3 tools/terrain/island/air_check.py --show          # ключ=значе�
 | `out/air_quick.json`, `out/probe_*.json` | итог и сырые выборки проверки воздуха |
 | `weather_sets.json`, `apply_weather.py` | TI-5: фиксированная погода стартов (TI-К2) → `start_sites[].weather` конфига |
 | `air_check.py`, `air_check_run.gd/.tscn` | TI-5: проверка воздуха в игре по наборам стартов, кадры F3/F6 → `out/air_check.json`, `out/check_*.json` |
-| `weather_sweep.gd/.tscn` | TI-5: перебор погоды (WeatherModel.derive) над островом |
+| `weather_sweep.gd/.tscn` | TI-5: перебор погоды (derive модели погоды) над островом |
 
 ## Рельеф
 
@@ -101,7 +101,7 @@ python3 tools/terrain/island/air_check.py --show          # ключ=значе�
 
 ## Быстрая проверка воздуха
 
-Поле GPU игры (`AirRuntime.load_field`, движок phase+picard, область 400 м + окна 100/50 м у старта), 12 ч (слот
+Поле GPU игры (`загрузка поля GPU игры`, движок phase+picard, область 400 м + окна 100/50 м у старта), 12 ч (слот
 `time.start_hours`), 15 июля, partly, погода `weather/medium`, турбулентность и пузыри выключены; `w` —
 `Atmosphere.air_velocity_at`, `w_conv` — поле (пилоту напрямую не отдаётся).
 
