@@ -1,0 +1,33 @@
+Initialize godot-rust (API v4.7.stable.official, runtime v4.7.2.stable.official, safeguards strict)
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+steam: inactive (no_feature)
+dp_air: расширение загружено, api_version=6
+dp_air: подготовка места начата, место xc
+dp_air: 0.0 с, этап prepare, итераций 0
+dp_air: 0.1 с, этап phases, итераций 0
+dp_air: 0.3 с, этап solve_mech, итераций 0
+dp_air: 1.6 с, этап solve_heat, итераций 0
+dp_air: 2.8 с, этап windows, итераций 0
+dp_air: READY за 14.5 с, поле подано, last_error=
+prof t=60 wall=1.5 s adv_ms=542 loop_ms=902 other_ms=69 x=62
+prof t=120 wall=3.0 s adv_ms=472 loop_ms=921 other_ms=68 x=40
+prof t=180 wall=4.4 s adv_ms=504 loop_ms=883 other_ms=68 x=41
+prof t=240 wall=6.0 s adv_ms=549 loop_ms=958 other_ms=68 x=62
+prof t=300 wall=7.5 s adv_ms=501 loop_ms=936 other_ms=70 x=69
+prof t=360 wall=9.0 s adv_ms=516 loop_ms=882 other_ms=66 x=55
+prof t=420 wall=10.4 s adv_ms=528 loop_ms=878 other_ms=68 x=37
+prof t=480 wall=12.0 s adv_ms=554 loop_ms=898 other_ms=70 x=33
+prof t=540 wall=13.5 s adv_ms=564 loop_ms=901 other_ms=68 x=41
+prof t=600 wall=15.0 s adv_ms=549 loop_ms=907 other_ms=65 x=54
+prof t=660 wall=16.5 s adv_ms=537 loop_ms=915 other_ms=70 x=64
+prof t=720 wall=18.0 s adv_ms=531 loop_ms=888 other_ms=66 x=70
+prof t=780 wall=19.5 s adv_ms=521 loop_ms=885 other_ms=64 x=81
+prof t=840 wall=21.0 s adv_ms=522 loop_ms=913 other_ms=61 x=280
+prof t=900 wall=22.7 s adv_ms=543 loop_ms=1054 other_ms=69 x=1216
+prof t=960 wall=24.2 s adv_ms=537 loop_ms=977 other_ms=70 x=2153
+prof t=1020 wall=25.8 s adv_ms=517 loop_ms=963 other_ms=75 x=2702
+prof t=1080 wall=27.6 s adv_ms=569 loop_ms=1135 other_ms=76 x=3631
+prof t=1140 wall=29.3 s adv_ms=544 loop_ms=1143 other_ms=77 x=4556
+prof t=1200 wall=30.9 s adv_ms=515 loop_ms=987 other_ms=65 x=5099
+xc_run: 5.1 км за 1200 с полёта, time_limit; CPU 54.4 с (полёт 30.9 с)

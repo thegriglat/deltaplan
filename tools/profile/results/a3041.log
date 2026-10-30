@@ -1,0 +1,15 @@
+Initialize godot-rust (API v4.7.stable.official, runtime v4.7.2.stable.official, safeguards strict)
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+steam: inactive (no_feature)
+dp_air: расширение загружено, api_version=6
+dp_air: подготовка места начата, место xc
+dp_air: 0.0 с, этап prepare, итераций 0
+dp_air: 0.0 с, этап phases, итераций 0
+dp_air: 0.1 с, этап solve_mech, итераций 0
+dp_air: 0.4 с, этап solve_heat, итераций 0
+dp_air: 0.8 с, этап windows, итераций 0
+dp_air: READY за 4.2 с, поле подано, last_error=
+prof t=60 wall=2.2 s
+prof t=120 wall=2.8 s
+xc_run: 0.8 км за 120 с полёта, time_limit; CPU 11.4 с (полёт 2.8 с)

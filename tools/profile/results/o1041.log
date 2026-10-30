@@ -1,0 +1,22 @@
+Initialize godot-rust (API v4.7.stable.official, runtime v4.7.2.stable.official, safeguards strict)
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+steam: inactive (no_feature)
+dp_air: расширение загружено, api_version=6
+dp_air: подготовка места начата, место xc
+dp_air: 0.0 с, этап prepare, итераций 0
+dp_air: 0.1 с, этап phases, итераций 0
+dp_air: 0.1 с, этап solve_mech, итераций 0
+dp_air: 2.1 с, этап solve_heat, итераций 0
+dp_air: 4.0 с, этап windows, итераций 0
+dp_air: READY за 13.8 с, поле подано, last_error=
+prof t=60 wall=1.5 s adv_ms=542 loop_ms=893 other_ms=67 x=48
+prof t=120 wall=3.0 s adv_ms=517 loop_ms=887 other_ms=70 x=824
+prof t=180 wall=4.7 s adv_ms=592 loop_ms=1043 other_ms=80 x=1669
+prof t=240 wall=6.5 s adv_ms=637 loop_ms=1099 other_ms=77 x=1605
+prof t=300 wall=8.4 s adv_ms=649 loop_ms=1174 other_ms=93 x=1585
+prof t=360 wall=10.1 s adv_ms=533 loop_ms=1027 other_ms=80 x=1821
+prof t=420 wall=11.6 s adv_ms=499 loop_ms=940 other_ms=72 x=2647
+prof t=480 wall=13.1 s adv_ms=501 loop_ms=943 other_ms=69 x=3380
+prof t=540 wall=14.8 s adv_ms=554 loop_ms=1057 other_ms=78 x=4206
+xc_run: 4.7 км за 573 с полёта, landed; CPU 30.8 с (полёт 15.7 с)

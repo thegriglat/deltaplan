@@ -1,0 +1,107 @@
+{
+ "by_comm": {
+  "dp-air-0": 705.11,
+  "dp-air-7": 62.7,
+  "godot": 60.31,
+  "dp-air-2": 1.41,
+  "dp-air-1": 1.32,
+  "dp-air-3": 1.31,
+  "dp-air-13": 1.26,
+  "dp-air-6": 1.25,
+  "dp-air-14": 1.25,
+  "dp-air-4": 1.24,
+  "dp-air-5": 1.24,
+  "dp-air-11": 1.21,
+  "dp-air-12": 1.17,
+  "dp-air-8": 1.15,
+  "dp-air-10": 1.13,
+  "dp-air-15": 1.12,
+  "dp-air-16": 1.11,
+  "dp-air-9": 1.09,
+  "dp-air-17": 1.09,
+  "dp-air-18": 1.09,
+  "WorkerThread 0": 0.0,
+  "WorkerThread 1": 0.0,
+  "WorkerThread 2": 0.0,
+  "WorkerThread 3": 0.0,
+  "WorkerThread 4": 0.0,
+  "WorkerThread 5": 0.0,
+  "WorkerThread 6": 0.0,
+  "WorkerThread 7": 0.0,
+  "WorkerThread 8": 0.0,
+  "WorkerThread 9": 0.0,
+  "WorkerThread 10": 0.0,
+  "WorkerThread 11": 0.0,
+  "WorkerThread 12": 0.0,
+  "WorkerThread 13": 0.0,
+  "WorkerThread 14": 0.0,
+  "WorkerThread 15": 0.0,
+  "WorkerThread 16": 0.0,
+  "WorkerThread 17": 0.0,
+  "WorkerThread 18": 0.0,
+  "WorkerThread 19": 0.0
+ },
+ "n_threads": 1354,
+ "top_tids": [
+  [
+   "godot",
+   60.22,
+   "814460"
+  ],
+  [
+   "dp-air-0",
+   10.45,
+   "824274"
+  ],
+  [
+   "dp-air-0",
+   6.01,
+   "824258"
+  ],
+  [
+   "dp-air-0",
+   5.93,
+   "824259"
+  ],
+  [
+   "dp-air-0",
+   5.82,
+   "824260"
+  ],
+  [
+   "dp-air-0",
+   5.76,
+   "824263"
+  ],
+  [
+   "dp-air-0",
+   5.73,
+   "824265"
+  ],
+  [
+   "dp-air-0",
+   5.7,
+   "824261"
+  ],
+  [
+   "dp-air-0",
+   5.61,
+   "824262"
+  ],
+  [
+   "dp-air-0",
+   5.61,
+   "824276"
+  ],
+  [
+   "dp-air-0",
+   5.6,
+   "824275"
+  ],
+  [
+   "dp-air-0",
+   5.57,
+   "824270"
+  ]
+ ]
+}
