@@ -973,17 +973,19 @@ func _dp_start() -> void:
 		_dp_cfg_sig = sig
 		_dp_weather = null  # configure заводит модель заново
 	# Погода у крейта одна на игру (W12): климат места и ход дня считает она (attach_weather до load_place).
+	# Только для прогноза игры: эталон-пресет (превью, тесты) идёт с запасным климатом, как раньше.
 	# Повторный attach перестраивает уже заданные условия, поэтому — только после configure.
-	var wx := Weather.dp()
-	if wx == null:
-		_dp_failed = true
-		_f_err = "dp_air: нет погоды DpWeather"
-		return
-	if _dp_weather != wx:
-		if dp.attach_weather(wx) != 0:
-			_dp_failed_with("attach_weather")
+	if _dp_field_wanted():
+		var wx := Weather.dp()
+		if wx == null:
+			_dp_failed = true
+			_f_err = "dp_air: нет погоды DpWeather"
 			return
-		_dp_weather = wx
+		if _dp_weather != wx:
+			if dp.attach_weather(wx) != 0:
+				_dp_failed_with("attach_weather")
+				return
+			_dp_weather = wx
 	dp.set_cache_dir(
 		ProjectSettings.globalize_path("user://air_cache") if air_cache_enabled else ""
 	)
