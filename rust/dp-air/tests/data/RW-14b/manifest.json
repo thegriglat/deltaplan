@@ -74,5 +74,13 @@
 			"what": "AtmoDay.sun_direction(hour, lat, lon, month, day, utc) и AtmoDay.hour_at(t) с зажимом world.time",
 			"why": "пограничные часы, utc NaN"
 		}
-	]
+	],
+	"generator_removed_at": "676c59b5d",
+	"generator_files_removed": [
+		"tools/wind_fixtures/weather_ref2.gd",
+		"tools/wind_fixtures/weather_ref2.gd.uid",
+		"tools/wind_fixtures/weather_ref2.sh",
+		"tools/wind_fixtures/weather_ref2.tscn"
+	],
+	"restore": "git show 676c59b5d:<путь> — генератор восстанавливается из ревизии до удаления (RW-14e)"
 }

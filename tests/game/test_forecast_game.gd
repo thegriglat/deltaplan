@@ -82,6 +82,8 @@ func _count_thermals(main: Node, game: Game, s: FlightSettings, hour: float) -> 
 	for i in 40:
 		t += 15.0
 		air.advance_to(t)
+		# Термики крейт пересобирает фоном: без реального времени между шагами снимок не успевает.
+		await get_tree().create_timer(0.3).timeout
 		if i >= 10:
 			total += air.thermals_near(p, 5000.0).size()
 	return total

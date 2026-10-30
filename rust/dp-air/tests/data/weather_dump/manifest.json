@@ -10,5 +10,13 @@
 		"ongudai_no_hh1",
 		"ongudai_no_hh6"
 	],
-	"rows": 6181
+	"rows": 6181,
+	"generator_removed_at": "676c59b5d",
+	"generator_files_removed": [
+		"tools/wind_fixtures/weather_dump.gd",
+		"tools/wind_fixtures/weather_dump.gd.uid",
+		"tools/wind_fixtures/weather_dump.sh",
+		"tools/wind_fixtures/weather_dump.tscn"
+	],
+	"restore": "git show 676c59b5d:<путь> — генератор восстанавливается из ревизии до удаления (RW-14e)"
 }
