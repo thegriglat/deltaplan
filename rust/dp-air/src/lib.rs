@@ -26,7 +26,7 @@ pub mod weather;
 pub use calm::Calm;
 pub use conditions::{Conditions, Forecast, InflowMode, Source, WindRef};
 pub use error::{Code, Error};
-pub use formula::Formula;
+pub use formula::{Formula, join_background};
 pub use level::{
     Level, NestDst, NestSrc, Shift, ShiftDst, ShiftSrc, Stag, nest, prolong, prolong_state,
     shift_between, shift_warm,
