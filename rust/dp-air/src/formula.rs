@@ -539,6 +539,8 @@ pub struct Formula {
     cloud_air: bool,
     /// Ход дня, по которому собрана земля термиков (`Terms::day_sig`).
     wired_sig: Option<[f64; 3]>,
+    /// Сколько раз `advance_to` строил первые термики по полю синхронно (RW-25; для тестов).
+    first_air_builds: u32,
     /// `clouds.fade_out_s`: окно истории `cloud_objects`, с.
     fade_out_s: f64,
     /// Порог смены погоды для `weather_version` (под замком: опрос — `&self`).
@@ -621,6 +623,7 @@ impl Formula {
             fed_ver: u64::MAX,
             cloud_air: false,
             wired_sig: None,
+            first_air_builds: 0,
             fade_out_s: 60.0,
             wv: Mutex::new(WvMemo::default()),
         }
@@ -716,6 +719,12 @@ impl Formula {
 
     fn det(&self) -> bool {
         matches!(&self.cfg, Some(Ok(c)) if c.deterministic)
+    }
+
+    /// Сколько раз `advance_to` строил первые термики по полю синхронно (тесты RW-25).
+    #[doc(hidden)]
+    pub fn first_air_builds(&self) -> u32 {
+        self.first_air_builds
     }
 
     fn need_place(&self) -> Result<(), Error> {
@@ -1409,6 +1418,7 @@ impl AirModel for Formula {
                 .as_slot()
                 .is_some_and(|s| s.air().is_none());
         let changed = if first_air {
+            self.first_air_builds += 1;
             self.terms.start_at(t)
         } else {
             self.terms.advance(t)

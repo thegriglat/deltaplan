@@ -100,6 +100,10 @@ fn wait_ready(m: &mut Formula) {
 
 /// Условия до `load_place` (прогноз), затем `advance_to` кадрами без пауз; число ядер за 150..600 с.
 fn fly(m: &mut Formula, hour: u32) -> usize {
+    fly_sp(m, hour, 25.0)
+}
+
+fn fly_sp(m: &mut Formula, hour: u32, sp: f64) -> usize {
     m.set_conditions(&cond(false, hour)).unwrap();
     m.set_focuses(&[Focus {
         pos: [0.0, 300.0, 0.0],
@@ -108,7 +112,7 @@ fn fly(m: &mut Formula, hour: u32) -> usize {
     .unwrap();
     m.set_static_thermals(&[[100.0, 100.0, 3.0, 150.0]], 0)
         .unwrap();
-    m.load_place(rig_place(25.0)).unwrap();
+    m.load_place(rig_place(sp)).unwrap();
     wait_ready(m);
     let mut n = 0;
     let mut t = 0.0;
@@ -177,4 +181,17 @@ fn game_order_no_rebuild_has_cores() {
 fn game_order_evening_has_fewer_cores() {
     let (n14, n19) = (run(true, false, 14), run(true, false, 19));
     assert!(n14 > 0 && n19 < n14, "14 h: {n14}, 19 h: {n19}");
+}
+
+#[test]
+fn first_air_build_once_with_field_and_never_without() {
+    // с полем (шаг 25 м): ровно одна синхронная сборка за 40 шагов advance_to
+    let mut m = new_formula();
+    fly(&mut m, 14);
+    assert_eq!(m.first_air_builds(), 1);
+    // без поля (шаг 100 м - поле не принимается, Failed): синхронной сборки нет ни на одном шаге
+    let mut m = new_formula();
+    fly_sp(&mut m, 14, 100.0);
+    assert_eq!(m.status().state, State::Failed);
+    assert_eq!(m.first_air_builds(), 0);
 }
