@@ -1,6 +1,6 @@
 ---
 name: new-release
-description: Выпуск новой версии Deltaplan — версия в проекте, CHANGELOG, страница версии на сайте site/content/releases/<версия> (index.en.md + index.ru.md, скриншоты, devlog — plain text для itch.io), сборка Linux, Windows и macOS (у игры есть пользователи на Mac), git-тег, заливка на itch.io через butler. Использовать, когда пользователь просит «выпустить/собрать версию X.Y.Z», «new-release», «залить новую версию».
+description: Выпуск новой версии Deltaplan — версия в проекте, CHANGELOG, страница версии на сайте site/content/releases/<версия> (index.en.md + index.ru.md, скриншоты, devlog — plain text для itch.io), сборка Linux и Windows (macOS с rust-wind не собирается — только по решению пользователя), git-тег, заливка на itch.io через butler. Использовать, когда пользователь просит «выпустить/собрать версию X.Y.Z», «new-release», «залить новую версию».
 ---
 
 # new-release — выпуск версии Deltaplan
@@ -74,24 +74,24 @@ Known issues:
 `git commit -m "Версия X.Y.Z; CHANGELOG и страница версии" -- project.godot CHANGELOG.md site/content/releases/X.Y.Z` (и `git add site/content/releases/X.Y.Z` перед этим; в папке оба файла — `index.en.md` и `index.ru.md`). После пуша в main сайт пересобирается сам (`.github/workflows/pages.yml`); пушить — только по просьбе.
 
 ## 5. Сборка
-- Сначала `bash tools/terrain/bake_all.sh --check` (запечённые поля всех встроенных мест, без GPU). Код 1 — устарели (изменилась модель воздуха или данные): перепечь `bash tools/terrain/bake_all.sh` под `.dpcli/dpcli lock gpu bake -- …` (окно, `DISPLAY=:0`, GPU), закоммитить `data/locations/*/air`, повторить `--check` до 0. Иначе в сборке место считает ветер само.
-- `tools/build.sh all --release` (нужен дисплей: Shader Baker запекает шейдеры только при экспорте с окном; без дисплея — предупреждение и сборка без запекания). Проверить вывод: «готово: build/linux/…», «готово: build/windows/…», «готово: build/macos/Deltaplan.app…».
+- Запекать поля не нужно: с rust-wind (2026-10-30) ветер считает крейт dp-air при загрузке места, запечённых полей нет.
+- macOS не собирать и не заливать молча: расширение dp-air под macOS не собирается, Mac-пользователи остаются на последней GPU-версии. Спросить пользователя; по умолчанию канал `mac` на itch не трогать.
+- `tools/build.sh linux --release` и `tools/build.sh windows --release` (нужен дисплей: Shader Baker запекает шейдеры только при экспорте с окном; без дисплея — предупреждение и сборка без запекания). Проверить вывод: «готово: build/linux/…», «готово: build/windows/…»; рядом с бинарником — библиотека dp_air (`libdp_air_release.so` / `dp_air_release.dll`).
 - `data/build_info.json` → коммит без `+` (иначе была незакоммиченная правка — вернуться к шагу 0).
 - Smoke Linux: `XDG_DATA_HOME=$(mktemp -d) build/linux/deltaplan.x86_64 --headless -- --smoke | grep smoke` — все крылья из configs/wings, 4 места, `terrain data=true`, `about … ok=true`, «300 шагов … фаза flying».
-- Каталоги (zip не делаются, butler заливает каталоги): `find build/windows -not -path "*/configs/*"` — только `deltaplan.exe` + `deltaplan.pck` (нет `*.console.exe`, временных файлов); то же для `build/linux`. macOS: `find build/macos -path "*MacOS/*" -o -name "*.pck"` — бинарник и pck внутри `Deltaplan.app` (запустить негде — проверяет друг с Mac).
+- Каталоги (zip не делаются, butler заливает каталоги): `find build/windows -not -path "*/configs/*"` — только `deltaplan.exe` + `deltaplan.pck` + `dp_air_release.dll` (нет `*.console.exe`, временных файлов); то же для `build/linux` (`deltaplan.x86_64`, `deltaplan.pck`, `libdp_air_release.so`).
 
 ## 6. Тег
 `git tag -a vX.Y.Z <коммит сборки> -m "Deltaplan X.Y.Z"` — на коммит из шага 4 (тот, из которого собрано). Пушить (`git push`, `--tags`) — только если пользователь попросит.
 
 ## 7. itch.io (butler)
-- Цель: `thegriglat/deltaplan`, каналы `linux`, `windows`, `mac`; заливать **каталоги**, не zip (сохраняется бит исполнимости):
+- Цель: `thegriglat/deltaplan`, каналы `linux`, `windows` (`mac` — только по решению пользователя, см. шаг 5); заливать **каталоги**, не zip (сохраняется бит исполнимости):
   ```
   butler push build/linux thegriglat/deltaplan:linux --userversion X.Y.Z
   butler push build/windows thegriglat/deltaplan:windows --userversion X.Y.Z
-  butler push build/macos thegriglat/deltaplan:mac --userversion X.Y.Z
   ```
-- Дождаться обработки: `butler status thegriglat/deltaplan` — у всех трёх каналов (linux, windows, mac) `✓` и версия `X.Y.Z` (ожидать циклом с `sleep 10`, пока есть `•`).
+- Дождаться обработки: `butler status thegriglat/deltaplan` — у залитых каналов (linux, windows) `✓` и версия `X.Y.Z` (ожидать циклом с `sleep 10`, пока есть `•`).
 - Это публикация — выполнять только по явной просьбе выпустить версию (вызов скилла ею и является).
 
 ## 8. Отчёт пользователю
-Коротко: версия, коммит и тег, размеры каталогов (`du -sh build/{linux,windows,macos}`), итог smoke, статус каналов itch, путь `site/content/releases/X.Y.Z/devlog.txt` и страницы версии после пуша: en https://thegriglat.github.io/deltaplan/releases/X.Y.Z/ и ru https://thegriglat.github.io/deltaplan/ru/releases/X.Y.Z/, что вошло в версию (3–5 пунктов).
+Коротко: версия, коммит и тег, размеры каталогов (`du -sh build/{linux,windows}`), итог smoke, статус каналов itch, путь `site/content/releases/X.Y.Z/devlog.txt` и страницы версии после пуша: en https://thegriglat.github.io/deltaplan/releases/X.Y.Z/ и ru https://thegriglat.github.io/deltaplan/ru/releases/X.Y.Z/, что вошло в версию (3–5 пунктов).
