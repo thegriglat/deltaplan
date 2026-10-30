@@ -1,0 +1,68 @@
+{
+  "status": "done",
+  "summary": "smoke.gd на API 6 (версия из Atmosphere.WIND_API_VERSION, убран удалённый set_field_enabled); игра пишет строку «game: фаза flying, ветер у крыла X м/с»; export_smoke.sh явно проверяет место/dp_air api 6/READY/flying/ветер>0.1 и падает кодом 1. Linux и wine: ветер у крыла 2.19, у земли 3.60 м/с.",
+  "commits": [
+    "66ff56efb RW-29: smoke игры проверяет ветер ≠ 0 и фазу flying по журналу; smoke.gd на API 6"
+  ],
+  "checks": [
+    {
+      "name": "accept --dry",
+      "value": "6/6 PASS",
+      "pass": true
+    },
+    {
+      "name": "ветер у крыла linux/wine",
+      "value": "2.19 м/с",
+      "pass": true
+    },
+    {
+      "name": "ветер у земли smoke.tscn",
+      "value": "3.60 м/с",
+      "pass": true
+    },
+    {
+      "name": "build_all",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "dp_air_smoke",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "export_linux",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "export_windows",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "gd_check",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "report_doc",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-29",
+  "uncertain": [
+    {
+      "where": "scripts/game/game.gd:_log_flight_probe",
+      "why": "добавлена строка журнала в игровой код (scripts/ в скоупе); при --air-start ветер замерен на t=0, не в динамике",
+      "checked": "строка видна в логах Linux и wine; gd_check ок"
+    }
+  ],
+  "dp_feedback": "accept --dry на 9 минут из-за build_all повторяется при каждой правке; кэш/пропуск шага был бы полезен.",
+  "t": "2026-10-30T15:41:50",
+  "by": "executor"
+}

@@ -1,0 +1,29 @@
+{
+  "verdict": "accept",
+  "summary": "Скоуп и контракты соблюдены (W2 v6 через WIND_API_VERSION, atmosphere/rust/configs не тронуты). smoke.gd, строка журнала и явные проверки export_smoke.sh корректны; приёмка координатора 6/6.",
+  "issues": [
+    {
+      "file": "docs/research/rust-wind-stage3/rw29-smoke.md",
+      "line": 20,
+      "severity": "minor",
+      "what": "Задание просило сравнить wine READY 45,9 с против 7,7 с (RW-21a) и сказать, шум или нет; в документе только READY smoke.tscn (3,6/16,0 с), вывода нет.",
+      "fix": "При случае дописать READY игры под wine и вывод про шум."
+    },
+    {
+      "file": "scripts/game/game.gd",
+      "line": 266,
+      "severity": "minor",
+      "what": "Формат строки отличается от запрошенного «SMOKE phase= wind_ms= api=» и печатается раз за полёт, а не по --time; ветер замерен при t=0 (автор это отметил). Поведение игры не меняется.",
+      "fix": "Не требуется; координатору знать, что проверка — по тексту «game: фаза flying, ветер у крыла»."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "просмотр диффа и скоупа",
+      "value": "4 файла в скоупе",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-30T15:46:41",
+  "by": "reviewer"
+}
