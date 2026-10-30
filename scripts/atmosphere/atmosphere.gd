@@ -578,8 +578,9 @@ func weather() -> Dictionary:
 	if v != _w_cache_ver:
 		var parsed: Variant = JSON.parse_string(String(_dp.weather_json()))
 		_w_cache = parsed if parsed is Dictionary else {}
-		if not _w_cache.is_empty():
-			_w_cache_ver = v  # пустую погоду (место сменилось, условия ещё не приняты) не запоминаем
+		# Пока место грузится, крейт отдаёт «{}» при той же версии: пустое не кешируем, иначе после READY
+		# погода так и осталась бы пустой (версия не менялась).
+		_w_cache_ver = v if not _w_cache.is_empty() else Vector2i(-1, -1)
 	return _w_cache.duplicate(true)
 
 

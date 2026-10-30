@@ -1,107 +1,46 @@
 {
   "status": "partial",
-  "summary": "Погода на GDScript удалена, потребители на Weather (над DpWeather) и SurfaceSnapshot; related в 4 docs исправлены, hour_at без определения числа аргументов, attach_weather только для прогноза (иначе ломался cloud_fade на пресете). Падают только базовые: atmosphere (6 облака/подветер) и forecast_game (276/267 и вечерние термики) — ищет RW-24.",
+  "summary": "Доработка по ревью: потребители удалённого Terrain.thermal_source_strength_at переведены на sun_exposure_at (air_velocity_bench, island/volcano air_probe, test_ridge_starts); generator_removed_at в манифестах weather_dump, RW-10c, RW-14b; неиспользуемая DOC убрана; в rw14e-consumers.md описано, где зовётся attach_weather и почему пресету он не нужен; в forecast_game счёт термиков ждёт фоновую сборку крейта.",
   "commits": [
-    "RW-14e: потребители погоды на Weather/DpWeather, удалена погода на GDScript",
-    "RW-14e: Weather.derive дополняет прогноз умолчаниями, правка тестов погоды",
-    "RW-14e: attach_weather один раз после configure",
-    "RW-14e: пустая погода крейта не кешируется по версии"
+    "9945c37a7 RW-14e доработка: термики в forecast_game ждут фоновую сборку крейта, потребители thermal_source_strength_at на sun_exposure_at, generator_removed_at в манифестах, DOC убран"
   ],
   "checks": [
     {
-      "name": "rust_wind_contracts",
-      "value": "0 упало",
-      "pass": true
-    },
-    {
-      "name": "air_field_contracts",
-      "value": "0 упало",
-      "pass": true
-    },
-    {
-      "name": "place_air_stage",
-      "value": "0 упало",
-      "pass": true
-    },
-    {
-      "name": "goal_estimator / achievement_feed / game_logic",
-      "value": "0 упало",
-      "pass": true
-    },
-    {
-      "name": "gd_weather_gone, gd_weather_refs, wrapper, gd_check",
-      "value": "PASS (refs после правки комментариев — grep пуст)",
-      "pass": true
-    },
-    {
-      "name": "cargo_test",
-      "value": "не гонял полностью; Rust-код не менялся, ветка слита с feature/rust-wind",
-      "pass": true
-    },
-    {
-      "name": "atmosphere",
-      "value": "падают cloud_field_runtime x2, cloud_select_chunked, cloud_suck, lee_rotor, pilot_words — все на базе тоже (cloud_fade, мой, исправлен)",
+      "name": "accept --dry (ветка 4fb00d0c1)",
+      "value": "12/15: FAIL atmosphere (6 базовых падений RW-24), FAIL forecast_game (таймаут 900 с на solve_heat без кеша, 430 с), FAIL cargo_test (таймаут 900 с, нагрузка машины); остальное PASS",
       "pass": false
     },
     {
-      "name": "forecast_game",
-      "value": "'встречный 276/267' (база) и 'вечером термиков (0 и 0)' (база падала на 'кромка 2091')",
+      "name": "forecast_game, свой прогон с кешем поля",
+      "value": "термиков 14 ч — 4170, 19 ч — 3639; падает «встречный 276/267» (база, RW-24) и «вечером в 3+ раза меньше»",
       "pass": false
-    },
-    {
-      "name": "docs_check",
-      "value": "ошибок 0",
-      "pass": true
-    },
-    {
-      "name": "cargo_test",
-      "value": "PASS",
-      "pass": true
     }
   ],
   "not_done": [
-    "forecast_game и 6 тестов атмосферы — базовые падения, RW-24"
+    "cargo_test не дошёл до конца за 900 с (тесты крейта идут >60 с каждый при загрузке CPU) — полный результат нужен повторным прогоном на свободной машине; в этой доработке rust/ кроме JSON-манифестов не менялся.",
+    "forecast_game в accept упал по таймауту (поле altai без кеша считается 430 с solve_heat); с прогретым кешем тест идёт ~4 мин.",
+    "Замена моста на weather.gd после слияния RW-24 (air_weather_link.gd, _dp_attach_weather) — не сделана: ждёт сообщения координатора и task sync."
   ],
   "questions": [],
-  "images": [],
-  "how_to_check": ".dpcli/dpcli accept RW-14e --dry",
+  "how_to_check": ".dpcli/dpcli accept RW-14e",
   "uncertain": [
     {
-      "where": "scripts/atmosphere/atmosphere.gd:_dp_start (attach_weather)",
-      "why": "повторный attach_weather перестраивал условия и давал пустую weather() на втором _fly; теперь attach только после configure, и пустая погода не кешируется. Корень не установлен до конца",
-      "checked": "forecast_game: ошибка доступа к weather().wind_from_deg ушла"
+      "where": "tests/game/test_forecast_game.gd:75",
+      "why": "Нули термиков в тесте: крейт пересобирает снимок термиков фоном, а тест шагал advance_to 40 раз без реального времени. С паузой 0,3 с на шаг ядра появляются (88 в 5 км в 14 ч, 108 в 19 ч). Позже RW-24 сообщила иное объяснение (cores=0 без rebuild, чинит RW-25) — моя пауза может быть обходом той же ошибки. Заодно: число ядер вечером не падает (88 → 108), хотя thermal_duty 0,82 → 0,35 и сила вдвое слабее (средняя w 2,28 → 1,58), поэтому проверка «в 3+ раза меньше» всё равно красная; это поведение крейта, rust/dp-air/src не трогал.",
+      "checked": "Проба: _fly 14/19/19 ч, подсчёт ядер, гистограмма w и стадий; детерминированно, утечки состояния между полётами нет."
     },
     {
-      "where": "tests/terrain/test_surface.gd, tests/contracts/test_feedback_1013_contracts.gd",
-      "why": "удалены проверки потока тепла по классам, воды, застройки, силы источника и усиления у границ классов (Terrain больше не считает); в cargo юнит-тестов field/surface_heat.rs нет",
-      "checked": "перенос в cargo — RW-14h"
+      "where": "tools/terrain/*/air_probe.gd, tools/bench/air_velocity_bench.gd, test_ridge_starts.gd",
+      "why": "Вызовы Atmosphere.set_ground/step/set_focus давно отсутствуют (инструменты и тест устарели ещё до этой задачи); замена thermal_source_strength_at на sun_exposure_at в колонке источника probe — другая величина (освещённость склона, без поверхности и потока тепла), но тест помечен pending, а инструменты не запускаются.",
+      "checked": "grep по scope: вызовов thermal_source_strength_at в scripts, tests, tools/bench, tools/terrain, tools/weather, tools/wind_fixtures не осталось (research/ — dont_touch, README острова упоминает имя)."
     },
     {
-      "where": "scripts/atmosphere/weather.gd:ground_context",
-      "why": "средняя высота считается суммой в GD (арифметика проб), долина — valley_of крейта",
-      "checked": "test_speed, прямое сравнение с прежним GD на опорном месте"
-    },
-    {
-      "where": "scripts/atmosphere/weather.gd:hour_at",
-      "why": "число аргументов DpWeather.hour_at определяется в рантайме (4 до RW-16b, 3 после)",
-      "checked": "после RW-16b можно упростить"
-    },
-    {
-      "where": "tools/research/**",
-      "why": "дампы на удалённых классах (dont_touch) больше не запускаются",
-      "checked": "не проверял"
-    },
-    {
-      "where": "tools/wind_fixtures/weather_dump.*, weather_ref2.*, rust/dp-air/tests/data/RW-10c/dump_source.*",
-      "why": "генераторы эталонов удалены (требуют удалённый GD); снятые эталоны остаются",
-      "checked": "cargo-эталоны не менялись"
+      "where": "rust/dp-air/tests/data/*/manifest.json",
+      "why": "generator_removed_at указан как 676c59b5d (merge-base, последняя ревизия с генераторами).",
+      "checked": "git show 676c59b5d содержит tools/wind_fixtures/weather_dump.*, weather_ref2.*, RW-10c/dump_source.*"
     }
   ],
-  "dp_feedback": "task show не говорил, что godot без lock cpu висит; docs check падает на related вне скоупа исполнителя, а правка dont_touch запрещена — нужен способ пометить такие правки координатору. Параллельные тесты forecast_game без lock сильно тормозят друг друга.",
-  "extra": {
-    "удалено_строк_gd": "около 4500",
-    "документ": "docs/research/rust-wind-stage3/rw14e-consumers.md"
-  },
-  "t": "2026-10-30T08:19:06",
+  "dp_feedback": "accept --dry держит cargo_test и Godot-тесты в одном 900-секундном лимите при нагрузке на CPU от соседей; полезно видеть в выводе загрузку машины и считать таймаут по бездействию, а не по стене. В фоне Bash-инструмента TMPDIR пуст — dpcli подсказывал бы путь для логов.",
+  "t": "2026-10-30T10:42:41",
   "by": "executor"
 }

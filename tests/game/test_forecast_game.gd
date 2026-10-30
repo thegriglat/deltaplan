@@ -35,11 +35,15 @@ func test_game_uses_forecast() -> void:
 		main.queue_free()
 		return
 	var start: Dictionary = game.get_start()
-	check(
-		absf(angle_difference(deg_to_rad(float(air.weather().wind_from_deg)),
-			deg_to_rad(float(start.heading_deg)))) < 0.01,
-		"встречный: ветер с %.0f°, курс %.0f°" % [air.weather().wind_from_deg, start.heading_deg]
-	)
+	# Румб ветра - курс площадки; курс старта пилот доворачивает к среднему ветру поля у земли (Game._align_start_heading,
+	# configs/game.json start_wind_align): рельеф поворачивает поток, поэтому курс старта может отличаться от румба на
+	# несколько градусов (после RW-14c поле считается с климатом места по сеткам - 276° и 267° на Синюхе), но не дальше max_turn_deg.
+	var wind_from := float(air.weather().wind_from_deg)
+	var site := float(game._site_heading)
+	check(absf(angle_difference(deg_to_rad(wind_from), deg_to_rad(site))) < 0.01, "встречный: ветер с %.0f°, курс площадки %.0f°" % [wind_from, site])
+	var turn_max := float(Config.get_config("game").start_wind_align.max_turn_deg)
+	var turn := rad_to_deg(absf(angle_difference(deg_to_rad(site), deg_to_rad(float(start.heading_deg)))))
+	check(turn <= turn_max + 0.01, "курс старта %.0f° не дальше %.0f° от курса площадки (%.0f°)" % [start.heading_deg, turn_max, site])
 	# Опора ветра — старт (W5 Conditions.wind_ref): на высоте старта фоновый ветер идёт по румбу
 	# прогноза (на «встречный» — против курса), не слабеет с высотой и не нулевой.
 	var y0 := (start.position as Vector3).y

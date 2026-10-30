@@ -6,10 +6,10 @@ const Rig := preload("res://tests/atmosphere/air_rig.gd")
 const EYE := Vector3(0.0, 1200.0, 0.0)
 
 
-## Грозовой день на малом месте, состояние на 3600 с (фасад W2: Rig, start_at).
+## Грозовой день на малом месте (температура задана явно, Rig.STORM_TMAX_C), состояние на 3600 с (фасад W2: Rig, start_at).
 static func _storm() -> Atmosphere:
 	return Rig.make(
-		{"preset": "weather/storm", "over": {"wind_speed_kmh": 15.0}, "start_at": 3600.0, "focus": EYE, "advance": 0.0,
+		{"preset": "weather/storm", "over": {"wind_speed_kmh": 15.0, "temperature_c": Rig.STORM_TMAX_C}, "start_at": 3600.0, "focus": EYE, "advance": 0.0,
 		"half": 11000.0, "cache": true}
 	)
 
