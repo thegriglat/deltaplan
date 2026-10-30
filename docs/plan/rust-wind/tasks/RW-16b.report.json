@@ -1,8 +1,9 @@
 {
   "status": "done",
-  "summary": "tools/dp_air_purity.sh: нарушений 0. Конфиги в dp-air - ключами секций (Configs::get/value, без .json), compat -> noise/rand/hash, baked -> solved (SolvedField), pilot -> focus, fixtures вынесены в tests/support за фичей fixtures, hour_at без world_time (Weather::hour_at, DpWeather), комментарии без Godot/GDScript/игры. Поведение не менялось: cargo test --workspace зелёный, утверждения и эталоны те же.",
+  "summary": "tools/dp_air_purity.sh: нарушений 0. Конфиги в dp-air - ключами секций (Configs::get/value, без .json), compat -> noise/rand/hash, baked -> solved (SolvedField), pilot -> focus, fixtures вынесены в tests/support за фичей fixtures, hour_at без world_time (Weather::hour_at, DpWeather), комментарии без Godot/GDScript/игры. Поведение не менялось: cargo test --workspace зелёный, утверждения и эталоны те же. Доработка: dp-air без unsafe - F32Record/as_f32s удалены, Core/Cloud/Crest::to_array, мост dp-gd собирает Vec<f32> итератором, #![forbid(unsafe_code)], проверка unsafe в purity.",
   "commits": [
-    "73041bd16 RW-16b: чистота dp-air - 0 нарушений"
+    "73041bd16 RW-16b: чистота dp-air - 0 нарушений",
+    "98cc2842b dp-air без unsafe"
   ],
   "checks": [
     {
@@ -39,6 +40,16 @@
       "name": "contracts_const",
       "value": "1",
       "pass": true
+    },
+    {
+      "name": "no_unsafe",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "forbid",
+      "value": "1",
+      "pass": true
     }
   ],
   "not_done": [],
@@ -67,6 +78,6 @@
     }
   ],
   "dp_feedback": "Хвост ревью RW-13 про weather_day.rs: генераторы дампов (day_dump.*) в этой ветке ещё существуют, поэтому комментарий переписан нейтрально ('снят до удаления прежней реализации'). cargo test в job wait приходится опрашивать циклом по 115 с - удобнее ждать до готовности.",
-  "t": "2026-10-30T04:46:16",
+  "t": "2026-10-30T05:06:10",
   "by": "executor"
 }

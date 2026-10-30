@@ -84,9 +84,20 @@
       "name": "contracts_const",
       "cmd": "grep -cE 'W5 = 11,.*W12 = 3' tests/contracts/test_rust_wind_contracts.gd",
       "expect": "num:^(\\d+) >=1"
+    },
+    {
+      "name": "no_unsafe",
+      "cmd": "grep -rn 'unsafe' rust/dp-air/src | grep -v 'forbid(unsafe_code)' | wc -l",
+      "expect": "num:^(\\d+) <=0"
+    },
+    {
+      "name": "forbid",
+      "cmd": "grep -c '^#!\\[forbid(unsafe_code)\\]' rust/dp-air/src/lib.rs",
+      "expect": "num:^(\\d+) >=1"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-30T04:04:56"
+  "created": "2026-10-30T04:04:56",
+  "edited": "2026-10-30T04:56:06"
 }

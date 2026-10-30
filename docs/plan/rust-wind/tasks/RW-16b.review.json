@@ -1,0 +1,46 @@
+{
+  "verdict": "accept",
+  "summary": "Скоуп соблюдён (121 файл в границах, configs/, docs/contracts/, tests/data и project.godot не тронуты). Configs::get/value — единственное место поиска секции, фасад и так передаёт ключи без .json. to_array у Core/Cloud/Crest повторяет порядок полей структур, unsafe убран, стоит forbid. hour_at по W12 v3 даёт те же числа, что раньше (тот же self.world). Утверждения и допуски в тестах не менялись. Остались мелкие хвосты в комментариях и справочных скриптах.",
+  "issues": [
+    {
+      "file": "rust/dp-air/src",
+      "line": 0,
+      "severity": "minor",
+      "what": "В комментариях dp-air осталось 54 упоминания «GD» (дамп GD, как GD, путь GD и т.п.). Скрипт чистоты их не ловит, а карточка требует «комментарии без ссылок на .gd/Godot (эталонная реализация)». После автозамены остались и неграмматичные фразы: «запасные значения секция `weather_model`» (weather/climate.rs:116), «Из секция `world`» (weather/day.rs:50), «эталона `float`» (weather/mod.rs:3).",
+      "fix": "Следующим проходом заменить «GD» на «эталон», поправить падежи. Можно добавить \\bGD\\b в категорию godot скрипта."
+    },
+    {
+      "file": "tools/wind_fixtures/compat_dump.gd",
+      "line": 3,
+      "severity": "minor",
+      "what": "Справка ссылается на rust/dp-air/tests/godot_compat.rs, а тест переименован в noise_rand_hash.rs. Координатор просил обновить пути или удалить файл.",
+      "fix": "Обновить имя теста в комментарии (данные tests/data/godot_compat остаются как есть)."
+    },
+    {
+      "file": "rust/dp-gd/src/bridge.rs",
+      "line": 341,
+      "severity": "minor",
+      "what": "cores/clouds/wave_crests/cloud_objects теперь собирают Vec<f32> на каждый вызов, а packed() копирует его ещё раз. При малом числе записей это не критично, но буфер записей больше не используется повторно.",
+      "fix": "Не обязательно. Если понадобится, писать прямо в PackedFloat32Array или держать переиспользуемый Vec<f32>."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "purity (accept --only purity --dry, и tools/dp_air_purity.sh)",
+      "value": "нарушений: 0",
+      "pass": true
+    },
+    {
+      "name": "no_unsafe (accept --only no_unsafe --dry)",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "121 файл в границах",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-30T05:17:58",
+  "by": "reviewer"
+}
