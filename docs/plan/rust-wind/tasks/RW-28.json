@@ -1,0 +1,86 @@
+{
+  "id": "RW-28",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Выход из Godot во время работы потоков крейта без SIGSEGV",
+  "goal": "Выход процесса (get_tree().quit()) во время сборки поля/термиков в потоках dp-air/dp-gd не падает с SIGSEGV; пауза 2 с перед quit в air_velocity_bench убрана.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "W2",
+      "version": "6",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W3",
+      "version": "9",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W4",
+      "version": "10",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-28",
+  "branch": "rust-wind/RW-28",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-gd/src/",
+    "rust/dp-air/src/",
+    "rust/dp-air/tests/",
+    "scripts/atmosphere/",
+    "tools/bench/",
+    "docs/research/rust-wind-stage3/rw28-quit-crash.md"
+  ],
+  "dont_touch": [
+    "rust/dp-air/tests/data/",
+    "configs/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "quit_race",
+      "cmd": "for i in 1 2 3 4 5 6 7 8 9 10; do timeout 300 godot --headless --path . res://tools/bench/quit_during_build.tscn >/dev/null 2>&1 || { echo \"run $i rc=$?\"; exit 1; }; done; exit 0",
+      "expect": "exit=0"
+    },
+    {
+      "name": "bench_smoke",
+      "cmd": "for i in 1 2 3; do timeout 900 godot --headless --path . res://tools/bench/air_velocity_bench.tscn -- --smoke >/dev/null 2>&1 || { echo \"run $i rc=$?\"; exit 1; }; done; exit 0",
+      "expect": "exit=0"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "purity",
+      "cmd": "bash tools/dp_air_purity.sh | tail -1",
+      "expect": "num:нарушений: (\\d+) <=0"
+    },
+    {
+      "name": "gd_check",
+      "cmd": "python3 tools/check_gd.py --timeout 600 $(git ls-files 'scripts/atmosphere/*.gd' 'tools/bench/*.gd')",
+      "expect": "exit=0"
+    },
+    {
+      "name": "report_doc",
+      "cmd": "test -s docs/research/rust-wind-stage3/rw28-quit-crash.md",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-30T13:05:48"
+}
