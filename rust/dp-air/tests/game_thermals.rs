@@ -73,10 +73,15 @@ fn rig_place(sp: f64) -> Place {
 }
 
 const FORECAST: &str = r#"{"forecast":{"temperature_c":26,"wind_speed_kmh":10.8,"wind_from_deg":225,"sky":"clear"},
-    "start_hour":14,"speed":1,"quantum_h":0.25,"inflow_mode":"inflow","rebuild":REB}"#;
+    "start_hour":HOUR,"speed":1,"quantum_h":0.25,"inflow_mode":"inflow","rebuild":REB}"#;
 
-fn cond(reb: bool) -> Conditions {
-    Conditions::from_json(&FORECAST.replace("REB", &reb.to_string())).unwrap()
+fn cond(reb: bool, hour: u32) -> Conditions {
+    Conditions::from_json(
+        &FORECAST
+            .replace("REB", &reb.to_string())
+            .replace("HOUR", &hour.to_string()),
+    )
+    .unwrap()
 }
 
 fn cores_at(m: &Formula) -> Vec<Core> {
@@ -93,18 +98,9 @@ fn wait_ready(m: &mut Formula) {
     }
 }
 
-/// `first`: условия до `load_place` (пресет по умолчанию или сразу прогноз); затем прогноз с `reb`.
-fn run(first_forecast: bool, reb: bool) -> usize {
-    let mut m = Formula::new();
-    m.configure(&configs(false), 7).unwrap();
-    m.set_weather(common::real_weather());
-    if first_forecast {
-        m.set_conditions(&cond(false)).unwrap();
-    } else {
-        let c = r#"{"preset":"strong","start_hour":12,"speed":1,"rebuild":false}"#;
-        m.set_conditions(&Conditions::from_json(c).unwrap())
-            .unwrap();
-    }
+/// Условия до `load_place` (прогноз), затем `advance_to` кадрами без пауз; число ядер за 150..600 с.
+fn fly(m: &mut Formula, hour: u32) -> usize {
+    m.set_conditions(&cond(false, hour)).unwrap();
     m.set_focuses(&[Focus {
         pos: [0.0, 300.0, 0.0],
         weight: 1.0,
@@ -113,14 +109,45 @@ fn run(first_forecast: bool, reb: bool) -> usize {
     m.set_static_thermals(&[[100.0, 100.0, 3.0, 150.0]], 0)
         .unwrap();
     m.load_place(rig_place(25.0)).unwrap();
-    wait_ready(&mut m);
-    if !first_forecast {
-        m.set_conditions(&cond(reb)).unwrap();
-    }
+    wait_ready(m);
     let mut n = 0;
     let mut t = 0.0;
     for _ in 0..40 {
-        // без ожидания: как кадры игры сразу после готовности
+        t += 15.0;
+        m.advance_to(t).unwrap();
+        if t > 150.0 {
+            n += cores_at(m).len();
+        }
+    }
+    n
+}
+
+fn new_formula() -> Formula {
+    let mut m = Formula::new();
+    m.configure(&configs(false), 7).unwrap();
+    m.set_weather(common::real_weather());
+    m
+}
+
+fn run(first_forecast: bool, reb: bool, hour: u32) -> usize {
+    let mut m = new_formula();
+    if first_forecast {
+        return fly(&mut m, hour);
+    }
+    let c = r#"{"preset":"strong","start_hour":12,"speed":1,"rebuild":false}"#;
+    m.set_conditions(&Conditions::from_json(c).unwrap())
+        .unwrap();
+    m.set_focuses(&[Focus {
+        pos: [0.0, 300.0, 0.0],
+        weight: 1.0,
+    }])
+    .unwrap();
+    m.load_place(rig_place(25.0)).unwrap();
+    wait_ready(&mut m);
+    m.set_conditions(&cond(reb, hour)).unwrap();
+    let mut n = 0;
+    let mut t = 0.0;
+    for _ in 0..40 {
         t += 15.0;
         m.advance_to(t).unwrap();
         if t > 150.0 {
@@ -132,9 +159,9 @@ fn run(first_forecast: bool, reb: bool) -> usize {
 
 #[test]
 fn game_order_no_rebuild_has_cores() {
-    let with_rebuild = run(false, true);
-    let no_rebuild = run(false, false);
-    let before_place = run(true, false);
+    let with_rebuild = run(false, true, 14);
+    let no_rebuild = run(false, false, 14);
+    let before_place = run(true, false, 14);
     assert!(with_rebuild > 0, "rebuild:true: {with_rebuild}");
     assert!(
         no_rebuild > 0,
@@ -144,4 +171,10 @@ fn game_order_no_rebuild_has_cores() {
         before_place > 0,
         "forecast before load_place: {before_place}"
     );
+}
+
+#[test]
+fn game_order_evening_has_fewer_cores() {
+    let (n14, n19) = (run(true, false, 14), run(true, false, 19));
+    assert!(n14 > 0 && n19 < n14, "14 h: {n14}, 19 h: {n19}");
 }

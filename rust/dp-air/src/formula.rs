@@ -1146,9 +1146,7 @@ impl Formula {
     }
 
     /// Ход фона до момента `t`: подача готового, запуск пересчёта, продвижение подмены.
-    /// `true` - принята загрузка поля (`Kind::Load`): первые термики по полю строятся сразу.
-    fn pump(&mut self, t: f64) -> bool {
-        let mut loaded = false;
+    fn pump(&mut self, t: f64) {
         let mut cursor = self.time_s;
         for _ in 0..8 {
             if self.job.is_none() && !self.try_launch(t, cursor) {
@@ -1164,11 +1162,9 @@ impl Formula {
             }
             let Some(job) = self.job.take() else { break };
             let Some(res) = job.slot.take() else { break };
-            loaded |= job.kind == Kind::Load;
             self.adopt(job, res, t, &mut cursor);
         }
         self.sh.advance_fs(t - cursor);
-        loaded
     }
 
     /// Принимает завершённую задачу без продвижения времени (перед командами).
@@ -1395,12 +1391,20 @@ impl AirModel for Formula {
         if t == self.time_s {
             return Ok(());
         }
-        let loaded = self.pump(t);
+        self.pump(t);
         self.set_time(t);
         let fed = self.sync_field();
         // поле только что загружено: первые термики по его источникам - синхронно (как `start_at`), иначе
         // игра в первые секунды после готовности видит воздух без термиков (RW-25)
-        let changed = if loaded && fed {
+        let first_air = fed
+            && self.terms.air.is_some()
+            && self
+                .terms
+                .slots
+                .thermal
+                .as_slot()
+                .is_some_and(|s| s.air().is_none());
+        let changed = if first_air {
             self.terms.start_at(t)
         } else {
             self.terms.advance(t)
