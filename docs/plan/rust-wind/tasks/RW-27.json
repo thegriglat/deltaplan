@@ -23,7 +23,8 @@
   "scope": [
     "tests/atmosphere/test_ridge_starts.gd",
     "tools/bench/",
-    "tools/terrain/"
+    "tools/terrain/",
+    "docs/guide/air-model/"
   ],
   "dont_touch": [
     "scripts/",
@@ -37,17 +38,18 @@
       "tests": "ridge_starts"
     },
     {
-      "name": "tools_run",
-      "cmd": "for f in tools/bench/air_velocity_bench.gd tools/terrain/island/air_probe.gd tools/terrain/volcano/air_probe.gd; do test -e $f || continue; timeout 900 godot --headless --path . --script res://$f -- --smoke 2>&1 | grep -E 'SCRIPT ERROR|Invalid call|Nonexistent' && exit 1; done; exit 0",
+      "name": "gd_check",
+      "cmd": "python3 tools/check_gd.py --timeout 600 $(git ls-files 'tools/*.gd' 'tests/*.gd' | grep -v '^tools/research/')",
       "expect": "exit=0"
     },
     {
-      "name": "gd_check",
-      "cmd": "python3 tools/check_gd.py --timeout 600 $(git ls-files 'tools/*.gd' 'tests/*.gd' | grep -v '^tools/research/')",
+      "name": "tools_run",
+      "cmd": "for s in tools/bench/air_velocity_bench.tscn tools/terrain/island/air_probe.tscn tools/terrain/volcano/air_probe.tscn; do out=$(timeout 900 godot --headless --path . res://$s -- --smoke 2>&1); rc=$?; echo \"$out\" | grep -E 'SCRIPT ERROR|Invalid call|Nonexistent|Identifier not found' && exit 1; [ $rc = 0 ] || { echo \"$s rc=$rc\"; exit 1; }; done; exit 0",
       "expect": "exit=0"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-30T12:19:08"
+  "created": "2026-10-30T12:19:08",
+  "edited": "2026-10-30T12:52:27"
 }

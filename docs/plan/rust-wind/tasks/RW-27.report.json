@@ -1,0 +1,50 @@
+{
+  "status": "done",
+  "summary": "Фасад W2 вместо удалённого API в test_ridge_starts и трёх инструментах, проверено запусками. Падение бенча SIGSEGV на выходе устранено (Atmosphere в дереве + remove_child + free + пауза 2 с перед quit). Ссылки в docs/guide/air-model обновлены.",
+  "commits": [
+    "f06128f52 RW-27: рабочие вызовы в test_ridge_starts и инструментах",
+    "3d66a6f3d RW-27: бенч не падает на выходе, ссылки в docs"
+  ],
+  "checks": [
+    {
+      "name": "ridge_starts",
+      "value": "2/2 (один старт altai по умолчанию)",
+      "pass": true
+    },
+    {
+      "name": "tools_run",
+      "value": "exit 0; бенч --smoke 10 из 10 запусков rc=0",
+      "pass": true
+    },
+    {
+      "name": "gd_check",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "air_velocity_bench: режимы --field и WindField удалены (API нет); --kayancha (с полем крейта) не прогонялся"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RW-27; все старты: run_tests.tscn -- --filter=ridge_starts --ridge-full (~15 мин)",
+  "uncertain": [
+    {
+      "where": "tools/bench/air_velocity_bench_main.gd (конец _ready)",
+      "why": "SIGSEGV на выходе был гонкой с потоками крейта после READY (free без дерева не вызывал _exit_tree; и с деревом 4 из 8 запусков падали при quit через кадр); пауза 2 с лечит эмпирически, корень в мосте не исследован (вне границ)",
+      "checked": "10 из 10 запусков rc=0 после правки; до неё 6 из 6 rc=139"
+    },
+    {
+      "where": "tests/atmosphere/test_ridge_starts.gd",
+      "why": "по умолчанию один старт; остальные 9 стартов не прогонялись, altai целиком проходил",
+      "checked": "altai целиком без skip: 0 упало"
+    },
+    {
+      "where": "tools/terrain/*/air_probe_main.gd",
+      "why": "прогноз вместо preset: температура --tmax или 26 °C, прежние числа не воспроизводятся",
+      "checked": "solver_ok и field_on true на обоих островах"
+    }
+  ],
+  "dp_feedback": "tools_run через .tscn с кодом выхода ловит такие гонки на выходе; полезно запускать несколько раз.",
+  "t": "2026-10-30T13:04:05",
+  "by": "coordinator"
+}

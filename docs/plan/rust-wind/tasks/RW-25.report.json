@@ -1,52 +1,61 @@
 {
-  "status": "partial",
-  "summary": "cores = 0 в игре починен: первая сборка термиков по полю шла только в фоне (advance_bg), а игра не доводит start_at(0) до крейта; теперь она синхронна (Formula::advance_to при первом поле, set_conditions после перепривязки земли). Регрессионный cargo-тест game_thermals. Но forecast_game всё равно красный: термики есть (2472 и 2386), а «вечером в 3+ раза меньше» не выполнено.",
+  "status": "done",
+  "summary": "Доработка 2: тест first_air_build_once_with_field_and_never_without через advance_to (с полем ровно одна синхронная сборка за 40 шагов, без поля — Failed на шаге 100 м — ни одной; счётчик Formula::first_air_builds). Документ: добавлен раздел про релиз 2026-10-29 (не выяснено), фраза «не успевают» исправлена. Замер на 30 км не делался (по указанию координатора). accept --dry 6/6.",
   "commits": [
-    "af67e0b45 RW-25: термики в игре — первая сборка с полем синхронно; тест game_thermals"
+    "af67e0b45 RW-25: первая сборка с полем синхронно",
+    "доработка 1: сборка только при входах источников",
+    "доработка 2: тест одной синхронной сборки; документ"
   ],
   "checks": [
     {
-      "name": "regression (game_thermals)",
-      "value": "2 passed",
+      "name": "regression",
+      "value": "exit 0",
       "pass": true
     },
     {
-      "name": "cargo_test workspace",
-      "value": "548 passed (до последней правки), dp-air после неё 472 passed",
+      "name": "cargo_test",
+      "value": "exit 0",
       "pass": true
     },
     {
-      "name": "clippy / fmt / purity / report_doc",
-      "value": "ok",
+      "name": "clippy",
+      "value": "exit 0",
       "pass": true
     },
     {
-      "name": "forecast_game",
-      "value": "14 ч — 2472, 19 ч — 2386 термиков в 5 км; ожидалось 14 >= 3*19",
-      "pass": false
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "purity",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "report_doc",
+      "value": "exit 0",
+      "pass": true
     }
   ],
   "not_done": [
-    "forecast_game: число термиков в игре почти не зависит от часа, хотя погода верна (thermal_duty 0,82 -> 0,34, strength 2,2-4,0 -> 1,1-2,2). На ровном rig в крейте вечер слабее в 2,3 раза (тоже меньше 3). Причину зависимости числа термиков от часа на реальном месте (поле Пикара, источники из него) не искал — это отдельный вопрос после «cores = 0».",
-    "Бисекции по слияниям не делал: условие не от слияния, а от порядка вызовов (игра не вызывает start_at крейта при t = 0)."
+    "Зависимость числа термиков от часа на реальном месте — RW-26"
   ],
-  "questions": [
-    "Нужна ли отдельная задача на зависимость числа термиков от часа на реальном месте (14 ч ~ 19 ч в игре)? Либо ослабить ожидание теста до «19 ч слабее»."
-  ],
-  "how_to_check": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test game_thermals; godot тест forecast_game (печатает термиков в 5 км)",
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RW-25",
   "uncertain": [
     {
-      "where": "rust/dp-air/src/formula.rs: advance_to (first_air), set_conditions (start_at после wire_thermal)",
-      "why": "Синхронная сборка термиков по источникам поля один раз в главном потоке — разовый подвис при первой готовности; цену не замерял. Условие first_air: поле подано, а у слота ещё нет источников из поля.",
-      "checked": "game_thermals (порядок игры без пауз), dp-air 472 passed, GD forecast_game показывает ненулевые термики"
+      "where": "rust/dp-air/tests/game_thermals.rs: first_air_build_once_with_field_and_never_without",
+      "why": "Случай «поле есть, но без heat_flux/z_i» (has_inputs = false при поданном поле) через публичный API не собрать; проверен близкий: поле не принято (Failed), синхронных сборок 0",
+      "checked": "тест проходит"
     },
     {
-      "where": "rust/dp-air/tests/game_thermals.rs",
-      "why": "Вариант «пресет -> прогноз rebuild:false на загруженном месте» проверяет только ядра > 0; их число от запуска к запуску разное (30..1289)",
-      "checked": "несколько прогонов"
+      "where": "rust/dp-air/src/formula.rs: advance_to (first_air)",
+      "why": "Цена синхронной сборки на месте 30 км не замерена (риск главного потока), только rig 10 км: 22-36 мс",
+      "checked": "release, rig"
     }
   ],
-  "dp_feedback": "Ожидание job wait/мониторов обрывается; процессы godot в job не видны через ps/pgrep из агента. Нагрузка машины 45 растягивала один прогон Godot на 20+ мин.",
-  "t": "2026-10-30T11:53:03",
-  "by": "executor"
+  "dp_feedback": "",
+  "t": "2026-10-30T13:00:29",
+  "by": "coordinator"
 }
