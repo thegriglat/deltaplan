@@ -1,25 +1,20 @@
 {
   "status": "partial",
-  "summary": "Доработка по ревью: потребители удалённого Terrain.thermal_source_strength_at переведены на sun_exposure_at (air_velocity_bench, island/volcano air_probe, test_ridge_starts); generator_removed_at в манифестах weather_dump, RW-10c, RW-14b; неиспользуемая DOC убрана; в rw14e-consumers.md описано, где зовётся attach_weather и почему пресету он не нужен; в forecast_game счёт термиков ждёт фоновую сборку крейта.",
+  "summary": "Доработка по ревью и слияние RW-24: временный мост AirWeatherLink/_dp_attach_weather удалён, один attach_weather через Weather.dp() до load_place; правки RW-24 (weather() не кеширует пустой, тесты) сохранены. thermal_source_strength_at у потребителей заменён на sun_exposure_at, generator_removed_at в манифестах, DOC убран, раздел про attach в rw14e-consumers.md.",
   "commits": [
-    "9945c37a7 RW-14e доработка: термики в forecast_game ждут фоновую сборку крейта, потребители thermal_source_strength_at на sun_exposure_at, generator_removed_at в манифестах, DOC убран"
+    "9945c37a7 доработка ревью",
+    "c407890db слияние feature/rust-wind: мост RW-24 заменён Weather.dp()"
   ],
   "checks": [
     {
-      "name": "accept --dry (ветка 4fb00d0c1)",
-      "value": "12/15: FAIL atmosphere (6 базовых падений RW-24), FAIL forecast_game (таймаут 900 с на solve_heat без кеша, 430 с), FAIL cargo_test (таймаут 900 с, нагрузка машины); остальное PASS",
-      "pass": false
-    },
-    {
-      "name": "forecast_game, свой прогон с кешем поля",
-      "value": "термиков 14 ч — 4170, 19 ч — 3639; падает «встречный 276/267» (база, RW-24) и «вечером в 3+ раза меньше»",
+      "name": "accept --dry",
+      "value": "14/15; PASS atmosphere, cargo_test, gd_check, scope, docs; FAIL forecast_game (таймаут 900 с в accept; отдельно 1 мин, падает только «вечером термиков в 3+ раза меньше»: 4170 и 3639)",
       "pass": false
     }
   ],
   "not_done": [
-    "cargo_test не дошёл до конца за 900 с (тесты крейта идут >60 с каждый при загрузке CPU) — полный результат нужен повторным прогоном на свободной машине; в этой доработке rust/ кроме JSON-манифестов не менялся.",
-    "forecast_game в accept упал по таймауту (поле altai без кеша считается 430 с solve_heat); с прогретым кешем тест идёт ~4 мин.",
-    "Замена моста на weather.gd после слияния RW-24 (air_weather_link.gd, _dp_attach_weather) — не сделана: ждёт сообщения координатора и task sync."
+    "forecast_game: проверка «вечером термиков в 3+ раза меньше» красная — число ядер вечером не падает (88 → 108 в 5 км) при thermal_duty 0,82 → 0,35; поведение крейта (RW-25), rust/dp-air/src не трогал.",
+    "В accept forecast_game упёрся в 900 с (свежий XDG без кеша поля); свой прогон — 1 мин."
   ],
   "questions": [],
   "how_to_check": ".dpcli/dpcli accept RW-14e",
@@ -41,6 +36,6 @@
     }
   ],
   "dp_feedback": "accept --dry держит cargo_test и Godot-тесты в одном 900-секундном лимите при нагрузке на CPU от соседей; полезно видеть в выводе загрузку машины и считать таймаут по бездействию, а не по стене. В фоне Bash-инструмента TMPDIR пуст — dpcli подсказывал бы путь для логов.",
-  "t": "2026-10-30T10:42:41",
+  "t": "2026-10-30T11:18:59",
   "by": "executor"
 }
