@@ -364,28 +364,12 @@ impl Field {
 
     fn apply_limits(&mut self, limits: Limits) {
         self.limits = limits;
-        let s2 = limits.max_speed * limits.max_speed;
-        let mw = limits.max_w;
         self.u
-            .par_iter_mut()
-            .zip(self.v.par_iter_mut())
-            .zip(self.w_mech.par_iter_mut())
-            .zip(self.w_conv.par_iter_mut())
-            .for_each(|(((u, v), w), q)| {
-                let (a, b) = (*u as f64, *v as f64);
-                let ss = a * a + b * b;
-                if ss > s2 {
-                    let k = limits.max_speed / ss.sqrt();
-                    *u = (a * k) as f32;
-                    *v = (b * k) as f32;
-                }
-                if (*w as f64).abs() > mw {
-                    *w = (*w as f64).clamp(-mw, mw) as f32;
-                }
-                if (*q as f64).abs() > mw {
-                    *q = (*q as f64).clamp(-mw, mw) as f32;
-                }
-            });
+            .par_chunks_mut(4096)
+            .zip(self.v.par_chunks_mut(4096))
+            .zip(self.w_mech.par_chunks_mut(4096))
+            .zip(self.w_conv.par_chunks_mut(4096))
+            .for_each(|(((u, v), w), q)| limit_chunk(limits, u, v, w, q));
     }
 
     /// Столбцы для масштаба 3: `u*` по лог-закону (первая воздушная клетка, центр которой не
@@ -459,16 +443,9 @@ impl Field {
         let r = ((0.5 * HEAT_SMOOTH_M / self.grid.dx).round().max(0.0)) as usize;
         let heat = &self.heat;
         let mut tmp = vec![0f32; self.nxy];
-        tmp.par_chunks_mut(nx).enumerate().for_each(|(j, row)| {
-            for (i, t) in row.iter_mut().enumerate() {
-                let (a, b) = (i.saturating_sub(r), (i + r).min(nx - 1));
-                let mut s = 0.0f64;
-                for q in a..=b {
-                    s += heat[j * nx + q] as f64;
-                }
-                *t = (s / (b - a + 1) as f64) as f32;
-            }
-        });
+        tmp.par_chunks_mut(nx)
+            .zip(heat.par_chunks(nx))
+            .for_each(|(row, src)| box_row(src, r, row));
         let (hc, zic, zi) = (&self.hc, &self.z_i_col, self.z_i);
         self.wstar
             .par_chunks_mut(nx)
@@ -622,11 +599,7 @@ impl Field {
             .par_chunks_mut(256)
             .zip(pos[..n].par_chunks(256))
             .zip(ground_h[..n].par_chunks(256))
-            .for_each(|((o, p), g)| {
-                for q in 0..o.len() {
-                    o[q] = self.sample(p[q], g[q]);
-                }
-            });
+            .for_each(|((o, p), g)| sample_chunk(self, o, p, g));
     }
 
     /// θ′ (К) или `w_conv` (м/с) в точке.
@@ -666,11 +639,7 @@ impl Field {
             .par_chunks_mut(256)
             .zip(pos[..n].par_chunks(256))
             .zip(ground_h[..n].par_chunks(256))
-            .for_each(|((o, p), g)| {
-                for q in 0..o.len() {
-                    o[q] = self.sample_scalar(ch, p[q], g[q]) as f32;
-                }
-            });
+            .for_each(|((o, p), g)| scalar_chunk(self, ch, o, p, g));
     }
 
     /// (u, v, w_mech) столбца `c` на высоте `y` (со сдвигом `(e, h)`).
@@ -883,4 +852,71 @@ pub fn deardorff_wstar(heat_wm2: f64, z_i: f64, hc: f64) -> f64 {
         return 0.0;
     }
     (G / THETA0 * heat_wm2 / RHO_CP * (z_i - hc).max(ZI_MIN)).powf(1.0 / 3.0)
+}
+
+/// Ограничители на пачке клеток (`u`, `v`, `w_mech`, `w_conv` одной длины).
+#[cfg_attr(
+    target_arch = "x86_64",
+    multiversion::multiversion(targets("x86_64+avx2+fma"))
+)]
+fn limit_chunk(limits: Limits, u: &mut [f32], v: &mut [f32], w: &mut [f32], q: &mut [f32]) {
+    let s2 = limits.max_speed * limits.max_speed;
+    let mw = limits.max_w;
+    let n = u.len().min(v.len()).min(w.len()).min(q.len());
+    let it = u[..n]
+        .iter_mut()
+        .zip(v[..n].iter_mut())
+        .zip(w[..n].iter_mut())
+        .zip(q[..n].iter_mut());
+    for (((u, v), w), q) in it {
+        let (a, b) = (*u as f64, *v as f64);
+        let ss = a * a + b * b;
+        if ss > s2 {
+            let k = limits.max_speed / ss.sqrt();
+            *u = (a * k) as f32;
+            *v = (b * k) as f32;
+        }
+        if (*w as f64).abs() > mw {
+            *w = (*w as f64).clamp(-mw, mw) as f32;
+        }
+        if (*q as f64).abs() > mw {
+            *q = (*q as f64).clamp(-mw, mw) as f32;
+        }
+    }
+}
+
+/// Скользящее среднее по строке (окно `[i-r, i+r]` с усечением по краям), f64-сумма.
+#[cfg_attr(
+    target_arch = "x86_64",
+    multiversion::multiversion(targets("x86_64+avx2+fma"))
+)]
+fn box_row(src: &[f32], r: usize, out: &mut [f32]) {
+    let nx = src.len();
+    for (i, t) in out.iter_mut().enumerate().take(nx) {
+        let (a, b) = (i.saturating_sub(r), (i + r).min(nx - 1));
+        let s: f64 = src[a..=b].iter().map(|&x| x as f64).sum();
+        *t = (s / (b - a + 1) as f64) as f32;
+    }
+}
+
+#[cfg_attr(
+    target_arch = "x86_64",
+    multiversion::multiversion(targets("x86_64+avx2+fma"))
+)]
+fn sample_chunk(this: &Field, o: &mut [[f32; 3]], p: &[[f32; 3]], g: &[f32]) {
+    let n = o.len().min(p.len()).min(g.len());
+    for ((o, &p), &g) in o[..n].iter_mut().zip(&p[..n]).zip(&g[..n]) {
+        *o = this.sample(p, g);
+    }
+}
+
+#[cfg_attr(
+    target_arch = "x86_64",
+    multiversion::multiversion(targets("x86_64+avx2+fma"))
+)]
+fn scalar_chunk(this: &Field, ch: Channel, o: &mut [f32], p: &[[f32; 3]], g: &[f32]) {
+    let n = o.len().min(p.len()).min(g.len());
+    for ((o, &p), &g) in o[..n].iter_mut().zip(&p[..n]).zip(&g[..n]) {
+        *o = this.sample_scalar(ch, p, g) as f32;
+    }
 }

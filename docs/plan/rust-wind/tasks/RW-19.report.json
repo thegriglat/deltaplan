@@ -1,0 +1,66 @@
+{
+  "status": "partial",
+  "summary": "multiversion(avx2+fma) на 14 функций-пачек dp-air (выборка, ограничители, уровни, облака, порывы, колонки термиков, источники, фазы), циклы на zip/iter_mut/chunks_exact, без unsafe; шаг не ускорился, но и не замедлился.",
+  "commits": [
+    "b842612fd RW-19: отчёт о замере multiversion",
+    "3b266cfac Слияние feature/rust-wind в rust-wind/RW-19"
+  ],
+  "checks": [
+    {
+      "name": "mv_count",
+      "value": "14",
+      "pass": true
+    },
+    {
+      "name": "build_windows_release",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "step_cost_3041",
+      "value": "42 мс на тихой машине (до 42), 122,9 при load 30+ в accept --dry",
+      "pass": false
+    },
+    {
+      "name": "остальные accept",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Методы &self/&mut self с телом цикла (шаг облаков clouds/field.rs, build волн и земли, ground) не вынесены: тела тянут много полей self, переписывать не просто.",
+    "Место-загрузочные циклы (case_build/case_prepare/phase) без multiversion: не пошаговые."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RW-19; чистый замер: lock cpu, step_cost 3041 при низкой нагрузке",
+  "uncertain": [
+    {
+      "where": "examples/step_cost.rs / accept step_cost_3041",
+      "why": "accept --dry дал 122,9 из-за нагрузки 30+ (пересчёты окон picard_rs, секунды, конкурируют за ядра); на тихой машине 42 до и 42 после",
+      "checked": "A/B по 2 пары 1000 с под lock cpu: 42,13/41,73 до, 41,83/41,93 после"
+    },
+    {
+      "where": "rust/dp-air/src/field/phase/classifier.rs:phase_fractions",
+      "why": "n2==0 теперь даёт NaN-вектор (раньше NaN от деления)",
+      "checked": "логика, тесты cargo зелёные"
+    },
+    {
+      "where": "rust/dp-air/src/field/wind_field.rs:box_row",
+      "why": "порядок f64-суммирования тот же, но не проверял побитно",
+      "checked": "cargo test зелёный"
+    }
+  ],
+  "dp_feedback": "lock cpu считает вес по тексту команды: для своего скрипта замера пришлось дописывать --bench, чтобы получить 18 слотов; lock возвращается до конца задачи, ожидание — по логу. step_cost в accept шумит от загрузки: нужен порог с проверкой load или lock на всю машину.",
+  "extra": {
+    "ab_60s_median_base": 27.25,
+    "ab_60s_median_new": 27.72,
+    "ab_1000s": [
+      42.13,
+      41.83,
+      41.73,
+      41.93
+    ]
+  },
+  "t": "2026-10-30T06:54:47",
+  "by": "executor"
+}

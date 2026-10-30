@@ -204,13 +204,17 @@ pub fn classify_pair(p: &Prepared) -> PhaseMaps {
 }
 
 /// Доли фаз по площади (`stats.phase_frac`): среднее веса по столбцам, порядок `PHASES`.
+#[cfg_attr(
+    target_arch = "x86_64",
+    multiversion::multiversion(targets("x86_64+avx2+fma"))
+)]
 pub fn phase_fractions(weights: &[f64], n2: usize) -> [f64; K] {
     let mut f = [0.0; K];
-    for (k, x) in f.iter_mut().enumerate() {
-        let mut s = 0.0;
-        for c in 0..n2 {
-            s += weights[k * n2 + c];
-        }
+    if n2 == 0 {
+        return [f64::NAN; K];
+    }
+    for (x, w) in f.iter_mut().zip(weights.chunks_exact(n2)) {
+        let s: f64 = w.iter().sum();
         *x = s / n2 as f64;
     }
     f

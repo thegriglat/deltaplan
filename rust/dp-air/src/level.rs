@@ -96,6 +96,10 @@ fn mix(a: f32, b: f32, t: f32) -> f32 {
 }
 
 /// Одна строка мелкого уровня: `k`, `j` — её положение.
+#[cfg_attr(
+    target_arch = "x86_64",
+    multiversion::multiversion(targets("x86_64+avx2+fma"))
+)]
 #[allow(clippy::too_many_arguments)]
 fn row(
     coarse: &Level,
@@ -330,6 +334,65 @@ fn tri(s: &NestSrc, pn: [usize; 3], comp: Comp, fk: f32, fj: f32, fi: f32) -> f3
     sum
 }
 
+/// Одна строка границы мелкого уровня `(k, j)`: выходы `[u, v, w, θ′, θ′_d]`, `trow` — типы клеток.
+#[cfg_attr(
+    target_arch = "x86_64",
+    multiversion::multiversion(targets("x86_64+avx2+fma"))
+)]
+fn nest_row(
+    src: &NestSrc,
+    m: &NestMap,
+    (k, j): (usize, usize),
+    trow: &[u8],
+    [ou, ov, ow, oth, othd]: [&mut [f32]; 5],
+) {
+    // индекс родителя с ореолом: (X − x0_p)/dx_p + ½; центр окна X = x0 + (i − ½)dx,
+    // грань — (i − 1)dx
+    let (fk, fj) = (k as f32, j as f32);
+    let fkc = m.oz + (fk - 0.5) * m.rz + 0.5;
+    let fkf = m.oz + (fk - 1.0) * m.rz + 0.5;
+    let fjc = m.oy + (fj - 0.5) * m.rx + 0.5;
+    let fjf = m.oy + (fj - 1.0) * m.rx + 0.5;
+    let it = trow
+        .iter()
+        .zip(ou.iter_mut())
+        .zip(ov.iter_mut())
+        .zip(ow.iter_mut())
+        .zip(oth.iter_mut())
+        .zip(othd.iter_mut());
+    for (i, (((((&t, ou), ov), ow), oth), othd)) in it.enumerate() {
+        let fi = i as f32;
+        let fic = m.ox + (fi - 0.5) * m.rx + 0.5;
+        let fif = m.ox + (fi - 1.0) * m.rx + 0.5;
+        let (cell, tu, tv, tw) = (t & 3, (t >> 2) & 3, (t >> 4) & 3, (t >> 6) & 3);
+        *ou = if tu == 0 {
+            0.0
+        } else {
+            tri(src, m.pn, Comp::U, fkc, fjc, fif)
+        };
+        *ov = if tv == 0 {
+            0.0
+        } else {
+            tri(src, m.pn, Comp::V, fkc, fjf, fic)
+        };
+        *ow = if tw == 0 {
+            0.0
+        } else {
+            tri(src, m.pn, Comp::W, fkf, fjc, fic)
+        };
+        *oth = if cell == 0 {
+            0.0
+        } else {
+            tri(src, m.pn, Comp::Th, fkc, fjc, fic)
+        };
+        *othd = if cell == 0 {
+            0.0
+        } else {
+            tri(src, m.pn, Comp::Thd, fkc, fjc, fic)
+        };
+    }
+}
+
 /// Граница мелкого уровня от грубого (`air_window.glsl:K_NEST`, эталон AM-01 `Air.set_nest_bc`):
 /// поле родителя в центрах его клеток (среднее двух граней, 0 в земле) трилинейно в грани и
 /// клетки мелкого уровня. Грань `u` берётся в `(x узел, y центр, z центр)`, `v` — `(центр, узел,
@@ -373,46 +436,8 @@ pub fn nest(
         .zip(dst.thd.par_chunks_mut(nx))
         .enumerate()
         .for_each(|(g, ((((ou, ov), ow), oth), othd))| {
-            let (k, j) = (g / ny, g % ny);
             let trow = &tc[g * nx..(g + 1) * nx];
-            // индекс родителя с ореолом: (X − x0_p)/dx_p + ½; центр окна X = x0 + (i − ½)dx,
-            // грань — (i − 1)dx
-            let (fk, fj) = (k as f32, j as f32);
-            let fkc = m.oz + (fk - 0.5) * m.rz + 0.5;
-            let fkf = m.oz + (fk - 1.0) * m.rz + 0.5;
-            let fjc = m.oy + (fj - 0.5) * m.rx + 0.5;
-            let fjf = m.oy + (fj - 1.0) * m.rx + 0.5;
-            for (i, &t) in trow.iter().enumerate() {
-                let fi = i as f32;
-                let fic = m.ox + (fi - 0.5) * m.rx + 0.5;
-                let fif = m.ox + (fi - 1.0) * m.rx + 0.5;
-                let (cell, tu, tv, tw) = (t & 3, (t >> 2) & 3, (t >> 4) & 3, (t >> 6) & 3);
-                ou[i] = if tu == 0 {
-                    0.0
-                } else {
-                    tri(src, m.pn, Comp::U, fkc, fjc, fif)
-                };
-                ov[i] = if tv == 0 {
-                    0.0
-                } else {
-                    tri(src, m.pn, Comp::V, fkc, fjf, fic)
-                };
-                ow[i] = if tw == 0 {
-                    0.0
-                } else {
-                    tri(src, m.pn, Comp::W, fkf, fjc, fic)
-                };
-                oth[i] = if cell == 0 {
-                    0.0
-                } else {
-                    tri(src, m.pn, Comp::Th, fkc, fjc, fic)
-                };
-                othd[i] = if cell == 0 {
-                    0.0
-                } else {
-                    tri(src, m.pn, Comp::Thd, fkc, fjc, fic)
-                };
-            }
+            nest_row(src, &m, (g / ny, g % ny), trow, [ou, ov, ow, oth, othd]);
         });
     Ok(())
 }
@@ -522,39 +547,78 @@ pub fn shift_warm(
         .zip(dst.p.par_chunks_mut(plane))
         .enumerate()
         .for_each(|(k, (((((pu, pv), pw), pth), pthd), pp))| {
-            let ko = k as i64 + sh.k;
             let tpl = &tc[k * plane..(k + 1) * plane];
-            for j in 0..ny {
-                let jo = j as i64 + sh.j;
-                for i in 0..nx {
-                    let io = i as i64 + sh.i;
-                    let (t, o) = (tpl[j * nx + i], j * nx + i);
-                    let (cell, tu, tv, tw) = (t & 3, (t >> 2) & 3, (t >> 4) & 3, (t >> 6) & 3);
-                    let inside = io >= 1 && jo >= 1 && ko >= 1 && io < onx && jo < ony && ko < onz;
-                    if inside {
-                        let q = ((ko * ony + jo) * onx + io) as usize;
-                        if tu == 1 {
-                            pu[o] = src.u[q];
-                        }
-                        if tv == 1 {
-                            pv[o] = src.v[q];
-                        }
-                        if tw == 1 {
-                            pw[o] = src.w[q];
-                        }
-                        if cell == 1 {
-                            pth[o] = src.th[q];
-                            pthd[o] = src.thd[q];
-                        }
-                    }
-                    if cell == 1 {
-                        let ic = io.clamp(1, onx - 2);
-                        let jc = jo.clamp(1, ony - 2);
-                        let kc = ko.clamp(1, onz - 2);
-                        pp[o] = src.p[((kc * ony + jc) * onx + ic) as usize];
-                    }
-                }
-            }
+            let g = ShiftGeo {
+                old: (onx, ony, onz),
+                new: (nx, ny),
+                ko: k as i64 + sh.k,
+                sh,
+            };
+            shift_plane(&g, src, tpl, [pu, pv, pw, pth, pthd, pp]);
         });
     Ok(())
+}
+
+/// Геометрия одного слоя тёплого старта: размеры старого `(nx, ny, nz)` и нового `(nx, ny)`
+/// уровней, индекс `k` старого уровня для слоя и сдвиг.
+struct ShiftGeo {
+    old: (i64, i64, i64),
+    new: (usize, usize),
+    ko: i64,
+    sh: Shift,
+}
+
+/// Один слой `k` тёплого старта (`pu, pv, pw, pth, pthd, pp` — слой приёмника), `tpl` — типы слоя.
+#[cfg_attr(
+    target_arch = "x86_64",
+    multiversion::multiversion(targets("x86_64+avx2+fma"))
+)]
+fn shift_plane(
+    g: &ShiftGeo,
+    src: &ShiftSrc,
+    tpl: &[u8],
+    [pu, pv, pw, pth, pthd, pp]: [&mut [f32]; 6],
+) {
+    let (onx, ony, onz) = g.old;
+    let (nx, ny) = g.new;
+    let (ko, sh) = (g.ko, g.sh);
+    for j in 0..ny {
+        let jo = j as i64 + sh.j;
+        let trow = &tpl[j * nx..(j + 1) * nx];
+        let it = trow
+            .iter()
+            .zip(pu[j * nx..].iter_mut())
+            .zip(pv[j * nx..].iter_mut())
+            .zip(pw[j * nx..].iter_mut())
+            .zip(pth[j * nx..].iter_mut())
+            .zip(pthd[j * nx..].iter_mut())
+            .zip(pp[j * nx..].iter_mut());
+        for (i, ((((((&t, pu), pv), pw), pth), pthd), pp)) in it.enumerate() {
+            let io = i as i64 + sh.i;
+            let (cell, tu, tv, tw) = (t & 3, (t >> 2) & 3, (t >> 4) & 3, (t >> 6) & 3);
+            let inside = io >= 1 && jo >= 1 && ko >= 1 && io < onx && jo < ony && ko < onz;
+            if inside {
+                let q = ((ko * ony + jo) * onx + io) as usize;
+                if tu == 1 {
+                    *pu = src.u[q];
+                }
+                if tv == 1 {
+                    *pv = src.v[q];
+                }
+                if tw == 1 {
+                    *pw = src.w[q];
+                }
+                if cell == 1 {
+                    *pth = src.th[q];
+                    *pthd = src.thd[q];
+                }
+            }
+            if cell == 1 {
+                let ic = io.clamp(1, onx - 2);
+                let jc = jo.clamp(1, ony - 2);
+                let kc = ko.clamp(1, onz - 2);
+                *pp = src.p[((kc * ony + jc) * onx + ic) as usize];
+            }
+        }
+    }
 }

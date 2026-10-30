@@ -310,13 +310,22 @@ pub fn source_strength(place: &Place, cfg: &SourceCfg, hr: &SourceHour, x: f64, 
 pub fn source_grid(place: &Place, cfg: &SourceCfg, hr: &SourceHour) -> Vec<f32> {
     let g = Grid::new(place);
     let mut out = vec![0.0f32; g.w * g.h];
-    out.par_chunks_mut(g.w).enumerate().for_each(|(j, row)| {
-        let z = g.oz + j as f64 * g.sp;
-        for (i, o) in row.iter_mut().enumerate() {
-            *o = strength(&g, cfg, hr, g.ox + i as f64 * g.sp, z);
-        }
-    });
+    out.par_chunks_mut(g.w)
+        .enumerate()
+        .for_each(|(j, row)| strength_row(&g, cfg, hr, j, row));
     out
+}
+
+/// Строка `j` растра силы источников.
+#[cfg_attr(
+    target_arch = "x86_64",
+    multiversion::multiversion(targets("x86_64+avx2+fma"))
+)]
+fn strength_row(g: &Grid, cfg: &SourceCfg, hr: &SourceHour, j: usize, row: &mut [f32]) {
+    let z = g.oz + j as f64 * g.sp;
+    for (i, o) in row.iter_mut().enumerate() {
+        *o = strength(g, cfg, hr, g.ox + i as f64 * g.sp, z);
+    }
 }
 
 /// Класс точки (для тестов и описаний): `Terrain.surface_at` по растру.
