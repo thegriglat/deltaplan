@@ -1,0 +1,55 @@
+{
+  "id": "RW-23",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "tools/build.sh: убрать хеш запечённых полей, не висеть на ошибке скрипта",
+  "goal": "tools/build.sh all --release проходит: шаг air_model_hash.gd (хеш запечённых полей, AirBakedField удалён в RW-13/RW-P12) убран вместе со скриптом и устаревшим предупреждением про запечённые поля; прочие headless-вызовы Godot в tools/build.sh и tools/*.sh не зависают на SCRIPT ERROR (timeout).",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "W9",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-23",
+  "branch": "rust-wind/RW-23",
+  "base": "feature/rust-wind",
+  "scope": [
+    "tools/build.sh",
+    "tools/terrain/",
+    "tools/dp_air_smoke.sh"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "rust/",
+    "configs/",
+    "docs/contracts/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "no_hash_script",
+      "cmd": "test ! -e tools/terrain/air_model_hash.gd && ! grep -n 'air_model_hash\\|AirBakedField\\|запечён' tools/build.sh",
+      "expect": "exit=0"
+    },
+    {
+      "name": "no_dead_refs",
+      "cmd": "grep -rlwE 'AirBakedField|AirRuntime|ThermalField|WeatherModel' tools/terrain tools/build.sh tools/dp_air_smoke.sh | wc -l",
+      "expect": "num:^(\\d+) <=0"
+    },
+    {
+      "name": "build_linux",
+      "cmd": "timeout 1800 tools/build.sh linux --release && test -d build/linux",
+      "expect": "exit=0"
+    },
+    {
+      "name": "gd_check",
+      "cmd": "python3 tools/check_gd.py --timeout 600 $(git ls-files 'tools/*.gd' | grep -v '^tools/research/')",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-30T06:24:11"
+}
