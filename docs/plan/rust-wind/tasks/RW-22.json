@@ -1,0 +1,42 @@
+{
+  "id": "RW-22",
+  "module": "rust-wind",
+  "type": "dp-writer",
+  "title": "CHANGELOG и реестр выводов по rust-wind",
+  "goal": "CHANGELOG.md «В работе» — функциональные изменения модуля для пилота (по-русски, честно, без продающего тона); docs/registry — по строке вывода с числами и ссылкой путь#раздел на каждую закрытую работу модуля; без выдумок — только из отчётов и документов.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-22",
+  "branch": "rust-wind/RW-22",
+  "base": "feature/rust-wind",
+  "scope": [
+    "CHANGELOG.md",
+    "docs/registry/"
+  ],
+  "dont_touch": [
+    "docs/contracts/",
+    "docs/plan/",
+    "scripts/",
+    "rust/"
+  ],
+  "accept": [
+    {
+      "name": "changelog",
+      "cmd": "sed -n '/^## В работе/,/^## [0-9]/p' CHANGELOG.md | grep -ciE 'ветер|погод|загрузк'",
+      "expect": "num:^(\\d+) >=3"
+    },
+    {
+      "name": "findings",
+      "cmd": "grep -rc 'rust-wind' docs/registry/ | awk -F: '{s+=$2} END {print s}'",
+      "expect": "num:^(\\d+) >=6"
+    },
+    {
+      "name": "docs_check",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-30T06:14:12"
+}

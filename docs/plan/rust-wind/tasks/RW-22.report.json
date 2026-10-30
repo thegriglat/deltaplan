@@ -1,0 +1,51 @@
+{
+  "status": "done",
+  "summary": "CHANGELOG «В работе»: 7 пунктов по rust-wind (ветер и погода в крейте, поле всегда, запечённые поля и режим off убраны, экран загрузки, слои F3-F7, границы с числами). Реестр: docs/registry/findings/rust-wind.md, 12 выводов с числами и ссылками путь#раздел.",
+  "commits": [
+    "cfc5b1ec9 RW-22: CHANGELOG и реестр выводов rust-wind"
+  ],
+  "checks": [
+    {
+      "name": "changelog",
+      "value": "4",
+      "pass": true
+    },
+    {
+      "name": "findings",
+      "value": "42",
+      "pass": true
+    },
+    {
+      "name": "docs_check",
+      "value": "ошибок 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Раздел-указатель в docs/registry/findings.md не добавлен: файл на границе 40 КБ (40949 байт), любая правка даёт ошибку docs check. Новый файл связан только через related собственного frontmatter."
+  ],
+  "questions": [
+    "Разбить findings.md (45 КБ после раздела) или оставить rust-wind.md без указателя в нём?"
+  ],
+  "how_to_check": ".dpcli/dpcli accept RW-22",
+  "uncertain": [
+    {
+      "where": "CHANGELOG.md, пункт про погоду",
+      "why": "формулировка «по тем же формулам и сеткам ERA5» взята из отчётов RW-14c/14d; в игре перенос погоды не проверялся пилотом",
+      "checked": "отчёты RW-14c, RW-14d, RW-14h"
+    },
+    {
+      "where": "docs/registry/findings/rust-wind.md, якоря #разделов",
+      "why": "якоря заданы по заголовкам вручную, docs check их не проверяет",
+      "checked": "заголовки сверены по grep '^## '"
+    },
+    {
+      "where": "RW-14e/f/g, RW-16 итоговые, RW-21a",
+      "why": "отчётов нет или задачи в журнале не найдены — не использованы",
+      "checked": "dpcli report --show"
+    }
+  ],
+  "dp_feedback": "hugo --minify падает с 10 ошибками и без моих правок (проверено через stash). docs check: лимит 40 КБ без подсказки, сколько осталось байт.",
+  "t": "2026-10-30T06:17:27",
+  "by": "executor"
+}
