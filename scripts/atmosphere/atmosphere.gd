@@ -578,7 +578,8 @@ func weather() -> Dictionary:
 	if v != _w_cache_ver:
 		var parsed: Variant = JSON.parse_string(String(_dp.weather_json()))
 		_w_cache = parsed if parsed is Dictionary else {}
-		_w_cache_ver = v
+		if not _w_cache.is_empty():
+			_w_cache_ver = v  # пустую погоду (место сменилось, условия ещё не приняты) не запоминаем
 	return _w_cache.duplicate(true)
 
 
