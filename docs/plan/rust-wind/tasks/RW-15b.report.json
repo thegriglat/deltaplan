@@ -1,0 +1,79 @@
+{
+  "status": "done",
+  "summary": "Профиль Godot-процесса на T9 synthetic 1041² и 3041² (таймеры вокруг вызовов фасада, CPU по потокам): главный поток от размера места не зависит (мост, фасад, облака/cores/фон ветра, бот), 1,5 с на игровую секунду не воспроизводится (3041²: 43-52 мс/с в детерм. режиме, 21 мс/с недетерм.). Растёт только фоновый CPU крейта (≈1,7x, пересчёт поля min(место; 38,4 км)); побочная находка: picard_rs::pool строит новый пул потоков на каждый решатель (~2000 потоков за час).",
+  "commits": [
+    "tools/profile + docs/research/rust-wind-stage3/rw15b-game-profile.md (коммит в ветке rust-wind/RW-15b)"
+  ],
+  "checks": [
+    {
+      "name": "main thread ms/игр.с 1041² vs 3041² (недетерм.)",
+      "value": "21,1 vs 21,5",
+      "pass": true
+    },
+    {
+      "name": "advance_to ms/игр.с детерм. 1041² vs 3041²",
+      "value": "30,1 vs 43,2 (всплески до 240-450 мс/с за 60 с)",
+      "pass": true
+    },
+    {
+      "name": "CPU потоков dp-air, мс/игр.с (детерм.)",
+      "value": "219 vs 373",
+      "pass": true
+    },
+    {
+      "name": "accept --dry",
+      "value": "PASS 3/3",
+      "pass": true
+    },
+    {
+      "name": "report_doc",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "table",
+      "value": "2",
+      "pass": true
+    },
+    {
+      "name": "docs_check",
+      "value": "ошибок 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Q3 1,5 с/игр.с не воспроизведён; причина (по-видимому, занятая машина/подготовка места в GDScript 9,3 млн узлов) не доказана",
+    "perf недоступен (paranoid=3): разбивки по функциям внутри крейта нет",
+    "облака при --dyn синтетики пустые: стоимость разбора реальных облаков на большом месте не проверена",
+    "реальное место (ongudai) не мерили"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": "tools/profile/README.md (run.sh / threads.sh); .dpcli/dpcli accept RW-15b",
+  "uncertain": [
+    {
+      "where": "docs/research/rust-wind-stage3/rw15b-game-profile.md, раздел «Что растёт»",
+      "why": "CPU крейта по потокам занижен (завершившиеся потоки не учтены); недетерм. прогон шёл быстрее реального времени, фон не успевал",
+      "checked": "детерминированный режим даёт тот же рост 1,7x; paced-прогон не делали"
+    },
+    {
+      "where": "rust/picard_rs/src/api.rs:196",
+      "why": "вывод о пуле на каждый решатель по числу потоков (1354/2000 с комм dp-air-0), вызывающий код в dp-air не прослежен",
+      "checked": "grep ThreadPoolBuilder: dp-air/formula.rs pool_for кеширует, picard_rs::pool нет"
+    }
+  ],
+  "dp_feedback": "docs check: ошибка длины summary видна только при docs check, не в accept --dry до него; perf в песочнице закрыт (paranoid=3), хотелось бы подсказку в workflow.",
+  "extra": {
+    "main_thread_ms_per_game_s": {
+      "1041": 21.1,
+      "3041": 21.5
+    },
+    "crate_cpu_ms_per_game_s_det": {
+      "1041": 219,
+      "3041": 373
+    },
+    "threads_created_per_hour": "1354 (1041²), 2000 (3041²)"
+  },
+  "t": "2026-10-30T05:33:42",
+  "by": "executor"
+}
