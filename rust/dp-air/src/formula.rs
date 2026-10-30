@@ -539,6 +539,8 @@ pub struct Formula {
     cloud_air: bool,
     /// Ход дня, по которому собрана земля термиков (`Terms::day_sig`).
     wired_sig: Option<[f64; 3]>,
+    /// Сколько раз `advance_to` строил первые термики по полю синхронно (RW-25; для тестов).
+    first_air_builds: u32,
     /// `clouds.fade_out_s`: окно истории `cloud_objects`, с.
     fade_out_s: f64,
     /// Порог смены погоды для `weather_version` (под замком: опрос — `&self`).
@@ -621,6 +623,7 @@ impl Formula {
             fed_ver: u64::MAX,
             cloud_air: false,
             wired_sig: None,
+            first_air_builds: 0,
             fade_out_s: 60.0,
             wv: Mutex::new(WvMemo::default()),
         }
@@ -716,6 +719,12 @@ impl Formula {
 
     fn det(&self) -> bool {
         matches!(&self.cfg, Some(Ok(c)) if c.deterministic)
+    }
+
+    /// Сколько раз `advance_to` строил первые термики по полю синхронно (тесты RW-25).
+    #[doc(hidden)]
+    pub fn first_air_builds(&self) -> u32 {
+        self.first_air_builds
     }
 
     fn need_place(&self) -> Result<(), Error> {
@@ -1340,6 +1349,10 @@ impl AirModel for Formula {
         // ход дня сменился (новый или другие часы): сила источников термиков по новому часу
         if self.place.is_some() && self.terms.day_sig() != self.wired_sig {
             self.wire_thermal();
+            // новая земля - пустой слот: без немедленной сборки до фоновой термиков нет (RW-25)
+            if self.fed_ver != u64::MAX {
+                self.terms.start_at(self.time_s);
+            }
         }
         self.publish_terms();
         Ok(())
@@ -1390,7 +1403,27 @@ impl AirModel for Formula {
         self.pump(t);
         self.set_time(t);
         let fed = self.sync_field();
-        if self.terms.advance(t) || fed {
+        // поле только что загружено: первые термики по его источникам - синхронно (как `start_at`), иначе
+        // игра в первые секунды после готовности видит воздух без термиков (RW-25)
+        let first_air = fed
+            && self
+                .terms
+                .air
+                .as_ref()
+                .is_some_and(|f| terms::thermal_air::has_inputs(f))
+            && self
+                .terms
+                .slots
+                .thermal
+                .as_slot()
+                .is_some_and(|s| s.air().is_none());
+        let changed = if first_air {
+            self.first_air_builds += 1;
+            self.terms.start_at(t)
+        } else {
+            self.terms.advance(t)
+        };
+        if changed || fed {
             self.publish_terms();
         }
         Ok(())
