@@ -55,6 +55,10 @@ fn tbar_at(tbar: &[f32], x: f64) -> f64 {
     a + (b - a) * (x - i as f64)
 }
 
+#[cfg_attr(
+    target_arch = "x86_64",
+    multiversion::multiversion(targets("x86_64+avx2+fma"))
+)]
 pub(super) fn cols_band(c: &ColsIn, lo: usize, hi: usize) -> ColsOut {
     let g = *c.f.grid();
     let (nx, nz) = (g.nx, g.nz);

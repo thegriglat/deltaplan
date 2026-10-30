@@ -1212,6 +1212,17 @@ impl Drop for Formula {
     }
 }
 
+/// Пачка точек: `out[i] = sample_point(pts[i])` (длины по минимуму).
+#[cfg_attr(
+    target_arch = "x86_64",
+    multiversion::multiversion(targets("x86_64+avx2+fma"))
+)]
+fn sample_points(pb: &Published, pts: &[[f32; 3]], mode: SampleMode, t: f64, out: &mut [[f32; 4]]) {
+    for (o, &p) in out.iter_mut().zip(pts) {
+        *o = sample_point(pb, p, mode, t);
+    }
+}
+
 /// Опрос точки: сумма слагаемых (`terms::sum`) в момент `t` атмосферы.
 fn sample_point(pb: &Published, p: [f32; 3], mode: SampleMode, t: f64) -> [f32; 4] {
     terms::sum(&pb.terms, &pb.fs, pb.place.as_deref(), p, mode, t, None)
@@ -1469,17 +1480,11 @@ impl AirModel for Formula {
         let t = f64::from_bits(self.sh.time_bits.load(Ordering::SeqCst));
         let (pts, out) = (&pts[..n], &mut out[..n]);
         if n <= 512 {
-            for (o, p) in out.iter_mut().zip(pts) {
-                *o = sample_point(&pb, *p, mode, t);
-            }
+            sample_points(&pb, pts, mode, t, out);
         } else {
             out.par_chunks_mut(256)
                 .zip(pts.par_chunks(256))
-                .for_each(|(o, p)| {
-                    for (o, p) in o.iter_mut().zip(p) {
-                        *o = sample_point(&pb, *p, mode, t);
-                    }
-                });
+                .for_each(|(o, p)| sample_points(&pb, p, mode, t, o));
         }
     }
 
