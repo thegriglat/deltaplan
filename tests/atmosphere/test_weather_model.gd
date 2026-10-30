@@ -1,7 +1,8 @@
 extends TestCase
-## Погода из прогноза (WeatherModel, FR-16; docs/archive/plan/weather-by-temperature.md, карточка 1):
+## Погода из прогноза (Weather — обёртка над DpWeather, W12; FR-16; docs/archive/plan/weather-by-temperature.md, карточка 1):
 ## опорные прогнозы дают эталоны configs/weather/*, монотонность по температуре и ветру,
-## голубой день, весна, волна выключена, детерминизм и скорость.
+## голубой день, весна, волна выключена, детерминизм и скорость. Расчёт — в крейте (эталоны cargo
+## rust/dp-air/tests/weather_derive.rs); здесь — что обёртка и расширение дают игре те же числа.
 
 const PRESET_KEYS: Array[String] = [
 	"wind_speed_kmh", "wind_from_deg", "cloudbase_agl_m", "thermal_strength_ms",
@@ -21,13 +22,10 @@ const REFERENCE_FORECASTS := {
 }
 
 
-func _derive(t: float, wind_kmh: float, month := 7, cfg: Dictionary = {}) -> Dictionary:
-	var c := cfg if not cfg.is_empty() else WeatherModel.config()
-	var ctx := WeatherModel.reference_context(c)
+func _derive(t: float, wind_kmh: float, month := 7) -> Dictionary:
+	var ctx := Weather.reference_context()
 	ctx.month = month
-	return WeatherModel.derive(
-		{"temperature_c": t, "wind_speed_kmh": wind_kmh, "wind_from_deg": 270.0}, ctx, c
-	)
+	return Weather.derive({"temperature_c": t, "wind_speed_kmh": wind_kmh, "wind_from_deg": 270.0}, ctx)
 
 
 func _rel(a: float, b: float) -> float:
@@ -118,9 +116,6 @@ func test_wave_off_by_default() -> void:
 	for t in [-5.0, 10.0, 18.0, 26.0, 38.0]:
 		for u in [0.0, 20.0, 36.0, 43.0]:
 			approx(_derive(t, u).wave_strength, 0.0, 1.0e-9, "волна при %+.0f/%.0f" % [t, u])
-	var cfg: Dictionary = WeatherModel.config().duplicate(true)
-	cfg.wave.enabled = true
-	check(_derive(18.0, 36.0, 7, cfg).wave_strength > 0.0, "волна включается конфигом")
 
 
 func test_deterministic_and_complete() -> void:
@@ -138,70 +133,49 @@ func test_deterministic_and_complete() -> void:
 
 
 func test_typical_max() -> void:
-	approx(WeatherModel.typical_max_c(7, 15), 26.0, 1.0e-6, "обычно в июле +26")
-	approx(WeatherModel.typical_max_c(1, 15), 0.0, 1.0e-6, "зимой — не ниже 0 (снег не рисуем)")
+	approx(Weather.typical_max_c(7, 15), 26.0, 1.0e-6, "обычно в июле +26")
+	approx(Weather.typical_max_c(1, 15), 0.0, 1.0e-6, "зимой — не ниже 0 (снег не рисуем)")
 
 
-## HH-4b: климат места из сеток — Tx, амплитуда, тропопауза, перистые, рост ветра берутся из ClimateGrid.place.
+## HH-4b: климат места из сеток — Tx, тропопауза в derive берутся из ячейки ERA5 (крейт).
 func test_place_climate_wired() -> void:
-	ClimateGrid.set_paths({})
-	var c := WeatherModel.config()
+	Weather.set_grid_paths({})
+	var c := Weather.config()
 	var cairns := {"lat": -16.9, "lon": 145.8, "month": 1, "day": 15, "valley_msl_m": 0.0}
-	var cp := ClimateGrid.place(cairns)
-	approx(WeatherModel.typical_max_c(1, 15, c, cairns), clampf(cp.tx_c, float(c.ui.temperature_c[0]), float(c.ui.temperature_c[1])), 1.0e-9, "Tx места")
-	approx(WeatherModel.diurnal_range_k(cairns, c), cp.dtr_k, 1.0e-9, "амплитуда места")
+	var cell := Weather.climate_cell(cairns.lat, cairns.lon, 1, 15)
+	var r: Array = c.ui.temperature_c
+	approx(
+		Weather.typical_max_c(1, 15, cairns.lat, cairns.lon, 0.0),
+		clampf(float(cell.tx_c), float(r[0]), float(r[1])), 0.05, "Tx места (долина на высоте ячейки)"
+	)
 	var ctx := cairns.duplicate()
 	ctx.mean_msl_m = 0.0
-	var w := WeatherModel.derive(
-		{"temperature_c": 33.0, "wind_speed_kmh": 10.0, "wind_from_deg": 270.0, "sky": "clear"}, ctx, c
+	var w := Weather.derive(
+		{"temperature_c": 33.0, "wind_speed_kmh": 10.0, "wind_from_deg": 270.0, "sky": "clear"}, ctx
 	)
-	approx(w._derived.trop_msl_m, cp.trop_m, 1.0e-6, "тропопауза места в derive")
-	approx(w._derived.gain_per_km, cp.gain_per_km, 1.0e-9, "рост ветра места в derive")
-	if cp.src.hh6 != "none":
-		var k_clear := WeatherModel.cirrus_base_cover(cp, "clear", ctx, c)
-		var k_over := WeatherModel.cirrus_base_cover(cp, "overcast", ctx, c)
-		check(k_over > k_clear, "перистые: пасмурный день гуще ясного (%.2f > %.2f)" % [k_over, k_clear])
-		approx(k_clear, cp.hcc * c.hcc_sky.k_sky.clear[0][2], 1.0e-9, "ясно, пояс 0–20°, январь юга = ИИА: HCC × k_sky")
-	# Без места (ctx без lat/lon) — таблицы-запас
-	approx(WeatherModel.diurnal_range_k({"month": 7, "day": 15}, c), c.diurnal.range_k[6], 1.0e-9, "амплитуда без места")
-	# Td: β-член от Tx места — в день с Tmax = Tx места поправки на температуру нет
-	var tx := float(cp.tx_c)  # без зажима меню (typical_max_c режет до диапазона)
-	var td0 := WeatherModel.td_day({"temperature_c": tx, "sky": "clear"}, cp, cairns, c)
-	var td1 := WeatherModel.td_day({"temperature_c": tx + 5.0, "sky": "clear"}, cp, cairns, c)
-	var tdc: Dictionary = c.td_day
-	var b := ClimateGrid.band_index(cairns.lat, tdc.bands_abs_lat)
-	var sn := ClimateGrid.season_index(1, cairns.lat)
-	var beta := float(tdc.sky.clear.beta[b][sn])
-	approx(td1 - td0, beta * 5.0, 0.1, "сдвиг Td при Tmax = Tx + 5 К равен β·5")
-	var mu := float(tdc.sky.clear.mu_sigma[b][sn])
-	var rho := float(tdc.sky.clear.res_ratio[b][sn])
-	var r := clampf(WeatherModel.td_noise(1, 15, cairns.lat, cairns.lon), -float(c.climate.r_clamp), float(c.climate.r_clamp))
-	approx(td0, cp.td_c + (mu + r * rho) * cp.td_sd_k, 0.1, "при Tmax = Tx места Td = климат + μσ + rρσ")
-	# Без valley_msl_m поправки на высоту нет (HH7): значения на средней высоте ячейки
-	var nov := {"lat": 51.9, "lon": 85.9, "month": 7, "day": 15}
-	var p0 := ClimateGrid.place(nov)
-	var p1 := ClimateGrid.at(51.9, 85.9, 7, 15)
-	approx(p0.tx_c, p1.tx_c, 1.0e-9, "без valley_msl_m Tx = на высоте ячейки")
-	approx(p0.td_c, p1.td_c, 1.0e-9, "без valley_msl_m Td = на высоте ячейки")
-	nov["valley_msl_m"] = NAN
-	approx(ClimateGrid.place(nov).tx_c, p1.tx_c, 1.0e-9, "valley NAN — без поправки")
+	approx(w._derived.trop_msl_m, cell.trop_m, 1.0e-3, "тропопауза места в derive")
+	# Без valley_msl_m поправки на высоту нет (HH7): Tx на высоте ячейки; valley NAN — то же.
+	var p1 := Weather.climate_cell(51.9, 85.9, 7, 15)
+	var r0: Array = c.ui.temperature_c
+	var want := clampf(float(p1.tx_c), float(r0[0]), float(r0[1]))
+	approx(Weather.typical_max_c(7, 15, 51.9, 85.9), want, 1.0e-6, "без valley_msl_m Tx = на высоте ячейки")
+	approx(Weather.typical_max_c(7, 15, 51.9, 85.9, NAN), want, 1.0e-6, "valley NAN — без поправки")
+	# Без места (NAN lat/lon) — таблица-запас
+	approx(Weather.typical_max_c(7, 15, NAN, NAN), float((c.typical_max_c as Array)[6]), 1.0e-6, "без места — таблица")
 
 
 func test_speed() -> void:
-	var ctx := WeatherModel.reference_context()
-	var cfg := WeatherModel.config()
+	var ctx := Weather.reference_context()
 	var t0 := Time.get_ticks_usec()
 	for i in 100:
-		WeatherModel.derive(
-			{"temperature_c": 20.0 + i * 0.1, "wind_speed_kmh": 11.0, "wind_from_deg": 270.0},
-			ctx,
-			cfg
+		Weather.derive(
+			{"temperature_c": 20.0 + i * 0.1, "wind_speed_kmh": 11.0, "wind_from_deg": 270.0}, ctx
 		)
 	var per := (Time.get_ticks_usec() - t0) / 100.0 / 1000.0
 	check(per < 1.0, "derive %.3f мс ≥ 1 мс" % per)
 	var hfn := func(x: float, z: float) -> float: return 500.0 + 0.01 * x + 0.02 * z
 	t0 = Time.get_ticks_usec()
-	var gc := WeatherModel.ground_context(hfn, 10000.0, 15, 0.1)
+	var gc := Weather.ground_context(hfn, 10000.0, 15, 0.1)
 	var ms := (Time.get_ticks_usec() - t0) / 1000.0
 	check(ms < 20.0, "ground_context %.1f мс ≥ 20 мс" % ms)
 	check(gc.valley_msl_m < gc.mean_msl_m, "долина ниже средней")
@@ -209,12 +183,9 @@ func test_speed() -> void:
 
 
 func _at(t: float, hour: float, wind_kmh := 11.0, sky := "clear") -> Dictionary:
-	var ctx := WeatherModel.reference_context()
-	return WeatherModel.derive(
-		{"temperature_c": t, "wind_speed_kmh": wind_kmh, "wind_from_deg": 270.0, "sky": sky},
-		ctx,
-		WeatherModel.config(),
-		hour
+	var ctx := Weather.reference_context()
+	return Weather.derive(
+		{"temperature_c": t, "wind_speed_kmh": wind_kmh, "wind_from_deg": 270.0, "sky": sky}, ctx, hour
 	)
 
 

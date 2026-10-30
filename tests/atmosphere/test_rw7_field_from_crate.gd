@@ -66,7 +66,6 @@ func _place(h: Dictionary) -> AirPlaceData:
 	# хеши как в файле: данные острова на диске и модель могут отличаться от тех, что запекали
 	p.header["data_hash"] = String(key.data_hash)
 	p.header["model_hash"] = String(h.model_hash)
-	p.fill_climate()
 	p.fill_crate_inputs()
 	return p
 

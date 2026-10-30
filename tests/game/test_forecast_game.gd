@@ -54,7 +54,7 @@ func test_game_uses_forecast() -> void:
 	)
 	check(v1.length() >= v0.length() - 0.01, "ветер с высотой не слабее: %.2f → %.2f" % [v0.length(), v1.length()])
 	var ctx := game._weather_context()
-	var w := WeatherModel.derive(s.forecast(), ctx, {}, 14.0)
+	var w := Weather.derive(s.forecast(), ctx, 14.0)
 	var cb := float(air.weather().cloudbase_agl_m)
 	check(absf(cb - float(w.cloudbase_agl_m)) <= 0.1 * float(w.cloudbase_agl_m), "кромка %.0f" % cb)
 	check(cb > 1000.0 and cb < 2800.0, "июль +26 на Алтае: кромка %.0f" % cb)

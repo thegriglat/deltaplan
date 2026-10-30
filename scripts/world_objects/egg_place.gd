@@ -39,7 +39,7 @@ static func build(terrain: Terrain, objects: Node = null, place_cfg: Dictionary 
 			p._obstacles = ob
 	if terrain != null:
 		p._valley = float(
-			WeatherModel.ground_context(
+			Weather.ground_context(
 				terrain.height_at,
 				float(p._cfg.get("valley_radius_m", 10000.0)),
 				int(p._cfg.get("valley_samples", 15)),

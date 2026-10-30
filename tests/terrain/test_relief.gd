@@ -80,16 +80,6 @@ func test_terrain_set_sun_recomputes_shadow() -> void:
 	t.wait_relief()
 	approx(t.reliefs[0].horizon_azimuth_deg, 90.0, 0.01, "горизонт пересчитан под новый азимут")
 	check(t.relief_horizon_at(750.0, 0.0) > 10.0, "тень за гребнем при солнце с востока")
-	# сырая ложбина — источник термиков слабее (β по влажности, SurfaceHeat): сухой гребень сильнее
-	t.set_sun(Vector3.UP)
-	t.wait_relief()
-	var wet := t.thermal_source_strength_at(500.0, 0.0)
-	var dry := t.thermal_source_strength_at(0.0, 0.0)
-	check(t.surface_at(500.0, 0.0) == t.surface_at(0.0, 0.0), "тот же класс у ложбины и гребня")
-	var nw := t.normal_at(500.0, 0.0)
-	var nd := t.normal_at(0.0, 0.0)
-	check(nw.dot(nd) > 0.9999 and nw.y > 0.99, "нормали ложбины и гребня одинаковы, почти вертикальны")
-	check(wet < dry, "сырая ложбина — источник слабее: %.3f против %.3f" % [wet, dry])
 	t.free()
 
 

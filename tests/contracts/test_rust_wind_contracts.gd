@@ -11,7 +11,7 @@ extends TestCase
 
 ## Версии разделов — те же, что в заголовках docs/contracts/rust-wind.md и rust-wind/*.md.
 const CONTRACTS := {
-	W1 = 2, W2 = 6, W3 = 9, W4 = 10, W5 = 10, W6 = 4, W7 = 1, W8 = 3, W9 = 2, W10 = 2, W11 = 11, W12 = 2
+	W1 = 2, W2 = 6, W3 = 9, W4 = 10, W5 = 11, W6 = 4, W7 = 1, W8 = 3, W9 = 2, W10 = 2, W11 = 11, W12 = 3
 }
 const DOCS: Array[String] = [
 	"res://docs/contracts/rust-wind.md",
@@ -21,7 +21,7 @@ const DOCS: Array[String] = [
 const PLACE := "res://tests/fixtures/wind/places/synthetic"
 ## Реализации, которые гоняет файл.
 const IMPLS: Array[String] = ["gd", "calm"]
-## Коды классов поверхности (AirPlace.Surface, SurfaceLayer.CLASS_NAMES) — зафиксированы здесь.
+## Коды классов поверхности (SurfaceSnapshot, SurfaceLayer.CLASS_NAMES) — зафиксированы здесь.
 const CLASSES := {
 	"none": 0,
 	"forest": 1,
@@ -113,7 +113,6 @@ static func _synthetic() -> AirPlaceData:
 	_place = AirPlaceData.from_arrays(
 		AirPlaceData.make_header(h.loc, grid, h.start_sites), heights, water, cls, moist
 	)
-	_place.fill_climate()
 	return _place
 
 
@@ -328,35 +327,22 @@ func test_surface_classes_fixed() -> void:
 # ------------------------------------------------------------------ место и условия (W5)
 
 
-func _check_climate(p: AirPlaceData, label: String) -> void:
-	var cl: Variant = p.header.loc.get("climate")
-	check(cl is Dictionary, "%s: loc.climate есть" % label)
-	if not cl is Dictionary:
-		return
-	for k in ["tx_c", "dtr_k", "z_cell_m"]:
-		check(
-			(cl as Dictionary).has(k) and is_finite(float(cl[k])),
-			"%s: climate.%s — конечное число" % [label, k]
-		)
-	for k in ["has_hh1", "has_hh5"]:
-		check((cl as Dictionary).has(k) and cl[k] is bool, "%s: climate.%s — bool" % [label, k])
-	check(float(cl.dtr_k) >= 0.0, "%s: суточная амплитуда ≥ 0" % label)
-
-
-func test_place_climate() -> void:
-	_check_climate(_synthetic(), "синтетика")
-	# load_place сам дополняет заголовок без климата
-	var g := _synthetic()
-	var h: Dictionary = g.header.duplicate(true)
-	(h.loc as Dictionary).erase("climate")
-	var p := AirPlaceData.from_arrays(h, g.heights, g.water, g.surface_cls, g.surface_moist)
+func test_place_no_climate_in_header() -> void:
+	# W5 v10: климат места считает крейт (DpWeather через attach_weather); игра его в заголовок не кладёт.
+	var p := AirPlaceData.from_functions(
+		func(_x: float, _z: float) -> float: return 100.0,
+		func(_x: float, _z: float) -> float: return 0.5,
+		{"id": "t", "center_lat": 51.5, "center_lon": 86.5, "utc_offset_h": 6.0, "month": 7, "day": 15},
+		-500.0, -500.0, 100.0, 11, 11
+	)
+	for k in ["climate", "climate_lag", "climate_cell", "climate_cell_lag"]:
+		check(not (p.header.loc as Dictionary).has(k), "loc.%s в заголовке нет" % k)
 	var a := _make("gd")
-	check(a.load_place(p) == 0, "load_place без climate — OK")
-	_check_climate(p, "после load_place")
+	check(a.load_place(_synthetic()) == 0, "load_place синтетики — OK")
 	a.free()
 
 
-## Онгудай: место из рельефа игры (from_terrain), климат заполнен; has_hh5 соответствует сетке.
+## Онгудай: место из рельефа игры (from_terrain) собирается без климата в заголовке.
 func test_place_from_terrain_ongudai() -> void:
 	var t := Terrain.new()
 	t.location_id = ""
@@ -367,18 +353,7 @@ func test_place_from_terrain_ongudai() -> void:
 	check(p != null, "from_terrain вернул место")
 	if p != null:
 		check(p.validate() == "", "место проходит validate: %s" % p.validate())
-		_check_climate(p, "Онгудай")
-		var cl: Dictionary = p.header.loc.climate
-		var grid_present: bool = (
-			(
-				ClimateGrid
-				. at(float(p.header.loc.center_lat), float(p.header.loc.center_lon), 7, 15)
-				. src
-				. hh5
-			)
-			!= "none"
-		)
-		check(bool(cl.has_hh5) == grid_present, "has_hh5 соответствует наличию сетки")
+		check(not (p.header.loc as Dictionary).has("climate"), "климата в заголовке нет (W5 v10)")
 		var sites: Array = p.header.start_sites
 		check(sites.size() >= 1, "стартовые площадки есть")
 		check(absf(p.height_at(0.0, 0.0) - t.height_at(0.0, 0.0)) < 1.0e-3, "высота — рельеф игры")

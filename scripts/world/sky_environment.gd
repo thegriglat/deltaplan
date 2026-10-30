@@ -381,7 +381,7 @@ func set_inversion_height_msl(h: float) -> void:
 
 
 ## Густота дымки (1 — как в конфиге, 2 — видимость вдвое меньше): погода по ходу дня
-## по влажности воздуха (WeatherModel.haze_k_rh).
+## по влажности воздуха (крейт, haze_k_rh).
 func set_haze_density(k: float) -> void:
 	_haze_density = maxf(k, 0.1)
 	if _haze_mat != null:

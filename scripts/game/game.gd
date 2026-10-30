@@ -115,15 +115,15 @@ var _goals_sync_s := -1.0  ## Telemetry.time_s последней синхрон
 var _ended := false  ## flight_ended уже отправлен (до «Ещё раз» / «Продолжить»)
 ## Номер текущего отрезка полёта (QL-К1): +1 при start/restart/continue_on_foot; только растёт.
 var flight_no := 0
-## Погода из прогноза (FR-16): место для WeatherModel.derive, час последнего пересчёта (ход дня),
-## шаг сетки источников (по разгару дня — весь полёт один), инерция прогрева по классам.
+## Погода из прогноза (FR-16): место для Weather.derive (дата, широта, пояс, высоты долины и средней земли).
 var _weather_ctx := {}
-## Час, на который задан контекст воды Terrain (раз в час игры), NAN — не задан.
-var _water_hour: float = NAN
-var _heating := SurfaceHeating.new()
-## Часы суток по времени воздуха (сеть: час = функция времени зоны, NET-00; hour_at). Погоду и
-## источники ход дня ведёт сам воздух (Atmosphere.set_conditions); здесь — только часы.
-var _day: AtmoDay
+## Часы суток по времени воздуха (сеть: час = функция времени зоны, NET-00; Weather.hour_at). Погоду и
+## источники ход дня ведёт сам воздух (Atmosphere.set_conditions); здесь — только часы:
+## час в момент t0 воздуха и скорость времени (ход меняется в _air_rebase_clock).
+var _day_on := false
+var _day_start_hour := 13.0
+var _day_t0 := 0.0
+var _day_speed := 1.0
 ## Время воздуха, с: аргумент advance_to / start_at (воздух идёт от нуля в начале полёта).
 var _air_t := 0.0
 ## Узел, вокруг которого живёт воздух (отладка кадров неба, scenes/main.gd); null — крыло
@@ -180,7 +180,7 @@ func _ready() -> void:
 	if "air_cache_enabled" in air:
 		air.set("air_cache_enabled", true)  # кеш поля на диске (FL-К1) — только в игре
 	if air.has_signal("weather_updated"):
-		air.connect("weather_updated", _apply_haze)  # ход дня (AtmoDay): дымка за погодой
+		air.connect("weather_updated", _apply_haze)  # ход дня: дымка за погодой
 	debug_overlays = DebugOverlays.new()
 	debug_overlays.name = "DebugOverlays"
 	add_child(debug_overlays)
@@ -378,22 +378,15 @@ func start(s: FlightSettings) -> bool:
 	# Дата полёта — шейдерам (сезон, scene-look SL-К2): там же, где солнце.
 	if terrain.has_method("set_flight_date"):
 		terrain.set_flight_date(settings.month, settings.day)
-	_heating.setup(
-		float(_weather_ctx.lat),
-		float(_weather_ctx.lon),
-		settings.month,
-		settings.day,
-		float(_weather_ctx.utc_offset_h)
-	)
 	if not sky.clock.sun_changed.is_connected(_on_sun_changed):
 		sky.clock.sun_changed.connect(_on_sun_changed)
-	_water_hour = NAN
 	_on_sun_changed(sky.clock.to_sun())
-	_day = null
+	_day_on = false
 	if air is Atmosphere:
-		_day = AtmoDay.new()  # только часы суток; погоду и источники ведёт воздух
-		_day.start_hour = sky.clock.hour
-		_day.speed = sky.clock.speed
+		_day_on = true  # только часы суток; погоду и источники ведёт воздух
+		_day_start_hour = sky.clock.hour
+		_day_t0 = 0.0
+		_day_speed = sky.clock.speed
 	glider.set_ground_fn(terrain.height_at)
 	glider.set_air_fn(air.air_velocity_at)
 	# Старт — до объектов и поля воздуха (FL-10): выбор зависит только от рельефа (высоты, карта поверхности,
@@ -477,7 +470,7 @@ func _wait_relief() -> void:
 ## этап пропущен): после него можно выбирать курс по ветру у старта; job.air_ready = true — воздух
 ## готов (термики первого обновления посчитаны).
 func _air_field_job(progress: LoadProgress, job: Dictionary) -> void:
-	# снимок поверхности (AirPlace.surface_start) ждёт поля рельефа — ждать кадрами, а не блокирующе
+	# снимок поверхности (SurfaceSnapshot.start) ждёт поля рельефа — ждать кадрами, а не блокирующе
 	await _wait_relief()
 	var place: AirPlaceData = await _air_place()
 	if air.call("load_place", place) != 0:
@@ -554,25 +547,19 @@ func _air_place() -> AirPlaceData:
 		PackedByteArray([0, 0, 0, 0, 0, 0, 0, 0, 0]), moist
 	)
 	place_fb.terrain = terrain
-	place_fb.fill_climate()
 	return place_fb
 
 
 ## Условия воздуха (W5): прогноз пилота, часы старта (sky.clock) и ветер у старта. Ветер «встречный» —
-## румб по курсу площадки (поверх прогноза), выше старта ветер сильнее (ClimateGrid.place).
+## румб по курсу площадки (поверх прогноза), выше старта ветер сильнее (прирост по климату считает крейт).
 func _air_conditions() -> Dictionary:
 	var cond := {
 		"forecast": settings.forecast(),
 		"start_hour": sky.clock.hour,
 		"speed": sky.clock.speed,
-		# шаг пересчёта погоды по часу (крейт требует; как у AtmoDay)
-		"quantum_h": AtmoDay.new().quantum_h,
-		"wind_ref":
-		{
-			"ref_msl": _start_pos.y,
-			"gain_per_km":
-			float(ClimateGrid.place(_weather_ctx.merged({"start_msl_m": _start_pos.y})).gain_per_km),
-		},
+		# шаг пересчёта погоды по часу (крейт требует)
+		"quantum_h": Weather.quantum_h(),
+		"wind_ref": {"ref_msl": _start_pos.y},  # прирост ветра с высотой (gain_per_km) берёт крейт из климата
 		"inflow_mode": StartWeather.wind_ref_of(settings),
 	}
 	if settings.wind_into_launch:
@@ -672,8 +659,10 @@ func _air_advance(dt: float) -> void:
 
 ## Ход часов изменился (новый полёт, смена скорости времени): перепривязать воздух.
 func _air_rebase_clock() -> void:
-	if _day != null:
-		_day.rebase(_air_t, sky.clock.hour, sky.clock.speed)
+	if _day_on:
+		_day_t0 = _air_t
+		_day_start_hour = sky.clock.hour
+		_day_speed = sky.clock.speed
 	if settings != null and not _weather_ctx.is_empty():
 		air.call("set_conditions", _air_conditions())
 
@@ -686,12 +675,11 @@ func _air_weather() -> Dictionary:
 ## Место для погоды: дата, широта/долгота, пояс, высоты долины и средней земли вокруг (0, 0).
 func _weather_context() -> Dictionary:
 	var g: Dictionary = Config.get_config("atmosphere").ground
-	var wc := WeatherModel.config()
-	var ctx := WeatherModel.ground_context(
+	var ctx := Weather.ground_context(
 		terrain.height_at,
 		float(g.reference_radius_m),
 		int(g.reference_samples),
-		float(wc.valley_percentile)
+		float(Weather.config().valley_percentile)
 	)
 	ctx.merge(
 		{
@@ -721,8 +709,8 @@ func _clock_utc_offset() -> float:
 ## воздух сразу в t (то же, что прогон от 0; готовится порциями — тик зовёт pump), часы — на
 ## час старта + t.
 func set_world_time(t: float) -> void:
-	if _day != null:
-		sky.clock.set_hour(_day.hour_at(t))
+	if _day_on:
+		sky.clock.set_hour(_day_hour_at(t))
 	_air_t = t
 	air.call("start_at", t)
 
@@ -735,43 +723,14 @@ func _apply_haze() -> void:
 		sky.set_haze_density(float(_air_weather().get("haze_k", 1.0)))
 
 
-## Контекст воды для потока тепла (SH-5) в час места hour: T воды (климат месяца назад), T воздуха
-## суточного хода по прогнозу меню, ветер меню на 10 м. Пусто — контекста погоды ещё нет.
-func _water_heat_at(hour: float) -> Dictionary:
-	if _weather_ctx.is_empty():
-		return {}
-	var wcfg: Dictionary = SurfaceHeat.config().water
-	var fc := settings.forecast()
-	var z := float(_weather_ctx.get("valley_msl_m", 0.0))
-	return {
-		"t_water_c": SurfaceHeat.water_temp_c(settings.month, settings.day, z, _weather_ctx, wcfg),
-		"t_air_c":
-		SurfaceHeat.air_temp_c(hour, float(fc.get("temperature_c", 20.0)), z, _weather_ctx, wcfg),
-		"u_ms": float(fc.get("wind_speed_kmh", 0.0)) / 3.6,
-		"z_m": z,
-	}
-
-
-## Раз в час игры — контекст воды для Terrain.set_water_heat.
-func _update_water_heat() -> void:
-	var h: float = sky.clock.hour
-	if absf(h - _water_hour) < 1.0 and not is_nan(_water_hour):
-		return
-	_water_hour = h
-	var w := _water_heat_at(h)
-	if w.is_empty():
-		terrain.clear_water_heat()
-	else:
-		terrain.set_water_heat(w.t_water_c, w.t_air_c, w.u_ms)
+## Час места через t с времени воздуха (сеть: функция времени зоны): от часа в момент t0 со скоростью времени.
+func _day_hour_at(t: float) -> float:
+	return Weather.hour_at(_day_start_hour, _day_speed, t - _day_t0)
 
 
 func _on_sun_changed(to_sun: Vector3) -> void:
 	if air.has_method("set_sun_direction"):
 		air.call("set_sun_direction", to_sun)
-	if terrain.has_method("set_class_sun"):
-		var h: float = sky.clock.hour
-		terrain.set_class_sun(_heating.directions(h), _heating.built_night(h))
-		_update_water_heat()
 
 
 ## Треки (GL-К5, GL-К6): запись полёта с отрыва, след прошлой попытки места полосой. В сети — ничего.
@@ -1458,11 +1417,11 @@ func return_to_launch() -> void:
 
 
 ## Шаг мира в сети: воздух — по часам зоны (NetFlight.world_dt), часы суток — от времени
-## атмосферы (AtmoDay.hour_at): после паузы и долгих кадров время не прыгает относительно зоны.
+## атмосферы (Weather.hour_at): после паузы и долгих кадров время не прыгает относительно зоны.
 func _net_world_step(dt: float) -> void:
 	_air_advance(net.world_dt(dt))
-	if _day != null:
-		sky.clock.set_hour(_day.hour_at(world_time()))
+	if _day_on:
+		sky.clock.set_hour(_day_hour_at(world_time()))
 	else:
 		sky.clock.advance(dt)
 
@@ -1808,7 +1767,7 @@ func _sky_shade_env() -> Vector2:
 	if w is Dictionary and (w as Dictionary).has("_derived"):
 		var dv: Dictionary = (w as Dictionary)["_derived"]
 		if dv.has("sky"):
-			cover = float(WeatherModel.sky_params(String(dv.sky)).get("cover", 0.0))
+			cover = float(Weather.sky_params(String(dv.sky)).get("cover", 0.0))
 	return Vector2(sin_el, cover)
 
 
@@ -2270,9 +2229,9 @@ func _goals_finish(kind: String, info: Dictionary) -> void:
 
 
 ## Температура воздуха, °C, на высоте z_m над уровнем моря — для порога снежных флагов (SNW-4).
-## Есть контекст погоды — суточный ход и градиент SurfaceHeat; нет — прогноз меню минус 6,5 К/км.
+## Есть контекст погоды — суточный ход и градиент крейта; нет — прогноз меню минус 6,5 К/км.
 func air_temp_c_at(z_m: float) -> float:
 	var t_max := float(settings.forecast().get("temperature_c", 20.0))
 	if _weather_ctx.is_empty():
 		return t_max - 0.0065 * z_m
-	return SurfaceHeat.air_temp_c(sky.clock.hour, t_max, z_m, _weather_ctx, SurfaceHeat.config().water)
+	return Weather.air_temp_c(sky.clock.hour, t_max, z_m, _weather_ctx)

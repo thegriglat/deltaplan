@@ -33,7 +33,7 @@ static func parse(w: Variant, where: String = "") -> Dictionary:
 	if not ok_hour:
 		push_warning("StartWeather %s: час %s не из world.json → time.start_hours — погода не фиксируется" % [where, hour])
 		return {}
-	var sky_opts: Array = WeatherModel.config().get("sky", {}).get("options", SKIES)
+	var sky_opts: Array = Weather.config().get("sky", {}).get("options", SKIES)
 	if not (d.sky is String) or not (String(d.sky) in sky_opts):
 		push_warning("StartWeather %s: sky '%s' недопустимо — погода не фиксируется" % [where, d.sky])
 		return {}
