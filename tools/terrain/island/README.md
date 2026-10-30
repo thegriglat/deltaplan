@@ -43,7 +43,7 @@ python3 tools/terrain/island/air_check.py --show          # ключ=значе�
 | `build_island.py` | генерация + упаковка формата 4 (TI-К1) + конфиг места |
 | `check_sites.py`, `verify.sh` | проверки приёмки |
 | `shots.sh` | кадры для проверки мест (terrain_preview) |
-| `air_probe.gd/.tscn`, `air_quick.py` | быстрая проверка воздуха: поле GPU игры, выборка в точках |
+| `air_probe.tscn` (`air_probe_main.gd`), `air_quick.py` | быстрая проверка воздуха: поле GPU игры, выборка в точках |
 | `out/air_quick.json`, `out/probe_*.json` | итог и сырые выборки проверки воздуха |
 | `weather_sets.json`, `apply_weather.py` | TI-5: фиксированная погода стартов (TI-К2) → `start_sites[].weather` конфига |
 | `air_check.py`, `air_check_run.gd/.tscn` | TI-5: проверка воздуха в игре по наборам стартов, кадры F3/F6 → `out/air_check.json`, `out/check_*.json` |

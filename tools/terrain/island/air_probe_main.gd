@@ -1,10 +1,10 @@
 extends Node
-## Быстрая проверка воздуха вулканического острова (VI-1, для шлюза — не подбор погоды): поле GPU как в игре
+## Быстрая проверка воздуха учебного острова (TI-1, для шлюза — не подбор погоды): поле GPU как в игре
 ## (загрузка поля: область + окна у старта), выборка в заданных точках.
 ## Основа — tools/research/wind_compare/dump_wind.gd (настройка атмосферы и поля), плюс выбор старта,
 ## дата (месяц, день), t_max и выдача w_conv поля и силы источника термиков.
 ## Запуск — из air_quick.py (окно, DISPLAY=:0). Аргументы после --:
-##   --site=<id старта> --wind=<м/с на 10 м> --from=<°> --hour=<ч> --loc=<id места> --month=1 --day=15 --tmax=<°C|nan>
+##   --site=<id старта> --wind=<м/с на 10 м> --from=<°> --hour=<ч> --month=7 --day=15 --tmax=<°C|nan>
 ##   --sky=clear|partly|overcast --points=<json: [[x, z, agl], …] мира> --out=<json>
 ## Выход: cond, info (поле: solver_ok, blend_fraction…), rows: [x, z, agl, ground_h, класс, сила источника,
 ##   u_восток, u_север, w (air_velocity_at), w_mean (mean_wind_at), w_conv, доля поля].
@@ -23,11 +23,11 @@ func _ready() -> void:
 
 
 func _run() -> void:
-	var loc_id := String(_a.get("loc", "volcano_island"))
+	var loc_id := "training_island"
 	var wind_ms := float(_a.get("wind", 6.0))
 	var wdir := float(_a.get("from", 270.0))
 	var hour := float(_a.get("hour", 12.0))
-	var month := int(_a.get("month", 1))
+	var month := int(_a.get("month", 7))
 	var day := int(_a.get("day", 15))
 	var t_max := float(_a.get("tmax", "nan")) if String(_a.get("tmax", "nan")) != "nan" else NAN
 	var sky := String(_a.get("sky", "partly"))
@@ -67,10 +67,23 @@ func _run() -> void:
 		push_error("нет слоя detail у рельефа")
 		return
 	# Без случайных термиков (только статические, список пуст); болтанка выключена (SAMPLE_MEAN);
-	# волны выкл. пресетом (wave_strength = 0). Поле Пикара — режим «on» (в окне, не headless).
-	atmo.set_air_mode("on")
+	# волны выкл. пресетом (wave_strength = 0). Поле Пикара — крейт (прогноз в условиях).
 	atmo.set_static_thermals(PackedFloat32Array(), 1)
-	atmo.set_conditions({"preset": w, "start_hour": hour})
+	# Прогноз (поле Пикара на месте считает крейт только при прогнозе): температура — tmax или 26 °C.
+	atmo.set_conditions(
+		{
+			"forecast":
+			{
+				"temperature_c": t_max if is_finite(t_max) else 26.0,
+				"wind_speed_kmh": float(w.wind_speed_kmh),
+				"wind_from_deg": wdir,
+				"sky": sky,
+			},
+			"start_hour": hour,
+			"speed": 1.0,
+			"quantum_h": 1.0,
+		}
+	)
 	atmo.load_place(place)
 	atmo.set_focuses(PackedVector3Array([Vector3(sx, s_h, sz)]), PackedFloat32Array([1.0]))
 	var info := {}
@@ -113,3 +126,4 @@ func _run() -> void:
 	fo.store_string(JSON.stringify(res))
 	fo.close()
 	print("air_probe: ", out_path, " ", JSON.stringify(info).left(300))
+
