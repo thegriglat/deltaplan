@@ -1,0 +1,68 @@
+{
+  "status": "done",
+  "summary": "T9 30 км до цели: 4885 игр.с, 1003 с CPU на 1 ядре (0,21 с/игр.с; Q3 было 1,5). build all --release собирается (8:46, с обходом air_model_hash.gd — чинит RW-23). smoke Linux и wine проходят (api 6, READY, 20 игр.с полёта). Найдено: зависание build.sh, устаревший addons/dp_air/smoke.gd (api 4 vs 6).",
+  "commits": [
+    "de63b8b52 RW-21a: предпроверка сдачи",
+    "4c2a823de RW-21a: json T9 в tools/smoke/results"
+  ],
+  "checks": [
+    {
+      "name": "report_doc",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "results",
+      "value": "4",
+      "pass": true
+    },
+    {
+      "name": "docs_check",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "T9 30 км",
+      "value": "goal, 4885 игр.с, CPU 1003 с, стена 1004 с (CPUQuota 100%)",
+      "pass": true
+    },
+    {
+      "name": "build all --release",
+      "value": "BUILD_RC=0, 8:46, с обходом air_model_hash.gd",
+      "pass": true
+    },
+    {
+      "name": "linux smoke",
+      "value": "READY 7,7 с, api 6, 0 ошибок, кадр снят",
+      "pass": true
+    },
+    {
+      "name": "wine smoke",
+      "value": "READY 45,9 с, DLL подхватилась, api 6, 0 ошибок, кадр снят",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "ветер != 0 и фаза flying напрямую не проверены (игра не пишет; addons/dp_air/smoke.gd падает на api 4 vs 6, addons/ вне скоупа) — косвенно: --air-start, поле READY",
+    "build.sh без обхода после RW-23 не повторял"
+  ],
+  "questions": [
+    "обновить API_VERSION в addons/dp_air/smoke.gd до 6 отдельной задачей?"
+  ],
+  "how_to_check": ".dpcli/dpcli accept RW-21a; tools/smoke/export_smoke.sh linux|windows",
+  "uncertain": [
+    {
+      "where": "build/smoke/RW-21a/windows/game.log:24",
+      "why": "READY под wine 45,9 с против 7,7 с на Linux: шум нагрузки или DLL медленнее",
+      "checked": "один прогон под нагрузкой"
+    },
+    {
+      "where": "rw21a-precheck.md (T9)",
+      "why": "время под CPUQuota=100% — верхняя оценка; синтетика, один сид",
+      "checked": "CPU 1002,6 с из лога"
+    }
+  ],
+  "dp_feedback": "lock cpu FIFO: 1 слот ждал 15 мин за RW-19 (18 слотов); lock cpu ставит CPUQuota=100% на 1 слот — неочевидно для замера; job status 'идёт' при зависшем дочернем godot и пустом логе.",
+  "t": "2026-10-30T07:14:00",
+  "by": "executor"
+}

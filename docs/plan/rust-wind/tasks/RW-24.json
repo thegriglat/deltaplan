@@ -1,0 +1,71 @@
+{
+  "id": "RW-24",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Базовые падения на ветке модуля: cloud_suck, lee_rotor, cloud_select_chunked, встречный ветер",
+  "goal": "На feature/rust-wind найти бисекцией по слияниям, какое слияние сломало test_cloud_suck, test_lee_rotor, test_cloud_select_chunked (набор atmosphere) и проверку «встречный: ветер с 276°, курс 267°» (forecast_game), и починить причину; набор atmosphere и forecast_game на ветке — 0 упало (кроме известного test_xc_bot по таймауту).",
+  "plan_ref": "Тесты (TDD)",
+  "contracts": [
+    {
+      "name": "W2",
+      "version": "6",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W4",
+      "version": "10",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W6",
+      "version": "4",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-24",
+  "branch": "rust-wind/RW-24",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/",
+    "rust/dp-gd/src/",
+    "scripts/atmosphere/",
+    "scripts/game/",
+    "tests/atmosphere/",
+    "tests/game/",
+    "docs/research/rust-wind-stage3/rw24-base-failures.md"
+  ],
+  "dont_touch": [
+    "configs/",
+    "docs/contracts/",
+    "rust/dp-air/tests/data/",
+    "scripts/atmosphere/weather.gd"
+  ],
+  "accept": [
+    {
+      "name": "atmosphere",
+      "tests": "atmosphere"
+    },
+    {
+      "name": "forecast_game",
+      "tests": "forecast_game"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "report_doc",
+      "cmd": "test -s docs/research/rust-wind-stage3/rw24-base-failures.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs_check",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-30T07:24:12"
+}

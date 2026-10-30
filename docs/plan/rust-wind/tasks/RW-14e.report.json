@@ -1,0 +1,106 @@
+{
+  "status": "partial",
+  "summary": "Погода в GDScript удалена: weather_model, atmo_day, surface_heat, surface_heating, climate_grid, air_model/air_place; все потребители на новую обёртку scripts/atmosphere/weather.gd (Weather над DpWeather) и SurfaceSnapshot (снимок поверхности, вынесен из AirPlace). AirPlaceData без fill_climate, Terrain без потока тепла, Atmosphere делает attach_weather. Не проходят: docs_check (ссылки related в чужих docs), atmosphere и forecast_game (падения, в основном уже на базе).",
+  "commits": [
+    "RW-14e: потребители погоды на Weather/DpWeather, удалена погода на GDScript",
+    "RW-14e: Weather.derive дополняет прогноз умолчаниями, правка тестов погоды",
+    "RW-14e: attach_weather один раз после configure",
+    "RW-14e: пустая погода крейта не кешируется по версии"
+  ],
+  "checks": [
+    {
+      "name": "rust_wind_contracts",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "air_field_contracts",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "place_air_stage",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "goal_estimator / achievement_feed / game_logic",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "gd_weather_gone, gd_weather_refs, wrapper, gd_check",
+      "value": "PASS (refs после правки комментариев — grep пуст)",
+      "pass": true
+    },
+    {
+      "name": "atmosphere",
+      "value": "116 тестов, 7 упало: cloud_fade, cloud_field_runtime x2, cloud_select_chunked, cloud_suck, lee_rotor, pilot_words; cloud_suck, lee_rotor, cloud_select_chunked падают и на базе feature/rust-wind",
+      "pass": false
+    },
+    {
+      "name": "forecast_game",
+      "value": "1 упал: 'встречный: ветер с 276°, курс 267°' (так же на базе) и 'вечером термиков в 3+ раза меньше (0 и 0)' (на базе вместо него 'кромка 2091')",
+      "pass": false
+    },
+    {
+      "name": "docs_check",
+      "value": "ошибок 5: related на удалённые файлы в docs/contracts/haze-humidity.md, docs/guide/atmosphere/weather.md, docs/plan/haze-humidity.md, tools/research/haze_humidity/haze/README.md",
+      "pass": false
+    },
+    {
+      "name": "cargo_test",
+      "value": "не гонял полностью; Rust-код не менялся, ветка слита с feature/rust-wind",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "docs_check: исправить related в 4 файлах вне скоупа (два из них dont_touch) — удалить ссылки на удалённые .gd; сделать координатору",
+    "forecast_game и 4 теста облаков/подветра — разбирать отдельно (поле/облака, не погода)",
+    "финальный accept --dry после последнего sync не гонял"
+  ],
+  "questions": [
+    "Кто правит docs related (haze-humidity, guide/atmosphere/weather) — нужен контракт/координатор"
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-14e --dry",
+  "uncertain": [
+    {
+      "where": "scripts/atmosphere/atmosphere.gd:_dp_start (attach_weather)",
+      "why": "повторный attach_weather перестраивал условия и давал пустую weather() на втором _fly; теперь attach только после configure, и пустая погода не кешируется. Корень не установлен до конца",
+      "checked": "forecast_game: ошибка доступа к weather().wind_from_deg ушла"
+    },
+    {
+      "where": "tests/terrain/test_surface.gd, tests/contracts/test_feedback_1013_contracts.gd",
+      "why": "удалены проверки потока тепла по классам, воды, застройки, силы источника и усиления у границ классов (Terrain больше не считает); в cargo юнит-тестов field/surface_heat.rs нет",
+      "checked": "перенос в cargo — RW-14h"
+    },
+    {
+      "where": "scripts/atmosphere/weather.gd:ground_context",
+      "why": "средняя высота считается суммой в GD (арифметика проб), долина — valley_of крейта",
+      "checked": "test_speed, прямое сравнение с прежним GD на опорном месте"
+    },
+    {
+      "where": "scripts/atmosphere/weather.gd:hour_at",
+      "why": "число аргументов DpWeather.hour_at определяется в рантайме (4 до RW-16b, 3 после)",
+      "checked": "после RW-16b можно упростить"
+    },
+    {
+      "where": "tools/research/**",
+      "why": "дампы на удалённых классах (dont_touch) больше не запускаются",
+      "checked": "не проверял"
+    },
+    {
+      "where": "tools/wind_fixtures/weather_dump.*, weather_ref2.*, rust/dp-air/tests/data/RW-10c/dump_source.*",
+      "why": "генераторы эталонов удалены (требуют удалённый GD); снятые эталоны остаются",
+      "checked": "cargo-эталоны не менялись"
+    }
+  ],
+  "dp_feedback": "task show не говорил, что godot без lock cpu висит; docs check падает на related вне скоупа исполнителя, а правка dont_touch запрещена — нужен способ пометить такие правки координатору. Параллельные тесты forecast_game без lock сильно тормозят друг друга.",
+  "extra": {
+    "удалено_строк_gd": "около 4500",
+    "документ": "docs/research/rust-wind-stage3/rw14e-consumers.md"
+  },
+  "t": "2026-10-30T07:23:25",
+  "by": "executor"
+}
