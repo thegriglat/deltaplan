@@ -1,0 +1,93 @@
+{
+  "status": "partial",
+  "summary": "Ветка rust-wind (7666cda) проверена: cargo/clippy/fmt/purity зелёные, T9 30 км долетел (4689 игровых с, 1483 с CPU), первая синхронная сборка термиков на 30 км 62 мс (<100), presence_check: все элементы на месте, state=2. GD против main: копия 92 падения, база 38; пропажи элемента нет, причины: READY воздуха дольше бюджета теста (tune+headless), устаревшие ожидания тестов, числа, флейки. Полное подтверждение копии не закончено.",
+  "commits": [
+    "c80f5e137 RW-21: итоговая проверка модуля — rw21-final.md, T9 30 км, первая сборка термиков, проверка присутствия"
+  ],
+  "checks": [
+    {
+      "name": "godot_vs_main",
+      "value": "копия 92 / база 38 падений; 65 'новых' по первому проходу; подтверждение снято по таймауту на 25 из 42; пропажи элемента нет (rw21-final.md)",
+      "pass": false
+    },
+    {
+      "name": "cargo_test",
+      "value": "RC=0 (до sync RW-29)",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "RC=0 (до sync RW-29)",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "RC=0; accept --only fmt PASS",
+      "pass": true
+    },
+    {
+      "name": "purity",
+      "value": "нарушений: 0; accept --only purity PASS",
+      "pass": true
+    },
+    {
+      "name": "t9_30km",
+      "value": "goal, 4689 игровых с, 1482,7 с CPU, 23,0 км/ч, rc=0, 1485 с стены (RW-21a: 4885 с, 1003 с CPU)",
+      "pass": true
+    },
+    {
+      "name": "results",
+      "value": "4 строки таблицы rw21-final.md; accept --only results PASS",
+      "pass": true
+    },
+    {
+      "name": "docs_check",
+      "value": "ошибок 0; accept --only docs_check PASS",
+      "pass": true
+    },
+    {
+      "name": "первая сборка 30 км",
+      "value": "медиана 62,4 мс (74,6/62,4/62,4), остальные шаги 0,03 мс, максимум 1,4 мс; порог 100 мс не превышен",
+      "pass": true
+    },
+    {
+      "name": "presence_check",
+      "value": "state=2, ветер 6,8 м/с, термиков 61, облака 441/441, погода 32 ключа, болтанка 3,3; fly 822 с (tune, headless)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Полное accept --dry не запускался целиком (godot_vs_main ~2 ч); запущены только --only results, docs_check, purity, fmt. cargo_test, clippy, t9_30km сняты прогонами под lock cpu.",
+    "Подтверждение падений копии (-j1) не закончено (таймаут 4 ч); бисекция по слияниям не делалась: критерий пользователя - присутствие, пропажи нет.",
+    "Первая сборка термиков мерилась на синтетическом месте 30 км, не на реальном с рельефом."
+  ],
+  "questions": [
+    "godot_vs_main при приёмке даст exit!=0 (новые падения). Решение пользователя 2026-10-30: не блокируют; принять с заменой критерия или поправить тесты (tests/ вне скоупа RW-21)?",
+    "test_feedback_1013 k2: прогрев сразу после заката не нулевой - вопрос к модели хода дня (RW-14)."
+  ],
+  "images": [],
+  "how_to_check": "tools/smoke/t9_30km.sh 2400; cd tools/smoke/first_build && cargo build --release && ./target/release/first_build --n=1201 --reps=3; godot --headless --path . res://tests/run_tests.tscn -- --file=res://tools/smoke/presence_check.gd",
+  "uncertain": [
+    {
+      "where": "docs/research/rust-wind-stage3/rw21-final.md: T9 CPU 0,32 против 0,21 с/с в RW-21a",
+      "why": "рост в 1,5 раза не разобран (RW-25..29 влиты между прогонами, машина общая)",
+      "checked": "один прогон, один сид; число ядер/термиков сопоставимо (13 против 14)"
+    },
+    {
+      "where": "tools/smoke/first_build/src/main.rs",
+      "why": "в сохранённом json size_km исправлен вручную (делитель); синтетическое место и release без fat LTO",
+      "checked": "делитель поправлен в коде"
+    }
+  ],
+  "dp_feedback": "accept --dry без --only запускает всё, включая 2-часовой godot_vs_main и T9, и блокирует сессию; полезен режим --dry --skip-heavy или явное предупреждение. job wait по умолчанию обрывается через 3000 с без уведомления о статусе.",
+  "extra": {
+    "commit_measured": "7666cda1b",
+    "tests_vs_main_copy_fails": 92,
+    "tests_vs_main_base_fails": 38,
+    "first_ms_median": 62.4,
+    "t9_cpu_s": 1482.7,
+    "t9_game_s": 4689
+  },
+  "t": "2026-10-30T22:03:27",
+  "by": "coordinator"
+}
