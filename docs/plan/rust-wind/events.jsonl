@@ -1457,3 +1457,5 @@
 {"t": "2026-10-30T15:14:03", "by": "coordinator", "task": "RW-26", "ev": "checked", "note": "8/8 forecast_game=ok:1/1; regression=ok:exit 0; cargo_test=ok:exit 0; clippy=ok:exit 0; fmt=ok:exit 0; purity=ok:0; no_realtime_wait=ok:0; report_doc=ok:exit 0"}
 {"t": "2026-10-30T15:14:17", "by": "coordinator", "task": "RW-26", "ev": "accepted"}
 {"t": "2026-10-30T15:14:22", "by": "coordinator", "task": "RW-26", "ev": "merged"}
+{"t": "2026-10-30T15:14:55", "by": "coordinator", "task": "RW-21a", "ev": "checked", "note": "3/3 report_doc=ok:exit 0; results=ok:4; docs_check=ok:ошибок 0"}
+{"t": "2026-10-30T15:15:02", "by": "coordinator", "task": "RW-21a", "ev": "accepted", "note": "без ревью: исследование-предпроверка, код не менялся (риск низкий)"}
