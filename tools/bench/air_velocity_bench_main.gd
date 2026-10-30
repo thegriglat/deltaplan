@@ -33,6 +33,7 @@ func _ready() -> void:
 		print("air_velocity_bench: атмосфера не готова: %s" % [a.status()])
 		get_tree().quit(1)
 		return
+	add_child(a)  # _exit_tree останавливает фоновую работу крейта
 	var n := 4 if smoke else 40
 	var pts: Array[Vector3] = []
 	var center := Vector2(AtmoFingerprint.CENTER.x, AtmoFingerprint.CENTER.z)
@@ -65,7 +66,10 @@ func _ready() -> void:
 			% [_bench(a, pts, 1 if smoke else 5), 1 if smoke else 5, 4 * pts.size()]
 		)
 	)
+	# Выход сразу после free() изредка роняет процесс (SIGSEGV, потоки крейта) — пауза 2 с.
+	remove_child(a)
 	a.free()
+	await get_tree().create_timer(2.0).timeout
 	get_tree().quit(0)
 
 
@@ -141,7 +145,9 @@ func _kayancha() -> void:
 			% [best, a.air_velocity_at(p)]
 		)
 	)
+	remove_child(a)
 	a.free()
 	terrain.free()
+	await get_tree().create_timer(2.0).timeout
 	get_tree().quit(0)
 
