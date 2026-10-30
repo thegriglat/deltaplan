@@ -1,6 +1,6 @@
-//! Оркестровка поля Пикара в крейте (RW-6j): перенос `AirRuntime` (`air_runtime.gd`) — загрузка,
+//! Оркестровка поля Пикара в крейте (RW-6j): перенос оркестровки — загрузка,
 //! грубый старт 1200 → 400 м, пара решений mech → heat, проходы подбора притока `k`, пересчёт на
-//! сроке, тёплые состояния, откат прохода и таймаут. Без Godot, без состояния: одна функция
+//! сроке, тёплые состояния, откат прохода и таймаут. Без движка, без состояния: одна функция
 //! [`run_job`] делает одно «поле» (загрузку или пересчёт) и возвращает уровни и состояния;
 //! подмену, фон, отмену и опросы ведёт `Formula` (`formula.rs`).
 //!
@@ -22,9 +22,9 @@
 //! ## Фазы (RW-6t, `_after_phases`/`_start_picard`)
 //! После сборки уровня на каждом проходе — [`assemble`] (фазы 1–3): маски и поля заморозки колонн
 //! (`freeze` для решения с нагревом, `freeze_mech` для без нагрева), `nonconv` в запасных правилах
-//! обоих решений. Старт решений — как в игре: прошлое поле пары, грубый шаг, иначе фон; `warm` фаз
-//! в игре Пикару стартом не служит (только внутри `nonconv`) и здесь не используется. Карта ω
-//! (`omega.use_map`, в игре выключена) не подаётся. Все колонны заморожены в обоих вариантах —
+//! обоих решений. Старт решений — как в эталоне: прошлое поле пары, грубый шаг, иначе фон; `warm` фаз
+//! в эталоне Пикару стартом не служит (только внутри `nonconv`) и здесь не используется. Карта ω
+//! (`omega.use_map`, в эталоне выключена) не подаётся. Все колонны заморожены в обоих вариантах —
 //! грубый шаг пропускается (`all_mech`), Пикар возвращает поле заморозки без итераций. Отказ фаз —
 //! заметка и Пикар без них.
 //!
@@ -48,10 +48,9 @@
 //!   `JobReport.windows_error`. Сдвиг окон за фокусом — отдельная задача (`clipmap::run_shift`).
 //! - Область — квадрат вокруг (0, 0), `domain_l_m` (по умолчанию 38,4 км); место меньше —
 //!   область сжимается до помещающейся (кратно `dx·coarse_factor`), меньше 12 клеток — отказ.
-//! - Климат места — из `weather_model.json` (`typical_max_c`, `diurnal.range_k`), как GD без
+//! - Климат места — из секция `weather_model` (`typical_max_c`, `diurnal.range_k`), как GD без
 //!   сеток ERA5: `Loc.climate` (W5 v3) в заголовке пока не разбирается (`place.rs`).
 //! - Время решения не ограничено (W5 v7): остановка — только отмена и ошибки.
-use super::baked::BakedField;
 use super::case_build::{SolverCfg, build_solver_case};
 use super::case_prepare::{AirCaseRs, CaseOpts, PreparedPlanes, build_case};
 use super::clipmap::{ClipMap, ParentArea, Plan, WinReport, ZiArea, solve_windows};
@@ -61,6 +60,7 @@ use super::phase::assembly::{PhaseResult, assemble};
 use super::phase::config::PhaseCfg;
 use super::phase::prepare::PhaseCase;
 use super::place_input::{ZiCfg, build_domain_input};
+use super::solved::SolvedField;
 use super::weather_core::{
     Climate, ClimateCell, Domain, FieldWeather, WeatherConfigs, WeatherInputs, field_weather,
     monthly,
@@ -81,9 +81,9 @@ use std::time::Instant;
 
 pub use picard_rs::api::StopReason as Stop;
 
-// ---------------------------------------------------------------- константы GDScript
+// ---------------------------------------------------------------- константы эталона
 
-/// Шаг области, м (`AirRuntime.DX`).
+/// Шаг области, м (`DX`).
 pub const DX: f64 = 400.0;
 /// Пределы множителя притока `k` (`INFLOW_K_MIN`, `INFLOW_K_MAX`).
 pub const INFLOW_K_MIN: f64 = 0.3;
@@ -92,7 +92,7 @@ pub const INFLOW_K_MAX: f64 = 1.0;
 pub const INFLOW_P: [[f64; 2]; 3] = [[3.0, 0.57], [6.0, 0.75], [10.0, 0.90]];
 /// Высота замера `U` над землёй старта, м (`START_AGL_M`).
 pub const START_AGL_M: f64 = 10.0;
-/// Порог ветра меню, ниже которого подстройки нет (`WindProfile.U10_MIN`).
+/// Порог заданного ветра, ниже которого подстройки нет (`WindProfile.U10_MIN`).
 pub const U10_MIN: f64 = 0.5;
 /// Допуски пересчёта: ветер, направление, температура (`WIND_TOL_MS`, `DIR_TOL_DEG`, `TMAX_TOL_C`).
 pub const WIND_TOL_MS: f64 = 0.05;
@@ -111,7 +111,7 @@ pub const SHIFT_RETRY_S: f64 = 10.0;
 
 // ---------------------------------------------------------------- конфиг
 
-/// Климат без сеток ERA5 (`has_hh1 = has_hh5 = false`): запасные таблицы `weather_model.json`.
+/// Климат без сеток ERA5 (`has_hh1 = has_hh5 = false`): запасные таблицы секция `weather_model`.
 #[derive(Clone, Debug, PartialEq)]
 pub struct TableClimate {
     tx_c: Vec<f64>,
@@ -132,7 +132,7 @@ impl Climate for TableClimate {
 
 /// Климат места: ячейка сеток климата [`Weather`] (W5 v10; `ClimateGrid.at` на дату и центр
 /// места), где есть сетка HH5 / HH1; иначе запасные таблицы (`ClimateGrid.place`: без HH5
-/// `tx_c`/`dtr_k` - из `weather_model.json`). Нет `Weather` - таблицы целиком. Для воды (W5 v7)
+/// `tx_c`/`dtr_k` - из секция `weather_model`). Нет `Weather` - таблицы целиком. Для воды (W5 v7)
 /// дату сдвигает вызывающий (`water_mean_air_c`), ячейка берётся тем же правилом.
 pub struct PlaceClimate<'a> {
     pub table: &'a TableClimate,
@@ -179,7 +179,7 @@ pub struct RtCfg {
     pub coarse_factor: usize,
     pub max_passes: usize,
     pub pass_tol: f64,
-    /// `window_levels_m` не пуст: игра подстраивает приток по старту.
+    /// `window_levels_m` не пуст: эталон подстраивает приток по старту.
     pub windows_wanted: bool,
     pub step_min: f64,
     pub blend_s: f64,
@@ -197,7 +197,7 @@ pub struct RtCfg {
     pub faults: Faults,
     /// Блок `air_phase` (фазы поля).
     pub phase: PhaseCfg,
-    /// Шаги окон `window_levels_m` (ключ запечённого поля и список окон клипмапа), м, от грубого
+    /// Шаги окон `window_levels_m` (ключ решённого поля и список окон клипмапа), м, от грубого
     /// к мелкому.
     pub window_dx: Vec<f64>,
     /// Сдвиг окна, когда фокус ушёл от его центра дальше этой доли стороны
@@ -211,15 +211,8 @@ pub struct RtCfg {
     pub configs_hash: String,
 }
 
-fn find<'a>(c: &'a Configs, name: &str) -> Option<&'a str> {
-    c.files
-        .iter()
-        .find(|(n, _)| n == name || n.strip_suffix(".json") == Some(name))
-        .map(|(_, t)| t.as_str())
-}
-
 fn json(c: &Configs, name: &str) -> Result<Value, Error> {
-    match find(c, name) {
+    match c.get(name) {
         None => Ok(Value::Null),
         Some(t) => {
             serde_json::from_str(t).map_err(|e| Error::bad_input(format!("config '{name}': {e}")))
@@ -335,7 +328,7 @@ impl RtCfg {
         })
     }
 
-    /// Параметры решателя случая с ветром меню `u10` (`AirCase.p`, `AirPicardJob`).
+    /// Параметры решателя случая с заданным ветром `u10` (`AirCase.p`, `AirPicardJob`).
     pub fn solver(&self, u10: f64) -> SolverCfg {
         SolverCfg::new(u10)
     }
@@ -343,7 +336,7 @@ impl RtCfg {
 
 // ---------------------------------------------------------------- условия и срок
 
-/// Условия, по которым посчитано (или будет считаться) поле (`_req`/`_cur` GDScript).
+/// Условия, по которым посчитано (или будет считаться) поле (`_req`/`_cur` эталона).
 #[derive(Clone, Debug, PartialEq)]
 pub struct CondRec {
     /// Час места: при загрузке — как есть, в полёте — начало срока.
@@ -429,7 +422,7 @@ pub fn dir_key(wdir: f64) -> i32 {
 
 // ---------------------------------------------------------------- приток k
 
-/// Показатель закона `U ∝ k^p` для ветра меню `u10` (`inflow_p`).
+/// Показатель закона `U ∝ k^p` для заданного ветра `u10` (`inflow_p`).
 pub fn inflow_p(u10: f64) -> f64 {
     let t = &INFLOW_P;
     if u10 <= t[0][0] {
@@ -538,7 +531,7 @@ pub fn coarse_domain(fine: &Domain, factor: usize) -> Domain {
     }
 }
 
-// ---------------------------------------------------------------- запечённые поля
+// ---------------------------------------------------------------- решённые поля
 
 /// Запись для кеша: делается в пуле после подачи поля.
 #[derive(Debug)]
@@ -546,7 +539,7 @@ pub struct CachePut {
     pub cache: FieldCache,
     pub key: Value,
     pub model_hash: String,
-    pub field: BakedField,
+    pub field: SolvedField,
     pub extra: Map<String, Value>,
 }
 
@@ -766,7 +759,7 @@ pub struct JobReport {
     pub wall_s: f64,
     /// Откуда поле.
     pub source: Source,
-    /// Заметки: почему запечённое и кеш не взяты, ошибки записи кеша.
+    /// Заметки: почему решённое и кеш не взяты, ошибки записи кеша.
     pub notes: Vec<String>,
     /// Окна поданного поля (последний проход / сдвиг), от грубого к мелкому.
     pub windows: Vec<WinReport>,
@@ -1496,7 +1489,7 @@ pub(crate) fn build_field(
 }
 
 /// `U` над стартом на 10 м (`start_speed`): горизонталь поля на `START_AGL_M` над землёй точки
-/// с весом края, непокрытая доля — ветер меню `u10` по направлению `wdir`. `NaN` — нет точки.
+/// с весом края, непокрытая доля — заданный ветер `u10` по направлению `wdir`. `NaN` — нет точки.
 pub fn start_speed(f: &Field, place: &Place, p: Option<[f32; 2]>, u10: f64, wdir: f64) -> f64 {
     let Some(p) = p else {
         return f64::NAN;
@@ -1513,7 +1506,7 @@ pub fn start_speed(f: &Field, place: &Place, p: Option<[f32; 2]>, u10: f64, wdir
 
 /// Земля для выборки поля, как у атмосферы (`GroundField.sample().x`): рельеф в узлах сетки
 /// `cell` м (узлы — кратные `cell` координаты мира), между узлами — билинейно. У гребня и в
-/// ложбине она на 0,3–2 м отличается от рельефа; `U` над стартом `start_speed` игры берётся над ней.
+/// ложбине она на 0,3–2 м отличается от рельефа; `U` над стартом `start_speed` эталона берётся над ней.
 pub fn ground_height_grid(place: &Place, x: f32, z: f32, cell: f64) -> f32 {
     let (fx, fz) = (x as f64 / cell, z as f64 / cell);
     let (ix, iz) = (fx.floor(), fz.floor());
@@ -1524,9 +1517,9 @@ pub fn ground_height_grid(place: &Place, x: f32, z: f32, cell: f64) -> f32 {
     h00 * (1.0 - tx) * (1.0 - tz) + h10 * tx * (1.0 - tz) + h01 * (1.0 - tx) * tz + h11 * tx * tz
 }
 
-/// `U` над стартом по набору уровней (`start_speed` игры с окнами): горизонталь на `START_AGL_M`
+/// `U` над стартом по набору уровней (`start_speed` эталона с окнами): горизонталь на `START_AGL_M`
 /// над землёй точки (высота — рельеф, земля выборки — сетка `ground_cell_m`, [`ground_height_grid`])
-/// с весами краёв уровней (мелкий первым), непокрытая доля — ветер меню.
+/// с весами краёв уровней (мелкий первым), непокрытая доля — заданный ветер.
 pub fn start_speed_levels(
     levels: &[Arc<Field>],
     place: &Place,
@@ -1568,8 +1561,14 @@ fn hit_iter_limit(r: &PassReport) -> bool {
     r.iters.iter().any(|&n| n >= MAX_OUTER)
 }
 
-/// Поле из файла (запечённое или кеш): Ready без Пикара.
-fn from_file(job: JobIn, b: BakedField, source: Source, t0: Instant, notes: Vec<String>) -> JobOut {
+/// Поле из файла (решённое или кеш): Ready без Пикара.
+fn from_file(
+    job: JobIn,
+    b: SolvedField,
+    source: Source,
+    t0: Instant,
+    notes: Vec<String>,
+) -> JobOut {
     job.progress.store(1.0f32.to_bits(), Ordering::Relaxed);
     JobOut {
         levels: FieldSet::prepare(b.levels, job.cfg.limits, job.cfg.edge_blend_cells),
@@ -1593,7 +1592,7 @@ fn from_file(job: JobIn, b: BakedField, source: Source, t0: Instant, notes: Vec<
     }
 }
 
-/// Одно поле: загрузка (запечённое → кеш → проходы `k`) или пересчёт (один проход, тёплый старт).
+/// Одно поле: загрузка (решённое → кеш → проходы `k`) или пересчёт (один проход, тёплый старт).
 pub fn run_job(job: JobIn) -> Result<JobOut, JobErr> {
     let t0 = Instant::now();
     let cfg = job.cfg.clone();
@@ -1744,7 +1743,7 @@ fn finish(
                 },
                 key,
                 model_hash: job.place.header().model_hash.clone(),
-                field: BakedField {
+                field: SolvedField {
                     location: job.place.header().loc.id.clone(),
                     site: String::new(),
                     model_hash: job.place.header().model_hash.clone(),

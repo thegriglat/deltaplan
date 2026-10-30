@@ -1,6 +1,6 @@
-//! Погода из прогноза (RW-12b): перенос `WeatherModel.derive` и `ClimateGrid.place` без Godot.
+//! Погода из прогноза (RW-12b): перенос `WeatherModel.derive` и `ClimateGrid.place` без движка.
 //!
-//! Чистые функции над f64 (GDScript `float`), без состояния. Эталон — дамп GD
+//! Чистые функции над f64 (эталона `float`), без состояния. Эталон — дамп GD
 //! (`tools/wind_fixtures/weather_dump.sh`), тест — `tests/weather_derive.rs`.
 //! Ход дня (RW-12c): [`AtmoDay`] (часы места, погода по квантам, солнце, источник), [`Coefficients`]
 //! (`_cache_coefficients`), [`WeatherState`] (мягкая смена, ход дня по шагам, номера версий, `sun_state`).

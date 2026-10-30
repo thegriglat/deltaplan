@@ -4,8 +4,8 @@
 use dp_air::Configs;
 use dp_air::Core;
 use dp_air::Place;
-use dp_air::field::baked::parse_baked;
 use dp_air::field::field_set::FieldSet;
+use dp_air::field::solved::parse_solved;
 use dp_air::field::wind_field::Limits;
 use dp_air::fixtures::{self, Case, Frame};
 use dp_air::terms::clouds::snapshot_thermals;
@@ -27,7 +27,10 @@ fn collect(dir: &Path, prefix: &str, out: &mut Vec<(String, String)>) {
         if p.is_dir() {
             collect(&p, &format!("{name}/"), out);
         } else if p.extension().is_some_and(|x| x == "json") {
-            out.push((name, std::fs::read_to_string(&p).unwrap()));
+            out.push((
+                name.trim_end_matches(".json").to_string(),
+                std::fs::read_to_string(&p).unwrap(),
+            ));
         }
     }
 }
@@ -37,7 +40,7 @@ fn configs_with(patch: impl Fn(&mut Value)) -> Arc<Configs> {
     let mut files = Vec::new();
     collect(&repo().join("configs"), "", &mut files);
     for (n, t) in &mut files {
-        if n == "atmosphere.json" {
+        if n == "atmosphere" {
             let mut v: Value = serde_json::from_str(t).unwrap();
             patch(&mut v);
             *t = serde_json::to_string(&v).unwrap();
@@ -328,7 +331,7 @@ fn ref_load(name: &str, src: Src) -> Ref {
         };
         let hdr = std::fs::read_to_string(d.join("field.json")).unwrap();
         let bin = std::fs::read(d.join("field.bin")).unwrap();
-        let b = parse_baked(&hdr, &bin).unwrap();
+        let b = parse_solved(&hdr, &bin).unwrap();
         fs = FieldSet::new(Limits::default(), 5.0);
         fs.set_field(b.levels, 0.0);
     }

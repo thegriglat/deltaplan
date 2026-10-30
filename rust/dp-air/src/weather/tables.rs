@@ -1,4 +1,4 @@
-//! Таблицы `weather_model.json`: `lerp_table`, `interp_rows`, чтение чисел и массивов.
+//! Таблицы секция `weather_model`: `lerp_table`, `interp_rows`, чтение чисел и массивов.
 use serde_json::{Map, Value};
 
 use crate::field::sun::lerp;

@@ -1,7 +1,7 @@
 //! Слот `Analytic` (RW-9): аналитика ветра без поля и в полосе края поля `a < 1`, склоновый
-//! подъём, подветренная зона, фоновый ветер. Перенос из `atmosphere.gd`
+//! подъём, подветренная зона, фоновый ветер. Перенос из эталона
 //! (`air_velocity_at` 921–988, `_air_velocity_field` 1075–1131, `_analytic_amp` 1031,
-//! `_analytic_turb` 1047), `ground_field.gd`, `wind_model.gd`.
+//! `_analytic_turb`).
 //!
 //! - `ground` — `GroundField`: склон, линия тени, превышение гребня (кеш кусков 30 м).
 //! - `ridge` — склоновый подъём; `lee` — подветренная зона (опускание, рывки, ротор, опасность);
@@ -37,7 +37,7 @@ pub fn lenschow(xi: f64) -> f64 {
     (1.8 * xi.powf(2.0 / 3.0) * a * a).sqrt()
 }
 
-/// Все настройки аналитики из `atmosphere.json`.
+/// Все настройки аналитики из секция `atmosphere`.
 #[derive(Clone, Debug, PartialEq)]
 pub struct AnalyticCfg {
     pub ground: GroundCfg,

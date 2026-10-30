@@ -1,10 +1,10 @@
-//! Зона отрыва за гребнем в масштабе 3 (`field_turbulence.gd` 85–135, `_measure_burst` 257,
-//! `atmosphere.gd` 1215, 1224): признак отрыва из поля, σ слоя смешения по ΔU, рывки вниз (часть
+//! Зона отрыва за гребнем в масштабе 3 (`_measure_burst`,
+//! ): признак отрыва из поля, σ слоя смешения по ΔU, рывки вниз (часть
 //! болтанки слоя смешения, нулевое среднее), доля эвристики обратного потока.
 use super::gust::GustUnit;
 use super::sigma::{TurbCfg, smoothstep};
-use crate::compat::rng::Pcg32;
 use crate::field::wind_field::{T_AOUT, T_DESC, T_UOUT};
+use crate::rand::Pcg32;
 
 /// Опасность подветренной зоны 0..1 от ветра прогноза на высоте точки (`_lee_danger`).
 pub fn lee_danger(cfg: &TurbCfg, u_ref: f64) -> f64 {
@@ -14,7 +14,7 @@ pub fn lee_danger(cfg: &TurbCfg, u_ref: f64) -> f64 {
 /// σ слоя смешения за гребнем `(σ_u, σ_w)` по скачку скорости ΔU (уже × признак отрыва):
 /// `u′/ΔU ≈ 0,18`, `w′/ΔU ≈ 0,14` (Bell & Mehta 1990; Pope 2000, §5.4).
 pub fn sep_sigma(cfg: &TurbCfg, du: f64) -> [f64; 2] {
-    // `Vector2` GDScript — f32
+    // `Vector2` эталона — f32
     [
         f64::from((cfg.sep_su * du) as f32),
         f64::from((cfg.sep_sw * du) as f32),

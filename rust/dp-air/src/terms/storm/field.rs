@@ -1,4 +1,4 @@
-//! Гроза (`storm_field.gd`): нисходящий поток ливня, растекание у земли и фронт порывов от
+//! Гроза: нисходящий поток ливня, растекание у земли и фронт порывов от
 //! термиков-Cb. Чистая функция набора термиков и времени, состояния нет: ячейки — это термики
 //! набора с `is_cb` (`StormField.refresh` вызывается при каждом обновлении набора).
 use crate::Configs;
@@ -6,7 +6,7 @@ use crate::terms::named_json;
 use crate::terms::thermal::AtmoThermal;
 use crate::terms::thermal::life::smoothstep;
 
-/// Коэффициенты `atmosphere.json` → `storm` (запасные значения — как в GDScript) и ширина облака
+/// Коэффициенты секция `atmosphere` → `storm` (запасные значения — как в эталоне) и ширина облака
 /// на 1 м/с (`clouds.width_per_ms_m`, умножается на `cloud_size_factor` погоды).
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct StormCfg {
@@ -103,7 +103,7 @@ pub fn cloud_center(th: &AtmoThermal, t: f64) -> [f32; 2] {
     ]
 }
 
-/// Вклад бурь в точке: ветер x, вертикаль, ветер z, σ болтанки (`Vector4` GDScript).
+/// Вклад бурь в точке: ветер x, вертикаль, ветер z, σ болтанки (`Vector4` эталона).
 pub type StormSample = [f64; 4];
 
 /// Гроза с коэффициентами `cfg` и шириной облака на 1 м/с `cloud_w_per_ms` (с поправкой погоды).

@@ -3,12 +3,12 @@
 //!
 //! - [`StormField`] - нисходящий поток ливня, растекание, фронт порывов и σ; чистая функция
 //!   набора термиков и времени. [`StormExtra`] - часть слота `Extra`: берёт ячейки (`is_cb`) из
-//!   снимка слота термиков (`thermal::ThermalSlot::state`), как `StormField.refresh` в GDScript
+//!   снимка слота термиков (`thermal::ThermalSlot::state`), как `StormField.refresh` в эталоне
 //!   берёт их при каждом обновлении набора.
 //! - [`CloudModel`] - стадия, окно жизни, центр и размеры облака Cb; нужны описаниям W6 и
-//!   подсосу (RW-11d). Рисование (выбор, затухание по дальности, слияние) - в Godot.
+//!   подсосу (RW-11d). Рисование (выбор, затухание по дальности, слияние) - у потребителя.
 //! - Радиус ливня `rd = clouds.width_per_ms_m · cloud_size_factor · сила · 0,5 · downdraft_radius_frac`;
-//!   `cloud_size_factor` читается из погоды при каждом опросе (в GDScript `StormField.setup` берёт
+//!   `cloud_size_factor` читается из погоды при каждом опросе (в эталоне `StormField.setup` берёт
 //!   его один раз при сборке атмосферы; при мягком обновлении погоды ходом дня он не менялся).
 //!
 //! Границы модели: потоки ячеек не складываются выше одной (горизонталь ≤ `outflow_ms`,
@@ -84,7 +84,7 @@ impl Extra for StormExtra {
         it.peek()?;
         let f = field_of(c.terms, self.cfg(&c.terms.configs));
         let s = f.sample(it, c.pos, c.agl, c.t);
-        // `Vector4` GDScript - f32
+        // `Vector4` эталона - f32
         let q = |x: f64| f64::from(x as f32);
         Some(ExtraOut {
             storm: [q(s[0]), q(s[1]), q(s[2])],

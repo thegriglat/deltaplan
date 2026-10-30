@@ -1,17 +1,16 @@
-//! Кеш решённых полей воздуха на диске (RW-6p): перенос `AirFieldCache` (GDScript,
-//! `scripts/atmosphere/air_field_cache.gd`, FL-К1) в каталоге реализации (`set_cache_dir`).
+//! Кеш решённых полей воздуха на диске (RW-6p): перенос `AirFieldCache` (FL-К1) в каталоге реализации (`set_cache_dir`).
 //!
 //! Запись — один файл `<имя>.dpac`: `DPAC1\0\0\0`, длина заголовка (u64 LE), заголовок TI-К3 v3 (json,
 //! `cache: 2`, `key`, `model_hash`), тело `zstd` без потерь (`f32`). `<имя>` — первые 16 hex sha256
 //! канонического json ключа (ключи словарей по алфавиту). Файл появляется целиком (запись во
 //! временный файл с уникальным именем и переименование): читатель видит старую или новую запись,
-//! две записи одного ключа не портят друг друга. Формат файлов GDScript-кеша не читается и не
+//! две записи одного ключа не портят друг друга. Формат файлов прежнего кеша не читается и не
 //! пишется — совместимость не нужна.
 //!
 //! Размер: `max_bytes` на сумму записей; после записи самые давние по времени изменения (`get`
 //! обновляет его) удаляются, пока сумма больше предела. Индекса нет — папка и есть индекс.
 //! Повреждённая или чужая запись (формат, `model_hash`, `key`) — промах, файл удаляется.
-use super::baked::{BakedField, encode_baked, key_diff, parse_baked};
+use super::solved::{SolvedField, encode_solved, key_diff, parse_solved};
 use crate::error::Error;
 use serde_json::{Map, Value, json};
 use sha2::{Digest, Sha256};
@@ -23,7 +22,7 @@ use std::time::{Duration, SystemTime};
 
 /// Номер формата записи (`cache` в заголовке).
 pub const CACHE_FORMAT: i64 = 2;
-/// Предел суммы записей по умолчанию (`atmosphere.json → air_cache.max_mb`), байт.
+/// Предел суммы записей по умолчанию (секция `atmosphere → air_cache.max_mb`), байт.
 pub const DEFAULT_MAX_BYTES: u64 = 200 << 20;
 const MAGIC: &[u8; 8] = b"DPAC1\0\0\0";
 const EXT: &str = "dpac";
@@ -76,7 +75,7 @@ impl FieldCache {
 
     /// Поле по ключу. `model_hash` — текущий хеш модели: запись другой модели не берётся.
     /// Промах — нет записи либо она испорчена/чужая (тогда файл удалён).
-    pub fn get(&self, key: &Value, model_hash: &str) -> Result<BakedField, Miss> {
+    pub fn get(&self, key: &Value, model_hash: &str) -> Result<SolvedField, Miss> {
         if !self.enabled() {
             return Err(Miss::Absent);
         }
@@ -103,7 +102,7 @@ impl FieldCache {
         &self,
         key: &Value,
         model_hash: &str,
-        field: &BakedField,
+        field: &SolvedField,
         extra: &Map<String, Value>,
     ) -> Result<(), Error> {
         if !self.enabled() {
@@ -112,7 +111,7 @@ impl FieldCache {
         let mut hx = extra.clone();
         hx.insert("cache".into(), json!(CACHE_FORMAT));
         hx.insert("model_hash".into(), json!(model_hash));
-        let (head, data) = encode_baked(field, key, &hx)?;
+        let (head, data) = encode_solved(field, key, &hx)?;
         let mut bytes = Vec::with_capacity(16 + head.len() + data.len());
         bytes.extend_from_slice(MAGIC);
         bytes.extend_from_slice(&(head.len() as u64).to_le_bytes());
@@ -174,7 +173,7 @@ impl FieldCache {
     }
 }
 
-fn decode(raw: &[u8], key: &Value, model_hash: &str) -> Result<BakedField, String> {
+fn decode(raw: &[u8], key: &Value, model_hash: &str) -> Result<SolvedField, String> {
     if raw.len() < 16 || &raw[..8] != MAGIC {
         return Err("не запись кеша".into());
     }
@@ -199,7 +198,7 @@ fn decode(raw: &[u8], key: &Value, model_hash: &str) -> Result<BakedField, Strin
     if !d.is_empty() {
         return Err(format!("key не совпал ({d})"));
     }
-    parse_baked(head, &raw[end..]).map_err(|e| format!("не читается: {}", e.msg))
+    parse_solved(head, &raw[end..]).map_err(|e| format!("не читается: {}", e.msg))
 }
 
 static SEQ: AtomicU64 = AtomicU64::new(0);

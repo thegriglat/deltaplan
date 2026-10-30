@@ -1,7 +1,7 @@
 //! Ход дня (`AtmoDay`, RW-12c): погода, солнце и сила источника как чистые функции времени атмосферы `t`.
 //!
 //! Час места `hour(t) = start_hour + (t − t0)·speed/3600`, зажатый в `time.min_hour…max_hour`
-//! (`world.json`; после `max_hour` время стоит). Погода считается раз на шаг `quantum_h` часов
+//! (секция `world`; после `max_hour` время стоит). Погода считается раз на шаг `quantum_h` часов
 //! (кеш по номеру шага, не больше 512 записей) и между шагами интерполируется линейно.
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -27,7 +27,7 @@ type SharedSourceFn = Arc<dyn Fn(f64, f64, f64) -> f64 + Send + Sync>;
 /// Записей в кеше погоды, после которых он очищается (как GD: `size() > 512`).
 const CACHE_MAX: usize = 512;
 
-/// `world.json` → `time.*`, нужное ходу дня. Нет `world` — запасные значения GD
+/// секция `world` → `time.*`, нужное ходу дня. Нет `world` — запасные значения GD
 /// (`AtmoDay._init`, `Config.value`): 6, 20, 2°.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct WorldTime {
@@ -47,7 +47,7 @@ impl Default for WorldTime {
 }
 
 impl WorldTime {
-    /// Из `world.json` целиком (`time.min_hour`, `time.max_hour`, `time.min_light_elevation_deg`).
+    /// Из секция `world` целиком (`time.min_hour`, `time.max_hour`, `time.min_light_elevation_deg`).
     pub fn from_world(world: &Value) -> Self {
         let d = WorldTime::default();
         let g = |k: &str, def: f64| super::tables::num(world, &["time", k], def);
@@ -69,7 +69,7 @@ pub struct SunSpec {
     pub utc_offset_h: f64,
 }
 
-/// `Vector3.normalized()` Godot: f32-арифметика, нулевой вектор остаётся нулевым.
+/// `Vector3.normalized()` эталона: f32-арифметика, нулевой вектор остаётся нулевым.
 pub(crate) fn normalized_f32(v: [f32; 3]) -> [f32; 3] {
     let l2 = v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
     if l2 == 0.0 {

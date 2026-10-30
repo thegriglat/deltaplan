@@ -2,7 +2,7 @@
 //! потоку), накопление расхода D8 вниз по сглаженному рельефу и гидравлический слой в долинах;
 //! вес G — сток против фона. Эталон — `AirPhase.{drainage, prandtl, local_relief}`.
 //!
-//! Выхолаживание — поток тепла игры (`AirCase.heat < 0`). Результат — плоскости `CI_G*` ([`Drainage`])
+//! Выхолаживание — поток тепла эталона (`AirCase.heat < 0`). Результат — плоскости `CI_G*` ([`Drainage`])
 //! и числа ([`GDiag`]); [`apply`] вносит вес G и `Δθ` в [`Prepared`] (классификатор берёт их
 //! оттуда же, откуда брал бы при [`super::prepare::PhaseCase::g`]).
 //!
@@ -147,7 +147,7 @@ fn median(a: &[f64]) -> f64 {
     percentile(a, 50.0)
 }
 
-/// Сток G по столбцам. `heat` — поток тепла игры (`AirCase.heat`, `ny·nx`); пусто — G нет. `None` —
+/// Сток G по столбцам. `heat` — поток тепла эталона (`AirCase.heat`, `ny·nx`); пусто — G нет. `None` —
 /// G не включён (среднее тепло больше порога, нет выхолаживания или N ≤ `n_min`).
 pub fn drainage(p: &Prepared, heat: &[f64]) -> Option<Drainage> {
     if heat.is_empty() {
@@ -307,7 +307,7 @@ pub fn drainage(p: &Prepared, heat: &[f64]) -> Option<Drainage> {
             *yo = if layer { ey8[c] } else { dyn_ };
             *wo = w;
         });
-    // числа стока — последовательно, порядок как в GDScript
+    // числа стока — последовательно, порядок как в эталоне
     let (mut st_umax, mut st_l, mut st_d, mut st_uc) = (vec![], vec![], vec![], vec![]);
     let (mut nlayer, mut wsum, mut wge) = (0usize, 0.0, 0usize);
     for c in 0..n2 {

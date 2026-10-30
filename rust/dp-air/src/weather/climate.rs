@@ -6,7 +6,7 @@ use super::tables::{num, nums};
 use crate::field::weather_core::{WeatherModelCfg, belt_gradient, monthly, season_index};
 
 /// Контекст места для погоды (`ctx` GD): дата, положение, пояс, высоты, м над морем.
-/// NaN в `valley_msl_m`/`start_msl_m`/`utc_offset_h` — «не задано» (как в GD).
+/// NaN в `valley_msl_m`/`start_msl_m`/`utc_offset_h` — «не задано» (как в эталоне).
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct PlaceCtx {
     pub month: i64,
@@ -113,7 +113,7 @@ fn cell_of(cell: &Value, ctx: &PlaceCtx, cfg: &WeatherModelCfg) -> ClimatePlace 
 /// Климат места `ctx` по сырой ячейке `cell` (`ClimateGrid.at` как json: `td_c, td_sd_k, z_cell_m,
 /// t700_c, z700_m, tx_c, dtr_k, wr, trop_m, hcc, src{hh1,hh2,hh5,hh6}`; W5 v8 `loc.climate_cell`):
 /// поправки Td, Tx, амплитуды на высоту долины и рост ветра `gain_per_km` (`ClimateGrid.place`).
-/// `cell` не объект (`null`) — запасные значения `weather_model.json` как `ClimateGrid.at` без сеток.
+/// `cell` не объект (`null`) — запасные значения секция `weather_model` как `ClimateGrid.at` без сеток.
 pub fn climate_place(cell: &Value, ctx: &PlaceCtx, cfg: &WeatherModelCfg) -> ClimatePlace {
     finish_place(cell_of(cell, ctx, cfg), ctx, cfg)
 }

@@ -1,4 +1,4 @@
-//! Ветровая рамка: перенос `WindModel` (`scripts/atmosphere/wind_model.gd`) без шума
+//! Ветровая рамка: перенос `WindModel` без шума
 //! (`gust_unit` — RW-9) и `WeatherView` — снимок выведенной погоды для слагаемых.
 //!
 //! Профиль по высоте — `field::wind_profile` (одна функция с решателем, не дублируется).
@@ -10,7 +10,7 @@ use serde_json::{Map, Value};
 pub const AIR_CASE_Z0: f64 = 0.1;
 
 /// Снимок выведенной погоды: словарь с теми же ключами, что у словаря погоды GD (ключи
-/// `configs/weather/*.json` и подсловарь `_derived`). Типизированные геттеры — с запасным значением.
+/// секции `weather/<пресет>` и подсловарь `_derived`). Типизированные геттеры — с запасным значением.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct WeatherView {
     map: Map<String, Value>,
@@ -57,7 +57,7 @@ impl WeatherView {
     }
 }
 
-/// Параметры рамки: `atmosphere.json` → `wind`, `wind_profile_simple`.
+/// Параметры рамки: секция `atmosphere` → `wind`, `wind_profile_simple`.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct WindCfg {
     /// `reference_height_m`.
@@ -92,12 +92,7 @@ impl Default for WindCfg {
 impl WindCfg {
     /// Из конфигов; нет `atmosphere` или ключа — запасные значения `WindModel`.
     pub fn from_configs(c: &Configs) -> Self {
-        let atm = c
-            .files
-            .iter()
-            .find(|(n, _)| n == "atmosphere" || n == "atmosphere.json")
-            .and_then(|(_, t)| serde_json::from_str::<Value>(t).ok())
-            .unwrap_or(Value::Null);
+        let atm = c.value("atmosphere").unwrap_or(Value::Null);
         let d = WindCfg::default();
         let w = |k: &str, dv: f64| {
             atm.pointer(&format!("/wind/{k}"))
@@ -155,7 +150,7 @@ impl Default for WindModel {
 }
 
 impl WindModel {
-    /// Модель без ветра (`speed_ref = 0`), условия устойчивости — как у `WindModel.gd` (солнце 52°,
+    /// Модель без ветра (`speed_ref = 0`), условия устойчивости — как у эталона (солнце 52°,
     /// облачности нет).
     pub fn new(cfg: WindCfg) -> Self {
         let mut m = WindModel {
@@ -268,7 +263,7 @@ impl WindModel {
         if self.ref_msl.is_nan() {
             return 1.0;
         }
-        // clampf GDScript: без паники при alt_min > alt_max
+        // clampf эталона: без паники при alt_min > alt_max
         let f = 1.0 + self.alt_gain * (msl - self.ref_msl) / 1000.0;
         if f < self.cfg.alt_min {
             self.cfg.alt_min

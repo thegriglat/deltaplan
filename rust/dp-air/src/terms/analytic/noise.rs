@@ -1,16 +1,16 @@
-//! Единичные пульсации `WindModel.gust_unit` (`scripts/atmosphere/wind_model.gd`: `setup` 51–104,
-//! `gust_unit` 186, `_noise3` 197): замороженное поле шума `FastNoiseLite` (OpenSimplex2S, FBM),
+//! Единичные пульсации `WindModel.gust_unit` (`setup`,
+//! `gust_unit` 186, `_noise3` 197): замороженное поле шума `FastNoise` (OpenSimplex2S, FBM),
 //! переносимое ветром (гипотеза Тейлора); два масштаба (мелкие `scale_m`, крупные
 //! `large_scale_m`), СКО ≈ 1 по каждой компоненте. Шум и генератор — `dp_air::compat`
-//! (побитно с Godot).
+//! (побитно с эталоном).
 //!
 //! Эта копия нужна аналитике сама по себе (рывки подветренной зоны входят в среднее, а шум
 //! аналитики — в `gust`), а общей рамки шума в каркасе нет: RW-8 заменит её своей (`WindModel`),
 //! когда та будет влита, — тогда `GustNoise::gust_unit` переадресуется, формулы не меняются.
-use crate::compat::noise::{FastNoise, Fractal};
-use crate::compat::rng::Pcg32;
+use crate::noise::{FastNoise, Fractal};
+use crate::rand::Pcg32;
 
-/// Параметры шума: `turbulence.*` из `atmosphere.json`.
+/// Параметры шума: `turbulence.*` из секция `atmosphere`.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct NoiseCfg {
     pub scale_m: f64,

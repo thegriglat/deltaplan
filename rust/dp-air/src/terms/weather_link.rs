@@ -25,7 +25,7 @@ use crate::weather::{
 use crate::{Conditions, Source};
 
 /// Место для погоды: контекст `derive` (дата, координаты, пояс, долина и средняя высота). Климат
-/// ячейки берётся у [`Weather`] (W5 v10); `Weather` нет — запасные значения `weather_model.json`.
+/// ячейки берётся у [`Weather`] (W5 v10); `Weather` нет — запасные значения секция `weather_model`.
 #[derive(Clone, Debug, PartialEq)]
 pub struct PlaceLink {
     pub ctx: PlaceCtx,
@@ -71,9 +71,9 @@ pub(super) struct WeatherLink {
     place: Option<PlaceLink>,
     /// Погода и климат (`set_weather`); нет — климат по `climate.fallback`.
     weather: Option<Arc<Weather>>,
-    /// `weather_model.json` (с ростом ветра из `atmosphere.json`); нет — вывода по часу нет.
+    /// секция `weather_model` (с ростом ветра из секция `atmosphere`); нет — вывода по часу нет.
     wm: Option<Arc<WeatherModelCfg>>,
-    /// `atmosphere.json`; нет — условия профиля ветра остаются прежними.
+    /// секция `atmosphere`; нет — условия профиля ветра остаются прежними.
     atm: Option<Arc<Value>>,
     world: WorldTime,
     /// Время атмосферы, до которого продвинута погода.

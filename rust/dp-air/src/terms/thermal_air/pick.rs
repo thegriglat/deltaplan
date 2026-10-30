@@ -1,8 +1,8 @@
 //! Точка источника в столбце (`pick_in_column`) и доля суши столбцов (`land_fraction`).
 use super::LAND_N;
-use crate::compat::hash::hash_v3i;
-use crate::compat::rng::Pcg32;
 use crate::field::wind_field::{Field, FieldGrid};
+use crate::hash::hash_v3i;
+use crate::rand::Pcg32;
 use rayon::prelude::*;
 
 /// Земля для выбора точки источника: сила источника в точке (освещённость склона, скалы, опушки;

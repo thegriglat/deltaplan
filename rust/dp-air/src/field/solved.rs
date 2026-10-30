@@ -1,15 +1,13 @@
-//! Поле воздуха в формате TI-К3 v3 (RW-6p): разбор, запись, сравнение `key`. Нужен кешу полей
-//! (`field_cache`) и выдаче поля `field_export*`; запечённых файлов мест больше нет (W5 v9).
+//! Поле воздуха в файловом формате (RW-6p): разбор, запись, сравнение `key`. Нужен кешу полей
+//! (`field_cache`) и выдаче поля `field_export*`.
 //!
-//! Перенос `AirBakedField` (формат, `key_diff`). Формат — `docs/contracts/training-island.md`,
-//! TI-К3: заголовок json + тело (`zstd` от склейки массивов little-endian; 3D-каналы `f16`, по
+//! Формат: заголовок json + тело (`zstd` от склейки массивов little-endian; 3D-каналы `f16`, по
 //! столбцам `f32`; массив — `[смещение, длина_байт, "f16"|"f32"]`).
 //!
-//! `parse_baked(header_json, data)` — как `AirBakedField.load_file` без проверки `key`: уровни
-//! собираются параллельно (`rayon`), каждый канал распаковывается в готовый `Vec<f32>` кусками
-//! `par_chunks_mut`, без промежуточных массивов. `f16 → f32` точен, поэтому поле бит-в-бит как
-//! в игре. Числа в текстах причин печатаются как `str(float)` Godot (`gd_num`: 14 значащих
-//! знаков, хвостовые нули срезаны).
+//! `parse_solved(header_json, data)` — разбор без проверки `key`: уровни собираются параллельно
+//! (`rayon`), каждый канал распаковывается в готовый `Vec<f32>` кусками `par_chunks_mut`, без
+//! промежуточных массивов. `f16 → f32` точен. Числа в текстах причин печатаются с 14 значащими
+//! знаками, хвостовые нули срезаны (`num_text`).
 use super::wind_field::{Field, FieldGrid, FieldMeta, Limits, Z0};
 use crate::error::Error;
 use rayon::prelude::*;
@@ -17,16 +15,18 @@ use serde::Deserialize;
 use serde_json::{Map, Value, json};
 use std::collections::BTreeMap;
 
-pub const FORMAT: &str = "dp-air-baked";
+pub const FORMAT: &str = "dp-air-field";
+/// Прежнее имя формата в файлах уже снятых полей (данные тестов); читается наравне с `FORMAT`.
+pub const LEGACY_FORMAT: &str = "dp-air-baked"; // purity: allow имя формата в старых файлах
 pub const VERSION: i64 = 1;
 /// Допуск сравнения чисел `key` (JSON хранит не все разряды double).
 pub const KEY_TOL: f64 = 1.0e-6;
 /// Куски распаковки `par_chunks_mut`, элементов.
 const CHUNK: usize = 1 << 14;
 
-/// Запечённое поле старта: заголовок и уровни (от мелкого к грубому).
+/// Решённое поле старта: заголовок и уровни (от мелкого к грубому).
 #[derive(Clone, Debug)]
-pub struct BakedField {
+pub struct SolvedField {
     pub location: String,
     pub site: String,
     pub model_hash: String,
@@ -68,7 +68,7 @@ struct LevelHdr {
 }
 
 fn bad(msg: impl Into<String>) -> Error {
-    Error::bad_input(format!("baked: {}", msg.into()))
+    Error::bad_input(format!("field: {}", msg.into()))
 }
 
 fn uint(x: f64, what: &str) -> Result<usize, Error> {
@@ -80,10 +80,10 @@ fn uint(x: f64, what: &str) -> Result<usize, Error> {
 }
 
 /// Заголовок и тело (`data` — `.bin` целиком, zstd) → поле. Ошибка — BAD_INPUT с причиной.
-pub fn parse_baked(header_json: &str, data: &[u8]) -> Result<BakedField, Error> {
+pub fn parse_solved(header_json: &str, data: &[u8]) -> Result<SolvedField, Error> {
     let h: Hdr = serde_json::from_str(header_json)
         .map_err(|e| bad(format!("заголовок не читается: {e}")))?;
-    if h.format != FORMAT || h.version != VERSION as f64 {
+    if (h.format != FORMAT && h.format != LEGACY_FORMAT) || h.version != VERSION as f64 {
         return Err(bad(format!(
             "чужой формат или версия ({}, {})",
             h.format, h.version
@@ -113,7 +113,7 @@ pub fn parse_baked(header_json: &str, data: &[u8]) -> Result<BakedField, Error> 
         .get("inflow_k")
         .and_then(Value::as_f64)
         .unwrap_or(1.0);
-    Ok(BakedField {
+    Ok(SolvedField {
         location: h.location,
         site: h.site,
         model_hash: h.model_hash,
@@ -242,9 +242,9 @@ fn read_array(body: &[u8], ent: &(f64, f64, String), len: usize) -> Result<Vec<f
 // ---------------------------------------------------------------- запись (кеш полей)
 
 /// Поле → `(header_json, data)` без потерь: каналы `f32`, `zstd` уровня 3. `key` и `extra`
-/// (поля верхнего уровня заголовка: `cache`, `status`, …) — в заголовок. Читается `parse_baked`.
-pub fn encode_baked(
-    b: &BakedField,
+/// (поля верхнего уровня заголовка: `cache`, `status`, …) — в заголовок. Читается `parse_solved`.
+pub fn encode_solved(
+    b: &SolvedField,
     key: &Value,
     extra: &Map<String, Value>,
 ) -> Result<(String, Vec<u8>), Error> {
@@ -322,9 +322,9 @@ pub fn encode_baked(
 
 // ---------------------------------------------------------------- key и условия
 
-/// Число как `str(float)` Godot: `14 − ⌊lg|x|⌋` знаков после точки при |x| > 10 (иначе 14), хвостовые
+/// Число: `14 − ⌊lg|x|⌋` знаков после точки при |x| > 10 (иначе 14), хвостовые
 /// нули срезаны, но один после точки остаётся (`20.0`, `-6749.65`).
-pub fn gd_num(x: f64) -> String {
+pub fn num_text(x: f64) -> String {
     if !x.is_finite() {
         return if x.is_nan() {
             "nan".into()
@@ -353,7 +353,7 @@ pub fn gd_num(x: f64) -> String {
     s
 }
 
-/// Текст числа/значения в причине отказа (`str()` GDScript).
+/// Текст числа/значения в причине отказа .
 fn show(v: &Value) -> String {
     match v {
         Value::String(s) => s.clone(),
@@ -366,7 +366,7 @@ fn show(v: &Value) -> String {
 }
 
 /// Первое расхождение `a` (файл) и `b` (ожидаемое) — `""`, если равны: числа с допуском
-/// `KEY_TOL`, словари по ключам `a`, затем `b`; `AirBakedField.key_diff`.
+/// `KEY_TOL`, словари по ключам `a`, затем `b`; `AirSolvedField.key_diff`.
 pub fn key_diff(a: &Value, b: &Value) -> String {
     key_diff_at(a, b, "key")
 }
@@ -383,7 +383,7 @@ fn key_diff_at(a: &Value, b: &Value, path: &str) -> String {
             if (x - y).abs() <= KEY_TOL {
                 String::new()
             } else {
-                format!("{path}: {} ≠ {}", gd_num(x), gd_num(y))
+                format!("{path}: {} ≠ {}", num_text(x), num_text(y))
             }
         }
         (Value::Object(x), Value::Object(y)) => {

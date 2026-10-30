@@ -1,5 +1,5 @@
-//! Конфиг термиков: `atmosphere.json` → `thermal`, `clouds.linger_s`, `cirrus.sun_block`,
-//! `ground`, `turbulence.edge_*`. Запасные значения — как в `configs/atmosphere.json`.
+//! Конфиг термиков: секция `atmosphere` → `thermal`, `clouds.linger_s`, `cirrus.sun_block`,
+//! `ground`, `turbulence.edge_*`. Запасные значения — как в секция `atmosphere`.
 use crate::Configs;
 use crate::terms::named_json;
 use serde_json::Value;

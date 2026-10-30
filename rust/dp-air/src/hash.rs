@@ -1,6 +1,6 @@
-//! `hash(Vector2i)` / `hash(Vector3i)` Godot: murmur3 по компонентам, затем `fmix32`.
+//! Хеш целочисленных векторов 2D/3D: murmur3 по компонентам, затем `fmix32`.
 
-/// `HASH_MURMUR3_SEED` Godot.
+/// Начальное значение murmur3 (константа формата, значения хешей зафиксированы эталоном).
 const SEED: u32 = 0x7F07C65;
 
 #[inline]

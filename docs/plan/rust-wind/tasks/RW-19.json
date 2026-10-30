@@ -1,0 +1,95 @@
+{
+  "id": "RW-19",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "dp-air: multiversion и итераторы в горячих циклах",
+  "goal": "Функции dp-air с горячими циклами/пакетами (sample_many, растры, слагаемые, поле, облака) — под multiversion(targets(\"x86_64+avx2+fma\")) как в picard_rs, циклы — на итераторах/срезах без проверок границ; без unsafe; замер до/после в документе; поведение в пределах допусков W8.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "W4",
+      "version": "10",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W9",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-19",
+  "branch": "rust-wind/RW-19",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/",
+    "rust/dp-air/Cargo.toml",
+    "rust/Cargo.lock",
+    "rust/dp-air/benches/",
+    "rust/dp-air/examples/",
+    "rust/dp-air/tests/",
+    "rust/dp-gd/src/bridge.rs",
+    "docs/research/rust-wind-stage3/rw19-perf.md"
+  ],
+  "dont_touch": [
+    "rust/dp-air/tests/data/",
+    "rust/picard_rs/",
+    "rust/Cargo.toml",
+    "scripts/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "mv_count",
+      "cmd": "grep -rho 'multiversion(targets' rust/dp-air/src | wc -l",
+      "expect": "num:^(\\d+) >=5"
+    },
+    {
+      "name": "no_unsafe",
+      "cmd": "grep -rn 'unsafe' rust/dp-air/src | grep -v 'forbid(unsafe_code)' | wc -l",
+      "expect": "num:^(\\d+) <=0"
+    },
+    {
+      "name": "purity",
+      "cmd": "bash tools/dp_air_purity.sh | tail -1",
+      "expect": "num:нарушений: (\\d+) <=0"
+    },
+    {
+      "name": "step_cost_3041",
+      "cmd": "cargo run --release --manifest-path rust/Cargo.toml -p dp-air --example step_cost",
+      "expect": "num:ms_per_game_s_3041=([0-9.]+) <=45"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "report_doc",
+      "cmd": "test -s docs/research/rust-wind-stage3/rw19-perf.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs_check",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-30T05:18:51"
+}

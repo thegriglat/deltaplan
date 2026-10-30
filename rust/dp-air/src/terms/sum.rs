@@ -1,4 +1,4 @@
-//! Сумма ветра: порядок `Atmosphere.air_velocity_at` (`atmosphere.gd` 921–988) и
+//! Сумма ветра: порядок `Atmosphere.air_velocity_at` и
 //! `_air_velocity_field` (1071–1213), слагаемые — из слотов `terms::slots`.
 //!
 //! Порядок: поле → аналитика (среднее) → поле (поправка) → термик → `_extra_flow` → σ → шум.

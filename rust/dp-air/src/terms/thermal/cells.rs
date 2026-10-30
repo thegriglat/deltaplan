@@ -1,7 +1,7 @@
-//! Жизнь термиков по клеткам (`thermal_field.gd`, аналитический путь): мир разбит на клетки
+//! Жизнь термиков по клеткам: мир разбит на клетки
 //! `thermal_spacing_m`, повёрнутые по ветру; у клетки период и фаза, в цикле термик рождается или
 //! нет. Термик цикла — чистая функция (клетка, цикл): сид `_mix(ia, ic, cy)`, погода, солнце и
-//! кромка берутся на момент рождения. Порядок `randf` в `spawn` значим и повторяет GDScript.
+//! кромка берутся на момент рождения. Порядок `randf` в `spawn` значим и повторяет эталон.
 //!
 //! Облачные зацепки (`shade_at`) — через [`CloudHooks`](super::CloudHooks), нулевые до RW-11;
 //! источники из поля (`_spawn_air`) — [`super::air`] (RW-10e): их «клетки» `ia ≥ AIR_IA`.
@@ -9,7 +9,7 @@ use super::air::AirSrc;
 use super::cfg::ThermalCfg;
 use super::life::{AtmoThermal, cb_thermal_chance, pair};
 use super::{CloudHooks, GroundSource};
-use crate::compat::rng::Pcg32;
+use crate::rand::Pcg32;
 use crate::terms::{Terms, WeatherView, WindModel};
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
@@ -24,7 +24,7 @@ pub struct Setup {
     pub w: WeatherView,
     pub wind: WindModel,
     pub seed: i64,
-    /// Ось клеток `a` (по ветру) и `c` (поперёк), `Vector2` GDScript.
+    /// Ось клеток `a` (по ветру) и `c` (поперёк), `Vector2` эталона.
     pub ax: [f32; 2],
     pub cx: [f32; 2],
     /// Сила улиц 0..1 и расстояние между ними, м.
@@ -196,7 +196,7 @@ impl Setup {
         (lo, hi)
     }
 
-    /// `_mix(a, b, c)`: сид RNG и id цикла (целые GDScript — `i64` с переносом).
+    /// `_mix(a, b, c)`: сид RNG и id цикла (целые эталона — `i64` с переносом).
     pub fn mix(&self, a: i64, b: i64, c: i64) -> i64 {
         let mut h = self.seed.wrapping_mul(73_856_093);
         h = (h ^ a.wrapping_mul(19_349_663)) & 0x7FFF_FFFF;

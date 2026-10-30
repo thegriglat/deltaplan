@@ -1,4 +1,4 @@
-//! Вход области Пикара из растров места (RW-6b); эталон — `air_place.gd:domain_case` (без нагрева).
+//! Вход области Пикара из растров места (RW-6b) (без нагрева).
 //!
 //! Что строится: сетка и `nz`, `gam` (dθ̄/dz в центрах `nz + 2` уровней), `z_i_col`
 //! (`AirZiTerrain`) поверх того, что даёт [`weather_core`]: рельеф клеток `hc` (`block_mean`),
@@ -10,7 +10,7 @@
 //! [`build_domain_input`]`(place, sh, zi, dom, day) -> `[`DomainInput`]: `dom` — [`Domain`]
 //! (`Domain::standard(dx)` — 38,4 км), `day` — [`Day`] из `weather_core::day` (погода — его
 //! параметр, не часть этого модуля), `sh` — `WeatherConfigs.sh`, `zi` — [`ZiCfg`] из конфигов.
-//! Оси — как в GDScript: массивы по клеткам — `[j * nx + i]`, `j` растёт на СЕВЕР (`y = -z`
+//! Оси — как в эталоне: массивы по клеткам — `[j * nx + i]`, `j` растёт на СЕВЕР (`y = -z`
 //! мира W1), узел сетки `y0 + dx * j`; в W1 это не выходит. Редукции — f64.
 //!
 //! Границы модели: область целиком в растре места (иначе `BAD_INPUT`); растр места — 25 м
@@ -34,13 +34,9 @@ pub struct ZiCfg {
 }
 
 impl ZiCfg {
-    /// Из конфига `atmosphere` (имя с `.json` или без); нет секции — значения по умолчанию GDScript.
+    /// Из конфига `atmosphere`; нет секции — значения по умолчанию эталона.
     pub fn from_configs(cfg: &Configs) -> Result<Self, Error> {
-        let text = cfg
-            .files
-            .iter()
-            .find(|(n, _)| n.strip_suffix(".json").unwrap_or(n) == "atmosphere")
-            .map(|(_, t)| t.as_str());
+        let text = cfg.get("atmosphere");
         let v: serde_json::Value = match text {
             Some(t) => serde_json::from_str(t)
                 .map_err(|e| Error::bad_input(format!("config 'atmosphere': {e}")))?,

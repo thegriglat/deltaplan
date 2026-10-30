@@ -1257,7 +1257,7 @@ func test_start_at_vs_run_from_zero() -> void:
 	b.free()
 
 
-## W3 v9 / W12 v2: класс DpAir несёт attach_weather и place_context, класс DpWeather — методы п. 2.
+## W3 v9 / W12 v3: класс DpAir несёт attach_weather и place_context, класс DpWeather — методы п. 2.
 func test_dp_weather_and_dp_air_weather_methods() -> void:
 	check(ClassDB.class_exists("DpWeather"), "класс DpWeather есть (W12)")
 	check(ClassDB.class_exists("DpAir"), "класс DpAir есть (W3)")
