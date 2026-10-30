@@ -1146,7 +1146,9 @@ impl Formula {
     }
 
     /// Ход фона до момента `t`: подача готового, запуск пересчёта, продвижение подмены.
-    fn pump(&mut self, t: f64) {
+    /// `true` - принята загрузка поля (`Kind::Load`): первые термики по полю строятся сразу.
+    fn pump(&mut self, t: f64) -> bool {
+        let mut loaded = false;
         let mut cursor = self.time_s;
         for _ in 0..8 {
             if self.job.is_none() && !self.try_launch(t, cursor) {
@@ -1162,9 +1164,11 @@ impl Formula {
             }
             let Some(job) = self.job.take() else { break };
             let Some(res) = job.slot.take() else { break };
+            loaded |= job.kind == Kind::Load;
             self.adopt(job, res, t, &mut cursor);
         }
         self.sh.advance_fs(t - cursor);
+        loaded
     }
 
     /// Принимает завершённую задачу без продвижения времени (перед командами).
@@ -1340,6 +1344,10 @@ impl AirModel for Formula {
         // ход дня сменился (новый или другие часы): сила источников термиков по новому часу
         if self.place.is_some() && self.terms.day_sig() != self.wired_sig {
             self.wire_thermal();
+            // новая земля - пустой слот: без немедленной сборки до фоновой термиков нет (RW-25)
+            if self.fed_ver != u64::MAX {
+                self.terms.start_at(self.time_s);
+            }
         }
         self.publish_terms();
         Ok(())
@@ -1387,10 +1395,17 @@ impl AirModel for Formula {
         if t == self.time_s {
             return Ok(());
         }
-        self.pump(t);
+        let loaded = self.pump(t);
         self.set_time(t);
         let fed = self.sync_field();
-        if self.terms.advance(t) || fed {
+        // поле только что загружено: первые термики по его источникам - синхронно (как `start_at`), иначе
+        // игра в первые секунды после готовности видит воздух без термиков (RW-25)
+        let changed = if loaded && fed {
+            self.terms.start_at(t)
+        } else {
+            self.terms.advance(t)
+        };
+        if changed || fed {
             self.publish_terms();
         }
         Ok(())
