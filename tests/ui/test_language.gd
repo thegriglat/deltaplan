@@ -73,7 +73,7 @@ func test_code_keys_exist_and_are_not_russian() -> void:
 		check(rows.has(key), "месяц: нет ключа %s" % key)
 	for key: String in FlightSetupScreen.COMPASS:
 		check(rows.has(key), "румб: нет ключа %s" % key)
-	for sky: String in WeatherModel.config().sky.options:
+	for sky: String in Weather.config().sky.options:
 		check(rows.has("setup_sky_" + sky), "облачность: нет ключа setup_sky_%s" % sky)
 
 

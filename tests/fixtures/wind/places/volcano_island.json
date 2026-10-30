@@ -1,0 +1,114 @@
+{
+	"bin": {
+		"bytes": 12816005,
+		"h_max_err_m": 0.0,
+		"layout": "heights int16 LE, water u8, cls u8, moist u8 (x 1/255); подряд, width*height узлов, строка j к +Z (W1)"
+	},
+	"grid": {
+		"height": 1601,
+		"origin_x": -20000.0,
+		"origin_z": -20000.0,
+		"spacing": 25.0,
+		"width": 1601
+	},
+	"h_offset": 253.59375,
+	"h_scale": 0.03125,
+	"loc": {
+		"center_lat": -27.1000003814697,
+		"center_lon": -109.349998474121,
+		"climate": {
+			"dtr_k": 0.944699996622671,
+			"has_hh1": true,
+			"has_hh5": true,
+			"tx_c": 23.5794993470721,
+			"z_cell_m": 1.18999835014238
+		},
+		"climate_cell": {
+			"dtr_k": 0.9446999966226715,
+			"hcc": 0.28449001410382785,
+			"src": {
+				"hh1": "data",
+				"hh2": "data",
+				"hh5": "data",
+				"hh6": "data"
+			},
+			"t700_c": 6.290699504660822,
+			"td_c": 18.79069935359286,
+			"td_sd_k": 1.4321000460006192,
+			"trop_m": 14183.299955558768,
+			"tx_c": 23.5794993470721,
+			"wr": 1.0485499583478999,
+			"z700_m": 3161.009018351331,
+			"z_cell_m": 1.189998350142384
+		},
+		"climate_cell_lag": {
+			"dtr_k": 0.9682160858132892,
+			"hcc": 0.2905577607205677,
+			"src": {
+				"hh1": "data",
+				"hh2": "data",
+				"hh5": "data",
+				"hh6": "data"
+			},
+			"t700_c": 5.5252155363620545,
+			"td_c": 17.324183185168177,
+			"td_sd_k": 1.618583864439594,
+			"trop_m": 13879.719225858864,
+			"tx_c": 22.361208978627864,
+			"wr": 1.0919531996120118,
+			"z700_m": 3154.935469377206,
+			"z_cell_m": 1.189998350142384
+		},
+		"climate_lag": {
+			"dtr_k": 0.968216085813289,
+			"has_hh1": true,
+			"has_hh5": true,
+			"tx_c": 22.3612089786279,
+			"z_cell_m": 1.18999835014238
+		},
+		"day": 15,
+		"id": "volcano_island",
+		"month": 1,
+		"utc_offset_h": -6.0
+	},
+	"name": "volcano_island",
+	"note": "volcano_island (data/locations/volcano_island): слой detail 25 м, AirRuntime.place_of; water — узел по ближайшему пикселю маски (> 127), cls/moist — снимок поверхности AirPlace.Surface; для T1 «сильный ветер» RW-6q",
+	"start_sites": [
+		{
+			"h_msl": 140.907348632812,
+			"id": "east_cliffs",
+			"x": 11569.8486328125,
+			"z": 1019.96118164062
+		},
+		{
+			"h_msl": 225.692016601562,
+			"id": "crater_ridge",
+			"x": -6750.1533203125,
+			"z": 9949.9599609375
+		},
+		{
+			"h_msl": 504.352264404297,
+			"id": "thermal_slope",
+			"x": -3000.14868164062,
+			"z": -1450.03735351562
+		},
+		{
+			"h_msl": 219.262008666992,
+			"id": "plateau_landing",
+			"x": 10749.8486328125,
+			"z": 1144.95556640625
+		}
+	],
+	"surface_classes": {
+		"bare": 5,
+		"built": 7,
+		"crop": 3,
+		"forest": 1,
+		"grass": 2,
+		"none": 0,
+		"shrub": 4,
+		"snow": 8,
+		"water": 6
+	},
+	"version": 1
+}

@@ -10,16 +10,30 @@ const WING_VEL := Vector3(7.0, -1.1, -9.5)  # ~11,8 м/с по земле, ку�
 static var _place_cache: EggPlace
 
 
-## Подмена воздуха: орёл читает только field.thermals и time_s.
-class FakeField:
-	extends RefCounted
-	var thermals := {}
-
-
+## Подмена воздуха: орёл читает только ядра подъёма фасада (cores, W6) и средний ветер.
 class FakeAir:
 	extends Node3D
-	var field := FakeField.new()
-	var time_s := 0.0
+	## id → ядро {x, z, y_src, top, w, radius, lean: Vector2, flags}
+	var cores_by_id := {}
+
+	func cores(_center: Vector3, _radius: float) -> PackedFloat32Array:
+		var out := PackedFloat32Array()
+		var ids: Array = cores_by_id.keys()
+		ids.sort()
+		for id: int in ids:
+			var c: Dictionary = cores_by_id[id]
+			out.append_array(
+				PackedFloat32Array(
+					[
+						id, c.flags, c.x, c.z, c.y_src, c.top, c.w, c.radius, c.lean.x, c.lean.y,
+						0.0, NAN, 1.5, 0.0, 0.0,
+					]
+				)
+			)
+		return out
+
+	func mean_wind_at(_pos: Vector3) -> Vector3:
+		return Vector3.ZERO
 
 
 class Objs:
@@ -31,15 +45,18 @@ func _cfg() -> Dictionary:
 	return Config.get_config("easter_eggs").eggs.eagle
 
 
-func _thermal(at: Vector3, strength := 2.5) -> AtmoThermal:
-	var th := AtmoThermal.new()
-	th.is_static = true
-	th.src = at
-	th.top = at.y + 2500.0
-	th.strength = strength
-	th.radius = 80.0
-	th.lean = Vector2(0.05, -0.02)
-	return th
+## Ядро подъёма (как cores): статическое, ось у земли в точке at, наклон lean.
+func _thermal(at: Vector3, strength := 2.5) -> Dictionary:
+	return {
+		"flags": 1, "x": at.x, "z": at.z, "y_src": at.y, "top": at.y + 2500.0, "w": strength,
+		"radius": 80.0, "lean": Vector2(0.05, -0.02),
+	}
+
+
+## Ось ядра на высоте y (как у орла).
+func _axis_at(th: Dictionary, y: float) -> Vector2:
+	var dh := maxf(y - float(th.y_src), 0.0)
+	return Vector2(th.x + th.lean.x * dh, th.z + th.lean.y * dh)
 
 
 func _ctx(air: Node3D = null) -> EggContext:
@@ -134,15 +151,15 @@ func test_goes_to_nearest_thermal_and_climbs() -> void:
 	var f := Vector3(WING_VEL.x, 0.0, WING_VEL.z).normalized()
 	var near_p := WING_POS + f * 600.0 + f.cross(Vector3.UP) * 150.0
 	var far_p := WING_POS + f * 1300.0 - f.cross(Vector3.UP) * 400.0
-	air.field.thermals[7] = _thermal(Vector3(near_p.x, 1000.0, near_p.z))
-	air.field.thermals[9] = _thermal(Vector3(far_p.x, 1000.0, far_p.z))
-	air.field.thermals[11] = _thermal(Vector3(near_p.x + 50.0, 1000.0, near_p.z), 0.5)  # слабый
+	air.cores_by_id[7] = _thermal(Vector3(near_p.x, 1000.0, near_p.z))
+	air.cores_by_id[9] = _thermal(Vector3(far_p.x, 1000.0, far_p.z))
+	air.cores_by_id[11] = _thermal(Vector3(near_p.x + 50.0, 1000.0, near_p.z), 0.5)  # слабый
 	var ctx := _ctx(air)
 	var times: PackedFloat32Array = []
 	for sd in 8:
 		var e := _spawn(ctx, sd)
-		check(e.thermal == air.field.thermals[7], "seed %d: выбран ближайший сильный термик" % sd)
-		if e.thermal == null:
+		check(int(e.thermal.get("id", -1)) == 7, "seed %d: выбран ближайший сильный термик" % sd)
+		if e.thermal.is_empty():
 			e.free()
 			continue
 		var t_in := e.pass_s + e.arc_s
@@ -168,12 +185,12 @@ func test_goes_to_nearest_thermal_and_climbs() -> void:
 		check(max_jump < 40.0, "seed %d: без скачков (%.1f м/с)" % [sd, max_jump])
 		check(max_turn < 1.2, "seed %d: без изломов курса (%.2f рад/с)" % [sd, max_turn])
 		# кружит у оси и набирает высоту
-		var th: AtmoThermal = air.field.thermals[7]
+		var th: Dictionary = air.cores_by_id[7]
 		var y0 := e.pos_at(t_in + 1.0).y
 		var worst := 0.0
 		for k in 60:
 			var p := e.pos_at(t_in + 1.0 + k)
-			var ax := th.axis_at(p.y)
+			var ax := _axis_at(th, p.y)
 			worst = maxf(worst, absf(Vector2(p.x - ax.x, p.z - ax.y).length() - 25.0))
 		var y1 := e.pos_at(t_in + 61.0).y
 		check(worst < 2.0, "seed %d: на круге у оси термика (±%.1f м)" % [sd, worst])
@@ -187,7 +204,7 @@ func test_goes_to_nearest_thermal_and_climbs() -> void:
 func test_no_thermal_leaves_far() -> void:
 	var ctx := _ctx()
 	var e := _spawn(ctx, 3)
-	check(e.thermal == null, "термика нет")
+	check(e.thermal.is_empty(), "термика нет")
 	var gone_t := -1.0
 	var k := 0
 	while k < int(e.lifetime_s * 2.0):
@@ -235,8 +252,8 @@ func test_conditions() -> void:
 	if rocky == Vector3.INF or plain == Vector3.INF:
 		return
 	var air := FakeAir.new()
-	air.field.thermals[1] = _thermal(Vector3(rocky.x + 300.0, rocky.y - 800.0, rocky.z))
-	air.field.thermals[2] = _thermal(Vector3(plain.x + 300.0, plain.y - 800.0, plain.z))
+	air.cores_by_id[1] = _thermal(Vector3(rocky.x + 300.0, rocky.y - 800.0, rocky.z))
+	air.cores_by_id[2] = _thermal(Vector3(plain.x + 300.0, plain.y - 800.0, plain.z))
 	var c := EggContext.new()
 	c.place = pl
 	c.height_at = pl.height_at
@@ -256,7 +273,7 @@ func test_conditions() -> void:
 	c.pilot_pos = Vector3(rocky.x, pl.height_at(rocky.x, rocky.z) + 10.0, rocky.z)
 	check(not EggEagle.can_appear(c, cfg), "у самой земли — нет")
 	c.pilot_pos = rocky
-	air.field.thermals.clear()
+	air.cores_by_id.clear()
 	check(not EggEagle.can_appear(c, cfg), "термика рядом нет — нет")
 	c.air = null
 	check(not EggEagle.can_appear(c, cfg), "воздуха нет — нет")

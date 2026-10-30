@@ -10,7 +10,7 @@ var wing: String = "wings/sport"
 ## Масса пилота, кг; 0 — из configs/pilot.json (ограничивается диапазоном крыла).
 var pilot_mass_kg: float = 0.0
 ## Прогноз (FR-16): температура днём (максимум у земли в долине), °C. Остальная погода выводится
-## из прогноза, даты и места (WeatherModel, configs/weather_model.json).
+## из прогноза, даты и места (Weather, configs/weather_model.json).
 var temperature_c: float = 26.0
 ## Ветер по прогнозу у земли, км/ч (в меню — м/с).
 var wind_speed_kmh: float = 10.8
@@ -145,7 +145,7 @@ static func defaults() -> FlightSettings:
 	s.temperature_c = (
 		float(dt)
 		if dt != null
-		else roundf(WeatherModel.typical_max_c(s.month, s.day, {}, {"lat": ll.x, "lon": ll.y}))
+		else roundf(Weather.typical_max_c(s.month, s.day, ll.x, ll.y))
 	)
 	s.wind_speed_kmh = float(g.get("default_wind_speed_kmh", s.wind_speed_kmh))
 	s.wind_into_launch = bool(g.get("default_wind_into_launch", s.wind_into_launch))
@@ -154,7 +154,7 @@ static func defaults() -> FlightSettings:
 	return s
 
 
-## Прогноз для WeatherModel.derive: {temperature_c, wind_speed_kmh, wind_from_deg}.
+## Прогноз для Weather.derive: {temperature_c, wind_speed_kmh, wind_from_deg}.
 ## При «встречный» направление подставляет Game после выбора старта.
 func forecast() -> Dictionary:
 	return {
@@ -167,7 +167,7 @@ func forecast() -> Dictionary:
 
 ## Зажать прогноз в диапазоны меню (configs/weather_model.json → ui).
 func clamp_forecast() -> void:
-	var ui: Dictionary = WeatherModel.config().get("ui", {})
+	var ui: Dictionary = Weather.config().get("ui", {})
 	var t_range: Array = ui.get("temperature_c", [-10, 40, 1])
 	var wr := WingCatalog.wind_menu_range()
 	temperature_c = _finite_or(temperature_c, 20.0)
@@ -175,7 +175,7 @@ func clamp_forecast() -> void:
 	wind_speed_kmh = _finite_or(wind_speed_kmh, 11.0)
 	wind_speed_kmh = clampf(wind_speed_kmh, wr.x * 3.6, wr.y * 3.6)
 	wind_from_deg = fposmod(_finite_or(wind_from_deg, 270.0), 360.0)
-	var skies: Array = WeatherModel.config().get("sky", {}).get("options", ["clear"])
+	var skies: Array = Weather.config().get("sky", {}).get("options", ["clear"])
 	if not skies.has(sky):
 		sky = String(skies[0])
 

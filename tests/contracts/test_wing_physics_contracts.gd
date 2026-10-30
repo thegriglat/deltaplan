@@ -2,6 +2,7 @@ extends TestCase
 ## Контрактные тесты модуля wing-physics-check (docs/contracts/wing-physics-check.md): форма
 ## данных на стыках К1–К6. Без GPU. Правка контракта (версия +1) — вместе с правкой этого файла.
 
+const Rig := preload("res://tests/atmosphere/air_rig.gd")
 const CONTRACTS := {"К1": 2, "К2": 1, "К3": 1, "К4": 2, "К5": 1, "К6": 1}
 const DOC := "res://docs/contracts/wing-physics-check.md"
 const OUT := "res://tools/research/wing_physics_check/out/"
@@ -79,13 +80,11 @@ func test_k1_wing_config_shape() -> void:
 
 ## К2: воздух «с севера» дует на +Z; воздушная скорость = velocity − air.
 func test_k2_frame_and_relative_air() -> void:
-	var a := _atmo()
-	a.set_ground(func(_x: float, _z: float) -> float: return 0.0, func(_x, _z): return 1.0)
-	a.set_wind(21.6, 0.0)
-	a.step(0.01)
-	var v := a.air_velocity_at(Vector3(0, 10.0, 0))
+	var a := _atmo(0.0)
+	var v := a.mean_wind_at(Vector3(0, 10.0, 0))
 	approx(v.x, 0.0, 1.0e-3, "ветер с севера: x = 0")
 	check(v.z > 0.0, "ветер с севера дует на +Z: %.3f" % v.z)
+	a.free()
 	var m := FlightModel.new()
 	var pilot: Dictionary = Config.get_config("pilot").duplicate(true)
 	m.setup(Config.get_config("wings/sport"), pilot, {"air_density": {"altitude_dependent": false}})
@@ -98,14 +97,11 @@ func test_k2_frame_and_relative_air() -> void:
 
 ## К3: в аналитике скорость меню — U на reference_height_m над ровной землёй (без опорной высоты).
 func test_k3_menu_wind_is_u10() -> void:
-	var a := _atmo()
-	a.set_ground(func(_x: float, _z: float) -> float: return 0.0, func(_x, _z): return 1.0)
-	a.set_wind(21.6, 270.0)
-	a.step(0.01)
+	var a := _atmo(270.0)
 	var h := float(Config.value("atmosphere", "wind.reference_height_m", 10.0))
-	var v := a.air_velocity_at(Vector3(0, h, 0))
+	var v := a.mean_wind_at(Vector3(0, h, 0))
 	approx(Vector2(v.x, v.z).length(), 6.0, 0.05, "U(10 м) = ветер меню")
-	approx(a.wind.speed_at(h), 6.0, 1.0e-3, "WindModel.speed_at(10 м)")
+	a.free()
 
 
 ## К4–К6: заголовки csv (проверяются, когда файл уже есть — до WPC-1..3 его нет).
@@ -119,17 +115,16 @@ func test_k4_k6_csv_headers() -> void:
 		check(f.get_line().strip_edges() == pair[1], "заголовок " + pair[0])
 
 
-func _atmo() -> Atmosphere:
-	var a := Atmosphere.new()
-	var w: Dictionary = Config._deep_merge(
-		Config.get_config("weather/medium"), {"thermal_mode": "static"}
+## Воздух через фасад W2 v5: ветер меню 21,6 км/ч (6 м/с) с from_deg, ровная земля, условия-эталон
+## (пресет, без прогноза — поля нет), без термиков и болтанки (mean_wind_at).
+func _atmo(from_deg: float) -> Atmosphere:
+	return Rig.make(
+		{
+			"over": {"wind_speed_kmh": 21.6, "wind_from_deg": from_deg},
+			"mode": 1,
+			"advance": 0.01,
+		}
 	)
-	var cfg: Dictionary = Config._deep_merge(
-		Config.get_config("atmosphere"), {"air_model": {"enabled": "off"}}
-	)
-	a.configure(cfg, w)
-	a.turbulence_enabled = false
-	return a
 
 
 ## Версия раздела «## <k>. … (vN» документа контрактов; −1 — раздела нет.

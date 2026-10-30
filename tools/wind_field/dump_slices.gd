@@ -60,7 +60,7 @@ func _ready() -> void:
 	)
 	var loc := String(_args.get("location", ""))
 	if loc != "":
-		thermals = _collect_thermals(loc, point, u_ref, wdir, hour)
+		thermals = await _collect_thermals(loc, point, u_ref, wdir, hour)
 
 	var paths: Array[String] = []
 	paths.append(_horizontal_slice(field, 20.0, u_ref, out_dir, "%s_gorizont_20m" % name))
@@ -107,23 +107,38 @@ func _collect_thermals(
 ) -> Array:
 	var terrain := Terrain.new()
 	terrain.location_id = ""
+	add_child(terrain)
 	if not terrain.load_location(loc):
 		push_warning("dump_slices: не загрузилась локация %s — термики не показаны" % loc)
-		terrain.free()
+		terrain.queue_free()
 		return []
 	var weather: Dictionary = Config.get_config("weather/medium").duplicate(true)
 	weather.wind_speed_kmh = wind_ms * 3.6
 	weather.wind_from_deg = wdir
-	var atmo_cfg: Dictionary = Config.get_config("atmosphere").duplicate(true)
 	var atmo := Atmosphere.new()
 	atmo.visuals_enabled = false
-	atmo.configure(atmo_cfg, weather)
-	atmo.set_ground(terrain.height_at, terrain.thermal_source_strength_at, terrain.surface_at)
-	atmo.time_s = hour * 3600.0
-	atmo.set_focus(point)
-	atmo.step(0.0)
+	add_child(atmo)
+	atmo.configure(-1)
+	var cfg: Dictionary = Config.get_config("locations/" + loc)
+	var place: AirPlaceData = await atmo.place_from_terrain(
+		terrain, float(cfg.get("utc_offset_h", 0.0)), 7, 15
+	)
+	if place == null:
+		push_warning("dump_slices: нет слоя detail у рельефа %s — термики не показаны" % loc)
+		atmo.queue_free()
+		terrain.queue_free()
+		return []
+	atmo.set_air_mode("off")  # нужны только термики, поле Пикара не считаем
+	atmo.set_conditions({"preset": weather, "start_hour": hour})
+	atmo.load_place(place)
+	atmo.set_focuses(PackedVector3Array([point]), PackedFloat32Array([1.0]))
+	atmo.start_at(0.0)
+	while not atmo.is_ready() and atmo.status().state != Atmosphere.STATE_FAILED:
+		atmo.pump(8000)
+		await get_tree().process_frame
 	var list := atmo.thermals_near(point, 4000.0)
-	terrain.free()
+	atmo.queue_free()
+	terrain.queue_free()
 	return list
 
 

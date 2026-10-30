@@ -21,7 +21,9 @@ func _ready() -> void:
 	var preview: Node = PREVIEW.instantiate()
 	add_child(preview)
 	var atmo: Atmosphere = preview.get_node("Atmosphere")
-	atmo.set_weather("weather/" + weather)
+	while not atmo.is_ready():  # стенд сам грузит место и ждёт READY
+		await get_tree().process_frame
+	atmo.set_conditions({"preset": Config.get_config("weather/" + weather).duplicate(true)})
 	preview.set_process(false)
 	preview.set_process_input(false)
 	preview.set_process_unhandled_input(false)
@@ -30,9 +32,9 @@ func _ready() -> void:
 	add_child(cam)
 	cam.current = true
 	cam.fov = 60.0
-	atmo.set_focus(Vector3(0, 400, 0))
+	atmo.set_focuses(PackedVector3Array([Vector3(0, 400, 0)]), PackedFloat32Array([1.0]))
 	for i in 20:
-		atmo.step(1.0)
+		atmo.advance_to(atmo.time_s + 1.0)
 		await get_tree().process_frame
 	var birds: BirdFlock = atmo.get("_birds")
 	for i in 30:

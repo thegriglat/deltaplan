@@ -70,7 +70,9 @@ func _settings(loc: String, wing: String, weather: String) -> FlightSettings:
 ## nose_up — на бегу всё время держать «от себя» мышью (смещение мыши вверх до упора: нос вверх).
 func _launch(game: Game, sd: float, nose_up: bool) -> String:
 	game.restart()
-	game.air.set("time_s", sd)
+	game.set_world_time(sd)  # воздух сразу в момент sd (асинхронно): дожидаемся готовности
+	while not game.air.is_ready():
+		game.air.pump(1000000)
 	var m: PendulumModel = game.glider.model
 	var t := 0.0
 	var out := "none"

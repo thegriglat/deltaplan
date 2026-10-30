@@ -20,7 +20,7 @@ extends Node
 ##   --world-t=T     (CLF-7) после старта перевести мир на T с от часа старта (Game.set_world_time) и подождать
 ##                   поле облачности (на ветке без поля — просто пауза 8 с); час/погода — через --game-args=--hour=13.5,--temp=30,--wind=3
 ##   --air=T         после отметок (без паузы): на сим.времени T запросить пересчёт поля воздуха
-##                   (AirRuntime.request_recompute) и мерить кадры, пока он идёт (не дольше 40 с)
+##                   (пересчёт поля) и мерить кадры, пока он идёт (не дольше 40 с)
 ## Пишет по строке JSON на опыт в --out (кадр CPU/GPU средн. и 1%-худших, проходы GPU,
 ## мониторы Performance), печатает «PROFILE …» и «frame_profile: OK».
 
@@ -303,7 +303,7 @@ func _no_vsync() -> void:
 	Engine.max_fps = 0
 
 
-## Журнал рывков за весь прогон (кадр > HITCH_MS): сим.время, стадия AirRuntime.
+## Журнал рывков за весь прогон (кадр > HITCH_MS): сим.время, стадия воздуха.
 func _process(_dt: float) -> void:
 	var now := Time.get_ticks_usec()
 	if _t_last > 0 and _game != null:
@@ -721,14 +721,10 @@ func _micro_run() -> void:
 	var cam := get_viewport().get_camera_3d()
 	var eye: Vector3 = cam.global_position if cam != null else Vector3.ZERO
 	var jobs := {}
-	if atmo != null and atmo.has_method("refresh_now"):
-		jobs["atmo.refresh_now"] = func() -> void: atmo.call("refresh_now")
-		# то же после смены поля: ThermalField._update_air пересобирает AirThermals (build)
-		jobs["atmo.refresh_now+AirThermals.build"] = func() -> void:
-			var tf: Object = atmo.get("field")
-			if tf != null:
-				tf.set("_air_key", "frame_profile")
-			atmo.call("refresh_now")
+	if atmo != null and atmo.has_method("advance_to"):
+		# тик воздуха (W2 v4: advance_to вместо refresh_now); пересборка источников — в крейте
+		jobs["atmo.advance_to"] = func() -> void:
+			atmo.call("advance_to", float(atmo.get("time_s")) + 1.0 / 60.0)
 	if clouds != null:
 		jobs["clouds._select"] = func() -> void: clouds.call("_select", float(atmo.get("time_s")), eye)
 		jobs["clouds._update_light"] = func() -> void: clouds.call("_update_light")
@@ -745,11 +741,11 @@ func _micro_run() -> void:
 	_write({loc = _location, tag = _tag, exp = "_micro", micro = res})
 
 
-## Пересчёт поля воздуха в полёте: кадры до начала (idle) и пока AirRuntime.busy().
+## Пересчёт поля воздуха в полёте: кадры до начала (idle) и пока рантайм воздуха занят.
 func _air_run() -> void:
 	var rt: Node = _game.get("air_runtime")
 	if rt == null:
-		print("PROFILE air: нет AirRuntime")
+		print("PROFILE air: нет рантайма воздуха")
 		return
 	while _game.sim_time_s < _air_t and int(_main.get("state")) == 2:
 		await get_tree().physics_frame

@@ -1,0 +1,13 @@
+[package]
+name = "dp-stand"
+version = "0.1.0"
+edition = "2024"
+description = "Stand without Godot: wind at points, slices, stats, decomposition and comparison with W8 fixtures"
+license = "MIT"
+publish = false
+
+[dependencies]
+dp-air = { path = "../dp-air", features = ["fixtures"] }
+clap = { version = "4", features = ["derive"] }
+rayon = "1"
+serde_json = "1"

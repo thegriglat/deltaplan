@@ -46,7 +46,7 @@ func test_settings_tabs() -> void:
 	var members := [
 		"_volume", "_sens", "_invert", "_roll_input", "_sound", "_graphics",
 		"_render_scale_auto", "_render_scale", "_vsync", "_fps_limit", "_window_mode", "_resolution",
-		"_time_speed", "_fov", "_helmet", "_eye_mode", "_bots", "_names", "_grass", "_wind_model",
+		"_time_speed", "_fov", "_helmet", "_eye_mode", "_bots", "_names", "_grass",
 		"_language", "_pilot_name", "_motion_on", "_motion_addr", "_motion_rate", "_motion_format",
 	]
 	for m: String in members:

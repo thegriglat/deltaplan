@@ -224,7 +224,6 @@ static func gpu_switches() -> Dictionary:
 			if not String(k).begins_with("_"):
 				out["gpu." + String(k)] = gpu[k]
 	out["clouds.renderer"] = Config.value("atmosphere", "clouds.renderer", "нет")
-	out["air_model.enabled"] = Config.value("atmosphere", "air_model.enabled", "нет")
 	out["rendering_driver"] = Config.value("game", "display.rendering_driver", "нет")
 	out["safe_reason"] = Config.value("game", "display.safe_reason", "нет")
 	return out

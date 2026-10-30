@@ -1,0 +1,48 @@
+extends Node
+## RW-8s: GustDustModel.gust_ms на случайных (x, z, t). Запись сценария: 6 чисел (сид, ветер м/с,
+## откуда °, солнце °, облачность, convective_turbulence_ms) + N·(x, z, t, порыв).
+
+func _ready() -> void:
+	var out := ""
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--out="):
+			out = a.substr(6)
+	DirAccess.make_dir_recursive_absolute(out)
+	var cfg: Dictionary = Config.get_config("atmosphere")
+	var scen := [
+		["synth_medium", 606, 4.0, 151.0, 52.0, 0.0, 0.8],
+		["synth_strong", 20260927, 12.0, 270.0, 30.0, 0.5, 1.5],
+		["synth_calm", 1, 0.0, 90.0, 52.0, 0.0, 0.8],
+		["ongudai_medium", 606, 11.0 / 3.6, 270.0, 52.0, 0.0, 0.8],
+		["ongudai_day_2", 1202, 25.0 / 3.6, 151.0, 40.0, 0.2, 1.1],
+		["ongudai_strong", 606, 35.0 / 3.6, 200.0, 45.0, 0.6, 2.0],
+	]
+	var buf := PackedFloat64Array()
+	var man := {"godot": Engine.get_version_info().string, "n": 1500, "scenarios": []}
+	var rng := RandomNumberGenerator.new()
+	for s in scen:
+		rng.seed = 4242 + int(s[1])
+		var wm := WindModel.new()
+		wm.setup(cfg.wind, cfg.turbulence, int(s[1]))
+		wm.set_wind(float(s[2]), float(s[3]))
+		wm.set_conditions(float(s[4]), float(s[5]))
+		var m := GustDustModel.new()
+		m.setup(cfg.gust_dust, {"convective_turbulence_ms": float(s[6])}, wm)
+		man.scenarios.append({"name": s[0], "offset": buf.size(), "u10": m.mean_wind10()})
+		for i in 6:
+			buf.append(float(s[1 + i]))
+		for i in 1500:
+			var x := rng.randf_range(-6000.0, 6000.0)
+			var z := rng.randf_range(-6000.0, 6000.0)
+			var t := rng.randf_range(0.0, 7200.0)
+			buf.append(x)
+			buf.append(z)
+			buf.append(t)
+			buf.append(m.gust_ms(x, z, t))
+	var f := FileAccess.open(out.path_join("gust_dump.f64"), FileAccess.WRITE)
+	f.store_buffer(buf.to_byte_array())
+	f.close()
+	var mf := FileAccess.open(out.path_join("manifest.json"), FileAccess.WRITE)
+	mf.store_string(JSON.stringify(man, "\t", true) + "\n")
+	mf.close()
+	get_tree().quit()

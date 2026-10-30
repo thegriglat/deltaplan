@@ -1,0 +1,86 @@
+{
+	"format": "json lines (<file>.jsonl.zst, zstd): одна строка = один вызов GD, kind + входы + результат; NaN и inf -> null; ключи отсортированы",
+	"godot": "4.7.2-stable (official)",
+	"grid_variants": "E1 variant: real | stub_<имя> | none_* — копия data/climate/<файл>.bin с правкой заголовка (patch в строке); none_missing — путь в никуда",
+	"rows": 78343,
+	"sets": [
+		{
+			"file": "e10_heat_flux.jsonl.zst",
+			"inputs": "классы 0…8 × cos_inc × cover × влажность m; mix_flux: чистые классы, смеси, нулевые доли, вода/лёд, застройка ночью; SurfaceHeating: места × даты × часы 0…24 (+ выкл.)",
+			"rows": 4954,
+			"what": "SurfaceHeat.shortwave/land_flux/water_flux/built_night_flux/mix_flux по сетке; SurfaceHeating.directions/built_night/sun_at/sunset_h по часам",
+			"why": "в Rust юнит-тестов потока нет"
+		},
+		{
+			"file": "e1_climate_at.jsonl.zst",
+			"inputs": "решётка lat −89.5+7k × lon −179.9+4.9k × 12 мес (день 15; 1/28/31 в части месяцев); углы (полюса, антимеридиан, обёртка lon); дрожащие точки; ячейки с пропусками −32768 (частичные и все четыре) в 4 сетках; варианты сеток: stub, none",
+			"rows": 30376,
+			"what": "ClimateGrid.at(lat, lon, month, day) целиком (все ключи и src)",
+			"why": "новый код читает и распаковывает сетки сам"
+		},
+		{
+			"file": "e2_climate_place.jsonl.zst",
+			"inputs": "lat −60…70 (тропики, умеренные, прочие пояса, оба полушария) × lon × месяцы 1/4/7/10 × valley_msl_m {−100, 0, 500, 3000, NaN, нет ключа} × start_msl_m {нет, = долине, +300, −50, +4000}; варианты без hh1/hh5/hh6",
+			"rows": 4383,
+			"what": "ClimateGrid.place(ctx) на дне долины: valley_msl_m × start_msl_m (рост ветра gain_per_km), + season_index/band_index/td_gradient/belt_gradient",
+			"why": "поправки на высоту; сейчас сверено на нескольких ячейках"
+		},
+		{
+			"file": "e3_surface_temp.jsonl.zst",
+			"inputs": "8 мест × 12 месяцев (день 15) × часы 0…23 (+0.5) × z {долина−200, долина, долина+1000, 4000}; t_max = typical_max_c места; wcfg = surface_heat.water",
+			"rows": 19008,
+			"what": "SurfaceHeat.air_temp_c (hour, t_max, z) и water_temp_c (month, day, z) по месту, месяцу, часу, высоте",
+			"why": "публичные функции без дампа; воздушной нет в Rust вообще"
+		},
+		{
+			"file": "e4_weather_diurnal.jsonl.zst",
+			"inputs": "typical_max_c: с {lat, lon}, без ctx, ctx без valley_msl_m, зажим [ui.temperature_c]; diurnal_range_k: ctx без lat/lon, с cp; diurnal_state: 10 мест × месяцы × часы −1…25 × t_max, полярный день/ночь, utc NaN/число",
+			"rows": 7148,
+			"what": "WeatherModel.typical_max_c, diurnal_range_k, diurnal_state (sunrise_h/sunset_h/peak_h внутри) с ctx и без",
+			"why": "меню, цель полёта"
+		},
+		{
+			"file": "e5_weather_small.jsonl.zst",
+			"inputs": "таблицы по месяцам и дням 1/15/31 (+ вне диапазона), все sky.options + неизвестные, t×td с переходом через 0 и Td > T, lerp/interp по таблицам конфига за краями",
+			"rows": 3030,
+			"what": "WeatherModel.sky_params, haze_k_rh, sun_block_cover, monthly, lerp_table, interp_rows, reference_context, noon_elevation_deg, td_noise, cirrus_base_cover",
+			"why": "мелочи, которых нет в дампе отдельно"
+		},
+		{
+			"file": "e6_ground_context.jsonl.zst",
+			"inputs": "Онгудай (terrain недоступен без data/locations/ongudai — terrain = null), учебный остров, вулкан × радиус {2 км, 10 км, 15 км, 19 км} × число точек {15, 31} × процентиль {0.1, 0.25}; ctx пасхалки = easter_eggs.json (10 км, 15, 0.1)",
+			"rows": 50,
+			"what": "WeatherModel.ground_context через terrain.height_at и через растр 25 м (HeightLayer.sample) — разность valley/mean",
+			"why": "дыра риска 2: расхождение функции и растра 25 м (только измерение, допуска нет)"
+		},
+		{
+			"file": "e7_temp_at_altitude.jsonl.zst",
+			"inputs": "6 погод (derive: 4 места × прогнозы, час NaN и 13; w._derived хранится сокращённо) × высоты 0…6000 шаг 250 × 4 даты; плюс w без _derived и без valley_msl_m",
+			"rows": 690,
+			"what": "AchievementFeed.temp_at_altitude(w, alt_msl, month, day) на погоде WeatherModel.derive",
+			"why": "живая формула профиля температуры"
+		},
+		{
+			"file": "e8_goal_weather.jsonl.zst",
+			"inputs": "12+ FlightSettings: встроенные места (altai, askarovo, aushkul, ongudai, training_island, volcano_island, wilotree_park), точка с карты, месяцы, небо, часы, ветер/температура",
+			"rows": 15,
+			"what": "GoalEstimator.weather_for(FlightSettings) (+ контекст места _context)",
+			"why": "цель полёта: derive + diurnal_state без рельефа"
+		},
+		{
+			"file": "e9_atmo_day.jsonl.zst",
+			"inputs": "lat −60…80 шаг 20 × lon {−120, 86.13} × месяцы {1, 4, 7, 10} × часы −1…25 (+ долевые) × utc {NaN, 7, −5}; hour_at: start_hour × speed × t0 × t, min/max_hour из world.json",
+			"rows": 8689,
+			"what": "AtmoDay.sun_direction(hour, lat, lon, month, day, utc) и AtmoDay.hour_at(t) с зажимом world.time",
+			"why": "пограничные часы, utc NaN"
+		}
+	],
+	"generator_removed_at": "676c59b5d",
+	"generator_files_removed": [
+		"tools/wind_fixtures/weather_ref2.gd",
+		"tools/wind_fixtures/weather_ref2.gd.uid",
+		"tools/wind_fixtures/weather_ref2.sh",
+		"tools/wind_fixtures/weather_ref2.tscn"
+	],
+	"restore": "git show 676c59b5d:<путь> — генератор восстанавливается из ревизии до удаления (RW-14e)"
+}

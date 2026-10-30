@@ -1,696 +1,283 @@
-# gdlint: disable=max-public-methods
+# gdlint: disable=max-public-methods,max-file-lines
 class_name Atmosphere
 extends Node3D
-## Атмосфера: ветер с профилем и порывами, термики, фоновое опускание, склоновый подъём,
-## подветренные зоны и роторы; рисует облака и птиц (дочерние ноды).
-## Контракт — docs/guide/architecture.md, модель — docs/research/thermals.md,
-## описание — docs/guide/atmosphere.md.
+## Атмосфера: фасад W2 v4 (docs/contracts/rust-wind/facade.md) над DpAir (расширение dp_air).
+## Весь ветер, термики, облака, погода и солнце считает крейт; здесь — настройка, проверки входа,
+## разбор ответов крейта в формы W2 и визуальные слои (облака, птицы, пыль — дочерние ноды).
 ##
 ## Использование:
-##   atmo.set_weather("weather/medium")          # или словарь пресета
-##   atmo.set_ground(terrain.height_at, terrain.sun_exposure_at)
-##   atmo.focus_node = glider                    # вокруг кого генерировать термики
-##   var v := atmo.air_velocity_at(pos)          # скорость воздуха, м/с (мир)
+##   atmo.configure(seed)                         # сид мира (< 0 — из configs/atmosphere.json)
+##   atmo.set_conditions({forecast: {…}, start_hour: 12.0, speed: 1.0, …})   # погода и ход дня
+##   atmo.load_place(AirPlaceData.from_terrain(terrain, utc_offset_h, month, day))
+##   atmo.set_focuses(points, weights)            # вокруг кого генерировать термики (0 — игрок)
+##   atmo.start_at(0.0)                           # асинхронно; ждать is_ready()
+##   atmo.advance_to(t)                           # раз в тик; sample_many — опрос
 ##
-## Детерминизм (сеть, NET-00): состояние — чистая функция (настройки, погода, day, сид, time_s).
-##   atmo.seed_value = zone_seed                 # до set_weather/configure
-##   atmo.set_weather(w); atmo.set_ground(…); atmo.set_wind(…); atmo.set_day(day)
-##   atmo.start_at(zone_t)                       # сразу в момент t — то же, что прогон от 0
+## Подготовка места у крейта начинается лениво — при start_at (или первом status/pump/advance_to
+## после load_place): игра шлёт место, условия и статические термики до start_at, и крейт получает
+## их все сразу, а не пересчитывает поле дважды.
 
 signal weather_changed
-## Погода мягко обновлена (update_weather: ход дня) — термики и облака не пересоздаются.
+## Погода мягко обновлена (ход дня, мягкая смена условий) — термики и облака не пересоздаются.
 signal weather_updated
+## Фасад W2: состояние воздуха сменилось (STATE_*).
+signal state_changed(state: int)
+
+# ---- Фасад W2 (docs/contracts/rust-wind/facade.md): константы ----
+const WIND_API_VERSION := 6
+const STATE_EMPTY := 0
+const STATE_LOADING := 1
+const STATE_READY := 2
+const STATE_FAILED := 3
+const OK := 0
+const BAD_INPUT := 1
+const NO_PLACE := 2
+const NOT_READY := 3
+const SAMPLE_FULL := 0
+const SAMPLE_MEAN := 1
+## Описания W6 (docs/contracts/rust-wind/descriptions.md): смещения и шаги.
+const CORE_ID := 0
+const CORE_FLAGS := 1
+const CORE_X := 2
+const CORE_Z := 3
+const CORE_Y_SRC := 4
+const CORE_TOP := 5
+const CORE_W := 6
+const CORE_RADIUS := 7
+const CORE_LEAN_X := 8
+const CORE_LEAN_Z := 9
+const CORE_AGE := 10
+const CORE_LIFE := 11
+const CORE_STAGE := 12
+const CORE_VIS_SEED := 13
+const CORE_STORM := 14
+const CORE_STRIDE := 15
+const CLOUD_ID := 0
+const CLOUD_CORE_ID := 1
+const CLOUD_X := 2
+const CLOUD_Z := 3
+const CLOUD_BASE := 4
+const CLOUD_TOP := 5
+const CLOUD_RADIUS := 6
+const CLOUD_GROWTH := 7
+const CLOUD_DECAY := 8
+const CLOUD_FLAGS := 9
+const CLOUD_STRIDE := 10
+const CREST_X := 0
+const CREST_Z := 1
+const CREST_ETA := 2
+const CREST_CREST := 3
+const CREST_STRIDE := 4
+## Объекты-облака W6 v4 (cloud_objects): смещения полей и шаг.
+const OBJ_ID := 0
+const OBJ_FLAGS := 1
+const OBJ_CX := 2
+const OBJ_CZ := 3
+const OBJ_BASE := 4
+const OBJ_GROWTH := 5
+const OBJ_DECAY := 6
+const OBJ_ACTIVITY := 7
+const OBJ_RX := 8
+const OBJ_RZ := 9
+const OBJ_DEPTH := 10
+const OBJ_SPREAD := 11
+const OBJ_VIS_SEED := 12
+const OBJ_LIFE_T0 := 13
+const OBJ_LIFE_T1 := 14
+const OBJ_SRC_X := 15
+const OBJ_SRC_Z := 16
+const OBJ_DRIFT_VX := 17
+const OBJ_DRIFT_VZ := 18
+const OBJ_DRIFT_T0 := 19
+const OBJ_STORM_T0 := 20
+const OBJ_STORM_K := 21
+const OBJ_STRIDE := 22
+## wave_info (W6 v4): [enabled, wavelength_m].
+const WAVE_INFO_ENABLED := 0
+const WAVE_INFO_LENGTH := 1
+## Ключи set_conditions (W5): общие, прогноз, эталон.
+const COND_KEYS_COMMON: Array[String] = ["start_hour", "speed", "blend_s", "rebuild", "inflow_mode"]
+const COND_KEYS_FORECAST: Array[String] = ["forecast", "quantum_h", "wind_ref", "overrides"]
+const COND_KEYS_PRESET: Array[String] = ["preset"]
+## Шаг сдвига фокуса, после которого он уходит крейту, м.
+const FOCUS_STEP_M := 25.0
+const FIELD_SET_SCRIPT := "res://scripts/atmosphere/air_model/air_field_set.gd"
+const FIELD_LOAD_SCRIPT := "res://scripts/atmosphere/air_model/air_baked_field.gd"
 
 ## Журнал режима поля: последняя напечатанная строка (одна строка на смену режима, не на мир).
 static var _air_log_last := ""
-## Поле из командной строки (--air-field=<путь>, отладка до решателя на GPU): читается один раз.
-static var _cmd_field_checked := false
-static var _cmd_field: WindField
-static var _cmd_field_error := ""
 
 ## Нода, вокруг которой живут термики и облака (обычно планер). Если не задана — активная камера.
 @export var focus_node: Node3D
 ## Рисовать облака и птиц (в тестах без окна — выключено автоматически).
 @export var visuals_enabled: bool = true
 
-var weather: Dictionary = {}
+## Конфиг атмосферы (configs/atmosphere.json): читают визуальные слои.
 var cfg: Dictionary = {}
-
-var wind: WindModel
-var ground: GroundField
-var field: ThermalField
-## Облака в физике: подсос, поток в облаке, «в облаке ли» (FR-14b).
-var cloud_phys: CloudPhysics
-## Грозовые ячейки (Cb): нисходящий поток и фронт порывов (VR-26).
-var storm: StormField
-## Подветренные волны и роторы (VR-27).
-var wave: WaveField
-## Среднее поле воздуха (масштаб 1, docs/guide/air-model.md → «Поле на CPU»): уровни и плавная подмена.
-## Переживает configure() (как функции рельефа); поле подаёт set_air_field.
-var air_field: AirFieldSet
-## Масштаб 3 с полем (AM-08): коэффициенты, признак отрыва, σ и спектр порывов.
-var field_turb: FieldTurbulence
-
-## Время атмосферы, с. Термики — чистые функции времени и координат.
+## Переходное (до RW-13): свой конфиг атмосферы вместо configs/atmosphere.json — превью и отпечаток
+## мира. Уходит крейту текстом вместо файла.
+var cfg_override: Dictionary = {}
+## Время атмосферы, с (зеркало времени крейта).
 var time_s: float = 0.0
-## Пульсации (турбулентность) — можно выключить для тестов.
-var turbulence_enabled: bool = true
-## Сид мира (≥ 0) вместо atmosphere.json → seed — задать до configure/set_weather (сеть: сид зоны).
+## Сид мира (≥ 0) вместо atmosphere.json → seed — задать до configure (сеть: сид зоны).
 var seed_value: int = -1
-## Ход дня (погода, солнце, источники — функции времени, AtmoDay); null — погода постоянна
-## (или мягкие обновления set_weather(w, blend_s)).
-var day: AtmoDay
-
-var _focus: Vector3 = Vector3.ZERO
-var _configured: bool = false
-var _refresh_acc: float = 1.0e9
-var _refresh_interval: float = 0.5
-## Во сколько раз реже обновлять список термиков и облака (только «Подождать час», Q-17: мир идёт
-## ×60, а пересчёт — 25–45 мс — не должен падать на каждый шаг). 1 — как обычно.
+## Во сколько раз реже обновлять воздух на «Подождать час» (Q-17). Крейт ведёт воздух сам;
+## поле оставлено, чтобы игра могла его ставить (удаляется в RW-13).
 var refresh_scale: float = 1.0
-## > 0 — обновление термиков/облаков порциями по этому бюджету за шаг, мкс (PF-8); 0 — сразу.
-var refresh_budget_us: int = 0
-var _ra_pending := false
-var _ra_stage := 0
-var _ra_t := 0.0
-var _ra_focus := Vector3.ZERO
-var _ra_finish_us := 3000
-## Первое обновление на экране загрузки (FL-5): 0 — нет, 1 — ждём источники поля, 2 — порции.
-var _ld_stage := 0
-## Обновления — по сетке времени атмосферы (номер интервала), а не по накопленному dt: набор
-## термиков в момент t не зависит от шага и от того, с какого момента атмосферу начали.
-var _refresh_slot: int = -(1 << 62)
-var _state_slot: int = -(1 << 62)
-var _state_interval: float = 0.1
-var _cloudbase_agl: float = 1500.0
-var _ground_ref: float = 0.0
-var _cloudbase_override: bool = false
+## Кеш поля Пикара на диске (FL-К1): включает игра; тесты — нет. Каталог кеша крейту отдаётся
+## при загрузке места (user://air_cache).
+var air_cache_enabled := false
+## Детерминированный режим крейта (W1 v2, air.deterministic): снимок поля принимается синхронно.
+var deterministic := false
+## Снимок поля Пикара для отладки и превью (AirFieldSet): подача включается первым обращением
+## к полю (или want_air_field), горячий путь его не читает.
+var air_field: Variant:
+	get:
+		want_air_field(true)
+		return _air_field_object()
 
-# Кешированные коэффициенты (чтобы air_velocity_at не лазил в словари).
-var _bg_sink: float = -0.5
-var _ground_fade: float = 60.0
-var _ridge_eff: float = 0.7
-var _ridge_decay: float = 250.0
-var _ridge_shift_k: float = 0.8
-var _ridge_shift_max: float = 400.0
-var _ridge_max: float = 6.0
-var _lee_depth: float = 120.0
-var _lee_relief: float = 150.0
-var _lee_sink: float = 0.25
-var _lee_turb: float = 0.5
-var _lee_wind_red: float = 0.6
-var _lee_shear: float = 40.0
-var _lee_danger_min: float = 2.0
-var _lee_danger_full: float = 5.0
-var _lee_danger_sink: float = 0.7
-var _lee_danger_turb: float = 0.8
-var _lee_burst: float = 1.0
-var _lee_burst_k: float = 0.375
-var _lee_burst_thr: float = 0.8
-var _lee_burst_width: float = 1.0
-var _lee_reverse: float = 0.9
-var _lee_rotor_h: float = 0.4
-var _lee_rotor_max: float = 7.0
-var _lee_heat_full: float = 0.0
-var _lee_heat_wstar_k: float = 0.6
-var _lee_heat_key: Vector2 = Vector2(-1.0, -1.0)
-var _lee_heat_val: float = 1.0
-var _mech_k: float = 0.14
-var _mech_boost: float = 1.0
-var _mech_h: float = 150.0
-var _conv_amp: float = 0.8
-var _conv_norm: float = 1.0
-var _vert_ratio: float = 0.7
-var _turb_max: float = 6.0
-var _advect: float = 0.0
-var _wave_ref_agl: float = 1000.0
-var _in_cloud_turb: float = 1.5
-var _in_cloud_eject: float = 3.0
-var _in_cloud_scale_k: float = 3.0
-var _last_sigma: float = 0.0
-## Промежуточные величины выборки (_extra_flow): σ гроз и роторов волн, облако в точке.
-var _storm_turb: float = 0.0
-var _rotor_turb: float = 0.0
-var _cin := Vector3.ZERO
-## Базовые коэффициенты болтанки (без поправок хода дня).
-var _mech_k_base: float = 0.14
-var _edge_factor_base: float = 0.35
-var _edge_width: float = 0.45
-## Мягкое обновление погоды (ход дня): к чему плавно ведём и за сколько, с.
-var _blend_tau: float = 0.0
-var _target: Dictionary = {}
-var _day_w: Dictionary = {}  ## погода шага дня, выставленная в weather
-## Поле воздуха используется (air_model.enabled ≠ off и поле есть).
-var _air_on: bool = false
-var _air_mode: String = "auto"
+var _air_field: RefCounted
+var _air_field_wanted := false
 var _air_blend_s: float = 60.0
-
+var _focus: Vector3 = Vector3.ZERO
+## Место и запомненные команды фасада.
+var _f_place: AirPlaceData
+var _f_seed: int = -1
+var _f_cond: Dictionary = {}
+var _f_cond_set := false
+var _f_sun := Vector3.ZERO
+var _f_sun_set := false
+var _f_statics := PackedFloat32Array()
+var _f_static_mode := 0
+var _f_statics_set := false
+var _f_focus_pts := PackedVector3Array()
+var _f_focus_w := PackedFloat32Array()
+var _f_focus_manual := false
+var _f_state := STATE_EMPTY
+## Момент старта, запрошенный start_at / advance_to во время загрузки.
+var _f_t_req := 0.0
+var _f_err := ""
+## Поле Пикара ведёт крейт (DpAir, W3). Нет расширения — состояние FAILED.
+var _dp: RefCounted
+var _dp_missing := false
+var _dp_failed := false
+## Подпись последнего configure крейта (сид, режим, конфиг): повторный configure — только при смене.
+var _dp_weather: RefCounted = null  ## DpWeather, уже переданный крейту (attach_weather)
+var _dp_cfg_sig := ""
+## load_place отправлен крейту и место не выгружено.
+var _dp_placed := false
+## Журнал подготовки: момент начала (мс), последний записанный этап и состояние.
+var _dp_t0 := 0
+var _dp_stage_logged := ""
+var _dp_state_logged := -1
+## Номер подачи поля (field_version), уже принятый в air_field; −1 — ещё не принимали.
+var _dp_ver := -1
+## Поле в air_field пришло из крейта (выгрузка места его снимает).
+var _dp_fed := false
+## Сборка уровней снимка в фоне (WorkerThreadPool): id задачи и её задание {head, data, fs}.
+var _dp_task := -1
+var _dp_job: Dictionary = {}
+var _dp_focus_sent := Vector3(INF, INF, INF)
+## Версии погоды крейта (мягкая, перестройка), по которым слались сигналы; кэш разбора weather_json.
+var _w_seen := Vector2i(-1, -1)
+var _w_cache_ver := Vector2i(-1, -1)
+var _w_cache: Dictionary = {}
+## Сборка воздуха места началась — первое READY шлёт weather_changed.
+var _rebuilt := false
 var _clouds: Node3D
 var _birds: Node3D
 
 
 func _ready() -> void:
 	add_to_group("atmosphere")
-	if not _configured:
-		set_weather(String(Config.value("atmosphere", "default_weather")))
+	if cfg.is_empty():
+		cfg = cfg_override if not cfg_override.is_empty() else _conf("atmosphere")
 	if visuals_enabled and DisplayServer.get_name() != "headless":
 		_create_visuals()
-		refresh_budget_us = 3000
 
 
-func _physics_process(delta: float) -> void:
-	step(delta)
+func _physics_process(_delta: float) -> void:
+	if _f_place == null:
+		return
+	_update_focus()
+	_dp_send_focus(false)
+	_dp_poll()
+
+
+func _exit_tree() -> void:
+	_dp_stop_task()
+	if _dp != null and _dp_placed:
+		_dp.unload_place()  # фоновая работа крейта прерывается, без зависания (W3)
+		_dp_placed = false
 
 
 # ================================================================ настройка
 
 
-## Погодный пресет: имя конфига ("weather/strong") или словарь (WeatherModel.derive).
-## blend_s ≥ 0 — мягкое обновление (ход дня, _update_weather): поле не пересоздаётся.
-func set_weather(preset: Variant, blend_s: float = -1.0) -> void:
-	var w: Dictionary = Config.get_config(String(preset)) if preset is String else preset
-	if blend_s >= 0.0 and _configured:
-		_update_weather(w, blend_s)
-	else:
-		configure(Config.get_config("atmosphere"), w)
+## Фасад W2: configure(seed: int) -> int — сид до первого load_place (< 0 — из конфига).
+## Переходное (до RW-13, не W2): configure(atmo_cfg: Dictionary, weather_cfg: Dictionary) принимает
+## конфиг для визуальных слоёв; погоду и физику в нём крейт не берёт (их задают set_conditions).
+func configure(a: Variant, weather_cfg: Variant = null) -> int:
+	if a is Dictionary:
+		cfg = a
+		return OK
+	if (a is int or a is float) and weather_cfg == null:
+		if _f_place != null:
+			return _fail(BAD_INPUT, "configure после load_place")
+		_f_seed = int(a)
+		seed_value = _f_seed
+		return OK
+	return _fail(BAD_INPUT, "configure: ожидается seed (int)")
 
 
-## Полная настройка (для тестов можно передать свои словари).
-## Выход из места/игры: сборка источников в рабочем потоке читает рельеф — дождаться до его освобождения.
-func _exit_tree() -> void:
-	if field != null:
-		field.air_wait(false)
+## Поле Пикара на месте считает крейт всегда, когда заданы условия с прогнозом (эталон погоды —
+## превью и тесты — без прогноза и без поля); готово при READY.
+func is_air_field_on() -> bool:
+	return _f_state == STATE_READY and _dp_field_wanted()
 
 
-func configure(atmo_cfg: Dictionary, weather_cfg: Dictionary) -> void:
-	cfg = atmo_cfg
-	_ra_pending = false
-	weather = weather_cfg.duplicate(true)
-	var seed_used := seed_value if seed_value >= 0 else int(cfg.seed)
-	var old_ground := ground
-	wind = WindModel.new()
-	wind.setup(cfg.wind, cfg.turbulence, seed_used)
-	var wc := _wind_conditions()
-	wind.set_conditions(wc.x, wc.y)
-	wind.set_wind(Units.kmh(float(weather.wind_speed_kmh)), float(weather.wind_from_deg))
-	field_turb = FieldTurbulence.new()
-	field_turb.setup(cfg.turbulence, cfg.lee, seed_used)
-	ground = GroundField.new()
-	ground.setup(cfg.ground, cfg.lee)
-	if old_ground != null and old_ground.has_ground:
-		ground.set_functions(old_ground.height_fn, old_ground.sun_fn)
-		ground.surface_fn = old_ground.surface_fn
-	ground.set_wind_dir(Vector2(wind.dir.x, wind.dir.z))
-	field = ThermalField.new()
-	field.setup(cfg.thermal, weather, seed_used, ground, wind)
-	field.day = day
-	field.cirrus_block = float(cfg.cirrus.sun_block)
-	field.cloud_width_per_ms_base = float(cfg.clouds.width_per_ms_m)
-	var tb: Dictionary = cfg.turbulence
-	_edge_factor_base = float(tb.edge_factor)
-	_edge_width = float(tb.edge_width)
-	field.set_turbulence_params(
-		_edge_factor_base * float(weather.get("thermal_edge_k", 1.0)), _edge_width
-	)
-	var cc: Dictionary = cfg.clouds
-	field.cloud_linger_s = float(cc.linger_s)
-	field.cloud_width_per_ms = (
-		float(cc.width_per_ms_m) * float(weather.get("cloud_size_factor", 1.0))
-	)
-	field.cloud_width_min = float(cc.width_min_m)
-	field.cloud_width_max = float(cc.width_max_m)
-	var el := deg_to_rad(float(cc.sun_elevation_deg))
-	var az := deg_to_rad(float(cc.sun_azimuth_deg))
-	field.sun_dir = Vector3(sin(az) * cos(el), sin(el), -cos(az) * cos(el))
-	# Перистая пелена (VR-28) ослабляет прогрев земли — термики реже и слабее.
-	field.insolation = get_insolation()
-	cloud_phys = CloudPhysics.new()
-	cloud_phys.setup(cfg.clouds, cfg.thermal, float(weather.get("cloud_size_factor", 1.0)))
-	field.cloud_phys = cloud_phys
-	storm = StormField.new()
-	storm.setup(cfg.storm, field.cloud_width_per_ms)
-	wave = WaveField.new()
-	wave.setup(cfg.wave, weather, ground)
-	_update_wave_wind()
-	_refresh_interval = float(cfg.thermal.refresh_interval_s)
-	_state_interval = float(cfg.thermal.state_update_interval_s)
-	_cache_coefficients()
-	_setup_air()
-	_cloudbase_agl = float(weather.cloudbase_agl_m)
-	_update_cloudbase()
-	for st: Dictionary in weather.get("static_thermals", []):
-		add_static_thermal(float(st.x_m), float(st.z_m), float(st.strength_ms), float(st.radius_m))
-	_configured = true
-	_refresh_acc = 1.0e9
-	_target.clear()
-	_day_w = {}
-	if _day_active():
-		_apply_day(time_s)
-	weather_changed.emit()
-
-
-## Мягко перейти к новой погоде (set_weather(w, blend_s); ход дня — WeatherModel.derive с часом):
-## новые термики рождаются с новыми числами, живые доживают со старыми; кромка, фон, болтанка
-## и прогрев плавно идут к новым значениям за ~blend_s. Сетка источников (thermal_spacing_m),
-## ветер и статичные термики не меняются — поле не пересоздаётся.
-func _update_weather(w: Dictionary, blend_s: float) -> void:
-	var nw := w.duplicate(true)
-	for k in ["wind_speed_kmh", "wind_from_deg", "thermal_spacing_m", "static_thermals"]:
-		if weather.has(k):
-			nw[k] = weather[k]
-	weather = nw
-	field.set_weather_soft(weather)
-	field.cloud_width_per_ms = (
-		float(cfg.clouds.width_per_ms_m) * float(weather.get("cloud_size_factor", 1.0))
-	)
-	_update_wind_conditions()
-	_target = {
-		"bg_sink": float(weather.background_sink_ms),
-		"conv_amp": float(weather.convective_turbulence_ms),
-		"cloudbase_agl": float(weather.cloudbase_agl_m),
-		"insolation": get_insolation(),
-		"edge": _edge_factor_base * float(weather.get("thermal_edge_k", 1.0)),
-		"mech": _mech_k_base * float(weather.get("mech_turbulence_k", 1.0)),
-	}
-	_blend_tau = maxf(blend_s, 0.0) / 3.0
-	if _blend_tau <= 0.0:
-		_blend(1.0)
-	weather_updated.emit()
-
-
-## Сдвинуть текущие коэффициенты к цели (доля k 0..1).
-func _blend(k: float) -> void:
-	if _target.is_empty():
+## Подавать снимок поля крейта в air_field (отладка, превью): по умолчанию выключено.
+func want_air_field(on: bool = true) -> void:
+	if on == _air_field_wanted:
 		return
-	_bg_sink = lerpf(_bg_sink, float(_target.bg_sink), k)
-	_conv_amp = lerpf(_conv_amp, float(_target.conv_amp), k)
-	field.insolation = lerpf(field.insolation, float(_target.insolation), k)
-	_mech_k = lerpf(_mech_k, float(_target.mech), k)
-	field.set_turbulence_params(lerpf(field.get_edge_factor(), float(_target.edge), k), _edge_width)
-	var old_cb := _cloudbase_agl
-	_cloudbase_agl = lerpf(_cloudbase_agl, float(_target.cloudbase_agl), k)
-	if not _cloudbase_override and absf(_cloudbase_agl - old_cb) > 0.01:
-		field.set_cloudbase_soft(_ground_ref + _cloudbase_agl)
-	if k >= 1.0 or absf(_cloudbase_agl - float(_target.cloudbase_agl)) < 0.5:
-		if absf(_bg_sink - float(_target.bg_sink)) < 1.0e-3:
-			_target.clear()
-
-
-## Ход дня: погода шага для рождения термиков и потребителей (weather), плавные величины —
-## линейно между шагами. Чистая функция времени t (вместо _blend по кадрам).
-func _apply_day(t: float) -> void:
-	var b := day.bracket(t)
-	var w0: Dictionary = b[0]
-	var w1: Dictionary = b[1]
-	var f: float = b[2]
-	if not is_same(w0, _day_w):
-		_day_w = w0
-		var nw := w0.duplicate(true)
-		for k in ["wind_speed_kmh", "wind_from_deg", "thermal_spacing_m", "static_thermals"]:
-			if weather.has(k):
-				nw[k] = weather[k]
-		weather = nw
-		field.set_weather_soft(weather)
-		field.cloud_width_per_ms = (
-			float(cfg.clouds.width_per_ms_m) * float(weather.get("cloud_size_factor", 1.0))
-		)
-		_update_wind_conditions()
-		weather_updated.emit()
-	_bg_sink = _lerp_key(w0, w1, f, "background_sink_ms", _bg_sink)
-	_conv_amp = _lerp_key(w0, w1, f, "convective_turbulence_ms", _conv_amp)
-	_mech_k = _mech_k_base * _lerp_key(w0, w1, f, "mech_turbulence_k", 1.0)
-	field.set_turbulence_params(
-		_edge_factor_base * _lerp_key(w0, w1, f, "thermal_edge_k", 1.0), _edge_width
-	)
-	var sb := float(cfg.cirrus.sun_block)
-	field.insolation = (
-		1.0
-		- lerpf(WeatherModel.sun_block_cover(w0), WeatherModel.sun_block_cover(w1), f) * sb
-	)
-	var cb := _lerp_key(w0, w1, f, "cloudbase_agl_m", _cloudbase_agl)
-	if absf(cb - _cloudbase_agl) > 1.0e-6:
-		_cloudbase_agl = cb
-		if not _cloudbase_override:
-			field.set_cloudbase_soft(_ground_ref + _cloudbase_agl)
-
-
-static func _lerp_key(w0: Dictionary, w1: Dictionary, f: float, key: String, def: float) -> float:
-	return lerpf(float(w0.get(key, def)), float(w1.get(key, def)), f)
-
-
-## Задать ход дня (AtmoDay): погода, солнце и источники термиков — функции времени атмосферы.
-func set_day(d: AtmoDay) -> void:
-	day = d
-	_day_w = {}
-	if field != null:
-		field.day = d
-		if d != null and d.has_weather():
-			_apply_day(time_s)
-		_refresh_acc = 1.0e9
-
-
-## Начать сразу с момента t (время атмосферы/зоны, с): то же состояние, что при прогоне от 0
-## до t с любым шагом (сеть: догнать время зоны, NET-40). Статичные термики остаются.
-func start_at(t: float) -> void:
-	if not _configured:
-		set_weather(String(Config.value("atmosphere", "default_weather")))
-	time_s = t
-	_target.clear()
-	field.reset_dynamic()
-	refresh_now()
-
-
-## Обновить набор термиков, облака и сетку поиска на текущий time_s сразу (не ждать интервала).
-func refresh_now() -> void:
-	field.abort_refresh()
-	_ra_pending = false
-	_ld_stage = 0
-	_refresh_begin(false)
-	field.step_refresh(-1)
-	_refresh_finish()
-
-
-## Общее начало обновления (синхронного и порциями): фокус, интервалы, ход дня.
-func _refresh_begin(chunked: bool) -> void:
-	_refresh_prepare()
-	field.begin_refresh(time_s, _focus, _refresh_dt(), chunked)
-
-
-func _refresh_prepare() -> void:
-	_update_focus()
-	_refresh_slot = floori(time_s / _refresh_dt())
-	_state_slot = floori(time_s / _state_interval)
-	_refresh_acc = 0.0
-	# Ход дня — на начало интервала (чистая функция времени, не шага).
-	if _day_active():
-		_apply_day(_state_slot * _state_interval)
-	_ra_t = time_s
-	_ra_focus = _focus
-
-
-## Загрузка места (FL-5): поле воздуха подано — начать сборку источников термиков сейчас, в
-## рабочем потоке (PF-К4), не дожидаясь первого обновления.
-func prefetch_air_sources() -> void:
-	_refresh_prepare()  # погода и солнце на время старта — входы сборки (сверяются потом)
-	field.air_prefetch()
-
-
-## Первое обновление на экране загрузки (FL-5) вместо refresh_now(): тот же итог на текущий
-## time_s, но без замирания — сборку источников ждёт опросом, термики и сетку поиска считает
-## порциями load_refresh_step(бюджет) и подменяет целиком по готовности (PF-8).
-func begin_load_refresh() -> void:
-	field.abort_refresh()
-	_ra_pending = false
-	_ra_stage = 0
-	_refresh_prepare()
-	_ld_stage = 1
-
-
-## Порция первого обновления не дольше budget_us мкс (плюс неделимый конец: бури и физика
-## облаков — десятки мс). true — готово (или не начиналось).
-func load_refresh_step(budget_us: int) -> bool:
-	if _ld_stage == 1:
-		if field.air_prefetch():
-			return false  # источники поля ещё собираются
-		field.begin_refresh(_ra_t, _ra_focus, _refresh_dt(), true)
-		_ld_stage = 2
-	if _ld_stage == 2:
-		if not field.refresh_pending():
-			# поле само бросило порцию (подмена источников): начать заново
-			field.begin_refresh(_ra_t, _ra_focus, _refresh_dt(), true)
-		if not field.step_refresh(budget_us):
-			return false
-		_refresh_finish()
-		_ld_stage = 0
-	return true
-
-
-func _refresh_finish() -> void:
-	storm.refresh(field.thermals)
-	cloud_phys.refresh(field.thermals, _ra_t, _ra_focus, float(cfg.thermal.physics_radius_m))
-
-
-## Порциями (PF-8): refresh_budget_us > 0 — обновление растягивается на несколько шагов, по
-## бюджету за шаг; набор термиков и сетка поиска подменяются целиком по готовности, итог для
-## тех же (время, фокус) тот же, что у refresh_now().
-func _refresh_pump() -> void:
-	var t0 := Time.get_ticks_usec()
-	if _ra_stage == 0:
-		if not field.refresh_pending():
-			# поле само бросило порцию (смена поля воздуха, статичный термик): начать заново
-			_refresh_begin(true)
-		if not field.step_refresh(refresh_budget_us):
-			return
-		_ra_stage = 1
-		# Неделимый кусок (бури, физика облаков) — в шаге, где хватает бюджета.
-		if Time.get_ticks_usec() - t0 + _ra_finish_us > refresh_budget_us:
-			return
-	var t1 := Time.get_ticks_usec()
-	_refresh_finish()
-	_ra_finish_us = Time.get_ticks_usec() - t1
-	_ra_stage = 0
-	_ra_pending = false
-
-
-func _cache_coefficients() -> void:
-	_bg_sink = float(weather.background_sink_ms)
-	_ground_fade = float(cfg.ground_fade_m)
-	var r: Dictionary = cfg.ridge
-	_ridge_eff = float(r.efficiency)
-	_ridge_decay = float(r.decay_height_m)
-	_ridge_shift_k = float(r.forward_shift_factor)
-	_ridge_shift_max = float(r.forward_shift_max_m)
-	_ridge_max = float(r.max_lift_ms)
-	var l: Dictionary = cfg.lee
-	_lee_depth = float(l.depth_scale_m)
-	_lee_relief = float(l.relief_scale_m)
-	_lee_sink = float(l.sink_per_wind)
-	_lee_turb = float(l.turbulence_per_wind)
-	_lee_wind_red = float(l.wind_reduction)
-	# Новые ключи — через get: старые/пользовательские конфиги без них продолжают работать.
-	_lee_shear = float(l.get("shear_layer_m", 0.0))
-	_lee_danger_min = float(l.get("danger_min_wind_ms", 2.0))
-	_lee_danger_full = float(l.get("danger_full_wind_ms", 5.0))
-	_lee_danger_sink = float(l.get("danger_sink_per_wind", _lee_sink))
-	_lee_danger_turb = float(l.get("danger_turbulence_per_wind", _lee_turb))
-	_lee_burst = float(l.get("burst_per_wind", 0.0))
-	_lee_burst_k = float(cfg.turbulence.scale_m) / float(l.get("burst_scale_m", 120.0))
-	_lee_burst_thr = float(l.get("burst_threshold", 0.8))
-	_lee_burst_width = float(l.get("burst_width", 1.0))
-	_lee_reverse = float(l.get("rotor_reverse", 0.0))
-	_lee_rotor_h = float(l.get("rotor_height_fraction", 0.4))
-	_lee_rotor_max = float(l.get("rotor_max_amplitude_ms", 0.0))
-	_lee_heat_full = float(l.get("heat_kill_wm2", 0.0))
-	_lee_heat_wstar_k = float(l.get("heat_sigma_per_wstar", 0.6))
-	_lee_heat_key = Vector2(-1.0, -1.0)
-	var t: Dictionary = cfg.turbulence
-	_mech_k_base = float(t.mech_per_wind)
-	_mech_k = _mech_k_base * float(weather.get("mech_turbulence_k", 1.0))
-	_mech_boost = float(t.mech_ground_boost)
-	_mech_h = float(t.mech_ground_height_m)
-	_vert_ratio = float(t.vertical_ratio)
-	_turb_max = float(t.max_amplitude_ms)
-	_conv_amp = float(weather.convective_turbulence_ms)
-	# Профиль Lenschow σw ∝ √(1,8 ξ^(2/3) (1 − 0,8ξ)²) нормируем на максимум.
-	var peak := 0.0
-	for i in 101:
-		peak = maxf(peak, _lenschow(i / 100.0))
-	_conv_norm = 1.0 / maxf(peak, 1.0e-4)
-	_advect = wind.speed_at(float(t.advection_height_m))
-	_wave_ref_agl = float(cfg.wave.wind_reference_agl_m)
-	_in_cloud_turb = float(t.in_cloud_ms)
-	_in_cloud_eject = float(t.in_cloud_eject_ms)
-	_in_cloud_scale_k = float(t.scale_m) / float(t.in_cloud_scale_m)
-
-
-static func _lenschow(xi: float) -> float:
-	var a := 1.0 - 0.8 * xi
-	return sqrt(1.8 * pow(xi, 2.0 / 3.0) * a * a)
-
-
-## Поле воздуха по конфигу air_model: режим, край, ограничители; поле с --air-field=<путь>.
-func _setup_air() -> void:
-	var ac: Dictionary = cfg.get("air_model", {})
-	if air_field == null:
-		air_field = AirFieldSet.new()
-	air_field.edge_cells = float(ac.get("edge_blend_cells", 5.0))
-	air_field.max_speed = float(ac.get("max_speed_ms", 40.0))
-	air_field.max_w = float(ac.get("max_w_ms", 10.0))
-	for f in air_field.levels:
-		f.edge_cells = air_field.edge_cells
-	_air_blend_s = float(ac.get("blend_s", 60.0))
-	_air_mode = String(ac.get("enabled", "auto"))
-	if _air_mode != "off" and not air_field.is_active():
-		var f := _cmdline_field()
-		if f != null:
-			air_field.set_field(f, 0.0)
-	_update_air_mode()
+	_air_field_wanted = on
+	_dp_ver = -1
+	if on:
+		_dp_feed()
 
 
 ## Подать поле воздуха: WindField, массив уровней (от мелкого к грубому) или null — без поля.
-## blend_s — время плавной подмены старого поля (или аналитики) новым, с времени атмосферы;
-## < 0 — air_model.blend_s. При air_model.enabled = off поле хранится, но не используется.
+## blend_s — время плавной подмены старого поля новым, с; < 0 — air_model.blend_s.
 func set_air_field(new_field: Variant, blend_s: float = -1.0) -> void:
-	if air_field == null:
-		air_field = AirFieldSet.new()
-	air_field.set_field(new_field, _air_blend_s if blend_s < 0.0 else blend_s)
-	_update_air_mode()
+	_air_field_object().call("set_field", new_field, _air_blend_s if blend_s < 0.0 else blend_s)
 
 
-## Режим поля воздуха поверх конфига: "auto" | "on" | "off" (отладка «поле/аналитика», замеры).
-func set_air_mode(mode: String) -> void:
-	_air_mode = mode
-	_update_air_mode()
-
-
-## Используется ли сейчас поле воздуха (иначе — аналитика).
-func is_air_field_on() -> bool:
-	return _air_on
-
-
-func _update_air_mode() -> void:
-	# Упрощённый ветер (off): профиль по высоте как в 0.8.0; auto/on — WindProfile (C2 v4).
-	if wind != null and cfg != null and (_air_mode == "off") != wind.simple_profile:
-		wind.set_simple_profile(_air_mode == "off", cfg.get("wind_profile_simple", {}))
-	var reason := ""
-	if _air_mode == "off":
-		reason = "air_model.enabled = off"
-	elif not air_field.is_active():
-		reason = "нет поля" if _cmd_field_error == "" else _cmd_field_error
-		if _air_mode == "on":
-			reason += "; требуется поле (enabled = on)"
-	_air_on = reason == ""
-	if not air_field.levels.is_empty() and field_turb != null:
-		field_turb.z0 = air_field.levels[0].z0
-	# Термики из поля (AM-07): источники, сила, потолок, снос и «между» — ThermalField.air.
-	if field != null:
-		field.air = air_field if _air_on else null
-	var line := "air_model: analytic (%s)" % reason
-	if _air_on:
-		var src := "поле"
-		if not air_field.levels.is_empty():
-			var m: Dictionary = air_field.levels[0].meta
-			src = String(m.get("path", "массивы"))
-			var cond: Dictionary = m.get("cond", {})
-			if cond.has("wind"):
-				src += ", ветер поля %s м/с с %s°" % [cond.wind, cond.get("wdir", "?")]
-		line = "air_model: field (%s; уровней %d)" % [src, air_field.levels.size()]
-	if line != _air_log_last:
-		_air_log_last = line
-		if _air_mode == "on" and not _air_on:
-			push_warning(line)
-		print(line)
-
-
-static func _cmdline_field() -> WindField:
-	if not _cmd_field_checked:
-		_cmd_field_checked = true
-		for a in OS.get_cmdline_user_args():
-			if a.begins_with("--air-field="):
-				var path := a.substr(12)
-				_cmd_field = WindField.load_file(path)
-				if _cmd_field == null:
-					_cmd_field_error = "ошибка чтения поля %s" % path
-	return _cmd_field
-
-
-## Функции рельефа: height_fn(x, z) -> высота над уровнем моря, sun_fn(x, z) -> 0..1.
-## surface_fn(x, z) -> int — класс поверхности (terrain.surface_at), необязательно: для пылевых
-## вихрей над сухими полями (VR-18).
-func set_ground(height_fn: Callable, sun_fn: Callable, surface_fn := Callable()) -> void:
-	if not _configured:
-		set_weather(String(Config.value("atmosphere", "default_weather")))
-	ground.set_functions(height_fn, sun_fn)
-	ground.surface_fn = surface_fn
-	ground.set_wind_dir(Vector2(wind.dir.x, wind.dir.z))
-	_update_cloudbase()
-	# Статичные термики — пересадить на новую землю.
-	var statics: Array = []
-	for id in field.thermals:
-		var th: AtmoThermal = field.thermals[id]
-		if th.is_static:
-			statics.append([th.src.x, th.src.z, th.strength, th.radius])
-	field.clear_static()
-	for s in statics:
-		field.add_static(s[0], s[1], s[2], s[3])
-	_refresh_acc = 1.0e9
-
-
-## Ветер: скорость на опорной высоте (км/ч) и направление «откуда» (0 — с севера), FR-16.
-## ref_msl — высота над морем, где задан ветер прогноза (старт): выше неё ветер сильнее, ниже —
-## слабее (atmosphere.json → wind.altitude_*); NAN — только профиль над рельефом.
-## gain_per_km — рост ветра с высотой места (ClimateGrid.place, HH6 WR); NAN — из конфига.
-func set_wind(
-	speed_kmh: float, from_deg: float, ref_msl: float = NAN, gain_per_km: float = NAN
-) -> void:
-	wind.ref_msl = ref_msl
-	wind.set_altitude_gain(gain_per_km)
-	weather.wind_speed_kmh = speed_kmh
-	weather.wind_from_deg = from_deg
-	var old := wind.from_deg
-	wind.set_wind(Units.kmh(speed_kmh), from_deg)
-	_advect = wind.speed_at(float(cfg.turbulence.advection_height_m))
-	var tol := float(cfg.ground.wind_dir_tolerance_deg)
-	if absf(angle_difference(deg_to_rad(old), deg_to_rad(from_deg))) > deg_to_rad(tol):
-		ground.set_wind_dir(Vector2(wind.dir.x, wind.dir.z))
-	field.update_wind_frame()
-	_update_wave_wind()
-	_refresh_acc = 1.0e9
-
-
-## Направление на солнце (единичный вектор, мир) — для теней облаков на источниках термиков.
-## Главная сцена передаёт солнце мира; по умолчанию — из конфига (clouds.sun_*).
+## Направление на солнце (единичный вектор, мир): тени облаков на источниках термиков.
 func set_sun_direction(to_sun: Vector3) -> void:
-	field.sun_dir = to_sun.normalized()
+	if not _finite3(to_sun) or to_sun.length_squared() < 1.0e-12:
+		return
+	_f_sun = to_sun.normalized()
+	_f_sun_set = true
+	if _dp != null:
+		_dp.set_sun_direction(_f_sun)
 
 
-## Нижняя кромка облаков над уровнем моря, м. По умолчанию — средняя высота земли + пресет.
-func set_cloudbase_msl(msl: float) -> void:
-	_cloudbase_override = true
-	field.cloudbase_fixed = true
-	field.set_cloudbase(msl)
-	_refresh_acc = 1.0e9
-
-
-func get_cloudbase_msl() -> float:
-	return field.cloudbase_msl
-
-
-func _update_cloudbase() -> void:
-	var g: Dictionary = cfg.ground
-	_ground_ref = ground.mean_height(
-		0.0, 0.0, float(g.reference_radius_m), int(g.reference_samples)
-	)
-	field.cloudbase_ref = _ground_ref
-	if not _cloudbase_override:
-		field.set_cloudbase(_ground_ref + _cloudbase_agl)
-
-
-## Режим термиков: "dynamic" (по рельефу), "static" (только статичные — MVP), "both".
-func set_thermal_mode(mode: String) -> void:
-	field.mode = mode
-	if mode == "static":
-		field.update_wind_frame()  # убрать динамические
-	_refresh_acc = 1.0e9
-
-
-## Статичный термик (MVP): источник в (x, z), всегда на пике. Возвращает id.
-func add_static_thermal(x: float, z: float, strength_ms: float, radius_m: float) -> int:
-	var th := field.add_static(x, z, strength_ms, radius_m)
-	_refresh_acc = 1.0e9
-	return th.id
-
-
-## Статичные термики из массива словарей {x_m, z_m, strength_ms, radius_m}
-## (например, из конфига локации).
-func load_static_thermals(list: Array) -> void:
-	for st: Dictionary in list:
-		add_static_thermal(float(st.x_m), float(st.z_m), float(st.strength_ms), float(st.radius_m))
-
-
-func clear_static_thermals() -> void:
-	field.clear_static()
-	_refresh_acc = 1.0e9
+## Статические термики шага 4: [x_m, z_m, strength_ms, radius_m]; mode 0 dynamic, 1 static, 2 both.
+func set_static_thermals(list: PackedFloat32Array, mode: int) -> int:
+	if list.size() % 4 != 0 or mode < 0 or mode > 2:
+		return _fail(BAD_INPUT, "set_static_thermals: длина кратна 4, mode 0..2")
+	for i in range(0, list.size(), 4):
+		for k in 4:
+			if not is_finite(list[i + k]):
+				return _fail(BAD_INPUT, "set_static_thermals: не число")
+		if list[i + 3] <= 0.0:
+			return _fail(BAD_INPUT, "set_static_thermals: radius ≤ 0")
+	_f_statics = list
+	_f_static_mode = mode
+	_f_statics_set = true
+	if _dp != null:
+		_dp.set_static_thermals(list, mode)
+	return OK
 
 
 func set_focus(pos: Vector3) -> void:
@@ -701,51 +288,748 @@ func get_focus() -> Vector3:
 	return _focus
 
 
-# ================================================================ время
+## Точки внимания (индекс 0 — игрок), вес > 0; размеры равны. Детализацию выбирает крейт.
+func set_focuses(points: PackedVector3Array, weights: PackedFloat32Array) -> int:
+	if points.size() != weights.size():
+		return _fail(BAD_INPUT, "set_focuses: размеры points и weights различаются")
+	for i in points.size():
+		if not _finite3(points[i]):
+			return _fail(BAD_INPUT, "set_focuses: точка не конечна")
+		if not (is_finite(weights[i]) and weights[i] > 0.0):
+			return _fail(BAD_INPUT, "set_focuses: вес ≤ 0")
+	_f_focus_pts = points
+	_f_focus_w = weights
+	_f_focus_manual = true
+	_focus = points[0] if points.size() > 0 else Vector3(0.0, _origin_height(), 0.0)
+	_dp_send_focus(true)
+	return OK
 
 
-## Продвинуть атмосферу на dt секунд (жизнь термиков, кеш рельефа).
-func step(dt: float) -> void:
-	if not _configured:
-		set_weather(String(Config.value("atmosphere", "default_weather")))
-	time_s += dt
-	if _air_on:
-		air_field.advance(dt)
-	if not _day_active() and not _target.is_empty():
-		_blend(1.0 - exp(-dt / _blend_tau) if _blend_tau > 0.0 else 1.0)
-	_update_focus()
-	_refresh_acc += dt
-	if _refresh_acc >= 1.0e8:
-		refresh_now()
-	elif _ra_pending:
-		_refresh_pump()
-	elif floori(time_s / _refresh_dt()) != _refresh_slot:
-		if refresh_budget_us > 0:
-			_ra_pending = true
-			_ra_stage = 0
-			_refresh_begin(true)
-			_refresh_pump()
-		else:
-			refresh_now()
+# ================================================================ место, условия, время
+
+
+## Растры места один раз (W5). Возвращает сразу; подготовка у крейта — асинхронно (LOADING).
+func load_place(place: AirPlaceData) -> int:
+	if place == null:
+		return _fail(BAD_INPUT, "load_place: место null")
+	var why := place.validate()
+	if why != "":
+		return _fail(BAD_INPUT, "load_place: " + why)
+	if _f_place != null:
+		unload_place()
+	_f_place = place
+	_f_err = ""
+	_f_t_req = 0.0
+	time_s = 0.0
+	_rebuilt = true
+	_set_state(STATE_LOADING)
+	return OK
+
+
+## Сброс всего, что связано с местом: время, фокусы, статические термики. Конфиги, сид, условия и
+## солнце остаются.
+func unload_place() -> void:
+	_dp_unload()
+	_f_place = null
+	_f_statics = PackedFloat32Array()
+	_f_static_mode = 0
+	_f_statics_set = false
+	_f_focus_pts = PackedVector3Array()
+	_f_focus_w = PackedFloat32Array()
+	_f_focus_manual = false
+	_focus = Vector3.ZERO
+	_f_t_req = 0.0
+	time_s = 0.0
+	_w_cache = {}
+	_w_cache_ver = Vector2i(-1, -1)
+	_w_seen = Vector2i(-1, -1)
+	_rebuilt = false
+	_set_state(STATE_EMPTY)
+
+
+## Погода и ход дня (W5): ровно один вид — прогноз или эталон. Не горячий путь.
+func set_conditions(cond: Dictionary) -> int:
+	var why := _check_conditions(cond)
+	if why != "":
+		return _fail(BAD_INPUT, "set_conditions: " + why)
+	var prev_cond := _f_cond
+	var prev_set := _f_cond_set
+	_f_cond = cond.duplicate(true)
+	_f_cond_set = true
+	if not _dp_placed:
+		return OK  # место не загружено или крейт ещё не начал — условия уйдут при начале
+	if bool(cond.get("rebuild", false)):
+		_f_t_req = time_s
+		_rebuilt = true
+		_dp_start()
+		_set_state(STATE_LOADING)
+		return OK
+	if _dp.set_conditions(_dp_cond_json()) != 0:
+		# W1: BAD_INPUT — вход отвергнут, состояние не меняется; прежние условия остаются
+		_f_cond = prev_cond
+		_f_cond_set = prev_set
+		var msg := "set_conditions: %s" % _dp.last_error()
+		push_error("dp_air: " + msg)
+		return _fail(BAD_INPUT, msg)
+	_dp_poll()
+	return OK
+
+
+## Начать сразу с момента t (время атмосферы/зоны, с). Асинхронно: LOADING до готовности.
+func start_at(t: float) -> int:
+	if not (is_finite(t) and t >= 0.0):
+		return _fail(BAD_INPUT, "start_at: t < 0 или не конечно")
+	if _f_place == null:
+		return NO_PLACE
+	_f_t_req = t
+	time_s = t
+	if _dp_placed:
+		_dp.start_at(t)  # поле на момент t — фоном в крейте
 	else:
-		var slot := floori(time_s / _state_interval)
-		if slot != _state_slot:
-			_state_slot = slot
-			if _day_active():
-				_apply_day(slot * _state_interval)
-			field.update_time(time_s)
-	ground.prefetch(_focus)
+		_dp_start()
+	_dp_poll()
+	return OK
 
 
-func _refresh_dt() -> float:
-	return _refresh_interval * maxf(refresh_scale, 1.0)
+## Продвинуть воздух до t. t меньше текущего — BAD_INPUT; равно — OK; идёт загрузка — NOT_READY
+## (t запоминается как момент старта).
+func advance_to(t: float) -> int:
+	if not (is_finite(t) and t >= 0.0):
+		return _fail(BAD_INPUT, "advance_to: t < 0 или не конечно")
+	if _f_place == null:
+		return NO_PLACE
+	_dp_poll()
+	if _f_state != STATE_READY:
+		return _advance_pending(t)
+	return _advance_ready(t)
 
 
-func _day_active() -> bool:
-	return day != null and day.has_weather()
+## Реализации с главным потоком давали ему время здесь; у DpAir работа в потоках крейта — ничего
+## не делает, кроме ленивого начала подготовки места.
+func pump(_budget_us: int) -> void:
+	_dp_poll()
+
+
+## {state, progress 0..1, time_s, reason, stage, field_on, iters, run, runs} (W2 v6).
+## run/runs — номер прогона решателя и их число по плану (0, 0 — этап без итераций).
+## stage — подпись этапа для экрана загрузки («» — этапа нет); iters — итерации решателя в этапе.
+func status() -> Dictionary:
+	_dp_poll()
+	var s := _f_state
+	var label := _stage_text() if s == STATE_LOADING else ""
+	var live := _dp_placed and s == STATE_READY
+	return {
+		"state": s,
+		"progress": _progress(s),
+		"time_s": float(_dp.time_s()) if live else maxf(_f_t_req, time_s),
+		"reason": _f_err if s == STATE_FAILED else "",
+		"stage": label,
+		"field_on": is_air_field_on(),
+		"iters": int(_dp.iters()) if label != "" else 0,
+		"run": int(_dp.run()) if label != "" else 0,
+		"runs": int(_dp.runs()) if label != "" else 0,
+	}
+
+
+func is_ready() -> bool:
+	_dp_poll()
+	return _f_state == STATE_READY
+
+
+## Текст последней ошибки; пусто — не было.
+func last_error() -> String:
+	return _f_err
+
+
+## Подпись этапа для экрана загрузки по идентификатору этапа (ключи locale/ui.csv). Идентификаторы
+## крейта — из doc-комментария Status.stage (W4 v4): lookup (поиск готового поля — быстро, этапа на
+## экране нет), prepare, phases, coarse, solve_mech, solve_heat, windows — все «Рассчитываем ветер»;
+## "solver" — то же (прежний идентификатор), "simple" — упрощённый ветер. Неизвестный идентификатор
+## и "" — подписи нет.
+static func stage_label(stage_id: String) -> String:
+	match stage_id:
+		"solver", "prepare", "phases", "coarse", "solve_mech", "solve_heat", "windows":
+			return TranslationServer.translate("loading_wind")
+		"simple":
+			return TranslationServer.translate("loading_wind_simple")
+	return ""
+
+
+## Место из рельефа игры без остановки кадров (FL-9): снимок поверхности считает задача пула, по
+## кадрам ждём готовности. null — рельеф без слоя detail или снимка поверхности.
+func place_from_terrain(
+	p_terrain: Node, utc_offset_h: float, month: int, day_of_month: int
+) -> AirPlaceData:
+	var snap := AirPlaceData.terrain_snapshot(p_terrain, utc_offset_h, month, day_of_month)
+	var sf: SurfaceSnapshot = snap.surface
+	if snap.detail == null or sf == null:
+		return null
+	while not sf.is_ready() and is_inside_tree():
+		await get_tree().process_frame
+	return AirPlaceData.from_snapshot(snap, p_terrain, month, day_of_month)
+
+
+## Можно ли собирать источники термиков поля (FL-17): поля рельефа считаются в фоне и подменяются
+## на главном потоке; сборка, начатая до их готовности, видела бы то нейтральную влажность, то
+## настоящую. Крейт сам ждёт готовности; метод оставлен для тестов рельефа.
+static func air_sources_ready(t: Object) -> bool:
+	return t == null or not t.has_method("relief_busy") or not bool(t.call("relief_busy"))
+
+
+# ================================================================ опрос
+
+
+## Пачка точек → [vx, vy, vz, σ] на точку (длина 4N). SAMPLE_FULL — весь ветер; SAMPLE_MEAN — то же
+## без неразрешённой болтанки и порывов; σ в обоих режимах — полная. Не конечная точка и пустое
+## место — нули.
+func sample_many(points: PackedVector3Array, mode: int = SAMPLE_FULL) -> PackedFloat32Array:
+	if not _dp_has():
+		return _zeros(points.size() * 4)
+	return _dp.sample_many(points, mode)
+
+
+## Одна точка: (vx, vy, vz, σ).
+func sample(pos: Vector3, mode: int = SAMPLE_FULL) -> Vector4:
+	if not _dp_has():
+		return Vector4()
+	return _dp.sample(pos, mode)
+
+
+## Скорость воздуха в точке, м/с, мир: sample(pos).xyz (на нём air_fn модели полёта).
+func air_velocity_at(pos: Vector3) -> Vector3:
+	var s := sample(pos)
+	return Vector3(s.x, s.y, s.z)
+
+
+## Средний ветер без пульсаций: sample(pos, SAMPLE_MEAN).xyz (с вертикалью).
+func mean_wind_at(pos: Vector3) -> Vector3:
+	var s := sample(pos, SAMPLE_MEAN)
+	return Vector3(s.x, s.y, s.z)
+
+
+## Интенсивность болтанки в точке — СКО пульсаций скорости воздуха, м/с: sample(pos).w.
+func turbulence_intensity_at(pos: Vector3) -> float:
+	return sample(pos).w
+
+
+## Термики рядом — обёртка над cores (W6): словарь на ядро. Не показывать пилоту (FR-22).
+func thermals_near(pos: Vector3, radius: float) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	var c := cores(pos, radius)
+	for j in range(0, c.size(), CORE_STRIDE):
+		var fl := int(c[j + CORE_FLAGS])
+		(
+			out
+			. append(
+				{
+					"x": c[j + CORE_X],
+					"z": c[j + CORE_Z],
+					"y_src": c[j + CORE_Y_SRC],
+					"top": c[j + CORE_TOP],
+					"w": c[j + CORE_W],
+					"radius": c[j + CORE_RADIUS],
+					"age_s": c[j + CORE_AGE],
+					"life_s": c[j + CORE_LIFE],
+					"stage": c[j + CORE_STAGE],
+					"id": int(c[j + CORE_ID]),
+					"static": (fl & 1) != 0,
+					"has_cloud": (fl & 2) != 0,
+					"is_cb": (fl & 4) != 0,
+				}
+			)
+		)
+	return out
+
+
+## Плотность облака в точках 0..1 (0 — ясно).
+func cloud_density_many(points: PackedVector3Array) -> PackedFloat32Array:
+	if not _dp_has():
+		return _zeros(points.size())
+	return _dp.cloud_density_many(points)
+
+
+## Плотность облака в точке 0..1: для «белой мглы» у камеры и оценки «в облаке».
+func cloud_density_at(pos: Vector3) -> float:
+	return cloud_density_many(PackedVector3Array([pos]))[0]
+
+
+## Нижняя кромка облаков, м MSL.
+func cloudbase_msl() -> float:
+	return float(_dp.cloudbase_msl()) if _dp_has() else 0.0
+
+
+func get_cloudbase_msl() -> float:
+	return cloudbase_msl()
+
+
+## Фоновый (синоптический) ветер по высоте MSL без рельефа и термиков: длина 2N [vx, vz].
+func background_wind(heights_msl: PackedFloat32Array) -> PackedFloat32Array:
+	if not _dp_has():
+		return _zeros(heights_msl.size() * 2)
+	return _dp.background_wind(heights_msl)
+
+
+## Выведенная погода (копия, только чтение): ключи пресета и _derived. Разбор weather_json
+## кэшируется по версиям крейта. Нет места — пусто.
+func weather() -> Dictionary:
+	if not _dp_has():
+		return {}
+	var v := Vector2i(int(_dp.weather_version()), int(_dp.weather_rebuild_version()))
+	if v != _w_cache_ver:
+		var parsed: Variant = JSON.parse_string(String(_dp.weather_json()))
+		_w_cache = parsed if parsed is Dictionary else {}
+		# Пока место грузится, крейт отдаёт «{}» при той же версии: пустое не кешируем, иначе после READY
+		# погода так и осталась бы пустой (версия не менялась).
+		_w_cache_ver = v if not _w_cache.is_empty() else Vector2i(-1, -1)
+	return _w_cache.duplicate(true)
+
+
+## (на солнце x, y, z; прогрев 0..1) на текущий момент.
+func sun_state() -> Vector4:
+	return _dp.sun_state() if _dp_has() else Vector4()
+
+
+## Доля солнечного прогрева земли под перистой пеленой 0..1 (1 — ясно).
+func get_insolation() -> float:
+	return clampf(sun_state().w, 0.0, 1.0) if _dp_has() else 1.0
+
+
+# ---- описания W6 ----
+
+
+## Ядра подъёма (шаг CORE_STRIDE) с осью ближе radius к center по горизонтали.
+func cores(center: Vector3, radius: float) -> PackedFloat32Array:
+	return _dp.cores(center, radius) if _dp_has() else PackedFloat32Array()
+
+
+## Облака (шаг CLOUD_STRIDE): облака поля и грозовые Cb-объекты (флаг 4).
+func clouds(center: Vector3, radius: float) -> PackedFloat32Array:
+	return _dp.clouds(center, radius) if _dp_has() else PackedFloat32Array()
+
+
+## Объекты-облака для рисования (W6 v4), шаг OBJ_STRIDE. t — момент атмосферы; вне окна —
+## ближайшая граница. Нет места или не READY — пусто.
+func cloud_objects(center: Vector3, radius: float, t: float) -> PackedFloat32Array:
+	if not _dp_ready():
+		return PackedFloat32Array()
+	return _dp.cloud_objects(center, radius, t)
+
+
+## [enabled, wavelength_m] (W6 v4). Нет места или не READY — [0, 0].
+func wave_info() -> PackedFloat32Array:
+	if not _dp_ready():
+		return PackedFloat32Array([0.0, 0.0])
+	return _dp.wave_info()
+
+
+## Порыв на 10 м, м/с, длина min(len(xz), len(t)) (W6 v4). Не READY — нули. Звать пачками.
+func surface_gust_many(xz: PackedVector2Array, t: PackedFloat64Array) -> PackedFloat32Array:
+	if not _dp_ready():
+		return _zeros(mini(xz.size(), t.size()))
+	return _dp.surface_gust_many(xz, t)
+
+
+## Растр облаков {version, nx, ny, dx, x0, z0, base_msl, time_s, cover, depth, stage, activity,
+## bg_cover, bg_depth} в осях W1: строка растёт к +Z. Нет поля — {version: 0}.
+func cloud_raster() -> Dictionary:
+	var head := _raster_head(true, "")
+	if int(head.get("version", 0)) <= 0:
+		return {"version": 0}
+	var out: Dictionary = head.duplicate()
+	out.erase("layers")
+	for k: Variant in head.get("layers", []):
+		out[String(k)] = _dp.cloud_raster_channel(String(k))
+	return out
+
+
+## Растёт при обновлении поля облаков; 0 — поля нет.
+func cloud_raster_version() -> int:
+	return int(_raster_head(true, "").get("version", 0))
+
+
+## Гребни волн [x, z, eta, crest] (шаг CREST_STRIDE); волн нет — пусто.
+func wave_crests(
+	center: Vector2, radius: float, min_eta: float, spacing: float = 5000.0
+) -> PackedFloat32Array:
+	if not _dp_has():
+		return PackedFloat32Array()
+	return _dp.wave_crests(center, radius, min_eta, spacing)
+
+
+# ---- разложение и отладка W7 ----
+
+
+## Слагаемые ветра в точке: {names, vel, sigma, total} (W7), из крейта. total = sample(pos,
+## SAMPLE_FULL) побитно; Σ vel = total.xyz (погрешность float32).
+func decompose(pos: Vector3) -> Dictionary:
+	var names := PackedStringArray()
+	var flat := PackedFloat32Array()
+	if _dp_has():
+		names = _dp.decompose_names()
+		if _finite3(pos):
+			flat = _dp.decompose(pos)
+	var n := names.size()
+	var vel := PackedVector3Array()
+	vel.resize(n)
+	var sigma := PackedFloat32Array()
+	sigma.resize(n)
+	var total := Vector4()
+	if flat.size() == 4 * (n + 1):
+		for i in n:
+			vel[i] = Vector3(flat[4 * i], flat[4 * i + 1], flat[4 * i + 2])
+			sigma[i] = flat[4 * i + 3]
+		total = Vector4(flat[4 * n], flat[4 * n + 1], flat[4 * n + 2], flat[4 * n + 3])
+	return {"names": names, "vel": vel, "sigma": sigma, "total": total}
+
+
+## Имена отладочных растров: рельеф места (из места фасада) и растры крейта (без «phase»).
+func debug_raster_names() -> PackedStringArray:
+	var names := PackedStringArray()
+	if _f_place != null:
+		names.append("terrain_height")
+	if _dp_has():
+		for n in _dp.debug_raster_names():
+			names.append(n)
+	return names
+
+
+## Растр для оверлеев {nx, ny, dx, x0, z0, data} (оси W1: строка — к +Z); неизвестное имя — {}.
+func debug_raster(raster_name: String) -> Dictionary:
+	if raster_name == "terrain_height" and _f_place != null:
+		var g: Dictionary = _f_place.get("header").grid
+		return {
+			"nx": int(g.width),
+			"ny": int(g.height),
+			"dx": float(g.spacing),
+			"x0": float(g.origin_x),
+			"z0": float(g.origin_z),
+			"data": _f_place.get("heights"),
+		}
+	if not _dp_has():
+		return {}
+	var head := _raster_head(false, raster_name)
+	if int(head.get("version", 0)) <= 0:
+		return {}
+	var out := head.duplicate()
+	out.erase("layers")
+	out.data = _dp.debug_raster_data(raster_name)
+	return out
+
+
+# ================================================================ внутреннее
+
+
+func _fail(code: int, msg: String) -> int:
+	_f_err = msg
+	return code
+
+
+func _finite3(p: Vector3) -> bool:
+	return is_finite(p.x) and is_finite(p.y) and is_finite(p.z)
+
+
+static func _zeros(n: int) -> PackedFloat32Array:
+	var out := PackedFloat32Array()
+	out.resize(n)
+	return out
+
+
+func _set_state(s: int) -> void:
+	if s == _f_state:
+		return
+	_f_state = s
+	state_changed.emit(s)
+
+
+## Загрузка: t запоминается как момент старта (не меньше прежнего), ответ NOT_READY.
+func _advance_pending(t: float) -> int:
+	if t < _f_t_req:
+		return _fail(BAD_INPUT, "advance_to: t меньше текущего")
+	_f_t_req = t
+	return NOT_READY
+
+
+func _advance_ready(t: float) -> int:
+	var cur := float(_dp.time_s())
+	if t < cur:
+		return _fail(BAD_INPUT, "advance_to: t меньше текущего")
+	if t == cur:
+		return OK
+	var code: int = _dp.advance_to(t)
+	if code != OK:
+		return _fail(code, String(_dp.last_error()))
+	if _air_field != null:
+		_air_field.call("advance", t - cur)
+	_f_t_req = t
+	time_s = t
+	_dp_poll()
+	return OK
+
+
+## Крейт держит место (опросы идут к нему: и пустое место, и загрузка дают определённый ответ).
+func _dp_has() -> bool:
+	return _dp != null and _dp_placed
+
+
+## Крейт держит место и готов (READY): объекты облаков, волны, порывы.
+func _dp_ready() -> bool:
+	return _dp_has() and _f_state == STATE_READY
+
+
+func _progress(s: int) -> float:
+	if s == STATE_READY:
+		return 1.0
+	return float(_dp.progress()) if s == STATE_LOADING and _dp_placed else 0.0
+
+
+func _stage_text() -> String:
+	return stage_label(String(_dp.stage())) if _dp_placed else ""
+
+
+func _origin_height() -> float:
+	return float(_f_place.call("height_at", 0.0, 0.0)) if _f_place != null else 0.0
+
+
+## Заголовок растра крейта (json → словарь с nx, ny, dx, x0, z0, version, layers); пустой — {}.
+func _raster_head(is_cloud: bool, raster_name: String) -> Dictionary:
+	if not _dp_has():
+		return {}
+	var text: String
+	if is_cloud:
+		text = String(_dp.cloud_raster_header())
+	else:
+		text = String(_dp.debug_raster_header(raster_name))
+	var parsed: Variant = JSON.parse_string(text)
+	return parsed if parsed is Dictionary else {}
+
+
+## Текущее состояние: нет места — EMPTY; крейт ещё не начал — LOADING; иначе его состояние.
+func _compute_state() -> int:
+	if _f_place == null:
+		return STATE_EMPTY
+	if _dp_failed:
+		return STATE_FAILED
+	if not _dp_placed:
+		return STATE_LOADING
+	var s := int(_dp.state())
+	return STATE_LOADING if s == STATE_EMPTY else s
+
+
+## Шаг опроса состояния: ленивый старт, смена состояния (сигналы), версии погоды, подача поля.
+func _dp_poll() -> void:
+	if _f_place == null:
+		return
+	if not _dp_placed and not _dp_failed:
+		_dp_start()
+	var s := _compute_state()
+	_dp_log_progress(s)
+	if s == STATE_READY and _f_state != STATE_READY:
+		_on_ready()
+	_set_state(s)
+	_poll_weather()
+	_dp_feed()
+
+
+## Журнал подготовки (W9): смена этапа одной строкой с итерациями, итог READY/FAILED с временем.
+func _dp_log_progress(s: int) -> void:
+	if not _dp_placed or _dp == null:
+		return
+	var t := (Time.get_ticks_msec() - _dp_t0) * 0.001
+	if s == STATE_LOADING:
+		var st := String(_dp.stage())
+		if st != _dp_stage_logged:
+			_dp_stage_logged = st
+			_dp_log("dp_air: %.1f с, этап %s, итераций %d" % [t, st, int(_dp.iters())])
+	elif s != _dp_state_logged and (s == STATE_READY or s == STATE_FAILED):
+		_dp_log(
+			(
+				"dp_air: %s за %.1f с, поле %s, last_error=%s"
+				% [
+					"READY" if s == STATE_READY else "FAILED",
+					t,
+					"подано" if int(_dp.field_version()) > 0 else "нет",
+					_dp.last_error(),
+				]
+			)
+		)
+	_dp_state_logged = s
+
+
+## Первое READY после сборки: запомненный момент старта и weather_changed.
+func _on_ready() -> void:
+	if _f_t_req > float(_dp.time_s()) + 1.0e-6:
+		_dp.advance_to(_f_t_req)
+	time_s = float(_dp.time_s())
+	if _rebuilt:
+		_rebuilt = false
+		_w_seen = Vector2i(int(_dp.weather_version()), int(_dp.weather_rebuild_version()))
+		weather_changed.emit()
+
+
+## Версии погоды выросли — сигналы: перестройка — weather_changed, мягкая — weather_updated.
+func _poll_weather() -> void:
+	if _f_state != STATE_READY or not _dp_placed:
+		return
+	var v := Vector2i(int(_dp.weather_version()), int(_dp.weather_rebuild_version()))
+	if v == _w_seen:
+		return
+	var rebuilt := v.y != _w_seen.y
+	_w_seen = v
+	if rebuilt:
+		weather_changed.emit()
+	else:
+		weather_updated.emit()
+
+
+## Один DpAir на фасад; null — нет расширения (одна строка в журнале, W9).
+func _dp_object() -> RefCounted:
+	if _dp != null or _dp_missing:
+		return _dp
+	if not ClassDB.class_exists("DpAir"):
+		_dp_missing = true
+		_dp_log("dp_air: нет расширения — воздух недоступен")
+		return null
+	_dp = ClassDB.instantiate("DpAir")
+	_dp_log("dp_air: расширение загружено, api_version=%d" % int(_dp.api_version()))
+	return _dp
+
+
+func _dp_log(line: String) -> void:
+	if line != _air_log_last:
+		_air_log_last = line
+		print(line)
+
+
+func _dp_failed_with(what: String) -> void:
+	_dp_failed = true
+	_dp_placed = false
+	_f_err = "dp_air: %s: %s" % [what, _dp.last_error()]
+	_dp_log(_f_err)
+	push_error(_f_err)
+
+
+## Конфиг по имени (слитый словарь Config).
+func _conf(config_name: String) -> Dictionary:
+	return Config.get_config(config_name)
+
+
+func _dp_deterministic() -> bool:
+	return deterministic or bool(_conf("atmosphere").get("air", {}).get("deterministic", false))
+
+
+## Текст конфига для крейта «как есть»: единственный слой res://configs — файл целиком (числа не
+## переписываются), пилотские слои поверх — слитый словарь.
+func _dp_config_text(config_name: String) -> String:
+	if config_name == "atmosphere" and not cfg_override.is_empty():
+		return JSON.stringify(cfg_override)
+	return Weather.config_text(config_name)
+
+
+func _dp_configs() -> PackedStringArray:
+	var text := _dp_config_text("atmosphere")
+	if _dp_deterministic():
+		var re := RegEx.create_from_string('"deterministic"\\s*:\\s*false')
+		text = re.sub(text, '"deterministic": true')
+	return Weather.config_pairs({"atmosphere": text})
+
+
+func _dp_seed() -> int:
+	return _f_seed if _f_seed >= 0 else int(_conf("atmosphere").get("seed", 0))
+
+
+## Условия для крейта: запомненные (или погода по умолчанию), без rebuild (перестройка — загрузка).
+func _dp_cond_json() -> String:
+	var c: Dictionary = (
+		_f_cond.duplicate(true)
+		if _f_cond_set
+		else {"preset": String(_conf("atmosphere").get("default_weather", ""))}
+	)
+	c["rebuild"] = false
+	return JSON.stringify(c)
+
+
+## Поле считается для прогноза; эталон погоды (пресет — превью и тесты) идёт без поля.
+func _dp_field_wanted() -> bool:
+	return _f_cond_set and _f_cond.has("forecast")
+
+
+## Подготовка места у крейта: конфиги, условия, солнце, статические термики, фокус,
+## место и запечённые поля. Повторный вызов (rebuild) — выгрузка и загрузка заново.
+func _dp_start() -> void:
+	var dp := _dp_object()
+	_dp_stop_task()
+	_dp_failed = false
+	if dp == null:
+		_dp_failed = true
+		_f_err = "dp_air: нет расширения DpAir"
+		return
+	if _dp_placed:
+		dp.unload_place()
+		_dp_placed = false
+	var sig := "%d|%s|%s" % [_dp_seed(), _dp_deterministic(), hash(cfg_override)]
+	if sig != _dp_cfg_sig:
+		if dp.configure(_dp_configs(), _dp_seed()) != 0:
+			_dp_failed_with("configure")
+			return
+		_dp_cfg_sig = sig
+		_dp_weather = null  # configure заводит модель заново
+	# Погода у крейта одна на игру (W12): климат места и ход дня считает она (attach_weather до load_place).
+	# Только для прогноза игры: эталон-пресет (превью, тесты) идёт с запасным климатом, как раньше.
+	# Повторный attach перестраивает уже заданные условия, поэтому — только после configure.
+	if _dp_field_wanted():
+		var wx := Weather.dp()
+		if wx == null:
+			_dp_failed = true
+			_f_err = "dp_air: нет погоды DpWeather"
+			return
+		if _dp_weather != wx:
+			if dp.attach_weather(wx) != 0:
+				_dp_failed_with("attach_weather")
+				return
+			_dp_weather = wx
+	dp.set_cache_dir(
+		ProjectSettings.globalize_path("user://air_cache") if air_cache_enabled else ""
+	)
+	var place := _f_place
+	if not place.get("header").has("model_hash"):
+		place.call("fill_crate_inputs")
+	if dp.set_conditions(_dp_cond_json()) != 0:
+		_dp_failed_with("set_conditions")  # раньше молча: погода пуста, поле не считалось (RW-P5)
+		return
+	if _f_sun_set:
+		dp.set_sun_direction(_f_sun)
+	if _f_statics_set:
+		dp.set_static_thermals(_f_statics, _f_static_mode)
+	_dp_send_focus(true)
+	var code: int = dp.load_place(
+		place.call("header_json"),
+		place.get("heights"),
+		place.get("water"),
+		place.get("surface_cls"),
+		place.get("surface_moist")
+	)
+	if code != 0:
+		_dp_failed_with("load_place")
+		return
+	if _f_t_req > 0.0:
+		dp.start_at(_f_t_req)
+	_dp_placed = true
+	_dp_ver = -1
+	_dp_fed = false
+	_dp_t0 = Time.get_ticks_msec()
+	_dp_stage_logged = ""
+	_dp_state_logged = -1
+	_dp_log(
+		(
+			"dp_air: подготовка места начата, место %s"
+			% str(place.get("header").get("loc", {}).get("id", "?"))
+		)
+	)
 
 
 func _update_focus() -> void:
+	if _f_focus_manual:
+		return  # точки внимания заданы фасадом (set_focuses), узел и камера не нужны
 	if focus_node != null and is_instance_valid(focus_node) and focus_node.is_inside_tree():
 		_focus = focus_node.global_position
 	elif is_inside_tree():
@@ -754,428 +1038,215 @@ func _update_focus() -> void:
 			_focus = cam.global_position
 
 
-# ================================================================ поле скоростей
-
-
-## Скорость воздуха в точке (ветер + вертикальные потоки + пульсации), м/с, мир.
-## С полем воздуха (доля fw.w > 0) — _air_velocity_field (масштабы 1–3 из поля); без поля и вне
-## поля — аналитика ниже (побитно прежняя).
-func air_velocity_at(pos: Vector3) -> Vector3:
-	var gs := ground.sample(pos.x, pos.z)
-	var agl := maxf(pos.y - gs.x, 0.0)
-	var u := wind.speed_at_pos(agl, pos.y)
-	if _air_on:
-		var fw := air_field.sample(pos, gs.x)
-		if fw.w > 0.0:
-			return _air_velocity_field(pos, gs, agl, u, fw)
-	var wd := wind.dir
-	# Подветренная зона: ниже линии тени от гребня против ветра (и в слое сдвига над ней).
-	var lee := 0.0
-	var danger := 0.0
-	var relief := 0.0
-	var depth := gs.w - pos.y
-	if depth > -_lee_shear and u > 0.0:
-		relief = ground.relief_at(pos.x, pos.z)
-		lee = (
-			clampf((depth + _lee_shear) / (_lee_depth + _lee_shear), 0.0, 1.0)
-			* clampf(relief / _lee_relief, 0.0, 1.0)
-		)
-		if lee > 0.0:
-			danger = _lee_danger(wind.speed_ref * wind.altitude_factor(pos.y))
-	# Склоновый подъём: V·∇h впереди по ветру, затухает с высотой над склоном.
-	var w_ridge := 0.0
-	if u > 0.0 and ground.has_ground:
-		w_ridge = _ridge_lift(pos, agl, u)
-	w_ridge *= 1.0 - lee
-	# Термики и фоновое опускание (у земли плавно гаснут).
-	var th := field.sample(pos)
-	var fade := minf(agl / _ground_fade, 1.0)
-	var above_base := pos.y >= field.cloudbase_msl
-	var w := fade * (_bg_sink * (1.0 - th.y) + th.x) + w_ridge
-	var h := u * (1.0 - lee * _lee_wind_red)
-	if lee > 0.0:
-		var ld := _lee_flow(pos, agl, u, lee, danger, relief)
-		w += ld.y
-		h += ld.x
-	var v := _extra_flow(Vector3(wd.x * h, w, wd.z * h), pos, agl)
-	_last_sigma = 0.0
-	if not turbulence_enabled:
-		return v
-	var rot := lerpf(_lee_turb, _lee_danger_turb, danger) * u * lee
-	var amp := _analytic_amp(pos, gs, agl, u, th, rot, above_base)
-	var tv := _analytic_turb(pos, agl, amp, fade)
-	# В облаке — бурление: большие пульсации мелкого масштаба во всех направлениях.
-	var chaos := _in_cloud_turb * _cin.x
-	_last_sigma = sqrt(amp * amp + chaos * chaos)
-	if chaos > 1.0e-3:
-		var nc := wind.gust_unit(pos * _in_cloud_scale_k, time_s * 3.0, _advect, 0.0)
-		v += nc * chaos
-	if amp < 1.0e-3:
-		return v
-	return v + tv
-
-
-## Склоновый подъём аналитики: V·∇h впереди по ветру, затухает с высотой над склоном, м/с.
-func _ridge_lift(pos: Vector3, agl: float, u: float) -> float:
-	var wd := wind.dir
-	var shift := minf(agl * _ridge_shift_k, _ridge_shift_max)
-	var gr := ground.sample(pos.x + wd.x * shift, pos.z + wd.z * shift)
-	var slope := wd.x * gr.y + wd.z * gr.z
-	var agl_s := maxf(pos.y - gr.x, 0.0)
-	return clampf(_ridge_eff * u * slope * exp(-agl_s / _ridge_decay), -_ridge_max, _ridge_max)
-
-
-## Грозы, подветренные волны, поток в облаке — добавить к скорости v; σ болтанки гроз и роторов
-## волн — в _storm_turb, _rotor_turb, облако в точке — в _cin (для бурления).
-func _extra_flow(v_in: Vector3, pos: Vector3, agl: float) -> Vector3:
-	var v := v_in
-	# Грозы: нисходящий поток, растекание и фронт порывов.
-	_storm_turb = 0.0
-	if not storm.cells.is_empty():
-		var sf := storm.sample(pos, agl, time_s)
-		v += Vector3(sf.x, sf.y, sf.z)
-		_storm_turb = sf.w
-	# Подветренные волны и роторы.
-	_rotor_turb = 0.0
-	if wave.enabled:
-		var wv := wave.sample(pos, agl, wind.speed_at(_wave_ref_agl))
-		v.y += wv.x
-		_rotor_turb = wv.y
-	# В облаке: поток «выкидывает» к краю, упорядоченного подъёма почти нет (FR-14b).
-	_cin = Vector3.ZERO
-	if cloud_phys.cloud_count() > 0:
-		_cin = cloud_phys.sample(pos)
-		v += Vector3(_cin.y, 0.0, _cin.z) * _in_cloud_eject * _cin.x
-	return v
-
-
-## σ болтанки аналитики (горизонталь), м/с: механическая + конвективная (Lenschow) + край термика
-## + ротор + грозы и роторы волн.
-func _analytic_amp(
-	_pos: Vector3, gs: Vector4, agl: float, u: float, th: Vector3, rot: float, above_base: bool
-) -> float:
-	var mech := _mech_k * u * (1.0 + _mech_boost * exp(-agl / _mech_h))
-	var conv := 0.0
-	if not above_base:
-		var cb_agl := maxf(field.cloudbase_msl - gs.x, 1.0)
-		conv = _conv_amp * _conv_norm * _lenschow(clampf(agl / cb_agl, 0.0, 1.0))
-	var amp2 := mech * mech + conv * conv + th.z * th.z + rot * rot
-	amp2 += _storm_turb * _storm_turb + _rotor_turb * _rotor_turb
-	# У ротора свой предел: за гребнем в сильный ветер болтает сильнее общего ограничения.
-	return minf(sqrt(amp2), maxf(_turb_max, minf(rot, _lee_rotor_max)))
-
-
-## Пульсации аналитики: двухмасштабный шум WindModel.gust_unit × σ (вертикаль — доля
-## vertical_ratio и гаснет у земли).
-func _analytic_turb(pos: Vector3, agl: float, amp: float, fade: float) -> Vector3:
-	if amp < 1.0e-3:
-		return Vector3.ZERO
-	# Крупные вихри растут с высотой (у земли масштаб вихрей ~ высоты): на разбеге и посадке —
-	# мелкая болтанка, как раньше.
-	var n := wind.gust_unit(pos, time_s, _advect, agl / wind.large_fade_agl)
-	return Vector3(n.x * amp, n.y * amp * _vert_ratio * fade, n.z * amp)
-
-
-## Скорость воздуха с полем (масштабы 1–3 из поля, docs/guide/air-model.md → «Масштаб 3: возмущения
-## из поля»). fw — выборка поля (доля a = fw.w > 0); в полосе края (a < 1) остаток — аналитика с её
-## линией тени.
-## - Среднее: горизонталь и w_mech — поле; подветренного опускания и ослабления ветра поверх поля
-##   нет (они уже в поле); у аналитической доли — как в аналитике.
-## - Зона отрыва — признак из поля (FieldTurbulence.lee: дефицит скорости у земли против
-##   лог-профиля под «внешним» ветром столба и опускание); в ней эвристика (C4 v4) даёт болтанку
-##   слоя смешения по ΔU от ветра поля на уровне гребня U_H, рывки (часть этой болтанки, с нулевым
-##   средним, только при turbulence_enabled) и обратный поток у земли 0,22·U_H — только там, где
-##   пузырь отрыва решателем не разрешён (грубая сетка).
-## - Болтанка: механическая по u* поля (в приземном слое — по ветру в точке) и местному сдвигу (с
-##   поправкой на устойчивость Ri), конвективная по w* (Lenschow; сложение σ³ — Panofsky 1977),
-##   слоя смешения за гребнем по ΔU; горизонталь вдоль и поперёк среднего ветра (σ_u ≠ σ_v); шум —
-##   спектр фон Кармана (GustSpectrum) с масштабами MIL-HDBK-1797 от высоты и устойчивости, у земли
-##   растянутыми под местный перенос, конвективная горизонталь — с масштабом 0,22 z_i (AS-2).
-func _air_velocity_field(pos: Vector3, gs: Vector4, agl: float, u: float, fw: Vector4) -> Vector3:
-	var wd := wind.dir
-	var a := fw.w
-	var tb := air_field.sample_turb(pos, gs.x)
-	# аналитическая доля (полоса края поля): линия тени, склоновый подъём
-	var lee_a := 0.0
-	var relief := -1.0
-	var w_ridge := 0.0
-	if a < 1.0 and u > 0.0:
-		var depth := gs.w - pos.y
-		if depth > -_lee_shear:
-			relief = ground.relief_at(pos.x, pos.z)
-			lee_a = (
-				clampf((depth + _lee_shear) / (_lee_depth + _lee_shear), 0.0, 1.0)
-				* clampf(relief / _lee_relief, 0.0, 1.0)
-			)
-		if ground.has_ground:
-			w_ridge = _ridge_lift(pos, agl, u) * (1.0 - lee_a)
-	# поле: скорость (без доли), признак отрыва, скачок скорости слоя смешения ΔU от ветра поля
-	# на уровне гребня U_H (та же вертикаль, высота h + max(r, agl); C4 v4)
-	var uf := Vector2(fw.x, fw.z).length() / a
-	var lee_f := field_turb.lee(uf, agl, tb)
-	var danger := 0.0
-	if lee_f > 0.0 or lee_a > 0.0:
-		danger = _lee_danger(wind.speed_ref * wind.altitude_factor(pos.y))
-		if relief < 0.0:
-			relief = ground.relief_at(pos.x, pos.z)
-	var u_h := uf
-	if lee_f > 0.0 and relief > agl:
-		var fh := air_field.sample(Vector3(pos.x, gs.x + relief, pos.z), gs.x)
-		if fh.w > 0.0:
-			u_h = Vector2(fh.x, fh.z).length() / fh.w
-	var du := maxf(u_h - uf, 0.0) * lee_f
-	# средняя вертикаль: w_mech поля + аналитика в доле края; термики и фон — как всегда
-	var th := field.sample(pos)
-	var fade := minf(agl / _ground_fade, 1.0)
-	var above_base := pos.y >= field.cloudbase_msl
-	var w := fade * (_bg_sink * (1.0 - th.y) + th.x) + fw.y + (1.0 - a) * w_ridge
-	var h := u * (1.0 - a) * (1.0 - lee_a * _lee_wind_red)
-	if lee_a > 0.0:
-		w -= (1.0 - a) * lerpf(_lee_sink, _lee_danger_sink, danger) * u * lee_a
-	var hard_a := (1.0 - a) * u * lee_a * danger
-	if hard_a > 0.0:
-		# аналитическая доля: рывки вниз в пятнах шума и ротор у земли — как в аналитике
-		if hard_a > 1.0e-3:
-			w -= _lee_burst * hard_a * _lee_burst_g(pos, u)
-		h -= _lee_reverse * hard_a * exp(-agl / maxf(_lee_rotor_h * relief, 1.0))
-	if lee_f > 0.0 and danger > 0.0:
-		# обратный поток у земли — только там, где пузырь отрыва (L ≈ 2,8 r) решателем не разрешён
-		# (меньше n1 клеток на длину): в окнах 50/100 м возвратное течение даёт само поле
-		var unres := field_turb.reverse_unresolved(relief, air_field.sample_dx(pos, gs.x))
-		if unres > 0.0:
-			h -= (
-				a * field_turb.reverse * u_h * lee_f * danger * unres
-				* exp(-agl / maxf(_lee_rotor_h * relief, 1.0))
-			)
-	var v := Vector3(fw.x + wd.x * h, w, fw.z + wd.z * h)
-	v = _extra_flow(v, pos, agl)
-	_last_sigma = 0.0
-	if not turbulence_enabled:
-		return v
-	# болтанка поля
-	var conv_a := 0.0
-	if tb[WindField.T_HMIX] <= 0.0 and not above_base:
-		# в поле нет данных о нагреве — конвективная болтанка аналитики (погода)
-		var cb_agl := maxf(field.cloudbase_msl - gs.x, 1.0)
-		conv_a = _conv_amp * _conv_norm * _lenschow(clampf(agl / cb_agl, 0.0, 1.0))
-	# средний ветер в точке (поле + доля аналитики) — u* приземного слоя и перенос вихрей у земли
-	var mh := Vector2(v.x, v.z)
-	var sg := field_turb.sigma(agl, tb, Vector2(conv_a, conv_a * _vert_ratio), uf)
-	var s_u := sg.x
-	var s_v := field_turb.last_sv
-	var s_w := sg.y
-	var s_sep := field_turb.sep_sigma(du)
-	# рывки вниз слоя смешения (с нулевым средним — поток массы уже в w_mech поля): часть
-	# пульсаций, их доля в σ_w вычитается из гауссовой, σ_w в зоне = 0,14·ΔU (Bell & Mehta 1990)
-	var hard_f := du * danger
-	var w_burst := 0.0
-	if hard_f > 1.0e-3:
-		var amp_b := field_turb.burst_per_du * hard_f
-		var g_mean := field_turb.burst_mean(wind, _lee_burst_k, _lee_burst_thr, _lee_burst_width)
-		var g_std := field_turb.burst_std(wind, _lee_burst_k, _lee_burst_thr, _lee_burst_width)
-		w_burst = -amp_b * (_lee_burst_g(pos, u) - g_mean)
-		var s_b := amp_b * g_std
-		s_sep.y = sqrt(maxf(s_sep.y * s_sep.y - s_b * s_b, 0.0))
-	s_u = maxf(s_u, s_sep.x)
-	s_v = maxf(s_v, s_sep.x)
-	s_w = maxf(s_w, s_sep.y)
-	var ex2 := th.z * th.z + _storm_turb * _storm_turb + _rotor_turb * _rotor_turb
-	var cap_h := maxf(_turb_max, minf(s_sep.x, _lee_rotor_max))
-	s_u = minf(sqrt(s_u * s_u + ex2), cap_h)
-	s_v = minf(sqrt(s_v * s_v + ex2), cap_h)
-	s_w = minf(
-		sqrt(s_w * s_w + ex2 * _vert_ratio * _vert_ratio),
-		maxf(_turb_max, minf(s_sep.y, _lee_rotor_max))
-	)
-	# вихри слоя смешения за гребнем не ограничены расстоянием до стенки: масштаб — толщина слоя,
-	# у места присоединения ~ высоты гребня над точкой (Castro & Haque 1987)
-	var l_sep := field_turb.sep_scale * maxf(relief, 0.0) * lee_f
-	# у земли вихри несёт местный ветер, а не перенос шума (FieldTurbulence.taylor_stretch)
-	var stretch := FieldTurbulence.taylor_stretch(_advect, mh.length(), agl)
-	var n := field_turb.gusts.sample(
-		pos, time_s, _advect, wd, maxf(sg.z * stretch, l_sep), maxf(sg.w * stretch, l_sep),
-		field_turb.last_l_c, field_turb.last_fu_c, field_turb.last_fv_c
-	)
-	# горизонталь — вдоль и поперёк среднего ветра в точке (σ_u ≠ σ_v)
-	var e := mh / mh.length() if mh.length() > 0.3 else Vector2(wd.x, wd.z).normalized()
-	var tv := Vector3(
-		e.x * n.x * s_u - e.y * n.z * s_v, n.y * s_w + a * w_burst, e.y * n.x * s_u + e.x * n.z * s_v
-	)
-	var sig := s_u
-	if a < 1.0:
-		# полоса края: смесь с аналитикой (два независимых шума — дисперсия сохраняется)
-		var rot := lerpf(_lee_turb, _lee_danger_turb, danger) * u * lee_a
-		var amp := _analytic_amp(pos, gs, agl, u, th, rot, above_base)
-		var ta := _analytic_turb(pos, agl, amp, fade)
-		var k := 1.0 / sqrt(a * a + (1.0 - a) * (1.0 - a))
-		tv = (tv * a + ta * (1.0 - a)) * k
-		sig = sqrt(a * s_u * s_u + (1.0 - a) * amp * amp)
-	var chaos := _in_cloud_turb * _cin.x
-	_last_sigma = sqrt(sig * sig + chaos * chaos)
-	if chaos > 1.0e-3:
-		var nc := wind.gust_unit(pos * _in_cloud_scale_k, time_s * 3.0, _advect, 0.0)
-		v += nc * chaos
-	return v + tv
-
-
-## Опасность подветренной зоны 0..1 от ветра прогноза (нелинейно: слабый ветер — мягко).
-func _lee_danger(u_ref: float) -> float:
-	return smoothstep(_lee_danger_min, _lee_danger_full, u_ref)
-
-
-## Подветренный поток: (добавка к горизонтали вдоль ветра, вертикаль), м/с. Нисходящий поток,
-## рывки сверху (детерминированный шум, редкие сильные удары вниз) и ротор у склона — обратный
-## поток у земли в глубине зоны.
-## Пятно рывка 0..1: clamp((n − порог)/ширина) детерминированного шума (burst_*), переносится
-## ветром u.
-func _lee_burst_g(pos: Vector3, u: float) -> float:
-	var nb := wind.gust_unit(pos * _lee_burst_k, time_s, u * _lee_burst_k, 0.0).x
-	return clampf((nb - _lee_burst_thr) / _lee_burst_width, 0.0, 1.0)
-
-
-## Ослабление ротора нагревом земли 0..1 (1 — нет нагрева). Поток тепла по погоде дня: w* из
-## σ конвективной болтанки (σ ≈ 0,6·w*, weather/*.json), H = w*³·ρc_p/(g/θ0·z_i), z_i — кромка
-## (нижняя граница — ZI_MIN поля); фактор = 1 − H/heat_kill_wm2 (AP-10: нагрев убирает пузырь).
-func _lee_heat_factor() -> float:
-	if _lee_heat_full <= 0.0:
-		return 1.0
-	var key := Vector2(_conv_amp, _cloudbase_agl)
-	if key != _lee_heat_key:
-		_lee_heat_key = key
-		var ws := _conv_amp / maxf(_lee_heat_wstar_k, 0.05)
-		var zi := maxf(_cloudbase_agl, WindField.ZI_MIN)
-		var h := (
-			pow(ws, 3.0) * WindField.RHO_CP / (WindField.G / WindField.THETA0 * zi)
-		)
-		_lee_heat_val = clampf(1.0 - h / _lee_heat_full, 0.0, 1.0)
-	return _lee_heat_val
-
-
-## Поток тепла дня, Вт/м² (по тем же w*, z_i; для тестов).
-func lee_heat_wm2() -> float:
-	var ws := _conv_amp / maxf(_lee_heat_wstar_k, 0.05)
-	var zi := maxf(_cloudbase_agl, WindField.ZI_MIN)
-	return pow(ws, 3.0) * WindField.RHO_CP / (WindField.G / WindField.THETA0 * zi)
-
-
-func _lee_flow(
-	pos: Vector3, agl: float, u: float, lee: float, danger: float, relief: float
-) -> Vector2:
-	var w := -lerpf(_lee_sink, _lee_danger_sink, danger) * u * lee
-	var hard := lee * danger * _lee_heat_factor()
-	if hard < 1.0e-3:
-		return Vector2(0.0, w)
-	var nb := wind.gust_unit(pos * _lee_burst_k, time_s, u * _lee_burst_k, 0.0).x
-	w -= _lee_burst * u * hard * clampf((nb - _lee_burst_thr) / _lee_burst_width, 0.0, 1.0)
-	var core := hard * exp(-agl / maxf(_lee_rotor_h * relief, 1.0))
-	return Vector2(-_lee_reverse * u * core, w)
-
-
-## Интенсивность болтанки в точке — СКО пульсаций скорости воздуха, м/с (для оценки перегрузки,
-## FR-14c; саму перегрузку flight считает по air_velocity_at на крыле).
-func turbulence_intensity_at(pos: Vector3) -> float:
-	var was := turbulence_enabled
-	turbulence_enabled = true
-	air_velocity_at(pos)
-	turbulence_enabled = was
-	return _last_sigma
-
-
-## Плотность облака в точке 0..1 (0 — ясно): для «белой мглы» у камеры и оценки «в облаке».
-func cloud_density_at(pos: Vector3) -> float:
-	return cloud_phys.density_at(pos)
-
-
-## Доля солнечного прогрева земли под перистой пеленой 0..1 (1 — ясно). Интегратор может
-## ослабить по ней и солнце мира (VR-28).
-func get_insolation() -> float:
-	return 1.0 - WeatherModel.sun_block_cover(weather) * float(cfg.cirrus.sun_block)
-
-
-## Условия устойчивости профиля ветра (WindProfile, C2 v4) из погоды: (высота солнца часа, °;
-## облачность 0..1). Час — WeatherModel.derive → _derived.sun_elev_deg (пресет без часа —
-## clouds.sun_elevation_deg), облачность — прогноз (sky_params(sky).cover; пресет — ясно).
-func _wind_conditions() -> Vector2:
-	var dv: Dictionary = weather.get("_derived", {})
-	var sun := float(dv.get("sun_elev_deg", float(cfg.clouds.sun_elevation_deg)))
-	var cover := 0.0
-	if dv.has("sky"):
-		cover = float(WeatherModel.sky_params(String(dv.sky)).get("cover", 0.0))
-	return Vector2(sun, cover)
-
-
-## Погода сменилась (шаг хода дня, мягкое обновление): профиль ветра по новым условиям.
-func _update_wind_conditions() -> void:
-	var wc := _wind_conditions()
-	if wc.x == wind.sun_elev_deg and wc.y == wind.cover:
+func _dp_send_focus(force: bool) -> void:
+	if _dp == null or (not force and not _dp_placed):
 		return
-	wind.set_conditions(wc.x, wc.y)
-	_advect = wind.speed_at(float(cfg.turbulence.advection_height_m))
-	_update_wave_wind()
+	if _f_focus_manual:
+		if force:
+			_dp.set_focuses(_f_focus_pts, _f_focus_w)  # точки игры — как есть, индекс 0 — игрок
+		return
+	if not force and _focus.distance_to(_dp_focus_sent) < FOCUS_STEP_M:
+		return
+	_dp_focus_sent = _focus
+	_dp.set_focuses(PackedVector3Array([_focus]), PackedFloat32Array([1.0]))
 
 
-func _update_wave_wind() -> void:
-	if wave != null:
-		var u := wind.speed_at(float(cfg.wave.wind_reference_agl_m))
-		wave.set_wind(u, Vector2(wind.dir.x, wind.dir.z))
+## Выгрузка места: крейту — unload_place, поле крейта снимается.
+func _dp_unload() -> void:
+	_dp_stop_task()
+	if _dp != null and _dp_placed:
+		_dp.unload_place()
+	_dp_placed = false
+	_dp_failed = false
+	_dp_ver = -1
+	_dp_focus_sent = Vector3(INF, INF, INF)
+	if _dp_fed and _air_field != null:
+		set_air_field(null, 0.0)
+	_dp_fed = false
 
 
-## Средний ветер без пульсаций и вертикальных потоков (для колдуна на старте и т. п.), м/с.
-## С полем воздуха — горизонталь и механическая вертикаль поля (тот же вес края, что в
-## air_velocity_at), без подветренной эвристики.
-func mean_wind_at(pos: Vector3) -> Vector3:
-	var gs := ground.sample(pos.x, pos.z)
-	var s := wind.speed_at_pos(maxf(pos.y - gs.x, 0.0), pos.y)
-	if _air_on:
-		var fw := air_field.sample(pos, gs.x)
-		if fw.w > 0.0:
-			var a := s * (1.0 - fw.w)
-			return Vector3(fw.x + wind.dir.x * a, fw.y, fw.z + wind.dir.z * a)
-	return Vector3(wind.dir.x * s, 0.0, wind.dir.z * s)
+# ---------------------------------------------------------------- снимок поля для отладки
 
 
-## Термики рядом (для тестов, птиц и отладки; НЕ показывать пилоту — FR-22).
-func thermals_near(pos: Vector3, radius: float) -> Array[Dictionary]:
-	var out: Array[Dictionary] = []
-	for th in field.near(pos, radius):
-		out.append(th.to_dict())
-	return out
+func _air_field_object() -> RefCounted:
+	if _air_field == null:
+		var script: GDScript = load(FIELD_SET_SCRIPT)
+		_air_field = script.new()
+	return _air_field
+
+
+## Принять новую подачу поля: сменился номер → снимок (field_export) → уровни → air_field. Только
+## по запросу потребителя air_field. Детерминированный режим — сборка уровней в этом же вызове;
+## иначе — в фоне, главный поток не ждёт.
+func _dp_feed() -> void:
+	if not _air_field_wanted or _dp == null or not _dp_placed:
+		return
+	if _dp_task >= 0:
+		if not WorkerThreadPool.is_task_completed(_dp_task):
+			return
+		WorkerThreadPool.wait_for_task_completion(_dp_task)
+		_dp_task = -1
+		_dp_apply(_dp_job)
+		_dp_job = {}
+	if int(_dp.field_version()) == _dp_ver:
+		return
+	_dp_ver = _dp.field_export()
+	var head_text := String(_dp.field_export_header())
+	var head: Variant = JSON.parse_string(head_text) if head_text != "" else null
+	if not head is Dictionary:
+		if _dp_fed:
+			set_air_field(null, 0.0)  # поля нет (выключено, выгружено): заголовок пуст
+			_dp_fed = false
+		return
+	_dp_job = {"head": head, "data": _dp.field_export_data(), "fs": null}
+	if _dp_deterministic():
+		_dp_build(_dp_job)
+		_dp_apply(_dp_job)
+		_dp_job = {}
+	else:
+		_dp_task = WorkerThreadPool.add_task(_dp_build.bind(_dp_job), false, "Atmosphere.field")
+
+
+func _dp_build(job: Dictionary) -> void:
+	var baked: GDScript = load(FIELD_LOAD_SCRIPT)
+	job["fs"] = baked.call("load_bytes", job.head, job.data)
+
+
+func _dp_apply(job: Dictionary) -> void:
+	var fs: Variant = job.fs
+	if fs == null:
+		push_warning("Atmosphere: снимок поля не собрался — поле остаётся прежним")
+		return
+	var head: Dictionary = job.head
+	# подмена — за blend_s с момента blend_t0 (время крейта); сборка в фоне уже съела часть
+	var blend := float(head.get("blend_s", 0.0))
+	if blend > 0.0:
+		blend = maxf(blend - maxf(time_s - float(head.get("blend_t0", time_s)), 0.0), 0.0)
+	_dp_fed = true
+	set_air_field(fs.levels, blend)
+
+
+func _dp_stop_task() -> void:
+	if _dp_task >= 0:
+		WorkerThreadPool.wait_for_task_completion(_dp_task)
+		_dp_task = -1
+	_dp_job = {}
+
+
+# ---------------------------------------------------------------- проверка условий (W5)
+
+
+func _check_conditions(cond: Dictionary) -> String:
+	var has_fc := cond.has("forecast")
+	if has_fc == cond.has("preset"):
+		return "нужен ровно один из ключей forecast / preset"
+	var allowed: Array[String] = COND_KEYS_COMMON.duplicate()
+	allowed.append_array(COND_KEYS_FORECAST if has_fc else COND_KEYS_PRESET)
+	for k: Variant in cond:
+		if not allowed.has(String(k)):
+			return "посторонний ключ %s" % str(k)
+	var why := _check_numbers(cond)
+	if why != "":
+		return why
+	return _check_forecast(cond) if has_fc else _check_preset(cond.preset)
+
+
+func _is_num(v: Variant) -> bool:
+	return typeof(v) in [TYPE_INT, TYPE_FLOAT] and is_finite(float(v))
+
+
+func _check_numbers(cond: Dictionary) -> String:
+	for k in ["start_hour", "speed", "quantum_h"]:
+		if cond.has(k) and not _is_num(cond[k]):
+			return "%s: не число" % k
+	if cond.has("speed") and float(cond.speed) <= 0.0:
+		return "speed ≤ 0"
+	if cond.has("quantum_h") and float(cond.quantum_h) <= 0.0:
+		return "quantum_h ≤ 0"
+	if cond.get("blend_s") != null and not _is_num(cond.blend_s):
+		return "blend_s: не число"
+	if cond.has("inflow_mode") and not (String(cond.inflow_mode) in ["start", "inflow"]):
+		return "inflow_mode: start | inflow"
+	return ""
+
+
+func _check_forecast(cond: Dictionary) -> String:
+	var fc: Variant = cond.forecast
+	if not fc is Dictionary:
+		return "forecast не словарь"
+	for k in ["temperature_c", "wind_speed_kmh", "wind_from_deg"]:
+		if not (fc as Dictionary).has(k) or not is_finite(float(fc[k])):
+			return "forecast.%s отсутствует или не число" % k
+	if not (fc as Dictionary).has("sky"):
+		return "forecast.sky отсутствует"
+	var wr: Variant = cond.get("wind_ref")
+	if wr != null and not (wr is Dictionary and wr.has("ref_msl")):
+		return "wind_ref: {ref_msl[, gain_per_km]} или null"  # нет gain_per_km — из климата места (W5 v10)
+	if cond.has("overrides") and not cond.overrides is Dictionary:
+		return "overrides не словарь"
+	return ""
+
+
+func _check_preset(p: Variant) -> String:
+	if p is String:
+		if not FileAccess.file_exists("res://configs/%s.json" % p):
+			return "preset %s не найден" % p
+	elif not p is Dictionary:
+		return "preset: имя или словарь"
+	return ""
 
 
 # ================================================================ визуал
 
 
+## Высота земли (x, z) для визуальных слоёв — из рельефа игры или растров места; нет места — NAN.
+func _v_ground_height(x: float, z: float) -> float:
+	if _f_place == null:
+		return NAN
+	var t: Variant = _f_place.get("terrain")
+	if t != null and is_instance_valid(t):
+		return float(t.height_at(x, z))
+	return float(_f_place.call("height_at", x, z))
+
+
+## Класс поверхности (x, z); поверхности нет — 3 (пашня: сухо и пылит).
+func _v_surface_class(x: float, z: float) -> int:
+	if _f_place == null:
+		return 3
+	var t: Variant = _f_place.get("terrain")
+	if t != null and is_instance_valid(t):
+		return int(t.surface_at(x, z))
+	return int(_f_place.call("surface_at", x, z))
+
+
+## Дочерняя нода слоя по пути скрипта (классы слоёв тянут Config — через load, не по имени).
+func _spawn(path: String, node_name: String) -> Node:
+	var script: Script = load(path)
+	if script == null:
+		return null
+	var n: Node = script.new()
+	n.name = node_name
+	add_child(n)
+	return n
+
+
 func _create_visuals() -> void:
+	var gh := Callable(self, "_v_ground_height")
+	var sc := Callable(self, "_v_surface_class")
 	if bool(cfg.clouds.enabled):
-		var cloud_script: Script = load("res://scripts/atmosphere/cloud_layer.gd")
-		if cloud_script != null:
-			_clouds = cloud_script.new()
-			_clouds.name = "Clouds"
-			add_child(_clouds)
+		_clouds = _spawn("res://scripts/atmosphere/cloud_layer.gd", "Clouds") as Node3D
+		if _clouds != null:
+			_clouds.set("ground_fn", gh)
+			_clouds.set("surface_fn", sc)
 			_clouds.call("setup", self)
 			_clouds.set("select_budget_us", 3000)
-	var cirrus := CirrusLayer.new()
-	cirrus.name = "Cirrus"
-	add_child(cirrus)
-	cirrus.setup(self)
-	var dust := DustDevils.new()
-	dust.name = "DustDevils"
-	add_child(dust)
-	dust.setup(self)
+	_spawn("res://scripts/atmosphere/cirrus_layer.gd", "Cirrus").call("setup", self)
+	_spawn("res://scripts/atmosphere/dust_devils.gd", "DustDevils").call("setup", self, gh, sc)
 	if bool(cfg.gust_dust.enabled):
-		var gdust := GustDust.new()
-		gdust.name = "GustDust"
-		add_child(gdust)
-		gdust.setup(self)
+		_spawn("res://scripts/atmosphere/gust_dust.gd", "GustDust").call("setup", self, gh, sc)
 	if bool(cfg.birds.enabled):
-		var bird_script: Script = load("res://scripts/atmosphere/bird_flock.gd")
-		if bird_script != null:
-			_birds = bird_script.new()
-			_birds.name = "Birds"
-			add_child(_birds)
+		_birds = _spawn("res://scripts/atmosphere/bird_flock.gd", "Birds") as Node3D
+		if _birds != null:
 			_birds.call("setup", self)
 	if bool(cfg.thermal_signs.enabled):
-		var signs := ThermalSigns.new()
-		signs.name = "ThermalSigns"
-		add_child(signs)
-		signs.setup(self)
+		_spawn("res://scripts/atmosphere/thermal_signs.gd", "ThermalSigns").call("setup", self)

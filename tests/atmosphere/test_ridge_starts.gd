@@ -23,6 +23,10 @@ const LEE_D_STEP_M := 20.0
 const LEE_AGL: Array[float] = [10.0, 20.0, 35.0, 50.0, 65.0, 80.0, 100.0]
 const START_WING := "sport"
 
+## Текущие место и старт (_each_site) — для _make_atmo.
+var _loc_id := ""
+var _site_pos := Vector3.ZERO
+
 ## Слабые/узкие склоны (по замеру): требуемый набор ниже стандартных ≥ 50 м (карточка 05,
 ## «слабые склоны — ≥ 0 м, с пояснением в отчёте»). Ключ: "<локация>/<старт>" → минимум, м.
 ## tugaya_south, ridge_west: САМЫЙ узкий и слабый рельеф из всех 10 стартов (пик подъёма в полосе
@@ -47,6 +51,13 @@ const WEAK_LEE_SITES: Dictionary = {
 
 const LOCATIONS: Array[String] = ["altai", "askarovo", "aushkul", "ongudai"]
 
+## По умолчанию — один старт (первый у altai): поле Пикара шага 25 м на месте 20+ км — десятки
+## секунд на атмосферу (на старт нужно 2–3), все 10 стартов — ~15 мин. Все старты — аргумент
+## `--ridge-full` после `--` (тестовый раннер пропускает его в OS.get_cmdline_user_args()).
+## Без поля (склон и подветренная зона в аналитике) — rust/dp-air/tests/gd_atmosphere_ported.rs.
+func _full() -> bool:
+	return OS.get_cmdline_user_args().has("--ridge-full")
+
 
 func _weather_no_thermals(wind_kmh: float, wind_from_deg: float) -> Dictionary:
 	var w: Dictionary = Config.get_config("weather/medium").duplicate(true)
@@ -57,15 +68,50 @@ func _weather_no_thermals(wind_kmh: float, wind_from_deg: float) -> Dictionary:
 	return w
 
 
-func _make_atmo(terrain: Terrain, wind_kmh: float, wind_from_deg: float) -> Atmosphere:
-	var weather := _weather_no_thermals(wind_kmh, wind_from_deg)
-	var atmo_cfg: Dictionary = Config.get_config("atmosphere").duplicate(true)
-	atmo_cfg.thermal.physics_radius_m = 1500.0
+## Атмосфера фасада W2 на реальном месте: условия — прогноз (ветер wind_kmh из wind_from_deg),
+## статические термики выключены (пустой список), поле Пикара считает крейт. Готова на t = 0
+## (READY); ждёт поле по времени (минуты на место), не по оборотам pump. Освободить — free().
+func _make_atmo(
+	terrain: Terrain, wind_kmh: float, wind_from_deg: float
+) -> Atmosphere:
+	var tree := Engine.get_main_loop() as SceneTree
+	var loc: Dictionary = Config.get_config("locations/" + _loc_id)
 	var atmo := Atmosphere.new()
 	atmo.visuals_enabled = false
-	atmo.configure(atmo_cfg, weather)
-	atmo.turbulence_enabled = true
-	atmo.set_ground(terrain.height_at, terrain.thermal_source_strength_at, terrain.surface_at)
+	tree.root.add_child(atmo)
+	var place: AirPlaceData = await atmo.place_from_terrain(
+		terrain, float(loc.utc_offset_h), 7, 15
+	)
+	if place == null:
+		atmo.free()
+		return null
+	atmo.configure(4242)
+	atmo.set_static_thermals(PackedFloat32Array(), 1)
+	atmo.set_conditions(
+		{
+			"forecast":
+			{
+				"temperature_c": 26.0,
+				"wind_speed_kmh": wind_kmh,
+				"wind_from_deg": wind_from_deg,
+				"sky": "clear",
+			},
+			"start_hour": 12.0,
+			"speed": 1.0,
+			"quantum_h": 1.0,
+			"inflow_mode": "start",
+		}
+	)
+	atmo.load_place(place)
+	atmo.set_focus(_site_pos)
+	atmo.start_at(0.0)
+	var t0 := Time.get_ticks_msec()
+	while not atmo.is_ready() and Time.get_ticks_msec() - t0 < 600000:
+		if int(atmo.status().state) == Atmosphere.STATE_FAILED:
+			push_error("test_ridge_starts: FAILED %s" % [atmo.status()])
+			break
+		atmo.pump(8000)
+		await tree.process_frame
 	return atmo
 
 
@@ -123,10 +169,10 @@ func _scan_along_width(
 ## возвращает {gain_m, min_agl_m, max_agl_m, landed, time_s, start_agl_m}.
 func _fly_ridge(terrain: Terrain, site: Dictionary, wind_kmh: float, minutes: float) -> Dictionary:
 	var heading: float = float(site.heading_deg)
-	var atmo := _make_atmo(terrain, wind_kmh, heading)
+	var atmo: Atmosphere = await _make_atmo(terrain, wind_kmh, heading)
+	if atmo == null:
+		return {"gain_m": 0.0, "landed": true, "no_place": true}
 	var pos0: Vector3 = site.position
-	atmo.set_focus(pos0)
-	atmo.step(DT)
 	var scan := _scan_best_lift(atmo, terrain, pos0, heading)
 	var start2: Vector2 = scan.pos2
 	var start_agl: float = scan.agl
@@ -141,7 +187,7 @@ func _fly_ridge(terrain: Terrain, site: Dictionary, wind_kmh: float, minutes: fl
 	var fm := FlightModel.new()
 	fm.setup(wing, pilot_cfg)
 	atmo.set_focus(start)
-	atmo.step(DT)
+	atmo.advance_to(DT)
 	fm.reset_in_air(start, heading, 0.0, atmo.mean_wind_at(start))
 
 	# Вдоль гребня — перпендикуляр к heading_deg (экспозиция/линия ската склона); разворот —
@@ -163,7 +209,7 @@ func _fly_ridge(terrain: Terrain, site: Dictionary, wind_kmh: float, minutes: fl
 	var inp := ControlInput.new()
 	while t < minutes * 60.0:
 		atmo.set_focus(fm.position)
-		atmo.step(DT)
+		atmo.advance_to(t + DT)
 		if step_i % 2 == 0:
 			inp = bot.drive(fm.telemetry, DT * 2.0)
 		fm.step(DT, inp, air_fn, terrain.height_at)
@@ -187,30 +233,31 @@ func _fly_ridge(terrain: Terrain, site: Dictionary, wind_kmh: float, minutes: fl
 	return res
 
 
-## Точка глубже всего под линией тени за гребнем (со стороны, куда дует flipped-ветер) —
-## {pos, depth}. Ищем вдоль heading (в долину) на большом удалении: релевантная глубина у
+## Точка с сильнейшим опусканием за гребнем (со стороны, куда дует flipped-ветер; средний ветер
+## фасада sample_many(SAMPLE_MEAN), вертикальная скорость) — {pos, depth}, depth — опускание, м/с. Ищем вдоль heading (в долину) на большом удалении: релевантная глубина у
 ## реального рельефа набирается не в 100 м от старта, а там, где земля заметно ниже гребня.
 func _scan_lee_point(terrain: Terrain, site: Dictionary, wind_kmh: float) -> Dictionary:
 	var heading: float = float(site.heading_deg)
 	var flipped := fposmod(heading + 180.0, 360.0)
-	var atmo := _make_atmo(terrain, wind_kmh, flipped)
+	var atmo: Atmosphere = await _make_atmo(terrain, wind_kmh, flipped)
 	var pos0: Vector3 = site.position
-	atmo.set_focus(pos0)
-	atmo.step(DT)
 	var away_dir := Vector2(sin(deg_to_rad(heading)), -cos(deg_to_rad(heading)))
 	var best_depth := -1.0e9
 	var best_p := Vector3.ZERO
+	var pts := PackedVector3Array()
 	var d := -LEE_D_RANGE_M
 	while d <= LEE_D_RANGE_M:
 		var p2: Vector2 = Vector2(pos0.x, pos0.z) + away_dir * d
 		var gh := terrain.height_at(p2.x, p2.y)
-		var gs: Vector4 = atmo.ground.sample(p2.x, p2.y)
 		for agl: float in LEE_AGL:
-			var depth: float = gs.w - (gh + agl)
-			if depth > best_depth:
-				best_depth = depth
-				best_p = Vector3(p2.x, gh + agl, p2.y)
+			pts.append(Vector3(p2.x, gh + agl, p2.y))
 		d += LEE_D_STEP_M
+	var v := atmo.sample_many(pts, Atmosphere.SAMPLE_MEAN)
+	for i in pts.size():
+		var depth := -v[4 * i + 1]
+		if depth > best_depth:
+			best_depth = depth
+			best_p = pts[i]
 	atmo.free()
 	return {"pos": best_p, "depth": best_depth}
 
@@ -223,16 +270,20 @@ func _each_site(cb: Callable) -> void:
 			terrain.free()
 			check(false, "не загрузилась локация %s" % loc_id)
 			continue
+		_loc_id = loc_id
 		for site: Dictionary in terrain.get_start_sites():
-			cb.call(loc_id, terrain, site)
+			if not _full() and (loc_id != LOCATIONS[0] or site != terrain.get_start_sites()[0]):
+				continue
+			_site_pos = site.position
+			await cb.call(loc_id, terrain, site)
 		terrain.free()
 
 
 func test_ridge_no_climb_8kmh() -> void:
-	_each_site(
+	await _each_site(
 		func(loc_id: String, terrain: Terrain, site: Dictionary) -> void:
 			var key := "%s/%s" % [loc_id, site.id]
-			var res := _fly_ridge(terrain, site, 8.0, FLY_MINUTES)
+			var res: Dictionary = await _fly_ridge(terrain, site, 8.0, FLY_MINUTES)
 			check(
 				float(res.gain_m) < 50.0,
 				"%s: на 8 км/ч набора быть не должно (набор %.0f м)" % [key, res.gain_m]
@@ -241,21 +292,18 @@ func test_ridge_no_climb_8kmh() -> void:
 
 
 func test_lee_zone_all_starts() -> void:
-	_each_site(
+	await _each_site(
 		func(loc_id: String, terrain: Terrain, site: Dictionary) -> void:
 			var key := "%s/%s" % [loc_id, site.id]
 			var heading: float = float(site.heading_deg)
-			var lee := _scan_lee_point(terrain, site, 20.0)
+			var lee: Dictionary = await _scan_lee_point(terrain, site, 20.0)
 			var p: Vector3 = lee.pos
-			var a_lee := _make_atmo(terrain, 20.0, fposmod(heading + 180.0, 360.0))
-			a_lee.set_focus(p)
-			a_lee.step(DT)
+			_site_pos = p
+			var a_lee: Atmosphere = await _make_atmo(terrain, 20.0, fposmod(heading + 180.0, 360.0))
 			var w_lee := a_lee.air_velocity_at(p).y
 			var sigma_lee := a_lee.turbulence_intensity_at(p)
 			a_lee.free()
-			var a_wind := _make_atmo(terrain, 20.0, heading)
-			a_wind.set_focus(p)
-			a_wind.step(DT)
+			var a_wind: Atmosphere = await _make_atmo(terrain, 20.0, heading)
 			var w_wind := a_wind.air_velocity_at(p).y
 			var sigma_wind := a_wind.turbulence_intensity_at(p)
 			a_wind.free()
@@ -267,7 +315,7 @@ func test_lee_zone_all_starts() -> void:
 			check(
 				sigma_lee > sigma_wind,
 				(
-					"%s: болтанка подветренной %.2f м/с > наветренной %.2f м/с (глубина %.0f м)"
+					"%s: болтанка подветренной %.2f м/с > наветренной %.2f м/с (опускание %.2f м/с)"
 					% [key, sigma_lee, sigma_wind, lee.depth]
 				)
 			)

@@ -59,17 +59,21 @@ func setup(atmosphere: Atmosphere) -> void:
 func _process(_delta: float) -> void:
 	if atmo == null:
 		return
-	var cover := clampf(float(atmo.weather.get("cirrus_cover", 0.0)), 0.0, 1.0)
+	var wx := atmo.weather()
+	var cover := clampf(float(wx.get("cirrus_cover", 0.0)), 0.0, 1.0)
 	_mi.visible = cover > 0.01
 	if not _mi.visible:
 		return
 	var cam := get_viewport().get_camera_3d()
-	var eye := cam.global_position if cam != null else atmo.get_focus()
+	var eye := cam.global_position if cam != null else Vector3.ZERO
 	_mi.global_position = Vector3(eye.x, float(cfg.altitude_msl_m), eye.z)
-	var w := atmo.wind.vec2_at(1000.0) * float(cfg.drift_factor)
+	# Фоновый ветер на 1000 м над долиной (W2 background_wind, высоты MSL).
+	var h := float(wx.get("_derived", {}).get("valley_msl_m", 0.0)) + 1000.0
+	var bw := atmo.background_wind(PackedFloat32Array([h]))
+	var w := Vector2(bw[0], bw[1]) * float(cfg.drift_factor)
 	_mat.set_shader_parameter("cover", cover)
 	_mat.set_shader_parameter("wind_dir", w.normalized() if w.length() > 0.01 else Vector2(1, 0))
-	_mat.set_shader_parameter("drift", -w * atmo.time_s)
+	_mat.set_shader_parameter("drift", -w * float(atmo.status().time_s))
 	if _sun == null or not is_instance_valid(_sun):
 		_sun = _find_light(get_tree().root)
 	if _sun != null:

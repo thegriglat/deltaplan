@@ -29,7 +29,7 @@ func _run() -> void:
 	var sun := DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-50, 30, 0)
 	add_child(sun)
-	var g: Glider = M.make_glider("pendulum", _wing)
+	var g: Glider = M.make_glider(_wing)
 	g.set_ground_fn(func(_x: float, _z: float) -> float: return 0.0)
 	g.set_air_fn(func(_p: Vector3) -> Vector3: return Vector3.ZERO)
 	add_child(g)

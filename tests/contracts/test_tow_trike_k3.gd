@@ -49,14 +49,14 @@ func _tug_model() -> PendulumModel:
 ## (1) Без новых ключей: явные значения по умолчанию дают то же, что их отсутствие, а число — прежнее
 ## (сняты до правки: тот же сценарий на коммите feature/tow-trike).
 func test_defaults_unchanged() -> void:
-	var a := _air_model()
-	var b := _air_model({"pilot_cda_m2": float(a.pendulum.pilot_cda_m2), "arms_force_max_n": 300.0})
+	var ma := _air_model()
+	var mb := _air_model({"pilot_cda_m2": float(ma.pendulum.pilot_cda_m2), "arms_force_max_n": 300.0})
 	var c := Sim.input(0.0, 0.3)
 	for i in int(10.0 / DT):
-		a.step(DT, c, Callable(), _flat)
-		b.step(DT, c, Callable(), _flat)
-	check(a.position == b.position and a.velocity == b.velocity, "явные умолчания = без ключей (равенство)")
-	check(a.position == GOLD_POS and a.velocity == GOLD_VEL, "позиция и скорость через 10 с равны прежним: %s %s" % [a.position, a.velocity])
+		ma.step(DT, c, Callable(), _flat)
+		mb.step(DT, c, Callable(), _flat)
+	check(ma.position == mb.position and ma.velocity == mb.velocity, "явные умолчания = без ключей (равенство)")
+	check(ma.position == GOLD_POS and ma.velocity == GOLD_VEL, "позиция и скорость через 10 с равны прежним: %s %s" % [ma.position, ma.velocity])
 
 
 const GOLD_POS := Vector3(40.892586, 857.04346, -14.645406)

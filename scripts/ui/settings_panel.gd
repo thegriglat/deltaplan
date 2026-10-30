@@ -7,9 +7,7 @@ extends Control
 ## другие пилоты в небе (bots.json → count; со следующего полёта), имена над ними
 ## (bots.json → names.show; сразу), подписи вершин (world_objects.json → osm_pilot.peaks.show; сразу), густота травы
 ## (vegetation.json → grass.density_pct; по умолчанию — из пресета графики; со следующей
-## загрузки местности), модель ветра (atmosphere.json → air_model.enabled: auto — расчёт по
-## рельефу (фазы + Пикар на GPU, air-phase P12), off — эвристика, расчёт не запускается; со следующей загрузки места;
-## в сети выбор локальный — у каждого клиента свой).
+## загрузки местности).
 ## Пишутся в user://configs/*.json (UserSettings), Config подхватывает их поверх res://configs.
 
 signal closed(changed: bool)
@@ -59,7 +57,6 @@ var _goal_cylinders: CheckBox
 var _compass: CheckBox
 var _grass: HSlider
 var _haze_sun: HSlider
-var _wind_model: OptionButton
 ## Рубильники GPU-нагрузки (CR-К4): ключ display.gpu -> CheckBox; «простые облака» — отдельно.
 var _gpu_toggles: Dictionary = {}
 var _simple_clouds: CheckBox
@@ -199,11 +196,6 @@ func _ready() -> void:
 	_haze_sun = UiKit.slider_row(box_gfx, tr("settings_haze_sun"), 0.0, 1.0, 0.05, "%.2f")
 	_build_gpu_toggles(box_gfx)
 	_graphics.item_selected.connect(_on_graphics_selected)
-	_wind_model = OptionButton.new()
-	# id: 0 расчёт (auto), 1 эвристика (off)
-	_wind_model.add_item(tr("settings_wind_model_calc"), 0)
-	_wind_model.add_item(tr("settings_wind_model_simple"), 1)
-	UiKit.row(box_game, tr("settings_wind_model"), _wind_model)
 	_air_cache = UiKit.slider_row(box_game, tr("settings_air_cache_mb"), 0.0, 2000.0, 50.0, "%.0f " + tr("unit_mb"))
 	_time_speed = OptionButton.new()
 	_speeds = Config.value("world", "time.speed_options", [1, 10, 60, 0])
@@ -436,8 +428,6 @@ func load_values() -> void:
 	for k: String in _gpu_toggles:
 		(_gpu_toggles[k] as CheckBox).button_pressed = GraphicsPresets.gpu_effect(k)
 	_simple_clouds.button_pressed = String(Config.value("atmosphere", "clouds.renderer", "auto")) == "boxes"
-	var wm := String(Config.value("atmosphere", "air_model.enabled", "auto"))
-	_wind_model.select(_wind_model.get_item_index(1 if wm == "off" else 0))
 	_air_cache.value = float(Config.value("atmosphere", "air_cache.max_mb", 200.0))
 	_air_cache.value_changed.emit(_air_cache.value)
 	var sp := float(Config.value("world", "time.speed", 1.0))
@@ -560,14 +550,7 @@ func save() -> bool:
 	var gp := {"grass": {"density_pct": _grass.value}}
 	ok = UserSettings.save_patch("vegetation", gp, config_dir) and ok
 	ok = UserSettings.save_patch("world", {"fog": {"sun_scatter": _haze_sun.value}}, config_dir) and ok
-	# модель ветра: «расчёт» = auto (как по умолчанию), «упрощённый» = off; со следующей загрузки места
-	var wp := {
-		"air_model":
-		{
-			"enabled": "off" if _wind_model.get_selected_id() == 1 else "auto",
-		},
-		"air_cache": {"max_mb": int(_air_cache.value)},
-	}
+	var wp := {"air_cache": {"max_mb": int(_air_cache.value)}}
 	ok = UserSettings.save_patch("atmosphere", wp, config_dir) and ok
 	if _driver != null and _driver.selected >= 0:
 		var drv := _driver_opts[_driver.selected]

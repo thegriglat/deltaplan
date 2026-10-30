@@ -5,11 +5,12 @@ extends Node3D
 ## составляющая (подъём/опускание); повторное F3 — выключить. Выключено — ничего не считается и
 ## не рисуется (_process выключен, MultiMesh скрыт): ноль влияния на FPS.
 ## Ветер берётся из Atmosphere.air_velocity_at (уже сочетает поле AM-05 и аналитику — тот же
-## вызов, что видит пилот); подпись режима — Atmosphere.is_air_field_on().
+## вызов, что видит пилот); подпись режима — status().field_on фасада W2.
 ## Узел — сцена, не игровая логика: в game.tscn как самостоятельный ребёнок Game, ссылки на
 ## Air/Glider/Terrain берутся по имени (get_node), поэтому game.gd трогать не нужно.
-## F4 — слой «карта фаз» (air-phase P12): клетки области 400 м цветом главной фазы (наибольший вес
-## AirRuntime.phase_map.weights), точка — пилот; текстура ny×nx собирается один раз на новое поле.
+## F4 — слой «карта фаз» (air-phase P12): клетки области 400 м цветом главной фазы (растр
+## debug_raster("phase_main") крейта, W7), точка — пилот; текстура ny×nx — один раз на новую карту.
+## Растр строит крейт при расчёте поля (поле из файла или кеша фаз не знает — слой пишет «нет»).
 
 ## Цвета фаз A, B, C, D, F, G, H (порядок AirPhase.PHASES) и подписи легенды.
 const PHASE_COLORS := {
@@ -21,6 +22,8 @@ const PHASE_COLORS := {
 	"G": Color(0.55, 0.3, 0.8),
 	"H": Color(0.6, 0.6, 0.6),
 }
+## Подписи фаз по индексам растра phase_main (порядок крейта: dp_air::debug_rasters::PHASE_LABELS).
+const PHASE_LABELS: Array[String] = ["A", "B", "C", "D", "F", "G", "H"]
 ## Сторона карты на экране, пикс.
 @export var phase_map_px: float = 288.0
 
@@ -137,50 +140,55 @@ func _ensure_phase_ui() -> void:
 	_phase_canvas.add_child(_phase_label)
 
 
-## Карта фаз из AirRuntime: текстура — при новой карте, точка пилота — каждый раз.
+## Карта фаз (debug_raster "phase_main"): текстура — при новой карте, точка пилота — каждый раз.
 func _update_phase() -> void:
-	var rt := get_node_or_null("../AirRuntime")
-	var pm: Dictionary = rt.get("phase_map") if rt != null else {}
+	var pm := fetch_raster(_air, "phase_main")
 	if pm.is_empty():
 		_phase_rect.texture = null
 		_phase_dot.visible = false
 		_phase_label.text = "F4 — карта фаз: нет (поле без фаз)"
 		return
-	var w: PackedFloat32Array = pm.weights
-	if not is_same(_phase_src, w):
-		_phase_src = w
+	var ver := int(pm.get("version", 0))
+	if ver != _phase_src:
+		_phase_src = ver
 		_phase_rect.texture = ImageTexture.create_from_image(phase_image(pm))
-		var legend: PackedStringArray = []
-		for nm: String in pm.phases:
-			legend.append(nm)
-		_phase_label.text = "F4 — карта фаз: " + " ".join(legend)
+		_phase_label.text = "F4 — карта фаз: " + " ".join(phase_labels(pm))
 	_phase_dot.visible = _glider != null and is_instance_valid(_glider)
 	if _phase_dot.visible:
 		var p := _glider.global_position
 		var span := float(pm.dx) * Vector2(float(pm.nx), float(pm.ny))
-		var uv := Vector2((p.x - float(pm.x0)) / span.x, (-p.z - float(pm.y0)) / span.y)
-		# север (+y мира) — вверх карты
-		var px := Vector2(uv.x, 1.0 - uv.y).clamp(Vector2.ZERO, Vector2.ONE) * phase_map_px
+		# x0, z0 растра — центр первой ячейки (строки к +Z): угол карты на полшага дальше
+		var corner := Vector2(float(pm.x0), float(pm.z0)) - 0.5 * float(pm.dx) * Vector2.ONE
+		var uv := Vector2((p.x - corner.x) / span.x, (p.z - corner.y) / span.y)
+		# север (−Z) — вверх карты: строка 0 растра — самая северная
+		var px := uv.clamp(Vector2.ZERO, Vector2.ONE) * phase_map_px
 		_phase_dot.position = _phase_rect.position + px - _phase_dot.size * 0.5
 
 
-## Изображение ny×nx: цвет фазы с наибольшим весом (север вверху).
+## Растр отладки по имени: фасад W2/W10 (Atmosphere.debug_raster, в т. ч. «phase_*»). Пусто — {}.
+static func fetch_raster(air: Object, raster_name: String) -> Dictionary:
+	if air == null or not air.has_method("debug_raster"):
+		return {}
+	return air.call("debug_raster", raster_name)
+
+
+## Подписи фаз растра: свои (labels) или порядок крейта.
+static func phase_labels(pm: Dictionary) -> PackedStringArray:
+	return PackedStringArray(pm.get("labels", PHASE_LABELS))
+
+
+## Изображение ny×nx: цвет главной фазы клетки (север вверху — строки растра идут к +Z).
 static func phase_image(pm: Dictionary) -> Image:
 	var nx := int(pm.nx)
 	var ny := int(pm.ny)
-	var w: PackedFloat32Array = pm.weights
-	var names: Array = pm.phases
-	var kk := names.size()
+	var data: PackedFloat32Array = pm.data
+	var names := phase_labels(pm)
 	var img := Image.create(nx, ny, false, Image.FORMAT_RGB8)
 	for j in ny:
 		for i in nx:
-			var q := j * nx + i
-			var best := 0
-			for k in range(1, kk):
-				if w[k * nx * ny + q] > w[best * nx * ny + q]:
-					best = k
-			var col: Color = PHASE_COLORS.get(names[best] if kk > 0 else "", Color.BLACK)
-			img.set_pixel(i, ny - 1 - j, col)
+			var k := int(data[j * nx + i])
+			var col: Color = PHASE_COLORS.get(names[k] if k < names.size() else "", Color.BLACK)
+			img.set_pixel(i, j, col)
 	return img
 
 
@@ -243,11 +251,24 @@ func _ensure_visual() -> void:
 
 func _rebuild() -> void:
 	var origin: Vector3 = _glider.global_position
+	var arrows := arrows_at(origin)
+	if _mm.multimesh.instance_count != arrows.size():
+		_mm.multimesh.instance_count = arrows.size()
+	for idx in arrows.size():
+		_mm.multimesh.set_instance_transform(idx, arrows[idx].xf)
+		_mm.multimesh.set_instance_color(idx, arrows[idx].col)
+	_grid_center = Vector2(origin.x, origin.z)
+	if _label != null:
+		var on := bool((_air.call("status") as Dictionary).get("field_on", false)) if _air.has_method("status") else false
+		_label.text = "F3 — ветер: %s" % ("поле" if on else "аналитика")
+
+
+## Стрелки сетки вокруг origin (радиус radius_m, шаг spacing_m, высоты levels_agl над рельефом):
+## [{xf: Transform3D, col: Color, v: Vector3 (ветер в точке)}]. Что рисует _rebuild, ничего
+## больше (вынесено для проверки без рендера: в headless MultiMesh данных не хранит).
+func arrows_at(origin: Vector3) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
 	var n := maxi(1, int(round(radius_m / spacing_m)))
-	var count := (2 * n + 1) * (2 * n + 1) * levels_agl.size()
-	if _mm.multimesh.instance_count != count:
-		_mm.multimesh.instance_count = count
-	var idx := 0
 	for lvl in levels_agl.size():
 		var agl := levels_agl[lvl]
 		for jy in range(-n, n + 1):
@@ -267,16 +288,10 @@ func _rebuild() -> void:
 					right = Vector3.RIGHT
 				right = right.normalized()
 				var up := right.cross(fwd).normalized()
-				var basis := Basis(right, up, fwd).scaled(
-					Vector3(arrow_thick_m, arrow_thick_m, len_m)
-				)
-				_mm.multimesh.set_instance_transform(idx, Transform3D(basis, pos))
-				_mm.multimesh.set_instance_color(idx, _w_color(v.y))
-				idx += 1
-	_grid_center = Vector2(origin.x, origin.z)
-	if _label != null:
-		var on := bool(_air.call("is_air_field_on")) if _air.has_method("is_air_field_on") else false
-		_label.text = "F3 — ветер: %s" % ("поле" if on else "аналитика")
+				# масштаб осей стрелки (столбцы базиса): толщина, толщина, длина
+				var basis := Basis(right * arrow_thick_m, up * arrow_thick_m, fwd * len_m)
+				out.append({"xf": Transform3D(basis, pos), "col": _w_color(v.y), "v": v})
+	return out
 
 
 func _w_color(w: float) -> Color:

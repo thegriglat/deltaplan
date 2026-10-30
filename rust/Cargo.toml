@@ -1,0 +1,26 @@
+[workspace]
+resolver = "3"
+members = ["dp-air", "dp-gd", "dp-stand", "picard_rs"]
+
+# Профили задаёт только workspace (W9).
+[profile.dev]
+opt-level = 0
+
+# Исключение из W9 (решение 2026-10-26): Пикар на -O0 в ~100 раз медленнее, тесты оркестровки
+# (dp-air) считают поле по-настоящему.
+[profile.dev.package.picard_rs]
+opt-level = 2
+
+# Разработка и настройка игры.
+[profile.tune]
+inherits = "dev"
+opt-level = 2
+debug = true
+incremental = true
+
+# Только выпуск.
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"

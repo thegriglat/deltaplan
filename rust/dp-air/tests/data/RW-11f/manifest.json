@@ -1,0 +1,10 @@
+{
+ "task": "RW-11f",
+ "generator_removed_at": "a5d9387c3",
+ "generator_files_removed": [
+  "rust/dp-air/tests/data/RW-11f/dump_cloud_objects.gd",
+  "rust/dp-air/tests/data/RW-11f/dump_cloud_objects.tscn",
+  "rust/dp-air/tests/data/RW-11f/run_dump.sh"
+ ],
+ "restore": "git show a5d9387c3:<путь> — генератор восстанавливается из ревизии до удаления (RW-13)"
+}

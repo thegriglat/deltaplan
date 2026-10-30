@@ -5,26 +5,41 @@ extends Node
 ##     --location=ongudai --weather=medium --seed=1 --wind=15,270 --km=30 --out=out.json [--clouds]
 ##
 ## Синтетика (--synthetic): плоская земля, статичные термики сеткой вдоль курса, без ветра.
+## Воздух — фасад W2 v4 (место из AirPlaceData, эталон погоды, статические термики, advance_to).
 ## Прочие флаги: --course=<°> (по умолчанию по ветру), --start-agl=300, --time-limit=<с>,
 ## --wing=sport, --no-thermals, --bg=<м/с>, --start-alt=<м AGL>, --grid=<м>, --lateral=<м>,
 ## --strength=<м/с>, --radius=<м>, --turbulence=0|1, --cloudbase-agl=<м>, --trace=<с>,
-## --ideal (диагностика «идеальный пилот»: знает оси термиков, карточка 07), --ideal-min=<м/с>.
+## --margin=<м> (запас места вокруг трассы в синтетике, не меньше 5000), --ideal (диагностика «идеальный пилот»: знает оси термиков, карточка 07), --ideal-min=<м/с>.
 
 const DT := 1.0 / 60.0
 const HIST_BIN := 0.5
 const CLOUD_DENSITY := 0.3
 const STRONG_VARIO := 7.0
+## Место/дата синтетического мира (ход дня не нужен — эталон погоды).
+const _LOC := {
+	"id": "xc",
+	"center_lat": 51.5,
+	"center_lon": 86.5,
+	"utc_offset_h": 6.0,
+	"month": 7,
+	"day": 15,
+}
 
 ## CPU последнего полёта, с (в JSON не пишем — JSON должен повторяться при том же сиде).
 var _last_fly_cpu_s: float = 0.0
 var _air_p: Vector3 = Vector3(INF, INF, INF)
 var _air_v: Vector3 = Vector3.ZERO
+var _turbulence := true
 
 
 func _ready() -> void:
 	var opts := parse_args(OS.get_cmdline_user_args())
 	var t0 := Time.get_ticks_usec()
 	var res := simulate(opts)
+	if res.has("error"):
+		push_error("xc_run: %s" % JSON.stringify(res))
+		get_tree().quit(1)
+		return
 	var cpu := (Time.get_ticks_usec() - t0) / 1.0e6
 	var text := JSON.stringify(res, "  ", false)
 	var out := String(opts.get("out", ""))
@@ -115,13 +130,42 @@ func simulate(opts: Dictionary) -> Dictionary:
 
 	var atmo := Atmosphere.new()
 	atmo.visuals_enabled = false
-	atmo.configure(atmo_cfg, weather)
+	atmo.deterministic = true
+	atmo.cfg_override = atmo_cfg  # сид, радиусы генерации и физики — крейту текстом вместо файла
+	atmo.configure(atmo_cfg)  # конфиг визуальных слоёв
+	atmo.configure(int(atmo_cfg.seed))
+	atmo.set_conditions({"preset": weather, "start_hour": 12.0, "speed": 1.0})
 	# Синтетика — идеальный воздух (без болтанки), если не попросили иначе.
-	atmo.turbulence_enabled = int(opts.get("turbulence", 0 if synthetic else 1)) != 0
+	_turbulence = int(opts.get("turbulence", 0 if synthetic else 1)) != 0
+	var statics := PackedFloat32Array()
+	for s: Dictionary in weather.get("static_thermals", []):
+		statics.append_array(
+			PackedFloat32Array(
+				[float(s.x_m), float(s.z_m), float(s.strength_ms), float(s.radius_m)]
+			)
+		)
+	var mode := 1 if (synthetic or opts.has("no-thermals")) else 0
+	atmo.set_static_thermals(statics, mode)
+	var place: AirPlaceData
 	if synthetic:
-		atmo.set_ground(height_fn, _sun)
+		# Плоская земля: прямоугольник вокруг отрезка старт - цель с запасом margin. Шаг 25 м -
+		# крейт принимает поле только на нём (на 250 м место FAILED без last_error, прогон раньше
+		# висел в _wait_ready). Цена шага воздуха растёт с числом узлов места (RW-P9: квадрат
+		# 66 км - около 1.5 с на секунду полёта), поэтому не квадрат вокруг начала.
+		# Меньше ~5 км запаса крейт не принимает (4 км - FAILED).
+		var m := maxf(float(opts.get("margin", 5000.0)), 5000.0)
+		var c0 := Vector2(sin(deg_to_rad(course)), -cos(deg_to_rad(course))) * km * 1000.0
+		var x0 := snappedf(minf(0.0, c0.x) - m, 25.0)
+		var z0 := snappedf(minf(0.0, c0.y) - m, 25.0)
+		var nx := int(ceil((absf(c0.x) + 2.0 * m) / 25.0)) + 1
+		var nz := int(ceil((absf(c0.y) + 2.0 * m) / 25.0)) + 1
+		place = AirPlaceData.from_functions(height_fn, _sun, _LOC, x0, z0, 25.0, nx, nz)
 	else:
-		atmo.set_ground(terrain.height_at, terrain.thermal_source_strength_at, terrain.surface_at)
+		var loc_cfg: Dictionary = Config.get_config(
+			"locations/" + String(opts.get("location", "ongudai"))
+		)
+		place = AirPlaceData.from_terrain(terrain, float(loc_cfg.get("utc_offset_h", 6.0)), 7, 15)
+	atmo.load_place(place)
 	var start_agl := float(opts.get("start-alt", opts.get("start-agl", 300.0)))
 	start.y = float(height_fn.call(start.x, start.z)) + start_agl
 
@@ -134,15 +178,22 @@ func simulate(opts: Dictionary) -> Dictionary:
 	pilot_cfg.mass_kg = float(wing.pilot_mass_ref_kg)
 	var fm := FlightModel.new()
 	fm.setup(wing, pilot_cfg)
-	atmo.set_focus(start)
-	atmo.step(DT)
+	atmo.set_focuses(PackedVector3Array([start]), PackedFloat32Array([1.0]))
+	var why := _wait_ready(atmo)
+	if why != "":
+		push_error("xc_run: воздух не готов: %s" % why)
+		atmo.free()
+		if terrain != null:
+			terrain.free()
+		return {"error": "air", "reason": why}
+	atmo.advance_to(atmo.time_s + DT)
 	fm.reset_in_air(start, course, 0.0, atmo.mean_wind_at(start))
 
 	var bot: BotPilot = XcIdealPilot.new() if opts.has("ideal") else BotPilot.new()
 	bot.setup(wing, pilot_cfg, goal)
 	bot.route_start = start2
 	bot.ground_fn = height_fn
-	bot.cloudbase_msl = atmo.get_cloudbase_msl()
+	bot.cloudbase_msl = atmo.cloudbase_msl()
 	bot.use_clouds = opts.has("clouds")
 	if bot.use_clouds:
 		bot.clouds_fn = _visible_clouds.bind(atmo, fm)
@@ -173,9 +224,9 @@ func simulate(opts: Dictionary) -> Dictionary:
 		"wing": wing_name,
 		"clouds": bot.use_clouds,
 		"start_agl_m": start_agl,
-		"cloudbase_msl_m": snappedf(atmo.get_cloudbase_msl(), 0.1),
+		"cloudbase_msl_m": snappedf(atmo.cloudbase_msl(), 0.1),
 		"background_sink_ms": float(weather.background_sink_ms),
-		"turbulence": atmo.turbulence_enabled,
+		"turbulence": _turbulence,
 		"generation_radius_m": float(atmo_cfg.thermal.generation_radius_m),
 		"physics_radius_m": float(atmo_cfg.thermal.physics_radius_m),
 	}
@@ -234,20 +285,77 @@ static func synthetic_thermals(opts: Dictionary, seed_i: int, km: float, course:
 	return out
 
 
+## Облака, которые видит бот: центр, радиус, рост, распад — кучевые облака фасада (clouds, W6; без
+## грозовых Cb, флаг 4) в 8 км вокруг пилота (как BotPilots._visible_clouds).
 func _visible_clouds(atmo: Atmosphere, fm: FlightModel) -> Array:
-	return atmo.cloud_phys.visible_clouds(atmo.field.thermals, atmo.time_s, fm.position)
-
-
-## Диагностика «идеальный пилот» (--ideal, карточка 07): живые термики в 2,5 км — ось на высоте p.
-static func _oracle(p: Vector3, atmo: Atmosphere) -> Array:
 	var out: Array = []
-	for th: AtmoThermal in atmo.field.near(p, 2500.0):
-		if th.env <= 0.05 or p.y < th.cut_h or p.y > th.top:
+	var d := atmo.clouds(fm.position, 8000.0)
+	for k in range(0, d.size() - Atmosphere.CLOUD_STRIDE + 1, Atmosphere.CLOUD_STRIDE):
+		if (int(d[k + Atmosphere.CLOUD_FLAGS]) & 4) != 0:
 			continue
 		out.append(
-			{"id": th.id, "center": th.axis_at(p.y), "w": th.strength * th.env, "top": th.top}
+			{
+				"center": Vector2(d[k + Atmosphere.CLOUD_X], d[k + Atmosphere.CLOUD_Z]),
+				"radius": d[k + Atmosphere.CLOUD_RADIUS],
+				"growth": d[k + Atmosphere.CLOUD_GROWTH],
+				"decay": d[k + Atmosphere.CLOUD_DECAY],
+			}
 		)
 	return out
+
+
+## Диагностика «идеальный пилот» (--ideal, карточка 07): живые термики в 2,5 км — ось на высоте p
+## (ядра W6: ось (x, z) + lean·(y − y_src)).
+static func _oracle(p: Vector3, atmo: Atmosphere) -> Array:
+	var out: Array = []
+	var c := atmo.cores(p, 2500.0)
+	for j in range(0, c.size() - Atmosphere.CORE_STRIDE + 1, Atmosphere.CORE_STRIDE):
+		var w := c[j + Atmosphere.CORE_W]
+		var top := c[j + Atmosphere.CORE_TOP]
+		if w <= 0.05 or p.y > top:
+			continue
+		var dy := p.y - c[j + Atmosphere.CORE_Y_SRC]
+		(
+			out
+			. append(
+				{
+					"id": int(c[j + Atmosphere.CORE_ID]),
+					"center":
+					Vector2(
+						c[j + Atmosphere.CORE_X] + c[j + Atmosphere.CORE_LEAN_X] * dy,
+						c[j + Atmosphere.CORE_Z] + c[j + Atmosphere.CORE_LEAN_Z] * dy
+					),
+					"w": w,
+					"top": top,
+				}
+			)
+		)
+	return out
+
+
+## Подъём термика (слагаемое thermal разложения W7) у пилота, м/с.
+static func _thermal_lift(atmo: Atmosphere, p: Vector3) -> float:
+	var d := atmo.decompose(p)
+	var i := (d.names as PackedStringArray).find("thermal")
+	return (d.vel as PackedVector3Array)[i].y if i >= 0 else 0.0
+
+
+## Ждёт готовности воздуха. Возвращает "" при READY, иначе причину (FAILED/EMPTY/таймаут):
+## без этого прогон висел бы до таймаута на упавшей подготовке места.
+static func _wait_ready(atmo: Atmosphere) -> String:
+	var t0 := Time.get_ticks_msec()
+	while Time.get_ticks_msec() - t0 < 600000:
+		atmo.pump(4000)
+		var st := atmo.status()
+		var state := int(st.state)
+		if state == Atmosphere.STATE_READY:
+			return ""
+		if state == Atmosphere.STATE_FAILED or state == Atmosphere.STATE_EMPTY:
+			var why := String(st.reason)
+			return "state=%d %s" % [state, why if why != "" else atmo.last_error()]
+		OS.delay_usec(1000)
+	return "таймаут подготовки воздуха"
+
 
 
 func _fly(
@@ -293,8 +401,9 @@ func _fly(
 	var inp := ControlInput.new()
 	var step_i := 0
 	while t < time_limit:
-		atmo.set_focus(fm.position)
-		atmo.step(DT)
+		if step_i % 60 == 0:
+			atmo.set_focuses(PackedVector3Array([fm.position]), PackedFloat32Array([1.0]))
+		atmo.advance_to(atmo.time_s + DT)
 		# Пилот реагирует 30 раз в секунду (решения дорогие, физика — 60 Гц).
 		if step_i % 2 == 0:
 			inp = bot.drive(fm.telemetry, DT * 2.0)
@@ -316,8 +425,7 @@ func _fly(
 			circling_t += DT
 			# Воздух в кружении (диагностика 07): подъём термика у пилота и полная вертикаль.
 			if step_i % 6 == 0:
-				var sm := atmo.field.sample(p)
-				lift_sum += sm.x
+				lift_sum += _thermal_lift(atmo, p)
 				air_sum += atmo.air_velocity_at(p).y
 				vario_sum += tel.vario
 				lift_n += 1
@@ -344,7 +452,7 @@ func _fly(
 						tel.bank_deg,
 						tel.airspeed,
 						inp.pitch,
-						atmo.field.sample(p).x,
+						_thermal_lift(atmo, p),
 						bot.debug_state()
 					]
 				)
@@ -417,13 +525,13 @@ func _air_cached(p: Vector3, atmo: Atmosphere) -> Vector3:
 	if p == _air_p:
 		return _air_v
 	_air_p = p
-	_air_v = atmo.air_velocity_at(p)
+	_air_v = atmo.air_velocity_at(p) if _turbulence else atmo.mean_wind_at(p)
 	return _air_v
 
 
 ## Облако над точкой: плотность чуть выше кромки в центре и на 250 м вокруг.
 static func _cloud_above(atmo: Atmosphere, p: Vector2) -> bool:
-	var y := atmo.get_cloudbase_msl() + 60.0
+	var y := atmo.cloudbase_msl() + 60.0
 	var offs: Array[Vector2] = [
 		Vector2.ZERO, Vector2(250, 0), Vector2(-250, 0), Vector2(0, 250), Vector2(0, -250)
 	]

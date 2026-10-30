@@ -126,7 +126,7 @@ func test_dialog_safe_applies_safe_set() -> void:
 	check(g.display.safe_reason == "crash" and g.display.gpu.sun_shadows == false, str(g))
 	check(not g.display.has("rendering_driver"), "драйвер не менялся")
 	var a := _local(dir, "atmosphere")
-	check(a.clouds.renderer == "boxes" and a.air_model.enabled == "off", str(a))
+	check(a.clouds.renderer == "boxes" and not a.has("air_model"), str(a))
 	check(not d.has_meta("restarted"), "без перезапуска")
 	Config.reload()
 
@@ -154,7 +154,7 @@ func test_start_menu_note_only_for_crash() -> void:
 	check(note.visible, "safe_reason=crash — строка есть")
 	(note.get_node("WindRestoreButton") as Button).pressed.emit()
 	check(not note.visible and not GpuSafety.is_safe_by_crash(), "«Вернуть» убирает пометку")
-	check(String(Config.value("atmosphere", "air_model.enabled", "")) == "auto", "ветер вернулся")
+	check(String(Config.value("atmosphere", "clouds.renderer", "")) != "boxes", "облака вернулись")
 	menu.free()
 
 
@@ -162,7 +162,7 @@ func test_gpu_health_in_session_triggers_dialog() -> void:
 	# Main опрашивает _gpu_failed() == GpuHealth.is_failed() раз в секунду и показывает окно один раз
 	GpuHealth.reset()
 	check(not GpuHealth.is_failed(), "здорова")
-	GpuHealth.report_failure("AirGpu.buffer", "тест")
+	GpuHealth.report_failure("Gpu.buffer", "тест")
 	check(GpuHealth.is_failed(), "отказ виден опросу")
 	GpuHealth.reset()
 

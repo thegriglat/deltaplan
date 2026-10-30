@@ -121,7 +121,7 @@ related: ["docs/guide/air-model.md"]
   без поля — как раньше (вертикаль 0). Порывистость травы (`air − mean`) не ловит разгон поля.
 
 Выключенное поле — **побитно** прежняя аналитика: ветка поля не выполняется
-(`tools/bench/air_velocity_bench.gd --compare`: 38 400 значений, 0 отличий; тест
+(`tools/bench/air_velocity_bench.gd --compare` (тогда; теперь `air_velocity_bench.tscn -- --compare=<файл>` на эталонном мире отпечатка, прежний эталон не годится): 38 400 значений, 0 отличий; тест
 `test_off_and_outside_bitwise_analytic` — и вне поля).
 
 ## Конфиг (`configs/atmosphere.json → air_model`)

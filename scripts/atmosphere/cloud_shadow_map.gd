@@ -97,7 +97,9 @@ func update(eye: Vector3, sun_dir: Vector3, cloud_material: ShaderMaterial) -> v
 	var px := _vp.size.x
 	var m_px := _size_m / px
 	# Опорная плоскость — земля под пилотом; угол карты — по пикселям (тень не «плавает»).
-	var plane := atmo.ground.height(eye.x, eye.z) if atmo.ground.has_ground else atmo._ground_ref
+	var plane := _layer.ground_msl(eye.x, eye.z)
+	if is_nan(plane):
+		plane = float(atmo.weather().get("_derived", {}).get("valley_msl_m", 0.0))
 	var x0 := floorf((eye.x - _size_m * 0.5) / m_px) * m_px
 	var z0 := floorf((eye.z - _size_m * 0.5) / m_px) * m_px
 	var s := Vector2(sun_dir.x, sun_dir.z) / sun_dir.y
@@ -136,7 +138,7 @@ func update(eye: Vector3, sun_dir: Vector3, cloud_material: ShaderMaterial) -> v
 	_update_field(Vector4(x0, z0, m_px, plane))
 	_vp.render_target_update_mode = SubViewport.UPDATE_ONCE
 	# Под перистой пеленой тени бледнее (больше рассеянного света).
-	var cover := clampf(float(atmo.weather.get("cirrus_cover", 0.0)), 0.0, 1.0)
+	var cover := clampf(float(atmo.weather().get("cirrus_cover", 0.0)), 0.0, 1.0)
 	var soft := float(atmo.cfg.cirrus.shadow_softening)
 	var strength := float(_cfg.shadow_strength) * (1.0 - soft * cover)
 	RenderingServer.global_shader_parameter_set(

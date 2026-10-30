@@ -197,9 +197,8 @@ func _same(a: Variant, b: Variant) -> bool:
 	return ok
 
 
-func test_zone_state_cloud_field() -> void:
-	var data := {"clock": 5.0, "queue": ["a"], "cloudField": {"data": Marshalls.raw_to_base64(PackedByteArray([1, 2, 3, 255]))}}
-	var m := NetMessages.decode(NetMessages.encode("zoneState", data))
-	check(m.data.cloudField.data == data.cloudField.data, "снимок поля облачности туда-обратно")
-	var plain := NetMessages.decode(NetMessages.encode("zoneState", {"clock": 1.0, "queue": []}))
-	check(plain.data.get("cloudField") == null, "без снимка — null, не пустая заглушка")
+func test_zone_state_has_no_air() -> void:
+	# воздух по сети не ходит (rust-wind W1): номера 3 и 4 в net.proto зарезервированы
+	var zs: Dictionary = NetMessages.MESSAGES["ZoneState"]
+	check(zs.keys() == ["clock", "queue"], "ZoneState: только часы и очередь: %s" % str(zs.keys()))
+	check(not NetMessages.MESSAGES.has("ThermalSources") and not NetMessages.MESSAGES.has("CloudFieldSnapshot"), "сообщений воздуха нет")

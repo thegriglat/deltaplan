@@ -37,6 +37,8 @@ func _run() -> void:
 	add_child(preview)
 	var atmo: Atmosphere = preview.get_node("Atmosphere")
 	atmo.set_physics_process(false)
+	while not atmo.is_ready():  # стенд сам грузит место и ждёт READY
+		await get_tree().process_frame
 	var layer := atmo.get_node_or_null("Clouds") as CloudLayer
 	if layer == null:
 		push_error("cloud_fade_shot: нет облаков")
@@ -54,16 +56,11 @@ func _run() -> void:
 		return
 	await _frames(40)
 	_save(out, 0, layer, th)
-	# Убрать термик из поля навсегда: облако выбывает из выбора и должно растаять. Соседей
-	# (с которыми оно слито в одно) — тоже, иначе они проявляются на его месте (перетекание).
-	var c0 := layer.model.center(th, atmo.time_s)
-	for id in atmo.field.thermals.keys():
-		var o: AtmoThermal = atmo.field.thermals[id]
-		if id == th.id or layer.model.center(o, atmo.time_s).distance_to(c0) < 3000.0:
-			atmo.field.thermals.erase(id)
-			atmo.field._empty_cycles[id] = 1.0e18
+	# Убрать термики из воздуха навсегда: пустой список и режим «только статические» (set_static_thermals,
+	# mode 1) — облако выбывает из выбора и должно растаять. Выбирается на фасаде, не по одному термику.
+	atmo.set_static_thermals(PackedFloat32Array(), 1)
 	for k in range(1, count + 1):
-		atmo.step(step_s)
+		atmo.advance_to(atmo.time_s + step_s)
 		layer._acc = 1.0e9
 		await _frames(8)
 		_save(out, k, layer, th)

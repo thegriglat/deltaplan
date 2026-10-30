@@ -1,0 +1,16 @@
+[package]
+name = "first_build"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[workspace]
+
+[dependencies]
+dp-air = { path = "../../../rust/dp-air" }
+serde_json = "1"
+brotli-decompressor = "2.5"
+
+[profile.release]
+opt-level = 3
+panic = "abort"

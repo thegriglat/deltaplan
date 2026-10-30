@@ -156,8 +156,9 @@ func test_forecast_settings() -> void:
 	var r := FlightSettings.from_dict(JSON.parse_string(JSON.stringify(s.to_dict())))
 	check(r.forecast() == s.forecast(), "прогноз туда-обратно")
 	check(not r.wind_into_launch, "направление туда-обратно")
-	# По умолчанию — обычный максимум для даты по умолчанию.
-	approx(def.temperature_c, roundf(WeatherModel.typical_max_c(def.month, def.day)), 1.0, "умолчание")
+	# По умолчанию — обычный максимум (Tx климата ERA5) для даты и места по умолчанию.
+	var ll := WorldKey.launch_latlon(def)
+	approx(def.temperature_c, roundf(Weather.typical_max_c(def.month, def.day, ll.x, ll.y)), 1.0, "умолчание")
 
 
 func test_unknown_wing_default() -> void:
@@ -199,17 +200,19 @@ func test_user_settings_merge() -> void:
 
 
 func test_calm_air_contract() -> void:
+	# Запасной воздух = Calm из W4: ветер, вертикаль и σ — нули, описаний нет (RW-3c).
 	var a := CalmAir.new()
-	a.set_weather({"wind_speed_kmh": 18.0, "wind_from_deg": 270.0, "cloudbase_agl_m": 1500})
-	a.set_ground(func(_x: float, _z: float) -> float: return 100.0, Callable())
-	var v := a.air_velocity_at(Vector3(5000, 600, 5000))
-	approx(v.x, 5.0, 0.01, "западный ветер дует на восток")
-	approx(v.z, 0.0, 0.01, "без составляющей север-юг")
-	check(v.y < 0.0, "между термиками опускание")
-	a.add_static_thermal(0.0, 0.0, 3.0, 100.0)
-	a.set_wind(0.0, 0.0)
-	approx(a.air_velocity_at(Vector3(0, 600, 0)).y, 2.5, 0.05, "в ядре 3 − 0,5 м/с")
-	approx(a.air_velocity_at(Vector3(0, 100, 0)).y, 0.0, 0.01, "у земли потоки гаснут")
+	check(a.set_conditions({"preset": {"wind_speed_kmh": 18.0, "wind_from_deg": 270.0}, "start_hour": 12.0, "speed": 1.0}) == 0, "условия")
+	var p := Vector3(5000, 600, 5000)
+	check(a.air_velocity_at(p) == Vector3.ZERO, "ветер 0 и при заданном пресете")
+	check(a.mean_wind_at(p) == Vector3.ZERO, "средний ветер 0")
+	check(a.turbulence_intensity_at(p) == 0.0, "σ = 0")
+	var r := a.sample_many(PackedVector3Array([p, Vector3(0, 100, 0)]))
+	check(r.size() == 8, "4N чисел")
+	for v in r:
+		check(v == 0.0, "все нули (w тоже)")
+	check(a.cores(p, 5000.0).is_empty() and a.clouds(p, 5000.0).is_empty(), "описаний нет")
+	check(a.thermals_near(p, 5000.0).is_empty(), "термиков нет")
 	a.free()
 
 

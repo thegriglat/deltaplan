@@ -1,0 +1,398 @@
+//! Geometric multigrid V-cycle for the pressure-correction equation `div(K grad phi) = f`
+//! (reference class `MG`): coarsening by 2 in x, y only, vertical zebra line smoother.
+
+use crate::kernels::Pos;
+use crate::lines::{RowBuf, Scratch, Shape, restrict_resid, sweep};
+use crate::util::{RHS, Row};
+use rayon::prelude::*;
+
+/// One grid level (no halo): stencil rows (the `b` slot holds the right-hand side),
+/// activity mask and current solution.
+pub struct Level {
+    shape: Shape,
+    rows: RowBuf,
+    act: Vec<f32>,
+    x: Vec<f32>,
+    sc: Scratch,
+}
+
+/// The multigrid hierarchy of one case.
+pub struct Mg {
+    levels: Vec<Level>,
+}
+
+/// Face conductances and activity of one level, `f64`.
+struct Faces {
+    nz: usize,
+    ny: usize,
+    nx: usize,
+    cx: Vec<f64>, // (nz, ny, nx + 1)
+    cy: Vec<f64>, // (nz, ny + 1, nx)
+    cz: Vec<f64>, // (nz + 1, ny, nx)
+    active: Vec<bool>,
+}
+
+impl Faces {
+    fn ix(&self, k: usize, j: usize, i: usize) -> usize {
+        (k * self.ny + j) * (self.nx + 1) + i
+    }
+    fn iy(&self, k: usize, j: usize, i: usize) -> usize {
+        (k * (self.ny + 1) + j) * self.nx + i
+    }
+    fn iz(&self, k: usize, j: usize, i: usize) -> usize {
+        (k * self.ny + j) * self.nx + i
+    }
+    fn ic(&self, k: usize, j: usize, i: usize) -> usize {
+        (k * self.ny + j) * self.nx + i
+    }
+
+    /// 7-point stencil rows (`b` = 0); dead cells get the identity row.
+    fn stencil(&self) -> Vec<Row> {
+        let (nz, ny, nx) = (self.nz, self.ny, self.nx);
+        let mut rows = vec![[0.0f32; 8]; nz * ny * nx];
+        for k in 0..nz {
+            for j in 0..ny {
+                for i in 0..nx {
+                    let mut c = [0.0f64; 7];
+                    c[1] = self.cx[self.ix(k, j, i)];
+                    c[2] = self.cx[self.ix(k, j, i + 1)];
+                    c[3] = self.cy[self.iy(k, j, i)];
+                    c[4] = self.cy[self.iy(k, j + 1, i)];
+                    c[5] = self.cz[self.iz(k, j, i)];
+                    c[6] = self.cz[self.iz(k + 1, j, i)];
+                    c[0] = -(c[1] + c[2] + c[3] + c[4] + c[5] + c[6]);
+                    if i == 0 {
+                        c[1] = 0.0;
+                    }
+                    if i == nx - 1 {
+                        c[2] = 0.0;
+                    }
+                    if j == 0 {
+                        c[3] = 0.0;
+                    }
+                    if j == ny - 1 {
+                        c[4] = 0.0;
+                    }
+                    if k == 0 {
+                        c[5] = 0.0;
+                    }
+                    if k == nz - 1 {
+                        c[6] = 0.0;
+                    }
+                    let q = self.ic(k, j, i);
+                    let dead = !self.active[q] || c[0] == 0.0;
+                    let r = &mut rows[q];
+                    if dead {
+                        r[0] = 1.0;
+                    } else {
+                        for o in 0..7 {
+                            r[o] = c[o] as f32;
+                        }
+                    }
+                }
+            }
+        }
+        rows
+    }
+
+    /// Coarsens by 2 in x, y (conductance of a coarse face: sum / 8, z: sum / 4), then
+    /// closes faces next to inactive coarse cells.
+    fn coarsen(&self) -> Faces {
+        let (nz, ny, nx) = (self.nz, self.ny / 2, self.nx / 2);
+        let mut c = Faces {
+            nz,
+            ny,
+            nx,
+            cx: vec![0.0; nz * ny * (nx + 1)],
+            cy: vec![0.0; nz * (ny + 1) * nx],
+            cz: vec![0.0; (nz + 1) * ny * nx],
+            active: vec![false; nz * ny * nx],
+        };
+        for k in 0..nz {
+            for j in 0..ny {
+                for i in 0..nx {
+                    let mut a = false;
+                    for dj in 0..2 {
+                        for di in 0..2 {
+                            a |= self.active[self.ic(k, 2 * j + dj, 2 * i + di)];
+                        }
+                    }
+                    let q = c.ic(k, j, i);
+                    c.active[q] = a;
+                }
+            }
+        }
+        for k in 0..nz {
+            for j in 0..ny {
+                for i in 0..=nx {
+                    let v = (self.cx[self.ix(k, 2 * j, 2 * i)]
+                        + self.cx[self.ix(k, 2 * j + 1, 2 * i)])
+                        / 8.0;
+                    let open = if i == 0 {
+                        c.active[c.ic(k, j, 0)]
+                    } else if i == nx {
+                        c.active[c.ic(k, j, nx - 1)]
+                    } else {
+                        c.active[c.ic(k, j, i)] && c.active[c.ic(k, j, i - 1)]
+                    };
+                    let q = c.ix(k, j, i);
+                    c.cx[q] = if open { v } else { 0.0 };
+                }
+            }
+        }
+        for k in 0..nz {
+            for j in 0..=ny {
+                for i in 0..nx {
+                    let v = (self.cy[self.iy(k, 2 * j, 2 * i)]
+                        + self.cy[self.iy(k, 2 * j, 2 * i + 1)])
+                        / 8.0;
+                    let open = if j == 0 {
+                        c.active[c.ic(k, 0, i)]
+                    } else if j == ny {
+                        c.active[c.ic(k, ny - 1, i)]
+                    } else {
+                        c.active[c.ic(k, j, i)] && c.active[c.ic(k, j - 1, i)]
+                    };
+                    let q = c.iy(k, j, i);
+                    c.cy[q] = if open { v } else { 0.0 };
+                }
+            }
+        }
+        for k in 0..=nz {
+            for j in 0..ny {
+                for i in 0..nx {
+                    let v = (self.cz[self.iz(k, 2 * j, 2 * i)]
+                        + self.cz[self.iz(k, 2 * j, 2 * i + 1)]
+                        + self.cz[self.iz(k, 2 * j + 1, 2 * i)]
+                        + self.cz[self.iz(k, 2 * j + 1, 2 * i + 1)])
+                        / 4.0;
+                    let open = if k == 0 {
+                        c.active[c.ic(0, j, i)]
+                    } else if k == nz {
+                        c.active[c.ic(nz - 1, j, i)]
+                    } else {
+                        c.active[c.ic(k, j, i)] && c.active[c.ic(k - 1, j, i)]
+                    };
+                    let q = c.iz(k, j, i);
+                    c.cz[q] = if open { v } else { 0.0 };
+                }
+            }
+        }
+        c
+    }
+}
+
+impl Mg {
+    /// Builds the hierarchy from the projection conductivities `kx, ky, kz` (halo arrays of
+    /// shape `(nzh, nyh, nxh)`), the air mask `fluid` (halo array) and the cell sizes.
+    pub fn new(
+        kx: &[f32],
+        ky: &[f32],
+        kz: &[f32],
+        fluid: &[f32],
+        dims: Shape,
+        dx: f32,
+        dz: f32,
+    ) -> Self {
+        Self::new_until(kx, ky, kz, fluid, dims, dx, dz, &|| false)
+    }
+
+    /// [`Self::new`] with a stop test (W11 v6): `stop` is asked before every level; once it
+    /// answers `true` the hierarchy is cut after the levels built so far (the finest level is
+    /// always built). The result is a valid but weaker solver; the caller that stopped it does
+    /// not iterate.
+    #[allow(clippy::too_many_arguments)]
+    pub fn new_until(
+        kx: &[f32],
+        ky: &[f32],
+        kz: &[f32],
+        fluid: &[f32],
+        dims: Shape,
+        dx: f32,
+        dz: f32,
+        stop: &dyn Fn() -> bool,
+    ) -> Self {
+        let (nzh, nyh, nxh) = dims;
+        let (nz, ny, nx) = (nzh - 2, nyh - 2, nxh - 2);
+        let h = |k: usize, j: usize, i: usize| (k * nyh + j) * nxh + i;
+        let (dx2, dz2) = (f64::from(dx) * f64::from(dx), f64::from(dz) * f64::from(dz));
+        let mut f = Faces {
+            nz,
+            ny,
+            nx,
+            cx: vec![0.0; nz * ny * (nx + 1)],
+            cy: vec![0.0; nz * (ny + 1) * nx],
+            cz: vec![0.0; (nz + 1) * ny * nx],
+            active: vec![false; nz * ny * nx],
+        };
+        for k in 0..nz {
+            for j in 0..ny {
+                for i in 0..=nx {
+                    let q = f.ix(k, j, i);
+                    f.cx[q] = f64::from(kx[h(k + 1, j + 1, i + 1)]) / dx2;
+                }
+            }
+        }
+        for k in 0..nz {
+            for j in 0..=ny {
+                for i in 0..nx {
+                    let q = f.iy(k, j, i);
+                    f.cy[q] = f64::from(ky[h(k + 1, j + 1, i + 1)]) / dx2;
+                }
+            }
+        }
+        for k in 0..=nz {
+            for j in 0..ny {
+                for i in 0..nx {
+                    let q = f.iz(k, j, i);
+                    f.cz[q] = f64::from(kz[h(k + 1, j + 1, i + 1)]) / dz2;
+                }
+            }
+        }
+        for k in 0..nz {
+            for j in 0..ny {
+                for i in 0..nx {
+                    let q = f.ic(k, j, i);
+                    f.active[q] = fluid[h(k + 1, j + 1, i + 1)] != 0.0;
+                }
+            }
+        }
+        let mut levels = Vec::new();
+        loop {
+            let n = f.nz * f.ny * f.nx;
+            levels.push(Level {
+                shape: (f.nz, f.ny, f.nx),
+                rows: f.stencil().into(),
+                act: f.active.iter().map(|&a| f32::from(a)).collect(),
+                x: vec![0.0; n],
+                sc: Scratch::new(n),
+            });
+            if !f.nx.is_multiple_of(2) || !f.ny.is_multiple_of(2) || f.nx < 6 || f.ny < 6 || stop()
+            {
+                break;
+            }
+            f = f.coarsen();
+        }
+        Self { levels }
+    }
+
+    /// Grid sizes `(nx, ny, nz)` of every level.
+    pub fn level_dims(&self) -> Vec<[usize; 3]> {
+        self.levels
+            .iter()
+            .map(|l| [l.shape.2, l.shape.1, l.shape.0])
+            .collect()
+    }
+
+    /// Finest-level solution `phi` (no halo).
+    pub fn phi(&self) -> &[f32] {
+        &self.levels[0].x
+    }
+
+    /// Mutable finest-level solution.
+    pub fn phi_mut(&mut self) -> &mut [f32] {
+        &mut self.levels[0].x
+    }
+
+    /// Sets the finest-level right-hand side.
+    pub fn set_rhs(&mut self, f: &[f32]) {
+        self.levels[0]
+            .rows
+            .par_iter_mut()
+            .zip(f.par_iter())
+            .for_each(|(r, &v)| r[RHS] = v);
+    }
+
+    /// Sets the finest-level right-hand side to `f - mean * w` (`w` the fluid weights) and zeroes
+    /// the finest-level solution, in one pass in the pool.
+    pub fn set_rhs_shifted_zero(&mut self, f: &[f32], mean: f32, w: &[f32]) {
+        let l = &mut self.levels[0];
+        l.rows
+            .par_chunks_mut(CHUNK)
+            .zip(l.x.par_chunks_mut(CHUNK))
+            .zip(f.par_chunks(CHUNK).zip(w.par_chunks(CHUNK)))
+            .for_each(|((rows, x), (f, w))| {
+                for (((r, x), &v), &w) in rows.iter_mut().zip(x.iter_mut()).zip(f).zip(w) {
+                    r[RHS] = v - mean * w;
+                    *x = 0.0;
+                }
+            });
+    }
+
+    /// Zeroes the finest-level solution (in the pool).
+    pub fn zero_phi(&mut self) {
+        self.levels[0]
+            .x
+            .par_chunks_mut(CHUNK)
+            .for_each(|c| c.fill(0.0));
+    }
+
+    /// One V-cycle on the finest level (2 pre, 2 post smoothing sweeps in z, 20 sweeps of
+    /// (z, x, y) on the coarsest level), updating `phi` in place.
+    pub fn vcycle(&mut self) {
+        vcycle_rec(&mut self.levels, &|| false);
+    }
+
+    /// [`Self::vcycle`] with a stop test (W11 v6), asked on entry to every level (between
+    /// sweep groups: a few ms of work). `false` — stopped, `phi` holds a partial correction.
+    pub fn vcycle_until(&mut self, stop: &dyn Fn() -> bool) -> bool {
+        vcycle_rec(&mut self.levels, stop)
+    }
+}
+
+/// Cells per parallel task of the point-wise transfers.
+const CHUNK: usize = 1024;
+
+/// Piecewise-constant prolongation of the coarse correction `cx`, added to `x` in active cells.
+#[cfg_attr(
+    all(target_arch = "x86_64", not(feature = "base_only")),
+    multiversion::multiversion(targets("x86_64+avx2+fma"))
+)]
+fn prolong_chunk(cx: &[f32], act: &[f32], (ny, nx): (usize, usize), start: usize, x: &mut [f32]) {
+    let (cny, cnx) = (ny / 2, nx / 2);
+    let mut pos = Pos::at(start, nx, ny);
+    for (d, x) in x.iter_mut().enumerate() {
+        let q = start + d;
+        *x += cx[(pos.k * cny + pos.j / 2) * cnx + pos.i / 2] * act[q];
+        pos.advance(nx, ny);
+    }
+}
+
+/// Prolongation, chunks of fine cells in parallel.
+fn prolong_add(cx: &[f32], act: &[f32], dims: (usize, usize), x: &mut [f32]) {
+    x.par_chunks_mut(CHUNK)
+        .enumerate()
+        .for_each(|(n, xc)| prolong_chunk(cx, act, dims, n * CHUNK, xc));
+}
+
+/// `true` — the cycle ran to the end, `false` — `stop` fired.
+fn vcycle_rec(levels: &mut [Level], stop: &dyn Fn() -> bool) -> bool {
+    let (cur, rest) = levels.split_at_mut(1);
+    let l = &mut cur[0];
+    if stop() {
+        return false;
+    }
+    if rest.is_empty() {
+        for s in 0..20 {
+            if s % 4 == 3 && stop() {
+                return false;
+            }
+            sweep(&l.rows, &mut l.x, &mut l.sc, l.shape, &[2, 0, 1]);
+        }
+        return true;
+    }
+    for _ in 0..2 {
+        sweep(&l.rows, &mut l.x, &mut l.sc, l.shape, &[2]);
+    }
+    let (_, ny, nx) = l.shape;
+    let c = &mut rest[0];
+    restrict_resid((&l.rows, &l.x, l.shape), &c.act, (&mut c.rows, &mut c.x));
+    if !vcycle_rec(rest, stop) {
+        return false;
+    }
+    prolong_add(&rest[0].x, &l.act, (ny, nx), &mut l.x);
+    for _ in 0..2 {
+        sweep(&l.rows, &mut l.x, &mut l.sc, l.shape, &[2]);
+    }
+    true
+}

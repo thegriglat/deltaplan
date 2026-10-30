@@ -12,12 +12,10 @@ extends Node3D
 ##   forest_at(x, z)       — доля леса 0..1 (маска 10 м), get_forest_mask() — сама маска
 ##   add_runway_clearing(start, heading, длина, ширина) — полоса под буксировку (TW-К6)
 ##   add_start_clearing(x, z, r), get_start_clearings() — пустыри у стартов (К1 v2, SF-1)
-##   thermal_source_strength_at(x, z) — сила источника термиков 0..1 (класс × освещённость
-##                           × сухость), годится как sun_fn для Atmosphere.set_ground
 ##   moisture_at / relief_ao_at / relief_horizon_at — поля рельефа (TerrainRelief): влажность
 ##                           ложбин, AO, горизонт к солнцу; set_sun(to_sun) — смена солнца
 ##                           (SunClock.sun_changed), тень склонов пересчитывается в фоне
-## Цвет земли, деревья и источники термиков берутся из одной карты поверхности (VR-0, VR-4).
+## Цвет земли и деревья берутся из одной карты поверхности (VR-0, VR-4).
 ## Ветер на земле (VR-17): set_wind_sources(atmo.mean_wind_at, atmo.thermals_near,
 ## atmo.air_velocity_at), set_pilot(node).
 ## Дополнительно: load_location(id), load_point(lat, lon) (сборка/кеш места точки, OA-К4),
@@ -67,24 +65,9 @@ var _city_canopy_on := false
 ## Пустыри у стартов: Vector3(x, z, радиус), м — встроенные (set_surfaces) и add_start_clearing.
 var _start_clearings: Array[Vector3] = []
 var _sun_dir: Vector3 = Vector3.UP
-## Солнце по классам поверхности с запаздыванием прогрева (SurfaceHeating); пусто — _sun_dir.
-var _class_sun := PackedVector3Array()
-## Застройка после заката (SurfaceHeating.built_night; пусто — солнце над горизонтом), FBW-К2 v3.
-var _class_night := {}
 ## terrain_look после переопределений локации (палитра — get_grass_palette).
 var _look: Dictionary = {}
 var _builder: LocationBuilder
-## Источник термиков из потока тепла (SH-5): конфиг SurfaceHeat, H_ref, one-hot доли классов, вода.
-const _HEAT_SKY := {"cover": 0.0, "sky_heat": 1.0}
-var _heat_cfg: Dictionary = {}
-var _h_ref: float = 362.0
-var _heat_onehot := PackedFloat32Array()
-var _water_heat: Dictionary = {}
-var _edge_boost: float = 0.0
-var _edge_full: float = 50.0
-var _edge_max: float = 150.0
-## Пары классов-триггеров: _edge_pair[a * CLASS_COUNT + b] = true.
-var _edge_pair := PackedByteArray()
 ## С этого уклона луг/поле/кустарник считаются скалами (как в шейдере), радианы → cos.
 var _rock_cos: float = -1.0
 ## world.json → surface.relief
@@ -711,88 +694,6 @@ func get_forest_mask() -> Array:
 	return []
 
 
-## Сила источника термиков 0..1 (VR-4, FR-11, SH-5): нормированный поток тепла с поверхности
-## clamp(max(H, 0) / h_ref · (1 + edge_boost · близость к границе), 0, 1), H = SurfaceHeat.mix_flux
-## для класса точки (единичная нормаль, класс-солнце, влажность рельефа, ясное небо; вода — по
-## set_water_heat, не задан → 0). Границы классов-триггеров (поле–лес, луг–лес, пашня–луг) усиливают.
-## Сигнатура как у sun_fn в Atmosphere.set_ground.
-func thermal_source_strength_at(x: float, z: float) -> float:
-	return thermal_source_strength_water(x, z, _class_sun, _sun_dir, _water_heat, _class_night)
-
-
-## Контекст воды для потока тепла (SurfaceHeat.water_flux): температуры воды и воздуха, °C, ветер, м/с.
-## Не задан (или clear_water_heat) — вода источником не считается (s = 0).
-func set_water_heat(t_water_c: float, t_air_c: float, u_ms: float) -> void:
-	_water_heat = {"t_water_c": t_water_c, "t_air_c": t_air_c, "u_ms": u_ms}
-
-
-func clear_water_heat() -> void:
-	_water_heat = {}
-
-
-## То же при заданном солнце: class_sun — направления по классам (SurfaceHeating.directions),
-## to_sun — для классов без своего. Чистая функция (для атмосферы по времени, AtmoDay).
-func thermal_source_strength_for(
-	x: float, z: float, class_sun: PackedVector3Array, to_sun: Vector3
-) -> float:
-	return thermal_source_strength_water(x, z, class_sun, to_sun, _water_heat)
-
-
-## То же с явным контекстом воды {t_water_c, t_air_c, u_ms} (пусто — вода 0): для AtmoDay, где вода
-## зависит от часа, а не от текущего состояния Terrain.
-## night — застройка после заката (SurfaceHeating.built_night; пусто — нет).
-func thermal_source_strength_water(
-	x: float,
-	z: float,
-	class_sun: PackedVector3Array,
-	to_sun: Vector3,
-	water: Dictionary,
-	night: Dictionary = {}
-) -> float:
-	var n := normal_at(x, z)
-	var c := _surface_class(x, z, n)
-	var sun := class_sun
-	if sun.size() < SurfaceLayer.CLASS_COUNT:
-		sun = PackedVector3Array()
-		sun.resize(SurfaceLayer.CLASS_COUNT)
-		for i in SurfaceLayer.CLASS_COUNT:
-			sun[i] = class_sun[i] if i < class_sun.size() else to_sun
-	var h := SurfaceHeat.mix_flux(
-		_heat_onehot,
-		c * SurfaceLayer.CLASS_COUNT,
-		n,
-		sun,
-		moisture_at(x, z),
-		_HEAT_SKY if night.is_empty() else {"cover": 0.0, "sky_heat": 1.0, "night": night},
-		water,
-		_heat_cfg
-	)
-	if h <= 0.0:
-		return 0.0
-	return clampf(h / _h_ref * (1.0 + _edge_boost * _edge_proximity(x, z)), 0.0, 1.0)
-
-
-## Близость к границе классов-триггеров 0..1: 1 ближе edge_full_m, 0 дальше edge_max_m.
-## Ищется по 8 направлениям на нескольких расстояниях (класс — без учёта уклона).
-func _edge_proximity(x: float, z: float) -> float:
-	if _edge_boost <= 0.0 or _edge_pair.is_empty():
-		return 0.0
-	var sl := _surface_layer_at(x, z)
-	if sl == null:
-		return 0.0
-	var c0 := sl.class_at(x, z)
-	var n := SurfaceLayer.CLASS_COUNT
-	var steps := 4
-	for s in steps:
-		var d := _edge_full * 0.5 + (_edge_max - _edge_full * 0.5) * s / float(steps - 1)
-		for k in 8:
-			var a := TAU * k / 8.0
-			var c1 := sl.class_at(x + cos(a) * d, z + sin(a) * d)
-			if c1 != c0 and _edge_pair[c0 * n + c1] != 0:
-				return clampf((_edge_max - d) / maxf(_edge_max - _edge_full, 1.0), 0.0, 1.0)
-	return 0.0
-
-
 # ---------------- дополнительно ----------------
 
 
@@ -817,16 +718,8 @@ func relief_horizon_at(x: float, z: float) -> float:
 
 ## Новое направление НА солнце (единичный вектор) — от SunClock.sun_changed:
 ##   sky.clock.sun_changed.connect(terrain.set_sun)
-## Обновляет освещение полога/камней в шейдере и источники термиков; горизонт к солнцу (тень
+## Обновляет освещение полога/камней в шейдере; горизонт к солнцу (тень
 ## рельефа) пересчитывается в фоне, когда азимут ушёл дальше surface.relief.shadow_recompute_deg.
-## Солнце для источников термиков по классам (инерция прогрева: камни и деревни греют и вечером,
-## SurfaceHeating.directions). Пустой массив — всем классам текущее солнце.
-## night — застройка после заката (SurfaceHeating.built_night; пусто — нет).
-func set_class_sun(dirs: PackedVector3Array, night: Dictionary = {}) -> void:
-	_class_sun = dirs
-	_class_night = night
-
-
 func set_sun(to_sun: Vector3) -> void:
 	if to_sun.length_squared() < 1e-8:
 		return
@@ -1164,26 +1057,6 @@ func set_surfaces(new_surfaces: Array[SurfaceLayer], scfg: Dictionary, look: Dic
 			_clear_runway(p, float(site.heading_deg), dim.x, dim.y)
 	for s in surfaces:
 		s.end_edit()
-	# Конфиг потока тепла и one-hot доли — заранее на главном потоке (источники зовут из рабочих потоков).
-	_heat_cfg = SurfaceHeat.config()
-	_h_ref = maxf(float(_heat_cfg.get("thermal", {}).get("h_ref_wm2", 362.0)), 1.0)
-	_heat_onehot.resize(SurfaceLayer.CLASS_COUNT * SurfaceLayer.CLASS_COUNT)
-	_heat_onehot.fill(0.0)
-	for i in SurfaceLayer.CLASS_COUNT:
-		_heat_onehot[i * SurfaceLayer.CLASS_COUNT + i] = 1.0
-	var th: Dictionary = scfg.get("thermal", {})
-	_edge_boost = float(th.get("edge_boost", 0.0))
-	_edge_full = float(th.get("edge_full_m", 50.0))
-	_edge_max = float(th.get("edge_max_m", 150.0))
-	var n := SurfaceLayer.CLASS_COUNT
-	_edge_pair = PackedByteArray()
-	_edge_pair.resize(n * n)
-	for pair: Array in th.get("edge_pairs", []):
-		var a := SurfaceLayer.CLASS_NAMES.find(String(pair[0]))
-		var b := SurfaceLayer.CLASS_NAMES.find(String(pair[1]))
-		if a >= 0 and b >= 0:
-			_edge_pair[a * n + b] = 1
-			_edge_pair[b * n + a] = 1
 	_rock_cos = cos(deg_to_rad(float(look.get("rock_slope_deg", 90.0))))
 
 

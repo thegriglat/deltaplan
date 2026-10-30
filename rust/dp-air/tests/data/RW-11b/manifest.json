@@ -1,0 +1,8 @@
+{
+ "task": "RW-11b",
+ "generator_removed_at": "a5d9387c3",
+ "generator_files_removed": [
+  "rust/dp-air/tests/data/RW-11b/gen_ongudai_wave.gd"
+ ],
+ "restore": "git show a5d9387c3:<путь> — генератор восстанавливается из ревизии до удаления (RW-13)"
+}

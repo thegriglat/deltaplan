@@ -9,6 +9,9 @@ extends Node3D
 ##   --wind=<км/ч>                  ветер
 ## Управление: WASD/QE — полёт, правая кнопка мыши — обзор, Shift — быстрее, 1..5 — ракурсы,
 ## T — время +60 с.
+## Воздух — только фасад W2 (configure, set_conditions, load_place, start_at) и описания W6: превью
+## не лезет во внутренности. Поэтому ракурсы stages/cb/dust — приближения: стадии облаков не
+## задаются (статические термики — зрелые), грозу даёт пресет storm, вихри — вероятность в пресете.
 
 var _shot := ""
 var _frames := 0
@@ -31,58 +34,90 @@ func _ready() -> void:
 		if a.begins_with("--"):
 			var kv := a.substr(2).split("=", true, 1)
 			_args[kv[0]] = kv[1] if kv.size() > 1 else "1"
-	atmo.set_weather("weather/" + String(_args.get("weather", "medium")))
+	_view = String(_args.get("view", "horizon"))
+	_shot = String(_args.get("shot", ""))
+	if _shot != "":
+		# Одинаковый кадр для скриншотов (оконный менеджер может выдать любое окно).
+		get_window().mode = Window.MODE_WINDOWED
+		get_window().size = Vector2i(1280, 720)
+	if _args.has("bench"):
+		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
+		get_window().mode = Window.MODE_WINDOWED
+		get_window().size = Vector2i(1920, 1080)
+		RenderingServer.viewport_set_measure_render_time(get_viewport().get_viewport_rid(), true)
+	_boot()
+
+
+## Условия (пресет погоды с правками из параметров), место, фокус и старт воздуха на --time.
+func _boot() -> void:
+	var default_weather := "storm" if _view in ["cb", "cbnear", "cbfar"] else "medium"
+	var w: Dictionary = Config.get_config(
+		"weather/" + String(_args.get("weather", default_weather))
+	).duplicate(true)
 	if _args.has("cirrus"):
-		atmo.weather.cirrus_cover = float(_args.cirrus)
+		w.cirrus_cover = float(_args.cirrus)
 	if _args.has("wind"):
-		atmo.set_wind(float(_args.wind), float(atmo.weather.wind_from_deg))
+		w.wind_speed_kmh = float(_args.wind)
+	if _view == "dust":
+		w.dust_devil_chance = 1.0
 	# Рельеф — чужой модуль: без статического типа, чтобы превью не зависело от его компиляции.
 	var terrain := get_node_or_null("Terrain")
-	if terrain != null and terrain.has_method("height_at"):
-		# Реальный рельеф (сцена atmosphere_terrain_preview.tscn): термики от солнечных склонов.
-		atmo.set_ground(
-			Callable(terrain, "height_at"),
-			Callable(terrain, "thermal_source_strength_at")
-			if terrain.has_method("thermal_source_strength_at")
-			else Callable(terrain, "sun_exposure_at"),
-			Callable(terrain, "surface_at") if terrain.has_method("surface_at") else Callable()
-		)
-		atmo.set_sun_direction(terrain.call("sun_direction"))
+	var has_terrain := terrain != null and terrain.has_method("height_at")
+	var height_fn: Callable
+	var moist_fn: Callable
+	if has_terrain:
+		# Реальный рельеф (сцена atmosphere_terrain_preview.tscn): термики от солнечных склонов —
+		# высоты, источники и поверхность берутся у рельефа (AirPlaceData.terrain), в растр
+		# места идут только высоты.
+		if terrain.has_method("wait_relief"):
+			terrain.call("wait_relief")
+		height_fn = Callable(terrain, "height_at")
+		moist_fn = func(_x: float, _z: float) -> float: return 0.8
 		var sites: Array = terrain.call("get_start_sites")
 		if not sites.is_empty():
 			_site = sites[0]
 	elif String(_args.get("ground", "")) == "ridge":
 		# Хребет поперёк западного ветра (для волны): гребень вдоль Z на x = 0.
-		atmo.set_ground(_ridge_h, func(_x: float, _z: float) -> float: return 0.8)
+		height_fn = _ridge_h
+		moist_fn = func(_x: float, _z: float) -> float: return 0.8
 		_make_ridge_mesh()
 	else:
-		atmo.set_ground(
-			func(_x: float, _z: float) -> float: return 0.0,
-			func(x: float, z: float) -> float: return 0.75 + 0.25 * sin(x / 1300.0) * cos(z / 1700.0)
-		)
-	atmo.time_s = float(_args.get("time", "3600"))
+		height_fn = func(_x: float, _z: float) -> float: return 0.0
+		moist_fn = func(x: float, z: float) -> float:
+			return 0.75 + 0.25 * sin(x / 1300.0) * cos(z / 1700.0)
 	var origin: Vector3 = _site.get("position", Vector3.ZERO)
-	atmo.set_focus(origin)
-	atmo.step(0.0)
-	_view = String(_args.get("view", "horizon"))
+	var loc := {
+		"id": "preview", "center_lat": 51.5, "center_lon": 86.5, "utc_offset_h": 6.0,
+		"month": 7, "day": 15,
+	}
+	if has_terrain and "center_lat" in terrain:
+		loc.center_lat = float(terrain.get("center_lat"))
+		loc.center_lon = float(terrain.get("center_lon"))
+	# Растр места 60 × 60 км, шаг 200 м (вне него — ближайший край); с рельефом игры высоты и
+	# источники идут от него же (AirPlaceData.terrain), растр нужен для сетки места.
+	var place := AirPlaceData.from_functions(
+		height_fn, moist_fn, loc, -30000.0, -30000.0, 200.0, 301, 301,
+		[{"id": "preview", "x": origin.x, "z": origin.z, "h_msl": origin.y}]
+	)
+	if has_terrain:
+		place.terrain = terrain
+	atmo.configure(-1)
+	atmo.set_conditions({"preset": w})
+	atmo.load_place(place)
+	if has_terrain and terrain.has_method("sun_direction"):
+		atmo.set_sun_direction(terrain.call("sun_direction"))
 	if _view == "stages":
 		_make_stages()
 	elif _view in ["cb", "cbnear", "cbfar"]:
 		_make_cb()
 	elif _view == "dust":
 		_make_dust()
-	_shot = String(_args.get("shot", ""))
-	if _shot != "":
-		# Одинаковый кадр для скриншотов (оконный менеджер может выдать любое окно).
-		get_window().mode = Window.MODE_WINDOWED
-		get_window().size = Vector2i(1280, 720)
+	atmo.set_focuses(PackedVector3Array([origin]), PackedFloat32Array([1.0]))
+	atmo.start_at(float(_args.get("time", "3600")))
+	while not atmo.is_ready():
+		atmo.pump(8000)
+		await get_tree().process_frame
 	_set_view(_view)
-	if _args.has("bench"):
-		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
-		get_window().mode = Window.MODE_WINDOWED
-		get_window().size = Vector2i(1920, 1080)
-		RenderingServer.viewport_set_measure_render_time(get_viewport().get_viewport_rid(), true)
-
 
 
 func _bench_frame(layer: CloudLayer) -> void:
@@ -108,7 +143,7 @@ func _bench_frame(layer: CloudLayer) -> void:
 			off += v
 		on /= _bench_on.size()
 		off /= _bench_off.size()
-		var n_th := atmo.field.thermals.size()
+		var n_th: int = atmo.cores(Vector3.ZERO, 1.0e7).size() / Atmosphere.CORE_STRIDE
 		print("CPU выбор облаков: %d мкс, термиков %d" % [layer.last_rebuild_us, n_th])
 		print(
 			(
@@ -127,23 +162,12 @@ func _bench_frame(layer: CloudLayer) -> void:
 		get_tree().quit()
 
 
-## Ряд статичных облаков в разных стадиях: зарождение, рост, зрелость, начало распада, распад.
+## Ряд статичных термиков (зрелые облака; стадии фасадом не задаются).
 func _make_stages() -> void:
-	atmo.set_thermal_mode("static")
-	atmo.set_wind(5.0, 270.0)
-	var layer := atmo.get_node_or_null("Clouds") as CloudLayer
-	var stages := [
-		Vector3(0.15, 0, 0.5),
-		Vector3(0.5, 0, 1),
-		Vector3(1, 0, 1),
-		Vector3(1, 0.35, 0.3),
-		Vector3(1, 0.75, 0)
-	]
-	for i in stages.size():
-		var id := atmo.add_static_thermal(-3600.0 + i * 1800.0, -4000.0, 4.0, 100.0)
-		if layer != null:
-			layer.model.stage_override[id] = stages[i]
-	atmo.step(0.0)
+	var list := PackedFloat32Array()
+	for i in 5:
+		list.append_array(PackedFloat32Array([-3600.0 + i * 1800.0, -4000.0, 4.0, 100.0]))
+	atmo.set_static_thermals(list, 1)
 
 
 ## Зрелое облако среднего размера из тех, что реально рисуются (после слияния наложившихся).
@@ -181,53 +205,35 @@ func _make_ridge_mesh() -> void:
 	add_child(mi)
 
 
-## Молодой сильный термик с пылевым вихрем в 600 м от камеры.
+## Сильные статические термики с пылевыми вихрями (вероятность вихря — 1 в пресете) в 600 м.
 func _make_dust() -> void:
-	atmo.weather.dust_devil_chance = 1.0
-	var dd := atmo.get_node_or_null("DustDevils") as DustDevils
-	if dd != null:
-		dd.model.setup(atmo.cfg.dust, atmo.weather)
+	var list := PackedFloat32Array()
 	for k in 3:
-		var id := atmo.add_static_thermal(600.0 + k * 350.0, -600.0 - k * 500.0, 4.5 - k * 0.6, 120.0)
-		var th: AtmoThermal = atmo.field.thermals[id]
-		th.is_static = false
-		th.t_grow = 400.0
-		th.t_mature = 600.0
-		th.t_decay = 200.0
-		# Момент жизни вихря: перебираем рождение так, чтобы вихрь был в середине жизни.
-		for b in 400:
-			th.t_birth = atmo.time_s - b
-			var d := dd.model.devil(th, atmo.time_s, Callable(), Vector2.ZERO) if dd else {}
-			if not d.is_empty() and float(d.age) > 0.35 and float(d.age) < 0.6:
-				break
-	atmo.step(1.0)
+		list.append_array(PackedFloat32Array([600.0 + k * 350.0, -600.0 - k * 500.0, 4.5 - k * 0.6, 120.0]))
+	atmo.set_static_thermals(list, 2)
 
 
-## Зрелый Cb в разгаре бури к северу — наковальня, вирга, фронт порывов.
+## Сильный статический термик к северу в грозовом пресете: башня, наковальня, вирга, фронт порывов
+## появляются по пресету, не по заданной стадии.
 func _make_cb() -> void:
-	var id := atmo.add_static_thermal(14000.0, -9000.0, 4.5, 150.0)
-	var th: AtmoThermal = atmo.field.thermals[id]
-	th.is_cb = true
-	th.suck = 0.4
-	th.overdevelop = 1.0
-	th.cloud_depth = float(atmo.weather.get("cb_top_above_base_m", 8000.0))
-	th.t_birth = atmo.time_s - 3500.0
-	th.t_grow = 300.0
-	th.t_mature = 4000.0
-	th.t_decay = 600.0
-	atmo.step(1.0)
+	atmo.set_static_thermals(PackedFloat32Array([14000.0, -9000.0, 4.5, 150.0]), 2)
 
 
 ## Центр кучевого облака поля, ближайшее к типичному размеру (~1,2 км), не дальше max_dist от нуля.
 func _strongest_cloud(max_dist: float) -> Variant:
-	atmo.cloud_phys.wait_field()
 	var best: Variant = null
 	var best_score := -1.0
-	for c: Dictionary in atmo.cloud_phys.visible_clouds(atmo.field.thermals, atmo.time_s, Vector3.ZERO):
-		var ctr: Vector2 = c.center
-		if float(c.growth) < 0.8 or float(c.decay) > 0.1 or ctr.length() > max_dist:
+	var list := atmo.clouds(Vector3.ZERO, max_dist)
+	for k in list.size() / Atmosphere.CLOUD_STRIDE:
+		var o := k * Atmosphere.CLOUD_STRIDE
+		var ctr := Vector2(list[o + Atmosphere.CLOUD_X], list[o + Atmosphere.CLOUD_Z])
+		if (
+			list[o + Atmosphere.CLOUD_GROWTH] < 0.8
+			or list[o + Atmosphere.CLOUD_DECAY] > 0.1
+			or ctr.length() > max_dist
+		):
 			continue
-		var score := 1.0 / (1.0 + absf(float(c.radius) - 600.0))
+		var score := 1.0 / (1.0 + absf(list[o + Atmosphere.CLOUD_RADIUS] - 600.0))
 		if score > best_score:
 			best_score = score
 			best = ctr
@@ -235,7 +241,7 @@ func _strongest_cloud(max_dist: float) -> Variant:
 
 
 func _set_view(v: String) -> void:
-	var cb := atmo.get_cloudbase_msl()
+	var cb := atmo.cloudbase_msl()
 	var c := Vector2.ZERO
 	var spot: Variant = _strongest_cloud(6000.0)
 	if spot != null:
@@ -263,8 +269,7 @@ func _set_view(v: String) -> void:
 				if not bf._flocks.is_empty():
 					bf._place_birds()
 					var bp := bf._mm.get_instance_transform(0).origin
-					var bt: AtmoThermal = bf._flocks[0][0]
-					var ax := bt.axis_at(bp.y)
+					var ax := BirdFlock.core_axis_at(bf._flocks[0][0], bp.y)
 					_place(Vector3(ax.x - 45, bp.y - 45, ax.y + 30), Vector3(ax.x, bp.y, ax.y))
 					print(
 						"birds: камера ",
@@ -286,8 +291,13 @@ func _set_view(v: String) -> void:
 		"wave":
 			# С подветренной стороны хребта вдоль ветра — лентикуляры в гребнях волн.
 			_place(Vector3(30000, 900, 14000), Vector3(8000, 3800, -2000))
-			for cr: Dictionary in atmo.wave.crests(Vector3(10000, 0, 0), 20000.0, 60.0):
-				print("гребень волны ", cr.pos, " η ", cr.eta)
+			var crests := atmo.wave_crests(Vector2(10000, 0), 20000.0, 60.0)
+			for k in crests.size() / Atmosphere.CREST_STRIDE:
+				var ci := k * Atmosphere.CREST_STRIDE
+				print(
+					"гребень волны ", Vector2(crests[ci + Atmosphere.CREST_X], crests[ci + Atmosphere.CREST_Z]),
+					" η ", crests[ci + Atmosphere.CREST_ETA]
+				)
 		"stages":
 			_place(Vector3(0, cb - 450, 0), Vector3(0, cb + 350, -4000))
 		"sun":
@@ -353,4 +363,4 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event.keycode >= KEY_1 and event.keycode <= KEY_5:
 			_set_view(views[event.keycode - KEY_1])
 		elif event.keycode == KEY_T:
-			atmo.time_s += 60.0
+			atmo.advance_to(float(atmo.status().time_s) + 60.0)

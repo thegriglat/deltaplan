@@ -33,7 +33,7 @@ func needs_gpu() -> bool:
 ## аналитическом поле. В поле GPU 1.0.0 болтанка у старта (σw ≈ 0,4–1 м/с на 1,5 м, разворот ветра —
 ## бисект CF-1, 4e71747) это ломает; поле чинит модуль air-start — после него вернуть true.
 func strict_run(game: Game) -> bool:
-	return game.air_runtime.unavailable_reason() != ""
+	return not bool(game.air.call("status").get("field_on", false))
 
 
 func check(cond: bool, msg: String = "") -> void:

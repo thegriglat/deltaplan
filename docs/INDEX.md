@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-29"
+updated: "2026-10-30"
 summary: "Точка входа: модули docs/ по подпроектам, прочие документы по типам."
 related: []
 generated: true
@@ -45,16 +45,70 @@ generated: true
   - [tools/research/haze_humidity/era5_source/summary.md](../tools/research/haze_humidity/era5_source/summary.md) — HH-17: остаток ERA5 качать из ARCO-1° почасового; T700 RMSE к CDS 0.09 K, u700 0.19 м/с, T2m max 0.52 K; NCAR и ARCO-0.25° не нужны [closed]
 - **air-cascade** — Каскад на гранях: деление клеток поля Пикара пополам с балансом массы — порывы, болтанка, склон; опыт на 2D-разрезе против Пикара. [closed 2026-10-24] — [план](plan/air-cascade.md) · [контракты](contracts/air-cascade.md) · [решения](plan/air-cascade/decisions.md) · [сводка](plan/air-cascade/summary.md) · полный журнал: `archive/air-cascade`
   - [tools/research/air_cascade/export/README.md](../tools/research/air_cascade/export/README.md) — AC-R2: Онгудай 400 м в формате R1 из air.py (f64); PR-3: пара 12:00 / 12:15 (R5) со входом от кода игры и как игра греет старт
-  - [tools/research/air_cascade/picard_rs/README.md](../tools/research/air_cascade/picard_rs/README.md) — picard_rs: Пикар AM-01 на Rust (f32, rayon); Онгудай 400 м — итерации как у эталона, u_rel ≤ 4e-5; solve 11–17 с на 18 потоках
-  - [tools/research/air_cascade/picard_rs/out/prof/README.md](../tools/research/air_cascade/picard_rs/out/prof/README.md) — PR-4: perf-профиль Rust-Пикара (u3_heat, 8 потоков): 74 % в solve_line, y/z прогонки с L1-промахами, 6,6 % стены последовательно
 - **picard-rs** — Rust-Пикар на CPU: оптимизация без asm, API числа потоков, время до/после, сколько итераций нужно, тёплый старт как в фоне игры. [closed 2026-10-24] — [план](plan/picard-rs.md) · [контракты](contracts/picard-rs.md) · [решения](plan/picard-rs/decisions.md) · [сводка](plan/picard-rs/summary.md) · полный журнал: `archive/picard-rs`
-  - [tools/research/air_cascade/picard_rs/out/final/README.md](../tools/research/air_cascade/picard_rs/out/final/README.md) — PR-12: итоговые замеры Пикара на Rust — до/после, холодный и тёплый старт, цепочка T→T+30, 2/3/6/8 потоков, tol_scale 5 и 1
-  - [tools/research/air_cascade/picard_rs/out/opt/PR-6/README.md](../tools/research/air_cascade/picard_rs/out/opt/PR-6/README.md) — PR-6: прогонки Томаса пачками линий своего цвета; u3_heat 8 потоков 104,1 -> 69,3 мс/итер., L1-промахи x0,46
-  - [tools/research/air_cascade/picard_rs/out/opt/PR-7/README.md](../tools/research/air_cascade/picard_rs/out/opt/PR-7/README.md) — PR-7: build_mom за один проход, project построчно в пуле; путь решения побитно тот же, 104,2 → 89,1 мс/итерацию (8 потоков)
-  - [tools/research/air_cascade/picard_rs/out/opt/PR-9/README.md](../tools/research/air_cascade/picard_rs/out/opt/PR-9/README.md) — PR-9: профиль и пачка 2 (ширина пачек прогонок, граничные линии группой, слитые проходы); побитно тот же путь, 58,2 -> 50,5 мс/итер.
-  - [tools/research/air_cascade/picard_rs/out/residual/PR-8/README.md](../tools/research/air_cascade/picard_rs/out/residual/PR-8/README.md) — PR-8: невязка Пикара → отклонение поля в м/с, холодный и тёплый старт, Онгудай 400 м; порог «годно для игры» — tol_scale 5
 - **rust-air-integration** — Встраивание Rust-Пикара в игру: поле, кэш, фоновый пересчёт и вход в крейте, Godot опрашивает точки; оценка 6–11 дней, проба [idea 2026-10-24] — [план](plan/rust-air-integration.md)
-- **rust-wind** — Весь ветер — в Rust-крейте за одной границей под живой воздух: фасад, контракт, перенос по слагаемым, тесты по TDD [idea 2026-10-25] — [план](plan/rust-wind.md)
+- **rust-wind-state** — rust-wind 2026-10-27: этап 1–2 доведён (кроме RW-6u, RW-7); что влито, что открыто, порядок продолжения [postponed 2026-10-27] — [план](plan/rust-wind-state.md)
+- **rust-wind-tests** — Тесты rust-wind T1–T10: что проверяют, где лежат, кто пишет (вынесено из docs/plan/rust-wind.md) [active 2026-10-29] — [план](plan/rust-wind-tests.md)
+- **rust-wind-transfer** — План переноса rust-wind: задачи RW по этапам, скоуп и приёмка (вынесено из docs/plan/rust-wind.md) [active 2026-10-29] — [план](plan/rust-wind-transfer.md)
+- **rust-wind** — Весь ветер — в Rust-крейте за одной границей; пауза 2026-10-26: поле Пикара в крейте, сверка T1 сильного ветра не сходится [closed 2026-10-30] — [план](plan/rust-wind.md) · [контракты](contracts/rust-wind.md) · [решения](plan/rust-wind/decisions.md) · [сводка](plan/rust-wind/summary.md) · полный журнал: `archive/rust-wind`
+  - [docs/contracts/rust-wind/descriptions.md](contracts/rust-wind/descriptions.md) — W6 rust-wind: описания — ядра подъёма, облака, растр облаков, гребни волн; поля, шаги, инвариант найденного ядра.
+  - [docs/contracts/rust-wind/dpair.md](contracts/rust-wind/dpair.md) — W3 rust-wind: класс DpAir (gdext, dp-gd) — методы W2 в типах Godot, потоки, жизненный цикл, описания W6; v6 — без режима поля.
+  - [docs/contracts/rust-wind/facade.md](contracts/rust-wind/facade.md) — W2 rust-wind: фасад Atmosphere (GDScript) — настройка, место, время, фокусы, опрос, описания; v6 — номер прогона в status.
+  - [docs/contracts/rust-wind/fixtures-tolerances.md](contracts/rust-wind/fixtures-tolerances.md) — W8 rust-wind: формат фикстур T1 (json + f32), допуски сверки Rust против GDScript, пороги скорости.
+  - [docs/contracts/rust-wind/input.md](contracts/rust-wind/input.md) — W5 rust-wind: вход реализации — AirPlaceData (место, растры, климат, запечённые поля, хеши), конфиги, условия
+  - [docs/contracts/rust-wind/solver.md](contracts/rust-wind/solver.md) — W11 rust-wind: решатель Пикара в крейте — R6 v3 + заморозка колонн, отмена, новые причины остановки; пустая маска — побитно R6 v3.
+  - [docs/contracts/rust-wind/trait.md](contracts/rust-wind/trait.md) — W4 rust-wind: трейт AirModel крейта dp-air (без Godot) — типы, методы, порядок команд, структуры описаний, реализации Calm/Formula/Live.
+  - [docs/contracts/rust-wind/weather.md](contracts/rust-wind/weather.md) — W12 rust-wind: погода в крейте — dp_air::weather (климат, ход дня, температуры, небо), класс DpWeather (dp-gd) и тонкая обёртка GD.
+  - [docs/plan/rust-wind-state.md](plan/rust-wind-state.md) — rust-wind 2026-10-27: этап 1–2 доведён (кроме RW-6u, RW-7); что влито, что открыто, порядок продолжения [postponed]
+  - [docs/plan/rust-wind-tests.md](plan/rust-wind-tests.md) — Тесты rust-wind T1–T10: что проверяют, где лежат, кто пишет (вынесено из docs/plan/rust-wind.md)
+  - [docs/plan/rust-wind-transfer.md](plan/rust-wind-transfer.md) — План переноса rust-wind: задачи RW по этапам, скоуп и приёмка (вынесено из docs/plan/rust-wind.md)
+  - [docs/registry/findings/rust-wind.md](registry/findings/rust-wind.md) — Выводы rust-wind: ветер и погода в крейте dp-air, цена шага от размера места, удалённые запечённые поля и режим off, чистота крейта.
+  - [docs/research/rust-wind-field-path.md](research/rust-wind-field-path.md) — RW-6a: путь поля Пикара в игре от места до опроса точки, что есть в picard_rs, разбиение RW-6 на задачи, окна 100/50 м на CPU
+  - [docs/research/rust-wind-k-passes.md](research/rust-wind-k-passes.md) — RW-6w: почему k второго прохода у start-полей расходился с запечённым, что исправлено, числа до и после
+  - [docs/research/rust-wind-rw6-acceptance.md](research/rust-wind-rw6-acceptance.md) — RW-6q: T1 по 8 запечённым полям после RW-6v, T2/T4/T4a/T8, бенч Formula, загрузка Онгудая против GPU
+  - [docs/research/rust-wind-stage3/baked-islands.md](research/rust-wind-stage3/baked-islands.md) — RW-P11: 8 запечённых полей островов крейт читает, но на ветке отвергает все по model_hash.
+  - [docs/research/rust-wind-stage3/cards.md](research/rust-wind-stage3/cards.md) — RW-8a: проект карточек подзадач этапа 3 (RW-8b…12z): скоуп, красные тесты, зависимости, параллельность, где сталкиваются правки formula.rs.
+  - [docs/research/rust-wind-stage3/debug-layers.md](research/rust-wind-stage3/debug-layers.md) — RW-P2: слои F3–F7 на фасаде W2 — что вызывает каждый, почему не показывался, чем починен, чем проверен.
+  - [docs/research/rust-wind-stage3/dynamic-thermals.md](research/rust-wind-stage3/dynamic-thermals.md) — RW-P6: почему cores() пуст у динамических термиков (mode 0) в тестах стенда air_rig.gd; в игре термики есть.
+  - [docs/research/rust-wind-stage3/final-run.md](research/rust-wind-stage3/final-run.md) — Итог этапа 3: T1 release 13/17, workspace 4 падающих бинарника, tests_vs_base +108, бенч W8 в порогах, T9 нет
+  - [docs/research/rust-wind-stage3/fixtures.md](research/rust-wind-stage3/fixtures.md) — RW-8a: какие слагаемые W7 покрывают эталоны RW-1/RW-1b/RW-2b, сколько ненулевых вкладов в каком случае; что не покрыто.
+  - [docs/research/rust-wind-stage3/godot-compat.md](research/rust-wind-stage3/godot-compat.md) — RW-8a: где слагаемые ветра опираются на движок Godot (FastNoiseLite, RandomNumberGenerator, hash) и что с этим делать в крейте.
+  - [docs/research/rust-wind-stage3/no-baked.md](research/rust-wind-stage3/no-baked.md) — RW-P12: запечённые поля мест удалены (данные, add_baked_field, baked); кеш полей оставлен.
+  - [docs/research/rust-wind-stage3/no-off-mode.md](research/rust-wind-stage3/no-off-mode.md) — RW-P3: упрощённый режим ветра (off, set_air_mode, synth_off) убран; поле считается всегда; что удалено и что осталось.
+  - [docs/research/rust-wind-stage3/pilot-air-stage.md](research/rust-wind-stage3/pilot-air-stage.md) — RW-P5: на случайном месте не было этапа «Рассчитываем ветер» — игра слала крейту условия без quantum_h, крейт отвергал, фасад молчал.
+  - [docs/research/rust-wind-stage3/pilot-air.md](research/rust-wind-stage3/pilot-air.md) — RW-P1: воздух в release Linux грузится, поле доходит до READY, ветер ≠ 0; журнал пилота — не от этой сборки.
+  - [docs/research/rust-wind-stage3/rw10-thermals.md](research/rust-wind-stage3/rw10-thermals.md) — RW-8a: разбор RW-10 (термики, фон, AirThermals, ядра): исходники, жизнь термика, петля с облаками, разбиение на 4 подзадачи.
+  - [docs/research/rust-wind-stage3/rw11-clouds.md](research/rust-wind-stage3/rw11-clouds.md) — RW-8a: подробный разбор RW-11 (_extra_flow: гроза, волны и роторы, выброс из облака) и граница «физика облаков в крейте, отрисовка в Godot».
+  - [docs/research/rust-wind-stage3/rw12-weather.md](research/rust-wind-stage3/rw12-weather.md) — RW-8a: разбор RW-12 (погода из прогноза, AtmoDay, коэффициенты): что есть в крейте, чего нет, климат места, эталоны.
+  - [docs/research/rust-wind-stage3/rw12z.md](research/rust-wind-stage3/rw12z.md) — RW-12y: правки W2 v4 / W3 v5 / W4 v6, разбиение RW-12z на 4 задачи, красные тесты, сомнения по задачам.
+  - [docs/research/rust-wind-stage3/rw13-cleanup.md](research/rust-wind-stage3/rw13-cleanup.md) — RW-13: ревизия до удаления, таблица файлов, удалённые тесты, manifest, хвосты.
+  - [docs/research/rust-wind-stage3/rw14-weather.md](research/rust-wind-stage3/rw14-weather.md) — RW-14a: проект переноса погоды в dp-air — инвентарь, потребители, контракт DpWeather, эталоны, задачи RW-14b…h, чистота крейта.
+  - [docs/research/rust-wind-stage3/rw14e-consumers.md](research/rust-wind-stage3/rw14e-consumers.md) — RW-14e: обёртка Weather над DpWeather, перевод потребителей погоды, список удалённого GDScript, границы и сомнения.
+  - [docs/research/rust-wind-stage3/rw15-step-cost.md](research/rust-wind-stage3/rw15-step-cost.md) — RW-15: цена шага воздуха в крейте от размера места не зависит; Q3 (1,5 с на игровую секунду при 3041²) в cargo не воспроизводится
+  - [docs/research/rust-wind-stage3/rw15b-game-profile.md](research/rust-wind-stage3/rw15b-game-profile.md) — RW-15b: главный поток Godot от размера места не зависит, 1,5 с не воспроизводится; растёт фоновый CPU крейта (1,7x)
+  - [docs/research/rust-wind-stage3/rw16-purity.md](research/rust-wind-stage3/rw16-purity.md) — RW-16a: аудит чистоты dp-air по решению 2026-10-30 — 458 нарушений по пяти категориям, файл:строка, куда деть, влияние на W3/W4/W5.
+  - [docs/research/rust-wind-stage3/rw17-crates.md](research/rust-wind-stage3/rw17-crates.md) — RW-17: нужны ли крейты arc-swap, glam, rand_pcg, jiff в dp-air — по коду и микропробе: ни один не нужен.
+  - [docs/research/rust-wind-stage3/rw19-perf.md](research/rust-wind-stage3/rw19-perf.md) — RW-19: multiversion (avx2+fma) на 15 горячих функций dp-air, итераторы вместо индексов; замер step_cost 3041 до/после.
+  - [docs/research/rust-wind-stage3/rw21-final.md](research/rust-wind-stage3/rw21-final.md) — RW-21: итог ветки rust-wind (7666cda): cargo зелёное, T9 30 км долетел, первая сборка 62 мс, элементы игры на месте
+  - [docs/research/rust-wind-stage3/rw21a-precheck.md](research/rust-wind-stage3/rw21a-precheck.md) — RW-21a: T9 30 км до цели за 17 мин на 1 ядре, build all и smoke Linux/wine проходят; найдены зависание build.sh и устаревший smoke.gd
+  - [docs/research/rust-wind-stage3/rw24-base-failures.md](research/rust-wind-stage3/rw24-base-failures.md) — RW-24: базовые падения на ветке rust-wind — причина (RW-14c: климат места), бисекция, починка.
+  - [docs/research/rust-wind-stage3/rw25-game-thermals.md](research/rust-wind-stage3/rw25-game-thermals.md) — RW-25: в игре без rebuild ядра термиков не появлялись сразу после готовности поля — первая сборка шла в фоне; теперь синхронно.
+  - [docs/research/rust-wind-stage3/rw26-thermals-hour.md](research/rust-wind-stage3/rw26-thermals-hour.md) — RW-26: число термиков из поля теперь идёт за thermal_duty; вечером в игре в 1,9 раза меньше, чем в 14 ч.
+  - [docs/research/rust-wind-stage3/rw28-quit-crash.md](research/rust-wind-stage3/rw28-quit-crash.md) — RW-28: SIGSEGV на выходе — запись кеша в потоке пула после Drop модели; ждём фоновые задачи на выгрузке расширения.
+  - [docs/research/rust-wind-stage3/rw29-smoke.md](research/rust-wind-stage3/rw29-smoke.md) — RW-29: smoke собранной игры явно проверяет место, dp_air api 6, ветер ≠ 0 и фазу flying по строкам журнала; smoke.gd на API 6
+  - [docs/research/rust-wind-stage3/rw8-rw9.md](research/rust-wind-stage3/rw8-rw9.md) — RW-8a: разбор RW-8 (болтанка поля, шум порывов) и RW-9 (аналитика, полоса края, off): входы, выходы, крейт, тесты.
+  - [docs/research/rust-wind-stage3/t9-xc.md](research/rust-wind-stage3/t9-xc.md) — RW-P9: xc_run --synthetic висел из-за шага места 250 м (крейт берёт 25 м); починено, 5 км за 1 мин, 30 км — часы
+  - [docs/research/rust-wind-stage3/tests-field-always.md](research/rust-wind-stage3/tests-field-always.md) — RW-P7: тесты при поле «всегда» — что переведено на малое место и кеш, что вынесено в cargo, что пропущено из-за дефектов крейта.
+  - [docs/research/rust-wind-stage3/uncertain.md](research/rust-wind-stage3/uncertain.md) — Сводный список сомнений исполнителей RW-7 и этапа 3 для итоговой сверки перед RW-12z и сдачей модуля (решение пользователя 2026-10-29).
+  - [docs/research/rust-wind-stage3/w6v4.md](research/rust-wind-stage3/w6v4.md) — RW-11a: проект W6 v4 и поверхностного порыва — поля записей, читатели, источники в крейте, состав weather_json.
+  - [docs/research/rust-wind-stage3-path.md](research/rust-wind-stage3-path.md) — RW-8a: слагаемые ветра на GDScript → крейт (RW-8…12): сумма air_velocity_at, разбор задач, порядок, пробелы контракта, переход фасада.
+  - [docs/research/rust-wind-t1-audit-landing-hill.md](research/rust-wind-t1-audit-landing-hill.md) — RW-U1: расхождение landing_hill — ошибка GPU: вес F в float32 ровно 1, механические веса 0, смесь даёт u = v = 0 над сушей; Rust прав
+  - [docs/research/rust-wind-t1-audit-thermal-slope.md](research/rust-wind-t1-audit-thermal-slope.md) — RW-U2: thermal_slope расходится из-за GPU — θ′_d и K заморозки решения с нагревом взяты от решения без нагрева; эмуляция в крейте: 0,07 м/с
+  - [docs/research/rust-wind-t1-stability.md](research/rust-wind-t1-stability.md) — RW-6z: крейт сходится и не чувствителен к CHUNK и возмущению 1e-6 (R ≤ 2,6e-3) — расхождение T1 не от неустойчивости крейта
+  - [tools/research/rust_wind/README.md](../tools/research/rust_wind/README.md) — RW-6a: расчёт размера окон 100/50 м и времени picard_rs на CPU, приложение с таблицами шагов и задач RW-6
+  - [tools/research/rust_wind_t1_ref/README.md](../tools/research/rust_wind_t1_ref/README.md) — RW-6u: эталон training_island/landing_hill, перепечатанный CPU-путём фаз (f64) на c591b1026; сравнение с крейтом по классам W8 v2
+  - [tools/research/rust_wind_t1_stability/README.md](../tools/research/rust_wind_t1_stability/README.md) — RW-6z: команды воспроизведения опыта устойчивости открытых полей T1 (варианты CHUNK и возмущения), определения R и классов клеток
+  - [tools/research/rust_wind/summary.md](../tools/research/rust_wind/summary.md) — RW-6a вывод: в крейте нет сборщика случая, грубого старта, заморозки и фаз; окна переносить последним отключаемым хвостом
 
 ## flight
 
@@ -167,7 +221,6 @@ generated: true
   - [docs/registry/fast-load-findings.md](registry/fast-load-findings.md) — fast-load: тёплая загрузка 29,2 → 12,5 с (Онгудай), 40,2 → 18,0 с (точка) при кеше поля; промах без выигрыша; малый пул.
 - **rust-ext** — Что вынести в Rust (GDExtension): весь ветер и данные места — в крейт; объекты, маятник, графика; проба gdext работает [idea 2026-10-25] — [план](plan/rust-ext.md)
   - [docs/plan/rust-air-integration.md](plan/rust-air-integration.md) — Встраивание Rust-Пикара в игру: поле, кэш, фоновый пересчёт и вход в крейте, Godot опрашивает точки; оценка 6–11 дней, проба [idea]
-  - [docs/plan/rust-wind.md](plan/rust-wind.md) — Весь ветер — в Rust-крейте за одной границей под живой воздух: фасад, контракт, перенос по слагаемым, тесты по TDD [idea]
   - [tools/research/rust_ext/gdext_probe/README.md](../tools/research/rust_ext/gdext_probe/README.md) — Проба gdext 0.5.5 (godot-rust) на Godot 4.7.2 Linux: класс Probe, PackedFloat32Array и фоновый поток Rust с опросом из GDScript [closed]
 
 ## release

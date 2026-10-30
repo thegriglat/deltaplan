@@ -274,31 +274,28 @@ func test_upper_misc_format() -> void:
 
 
 
-# --- HH7: ClimateGrid ----------------------------------------------------------------------------
+# --- HH7: климат места через Weather (DpWeather.climate_cell; расчёт и градиенты поясов — в крейте,
+# эталоны cargo rust/dp-air/tests/weather_ref2.rs, weather_derive.rs) ------------------------------
 
 const AT_KEYS := ["td_c", "td_sd_k", "z_cell_m", "t700_c", "z700_m", "tx_c", "dtr_k", "wr", "trop_m", "hcc"]
 
 
 func test_climate_grid_keys() -> void:
-	ClimateGrid.set_paths({})
-	var r := ClimateGrid.at(51.9, 85.9, 7, 15)
+	Weather.set_grid_paths({})
+	var r := Weather.climate_cell(51.9, 85.9, 7, 15)
 	for k: String in AT_KEYS:
-		check(r.has(k) and typeof(r[k]) == TYPE_FLOAT, "at: ключ %s (float)" % k)
+		check(r.has(k) and typeof(r[k]) == TYPE_FLOAT, "climate_cell: ключ %s (float)" % k)
 	var src: Dictionary = r.src
 	for g in ["hh1", "hh2", "hh5", "hh6"]:
 		check(["data", "stub", "none"].has(src.get(g, "")), "src.%s" % g)
-	var p := ClimateGrid.place({"lat": 51.9, "lon": 85.9, "month": 7, "day": 15, "valley_msl_m": 304.0})
-	check(p.has("gain_per_km") and float(p.gain_per_km) > 0.0, "place: gain_per_km > 0")
-	check(float(p.t700_c) == float(r.t700_c) and float(p.hcc) == float(r.hcc), "place: 700 гПа и hcc без поправки")
-	var p2 := ClimateGrid.place({"lat": 51.9, "lon": 85.9, "month": 7, "day": 15, "valley_msl_m": 304.0})
-	check(p.hash() == p2.hash(), "place детерминирован")
+	check(r.hash() == Weather.climate_cell(51.9, 85.9, 7, 15).hash(), "детерминирован")
 
 
 func test_climate_grid_altai_raw() -> void:
-	ClimateGrid.set_paths({})
+	Weather.set_grid_paths({})
 	if not FileAccess.file_exists(GRID):
 		return
-	var r := ClimateGrid.at(51.9, 85.9, 7, 15)
+	var r := Weather.climate_cell(51.9, 85.9, 7, 15)
 	if r.src.hh1 != "data":
 		return
 	# независимый разбор: распаковка и билинейно по 4 ячейкам июля
@@ -321,39 +318,43 @@ func test_climate_grid_altai_raw() -> void:
 
 
 func test_climate_grid_bilinear_and_wrap() -> void:
-	ClimateGrid.set_paths({})
+	Weather.set_grid_paths({})
 	if not FileAccess.file_exists(GRID):
 		return
 	# в центре ячейки — значение ячейки; соседние точки в 0.01° — почти то же
-	var a := ClimateGrid.at(51.5, 85.5, 7, 15)
-	var b := ClimateGrid.at(51.51, 85.51, 7, 15)
+	var a := Weather.climate_cell(51.5, 85.5, 7, 15)
+	var b := Weather.climate_cell(51.51, 85.51, 7, 15)
 	approx(float(a.td_c), float(b.td_c), 0.1, "в пределах 0.01° значение почти то же")
 	# долгота ±180 — без разрыва
-	var w := ClimateGrid.at(10.0, 179.99, 7, 15)
-	var e := ClimateGrid.at(10.0, -179.99, 7, 15)
+	var w := Weather.climate_cell(10.0, 179.99, 7, 15)
+	var e := Weather.climate_cell(10.0, -179.99, 7, 15)
 	approx(float(w.td_c), float(e.td_c), 0.5, "±180°: нет разрыва по Td")
-	check(float(ClimateGrid.at(10.0, 540.0, 7, 15).td_c) == float(ClimateGrid.at(10.0, 180.0, 7, 15).td_c), "долгота по кругу")
+	check(
+		float(Weather.climate_cell(10.0, 540.0, 7, 15).td_c)
+		== float(Weather.climate_cell(10.0, 180.0, 7, 15).td_c),
+		"долгота по кругу"
+	)
 
 
 func test_climate_grid_month_continuity() -> void:
-	ClimateGrid.set_paths({})
-	var d31 := ClimateGrid.at(51.9, 85.9, 12, 31)
-	var j1 := ClimateGrid.at(51.9, 85.9, 1, 1)
+	Weather.set_grid_paths({})
+	var d31 := Weather.climate_cell(51.9, 85.9, 12, 31)
+	var j1 := Weather.climate_cell(51.9, 85.9, 1, 1)
 	approx(float(d31.td_c), float(j1.td_c), 0.6, "декабрь ↔ январь непрерывно (Td)")
 	approx(float(d31.tx_c), float(j1.tx_c), 1.0, "декабрь ↔ январь непрерывно (Tx)")
-	var m := ClimateGrid.at(51.9, 85.9, 7, 15)
-	var n := ClimateGrid.at(51.9, 85.9, 7, 16)
+	var m := Weather.climate_cell(51.9, 85.9, 7, 15)
+	var n := Weather.climate_cell(51.9, 85.9, 7, 16)
 	approx(float(m.td_c), float(n.td_c), 0.5, "день за днём — плавно")
 
 
 func test_climate_grid_no_file() -> void:
-	var cfg := WeatherModel.config()
-	ClimateGrid.set_paths({
+	var cfg := Weather.config()
+	Weather.set_grid_paths({
 		"hh1": "res://data/climate/__none1.bin", "hh2": "res://data/climate/__none2.bin",
 		"hh5": "res://data/climate/__none5.bin", "hh6": "res://data/climate/__none6.bin",
 	})
-	var r := ClimateGrid.at(51.9, 85.9, 7, 15)
-	ClimateGrid.set_paths({})
+	var r := Weather.climate_cell(51.9, 85.9, 7, 15)
+	Weather.set_grid_paths({})
 	for g in ["hh1", "hh2", "hh5", "hh6"]:
 		check(r.src[g] == "none", "нет файла: src.%s = none" % g)
 	approx(float(r.td_c), float(cfg.climate.fallback.td_c[6]), 1e-6, "td_c из конфига")
@@ -366,24 +367,15 @@ func test_climate_grid_no_file() -> void:
 
 
 func test_climate_grid_speed() -> void:
-	ClimateGrid.set_paths({})
-	ClimateGrid.at(40.0, 30.0, 7, 15)  # загрузка
+	Weather.set_grid_paths({})
+	Weather.climate_cell(40.0, 30.0, 7, 15)  # загрузка
 	var n := 500
 	var t0 := Time.get_ticks_usec()
 	for k in n:
-		ClimateGrid.at(40.0 + k * 0.01, 30.0 + k * 0.013, 1 + k % 12, 1 + k % 28)
+		Weather.climate_cell(40.0 + k * 0.01, 30.0 + k * 0.013, 1 + k % 12, 1 + k % 28)
 	var us := float(Time.get_ticks_usec() - t0) / n
-	print("  ClimateGrid.at: %.1f мкс" % us)
-	check(us < PERF_LIMIT_US, "at() %.1f мкс < %.0f" % [us, PERF_LIMIT_US])
-
-
-## Градиенты Tx/DTR по поясам (HH-1e): 30–60° — по сезону, тропики, прочее — глобальный год.
-func test_climate_grid_belt_gradients() -> void:
-	var cl: Dictionary = WeatherModel.config().climate
-	approx(ClimateGrid.belt_gradient(52.0, 1, cl.tx_gradient_k_per_km, 0.0), -7.83, 1e-9, "Tx 30–60°, МАМ")
-	approx(ClimateGrid.belt_gradient(-17.0, 0, cl.tx_gradient_k_per_km, 0.0), -5.47, 1e-9, "Tx тропики")
-	approx(ClimateGrid.belt_gradient(25.0, 0, cl.dtr_gradient_k_per_km, 0.0), -0.48, 1e-9, "DTR прочее")
-	approx(ClimateGrid.belt_gradient(52.0, 0, {}, -6.3), -6.3, 1e-9, "нет таблицы — по умолчанию")
+	print("  Weather.climate_cell: %.1f мкс" % us)
+	check(us < PERF_LIMIT_US, "climate_cell() %.1f мкс < %.0f" % [us, PERF_LIMIT_US])
 
 
 ## HH-4c: градиенты Tx/DTR в конфиге = pooled по поясам из gradient.json (HH-1e), а не вписанные от руки числа.
@@ -395,7 +387,7 @@ func test_belt_gradients_match_research() -> void:
 	check(gj is Dictionary, "gradient.json читается")
 	if not (gj is Dictionary):
 		return
-	var cl: Dictionary = WeatherModel.config().climate
+	var cl: Dictionary = Weather.config().climate
 	for pair in [["tx", "tx_gradient_k_per_km"], ["dtr", "dtr_gradient_k_per_km"]]:
 		var src: Dictionary = gj[pair[0]]
 		var cfg: Dictionary = cl[pair[1]]
@@ -407,74 +399,3 @@ func test_belt_gradients_match_research() -> void:
 	# физические границы: Tx падает с высотой, не быстрее сухоадиабатического 9,8 К/км
 	for g in cl.tx_gradient_k_per_km.mid:
 		check(float(g) < 0.0 and float(g) > -9.8, "Tx 30–60°: %.2f К/км в (−9,8; 0)" % float(g))
-
-
-## HH-4c: 30–60° ю. ш. — те же пояс и значения, что у северных (данных по югу в gradient.json нет), но сезон сдвинут на
-## полгода: январь юга — лето (ИИА), июль — зима (ДЯФ). Поправка Tx места на высоту долины идёт по этому сезону.
-func test_southern_belt_gradients_season_shift() -> void:
-	ClimateGrid.set_paths({})
-	var cl: Dictionary = WeatherModel.config().climate
-	approx(ClimateGrid.belt_gradient(-45.0, ClimateGrid.season_index(1, -45.0), cl.tx_gradient_k_per_km, 0.0),
-		float(cl.tx_gradient_k_per_km.mid[2]), 1e-9, "Tx 45° ю. ш., январь = ИИА")
-	approx(ClimateGrid.belt_gradient(-45.0, ClimateGrid.season_index(7, -45.0), cl.dtr_gradient_k_per_km, 0.0),
-		float(cl.dtr_gradient_k_per_km.mid[0]), 1e-9, "DTR 45° ю. ш., июль = ДЯФ")
-	approx(ClimateGrid.belt_gradient(-30.0, 0, cl.tx_gradient_k_per_km, 0.0), float(cl.tx_gradient_k_per_km.mid[0]), 1e-9, "граница 30° ю. ш. — пояс")
-	approx(ClimateGrid.belt_gradient(-60.0, 0, cl.tx_gradient_k_per_km, 0.0), float(cl.tx_gradient_k_per_km.mid[0]), 1e-9, "граница 60° ю. ш. — пояс")
-	approx(ClimateGrid.belt_gradient(-61.0, 0, cl.tx_gradient_k_per_km, 0.0), float(cl.tx_gradient_k_per_km.other), 1e-9, "за 60° — прочее")
-	# целиком через place(): Южные Анды (−38°, −71°), сетки есть
-	for month in [1, 7]:
-		var base := {"lat": -38.0, "lon": -71.0, "month": month, "day": 15}
-		var p0 := ClimateGrid.place(base)
-		if p0.src.hh5 == "none" or p0.src.hh1 == "none":
-			return  # нет сеток в сборке — тест только на конфиг (выше)
-		var up := base.duplicate()
-		up["valley_msl_m"] = float(p0.z_cell_m) + 1000.0
-		var p1 := ClimateGrid.place(up)
-		var s := ClimateGrid.season_index(month, -38.0)
-		approx(float(p1.tx_c) - float(p0.tx_c), float(cl.tx_gradient_k_per_km.mid[s]), 1e-6, "Tx +1 км, мес. %d (юг)" % month)
-		var d: float = float(p1.dtr_k) - float(p0.dtr_k)
-		check(d <= 0.0 and d >= float(cl.dtr_gradient_k_per_km.mid[s]) - 1e-6 - 0.0 or float(p0.dtr_k) + float(cl.dtr_gradient_k_per_km.mid[s]) < 0.0,
-			"DTR +1 км не растёт (мес. %d, %.2f)" % [month, d])
-
-
-## HH-4c: вырожденный случай — нет HH1 (Z ячейки неизвестна, 0), HH6 есть: рост ветра считается от высоты долины места,
-## а не от уровня моря; без высоты места — как по контракту (z_cell = 0).
-func test_gain_without_hh1_uses_valley() -> void:
-	ClimateGrid.set_paths({"hh1": "res://data/climate/__none1.bin"})
-	var q := {"lat": 51.9, "lon": 85.9, "month": 7, "day": 15}
-	var p0 := ClimateGrid.place(q)
-	if p0.src.hh6 == "none":
-		ClimateGrid.set_paths({})
-		return
-	check(p0.src.hh1 == "none", "HH1 нет")
-	approx(float(p0.gain_per_km), (float(p0.wr) - 1.0) * 1000.0 / maxf(float(p0.z700_m), 500.0), 1e-9, "без высоты места — от уровня моря")
-	q["valley_msl_m"] = 1500.0
-	var p1 := ClimateGrid.place(q)
-	ClimateGrid.set_paths({})
-	approx(float(p1.gain_per_km), (float(p1.wr) - 1.0) * 1000.0 / maxf(float(p1.z700_m) - 1500.0, 500.0), 1e-9, "от высоты долины")
-	check(absf(float(p1.gain_per_km)) > absf(float(p0.gain_per_km)), "выше место — тоньше слой — больше рост ветра на км")
-	approx(float(p1.td_c), float(p0.td_c), 1e-9, "без HH1 поправки на высоту к Td нет")
-
-
-## HH-4e (HH7 v2): рост ветра от ветра на высоте старта; профиль линейный V10→V700, множитель выше старта даёт V700 на z700.
-func test_gain_from_start_height() -> void:
-	ClimateGrid.set_paths({})
-	var q := {"lat": 51.9, "lon": 85.9, "month": 7, "day": 15, "valley_msl_m": 304.0}
-	var p0 := ClimateGrid.place(q)
-	if p0.src.hh6 == "none" or p0.src.hh1 == "none":
-		return
-	var zc := float(p0.z_cell_m)
-	var d := maxf(float(p0.z700_m) - zc, 500.0)
-	var wm1 := float(p0.wr) - 1.0
-	# старт на высоте долины: f = clamp(...) по valley; без start_msl_m — valley_msl_m
-	q["start_msl_m"] = zc + 0.5 * d
-	var p1 := ClimateGrid.place(q)
-	approx(float(p1.gain_per_km), wm1 * 1000.0 / (d * (1.0 + wm1 * 0.5)), 1e-9, "f = 0,5")
-	check(absf(float(p1.gain_per_km)) < absf(float(p0.gain_per_km)), "старт выше — рост на км меньше (wr > 1)")
-	# множитель выше старта 1 + gain·(z700 − z_s)/1000 даёт wr·(V на старте)/V10 = V700/Vs
-	var vs := 1.0 + wm1 * 0.5
-	approx(1.0 + float(p1.gain_per_km) * (float(p1.z700_m) - float(q.start_msl_m)) / 1000.0, float(p1.wr) / vs, 1e-9, "V700/Vs")
-	q["start_msl_m"] = zc + 5.0 * d  # f ограничен 0,9
-	approx(float(ClimateGrid.place(q).gain_per_km), wm1 * 1000.0 / (d * (1.0 + wm1 * 0.9)), 1e-9, "f ≤ 0,9")
-	q["start_msl_m"] = zc - 500.0  # ниже ячейки: f ≥ 0
-	approx(float(ClimateGrid.place(q).gain_per_km), wm1 * 1000.0 / d, 1e-9, "f ≥ 0")

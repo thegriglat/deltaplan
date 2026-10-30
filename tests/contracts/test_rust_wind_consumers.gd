@@ -1,0 +1,239 @@
+extends TestCase
+## RW-3a: потребители игры и мира работают через фасад W2 (docs/contracts/rust-wind.md). Здесь —
+## то, что игра берёт у фасада сверх контрактных тестов: место из рельефа без остановки кадров
+## (Atmosphere.place_from_terrain), поле Пикара внутри фасада, мягкая смена условий по часам,
+## пустой воздух отвечает нулями, воздух по сети не ходит.
+## godot --headless --path . res://tests/run_tests.tscn -- --filter=rust_wind_consumers
+
+const ID := "ongudai"
+const NET_ZONE := preload("res://scripts/net/net_zone.gd")
+
+
+func _root() -> Node:
+	var tree_root := (Engine.get_main_loop() as SceneTree).root
+	return tree_root.get_child(tree_root.get_child_count() - 1)
+
+
+func _forecast(wind_from: float = 270.0) -> Dictionary:
+	return {
+		"forecast":
+		{"temperature_c": 26.0, "wind_speed_kmh": 14.0, "wind_from_deg": wind_from, "sky": "clear"},
+		"start_hour": 12.0,
+		"speed": 1.0,
+		"quantum_h": 1.0,
+		"wind_ref": {"ref_msl": 1000.0, "gain_per_km": 1.0},
+		"inflow_mode": "start",
+	}
+
+
+func _ready_up(a: Atmosphere, max_iter: int = 4000) -> bool:
+	for i in max_iter:
+		if a.is_ready():
+			return true
+		a.pump(8000)
+		await (Engine.get_main_loop() as SceneTree).process_frame
+	return a.is_ready()
+
+
+func test_empty_air_answers_zero() -> void:
+	var a := Atmosphere.new()
+	a.visuals_enabled = false
+	check(
+		a.air_velocity_at(Vector3(10, 500, 10)) == Vector3.ZERO, "air_velocity_at до сборки — нули"
+	)
+	check(a.mean_wind_at(Vector3(10, 500, 10)) == Vector3.ZERO, "mean_wind_at до сборки — нули")
+	check(a.turbulence_intensity_at(Vector3(10, 500, 10)) == 0.0, "σ до сборки — 0")
+	check(a.cloud_density_at(Vector3(10, 500, 10)) == 0.0, "облачность до сборки — 0")
+	check(a.get_cloudbase_msl() == 0.0, "кромка до сборки — 0")
+	check(a.thermals_near(Vector3.ZERO, 1000.0).is_empty(), "термиков до сборки нет")
+	a.free()
+
+
+## Подписи этапов по идентификатору (gd и крейт) — в фасаде.
+func test_stage_labels() -> void:
+	for id in ["solver", "prepare", "phases", "coarse", "solve_mech", "solve_heat", "windows"]:
+		check(Atmosphere.stage_label(id) == tr("loading_wind"), "%s — «Рассчитываем ветер»" % id)
+	check(
+		Atmosphere.stage_label("simple") == tr("loading_wind_simple"), "simple — упрощённая модель"
+	)
+	check(
+		Atmosphere.stage_label("lookup") == "" and Atmosphere.stage_label("") == "",
+		"lookup и пусто — без подписи"
+	)
+	check(Atmosphere.stage_label("нет такого") == "", "неизвестный — без подписи")
+
+
+## W2 v3: status() несёт stage, field_on и iters (int ≥ 0, не убывает); без решателя — «» и 0.
+## Рост iters при расчёте поля на GPU — tests/atmosphere/test_air_status_iters_gpu.gd.
+func test_status_stage_field_iters() -> void:
+	var a := Atmosphere.new()
+	a.visuals_enabled = false
+	var st0: Dictionary = a.status()
+	check(
+		st0.has("stage") and st0.has("field_on") and st0.has("iters"),
+		"ключи stage, field_on, iters"
+	)
+	check(
+		String(st0.stage) == "" and int(st0.iters) == 0 and not bool(st0.field_on),
+		"EMPTY: этапа нет"
+	)
+	var loc := {
+		"id": "t",
+		"center_lat": 51.5,
+		"center_lon": 86.5,
+		"utc_offset_h": 6.0,
+		"month": 7,
+		"day": 15
+	}
+	var place := AirPlaceData.from_functions(
+		func(_x: float, _z: float) -> float: return 500.0,
+		func(_x: float, _z: float) -> float: return 0.8,
+		loc,
+		-2000.0,
+		-2000.0,
+		100.0,
+		41,
+		41
+	)
+	check(a.configure(5) == 0, "configure")
+	check(a.set_conditions({"preset": "weather/medium", "start_hour": 12.0, "speed": 1.0}) == 0, "set_conditions")
+	check(a.load_place(place) == 0, "load_place")
+	check(a.start_at(0.0) in [0, 3], "start_at")
+	var last := 0
+	for i in 2000:
+		a.pump(8000)
+		var st: Dictionary = a.status()
+		check(typeof(st.iters) == TYPE_INT and int(st.iters) >= last, "iters — int, не убывает")
+		last = int(st.iters)
+		if a.is_ready():
+			break
+	check(a.is_ready(), "READY на синтетическом месте")
+	var done: Dictionary = a.status()
+	check(
+		String(done.stage) == "" and int(done.iters) == 0 and not bool(done.field_on),
+		"без решателя: нет этапа, iters 0"
+	)
+	a.free()
+
+
+func test_place_from_terrain_and_field_in_facade() -> void:
+	var t := Terrain.new()
+	t.location_id = ""
+	check(t.load_location(ID), "Онгудай загрузился")
+	t.wait_relief()
+	var utc := float(Config.get_config("locations/" + ID).get("utc_offset_h", NAN))
+	var host := Node.new()
+	_root().add_child(host)
+	var a := Atmosphere.new()
+	a.visuals_enabled = false
+	# поле Пикара считается всегда (и в headless): область поменьше, чтобы тест не ждал минуты
+	var small: Dictionary = Config.get_config("atmosphere").duplicate(true)
+	small.air.domain_l_m = 9600.0
+	a.cfg_override = small
+	host.add_child(a)
+	# место без остановки кадров — те же растры, что у AirPlaceData.from_terrain
+	var p: AirPlaceData = await a.place_from_terrain(t, utc, 7, 15)
+	check(p != null and p.validate() == "", "place_from_terrain: место годится")
+	var ref := AirPlaceData.from_terrain(t, utc, 7, 15)
+	if p != null and ref != null:
+		check(p.header.grid == ref.header.grid, "сетка та же")
+		check(p.heights == ref.heights and p.water == ref.water, "высоты и вода те же")
+		check(
+			p.surface_cls == ref.surface_cls and p.surface_moist == ref.surface_moist,
+			"поверхность та же"
+		)
+		check(p.header.loc.climate == ref.header.loc.climate, "климат тот же")
+		check(p.header.start_sites == ref.header.start_sites, "площадки те же")
+	if p == null:
+		a.free()
+		host.queue_free()
+		t.free()
+		return
+	# условия-прогноз + место из рельефа → поле Пикара внутри фасада (область уменьшена)
+	check(a.configure(77) == 0, "configure(seed)")
+	var cond := _forecast()
+	cond["overrides"] = {"wind_from_deg": 123.0}  # «встречный»: румб игры поверх прогноза
+	check(a.set_conditions(cond) == 0, "set_conditions: прогноз")
+	check(a.load_place(p) == 0, "load_place")
+	check(
+		a.set_focuses(PackedVector3Array([Vector3(0, 900, 0)]), PackedFloat32Array([1.0])) == 0,
+		"set_focuses"
+	)
+	check(a.start_at(0.0) in [0, 3], "start_at(0) асинхронен (OK или NOT_READY до сборки)")
+	var st0: Dictionary = a.status()
+	check(int(st0.state) == Atmosphere.STATE_LOADING, "после start_at — LOADING")
+	check(await _ready_up(a), "дошёл до READY")
+	var st: Dictionary = a.status()
+	check(a.get("runtime") == null, "узел воздуха фасад не создаёт (RW-7b): поле ведёт крейт")
+	if ClassDB.class_exists("DpAir"):
+		check(a.get("_dp") != null, "место и прогноз отданы DpAir")
+	check(
+		float(st.progress) >= 1.0 and String(st.stage) == "",
+		"готов: прогресс 1, этапа нет: %s" % str(st)
+	)
+	check(bool(st.field_on) and int(st.iters) == 0, "поле Пикара есть, этапа нет — итераций 0")
+	var w: Dictionary = a.weather()
+	check(
+		absf(float(w.wind_from_deg) - 123.0) < 1.0e-6,
+		"румб игры поверх прогноза: %.1f" % w.wind_from_deg
+	)
+	check(absf(float(w.wind_speed_kmh) - 14.0) < 1.0e-6, "скорость — из прогноза")
+	var q := Vector3(200.0, p.height_at(200.0, 0.0) + 120.0, 0.0)
+	var s := a.sample(q)
+	check(
+		Vector3(s.x, s.y, s.z) == a.air_velocity_at(q),
+		"air_velocity_at = sample(pos).xyz (горячий путь модели полёта)"
+	)
+	check(
+		a.mean_wind_at(q) == Vector3(a.sample(q, 1).x, a.sample(q, 1).y, a.sample(q, 1).z),
+		"mean_wind_at = sample(MEAN).xyz"
+	)
+	# условия-часы: те же, кроме часа и скорости — перепривязка хода дня без смены погоды
+	var updated := [0]
+	a.weather_updated.connect(func() -> void: updated[0] += 1)
+	var w_before: Dictionary = a.weather()
+	var c2 := cond.duplicate(true)
+	c2["start_hour"] = 13.5
+	c2["speed"] = 2.0
+	check(a.set_conditions(c2) == 0, "set_conditions: другой час и скорость")
+	check(updated[0] == 0, "перепривязка часов — без сигнала погоды")
+	check(a.weather() == w_before, "погода не менялась")
+	# смена места: выгрузка гасит поле и сбрасывает всё, что связано с местом
+	a.unload_place()
+	check(int(a.status().state) == Atmosphere.STATE_EMPTY, "unload_place — EMPTY")
+	check(a.configure(78) == 0, "после unload_place configure снова можно")
+	a.free()
+	host.queue_free()
+	t.free()
+
+
+func test_net_does_not_sync_air() -> void:
+	# воздух по сети не ходит (W1): ни NetZone, ни NetFlight не шлют и не читают источники термиков
+	# и снимки облачности (поля ZoneState в схеме остаются до чистки net.proto и docs)
+	var zone: Node = NET_ZONE.new()
+	check(
+		not zone.has_method("set_thermal_sources") and not zone.has_method("set_cloud_field"),
+		"NetZone без API воздуха"
+	)
+	check(
+		(
+			not zone.has_signal("cloud_field_received")
+			and not zone.has_signal("thermal_sources_changed")
+		),
+		"NetZone без сигналов воздуха"
+	)
+	check(
+		not ("thermal_sources" in zone) and not ("cloud_field_wanted" in zone),
+		"NetZone без состояния воздуха"
+	)
+	zone.free()
+	var src := FileAccess.get_file_as_string("res://scripts/game/net_flight.gd")
+	for tok in [
+		"air_forced",
+		"set_air_forced",
+		"air_sources_mask",
+		"apply_net_snapshot",
+		"sync_thermal_sources",
+		"sync_cloud_field"
+	]:
+		check(not src.contains(tok), "NetFlight без %s" % tok)

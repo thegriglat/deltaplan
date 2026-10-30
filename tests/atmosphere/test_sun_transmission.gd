@@ -68,14 +68,6 @@ func test_steps_converged() -> void:
 	check(worst < 0.01, "расхождение 32 и 512 шагов %.4f" % worst)
 
 
-static func _flat(_x: float, _z: float) -> float:
-	return 0.0
-
-
-static func _sunf(_x: float, _z: float) -> float:
-	return 1.0
-
-
 ## Слой облаков с небом (дымка и часы) — без дерева сцены: узел неба подставляется напрямую.
 func _layer() -> Array:
 	var cfg := Config.get_config("atmosphere").duplicate(true)
@@ -83,10 +75,7 @@ func _layer() -> Array:
 	var a := Atmosphere.new()
 	a.visuals_enabled = false
 	a.seed_value = 7
-	a.configure(cfg, Config.get_config("weather/medium"))
-	a.turbulence_enabled = false
-	a.set_ground(_flat, _sunf)
-	a.set_focus(Vector3.ZERO)
+	a.configure(cfg)  # конфиг визуальных слоёв; воздух не нужен — слою нужны солнце и небо
 	var sky := SkyEnvironment.new()
 	sky.apply_config()
 	var layer := CloudLayer.new()

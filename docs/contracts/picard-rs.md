@@ -5,20 +5,20 @@ module: "picard-rs"
 area: "air"
 updated: "2026-10-24"
 summary: "Стыки picard-rs: случаи R1, результат R2, крейт R3 (без asm), снимок R4, пара T+15 R5, API R6, невязка → отклонение R7."
-related: ["docs/plan/picard-rs.md", "docs/contracts/air-cascade.md", "tools/research/air_cascade/picard_rs/README.md"]
+related: ["docs/plan/picard-rs.md", "docs/contracts/air-cascade.md", "rust/picard_rs/README.md"]
 contracts: [{"id": "R1", "version": 1}, {"id": "R2", "version": 3}, {"id": "R3", "version": 4}, {"id": "R4", "version": 2}, {"id": "R5", "version": 1}, {"id": "R6", "version": 3}, {"id": "R7", "version": 1}]
 ---
 
 # Контракты модуля picard-rs
 
 Владелец — координатор модуля. Менять интерфейс — только координатор: версия +1, потребителям — `task note`.
-Контрактный тест — `tools/research/air_cascade/picard_rs/contract/check_contract.py` (только stdlib Python):
+Контрактный тест — `rust/picard_rs/contract/check_contract.py` (только stdlib Python):
 `--ref <case.json>…` (R1), `--results <dir>` (R2), `--crate` (R3), `--state <state.json>…` (R4, вводит
 PR-s); R5 — `tools/research/air_cascade/export/check_r5.py <case.json>…` (вводит PR-3); R6 — `cargo test` крейта (`tests/api.rs`, вводит PR-2). Код 0 — соблюдено. Допуски —
 Тождественность пути решения и ускорение пачки — `contract/compare_r2.py <до> <после> [--case …] [--threads 8]`
 → `identical=<k>/<n>` (итерации, история невязок, `dev` побитно равны), `ratio_ms_per_iter`, `ratio_phase_*`.
 `contract/tolerance.py <R2.json>… [--iters-tol N]` → последняя строка `worst=<x>`, проходит при x ≤ 1.
-Пути: `P = tools/research/air_cascade/picard_rs`, `D = $AIR_CASCADE_DATA` (по умолчанию `~/data/air_cascade`).
+Пути: `P = rust/picard_rs`, `D = $AIR_CASCADE_DATA` (по умолчанию `~/data/air_cascade`).
 
 ## R1 v1 — случай Пикара (без изменений)
 Как `docs/contracts/air-cascade.md` → «R1 v1». Случаи Онгудая — `D/ongudai/ongudai_d400_{u3_heat,u3_mech,

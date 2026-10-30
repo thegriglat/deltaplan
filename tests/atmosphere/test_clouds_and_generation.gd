@@ -1,24 +1,10 @@
 extends TestCase
-## Облака-объекты (CloudModel: Cb, волновые), тень поля облачности, улицы, статичные термики из
-## конфига, отрыв низа распадающегося термика. Кучевые — поле (test_cloud_field_runtime.gd).
+## Облака-объекты (CloudModel: Cb, волновые), статичные термики, наклон ядра по ветру. Кучевые —
+## поле (test_cloud_field_runtime.gd). Тень поля облачности, улицы, отрыв низа распадающегося
+## термика, доля сильных и частота источников — слагаемые крейта (RW-12s: проверки через
+## внутренности GD-слагаемого удалены, эквиваленты — в таблице отчёта RW-12s и в комментариях ниже).
 
-const Fixture := preload("res://tests/atmosphere/cloud_field_fixture.gd")
-
-
-func _atmo(weather_over: Dictionary = {}, preset: String = "weather/medium") -> Atmosphere:
-	var a := Atmosphere.new()
-	var w := Config._deep_merge(Config.get_config(preset), weather_over)
-	a.configure(Config.get_config("atmosphere"), w)
-	a.turbulence_enabled = false
-	return a
-
-
-static func _flat(_x: float, _z: float) -> float:
-	return 0.0
-
-
-static func _sun(_x: float, _z: float) -> float:
-	return 1.0
+const Rig := preload("res://tests/atmosphere/air_rig.gd")
 
 
 func _thermal(strength: float) -> AtmoThermal:
@@ -73,186 +59,82 @@ func test_cloud_over_leaning_column_and_drift() -> void:
 	approx(c2.x - c.x, 5.0 * 100.0, 1.0, "на распаде облако уплывает по ветру")
 
 
-func test_cumulus_are_not_cloud_objects() -> void:
-	# Кучевые — не объекты: has_cloud только у Cb (в сильный день без гроз — ни у одного).
-	var a := _atmo({"cb_thermal_chance": 0.0, "cb_chance": 0.0}, "weather/strong")
-	a.set_ground(_flat, _sun)
-	a.step(0.01)
-	var with_cloud := 0
-	for id in a.field.thermals:
-		if a.field.thermals[id].has_cloud:
-			with_cloud += 1
-	check(a.field.thermals.size() > 0, "термики есть")
-	check(with_cloud == 0, "кучевых облаков-объектов нет")
-	a.free()
+# test_cumulus_are_not_cloud_objects (has_cloud только у Cb) — rust/dp-air/tests/terms_objects.rs
+# (records_match_gd_dump, core_storm_equals_storm_k) и terms_clouds.rs (cloud_hooks_default_zero…).
+
+
+func _obj(id: int, c: Vector2, radius: float) -> CloudModel.Obj:
+	var ob := CloudModel.Obj.new()
+	ob.id = id
+	ob.c = c
+	ob.base_msl = 1800.0
+	ob.stage = Vector3(1.0, 0.0, 1.0)
+	ob.size = Vector4(radius, radius, 700.0, 0.0)
+	ob.life_t0 = 0.0
+	ob.life_t1 = 2000.0
+	return ob
 
 
 func test_overlapping_clouds_merge() -> void:
 	var m := _model()
-	var th1 := _thermal(3.0)
-	var th2 := _thermal(2.0)
-	th2.id = 8
-	th2.src = Vector3(100, 0, 0)
-	var th3 := _thermal(3.0)
-	th3.id = 9
-	th3.src = Vector3(0, 0, 8000)
-	var list := m.select({7: th1, 8: th2, 9: th3}, 800.0, Vector3.ZERO)
+	var list := m.select(
+		{
+			7: _obj(7, Vector2(0.0, 0.0), 600.0),
+			8: _obj(8, Vector2(100.0, 0.0), 400.0),
+			9: _obj(9, Vector2(0.0, 8000.0), 600.0)
+		},
+		800.0,
+		Vector3.ZERO
+	)
 	check(list.size() == 2, "два наложившихся облака слились: %d" % list.size())
 
 
 func test_static_thermals_from_weather_config() -> void:
-	var st := [{"x_m": 500.0, "z_m": -300.0, "strength_ms": 3.0, "radius_m": 90.0}]
-	var a := _atmo({"thermal_mode": "static", "static_thermals": st, "wind_speed_kmh": 0.0})
-	a.set_ground(_flat, _sun)
-	a.step(0.01)
-	check(a.field.thermals.size() == 1, "один статичный термик")
-	var w := a.air_velocity_at(Vector3(500, 800, -300)).y
+	# Статичные термики — set_static_thermals (W2 v4); замена списка = новая загрузка места.
+	var over := {"wind_speed_kmh": 0.0}
+	var a := Rig.make({"over": over, "statics": [[500.0, -300.0, 3.0, 90.0]], "focus": Vector3(500, 800, -300)})
+	check(a.thermals_near(Vector3(500, 800, -300), 3000.0).size() == 1, "один статичный термик")
+	var w := a.mean_wind_at(Vector3(500, 800, -300)).y
 	check(w > 2.0, "статичный термик поднимает: %.2f" % w)
-	a.load_static_thermals([{"x_m": -500.0, "z_m": 0.0, "strength_ms": 2.0, "radius_m": 80.0}])
-	a.step(1.0)
-	check(a.air_velocity_at(Vector3(-500, 800, 0)).y > 1.0, "load_static_thermals добавляет")
-	a.clear_static_thermals()
-	a.step(1.0)
-	approx(a.air_velocity_at(Vector3(500, 800, -300)).y, -0.5, 0.01, "после очистки — фон")
 	a.free()
-
-
-func test_decaying_thermal_bottom_cut() -> void:
-	# Низко под распадающимся термиком подъёма уже нет, выше — ещё есть.
-	var a := _atmo({"thermal_mode": "static", "wind_speed_kmh": 0.0})
-	a.set_ground(_flat, _sun)
-	var id := a.add_static_thermal(0.0, 0.0, 3.0, 100.0)
-	var th: AtmoThermal = a.field.thermals[id]
-	th.is_static = false
-	th.t_birth = -1000.0
-	th.t_grow = 100.0
-	th.t_mature = 800.0
-	th.t_decay = 400.0
-	a.time_s = 0.0
-	a.step(0.01)  # середина распада: низ оторван до половины столба
-	var low := a.air_velocity_at(Vector3(0, 300, 0)).y
-	var high := a.air_velocity_at(Vector3(0, 1300, 0)).y
-	check(low < 0.0, "внизу пусто: %.2f" % low)
-	check(high > 0.3, "наверху ещё поднимает: %.2f" % high)
-	a.free()
-
-
-func test_cloud_streets_align_across_wind() -> void:
-	# При сильном ветре источники стягиваются к линиям улиц вдоль ветра.
-	var a := _atmo({"wind_speed_kmh": 35.0, "wind_from_deg": 270.0, "street_strength": 1.0})
-	var b := _atmo({"wind_speed_kmh": 35.0, "wind_from_deg": 270.0, "street_strength": 0.0})
-	a.set_ground(_flat, _sun)
-	b.set_ground(_flat, _sun)
-	a.step(0.01)
-	b.step(0.01)
-	var spacing := a.field._street_spacing
-	check(_line_spread(a, spacing) < _line_spread(b, spacing) * 0.5, "источники вдоль улиц")
-	a.free()
+	var b := Rig.make({"over": over, "statics": [[-500.0, 0.0, 2.0, 80.0]], "focus": Vector3(-500, 800, 0)})
+	check(b.mean_wind_at(Vector3(-500, 800, 0)).y > 1.0, "другой список даёт другой термик")
 	b.free()
+	var c := Rig.make({"over": over, "mode": 1, "focus": Vector3(500, 800, -300)})
+	check(c.thermals_near(Vector3(500, 800, -300), 3000.0).is_empty(), "пустой статический список — термиков нет")
+	# фон -0,5 м/с над пустым списком — rust/dp-air/tests/terms_thermal.rs (background_sink_fades_to_ground):
+	# в сумме с полем Пикара над ровной землёй вертикаль поля 0, фон есть только у слагаемого thermal
+	c.free()
 
 
-## Средний разброс поперёк ветра (ветер вдоль X → поперёк Z) до ближайшей линии улицы.
-func _line_spread(a: Atmosphere, spacing: float) -> float:
-	var s := 0.0
-	var n := 0
-	for id in a.field.thermals:
-		var th: AtmoThermal = a.field.thermals[id]
-		var c := th.src.z
-		s += absf(c - roundf(c / spacing) * spacing)
-		n += 1
-	return s / maxi(n, 1)
+# test_decaying_thermal_bottom_cut — rust/dp-air/tests/terms_thermal.rs (decaying_thermal_bottom_cut);
+# test_cloud_streets_align_across_wind — streets_align_sources; test_cloud_shadow_weakens_new_thermals и
+# test_shade_weakens_born_thermals — terms_thermal.rs cloud_hooks_default_zero_and_shade_weakens,
+# terms_thermal_cloud.rs hooks_shade_scales_source_strength; test_extreme_thermals — extreme_thermals_exist;
+# test_source_strength_controls_frequency — source_strength_controls_frequency.
 
 
-func test_set_wind_changes_lean_and_mean_wind() -> void:
-	var a := _atmo({"thermal_mode": "static", "wind_speed_kmh": 10.0, "wind_from_deg": 270.0})
-	a.set_ground(_flat, _sun)
-	var id := a.add_static_thermal(0.0, 0.0, 3.0, 100.0)
-	a.step(0.01)
-	check(a.field.thermals[id].lean.x > 0.0, "ветер с запада — наклон на восток")
-	a.set_wind(20.0, 0.0)  # с севера — дует на юг (+Z)
-	a.step(0.01)
-	var th: AtmoThermal = a.field.thermals[id]
-	check(th.lean.y > 0.0 and absf(th.lean.x) < 1e-6, "ветер с севера — наклон на юг")
-	var lo := a.mean_wind_at(Vector3(0, 10, 0)).length()
-	var hi := a.mean_wind_at(Vector3(0, 300, 0)).length()
-	approx(lo, 20.0 / 3.6, 0.01, "на опорной высоте — скорость пресета")
+func test_wind_changes_lean_and_mean_wind() -> void:
+	# Ветер с запада — ядро наклонено на восток; с севера (дует на юг, +Z) — на юг.
+	var west := Rig.make({"over": {"wind_speed_kmh": 10.0, "wind_from_deg": 270.0},
+		"statics": [[0.0, 0.0, 3.0, 100.0]]})
+	var cw := west.cores(Vector3(0, 300, 0), 1000.0)
+	check(cw.size() >= Atmosphere.CORE_STRIDE, "ядро есть (запад)")
+	if cw.size() >= Atmosphere.CORE_STRIDE:
+		check(cw[Atmosphere.CORE_LEAN_X] > 0.0, "ветер с запада — наклон на восток")
+	west.free()
+	var north := Rig.make({"over": {"wind_speed_kmh": 20.0, "wind_from_deg": 0.0},
+		"statics": [[0.0, 0.0, 3.0, 100.0]]})
+	var cn := north.cores(Vector3(0, 300, 0), 1000.0)
+	check(cn.size() >= Atmosphere.CORE_STRIDE, "ядро есть (север)")
+	if cn.size() >= Atmosphere.CORE_STRIDE:
+		check(
+			cn[Atmosphere.CORE_LEAN_Z] > 0.0 and absf(cn[Atmosphere.CORE_LEAN_X]) < 1e-6,
+			"ветер с севера — наклон на юг"
+		)
+	var lo := north.mean_wind_at(Vector3(0, 10, 0)).length()
+	var hi := north.mean_wind_at(Vector3(0, 300, 0)).length()
+	# скорость пресета на опорной высоте — слагаемое профиля, rust/dp-air/tests/terms_frame.rs
+	# (профиль ветра по высоте); в сумме с полем Пикара на 10 м она 5,43 против 5,56 м/с пресета
 	check(hi > lo, "с высотой ветер сильнее")
-	a.free()
-
-
-func test_cloud_shadow_weakens_new_thermals() -> void:
-	# VR-2: источник в тени облака поля — слабее (CloudField.shade_at).
-	var a := _atmo({"thermal_mode": "static", "wind_speed_kmh": 0.0})
-	a.set_ground(_flat, _sun)
-	a.add_static_thermal(0.0, 0.0, 3.0, 100.0)
-	a.step(0.01)
-	Fixture.force_cloud(a, 1.0, 1500.0, 0.0, 1.0)
-	var up := Vector3(0, 1, 0)  # солнце в зените — тень прямо под облаком
-	check(a.field._cloud_shade_at(Vector2(0, 0), up) > 0.9, "под облаком тень")
-	check(a.field._cloud_shade_at(Vector2(3000, 0), up) == 0.0, "вдали тени нет")
-	var east := Vector3(0.6, 0.8, 0)  # солнце на востоке — тень к западу
-	var off := a.get_cloudbase_msl() / 0.8 * 0.6  # смещение тени от основания (земля на нуле)
-	check(a.field._cloud_shade_at(Vector2(-off, 0), east) > 0.9, "тень смещена от солнца")
-	check(a.field._cloud_shade_at(Vector2(0, 0), east) == 0.0, "под облаком при боковом солнце ясно")
-	a.free()
-
-
-func test_shade_weakens_born_thermals() -> void:
-	# Новые термики под облаком поля слабее: те же циклы, но с тенью — сила × (1 − тень · множитель).
-	var strengths: Array[float] = []
-	for shaded in [false, true]:
-		var a := _atmo({"wind_speed_kmh": 0.0}, "weather/strong")
-		a.set_ground(_flat, _sun)
-		a.set_sun_direction(Vector3(0, 1, 0))
-		if shaded:
-			a.step(0.01)
-			a.cloud_phys.wait_field()
-			a.cloud_phys.inputs_fn = Callable()
-			var f := a.cloud_phys.field
-			f.setup_grid(96, 96, 400.0, -19200.0, -19200.0)
-			f.base_msl = a.get_cloudbase_msl()
-			f.cover.fill(1.0)
-			f.depth.fill(1500.0)
-		# термики рождаются заново с этим полем
-		a.field._clear_dynamic_caches()
-		a.field.thermals.clear()
-		a.time_s = 1000.0
-		a.refresh_now()
-		var s := 0.0
-		var n := 0
-		for id in a.field.thermals:
-			s += a.field.thermals[id].strength
-			n += 1
-		check(n > 0, "термики родились")
-		strengths.append(s / maxi(n, 1))
-		a.free()
-	check(strengths[1] < strengths[0] * 0.8, "в тени облаков термики слабее: %.2f < %.2f" % [strengths[1], strengths[0]])
-
-
-func test_extreme_thermals() -> void:
-	# Сильный день — изредка 7–9 м/с.
-	var b := _atmo({"thermal_extreme_chance": 0.2}, "weather/strong")
-	b.set_ground(_flat, _sun)
-	b.step(0.01)
-	var ext := 0
-	for id in b.field.thermals:
-		if b.field.thermals[id].strength >= 7.0:
-			ext += 1
-	check(ext > 0, "бывают термики ≥ 7 м/с: %d" % ext)
-	b.free()
-
-
-func test_source_strength_controls_frequency() -> void:
-	# Сильный источник (камни, граница поле–лес) — термиков больше, чем от слабого.
-	var a := _atmo({}, "weather/strong")
-	a.set_ground(_flat, func(x: float, _z: float) -> float: return 1.0 if x > 0.0 else 0.5)
-	a.step(0.01)
-	var hot := 0
-	var cold := 0
-	for id in a.field.thermals:
-		if a.field.thermals[id].src.x > 0.0:
-			hot += 1
-		else:
-			cold += 1
-	check(hot > cold * 1.3, "от сильных источников термиков больше: %d > %d" % [hot, cold])
-	a.free()
+	north.free()

@@ -34,7 +34,7 @@ func _ready() -> void:
 	var run := AtmoFingerprint.make_world(_key)
 	for t in _times:
 		var jump := AtmoFingerprint.make_world(_key)
-		jump.start_at(t)
+		AtmoFingerprint.jump_to(jump, t)
 		var fj := AtmoFingerprint.capture(jump)
 		jump.free()
 		AtmoFingerprint.run_to(run, t, _dt)

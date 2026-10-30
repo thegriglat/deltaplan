@@ -1,0 +1,96 @@
+{
+	"bin": {
+		"bytes": 12816005,
+		"h_max_err_m": 0.0,
+		"layout": "heights int16 LE, water u8, cls u8, moist u8 (x 1/255); подряд, width*height узлов, строка j к +Z (W1)"
+	},
+	"grid": {
+		"height": 1601,
+		"origin_x": -20000.0,
+		"origin_z": -20000.0,
+		"spacing": 25.0,
+		"width": 1601
+	},
+	"h_offset": 1508.59375,
+	"h_scale": 0.03125,
+	"loc": {
+		"center_lat": 50.79,
+		"center_lon": 86.13,
+		"climate": {
+			"dtr_k": 10.8718547569951,
+			"has_hh1": true,
+			"has_hh5": true,
+			"tx_c": 19.4455805653574,
+			"z_cell_m": 1443.1666
+		},
+		"climate_cell": {
+			"dtr_k": 10.87185475699511,
+			"hcc": 0.44121272095647857,
+			"src": {
+				"hh1": "data",
+				"hh2": "data",
+				"hh5": "data",
+				"hh6": "data"
+			},
+			"t700_c": 3.9238185770196914,
+			"td_c": 9.649781784310543,
+			"td_sd_k": 2.359334947264753,
+			"trop_m": 11137.3,
+			"tx_c": 19.445580565357385,
+			"wr": 2.704248439555332,
+			"z700_m": 3053.7927457027354,
+			"z_cell_m": 1443.1666000000037
+		},
+		"climate_cell_lag": {
+			"dtr_k": 11.697016738551296,
+			"hcc": 0.4650619220892549,
+			"src": {
+				"hh1": "data",
+				"hh2": "data",
+				"hh5": "data",
+				"hh6": "data"
+			},
+			"t700_c": 2.504772608737838,
+			"td_c": 7.220870838600935,
+			"td_sd_k": 3.2300539278026665,
+			"trop_m": 11277.3,
+			"tx_c": 18.591807584440694,
+			"wr": 3.51528192142732,
+			"z700_m": 3057.721825761283,
+			"z_cell_m": 1443.1666000000037
+		},
+		"climate_lag": {
+			"dtr_k": 11.6970167385513,
+			"has_hh1": true,
+			"has_hh5": true,
+			"tx_c": 18.5918075844407,
+			"z_cell_m": 1443.1666
+		},
+		"day": 15,
+		"id": "ongudai",
+		"month": 7,
+		"utc_offset_h": 7.0
+	},
+	"name": "ongudai",
+	"note": "Онгудай (tests/fixtures/locations/ongudai): слой detail 25 м, AirRuntime.place_of; water — узел по ближайшему пикселю маски (> 127), cls/moist — снимок поверхности AirPlace.Surface",
+	"start_sites": [
+		{
+			"h_msl": 1868.75671386719,
+			"id": "kayancha_south",
+			"x": 7224.77490234375,
+			"z": 324.689636230469
+		}
+	],
+	"surface_classes": {
+		"bare": 5,
+		"built": 7,
+		"crop": 3,
+		"forest": 1,
+		"grass": 2,
+		"none": 0,
+		"shrub": 4,
+		"snow": 8,
+		"water": 6
+	},
+	"version": 1
+}

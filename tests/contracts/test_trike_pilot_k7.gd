@@ -69,23 +69,23 @@ func _hspeed(m: PendulumModel) -> float:
 ## (1) Без новых ключей — TT-К3; ключи без ввода turn/brake и без посадки дают то же бит в бит. Сценарий: тяга,
 ## pitch +1 после 1,1·vs, отрыв и полёт; 14 с. Числа — сняты на коммите без TP-7.
 func test_defaults_unchanged() -> void:
-	var a := _model(false)
-	var b := _model(true, false, false)  # без steer_max_deg штанга первого порядка (TP-К7 v2)
-	a.set_external_force(_thrust())
-	b.set_external_force(_thrust())
-	var vs := _vs(a)
+	var ma := _model(false)
+	var mb := _model(true, false, false)  # без steer_max_deg штанга первого порядка (TP-К7 v2)
+	ma.set_external_force(_thrust())
+	mb.set_external_force(_thrust())
+	var vs := _vs(ma)
 	var pitch := 0.0
 	var took := false
 	for i in int(14.0 / DT):
-		if pitch == 0.0 and a.pilot_velocity.length() >= 1.1 * vs:
+		if pitch == 0.0 and ma.pilot_velocity.length() >= 1.1 * vs:
 			pitch = 1.0
-		a.step(DT, _in(pitch), Callable(), _flat)
-		b.step(DT, _in(pitch), Callable(), _flat)
-		took = took or not a.on_wheels
-	check(took and not b.on_wheels, "отрыв был")
-	check(a.position == b.position and a.velocity == b.velocity, "ключи без ввода и посадки = без ключей (равенство)")
-	print("    золото: pos (%.9f, %.9f, %.9f) vel (%.9f, %.9f, %.9f)" % [a.position.x, a.position.y, a.position.z, a.velocity.x, a.velocity.y, a.velocity.z])
-	check(a.position == GOLD_POS and a.velocity == GOLD_VEL, "позиция и скорость равны прежним: %s %s" % [a.position, a.velocity])
+		ma.step(DT, _in(pitch), Callable(), _flat)
+		mb.step(DT, _in(pitch), Callable(), _flat)
+		took = took or not ma.on_wheels
+	check(took and not mb.on_wheels, "отрыв был")
+	check(ma.position == mb.position and ma.velocity == mb.velocity, "ключи без ввода и посадки = без ключей (равенство)")
+	print("    золото: pos (%.9f, %.9f, %.9f) vel (%.9f, %.9f, %.9f)" % [ma.position.x, ma.position.y, ma.position.z, ma.velocity.x, ma.velocity.y, ma.velocity.z])
+	check(ma.position == GOLD_POS and ma.velocity == GOLD_VEL, "позиция и скорость равны прежним: %s %s" % [ma.position, ma.velocity])
 
 
 const GOLD_POS := Vector3(0.0, 40.243816376, -177.72203064)

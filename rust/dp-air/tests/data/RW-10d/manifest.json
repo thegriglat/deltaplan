@@ -1,0 +1,90 @@
+{
+ "task": "RW-10d",
+ "reference_revision": "c591b1026 (feature/rust-wind; GD-ветер до отключения GPU-пути RW-7b)",
+ "generator": "dump_air_thermals.gd (+ dump_air_thermals.tscn), запуск run_dump.sh <копия на c591b1026> <каталог> [случаи]; затем recompress.py <случай>...",
+ "what": "AirThermals.build на поле Пикара (GPU) Онгудая: поле перечитано из запечённого f16 (TI-К3 v3), источники строились по нему; w_mech обнулён (build не читает)",
+ "files": {
+  "field.json+field.bin": "поле, parse_baked",
+  "ref.json+ref.bin": "вход (thermal-конфиг, сид, кромка, duty, u10, edge_cells), результат build (массивы, скаляры), журналы вызовов sun/is_water (pick_in_column, land_fraction) и результат pick_in_column"
+ },
+ "cases_in_repo": [
+  "ongudai_medium"
+ ],
+ "cases": {
+  "ongudai_medium": {
+   "sources": 2842,
+   "sources_on_gpu_field": 2842,
+   "lossless_f32_field_bytes": 6908012,
+   "scalars": {
+    "alive_frac": 0.71027397260274,
+    "carried_flux": 95906484.715332,
+    "life_mean": 0.553082191780822,
+    "lost_flux": 1239571.85268402,
+    "phi_ref": 0.149432174696954,
+    "shape_area": 0.805032328681548,
+    "total_flux": 227117865.912914
+   },
+   "seed": 606,
+   "cloudbase_msl": 3035.66521281331,
+   "duty": 0.85,
+   "u10": 3.05555555555556,
+   "grid": [
+    96,
+    96,
+    50
+   ]
+  },
+  "ongudai_strong": {
+   "sources": 2420,
+   "sources_on_gpu_field": 2420,
+   "lossless_f32_field_bytes": 6898249,
+   "scalars": {
+    "alive_frac": 0.752054794520548,
+    "carried_flux": 99232119.5043945,
+    "life_mean": 0.585616438356164,
+    "lost_flux": 1367689.07785416,
+    "phi_ref": 0.154081782609347,
+    "shape_area": 0.805032328681548,
+    "total_flux": 228876738.119125
+   },
+   "seed": 707,
+   "cloudbase_msl": 3835.66521281331,
+   "duty": 0.9,
+   "u10": 7.5,
+   "grid": [
+    96,
+    96,
+    50
+   ]
+  },
+  "ongudai_wave": {
+   "sources": 4002,
+   "sources_on_gpu_field": 4002,
+   "lossless_f32_field_bytes": 6900320,
+   "scalars": {
+    "alive_frac": 0.417808219178082,
+    "carried_flux": 82834487.1247559,
+    "life_mean": 0.325342465753425,
+    "lost_flux": 4426305.97352982,
+    "phi_ref": 0.159838007289189,
+    "shape_area": 0.805032328681548,
+    "total_flux": 237312884.229496
+   },
+   "seed": 808,
+   "cloudbase_msl": 2635.66521281331,
+   "duty": 0.5,
+   "u10": 10.0,
+   "grid": [
+    96,
+    96,
+    50
+   ]
+  }
+ },
+ "generator_removed_at": "a5d9387c3",
+ "generator_files_removed": [
+  "rust/dp-air/tests/data/RW-10d/dump_air_thermals.gd",
+  "rust/dp-air/tests/data/RW-10d/dump_air_thermals.tscn",
+  "rust/dp-air/tests/data/RW-10d/run_dump.sh"
+ ]
+}

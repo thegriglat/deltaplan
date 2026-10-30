@@ -43,11 +43,11 @@ python3 tools/terrain/island/air_check.py --show          # ключ=значе�
 | `build_island.py` | генерация + упаковка формата 4 (TI-К1) + конфиг места |
 | `check_sites.py`, `verify.sh` | проверки приёмки |
 | `shots.sh` | кадры для проверки мест (terrain_preview) |
-| `air_probe.gd/.tscn`, `air_quick.py` | быстрая проверка воздуха: поле GPU игры, выборка в точках |
+| `air_probe.tscn` (`air_probe_main.gd`), `air_quick.py` | быстрая проверка воздуха: поле GPU игры, выборка в точках |
 | `out/air_quick.json`, `out/probe_*.json` | итог и сырые выборки проверки воздуха |
 | `weather_sets.json`, `apply_weather.py` | TI-5: фиксированная погода стартов (TI-К2) → `start_sites[].weather` конфига |
 | `air_check.py`, `air_check_run.gd/.tscn` | TI-5: проверка воздуха в игре по наборам стартов, кадры F3/F6 → `out/air_check.json`, `out/check_*.json` |
-| `weather_sweep.gd/.tscn` | TI-5: перебор погоды (WeatherModel.derive) над островом |
+| `weather_sweep.gd/.tscn` | TI-5: перебор погоды (derive модели погоды) над островом |
 
 ## Рельеф
 
@@ -101,7 +101,7 @@ python3 tools/terrain/island/air_check.py --show          # ключ=значе�
 
 ## Быстрая проверка воздуха
 
-Поле GPU игры (`AirRuntime.load_field`, движок phase+picard, область 400 м + окна 100/50 м у старта), 12 ч (слот
+Поле GPU игры (`загрузка поля GPU игры`, движок phase+picard, область 400 м + окна 100/50 м у старта), 12 ч (слот
 `time.start_hours`), 15 июля, partly, погода `weather/medium`, турбулентность и пузыри выключены; `w` —
 `Atmosphere.air_velocity_at`, `w_conv` — поле (пилоту напрямую не отдаётся).
 
@@ -116,7 +116,7 @@ python3 tools/terrain/island/air_check.py --show          # ключ=значе�
 ## Проверка воздуха после VI-7 (VI-9)
 
 `air_check.py` (TI-5; поле GPU игры, погода стартов из конфига) после правки VI-7 «источник термика не над водой» и перепекания
-полей (`model_hash` `c6f6c663a76fe0bf` → `6da65c77ab23e850`, `bash tools/terrain/bake_all.sh --check` = 0).
+полей (`model_hash` `c6f6c663a76fe0bf` → `6da65c77ab23e850`; запекание удалено в rust-wind RW-P10).
 
 ```bash
 .dpcli/dpcli lock gpu air -- python3 tools/terrain/island/air_check.py   # ≈ 10 мин, окно DISPLAY=:0; .venv — setup_env.sh
@@ -157,4 +157,4 @@ python3 tools/terrain/island/air_check.py --show
 numpy, scipy (BSD-3), numba (BSD-2), fastscapelib (GPL-3.0, только инструмент сборки — в игру не входит),
 Pillow (MIT-CMU). Метод fs1 и θ — `docs/research/terrain_tuning.md`, `tools/research/air_synth/corpus/generator.py`.
 
-Запекание полей ветра стартов острова — общим скриптом `tools/terrain/bake_all.sh [--check] [--id training_island]` (см. `docs/guide/location-data.md`).
+Запекание полей ветра стартов острова — скриптом bake_all.sh (удалён в rust-wind RW-P10, устарело).

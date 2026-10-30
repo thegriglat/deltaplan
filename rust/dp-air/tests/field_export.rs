@@ -1,0 +1,224 @@
+//! RW-7a: выдача поля фасаду (W4 v5, W3 v4) — запечённое поле острова, без Пикара.
+//!
+//! Снимок (`field_export`) разбирается `parse_solved` обратно бит в бит; опрос набора по нему
+//! совпадает с опросом `Formula`.
+use dp_air::field::field_set::FieldSet;
+use dp_air::field::runtime::{Faults, RtCfg, ground_height};
+use dp_air::field::solved::parse_solved;
+use dp_air::{AirModel, Calm, Conditions, Configs, Focus, Formula, Place, State};
+use serde_json::Value;
+use std::path::{Path, PathBuf};
+use std::time::{Duration, Instant};
+
+const NO_WIN: Faults = Faults {
+    coarse: false,
+    fail_pass: None,
+    no_phase: false,
+    no_windows: true,
+};
+
+fn repo() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..")
+}
+
+fn collect(dir: &Path, prefix: &str, out: &mut Vec<(String, String)>) {
+    for e in std::fs::read_dir(dir).unwrap() {
+        let p = e.unwrap().path();
+        let name = format!("{prefix}{}", p.file_name().unwrap().to_string_lossy());
+        if p.is_dir() {
+            collect(&p, &format!("{name}/"), out);
+        } else if p.extension().is_some_and(|x| x == "json") {
+            out.push((
+                name.trim_end_matches(".json").to_string(),
+                std::fs::read_to_string(&p).unwrap(),
+            ));
+        }
+    }
+}
+
+/// Конфиги игры в детерминированном режиме, малая область.
+fn configs() -> Configs {
+    let mut files = Vec::new();
+    collect(&repo().join("configs"), "", &mut files);
+    for (n, t) in &mut files {
+        if n == "atmosphere" {
+            let mut v: Value = serde_json::from_str(t).unwrap();
+            v["air"]["deterministic"] = serde_json::json!(true);
+            v["air"]["domain_l_m"] = serde_json::json!(7200.0);
+            v["air"]["threads"] = serde_json::json!(4);
+            v["air"]["tol_scale"] = serde_json::json!(5.0);
+            v["air_model"]["edge_blend_cells"] = serde_json::json!(1.0);
+            *t = serde_json::to_string(&v).unwrap();
+        }
+    }
+    files.sort();
+    Configs::new(files)
+}
+
+fn island_place() -> Place {
+    let header = r#"{"version":1,"loc":{"id":"training_island","center_lat":43.2,"center_lon":34.0,
+"utc_offset_h":2.0,"month":7,"day":15},"grid":{"origin_x":-10000,"origin_z":-10000,"spacing":25,
+"width":801,"height":801},"surface_classes":{"grass":1},
+"start_sites":[{"x":3510.0,"z":-1510.0,"h_msl":100.0}]}"#;
+    let h = dp_air::PlaceHeader::from_json(header).unwrap();
+    let n = h.cells();
+    Place::new(h, vec![100.0; n], vec![0; n], vec![1; n], vec![0.5; n]).unwrap()
+}
+
+fn landing_cond() -> Conditions {
+    Conditions::from_json(
+        r#"{"forecast":{"temperature_c":22,"wind_speed_kmh":3.6,"wind_from_deg":270,"sky":"clear"},
+"quantum_h":1,"start_hour":9,"speed":1,"blend_s":null,"rebuild":false}"#,
+    )
+    .unwrap()
+}
+
+fn focus() -> Focus {
+    Focus {
+        pos: [3510.0, 110.0, -1510.0],
+        weight: 1.0,
+    }
+}
+
+/// Рабочая `Formula` с посчитанным полем: место, условия, фокус, поля; ждёт `Ready` с полем.
+fn ready_model(windows: bool) -> (Formula, Place) {
+    let pl = island_place();
+    let mut m = Formula::new();
+    if !windows {
+        m = m.with_faults(NO_WIN);
+    }
+    m.configure(&configs(), 1).unwrap();
+    m.set_conditions(&landing_cond()).unwrap();
+    m.set_focuses(&[focus()]).unwrap();
+    m.load_place(pl.clone()).unwrap();
+    wait_field(&mut m);
+    (m, pl)
+}
+
+fn wait_field(m: &mut Formula) {
+    let t0 = Instant::now();
+    loop {
+        m.poll();
+        if m.status().state == State::Ready && m.level_count() > 0 {
+            return;
+        }
+        assert_ne!(m.status().state, State::Failed, "{}", m.status().reason);
+        assert!(t0.elapsed() < Duration::from_secs(900), "no field in 900 s");
+        std::thread::sleep(Duration::from_millis(2));
+    }
+}
+
+/// 200 точек: окна (шаг 100 м у площадки), область (шаг 1 км) и приземный слой.
+fn probes(pl: &Place) -> Vec<[f32; 3]> {
+    let mut v = Vec::new();
+    for i in -5..5 {
+        for j in -5..5 {
+            let (x, z) = (3510.0 + 100.0 * i as f32, -1510.0 + 100.0 * j as f32);
+            let g = ground_height(pl, x, z);
+            v.push([x, g + 2.0, z]);
+            v.push([x, g + 120.0, z]);
+        }
+    }
+    for i in -3..3 {
+        for j in -3..3 {
+            let (x, z) = (3510.0 + 1000.0 * i as f32, -1510.0 + 1000.0 * j as f32);
+            let g = ground_height(pl, x, z);
+            v.push([x, g + 300.0, z]);
+            v.push([x, g + 40.0, z]);
+        }
+    }
+    v.truncate(200);
+    assert_eq!(v.len(), 200);
+    v
+}
+
+/// Вклад поля `field` в точке (W7): тесты оркестровки поля сверяют само поле, а не сумму со
+/// слагаемыми помимо него (термики, облака, погода - RW-12v).
+fn sample(m: &dyn AirModel, pts: &[[f32; 3]]) -> Vec<[f32; 4]> {
+    pts.iter()
+        .map(|p| {
+            let d = m.decompose(*p);
+            let k = d.names.iter().position(|n| n == "field").unwrap();
+            [d.vel[k][0], d.vel[k][1], d.vel[k][2], d.sigma[k]]
+        })
+        .collect()
+}
+
+fn bits(v: &[[f32; 4]]) -> Vec<u32> {
+    v.iter().flatten().map(|x| x.to_bits()).collect()
+}
+
+/// (1) Снимок после `Ready` на запечённом поле разбирается обратно, опрос по нему = `Formula`.
+#[test]
+fn export_parses_back_and_samples_bit_for_bit() {
+    let (m, pl) = ready_model(true);
+    let pts = probes(&pl);
+    let v = m.field_version();
+    assert!(v > 0);
+    let e = m.field_export();
+    assert_eq!(e.version, v);
+    assert!(!e.header_json.is_empty() && !e.data.is_empty());
+    let b = parse_solved(&e.header_json, &e.data).unwrap();
+    assert_eq!(b.levels.len(), 3, "окна 50/100 м и область");
+    let rt = RtCfg::from_configs(&configs()).unwrap();
+    let mut fs = FieldSet::new(rt.limits, rt.edge_blend_cells);
+    fs.set_field(b.levels, 0.0);
+    // RW-8: σ слота Turb здесь не сверяется (поле ↔ выборка поля)
+    let want: Vec<[f32; 4]> = sample(&m, &pts)
+        .iter()
+        .map(|v| [v[0], v[1], v[2], 0.0])
+        .collect();
+    assert!(want.iter().flatten().any(|x| *x != 0.0));
+    let got: Vec<[f32; 4]> = pts
+        .iter()
+        .map(|p| {
+            let s = fs.sample(*p, ground_height(&pl, p[0], p[2]));
+            let f = |x: f64| x as f32;
+            [f(s.v[0]), f(s.v[1]), f(s.v[2]), 0.0]
+        })
+        .collect();
+    assert_eq!(bits(&got), bits(&want));
+}
+
+/// (2) Заголовок несёт номер подачи, `blend_s = 0` для первой подачи и `blend_t0`.
+#[test]
+fn header_carries_version_and_blend() {
+    let (m, _) = ready_model(false);
+    let e = m.field_export();
+    let h: Value = serde_json::from_str(&e.header_json).unwrap();
+    assert_eq!(h["field_version"].as_u64().unwrap(), e.version);
+    assert_eq!(h["blend_s"].as_f64().unwrap(), 0.0);
+    assert_eq!(e.blend_s, 0.0);
+    assert!(h["blend_t0"].as_f64().is_some());
+    assert_eq!(h["blend_t0"].as_f64().unwrap(), e.blend_t0);
+    assert_eq!(h["format"], parse_ok_format(&e));
+    // без новой подачи номер и снимок те же
+    assert_eq!(m.field_export(), e);
+}
+
+fn parse_ok_format(e: &dp_air::FieldExport) -> Value {
+    parse_solved(&e.header_json, &e.data).unwrap();
+    let h: Value = serde_json::from_str(&e.header_json).unwrap();
+    h["format"].clone()
+}
+
+/// (4) `unload_place` — снимок пуст, номер растёт.
+#[test]
+fn unload_place_empties_the_export() {
+    let (mut m, _) = ready_model(false);
+    let v = m.field_version();
+    m.unload_place();
+    assert!(m.field_version() > v);
+    let e = m.field_export();
+    assert_eq!(e.version, m.field_version());
+    assert!(e.header_json.is_empty() && e.data.is_empty());
+}
+
+/// (5) `Calm` — пустой снимок.
+#[test]
+fn calm_has_empty_export() {
+    let c = Calm::new();
+    assert_eq!(c.field_version(), 0);
+    let e = c.field_export();
+    assert_eq!(e, dp_air::FieldExport::default());
+}

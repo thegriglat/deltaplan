@@ -1,0 +1,86 @@
+---
+type: "contract"
+status: "active"
+module: "rust-wind"
+area: "air"
+updated: "2026-10-30"
+summary: "W4 rust-wind: трейт AirModel крейта dp-air (без Godot) — типы, методы, порядок команд, структуры описаний, реализации Calm/Formula/Live."
+related: ["docs/contracts/rust-wind.md", "docs/plan/rust-wind.md"]
+contracts: [{"id": "W4", "version": 10}]
+---
+
+# W4. Трейт `AirModel` (крейт `dp-air`, без Godot) (v10)
+
+Часть `docs/contracts/rust-wind.md` (версия — там, заголовок W4). Менять — только координатор.
+Владелец — RW-4 (трейт, заглушка `Calm`), RW-6…12 (`Formula`), будущий живой воздух (`Live`). Потребители — `dp-gd`, стенд RW-5, `cargo test`, `cargo bench`.
+```rust
+pub const API_VERSION: u32 = 6;                      // = версии W2 (W2 v6)
+pub enum State { Empty, Loading, Ready, Failed }
+pub enum Code { Ok, BadInput, NoPlace, NotReady }          // W1; Result<(), Error{code, msg}>
+pub enum SampleMode { Full, Mean }
+pub struct Configs { pub files: Vec<(String, String)> }    // имя, текст json (W5)
+pub struct Place { header: PlaceHeader, heights: Vec<f32>, water: Vec<u8>, cls: Vec<u8>, moist: Vec<f32> }  // W5
+pub struct Conditions { .. }                                // W5, serde из json
+pub struct Focus { pub pos: [f32; 3], pub weight: f32 }
+pub struct Status { pub state: State, pub progress: f32, pub time_s: f64, pub reason: String }
+
+pub trait AirModel: Send + Sync {
+    fn configure(&mut self, cfg: &Configs, seed: u64) -> Result<(), Error>;
+    fn load_place(&mut self, place: Place) -> Result<(), Error>;   // возвращает сразу; подготовка — фон
+    fn unload_place(&mut self);
+    fn set_conditions(&mut self, c: &Conditions) -> Result<(), Error>;
+    fn set_sun_direction(&mut self, to_sun: Option<[f32; 3]>);
+    fn set_static_thermals(&mut self, list: &[[f32; 4]], mode: u8) -> Result<(), Error>;
+    fn set_focuses(&mut self, f: &[Focus]) -> Result<(), Error>;
+    fn advance_to(&mut self, t: f64) -> Result<(), Error>;
+    fn start_at(&mut self, t: f64) -> Result<(), Error>;
+    fn status(&self) -> Status;
+    fn sample_many(&self, pts: &[[f32; 3]], mode: SampleMode, out: &mut [[f32; 4]]);   // out.len() == pts.len()
+    fn cloud_density_many(&self, pts: &[[f32; 3]], out: &mut [f32]);
+    fn cloudbase_msl(&self) -> f32;
+    fn background_wind(&self, heights: &[f32], out: &mut [[f32; 2]]);
+    fn weather_json(&self) -> String;  fn weather_version(&self) -> (u64, u64);  // (мягкая, перестройка)
+    fn sun_state(&self) -> [f32; 4];
+    fn cores(&self, center: [f32; 3], radius: f32, out: &mut Vec<Core>);           // W6
+    fn clouds(&self, center: [f32; 3], radius: f32, out: &mut Vec<Cloud>);
+    fn cloud_raster(&self) -> Option<std::sync::Arc<Raster>>;
+    fn wave_crests(&self, center: [f32; 2], radius: f32, min_eta: f32, spacing: f32, out: &mut Vec<Crest>);
+    fn decompose(&self, p: [f32; 3]) -> Decomposition;                              // W7
+    fn debug_raster(&self, name: &str) -> Option<std::sync::Arc<Raster>>;
+    fn debug_raster_names(&self) -> Vec<String>;
+    // v3: по умолчанию — Ok(()) и ничего (Calm)
+    fn add_baked_field(&mut self, header_json: &str, data: &[u8]) -> Result<(), Error> { Ok(()) }
+    fn set_cache_dir(&mut self, dir: Option<&std::path::Path>) -> Result<(), Error> { Ok(()) }
+}
+```
+- Опросы (`&self`) — из любого потока одновременно; несовпадение длин `out`/`pts` — паники нет: обрабатывается `min` длин, остальное не трогается.
+- **v2 (RW-4, ревью):** выходные `Vec` (`cores`, `clouds`, `wave_crests`) **заменяются** — реализация сначала очищает `out` (`clear()`, ёмкость сохраняется), потом пишет.
+- **Порядок команд (v2; та же семантика в W2/W3):** `set_conditions`, `set_sun_direction`, `set_static_thermals`, `set_focuses` до `load_place` — `Ok`, вход запоминается и применяется при загрузке; `advance_to`, `start_at` без места — `NoPlace`. `unload_place` сбрасывает место, время, статические термики и фокусы; конфиги, сид, условия и солнце остаются. После `load_place` `time_s = 0`. `t < 0` или не конечно в `advance_to`/`start_at` — `BadInput`.
+- **Структуры описаний (v2)** — поля в порядке смещений W6, все `f32`: `Core` — `id, flags, x, z, y_src, top, w, radius, lean_x, lean_z, age_s, life_s, stage, vis_seed, storm` (15); `Cloud` — `id, core_id, x, z, base_msl, top_msl, radius, growth, decay, flags` (10); `Crest` — `x, z, eta, crest` (4); `#[repr(C)]`, чтобы `dp-gd` отдавал их в `PackedFloat32Array` одним копированием. `Raster` — `version: u64, nx, ny: u32, dx, x0, z0: f32` (оси W1), `base_msl, time_s` (для облаков; у отладочных — NaN), `layers: Vec<(String, Vec<f32>)>` (`nx·ny`, строка — к +Z): у растра облаков — `cover, depth, stage, activity, bg_cover, bg_depth` (W6), у отладочного — один слой `data` (W7).
+- `dp-air` не зависит от `godot`; `picard_rs` переносится в workspace как крейт (или модуль `dp-air::picard`) с сохранением R6 v3 (`docs/contracts/picard-rs.md`) — расчёт Пикара берётся готовый, не пишется заново (решение пользователя 2026-10-26).
+- Реализации: `Calm` (RW-4: всё по W1, ветер 0, сразу Ready — для контрактных тестов и пустого запуска), `Formula` (RW-6…12), `Live` (вне модуля).
+- **v3 (постановка RW-6t):** `add_baked_field` — то же, что W3 v2 (`DpAir.add_baked_field`): после `load_place` и до Ready — `Ok` (поле запоминается; разбор TI-К3 v3 — `field::baked::parse_baked`; битое — `BadInput` с причиной), без места — `NoPlace`, после Ready — `BadInput`; при загрузке реализация ищет подходящее поле как `AirRuntime.baked_lookup` (`field::baked::baked_lookup`) и при попадании пропускает Пикар. `set_cache_dir` — W3 v2: `None` — без кеша; каталог создаёт реализация; ошибка создания — `BadInput`, кеш выключен. Обе — `&mut self`, из потока владельца, как остальные команды.
+- **v4 (2026-10-27, решение пользователя):** `Status` += `stage: String` (идентификатор этапа — латиница, snake_case, набор перечислен в doc-комментарии `Status`, `""` — нет; не текст для экрана: подпись по идентификатору делает фасад, W10 v2) и `iters: u32` (итерации решателя в текущем этапе, семантика W2 v3); `Formula` обновляет `iters` из оркестровки поля не реже чем через 10 итераций (атомарный счётчик, без блокировки решателя); `Calm` — `""`, 0.
+- **v5 (2026-10-29, постановка RW-7):**
+  - `fn set_field_enabled(&mut self, on: bool) -> Result<(), Error>` — по умолчанию `Ok(())` (`Calm`). Без места — запоминается, применяется при `load_place`; по умолчанию `true`. `Formula`: `false` — идущая задача поля отменяется (W11 v6), поле снимается сразу, без подмены (опросы — как без поля), новых расчётов нет, `state` не меняется (`Loading` из-за поля → `Ready`); `true` после `Ready` — подбор запечённого/кеша/расчёт фоном, как при загрузке, `state` остаётся `Ready`, ход — `stage`/`iters`, первое поле подаётся сразу (`blend_s = 0`); `true` до `Ready` — как обычная загрузка. Повтор того же значения — `Ok`, ничего. Уточнение без смены версии (ревью RW-7a): подготовка поля после включения не удалась — как ошибка загрузки: `Failed`, причина в `reason` (опросы — по запасному пути).
+  - Переходное (W3 v4, до переноса GDScript-слагаемых, не позже RW-13): `fn field_export(&self) -> FieldExport` — по умолчанию пустой; `pub struct FieldExport { pub version: u64, pub blend_s: f64, pub blend_t0: f64, pub header_json: String, pub data: Vec<u8> }` — снимок последней подачи (целевой набор уровней), заголовок и тело — `field::baked::encode_baked` (без потерь, `parse_baked` читает обратно бит в бит); `version = 0` и пустые строки — поля нет. `fn field_version(&self) -> u64` — номер последней подачи без кодирования (по умолчанию 0). Номер растёт по правилу W3 v4.
+- **v6 (2026-10-29, переход фасада RW-12z):** `API_VERSION = 4`. `ObjRecord` переносится в корень крейта: `#[repr(C)] pub struct ObjRecord` (22 × `f32`, поля W6 v4, const-assert размера, как `Core`), `pub const OBJ_STRIDE: usize = 22`. Новые методы (по умолчанию — «ничего», `Calm`):
+  ```rust
+  fn cloud_objects(&self, center: [f32; 3], radius: f32, t: f64, out: &mut Vec<ObjRecord>) { out.clear() }
+  fn wave_info(&self) -> [f32; 2] { [0.0; 2] }                                        // [enabled, wavelength_m]
+  fn surface_gust_many(&self, xz: &[[f32; 2]], t: &[f64], out: &mut [f32]) { out.iter_mut().for_each(|o| *o = 0.0) }
+  ```
+  - `Formula` отдаёт все опросы из `Terms` (ядра, облака, плотность, растр, гребни, объекты, `wave_info`, `surface_gust_many`, погода, солнце, фон, кромка) вместо заглушек. Нет места или не `Ready`: `cores/clouds/cloud_objects/wave_crests` — пусто, `cloud_raster` — `None`, `cloud_density_many`/`surface_gust_many`/`background_wind` — нули, `wave_info` — `[0, 0]`, `weather_json` — `"{}"`, `sun_state` — нули.
+  - `cores`, `clouds` — на текущем `t`; `cloud_objects` — на заданном `t` в окне W6 v4 (вне окна — ближайшая граница); результат — детерминированная функция снимка и `t`.
+  - `sun_state`: `w` — прогрев (`AtmoDay.insolation`) 0..1; нет хода дня — 1.
+  - `weather_version()` `(мягкая, перестройка)`: мягкая растёт только при реальной смене выведенной погоды (квант — слот 0,1 с хода дня; величины изменились больше чем на `1e-3` отн.), иначе не растёт.
+  - `background_wind`: фоновый ветер по высоте MSL от опорной высоты земли, как `_ground_ref` GD (`atmosphere.gd`, `WeatherModel.ground_context`).
+  - `start_at` — по W2 v4. Режим поля `off` (`set_field_enabled(false)`) — аналитика без поля, остальные слагаемые включены (W2 v4).
+  - Кеши крейта по месту — по поколению `load_place`, не по адресу растра.
+  - Бюджет `advance_to` ≤ 0,5 мс главного потока (W3) — с термиками и облаками: тяжёлое (сборка термиков, шаг и разгон поля облаков) — фоном (single-flight, подмена `Arc`); в детерминированном режиме (`air.deterministic`) — синхронно, бюджет не действует.
+  - Переходное `field_export`/`field_version` (v5) — без изменений до RW-13.
+
+- **v7 (2026-10-29, решение пользователя: упрощённый режим ветра убрать):** `API_VERSION = 5`. `set_field_enabled` (v5) удалён из трейта, `Calm`, `Formula` и стенда; ветка `off` в `Formula` (аналитика без поля по выключателю) удалена вместе с её тестами. Поле считается всегда; ответ без поля остаётся только при `Failed` (W1) и до готовности поля — как прежде.
+- **v8 (2026-10-29, итог RW-P11):** `add_baked_field` удалён из трейта, `Calm`, `Formula`, стенда. Разбор/ключ `field::baked` (`parse_baked`, `encode_baked`, `baked_lookup`) остаётся, пока им пользуется кеш полей и переходная выдача поля `field_export*`; иначе удаляется. `API_VERSION` не меняется (= 5).
+- **v9 (2026-10-30, решение пользователя: экран загрузки):** `API_VERSION = 6`. `Status` += `run: u32`, `runs: u32`: прогон — вход задачи поля в этап с итерациями решателя (`coarse`, `solve_mech`, `solve_heat`, в каждом проходе `max_passes`); `iters` при каждом входе считается с нуля. `run` — номер текущего прогона с 1 (0 — нет этапа с итерациями); `runs` — прогонов по текущему плану задачи (`runs ≥ run`, растёт, когда нужен следующий проход). Счёт — в `field::runtime` (рядом с `StageCounter`), без блокировок. `Calm`: 0, 0. Тест: прогон поля малого места — `run` не убывает, `1 ≤ run ≤ runs` на этапах с итерациями, при смене этапа `iters` с нуля.
+- **v10 (2026-10-30, погода в крейт, W12 v1):** `API_VERSION` не меняется (= 6). Трейт += `fn set_weather(&mut self, w: Arc<weather::Weather>)` (по умолчанию — ничего; `Calm` — ничего) и `fn place_context(&self) -> Option<PlaceContext>` (по умолчанию `None`); `Formula` берёт климат места из `Weather::climate_at` на дату места и на дату − `round(lag_days)` вместо `loc.climate*` (W5 v10).

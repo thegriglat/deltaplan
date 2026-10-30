@@ -1,0 +1,39 @@
+{
+  "unit": "us",
+  "stat": "median",
+  "profile": "release",
+  "thresholds_us": {
+    "sample_many_18": 50,
+    "sample_many_1000": 2000,
+    "advance_to": 500
+  },
+  "models": {
+    "Calm": {
+      "date": "2026-10-26",
+      "machine": {
+        "cpu": "Intel(R) Xeon(R) CPU E5-2666 v3 @ 2.90GHz",
+        "platform": "Linux-6.12.107+deb13-amd64-x86_64-with-glibc2.41"
+      },
+      "median_us": {
+        "advance_to": 0.003167,
+        "sample_many_1000": 0.15535,
+        "sample_many_18": 0.006727
+      }
+    },
+    "Formula": {
+      "date": "2026-10-26",
+      "machine": {
+        "cpu": "Intel(R) Xeon(R) CPU E5-2666 v3 @ 2.90GHz",
+        "platform": "Linux-6.12.107+deb13-amd64-x86_64-with-glibc2.41"
+      },
+      "median_us": {
+        "formula_advance_to": 0.078204,
+        "formula_advance_to_win": 0.092395,
+        "formula_sample_many_1000": 73.17314,
+        "formula_sample_many_1000_win": 82.317179,
+        "formula_sample_many_18": 3.275304,
+        "formula_sample_many_18_win": 3.43841
+      }
+    }
+  }
+}

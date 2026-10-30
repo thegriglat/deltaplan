@@ -265,10 +265,8 @@ func _fill_ctx(g: Game) -> void:
 			var a: BotAgent = g.bots.agents[i]
 			if a != null:
 				c.runners.append(_runner(i + 1, a.telemetry()))
-	c.weather = g.air.get("weather") if "weather" in g.air else {}
-	c.cloudbase_msl = (
-		float(g.air.call("get_cloudbase_msl")) if g.air.has_method("get_cloudbase_msl") else NAN
-	)
+	c.weather = g.air.call("weather") if g.air.has_method("weather") else {}
+	c.cloudbase_msl = float(g.air.call("cloudbase_msl")) if g.air.has_method("cloudbase_msl") else NAN
 	c.graphics = GraphicsPresets.current()
 	c.height_at = g.terrain.height_at
 	if g.air.has_method("cloud_density_at"):

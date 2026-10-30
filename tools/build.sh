@@ -45,10 +45,6 @@ if [[ -n "${XDG_DATA_HOME:-}" && -d "$tpl_home" && ! -L "$tpl_tmp" ]]; then
 	fi
 fi
 
-# Хеш кода модели воздуха для проверки запечённых полей в сборке (исходники из pck не прочитать).
-godot --headless --path . --script res://tools/terrain/air_model_hash.gd >/dev/null 2>&1 || true
-[[ -s data/air_model_hash.txt ]] || echo "ВНИМАНИЕ: data/air_model_hash.txt не создан — запечённые поля в сборке не возьмутся" >&2
-
 # Импорт регистрирует расширения и ресурсы.
 godot --headless --path . --import >/dev/null 2>&1 || true
 
@@ -61,8 +57,19 @@ if [[ -z "${DISPLAY:-}${WAYLAND_DISPLAY:-}" ]]; then
 	export_flags=(--headless)
 fi
 
+# Расширение DpAir (W9): release под ОС до экспорта; экспорт --export-debug берёт ключ debug
+# в .gdextension (tune), поэтому для него собирается и tune. Нет бинарника под ОС — игра идёт
+# на GDScript (фасад берёт air.backend = gd), см. docs/contracts/rust-wind.md → W9.
+rust_ext() {
+	local os="$1"
+	tools/build_rust.sh release "$os"
+	[[ "$mode" == "--export-debug" ]] && tools/build_rust.sh tune "$os"
+	return 0
+}
+
 build_one() {
 	local preset="$1" dir="$2" bin="$3"
+	case "$bin" in *.exe) rust_ext windows ;; *) rust_ext linux ;; esac
 	rm -rf "build/$dir"
 	mkdir -p "build/$dir"
 	# Редактор с окном пересохраняет project.godot (выкидывает значения по умолчанию) — вернуть как было.
@@ -91,6 +98,7 @@ build_one() {
 
 build_macos() {
 	local preset="${1:-macOS}" dir="${2:-macos}"
+	# macOS пока без расширения DpAir (игра идёт на GDScript).
 	rm -rf "build/$dir" "build/deltaplan-$dir.zip"
 	mkdir -p "build/$dir"
 	cp project.godot "build/.project.godot.bak"

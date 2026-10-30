@@ -10,7 +10,7 @@ static func _threads() -> int:
 	return n if n > 0 else OS.get_processor_count()
 
 
-## Три уровня вложенности, как AirRuntime._prep_task → домены → полосы; каждый лист пишет свою клетку.
+## Три уровня вложенности, как подготовка поля → домены → полосы; каждый лист пишет свою клетку.
 ## out — обычный Array (общий по ссылке; упакованные массивы лямбды захватывают копией).
 static func _nested(out: Array, base: int, a: int, b: int, c: int) -> void:
 	PoolFor.run(
@@ -88,7 +88,7 @@ func test_fast_load_pool_for_nested_saturated_pool() -> void:
 	check(ok, "результат вложенных циклов = последовательному")
 
 
-## Низкоприоритетные внешние задачи (как add_task по умолчанию: AirRuntime, AirThermals.build):
+## Низкоприоритетные внешние задачи (как add_task по умолчанию: подготовка поля, термики):
 ## при пуле 4 у них один поток, вложенные элементы — высокого приоритета, не ждут его.
 func test_fast_load_pool_for_low_priority_outer() -> void:
 	var outer := _threads()

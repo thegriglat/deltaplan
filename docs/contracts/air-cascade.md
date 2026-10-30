@@ -12,7 +12,7 @@ contracts: [{"id": "R1", "version": 1}, {"id": "R2", "version": 1}, {"id": "R3",
 # Контракты модуля air-cascade
 
 Владелец — координатор модуля. Менять интерфейс — только координатор: версия +1, потребителям — `task note`.
-Контрактный тест — `tools/research/air_cascade/picard_rs/contract/check_contract.py` (только stdlib
+Контрактный тест — `rust/picard_rs/contract/check_contract.py` (только stdlib
 Python): `python3 <путь> --ref <case.json>…` (R1), `--results <dir>` (R2), `--crate` (R3); код 0 — соблюдено.
 Допуски — `contract/tolerance.py <R2.json>… [--iters-tol 20]` → последняя строка `worst=<x>`, проходит при x ≤ 1.
 
@@ -54,7 +54,7 @@ Python): `python3 <путь> --ref <case.json>…` (R1), `--results <dir>` (R2),
 
 ## R2 v1 — результат прогона решателя (JSON)
 Владелец — AC-R1 (первая версия), потребители — AC-R3, README шага 0, шлюз пользователю.
-- Файл `tools/research/air_cascade/picard_rs/out/<случай>_<profile>_t<threads>.json` (в git — малые).
+- Файл `rust/picard_rs/out/<случай>_<profile>_t<threads>.json` (в git — малые).
   Запись — во временный файл и переименование.
 - Поля (все обязательны; нет значения — `null`, не пропуск ключа):
   `format: "picard-rs-result"`, `version: 1`, `case` (имя), `input` (путь к `.json` случая),
@@ -73,7 +73,7 @@ Python): `python3 <путь> --ref <case.json>…` (R1), `--results <dir>` (R2),
 
 ## R3 v3 — крейт решателя и сборка
 Владелец — AC-R1; потребители — AC-R3 (замеры), шаг 1 плана (2D со временем), возможная GDExtension.
-- Место: `tools/research/air_cascade/picard_rs/` — отдельный пакет Cargo (`name = "picard_rs"`, edition
+- Место: `rust/picard_rs/` — отдельный пакет Cargo (`name = "picard_rs"`, edition
   2024), не член чужого workspace; lib + bin `picard`. Без Godot и без зависимостей от кода игры.
   `.gitignore` пакета: `target/`.
 - Сборка: `[profile.release] opt-level = 3, lto = "fat", codegen-units = 1, panic = "abort"`.

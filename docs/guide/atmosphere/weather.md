@@ -5,7 +5,7 @@ module: "atmosphere"
 area: "air"
 updated: "2026-10-23"
 summary: "Прогноз пилота → погода дня: кромка, Td, 700 гПа, Tmax, амплитуда, тропопауза, перистые по месту (ERA5), дымка по RH, ход дня."
-related: ["docs/guide/atmosphere.md", "docs/contracts/haze-humidity.md", "scripts/atmosphere/climate_grid.gd", "scripts/atmosphere/weather_model.gd", "configs/weather_model.json"]
+related: ["docs/guide/atmosphere.md", "docs/contracts/haze-humidity.md", "scripts/atmosphere/weather.gd", "configs/weather_model.json"]
 ---
 
 # Погода из прогноза (FR-16)

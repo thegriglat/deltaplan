@@ -1,0 +1,185 @@
+extends Node
+## Дамп RW-8: WindModel.gust_unit, GustSpectrum, FieldTurbulence (sigma, lee, burst, taylor) -> f64 LE
+## для rust/dp-air/tests/terms_turb.rs. Запуск: rw8_dump.sh [--out=<каталог>]. Описание — manifest.json.
+
+var _out := ""
+var _buf := PackedFloat64Array()
+var _man := {}
+
+
+func _ready() -> void:
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--out="):
+			_out = a.substr(6)
+	DirAccess.make_dir_recursive_absolute(_out)
+	var cfg: Dictionary = Config.get_config("atmosphere")
+	_man = {"godot": Engine.get_version_info().string, "arrays": {}, "scalars": {}}
+	for seed_value in [606, 20260927, 1]:
+		_gust(cfg, seed_value)
+		_spectrum(cfg, seed_value)
+	_sigma(cfg)
+	var f := FileAccess.open(_out.path_join("rw8_dump.f64"), FileAccess.WRITE)
+	f.store_buffer(_buf.to_byte_array())
+	f.close()
+	var m := FileAccess.open(_out.path_join("manifest.json"), FileAccess.WRITE)
+	m.store_string(JSON.stringify(_man, "\t", true) + "\n")
+	m.close()
+	get_tree().quit()
+
+
+func _put(name: String, arr: Array) -> void:
+	_man.arrays[name] = [_buf.size(), arr.size()]
+	for v in arr:
+		_buf.append(float(v))
+
+
+func _wm(cfg: Dictionary, seed_value: int) -> WindModel:
+	var wm := WindModel.new()
+	wm.setup(cfg.wind, cfg.turbulence, seed_value)
+	wm.set_wind(4.0, 151.0)
+	return wm
+
+
+func _gust(cfg: Dictionary, seed_value: int) -> void:
+	var wm := _wm(cfg, seed_value)
+	var tag := "s%d" % seed_value
+	_put(tag + "_wm_meta", [wm.dir.x, wm.dir.z, wm._noise_norm, wm._amp_large, wm._inv_large, wm._inv_scale, wm._evolve,
+		wm._off_v.x, wm._off_v.y, wm._off_v.z, wm._off_z.x, wm._off_z.y, wm._off_z.z, wm._off_l.x, wm._off_l.y, wm._off_l.z])
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 777 + seed_value
+	var ts := [0.0, 37.5, 1234.5, 3600.0]
+	var advs := [0.0, 4.2, 9.0, 11.3]
+	var ks := [0.0, 0.3, 1.0, 0.0]
+	var inp: Array = []
+	var out: Array = []
+	for i in 1500:
+		var p := Vector3(rng.randf_range(-3000, 3000), rng.randf_range(0, 3000), rng.randf_range(-3000, 3000))
+		var t: float = ts[i % 4] if i % 7 else rng.randf_range(0.0, 4000.0)
+		var adv: float = advs[(i / 4) % 4]
+		var k: float = ks[(i / 16) % 4]
+		inp.append_array([p.x, p.y, p.z, t, adv, k])
+		var n := wm.gust_unit(p, t, adv, k)
+		out.append_array([n.x, n.y, n.z])
+	_put(tag + "_gust_in", inp)
+	_put(tag + "_gust_out", out)
+	# рывки: шум пятен, пятно g, среднее и СКО
+	var ft := FieldTurbulence.new()
+	ft.setup(cfg.turbulence, cfg.lee, seed_value)
+	var bk := float(cfg.turbulence.scale_m) / float(cfg.lee.burst_scale_m)
+	var thr := float(cfg.lee.burst_threshold)
+	var wid := float(cfg.lee.burst_width)
+	_put(tag + "_burst_stats", [ft.burst_mean(wm, bk, thr, wid), ft.burst_std(wm, bk, thr, wid)])
+	var bin: Array = []
+	var bout: Array = []
+	for i in 600:
+		var p := Vector3(rng.randf_range(-3000, 3000), rng.randf_range(0, 3000), rng.randf_range(-3000, 3000))
+		var t := rng.randf_range(0.0, 4000.0)
+		var u := rng.randf_range(0.0, 14.0)
+		var nb := wm.gust_unit(p * bk, t, u * bk, 0.0).x
+		var g := clampf((nb - thr) / wid, 0.0, 1.0)
+		bin.append_array([p.x, p.y, p.z, t, u])
+		bout.append_array([nb, g])
+	_put(tag + "_burst_in", bin)
+	_put(tag + "_burst_out", bout)
+
+
+func _spectrum(cfg: Dictionary, seed_value: int) -> void:
+	var wm := _wm(cfg, seed_value)
+	var gs := GustSpectrum.new()
+	gs.setup(seed_value, float(cfg.turbulence.evolve_ms))
+	var tag := "s%d" % seed_value
+	var offs: Array = []
+	for o in gs._off:
+		offs.append_array([o.x, o.y, o.z])
+	_put(tag + "_sp_meta", [gs._norm])
+	_put(tag + "_sp_off", offs)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 999 + seed_value
+	var inp: Array = []
+	var out: Array = []
+	for i in 1500:
+		var p := Vector3(rng.randf_range(-3000, 3000), rng.randf_range(0, 3000), rng.randf_range(-3000, 3000))
+		var t := rng.randf_range(0.0, 4000.0)
+		var adv := rng.randf_range(0.0, 12.0)
+		var l_u := exp(rng.randf_range(log(3.0), log(3500.0)))
+		var l_w := exp(rng.randf_range(log(3.0), log(3500.0)))
+		var l_2 := 0.0
+		var fa := 0.0
+		var fc := 0.0
+		if i % 3 == 0:
+			l_2 = rng.randf_range(100.0, 800.0)
+			fa = rng.randf()
+			fc = rng.randf()
+		inp.append_array([p.x, p.y, p.z, t, adv, l_u, l_w, l_2, fa, fc])
+		var n := gs.sample(p, t, adv, wm.dir, l_u, l_w, l_2, fa, fc)
+		out.append_array([n.x, n.y, n.z])
+	_put(tag + "_sp_in", inp)
+	_put(tag + "_sp_out", out)
+	if seed_value == 606:
+		var tabs: Array = []
+		for li in GustSpectrum.L_STEPS:
+			for o in GustSpectrum.OCTAVES:
+				tabs.append(GustSpectrum._wu[li * GustSpectrum.OCTAVES + o])
+		for li in GustSpectrum.L_STEPS:
+			for o in GustSpectrum.OCTAVES:
+				tabs.append(GustSpectrum._ww[li * GustSpectrum.OCTAVES + o])
+		_put("tables_wu_ww", tabs)
+		var cin: Array = []
+		var cout: Array = []
+		for i in 100:
+			var a := exp(rng.randf_range(log(1.5), log(5000.0)))
+			var b := exp(rng.randf_range(log(1.5), log(5000.0)))
+			cin.append_array([a, b])
+			var c := gs.carried(a, b)
+			cout.append_array([c.x, c.y])
+		_put("carried_in", cin)
+		_put("carried_out", cout)
+
+
+func _sigma(cfg: Dictionary) -> void:
+	var ft := FieldTurbulence.new()
+	ft.setup(cfg.turbulence, cfg.lee, 606)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 31337
+	var inp: Array = []
+	var out: Array = []
+	var lin: Array = []
+	var lout: Array = []
+	for i in 3000:
+		var tb := PackedFloat32Array()
+		tb.resize(8)
+		tb[WindField.T_SHEAR] = rng.randf_range(0.0, 0.4) if i % 11 else 0.0
+		tb[WindField.T_N2] = NAN if i % 13 == 0 else (rng.randf_range(0.0, 4.0e-4) if i % 3 else 0.0)
+		tb[WindField.T_USTAR] = rng.randf_range(0.0, 1.0)
+		tb[WindField.T_UOUT] = rng.randf_range(0.0, 14.0)
+		tb[WindField.T_AOUT] = rng.randf_range(10.0, 300.0)
+		tb[WindField.T_DESC] = rng.randf_range(-0.05, 0.2)
+		tb[WindField.T_WSTAR] = rng.randf_range(0.0, 3.0) if i % 2 else 0.0
+		tb[WindField.T_HMIX] = rng.randf_range(300.0, 2500.0) if i % 2 else 0.0
+		var agl := exp(rng.randf_range(log(0.3), log(2600.0)))
+		var conv := Vector2(rng.randf_range(0.0, 1.2), 0.0)
+		conv.y = conv.x * 0.7
+		var u_pt := -1.0 if i % 5 == 0 else rng.randf_range(0.0, 15.0)
+		ft.z0 = rng.randf_range(0.02, 1.0)
+		var v := ft.sigma(agl, tb, conv, u_pt)
+		inp.append_array([agl, conv.x, conv.y, u_pt, ft.z0])
+		for q in 8:
+			inp.append(tb[q])
+		out.append_array([v.x, v.y, v.z, v.w, ft.last_sv, ft.last_fu_c, ft.last_fv_c, ft.last_l_c])
+		# признак отрыва, ΔU, пузырь, растяжение масштабов
+		var uf := rng.randf_range(0.0, 14.0)
+		var lee := ft.lee(uf, agl, tb)
+		var du := rng.randf_range(0.0, 10.0) * lee
+		var ss := ft.sep_sigma(du)
+		var relief := rng.randf_range(0.0, 400.0)
+		var dx: float = [25.0, 50.0, 100.0, 400.0][i % 4]
+		var unres := ft.reverse_unresolved(relief, dx)
+		var adv := rng.randf_range(0.0, 12.0)
+		var ul := rng.randf_range(0.0, 14.0)
+		var st := FieldTurbulence.taylor_stretch(adv, ul, agl)
+		lin.append_array([uf, du, relief, dx, adv, ul])
+		lout.append_array([lee, ss.x, ss.y, unres, st, FieldTurbulence.mil_lw(agl), FieldTurbulence.mil_lu(agl)])
+	_put("sig_in", inp)
+	_put("sig_out", out)
+	_put("lee_in", lin)
+	_put("lee_out", lout)

@@ -2,15 +2,16 @@ extends TestCase
 ## PF-8: выбор облаков порциями по кадрам (CloudLayer._select_begin / _select_pump) даёт тот же набор
 ## облаков и их состояние, что одноразовый _select (одиночная игра, с таянием).
 
+const Rig := preload("res://tests/atmosphere/air_rig.gd")
 const EYE := Vector3(0.0, 1200.0, 0.0)
 
 
-static func _flat(_x: float, _z: float) -> float:
-	return 0.0
-
-
-static func _sun(_x: float, _z: float) -> float:
-	return 1.0
+## Грозовой день на малом месте (температура задана явно, Rig.STORM_TMAX_C), состояние на 3600 с (фасад W2: Rig, start_at).
+static func _storm() -> Atmosphere:
+	return Rig.make(
+		{"preset": "weather/storm", "over": {"wind_speed_kmh": 15.0, "temperature_c": Rig.STORM_TMAX_C}, "start_at": 3600.0, "focus": EYE, "advance": 0.0,
+		"half": 11000.0, "cache": true}
+	)
 
 
 func _state(layer: CloudLayer) -> Dictionary:
@@ -22,14 +23,7 @@ func _state(layer: CloudLayer) -> Dictionary:
 
 
 func test_chunked_select_equals_sync() -> void:
-	var a := Atmosphere.new()
-	var w := Config._deep_merge(Config.get_config("weather/storm"), {"wind_speed_kmh": 15.0})
-	a.configure(Config.get_config("atmosphere"), w)
-	a.turbulence_enabled = false
-	a.set_ground(_flat, _sun)
-	a.time_s = 3600.0
-	a.set_focus(EYE)
-	a.step(0.0)
+	var a := _storm()
 	var sync_l := CloudLayer.new()
 	sync_l.setup(a)
 	var chunk_l := CloudLayer.new()
@@ -39,8 +33,8 @@ func test_chunked_select_equals_sync() -> void:
 	var pos := EYE
 	for k in 6:
 		pos += Vector3(900.0, 0.0, 300.0)
-		a.set_focus(pos)
-		a.step(30.0)
+		Rig.focus(a, pos)
+		Rig.step(a, 30.0)
 		var t := a.time_s
 		sync_l._select(t, pos)
 		sync_l._update_fades(30.0)
@@ -71,19 +65,14 @@ func test_chunked_select_equals_sync() -> void:
 
 ## Родная сортировка по очкам и порционное слияние дают тот же список, что прежние sort_custom + _drop_overlaps.
 func test_sort_and_drop_equal_old() -> void:
-	var a := Atmosphere.new()
-	var w := Config._deep_merge(Config.get_config("weather/storm"), {"wind_speed_kmh": 15.0})
-	a.configure(Config.get_config("atmosphere"), w)
-	a.turbulence_enabled = false
-	a.set_ground(_flat, _sun)
-	a.time_s = 3600.0
-	a.set_focus(EYE)
-	a.step(0.0)
-	a.step(60.0)
-	var m: CloudModel = a.cloud_phys.model
+	var a := _storm()
+	Rig.step(a, 60.0)
+	var m := CloudModel.new()
+	m.setup(Config.get_config("atmosphere").clouds)
+	var objs := CloudModel.parse(a.cloud_objects(Vector3.ZERO, -1.0, a.time_s), a.time_s)
 	var cand: Array = []
-	for id in a.field.thermals:
-		var e := m.select_entry(a.field.thermals[id], a.time_s, EYE, {})
+	for id in objs:
+		var e := m.select_entry(objs[id], a.time_s, EYE, {})
 		if not e.is_empty():
 			cand.append(e)
 	var old := cand.duplicate()
@@ -97,8 +86,8 @@ func test_sort_and_drop_equal_old() -> void:
 	var ia: Array = []
 	var ib: Array = []
 	for e: Array in old_list:
-		ia.append((e[1] as AtmoThermal).id)
+		ia.append((e[1] as CloudModel.Obj).id)
 	for e: Array in st.out:
-		ib.append((e[1] as AtmoThermal).id)
+		ib.append((e[1] as CloudModel.Obj).id)
 	check(ia == ib and not ia.is_empty(), "тот же список после слияния (%d / %d), шагов %d" % [ia.size(), ib.size(), steps])
 	a.free()

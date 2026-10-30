@@ -76,7 +76,7 @@ contracts: [{"id": "TI-К1", "version": 1}, {"id": "TI-К2", "version": 2}, {"id
 
 ## TI-К3. Запечённое поле ветра — версия 3
 
-- Владелец: TI-4. Потребители: `AirRuntime` (`scripts/atmosphere/air_model/air_runtime.gd`), инструмент `tools/terrain/bake_air.gd`, TI-5.
+- Владелец: TI-4. Потребители: `AirRuntime` (`scripts/atmosphere/air_model/air_runtime.gd`), инструмент запекания (`bake_air.gd`, удалён в rust-wind RW-P10, устарело), TI-5.
 - Файлы: `res://data/locations/<id>/air/<site_id>.json` (заголовок) + `<site_id>.bin` (тело). Заголовок:
   `{"format": "dp-air-baked", "version": 1, "location": id, "site": site_id, "key": {...}, "model_hash": "<sha256[:16]>",
   "levels": [{"name", "grid": {...как AirCase.meta()...}, "meta": {...}, "arrays": {имя: [смещение, длина_байт, "f16"|"f32"]}}],
@@ -98,7 +98,7 @@ contracts: [{"id": "TI-К1", "version": 1}, {"id": "TI-К2", "version": 2}, {"id
 - `key` — условия, от которых зависит поле старта: `location`, `site`, `weather` (TI-К2 как есть), координаты центра области и окон, хеш данных
   места (`meta.json` + файлы слоёв `detail`), версия формата. В игре поле берётся только при точном совпадении `key`.
 - `model_hash` — sha256 исходников модели воздуха (`scripts/atmosphere/air_model/*.gd`, `*.glsl`, секции `air_model`, `air_phase`
-  `configs/atmosphere.json`, `configs/weather_model.json`, `configs/surface_heat.json`). До v3 в игре не проверялся; с v3 — см. выше; `tools/terrain/bake_air.gd --check` (код 1 — поле устарело, перепечь).
+  `configs/atmosphere.json`, `configs/weather_model.json`, `configs/surface_heat.json`). До v3 в игре не проверялся; с v3 — см. выше; проверка `--check` запекания (инструмент удалён в rust-wind RW-P10, устарело).
 - Поведение в игре: совпал `key` → поле из файла, без этапа «Рассчитываем ветер»; текущее состояние `AirRuntime` выставлено так, что
   поле старта не пересчитывается сразу; источники термиков построены; затем обычный фоновый пересчёт (сдвиг окон, ход времени).
   Нет файла или `key` не совпал → обычный расчёт и строка в лог. Формат состояния модели воздуха (`AirPicardJob`, `WindField`,
