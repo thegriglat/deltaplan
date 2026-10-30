@@ -1,0 +1,43 @@
+{
+  "status": "done",
+  "summary": "Из tools/build.sh убран шаг air_model_hash.gd и предупреждение; скрипт и .uid удалены. Мёртвые имена классов убраны из tools/terrain (weather_sweep.gd теперь через preload weather_model.gd).",
+  "commits": [
+    "9478498e2 tools/build.sh: убран хеш запечённых полей"
+  ],
+  "checks": [
+    {
+      "name": "no_hash_script",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "no_dead_refs",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "build_linux",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "gd_check",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-23",
+  "uncertain": [
+    {
+      "where": "tools/terrain/island/weather_sweep.gd:2",
+      "why": "WeatherModel жив в scripts/, но критерий no_dead_refs запрещает слово; обошёл preload-константой WM",
+      "checked": "класс и методы config/ground_context/derive существуют; check_gd PASS"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-30T06:30:37",
+  "by": "executor"
+}
