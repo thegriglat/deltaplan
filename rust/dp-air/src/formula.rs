@@ -401,7 +401,54 @@ fn pool_for(threads: usize) -> Option<Arc<rayon::ThreadPool>> {
     Some(p)
 }
 
+/// Число идущих фоновых задач процесса (включая запись кеша после подачи поля) и ожидание нуля.
+static BG_ACTIVE: Mutex<usize> = Mutex::new(0);
+static BG_IDLE: Condvar = Condvar::new();
+
+struct BgGuard;
+
+impl BgGuard {
+    fn enter() -> Self {
+        *lock(&BG_ACTIVE) += 1;
+        BgGuard
+    }
+}
+
+impl Drop for BgGuard {
+    fn drop(&mut self) {
+        let mut n = lock(&BG_ACTIVE);
+        *n -= 1;
+        if *n == 0 {
+            BG_IDLE.notify_all();
+        }
+    }
+}
+
+/// Ждёт конца всех фоновых задач крейта (RW-28): перед выгрузкой библиотеки поток пула не должен
+/// исполнять её код, иначе SIGSEGV на выходе (например, запись кеша после `Drop` модели).
+/// Задачи не прерывает — отмена идёт через `Drop`/`unload_place`. `false` — вышло время.
+pub fn join_background(limit: Duration) -> bool {
+    let end = Instant::now() + limit;
+    let mut g = lock(&BG_ACTIVE);
+    while *g > 0 {
+        let left = end.saturating_duration_since(Instant::now());
+        if left.is_zero() {
+            return false;
+        }
+        g = BG_IDLE
+            .wait_timeout(g, left)
+            .unwrap_or_else(PoisonError::into_inner)
+            .0;
+    }
+    true
+}
+
 fn spawn_bg(threads: usize, f: impl FnOnce() + Send + 'static) {
+    let guard = BgGuard::enter();
+    let f = move || {
+        let _guard = guard;
+        f()
+    };
     match pool_for(threads) {
         Some(p) => p.spawn(f),
         None => {

@@ -15,7 +15,16 @@ use weather::WeatherBridge;
 struct DpAirExt;
 
 #[gdextension]
-unsafe impl ExtensionLibrary for DpAirExt {}
+unsafe impl ExtensionLibrary for DpAirExt {
+    /// Последняя ступень выгрузки: потоки крейта (в т.ч. запись кеша поля после отмены задачи)
+    /// не должны исполнять код библиотеки, пока Godot её выгружает (RW-28, иначе SIGSEGV).
+    fn on_stage_deinit(stage: InitStage) {
+        if stage == InitStage::Core && !dp_air::join_background(std::time::Duration::from_secs(30))
+        {
+            godot_warn!("dp_air: фоновые задачи не закончились за 30 с при выходе");
+        }
+    }
+}
 
 // Cast срезов Vector3/Vector2 в [f32; N] опирается на раскладку gdext (repr(C), f32).
 const _: () = {

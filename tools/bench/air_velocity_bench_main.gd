@@ -66,10 +66,8 @@ func _ready() -> void:
 			% [_bench(a, pts, 1 if smoke else 5), 1 if smoke else 5, 4 * pts.size()]
 		)
 	)
-	# Выход сразу после free() изредка роняет процесс (SIGSEGV, потоки крейта) — пауза 2 с.
 	remove_child(a)
 	a.free()
-	await get_tree().create_timer(2.0).timeout
 	get_tree().quit(0)
 
 
@@ -148,6 +146,5 @@ func _kayancha() -> void:
 	remove_child(a)
 	a.free()
 	terrain.free()
-	await get_tree().create_timer(2.0).timeout
 	get_tree().quit(0)
 
