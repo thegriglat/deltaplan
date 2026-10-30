@@ -120,7 +120,7 @@ fn snapshot() -> Vec<f32> {
     m.cores([c, 800.0, 0.0], 3000.0, &mut cores);
     v.push(cores.len() as f32);
     for k in &cores {
-        v.extend_from_slice(dp_air::as_f32s(std::slice::from_ref(k)));
+        v.extend_from_slice(&k.to_array());
     }
     v
 }

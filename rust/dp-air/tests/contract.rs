@@ -678,13 +678,12 @@ fn records_flatten_in_w6_order() {
         storm: 14.0,
         ..Core::default()
     };
-    let one = [c];
-    let f = as_f32s(&one);
+    let f = c.to_array();
     assert_eq!(f.len(), 15);
     assert_eq!((f[0], f[14]), (1.0, 14.0));
     let (cl, cr) = ([Cloud::default(); 2], [Crest::default(); 3]);
-    assert_eq!(as_f32s(&cl).len(), 20);
-    assert_eq!(as_f32s(&cr).len(), 12);
+    assert_eq!(cl.iter().flat_map(Cloud::to_array).count(), 20);
+    assert_eq!(cr.iter().flat_map(Crest::to_array).count(), 12);
 }
 
 #[test]

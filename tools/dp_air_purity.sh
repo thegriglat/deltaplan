@@ -24,6 +24,12 @@ CATS=(
  "compat|\\bcompat::|mod compat"
 )
 total=0
+# unsafe (решение 2026-10-30): dp-air без unsafe; #![forbid(unsafe_code)] не нарушение
+nu=$(grep -rn 'unsafe' "$D/src" 2>/dev/null | grep -v 'forbid(unsafe_code)' | grep -v 'purity: allow' | grep -c .)
+if [ -z "$ONLY" ] || [ "$ONLY" = unsafe ]; then
+  echo "unsafe: код $nu, комментарии 0"; total=$((total+nu))
+  [ $VERB = 1 ] && grep -rn 'unsafe' "$D/src" | grep -v 'forbid(unsafe_code)' | sed 's#^#  [unsafe] #'
+fi
 for entry in "${CATS[@]}"; do
   name=${entry%%|*}; re=${entry#*|}
   [ -n "$ONLY" ] && [ "$ONLY" != "$name" ] && continue

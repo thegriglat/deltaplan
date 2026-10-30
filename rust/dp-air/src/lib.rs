@@ -2,6 +2,8 @@
 //!
 //! Крейт не зависит от движка. Реализации: `Calm` (здесь), `Formula` (RW-6…12), `Live` (вне модуля).
 
+#![forbid(unsafe_code)]
+
 mod calm;
 mod conditions;
 pub mod debug_rasters;
@@ -31,8 +33,8 @@ pub use level::{
 };
 pub use place::{Grid, Loc, Place, PlaceHeader, StartSite};
 pub use types::{
-    Cloud, Configs, Core, Crest, Decomposition, F32Record, FieldExport, Focus, Raster, SampleMode,
-    State, Status, as_f32s,
+    Cloud, Configs, Core, Crest, Decomposition, FieldExport, Focus, Raster, SampleMode, State,
+    Status,
 };
 
 /// Версия границы; равна версии в заголовке W2 `docs/contracts/rust-wind.md`.
@@ -82,11 +84,6 @@ pub struct ObjRecord {
     /// `21` интенсивность грозы на `t`, 0..1 (не Cb - 0).
     pub storm_k: f32,
 }
-
-const _: () = assert!(std::mem::size_of::<ObjRecord>() == OBJ_STRIDE * 4);
-
-// SAFETY: `#[repr(C)]`, одни `f32`, размер проверен const-assert выше.
-unsafe impl F32Record for ObjRecord {}
 
 impl ObjRecord {
     /// Плоский вид (порядок полей W6 v4).
