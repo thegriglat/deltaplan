@@ -3,7 +3,7 @@ extends RefCounted
 ## Мышь → штанга (BM-К1, docs/contracts/bar-mouse.md): ход в отсчётах мыши (InputEventMouseMotion.relative),
 ## размер окна и частота кадров в расчёт не входят. Чистые статические функции.
 
-const DEFAULT_TRAVEL_PX := 2500.0
+const DEFAULT_TRAVEL_PX := 4000.0
 const DEFAULT_SENSITIVITY := 1.0
 
 
