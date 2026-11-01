@@ -1,0 +1,54 @@
+{
+  "id": "TKF-1",
+  "module": "trike-fix",
+  "type": "dp-researcher",
+  "title": "Связь тележка—крыло: причина пп. 1, 2, 4",
+  "goal": "Замером по TKF-К1 найти, где тележка выходит за физические пределы относительно крыла (штанга за подкосом, тележка поперёк/сквозь крыло, отставание в вираже) — в физике или в виде — и по источникам описать реальное поведение тележки трайка; дать варианты правки с числами. Код игры не менять.",
+  "plan_ref": "§4 TKF-1",
+  "contracts": [
+    {
+      "name": "TKF-К1",
+      "version": "1",
+      "ref": "docs/contracts/trike-fix.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/trike-fix-TKF-1",
+  "branch": "trike-fix/TKF-1",
+  "base": "feature/trike-fix",
+  "scope": [
+    "tools/research/trike-fix",
+    "docs/research/trike-fix/coupling.md"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "tools/blender",
+    "tests",
+    "docs/contracts"
+  ],
+  "accept": [
+    {
+      "name": "summary",
+      "cmd": "python3 tools/research/trike-fix/check_summary.py tools/research/trike-fix/out/summary.json",
+      "expect": "exit=0"
+    },
+    {
+      "name": "note",
+      "cmd": "test -s docs/research/trike-fix/coupling.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    },
+    {
+      "name": "frames_before",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/trike-fix/before/ | wc -l",
+      "expect": "num:(\\d+) >=3"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-02T03:24:30"
+}

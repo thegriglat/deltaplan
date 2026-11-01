@@ -1,0 +1,42 @@
+{
+  "id": "TKF-3",
+  "module": "trike-fix",
+  "type": "dp-researcher",
+  "title": "Трава от винта дельталёта: оценка сложности",
+  "goal": "Оценить, можно ли несложно пригибать траву потоком от винта дельталёта (на земле и низко): где и как рисуется трава, есть ли вход воздействия, цена по файлам, объёму и нагрузке на GPU; вердикт «несложно»/«сложно» с планом правки. Код игры не менять.",
+  "plan_ref": "§4 TKF-3",
+  "contracts": [],
+  "copy": "~/worktrees/deltaplan/trike-fix-TKF-3",
+  "branch": "trike-fix/TKF-3",
+  "base": "feature/trike-fix",
+  "scope": [
+    "docs/research/trike-fix/grass-wash.md",
+    "tools/research/trike-fix"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "tests",
+    "docs/contracts"
+  ],
+  "accept": [
+    {
+      "name": "note",
+      "cmd": "test -s docs/research/trike-fix/grass-wash.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "verdict",
+      "cmd": "grep -E -c 'Вердикт: (несложно|сложно)' docs/research/trike-fix/grass-wash.md",
+      "expect": "num:(\\d+) >=1"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-02T03:25:56"
+}

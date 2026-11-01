@@ -1,0 +1,49 @@
+{
+  "id": "TKF-2",
+  "module": "trike-fix",
+  "type": "dp-researcher",
+  "title": "Управление дельталёта с тягой и «упрощённый режим»",
+  "goal": "Замером по TKF-К2 сравнить отклик дельталёта на штангу (газ 0/0,5/1) с дельтапланами и с данными реальных трайков, найти причину излишней тугости и оценить бывший «упрощённый режим» для дельталёта; дать варианты правки с числами. Код игры не менять.",
+  "plan_ref": "§4 TKF-2",
+  "contracts": [
+    {
+      "name": "TKF-К2",
+      "version": "1",
+      "ref": "docs/contracts/trike-fix.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/trike-fix-TKF-2",
+  "branch": "trike-fix/TKF-2",
+  "base": "feature/trike-fix",
+  "scope": [
+    "tools/research/trike-fix",
+    "docs/research/trike-fix/control.md"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "tests",
+    "docs/contracts",
+    "tools/research/trike-fix/out/summary.json"
+  ],
+  "accept": [
+    {
+      "name": "control",
+      "cmd": "python3 tools/research/trike-fix/check_control.py tools/research/trike-fix/out/control_summary.json",
+      "expect": "exit=0"
+    },
+    {
+      "name": "note",
+      "cmd": "test -s docs/research/trike-fix/control.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-02T03:25:26"
+}
