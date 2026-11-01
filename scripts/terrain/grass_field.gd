@@ -29,6 +29,7 @@ const MID_MODES: PackedStringArray = ["blades", "shell", "angle"]
 var _spacing: float = 0.5
 var _max_agl: float = 120.0
 var _layer: HeightLayer
+var _wash: Dictionary = {}  ## grass.wash (TKF-К3)
 var _last_cell := Vector2(INF, INF)
 ## Высота скошенной травы по умолчанию (configs/vegetation.json → grass.mowed_height_k) —
 ## для set_landing_sites, если площадка не задала свою.
@@ -125,6 +126,13 @@ func setup(
 	material.set_shader_parameter("press_radius_m", float(cfg.press_radius_m))
 	material.set_shader_parameter("press_agl_full_m", float(cfg.get("press_agl_full_m", 0.4)))
 	material.set_shader_parameter("press_agl_zero_m", float(cfg.get("press_agl_zero_m", 1.2)))
+	_wash = {
+		"prop_d_m": 1.8, "air_density": 1.225, "min_thrust_n": 100.0, "max_axis_agl_m": 5.0, "core_diameters": 6.0,
+		"spread": 0.1, "range_m": 25.0, "cross_m": 6.0, "lean_from_ms": 3.0, "lean_full_ms": 12.0, "lean_gain": 1.5,
+	}
+	_wash.merge(cfg.get("wash", {}), true)
+	material.set_shader_parameter("wash_shape", Vector4(float(_wash.spread), 0.5 * float(_wash.prop_d_m) / sqrt(2.0) , float(_wash.range_m), float(_wash.cross_m)))
+	material.set_shader_parameter("wash_lean", Vector4(float(_wash.lean_from_ms), float(_wash.lean_full_ms), float(_wash.lean_gain), 0.0))
 	material.set_shader_parameter("far_density_min", float(cfg.get("far_density_min", 0.12)))
 	material.set_shader_parameter("thin_start_k", float(cfg.get("thin_start_k", 0.1)))
 	material.set_shader_parameter("thin_end_k", float(cfg.get("thin_end_k", 0.85)))
@@ -195,6 +203,32 @@ static func ring_offsets(spacing: float, inner: float, outer: float) -> PackedVe
 
 
 ## Материалы травы (ближний и дальний слой, средняя дистанция) — для ветра.
+## Струя винта дельталёта (TKF-К3): pos — центр диска (мир), dir — единичная ось струи (назад), thrust_n — тяга, Н.
+## Одним пакетом uniform-ов ближней травы, как press_pos; без новых проходов. Скорость дальней струи -
+## идеальный диск sqrt(2T/(rho A)). Выключено (w = 0): тяга < grass.wash.min_thrust_n или центр диска выше
+## max_axis_agl_m над землёй.
+func set_wash(pos: Vector3, dir: Vector3, thrust_n: float) -> void:
+	if material == null:
+		return
+	var v := 0.0
+	var d := dir.normalized() if dir.length_squared() > 1e-9 else Vector3.BACK
+	if thrust_n >= float(_wash.min_thrust_n) and pos.y - _layer.sample(pos.x, pos.z) <= float(_wash.max_axis_agl_m):
+		v = wash_speed(thrust_n, float(_wash.prop_d_m), float(_wash.air_density))
+	material.set_shader_parameter("wash_pos", Vector4(pos.x, pos.y, pos.z, v))
+	material.set_shader_parameter("wash_dir", Vector4(d.x, d.y, d.z, wash_core_m(float(_wash.prop_d_m), float(_wash.core_diameters))))
+
+
+## Скорость дальней струи идеального диска, м/с: v = sqrt(2T/(rho A)), A = pi d^2/4.
+static func wash_speed(thrust_n: float, prop_d_m: float, rho: float) -> float:
+	var area := PI * 0.25 * prop_d_m * prop_d_m
+	return sqrt(2.0 * maxf(thrust_n, 0.0) / (rho * area))
+
+
+## Длина потенциального ядра, м: n диаметров сжатой струи (d / sqrt 2).
+static func wash_core_m(prop_d_m: float, n_diameters: float) -> float:
+	return n_diameters * prop_d_m / sqrt(2.0)
+
+
 func materials() -> Array[ShaderMaterial]:
 	var out: Array[ShaderMaterial] = [material]
 	if far_layer != null:
