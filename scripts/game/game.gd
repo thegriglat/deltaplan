@@ -1816,6 +1816,19 @@ func _mount_trike_gauges() -> void:
 	mounted.append(trike_gauges)
 
 
+## TKF-К3: струя винта дельталёта игрока по траве. Центр диска - узел Propeller тележки (иначе ось винта на
+## prop_axis_below_hang_m ниже подвески), струя - назад по продольной оси тележки (+Z тележки).
+func _update_trike_wash() -> void:
+	if not glider.is_trike() or glider.trike == null or glider.trike_visual == null:
+		return
+	var cart := glider.trike_visual.cart
+	if cart == null or not cart.is_inside_tree():
+		return
+	var prop := cart.find_child("Propeller", true, false) as Node3D
+	var pos := prop.global_position if prop != null else cart.global_position - cart.global_basis.y * 1.4
+	terrain.set_wash(pos, cart.global_basis.z.normalized(), glider.trike.thrust_n)
+
+
 ## Обороты и топливо - приборам (кабина и HUD), TP-К4.
 func _update_trike_gauges() -> void:
 	if not glider.is_trike() or glider.engine == null:
@@ -1914,6 +1927,7 @@ func _rustle_feet(t: Telemetry) -> Array:
 
 func _on_telemetry(t: Telemetry) -> void:
 	_update_trike_gauges()
+	_update_trike_wash()
 	if tow != null:  # буксир: без приборов и статистики, писк молчит, поток — по скорости
 		vario_audio.set_vario(0.0)
 		flight_audio.update(t, {"phase": t.phase, "stall_amount": 0.0, "load_factor": 1.0})
