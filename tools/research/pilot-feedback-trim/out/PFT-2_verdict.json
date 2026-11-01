@@ -1,0 +1,62 @@
+{
+ "task": "PFT-2",
+ "items": [
+  {
+   "item": 3,
+   "verdict": "config",
+   "cause": "Ход до упора по умолчанию 2500 отсч. = 2 см при 3200 DPI (1 мм = 5 % хода); отклик модели не быстрее норм (45→45 3,6–4,7 с при HGMA ≤4 с, DHV 5 с)",
+   "evidence": [
+    {
+     "what": "ход до упора при 3200 DPI и ×1",
+     "value": 2.0,
+     "unit": "см",
+     "ref": "docs/research/pilot-feedback-trim/mouse.md#1. DPI пилотов и ход до упора"
+    },
+    {
+     "what": "DPI пилотов из 7–8 см при ×0,25",
+     "value": 3400,
+     "unit": "DPI",
+     "ref": "docs/research/pilot-feedback-trim/mouse.md#1. DPI пилотов и ход до упора"
+    },
+    {
+     "what": "sport: перекладка 45°→−45° полным ходом",
+     "value": 4.28,
+     "unit": "с",
+     "ref": "docs/research/pilot-feedback-trim/mouse.md#2. Отклик модели"
+    },
+    {
+     "what": "sport: t63 скорости крена при ходе 0,3",
+     "value": 0.53,
+     "unit": "с",
+     "ref": "docs/research/pilot-feedback-trim/mouse.md#2. Отклик модели"
+    },
+    {
+     "what": "1 мм мыши при 3200 DPI и ×1",
+     "value": 5.0,
+     "unit": "% хода",
+     "ref": "docs/research/pilot-feedback-trim/mouse.md#3. Что значит ход мыши"
+    }
+   ],
+   "proposal": [
+    {
+     "key": "configs/controls.json → mouse.bar_travel_px",
+     "from": 2500,
+     "to": 4000,
+     "why": "6,3 см при 1600 DPI, 12,7 при 800, 3,2 при 3200"
+    },
+    {
+     "key": "configs/ui.json → bar_sensitivity_range",
+     "from": [
+      0.25,
+      4.0
+     ],
+     "to": [
+      0.1,
+      4.0
+     ],
+     "why": "7,9 см до упора при 6400–12800 DPI требует ×0,2…0,1"
+    }
+   ]
+  }
+ ]
+}
