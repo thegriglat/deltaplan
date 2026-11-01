@@ -1,0 +1,85 @@
+{
+  "status": "done",
+  "summary": "Замер TKF-К2 (дельталёт газ 0/0,5/1, sport, учебное) в Маятнике: по крену дельталёт НЕ туже дельтаплана (30→30 за 2,0-2,1 с против 2,7 у sport; реальные 2,5-5 с по Gratton), туго по тангажу «на себя» (6 °/с против 32 у sport) из-за хода arms_shift_pull_m 0,111 м; предел рук 500 Н только насыщает крен выше 0,5 хода. Ключи крыла roll_rate_max_dps/roll_time_constant_s Маятник не читает. Бывший weight_shift — кинематика без массы и сил, физики не добавляет.",
+  "commits": [
+    "80e729ceb TKF-2: отклик дельталёта на штангу, причины тугости, оценка weight_shift; записка control.md"
+  ],
+  "checks": [
+    {
+      "name": "control",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "note",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "t_30_30_s дельталёт газ 0/0,5/1",
+      "value": "2,12 / 2,08 / 2,03 с (sport 2,71, учебное 2,58)",
+      "pass": true
+    },
+    {
+      "name": "pitch_rate pull дельталёт газ 0/0,5/1",
+      "value": "5,9 / 6,1 / 14,9 °/с (sport 32,3)",
+      "pass": true
+    },
+    {
+      "name": "arms_shift_pull_m 0,111 → 0,30",
+      "value": "pull 15,2 / 15,5 / 23,7 °/с, крен не меняется",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Реальные скорости тангажа и силы на штанге по тангажу для трайков не найдены (Gratton: только 30→30 2,5-5 с); DULV LTF Trike и BCAR S (CAP 482) не прочитаны; руководства производителей не искались полно",
+    "Возврат weight_shift реализован не был (код игры не меняется); только оценка"
+  ],
+  "questions": [
+    "Шлюз: вариант A (ход «на себя» 0,20-0,30 м) выходит за геометрию треугольника тележки TT-К6 (0,25 м от трима); нужен ли тример или расширение хода штанги в виде (связь с TKF-1)?"
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TKF-2; python3 tools/research/trike-fix/check_control.py tools/research/trike-fix/out/control_summary.json",
+  "uncertain": [
+    {
+      "where": "tools/research/trike-fix/out/control_summary.json reference[2..3]",
+      "why": "BCAR S: сила по крену 10 даН / 1,5 даН взята из пересказа поиска о докладе Gratton 2000 (core.ac.uk 403 Forbidden), оригинал не открыт",
+      "checked": "найден только пересказ; помечено в source «проверить»"
+    },
+    {
+      "where": "docs/research/trike-fix/control.md §2 bar_force_n",
+      "why": "в модели нет рычага штанги: сила — сила рук на пилота вдоль киля (включает опору веса), не сила на штанге по нормам",
+      "checked": "сравнение с нормой оценочное, помечено"
+    },
+    {
+      "where": "docs/research/trike-fix/control.md §4",
+      "why": "ход «на себя» 0,111 м связан с нейтралью 4,65° от bar.trim (расчёт из trapeze_calc.py), я проверил только сумму ходов 0,397 vs 0,389 м",
+      "checked": "формулы shift_x_*_cart_m в trapeze_calc.py"
+    },
+    {
+      "where": "control_run.gd (30→30 при газе 1)",
+      "why": "основной прогон не удержал 30° регулятором; перезамер с усилениями [12;6;3], стартовый крен 31,1°",
+      "checked": "control_t3030_g1.jsonl"
+    },
+    {
+      "where": "control.md §3",
+      "why": "спираль на полном газу в модели возвращается к горизонту, у реальных трайков по Gratton неустойчива — граница модели",
+      "checked": "только один тест (крен 20°, ручка 0)"
+    }
+  ],
+  "dp_feedback": "lock cpu <ID> -- cmd сразу переводит в фон и возвращает управление без ожидания, нужен явный .dpcli/dpcli job wait; в output не видно, как узнать завершение (пришлось sleep). docs check требует frontmatter даже на README инструмента и summary ≤140 символов — узнаётся только после accept.",
+  "extra": {
+    "recommendation": "A: arms_shift_pull_m 0,20-0,30 (только ключ игрока, не cart TowTug); B: shift_y_max_m 0,25-0,3; roll_rate_max_dps/roll_time_constant_s не править (Маятник не читает)",
+    "roll_30_30_reality_s": [
+      2.5,
+      5.0
+    ]
+  },
+  "t": "2026-11-02T03:50:54",
+  "by": "executor"
+}

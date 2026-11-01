@@ -49,6 +49,14 @@ uniform vec3 press_pos = vec3(1e9);
 uniform float press_radius_m = 1.5;
 uniform float press_agl_full_m = 0.4;   // ноги ниже — приминание полное
 uniform float press_agl_zero_m = 1.2;   // ноги выше — приминания нет
+// струя винта дельталёта (TKF-К3): wash_pos.xyz — центр диска (мир), .w — скорость дальней струи, м/с (0 — выкл);
+// wash_dir.xyz — единичная ось струи (назад), .w — длина потенциального ядра, м;
+// wash_shape: x — рост полуширины с расстоянием, y — полуширина у диска, м, z — предел дальности, м, w — предел поперёк, м;
+// wash_lean: x — скорость начала наклона, м/с, y — скорость полного наклона, м/с, z — наклон при полном (доля высоты)
+uniform vec4 wash_pos = vec4(0.0);
+uniform vec4 wash_dir = vec4(0.0, 0.0, 1.0, 7.6);
+uniform vec4 wash_shape = vec4(0.1, 0.64, 25.0, 6.0);
+uniform vec4 wash_lean = vec4(3.0, 12.0, 1.5, 0.0);
 // примятая трава у старта (SC-K6, GrassField.set_trample_mask): R8-маска (0 — нетронута, 1 — до земли),
 // trample_rect — xy начало мира, zw — 1/размер, м; вне маски и при trample_on = 0 — трава как была.
 uniform sampler2D trample_tex : filter_linear, repeat_disable, hint_default_black;
@@ -287,6 +295,26 @@ void vertex() {
 			float near_ground = 1.0 - smoothstep(press_agl_full_m, press_agl_zero_m, press_pos.y - h);
 			float press = near_ground * (1.0 - smoothstep(press_radius_m * 0.4, press_radius_m, pd));
 			lean = mix(lean, (pd > 0.01 ? pv / pd : vec2(0.0)) * 1.5, press);
+			// струя винта: осесимметричная струя, ядро затем u ~ 1/s, гауссов профиль (оценка, docs/research/trike-fix/grass-wash.md)
+			if (wash_pos.w > 0.0) {
+				vec3 wd = vec3(xz.x - wash_pos.x, h - wash_pos.y, xz.y - wash_pos.z);
+				float ws = dot(wd, wash_dir.xyz);
+				if (ws > 0.0 && ws < wash_shape.z) {
+					vec3 wp = wd - wash_dir.xyz * ws;
+					float wc2 = dot(wp, wp);
+					if (wc2 < wash_shape.w * wash_shape.w) {
+						float wb = wash_shape.x * ws + wash_shape.y;
+						float wu = wash_pos.w * min(1.0, wash_dir.w / ws) * exp(-wc2 / (wb * wb));
+						float wk = smoothstep(wash_lean.x, wash_lean.y, wu);
+						vec2 wh = wash_dir.xz;
+						float wl = length(wh);
+						wh = wl > 0.05 ? wh / wl : (wd.xz != vec2(0.0) ? normalize(wd.xz) : vec2(0.0));
+						float wph = hash12(cell + 4.4) * 6.2832;
+						float wflut = 1.0 + 0.2 * sin(TIME * 25.0 + wph);
+						lean = mix(lean, wh * (wu / wash_lean.y) * wash_lean.z * wflut, wk);
+					}
+				}
+			}
 			// примятая трава ложится в случайную сторону (на tr = 0 lean не меняется)
 			float ta = hash12(cell + 9.3) * 6.2832;
 			lean = mix(lean, vec2(cos(ta), sin(ta)) * trample_lean, tr * 0.85);

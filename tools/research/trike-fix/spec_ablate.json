@@ -1,0 +1,112 @@
+[
+{
+"kind": "trike",
+"g": 0.0,
+"settle_s": 30.0,
+"name": "trike_0.0_base30"
+},
+{
+"kind": "trike",
+"g": 0.0,
+"settle_s": 30.0,
+"name": "trike_0.0_force5000",
+"force": 5000
+},
+{
+"kind": "trike",
+"g": 0.0,
+"settle_s": 30.0,
+"name": "trike_0.0_force1500",
+"force": 1500
+},
+{
+"kind": "trike",
+"g": 0.0,
+"settle_s": 30.0,
+"name": "trike_0.0_pull045",
+"pull": 0.45
+},
+{
+"kind": "trike",
+"g": 0.0,
+"settle_s": 30.0,
+"name": "trike_0.0_tau015",
+"tau": 0.15
+},
+{
+"kind": "trike",
+"g": 0.0,
+"settle_s": 30.0,
+"name": "trike_0.0_mass200",
+"mass": 200
+},
+{
+"kind": "trike",
+"g": 0.0,
+"settle_s": 30.0,
+"name": "trike_0.0_noprop_lever_split1",
+"thrust_split": 1.0
+},
+{
+"kind": "trike",
+"g": 0.0,
+"settle_s": 30.0,
+"name": "trike_0.0_tilt0",
+"tilt_deg": 0.0
+},
+{
+"kind": "trike",
+"g": 1.0,
+"settle_s": 30.0,
+"name": "trike_1.0_base30"
+},
+{
+"kind": "trike",
+"g": 1.0,
+"settle_s": 30.0,
+"name": "trike_1.0_force5000",
+"force": 5000
+},
+{
+"kind": "trike",
+"g": 1.0,
+"settle_s": 30.0,
+"name": "trike_1.0_force1500",
+"force": 1500
+},
+{
+"kind": "trike",
+"g": 1.0,
+"settle_s": 30.0,
+"name": "trike_1.0_pull045",
+"pull": 0.45
+},
+{
+"kind": "trike",
+"g": 1.0,
+"settle_s": 30.0,
+"name": "trike_1.0_tau015",
+"tau": 0.15
+},
+{
+"kind": "trike",
+"g": 1.0,
+"settle_s": 30.0,
+"name": "trike_1.0_mass200",
+"mass": 200
+},
+{
+"kind": "trike",
+"g": 1.0,
+"settle_s": 30.0,
+"name": "trike_1.0_noprop_lever_split1",
+"thrust_split": 1.0
+},
+{
+"kind": "trike",
+"g": 1.0,
+"settle_s": 30.0,
+"name": "trike_1.0_tilt0",
+"tilt_deg": 0.0
+}
+]

@@ -4,7 +4,8 @@ status: "active"
 module: "trike-fix"
 area: "flight"
 updated: "2026-11-02"
-summary: "Инструмент TKF-1: замер углов тележки к крылу дельталёта игрока (TKF-К1 v1), кадры «до»; воспроизведение"
+summary: "Инструмент TKF-1 и TKF-2 (control_*): замер углов тележки к крылу дельталёта игрока (TKF-К1 v1), кадры «до»; воспроизведение"
+data: ["tools/research/trike-fix/out/control_summary.json"]
 related: ["docs/research/trike-fix/coupling.md", "docs/contracts/trike-fix.md"]
 ---
 # TKF-1: связь тележка—крыло (инструмент и данные)
@@ -31,3 +32,19 @@ python3 tools/research/trike-fix/check_summary.py tools/research/trike-fix/out/s
 
 ## Источники (реальность)
 См. `docs/research/trike-fix/coupling.md`: Gratton (Brunel, «Towards the tumble resistant microlight»), Gratton 2001 (Proc IMechE G 215, 147–154; только аннотация), AAIB bulletin G-CEVW (Quik GT450).
+
+## TKF-2: данные (управление дельталёта)
+Файлы с префиксом `control_`; `summary.json` и `coupling_*` (TKF-1) не трогать.
+
+Воспроизведение (из корня копии, профиль `XDG_DATA_HOME=~/.cache/dp-xdg/$(basename "$PWD")`, после `godot --headless --path . --import`):
+```
+.dpcli/dpcli lock cpu TKF-2 -- godot --headless --path . res://tools/research/trike-fix/control_run.tscn -- tools/research/trike-fix/spec_main.json tools/research/trike-fix/out/control_main.jsonl
+... spec_t3030_g1.json -> out/control_t3030_g1.jsonl   (перезамер 30→30 при газе 1)
+... spec_ablate.json   -> out/control_ablate.jsonl      (абляции: предел рук, ход, tau, масса, тяга)
+... spec_variants.json -> out/control_variants.jsonl    (варианты правки)
+python3 tools/research/trike-fix/control_build.py && python3 tools/research/trike-fix/check_control.py tools/research/trike-fix/out/control_summary.json
+python3 tools/research/trike-fix/control_show.py tools/research/trike-fix/out/control_main.jsonl   # печать сводки
+```
+Скрипт `control_run.gd` — шаговый прогон `PendulumModel` + `TrikeRig`, допущения в заголовке файла. Прогоны ~2-3 мин на пачку.
+Источники и ограничения — `docs/research/trike-fix/control.md`. Лицензии данных: свои расчёты; цитаты из Gratton & Newman
+(Brunel BURA, открытый доступ) — только числа и ссылки, PDF не хранится.
