@@ -1,0 +1,51 @@
+{
+  "status": "partial",
+  "summary": "Значения PFT-К1 v2 внесены (controls.json 4000, ui.json [0.1,4.0], запасные в mouse_bar.gd и settings_panel.gd, docs, CHANGELOG). Контрактные тесты и docs зелёные; bar_mouse и mouse красные из-за окружения копии (нет libdp_air_tune.so).",
+  "commits": [
+    "bd1c84466 Мышь-штанга: ход до упора 4000 px, слайдер от ×0,1"
+  ],
+  "checks": [
+    {
+      "name": "pilot_feedback_trim",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "test_pendulum_symmetry",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "bar_mouse",
+      "value": "6/11",
+      "pass": false
+    },
+    {
+      "name": "mouse",
+      "value": "7/17",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "bar_mouse и mouse: 5 тестов tests/game/test_bar_mouse_input.gd падают в setup (flight_setup_screen -> goal_estimator.gd:29 weather_for: нет ключа sunset_h в погоде). К значениям мыши отношения не имеет: погода дня считается крейтом dp-air (RW-14c), а в копии нет addons/dp_air/bin."
+  ],
+  "questions": [
+    "Принять bar_mouse/mouse как окруженческий сбой копии или собрать расширение dp_air в копии?"
+  ],
+  "how_to_check": ".dpcli/dpcli accept PFT-3",
+  "uncertain": [
+    {
+      "where": "tests/game/test_bar_mouse_input.gd",
+      "why": "не видел, что тест ждёт после правки: падает до проверок хода",
+      "checked": "лог build/dpcli/PFT-3/02-bar_mouse.log: все 5 падений — SCRIPT ERROR sunset_h; контрактные тесты bar_mouse проходят"
+    }
+  ],
+  "dp_feedback": "accept --dry в копии без собранного dp_air даёт красные игровые тесты; хорошо бы предупреждение или сборка расширения в копию.",
+  "t": "2026-11-02T03:43:57",
+  "by": "executor"
+}
