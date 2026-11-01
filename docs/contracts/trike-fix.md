@@ -4,9 +4,9 @@ status: "active"
 module: trike-fix
 area: flight
 updated: "2026-11-02"
-summary: "Стыки trike-fix: замер углов тележки к крылу и сценарии (TKF-К1), замер отклика на штангу дельталёта (TKF-К2)."
+summary: "Стыки trike-fix: углы тележки к крылу (TKF-К1), отклик на штангу (TKF-К2), струя винта по траве Terrain.set_wash (TKF-К3)."
 related: ["docs/plan/trike-fix.md", "docs/contracts/trike-pilot.md", "docs/contracts/tow-trike.md"]
-contracts: [{"id": "TKF-К1", "version": 1}, {"id": "TKF-К2", "version": 1}]
+contracts: [{"id": "TKF-К1", "version": 1}, {"id": "TKF-К2", "version": 1}, {"id": "TKF-К3", "version": 1}]
 ---
 # Контракты trike-fix (код задач TKF)
 
@@ -76,3 +76,21 @@ TKF-7 (кадры и таблица «после» тем же инструме�
   `{"version": 1, "git": "<коммит>", "cases": {"<аппарат>[_<газ>]": {"roll_rate_dps": {"0.25": f, "0.5": f, "1": f},
   "t_30_30_s": f, "t_45_45_s": f, "pitch_rate_dps": {"push": f, "pull": f}, "bar_force_n": f|null}},
   "reference": [{"source": "<ссылка>", "aircraft": "<аппарат>", "quantity": "<величина>", "value": f, "unit": "<ед>"}]}`.
+
+## TKF-К3 v1. Струя винта по траве: `Terrain.set_wash`
+Владелец — TKF-6; потребитель — `Game` (дельталёт игрока). Основание — п. 5 решения 2026-11-02 и вердикт «несложно»
+`docs/research/trike-fix/grass-wash.md` (TKF-3). Контрактный тест — `tests/vegetation/test_grass_wash_gpu.gd` (пишет TKF-6).
+
+- `Terrain.set_wash(pos: Vector3, dir: Vector3, thrust_n: float) -> void` → `GrassField.set_wash(...)` (тот же путь, что
+  `press_pos`: uniform-ы материала ближней травы раз в кадр, без новых проходов, текстур, буферов). `pos` — центр диска
+  винта (мир, та же система, что `press_pos`), `dir` — единичное направление струи (назад по оси тяги), `thrust_n` ≥ 0 —
+  тяга `TrikeEngine`/`TrikeRig.thrust_n`. Скорость струи — идеальный диск `v = sqrt(2T/(ρ·A))`, Ø винта 1,80 м, ρ ISA;
+  затухание и ширина — по записке TKF-3 (оценка, помечено в `_doc`).
+- Выключено (uniform `w` = 0, трава как раньше), если `thrust_n` < порога или ось выше порога над землёй; один источник —
+  дельталёт игрока; у дельтаплана `set_wash` не вызывается или с `thrust_n` 0.
+- Числа (порог тяги, высота, коэффициенты затухания/ширины, предел дальности) — `configs/vegetation.json → grass.wash` с `_doc`.
+- Средняя трава (shell/cards) — по выбору TKF-6, если на ближней (≤ 35 м) струя видна целиком — не трогать.
+- **Инварианты** (GPU-тест): (1) `thrust_n` 0 — кадр совпадает с кадром без вызова `set_wash` (пиксели равны);
+  (2) полная тяга, ось 1 м над землёй — средний наклон/сдвиг травы в конусе за винтом (2–10 м по оси) заметно отличается от
+  кадра без струи, вне конуса (сбоку > 6 м, дальше 25 м) — не отличается; (3) цена по протоколу G3
+  (`docs/contracts/grass-rocks.md`, `tools/bench/frame_profile.sh`, замок gpu) — разница в пределах шума ±0,1 мс.
