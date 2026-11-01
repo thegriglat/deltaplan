@@ -1,0 +1,57 @@
+{
+  "id": "PFT-1",
+  "module": "pilot-feedback-trim",
+  "type": "dp-researcher",
+  "title": "Продольный канал: трим на нейтрали и маятник после X (пп. 1–2 отзыва)",
+  "goal": "Замерами ответить, почему спортивные крылья на нейтрали штанги летят медленнее/кабрируют (регрессия по версиям, нейтраль рук, конфиг подвески) и почему X даёт маятник по тангажу; по каждому пункту — physics/config/none с числами и предложением.",
+  "plan_ref": "§4 PFT-1",
+  "contracts": [
+    {
+      "name": "PFT-К1",
+      "version": "1",
+      "ref": "docs/contracts/pilot-feedback-trim.md"
+    },
+    {
+      "name": "PFT-К2",
+      "version": "1",
+      "ref": "docs/contracts/pilot-feedback-trim.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/pilot-feedback-trim-PFT-1",
+  "branch": "pilot-feedback-trim/PFT-1",
+  "base": "feature/pilot-feedback-trim",
+  "scope": [
+    "docs/research/pilot-feedback-trim/longitudinal.md",
+    "tools/research/pilot-feedback-trim/longitudinal/",
+    "tools/research/pilot-feedback-trim/out/PFT-1_verdict.json"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "project.godot",
+    "docs/guide/",
+    "rust/"
+  ],
+  "accept": [
+    {
+      "name": "note",
+      "cmd": "test -s docs/research/pilot-feedback-trim/longitudinal.md && test -s tools/research/pilot-feedback-trim/longitudinal/README.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "verdict",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/pilot-feedback-trim/out/PFT-1_verdict.json'));it=d['items'];assert d['task']=='PFT-1';assert sorted(i['item'] for i in it)==[1,2];assert all(i['verdict'] in ('physics','config','none') and len(i['evidence'])>=2 for i in it);print('ok')\"",
+      "expect": "re:^ok"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-02T02:22:07",
+  "edited": "2026-11-02T02:22:42"
+}

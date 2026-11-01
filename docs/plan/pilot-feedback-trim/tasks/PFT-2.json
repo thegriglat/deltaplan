@@ -1,0 +1,56 @@
+{
+  "id": "PFT-2",
+  "module": "pilot-feedback-trim",
+  "type": "dp-researcher",
+  "title": "Мышь и отклик крыла: дёрганье на большой чувствительности (п. 3 отзыва)",
+  "goal": "Замерами и источниками ответить, дёргается ли аппарат из-за хода мыши по умолчанию (DPI пилотов) или и из-за отклика модели; предложить bar_travel_px и диапазон слайдера с обоснованием (verdict physics/config/none).",
+  "plan_ref": "§4 PFT-2",
+  "contracts": [
+    {
+      "name": "PFT-К1",
+      "version": "1",
+      "ref": "docs/contracts/pilot-feedback-trim.md"
+    },
+    {
+      "name": "PFT-К2",
+      "version": "1",
+      "ref": "docs/contracts/pilot-feedback-trim.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/pilot-feedback-trim-PFT-2",
+  "branch": "pilot-feedback-trim/PFT-2",
+  "base": "feature/pilot-feedback-trim",
+  "scope": [
+    "docs/research/pilot-feedback-trim/mouse.md",
+    "tools/research/pilot-feedback-trim/mouse/",
+    "tools/research/pilot-feedback-trim/out/PFT-2_verdict.json"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "project.godot",
+    "docs/guide/",
+    "rust/"
+  ],
+  "accept": [
+    {
+      "name": "note",
+      "cmd": "test -s docs/research/pilot-feedback-trim/mouse.md && test -s tools/research/pilot-feedback-trim/mouse/README.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "verdict",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/pilot-feedback-trim/out/PFT-2_verdict.json'));it=d['items'];assert d['task']=='PFT-2';assert [i['item'] for i in it]==[3];assert all(i['verdict'] in ('physics','config','none') and len(i['evidence'])>=2 for i in it);print('ok')\"",
+      "expect": "re:^ok"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-02T02:23:32"
+}
