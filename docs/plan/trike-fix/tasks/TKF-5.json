@@ -1,0 +1,61 @@
+{
+  "id": "TKF-5",
+  "module": "trike-fix",
+  "type": "dp-engineer",
+  "title": "Упор переднего подкоса в физике и ход штанги «на себя» дельталёта",
+  "goal": "По TKF-К4: штанга дельталёта в физике не уходит за передний подкос (упор по ключу аппарата, дельтапланы бит в бит), ход «на себя» игрока 0,20–0,25 м в границах груди; фугоида k ≤ 0,65, tow/trike зелёные.",
+  "plan_ref": "§4 Волна 2",
+  "contracts": [
+    {
+      "name": "TKF-К4",
+      "version": "1",
+      "ref": "docs/contracts/trike-fix.md"
+    },
+    {
+      "name": "TKF-К1",
+      "version": "2",
+      "ref": "docs/contracts/trike-fix.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/trike-fix-TKF-5",
+  "branch": "trike-fix/TKF-5",
+  "base": "feature/trike-fix",
+  "scope": [
+    "scripts/flight/pendulum/pendulum_model.gd",
+    "scripts/flight/glider.gd",
+    "configs/tow_tug.json",
+    "configs/trike_pilot.json",
+    "tests/flight/test_trike_bar_stop.gd",
+    "tests/flight/test_trike_bar_stop.gd.uid",
+    "tools/research/trike-fix/bar_stop"
+  ],
+  "dont_touch": [
+    "scripts/flight/trike_rig.gd",
+    "configs/wings",
+    "configs/pilot.json",
+    "tools/blender",
+    "scripts/terrain",
+    "tests/flight/test_trike_coupling.gd"
+  ],
+  "accept": [
+    {
+      "name": "trike_bar_stop",
+      "tests": "trike_bar_stop"
+    },
+    {
+      "name": "trike",
+      "tests": "trike"
+    },
+    {
+      "name": "tow",
+      "tests": "tow"
+    },
+    {
+      "name": "pendulum",
+      "tests": "pendulum"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-02T04:09:35"
+}
