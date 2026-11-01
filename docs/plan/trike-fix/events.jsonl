@@ -56,3 +56,5 @@
 {"t": "2026-11-02T03:50:54", "by": "executor", "task": "TKF-2", "ev": "reported", "commits": ["80e729ceb"], "note": "done: Замер TKF-К2 (дельталёт газ 0/0,5/1, sport, учебное) в Маятнике: по крену дельталёт НЕ туже дельтаплана (30→30 за 2,0-2…", "dp_feedback": "lock cpu <ID> -- cmd сразу переводит в фон и возвращает управление без ожидания, нужен явный .dpcli/dpcli job wait; в output не видно, как узнать завершение (пришлось sleep). docs check требует frontmatter даже на README инструмента и summary ≤140 символов — узнаётся только после accept."}
 {"t": "2026-11-02T03:54:32", "by": "coordinator", "task": "TKF-2", "ev": "checked", "note": "3/3 control=ok:exit 0; note=ok:exit 0; docs=ok:ошибок 0"}
 {"t": "2026-11-02T03:54:37", "by": "coordinator", "task": "TKF-2", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-11-02T03:54:38", "by": "coordinator", "task": "TKF-2", "ev": "checked", "commits": ["471375f0c"], "note": "1/3 control=FAIL:exit 2 · python3: can't open …; note=FAIL:exit 1 ·; docs=ok:ошибок 0"}
+{"t": "2026-11-02T03:54:39", "by": "coordinator", "task": "TKF-2", "ev": "merged"}
