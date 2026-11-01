@@ -1,0 +1,52 @@
+{
+  "status": "done",
+  "summary": "Вердикт: несложно. Трава рисуется вершинным шейдером с вектором lean; готовый образец — press_pos (uniform в 3 материала каждый кадр). Блок струи ~20 строк в grass.gdshader + set_wash в grass_field.gd/terrain.gd (60-90 строк, 3-5 файлов), без проходов и текстур.",
+  "commits": [
+    "342faad85 TKF-3: оценка пригиба травы струёй винта"
+  ],
+  "checks": [
+    {
+      "name": "note",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "verdict",
+      "value": "1 (Вердикт: несложно)",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "струя при 2070 Н",
+      "value": "v_disk 18,4 м/с; v_wake 36,8 м/с; диаметр 1,27 м; на оси ~23 м/с на 12 м (оценка)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Замер цены не делался (оценка ≲0,05 мс, проверка по G3 в TKF-6)",
+    "Средние слои (shell/cards) в плане опциональны"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TKF-3",
+  "uncertain": [
+    {
+      "where": "docs/research/trike-fix/grass-wash.md (Оценка струи)",
+      "why": "затухание/ширина струи — по литературным коэффициентам осесимметричной струи, без учёта земли и закрутки",
+      "checked": "расчёт tools/research/trike-fix/grass_wash_calc.py; масштаб сопоставлен с ветром 3-10 м/с"
+    },
+    {
+      "where": "docs/research/trike-fix/grass-wash.md (Цена)",
+      "why": "добавка ≲0,05 мс — оценка, не замер",
+      "checked": "сверка с docs/perf/grass_rocks_2.md (шум ±0,1-0,3 мс)"
+    }
+  ],
+  "dp_feedback": "task show усекает дополнения карточки; полный текст — только с --full (не очевидно). docs check ругается на area/summary лишь после записи — нужен подсказчик допустимых area в docs init.",
+  "extra": {},
+  "t": "2026-11-02T03:28:56",
+  "by": "executor"
+}
