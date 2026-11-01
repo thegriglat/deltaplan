@@ -1,0 +1,152 @@
+{
+ "rho": 1.2,
+ "D_m": 1.8,
+ "A_m2": 2.5446900494077327,
+ "rows": [
+  {
+   "T_N": 500.0,
+   "v_disk": 9.048194664868888,
+   "v_wake": 18.096389329737775,
+   "d_wake_m": 1.2727922061357855,
+   "decay": [
+    {
+     "x_m": 1,
+     "u_axis": 18.1,
+     "half_width_m": 0.74
+    },
+    {
+     "x_m": 2,
+     "u_axis": 18.1,
+     "half_width_m": 0.84
+    },
+    {
+     "x_m": 3,
+     "u_axis": 18.1,
+     "half_width_m": 0.94
+    },
+    {
+     "x_m": 4,
+     "u_axis": 18.1,
+     "half_width_m": 1.04
+    },
+    {
+     "x_m": 6,
+     "u_axis": 18.1,
+     "half_width_m": 1.24
+    },
+    {
+     "x_m": 8,
+     "u_axis": 17.3,
+     "half_width_m": 1.44
+    },
+    {
+     "x_m": 12,
+     "u_axis": 11.5,
+     "half_width_m": 1.84
+    },
+    {
+     "x_m": 16,
+     "u_axis": 8.6,
+     "half_width_m": 2.24
+    }
+   ]
+  },
+  {
+   "T_N": 1000.0,
+   "v_disk": 12.796079610049462,
+   "v_wake": 25.592159220098925,
+   "d_wake_m": 1.2727922061357855,
+   "decay": [
+    {
+     "x_m": 1,
+     "u_axis": 25.6,
+     "half_width_m": 0.74
+    },
+    {
+     "x_m": 2,
+     "u_axis": 25.6,
+     "half_width_m": 0.84
+    },
+    {
+     "x_m": 3,
+     "u_axis": 25.6,
+     "half_width_m": 0.94
+    },
+    {
+     "x_m": 4,
+     "u_axis": 25.6,
+     "half_width_m": 1.04
+    },
+    {
+     "x_m": 6,
+     "u_axis": 25.6,
+     "half_width_m": 1.24
+    },
+    {
+     "x_m": 8,
+     "u_axis": 24.4,
+     "half_width_m": 1.44
+    },
+    {
+     "x_m": 12,
+     "u_axis": 16.3,
+     "half_width_m": 1.84
+    },
+    {
+     "x_m": 16,
+     "u_axis": 12.2,
+     "half_width_m": 2.24
+    }
+   ]
+  },
+  {
+   "T_N": 2070.0,
+   "v_disk": 18.4103525906083,
+   "v_wake": 36.8207051812166,
+   "d_wake_m": 1.2727922061357855,
+   "decay": [
+    {
+     "x_m": 1,
+     "u_axis": 36.8,
+     "half_width_m": 0.74
+    },
+    {
+     "x_m": 2,
+     "u_axis": 36.8,
+     "half_width_m": 0.84
+    },
+    {
+     "x_m": 3,
+     "u_axis": 36.8,
+     "half_width_m": 0.94
+    },
+    {
+     "x_m": 4,
+     "u_axis": 36.8,
+     "half_width_m": 1.04
+    },
+    {
+     "x_m": 6,
+     "u_axis": 36.8,
+     "half_width_m": 1.24
+    },
+    {
+     "x_m": 8,
+     "u_axis": 35.1,
+     "half_width_m": 1.44
+    },
+    {
+     "x_m": 12,
+     "u_axis": 23.4,
+     "half_width_m": 1.84
+    },
+    {
+     "x_m": 16,
+     "u_axis": 17.6,
+     "half_width_m": 2.24
+    }
+   ]
+  }
+ ],
+ "q_ref_wind3": 5.3999999999999995
+}

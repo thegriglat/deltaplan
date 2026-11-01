@@ -1,0 +1,70 @@
+{
+  "status": "done",
+  "summary": "Terrain.set_wash(pos, dir, thrust_n) -> GrassField.set_wash: uniform-ы wash_pos/wash_dir/wash_shape/wash_lean ближней травы, блок струи в grass.gdshader рядом с press (струя идеального диска, ядро 6 d, затем 1/s, гауссов профиль, ранний выход по дальности/поперёк/w=0). Game каждый кадр телеметрии ставит центр по узлу Propeller тележки, ось - +Z тележки, тяга - glider.trike.thrust_n. Числа - configs/vegetation.json grass.wash с _doc.",
+  "commits": [
+    "471ef7db2 TKF-6: трава пригибается струёй винта дельталёта (Terrain.set_wash, TKF-К3)"
+  ],
+  "checks": [
+    {
+      "name": "grass",
+      "value": "38/38",
+      "pass": true
+    },
+    {
+      "name": "gpu_wash",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "gpu_grass",
+      "value": "69/69",
+      "pass": true
+    },
+    {
+      "name": "perf",
+      "value": "summary.md есть; разность -0.032 мс",
+      "pass": true
+    },
+    {
+      "name": "инвариант 1: тяга 0 = кадр без вызова",
+      "value": "0.00000 различающихся пикселей",
+      "pass": true
+    },
+    {
+      "name": "инвариант 2: конус / сбоку / дальше 25 м",
+      "value": "конус 0.41, сбоку 0.0, дальше 25 м 0.0",
+      "pass": true
+    },
+    {
+      "name": "инвариант 3: цена, GPU viewport 720p",
+      "value": "без 1.301 мс, со струёй 1.269 мс, разность -0.032 (шум)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Полный протокол G3 (frame_profile.sh, кадр игры у дельталёта на земле, medium/high) не выполнен: скрипт не умеет держать полную тягу дельталёта на земле (автопилот управляет дельтапланом). Заменено замером в тестовой сцене (build/perf/TKF-6/summary.md, не в git - build игнорируется).",
+    "Средняя трава (shell/cards) не тронута - по контракту, если ближняя (<=35 м) покрывает струю (дальность 25 м).",
+    "Визуально в игре не проверено (скриншоты не заказаны)."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept TKF-6",
+  "uncertain": [
+    {
+      "where": "scripts/game/game.gd:_update_trike_wash",
+      "why": "Ось струи принята как +Z тележки (cart_basis, -Z вперёд), центр - глобальная позиция узла Propeller из trike.glb; реальный наклон оси винта (2 градуса) и положение узла Propeller не сверялись с моделью; при отсутствии узла центр = подвеска минус 1,4 м по оси Y тележки.",
+      "checked": "Логика читается по tow_trike_visual.gd (Propeller, cart.global_basis); в игре не запускалась."
+    },
+    {
+      "where": "configs/vegetation.json grass.wash.lean_full_ms / lean_gain",
+      "why": "Порог и сила наклона (3/12 м/с, 1,5) взяты из записки TKF-3 и масштаба press, не подобраны глазами.",
+      "checked": "Только числовые инварианты теста."
+    }
+  ],
+  "dp_feedback": "dpcli lock gpu <ID> -- cmd возвращает сразу (фон), ожидание только через job wait по имени из вывода - в справке неочевидно; фильтр gpu_tests по имени функции теста не находит (только по файлу/ключу).",
+  "extra": {
+    "wash_speed_2070N_ms": 36.6,
+    "core_m": 7.64
+  },
+  "t": "2026-11-02T03:50:37",
+  "by": "executor"
+}

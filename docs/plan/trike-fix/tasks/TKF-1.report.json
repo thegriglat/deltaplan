@@ -1,0 +1,75 @@
+{
+  "status": "done",
+  "summary": "Причина пп. 1, 2, 4 и скрутки по рысканию в вираже - вид: TrikeRig.refresh всегда ограничивает поворот cart_basis до 20 град/с, а ориентация тележки по Маятнику в виражах меняется быстрее (p99 34-72 град/с); отставание вида 55-72 град, yaw_rel_vis до 67 (физика: 0 по построению, реальный узел - шарнир тангаж+крен). В физике единственный выход за предел - штанга за упор от себя (до 14.5 град против 4.95) при ходе от себя и накачке по тангажу: упора подкоса нет. Правка V1: в воздухе без предела, 20 град/с только для скачка колёса-воздух 8.5 град.",
+  "commits": [
+    "6eff63e64 trike-fix TKF-1: замер связи тележка-крыло"
+  ],
+  "checks": [
+    {
+      "name": "summary",
+      "value": "check_summary.py exit 0",
+      "pass": true
+    },
+    {
+      "name": "note",
+      "value": "coupling.md",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "frames_before",
+      "value": "9 кадров",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Пределы крена тележки к крылу и демпфирование узла в источниках не найдены (в записке помечено)."
+  ],
+  "questions": [
+    "Нужен ли V2 (упор подкоса о штангу в физике)? Меняет срыв и фугоиду, решение за пользователем."
+  ],
+  "images": [
+    "build/screenshots/trike-fix/before/TKF-1_p1_side.png",
+    "build/screenshots/trike-fix/before/TKF-1_p2_rear.png",
+    "build/screenshots/trike-fix/before/TKF-1_p4_rear.png"
+  ],
+  "how_to_check": ".dpcli/dpcli accept TKF-1; воспроизведение - tools/research/trike-fix/README.md",
+  "uncertain": [
+    {
+      "where": "docs/contracts/trike-fix.md TKF-К1",
+      "why": "контракт говорит шаг 1/60 с, игра идёт на 120 Гц; измерено на 120",
+      "checked": "на 60 Гц три сценария: отличие < 1 град"
+    },
+    {
+      "where": "docs/research/trike-fix/coupling.md §2",
+      "why": "Gratton 2001 (Proc IMechE G) прочитан только по аннотации; использованы Brunel-доклад Gratton и AAIB G-CEVW",
+      "checked": "цитаты про шарнир тангаж+крен проверены по pdftotext"
+    },
+    {
+      "where": "tools/research/trike-fix/coupling_run.gd",
+      "why": "bar_deg по wing_frame_bar из trapeze.json (оценка TT-К6), проекция на плоскость x=0; регулятор крена и период накачки подобраны",
+      "checked": "trim-угол даёт 3.8-4.5 град, ожидаемо около предела"
+    }
+  ],
+  "dp_feedback": "Первый godot --import в фоне lock cpu выглядит завершённым, но импорт glb неполный; нужен явный job wait. Контракт с шагом 1/60 расходится с physics_ticks=120.",
+  "extra": {
+    "vis_lag_deg_max": {
+      "turn45_idle": 71.8,
+      "reversal45": 69.7,
+      "roll_pump": 143.3
+    },
+    "yaw_rel_deg_vis_max": {
+      "turn45_idle": 66.8,
+      "reversal45": 41.1
+    },
+    "bar_deg_phys_max_push_full": 14.5,
+    "mast_normal_phys_max": 13.6,
+    "wheels_to_air_jump_deg": 8.5
+  },
+  "t": "2026-11-02T03:39:45",
+  "by": "executor"
+}

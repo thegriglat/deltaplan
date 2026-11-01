@@ -4,13 +4,13 @@ status: "active"
 module: trike-fix
 area: flight
 updated: "2026-11-02"
-summary: "Стыки trike-fix: замер углов тележки к крылу и сценарии (TKF-К1), замер отклика на штангу дельталёта (TKF-К2)."
+summary: "Стыки trike-fix: углы тележки к крылу (TKF-К1), отклик на штангу (TKF-К2), струя винта по траве Terrain.set_wash (TKF-К3)."
 related: ["docs/plan/trike-fix.md", "docs/contracts/trike-pilot.md", "docs/contracts/tow-trike.md"]
-contracts: [{"id": "TKF-К1", "version": 1}, {"id": "TKF-К2", "version": 1}]
+contracts: [{"id": "TKF-К1", "version": 2}, {"id": "TKF-К2", "version": 1}, {"id": "TKF-К3", "version": 1}]
 ---
 # Контракты trike-fix (код задач TKF)
 
-## TKF-К1 v1. Углы тележки к крылу: определения, сценарии, `summary.json`
+## TKF-К1 v2. Углы тележки к крылу: определения, сценарии, `summary.json`, пороги
 Владелец — TKF-1 (инструмент, данные, `check_summary.py`); потребители — TKF-4 (тест с порогами — v2 этого раздела),
 TKF-7 (кадры и таблица «после» тем же инструментом). Контрактный тест — `tools/research/trike-fix/check_summary.py
 <summary.json>` (пишет TKF-1): exit 0 — схема и единицы верны.
@@ -62,6 +62,20 @@ TKF-7 (кадры и таблица «после» тем же инструме�
 Ряды по времени — `out/<сценарий>.csv` (те же величины по шагам). `check_summary.py`: все обязательные сценарии и
 ключи есть, числа конечны, `[min, max]` упорядочены, `limits` — из `trike_params.json`.
 
+- v2 (2026-11-02, по TKF-1, `docs/research/trike-fix/coupling.md`): шаг — шаг физики игры (`physics_ticks_per_second`
+  120, 1/120 с), а не 1/60 (отличие < 1°). Причина пп. 1, 2, 4 и скрутки по рысканию — вид: `cart_basis` ограничен
+  20 °/с всегда. **Правка (TKF-4, вариант V1):** в воздухе `cart_basis` = `C_phys` без ограничения; ограничение поворота —
+  только для сглаживания скачка колёса ↔ воздух (≈ 8,5°, не дольше ≈ 0,5 с). Рыскание тележки к крылу = 0 (узел подвеса —
+  шарнир тангажа и крена, Gratton; AAIB G-CEVW). Физику `PendulumModel` правка не меняет.
+  **Тест** `tests/flight/test_trike_coupling.gd` (пишет TKF-4; сценарии и величины — как выше, тем же способом расчёта, что
+  `tools/research/trike-fix/coupling_run.gd`; без 1 с после старта и 0,5 с после отрыва):
+  (1) `yaw_rel_deg_vis` ≤ 1,0° во всех сценариях; (2) `vis_lag_deg_max` ≤ 1,0° в `turn30_*`, `turn45_*`, `reversal45`,
+  ≤ 3° в `push_full`, `pitch_pump`, `roll_pump`; (3) `mast_normal_deg_max_vis` ≤ 20°; (4) `bar_deg_vis` ∈ [−`pull_deg`;
+  `push_deg` + 0,5°] в `trim_full`, `throttle_step`, `turn*`, `reversal45`, `roll_pump` (`push_full`, `pitch_pump` —
+  не проверяются: выход за упор «от себя» в физике, вариант V2 — решение отдельно); (5) |`roll_rel_deg_vis`| ≤ 15°;
+  (6) переход колёса → воздух: `cart_basis` непрерывен (≤ предел °/с · dt за шаг) и через ≤ 0,6 с совпадает с `C_phys`
+  (≤ 0,5°). Тесты `tow`, `tow_trike`, `trike` — зелёные.
+
 ## TKF-К2 v1. Отклик дельталёта на штангу: `control_summary.json`
 Владелец — TKF-2; потребитель — TKF-5. Контрактный тест — `tools/research/trike-fix/check_control.py
 <control_summary.json>` (пишет TKF-2): exit 0 — схема верна.
@@ -76,3 +90,21 @@ TKF-7 (кадры и таблица «после» тем же инструме�
   `{"version": 1, "git": "<коммит>", "cases": {"<аппарат>[_<газ>]": {"roll_rate_dps": {"0.25": f, "0.5": f, "1": f},
   "t_30_30_s": f, "t_45_45_s": f, "pitch_rate_dps": {"push": f, "pull": f}, "bar_force_n": f|null}},
   "reference": [{"source": "<ссылка>", "aircraft": "<аппарат>", "quantity": "<величина>", "value": f, "unit": "<ед>"}]}`.
+
+## TKF-К3 v1. Струя винта по траве: `Terrain.set_wash`
+Владелец — TKF-6; потребитель — `Game` (дельталёт игрока). Основание — п. 5 решения 2026-11-02 и вердикт «несложно»
+`docs/research/trike-fix/grass-wash.md` (TKF-3). Контрактный тест — `tests/vegetation/test_grass_wash_gpu.gd` (пишет TKF-6).
+
+- `Terrain.set_wash(pos: Vector3, dir: Vector3, thrust_n: float) -> void` → `GrassField.set_wash(...)` (тот же путь, что
+  `press_pos`: uniform-ы материала ближней травы раз в кадр, без новых проходов, текстур, буферов). `pos` — центр диска
+  винта (мир, та же система, что `press_pos`), `dir` — единичное направление струи (назад по оси тяги), `thrust_n` ≥ 0 —
+  тяга `TrikeEngine`/`TrikeRig.thrust_n`. Скорость струи — идеальный диск `v = sqrt(2T/(ρ·A))`, Ø винта 1,80 м, ρ ISA;
+  затухание и ширина — по записке TKF-3 (оценка, помечено в `_doc`).
+- Выключено (uniform `w` = 0, трава как раньше), если `thrust_n` < порога или ось выше порога над землёй; один источник —
+  дельталёт игрока; у дельтаплана `set_wash` не вызывается или с `thrust_n` 0.
+- Числа (порог тяги, высота, коэффициенты затухания/ширины, предел дальности) — `configs/vegetation.json → grass.wash` с `_doc`.
+- Средняя трава (shell/cards) — по выбору TKF-6, если на ближней (≤ 35 м) струя видна целиком — не трогать.
+- **Инварианты** (GPU-тест): (1) `thrust_n` 0 — кадр совпадает с кадром без вызова `set_wash` (пиксели равны);
+  (2) полная тяга, ось 1 м над землёй — средний наклон/сдвиг травы в конусе за винтом (2–10 м по оси) заметно отличается от
+  кадра без струи, вне конуса (сбоку > 6 м, дальше 25 м) — не отличается; (3) цена по протоколу G3
+  (`docs/contracts/grass-rocks.md`, `tools/bench/frame_profile.sh`, замок gpu) — разница в пределах шума ±0,1 мс.

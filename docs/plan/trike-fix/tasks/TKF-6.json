@@ -1,0 +1,61 @@
+{
+  "id": "TKF-6",
+  "module": "trike-fix",
+  "type": "dp-engineer",
+  "title": "Трава пригибается струёй винта дельталёта",
+  "goal": "Ближняя трава пригибается струёй винта дельталёта игрока по TKF-К3 (Terrain.set_wash → uniform-ы шейдера по образцу press_pos), без новых проходов и с ценой в пределах шума; при нулевой тяге трава как раньше.",
+  "plan_ref": "§4 Волна 2",
+  "contracts": [
+    {
+      "name": "TKF-К3",
+      "version": "1",
+      "ref": "docs/contracts/trike-fix.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/trike-fix-TKF-6",
+  "branch": "trike-fix/TKF-6",
+  "base": "feature/trike-fix",
+  "scope": [
+    "scripts/terrain/grass.gdshader",
+    "scripts/terrain/grass_field.gd",
+    "scripts/terrain/terrain.gd",
+    "scripts/terrain/grass_mid_shell.gdshader",
+    "scripts/terrain/grass_mid_cards.gdshader",
+    "scripts/game/game.gd",
+    "configs/vegetation.json",
+    "tests/vegetation/test_grass_wash_gpu.gd",
+    "tests/vegetation/test_grass_wash_gpu.gd.uid",
+    "build/perf/TKF-6"
+  ],
+  "dont_touch": [
+    "scripts/flight",
+    "scripts/game/tow_tug.gd",
+    "configs/tow_tug.json",
+    "configs/wings"
+  ],
+  "accept": [
+    {
+      "name": "grass",
+      "tests": "grass"
+    },
+    {
+      "name": "gpu_wash",
+      "cmd": "tools/gpu_tests.sh --filter=grass_wash",
+      "expect": "tests"
+    },
+    {
+      "name": "gpu_grass",
+      "cmd": "tools/gpu_tests.sh --filter=grass",
+      "expect": "tests"
+    },
+    {
+      "name": "perf",
+      "cmd": "test -s build/perf/TKF-6/summary.md",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-02T03:31:04",
+  "edited": "2026-11-02T03:31:31"
+}
