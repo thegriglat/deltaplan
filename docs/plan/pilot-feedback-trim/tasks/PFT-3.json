@@ -1,0 +1,62 @@
+{
+  "id": "PFT-3",
+  "module": "pilot-feedback-trim",
+  "type": "dp-engineer",
+  "title": "Ход мыши по умолчанию 4000 и слайдер от ×0,1 (PFT-К1 v2)",
+  "goal": "Привести умолчания мыши-штанги к PFT-К1 v2 (bar_travel_px 4000, bar_sensitivity_range [0.1, 4.0]) в конфигах, запасных значениях кода, документации и CHANGELOG; контрактные тесты зелёные.",
+  "plan_ref": "§4 PFT-3",
+  "contracts": [
+    {
+      "name": "PFT-К1",
+      "version": "2",
+      "ref": "docs/contracts/pilot-feedback-trim.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/pilot-feedback-trim-PFT-3",
+  "branch": "pilot-feedback-trim/PFT-3",
+  "base": "feature/pilot-feedback-trim",
+  "scope": [
+    "configs/controls.json",
+    "configs/ui.json",
+    "scripts/game/mouse_bar.gd",
+    "scripts/ui/settings_panel.gd",
+    "docs/guide/game/cameras-input.md",
+    "docs/guide/game/menus-settings.md",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "scripts/flight/",
+    "configs/wings/",
+    "configs/pendulum.json",
+    "tests/contracts/",
+    "project.godot",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "pilot_feedback_trim",
+      "tests": "pilot_feedback_trim"
+    },
+    {
+      "name": "bar_mouse",
+      "tests": "bar_mouse"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "mouse",
+      "tests": "mouse"
+    },
+    {
+      "name": "test_pendulum_symmetry",
+      "tests": "test_pendulum_symmetry"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-02T03:37:38",
+  "edited": "2026-11-02T03:37:58"
+}
