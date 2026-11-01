@@ -1,0 +1,47 @@
+{
+  "id": "TKF-4",
+  "module": "trike-fix",
+  "type": "dp-engineer",
+  "title": "Вид тележки дельталёта без отставания (V1)",
+  "goal": "В воздухе ориентация тележки (TrikeRig.cart_basis) совпадает с физикой «Маятника» без ограничения 20 °/с; ограничение остаётся только для сглаживания скачка колёса ↔ воздух; тест порогов TKF-К1 v2.",
+  "plan_ref": "§4 Волна 2",
+  "contracts": [
+    {
+      "name": "TKF-К1",
+      "version": "2",
+      "ref": "docs/contracts/trike-fix.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/trike-fix-TKF-4",
+  "branch": "trike-fix/TKF-4",
+  "base": "feature/trike-fix",
+  "scope": [
+    "scripts/flight/trike_rig.gd",
+    "tests/flight/test_trike_coupling.gd",
+    "tests/flight/test_trike_coupling.gd.uid"
+  ],
+  "dont_touch": [
+    "scripts/flight/pendulum",
+    "scripts/flight/flight_model.gd",
+    "configs",
+    "scripts/terrain",
+    "scripts/game/game.gd"
+  ],
+  "accept": [
+    {
+      "name": "trike_coupling",
+      "tests": "trike_coupling"
+    },
+    {
+      "name": "trike",
+      "tests": "trike"
+    },
+    {
+      "name": "tow",
+      "tests": "tow"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-02T03:41:00"
+}
