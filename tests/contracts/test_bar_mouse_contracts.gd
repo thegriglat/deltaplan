@@ -28,7 +28,7 @@ func test_doc_headings() -> void:
 
 func test_k1_config_defaults() -> void:
 	var m: Dictionary = Config.get_config("controls").get("mouse", {})
-	approx(float(m.get("bar_travel_px", -1.0)), 2500.0, 1e-6, "mouse.bar_travel_px = 2500")
+	approx(float(m.get("bar_travel_px", -1.0)), 4000.0, 1e-6, "mouse.bar_travel_px = 4000 (PFT-К1 v2)")
 	approx(float(m.get("bar_sensitivity", -1.0)), 1.0, 1e-6, "mouse.bar_sensitivity = 1")
 	approx(float(m.get("bar_deadzone", -1.0)), 0.02, 1e-6, "mouse.bar_deadzone = 0.02")
 	for k in ["bar_travel_px", "bar_sensitivity", "bar_deadzone"]:
@@ -36,7 +36,7 @@ func test_k1_config_defaults() -> void:
 	var r: Variant = Config.get_config("ui").get("bar_sensitivity_range")
 	check(r is Array and r.size() == 2, "ui.bar_sensitivity_range — [min, max]")
 	if r is Array and r.size() == 2:
-		approx(float(r[0]), 0.25, 1e-6, "bar_sensitivity_range[0] = 0.25")
+		approx(float(r[0]), 0.1, 1e-6, "bar_sensitivity_range[0] = 0.1 (PFT-К1 v2)")
 		approx(float(r[1]), 4.0, 1e-6, "bar_sensitivity_range[1] = 4")
 
 
@@ -58,7 +58,7 @@ func test_k1_travel_and_accumulate() -> void:
 	var m := {"bar_travel_px": 2500.0, "bar_sensitivity": 1.0, "bar_deadzone": 0.02}
 	approx(b.travel_px(m), 2500.0, 1e-6, "travel_px при ×1")
 	approx(b.travel_px({"bar_travel_px": 2500.0, "bar_sensitivity": 2.0}), 1250.0, 1e-6, "travel_px при ×2")
-	approx(b.travel_px({}), 2500.0, 1e-6, "travel_px без ключей — по умолчанию")
+	approx(b.travel_px({}), 4000.0, 1e-6, "travel_px без ключей — по умолчанию (PFT-К1 v2)")
 	var o: Vector2 = b.accumulate(Vector2.ZERO, Vector2(2500.0, -1250.0), m)
 	approx(o.x, 1.0, 1e-6, "полный ход по x")
 	approx(o.y, -0.5, 1e-6, "половина хода по y, знак сохраняется")

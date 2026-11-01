@@ -31,3 +31,5 @@
 {"t": "2026-11-02T03:35:48", "by": "coordinator", "task": "PFT-1", "ev": "checked", "note": "3/3 note=ok:exit 0; verdict=ok:ok; docs=ok:exit 0; scope=FAIL:вне scope: r-PFT-1.json"}
 {"t": "2026-11-02T03:36:32", "by": "coordinator", "task": "PFT-1", "ev": "checked", "note": "3/3 note=ok:exit 0; verdict=ok:ok; docs=ok:exit 0"}
 {"t": "2026-11-02T03:36:36", "by": "coordinator", "task": "PFT-1", "ev": "accepted", "note": "по отчёту: исследование, код игры не менялся; открытое — переход после отрыва — в шлюз"}
+{"t": "2026-11-02T03:36:38", "by": "coordinator", "task": "PFT-1", "ev": "accepted", "commits": ["d625df639"], "note": "3/3 note=ok:exit 0; verdict=ok:ok; docs=ok:exit 0"}
+{"t": "2026-11-02T03:36:38", "by": "coordinator", "task": "PFT-1", "ev": "merged", "note": "d625df639"}

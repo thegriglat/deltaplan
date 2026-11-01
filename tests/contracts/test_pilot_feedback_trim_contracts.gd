@@ -15,14 +15,14 @@ func test_doc_headings() -> void:
 	var found := {}
 	for m in re.search_all(text):
 		found[m.get_string(1)] = int(m.get_string(2))
-	check(found.get("PFT-К1", 0) == 1, "PFT-К1 (v1) в заголовках: %s" % found)
+	check(found.get("PFT-К1", 0) == 2, "PFT-К1 (v2) в заголовках: %s" % found)
 	check(found.get("PFT-К2", 0) == 1, "PFT-К2 (v1) в заголовках: %s" % found)
 
 
 func test_k1_controls() -> void:
 	var c: Dictionary = Config.get_config("controls")
 	var m: Dictionary = c.get("mouse", {})
-	approx(float(m.get("bar_travel_px", -1.0)), 2500.0, 1e-6, "mouse.bar_travel_px = 2500")
+	approx(float(m.get("bar_travel_px", -1.0)), 4000.0, 1e-6, "mouse.bar_travel_px = 4000 (PFT-К1 v2)")
 	approx(float(m.get("bar_sensitivity", -1.0)), 1.0, 1e-6, "mouse.bar_sensitivity = 1")
 	approx(float(m.get("bar_deadzone", -1.0)), 0.02, 1e-6, "mouse.bar_deadzone = 0.02")
 	approx(float(m.get("bar_return_to_center_per_s", -1.0)), 0.0, 1e-6, "mouse.bar_return_to_center_per_s = 0")
@@ -31,7 +31,7 @@ func test_k1_controls() -> void:
 	var r: Variant = Config.get_config("ui").get("bar_sensitivity_range")
 	check(r is Array and r.size() == 2, "ui.bar_sensitivity_range — [min, max]")
 	if r is Array and r.size() == 2:
-		approx(float(r[0]), 0.25, 1e-6, "bar_sensitivity_range[0] = 0.25")
+		approx(float(r[0]), 0.1, 1e-6, "bar_sensitivity_range[0] = 0.1 (PFT-К1 v2)")
 		approx(float(r[1]), 4.0, 1e-6, "bar_sensitivity_range[1] = 4")
 
 
