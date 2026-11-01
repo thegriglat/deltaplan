@@ -1,0 +1,71 @@
+{
+  "status": "partial",
+  "summary": "TrikeRig.refresh: в воздухе cart_basis = C_phys без ограничения, скачок колёса->воздух (~7,6-8,5 град) гасится как смещение в осях цели со скоростью 20 град/с. Тест tests/flight/test_trike_coupling.gd (инварианты (1)-(6) TKF-К1 v2) зелёный. Приёмка tow не проходит: tests/tow/test_tow_k9.gd (вне scope) требует в воздухе не быстрее 20 град/с, что противоречит TKF-К1 v2.",
+  "commits": [
+    "c95f70822 trike-fix TKF-4: вид тележки в воздухе = физика «Маятника» (V1), тест порогов TKF-К1 v2"
+  ],
+  "checks": [
+    {
+      "name": "trike_coupling",
+      "value": "4/4 ok",
+      "pass": true
+    },
+    {
+      "name": "trike",
+      "value": "101/112 (1 пропуск); падают test_setup_screen_keeps_vehicle, test_trike_altai, test_trike_aushkul (и test_tow_winch/aerotow по логу) - SCRIPT ERROR sunset_h в goal_estimator.gd:29 (Weather.diurnal_state), не из правки",
+      "pass": false
+    },
+    {
+      "name": "tow",
+      "value": "102/105: test_cart_basis_model_orientation (tow_k9:255 'и в воздухе не быстрее 20 град/с: 31.24') - прямое следствие контракта v2; test_setup_screen_has_no_tow_row, test_game_tick_wiring - sunset_h",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "tests/tow/test_tow_k9.gd:249,255 - проверка 'не быстрее 20 град/с' в воздухе (окно 0,25 с, TowTug на том же TrikeRig) устарела по TKF-К1 v2; вне scope TKF-4, нужно ослабить до 'на колёсах/сразу после отрыва' через координатора",
+    "падения sunset_h на базе не перепроверены (копия без собранной libdp_air_tune.so: 'Can't open dynamic library' - вероятная причина), предположительно не регрессия"
+  ],
+  "questions": [
+    "Разрешить правку tests/tow/test_tow_k9.gd (ограничение 20 град/с только до отрыва + 0,5 с)?"
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TKF-4 --dry",
+  "uncertain": [
+    {
+      "where": "scripts/flight/trike_rig.gd:refresh",
+      "why": "смещение гасится в осях цели, поэтому за шаг вид может повернуться на ~0,03 град больше 20 град/с*dt (второй порядок при вращении цели); тест допускает +0,05 град",
+      "checked": "test_takeoff_continuity"
+    },
+    {
+      "where": "tests/flight/test_trike_coupling.gd:test_takeoff_continuity",
+      "why": "модель после отрыва подпрыгивает и снова садится на колёса (on_wheels true/false в течение ~0,6 с); 'через 0,6 с' считаю от начала последнего непрерывного полёта без касаний",
+      "checked": "диагностический вывод лага по шагам: 7,6 -> 0 за 0,38 с"
+    },
+    {
+      "where": "tests/flight/test_trike_coupling.gd (длительности)",
+      "why": "сокращены против инструмента (trim 12 с, push/pull 16, throttle_step 20, turn 16, roll_pump 12, pitch_pump 14; reversal45 полные 32 с); bar-диапазон pull_full не проверяется (вне перечня п.4)",
+      "checked": "все пороги проходят; тест ~100 с"
+    }
+  ],
+  "dp_feedback": "accept --dry без вывода по ходу и уходит в фон на 180 с; фильтр тестов по имени файла, а не метода - неочевидно. Копия без libdp_air_tune.so даёт шум ERROR в каждом логе.",
+  "extra": {
+    "vis_lag_deg_max": {
+      "trim_full": 0.06,
+      "push_full": 0.06,
+      "pull_full": 0.06,
+      "throttle_step": 0.06,
+      "turn30_half": 0.06,
+      "turn30_idle": 0.06,
+      "turn45_half": 0.06,
+      "turn45_idle": 0.06,
+      "reversal45": 0.06,
+      "roll_pump": 0.06,
+      "pitch_pump": 0.06
+    },
+    "yaw_rel_deg_vis": "[0.0, 0.0] (|.| < 0.01) во всех 11 сценариях",
+    "vis_lag_note": "0,06 град - остаточное гашение смещения первого refresh(0.0) на старте в воздухе (в тесте первая секунда отброшена)",
+    "wheels_to_air_jump_deg": 7.58
+  },
+  "t": "2026-11-02T04:04:04",
+  "by": "executor"
+}

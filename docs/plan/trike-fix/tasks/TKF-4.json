@@ -18,7 +18,8 @@
   "scope": [
     "scripts/flight/trike_rig.gd",
     "tests/flight/test_trike_coupling.gd",
-    "tests/flight/test_trike_coupling.gd.uid"
+    "tests/flight/test_trike_coupling.gd.uid",
+    "tests/contracts/test_tow_k9.gd"
   ],
   "dont_touch": [
     "scripts/flight/pendulum",
@@ -43,5 +44,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-11-02T03:41:00"
+  "created": "2026-11-02T03:41:00",
+  "edited": "2026-11-02T04:05:21"
 }
