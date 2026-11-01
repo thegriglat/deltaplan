@@ -54,7 +54,7 @@ related: ["docs/archive/README.md"]
 
 ## haze-humidity
 
-- Выводы вынесены (размер реестра): [haze-humidity.md](/docs/registry/findings/haze-humidity.md).
+- [haze-humidity.md](/docs/registry/findings/haze-humidity.md).
 
 ## air-nn
 
@@ -142,8 +142,8 @@ related: ["docs/archive/README.md"]
 ## bar-mouse
 
 - **Ход штанги — в отсчётах мыши**: `bar_travel_px` 2500 / множитель 0,25…4 → 10000…625 px = 31,7…2,0 см при 800 DPI (315 отсчётов/см); по умолчанию 7,9 см до упора против 1,4–1,7 см (450–540 px = 0,5·H при H = 900–1080) — [bar-mouse.md](/docs/contracts/bar-mouse.md#bm-к1-мышь--штанга-v2)
-- **Ускорение ОС в `screen_relative` (Godot 4.7.2, по исходникам)**: Windows (`WM_INPUT`) и X11 (`XI_RawMotion`) — сырые отсчёты; Wayland — ускоренные `dx/dy` × масштаб 1,25…2; macOS — ускоренные точки, усечение до целого, ×`max_scale`; обхода средствами игры нет, только плоский профиль ОС и множитель; железом не мерилось — [bar-mouse-raw-input.md](/docs/research/bar-mouse-raw-input.md#итог)
-- **Маршрутизация мыши по камерам подтверждена тестом** во всех 12 ячейках (кабина/сзади/свободная × ПКМ × 0,02/0,5 °/px): `look_sensitivity_deg_per_px` на штангу не влияет (60×40 px → голова 1,2/0,8° и 30/20°); расхождение одно — ПКМ, отпущенная при выключенном вводе (меню, пауза), залипает в `InputController` и `CameraRig` (4 сценария из 4) — [cameras-input.md](/docs/guide/game/cameras-input.md#мышь-и-штанга)
+- **Ускорение ОС в `screen_relative` (Godot 4.7.2, исходники)**: Windows (`WM_INPUT`) и X11 (`XI_RawMotion`) — сырые отсчёты; Wayland — ускоренные `dx/dy` × масштаб 1,25…2; macOS — ускоренные точки, усечение до целого, ×`max_scale`; обхода в игре нет (плоский профиль ОС и множитель); железом не мерилось — [bar-mouse-raw-input.md](/docs/research/bar-mouse-raw-input.md#итог)
+- **Маршрутизация мыши по камерам подтверждена тестом** во всех 12 ячейках (кабина/сзади/свободная × ПКМ × 0,02/0,5 °/px): `look_sensitivity_deg_per_px` на штангу не влияет (60×40 px → голова 1,2/0,8° и 30/20°); расхождение одно — ПКМ, отпущенная при выключенном вводе, залипает в `InputController` и `CameraRig` (4 сценария из 4) — [cameras-input.md](/docs/guide/game/cameras-input.md#мышь-и-штанга)
 
 ## site-update
 
@@ -187,3 +187,7 @@ related: ["docs/archive/README.md"]
 - **Буксировщик-дельталёт (582 + iXess 15) держит связку с `sport`**: набор 3,30 м/с при 59,7 км/ч (порог BHPA 2,54), отрыв на 83 м, натяжение до 75 даН (слабое звено 125) — расчёт баланса дал 3,02 м/с; тяга расчётная (1352 Н на 60 км/ч, ±15 %), метод на Tanarg/912ULS занижает набор на 14 % — [trike-tug.md](/docs/research/tow/trike-tug.md#баланс-мощности-связка-с-sport)
 - **Отрыв с колёс без рывка крыла**: скачок 0,35–0,37 м/с через 0,4 с был артефактом выравнивания стоя (flare) у пилота-тележки, а не физикой руки 500 Н; после исправления 0,069 м/с (порог 0,15) — [tow-trike.md](/docs/contracts/tow-trike.md#tt-к3-v6-тележка-в-маятнике-колёса-сопротивление-предел-рук)
 - **Трапеция трайка**: ход штанги 0,389 м (13,3°) по дуге 1,673 м между грудью пилота (−8,39°) и подкосом (+4,95°); источников по стойкам и ширине штанги трайковых крыльев нет — [trike-tug.md](/docs/research/tow/trike-tug.md#трапеция-и-штанга-в-треугольнике-тележки-tt-8-tt-к6-v1)
+
+## pilot-feedback-trim
+
+- [pilot-feedback-trim.md](/docs/registry/findings/pilot-feedback-trim.md).
