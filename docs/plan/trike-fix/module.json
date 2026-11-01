@@ -1,0 +1,11 @@
+{
+  "module": "trike-fix",
+  "plan": "docs/plan/trike-fix.md",
+  "contracts": "docs/contracts/trike-fix.md",
+  "branch": "feature/trike-fix",
+  "copy": "~/worktrees/deltaplan/trike-fix",
+  "created": "2026-11-02T03:19:56",
+  "code": "TKF",
+  "area": "flight",
+  "base": "main"
+}
