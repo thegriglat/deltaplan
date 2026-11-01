@@ -1,0 +1,776 @@
+{
+	"dt_s": 0.00833333333333333,
+	"git": "7db3e6a32",
+	"limits": {
+		"pull_deg": 8.3894,
+		"push_deg": 4.9483
+	},
+	"scenarios": {
+		"pitch_pump": {
+			"airspeed_kmh": [
+				45.8843719482422,
+				84.4710960388184
+			],
+			"bar_deg_phys": [
+				0.894457320288034,
+				12.7920194316767
+			],
+			"bar_deg_vis": [
+				0.894457306122369,
+				16.3962517329266
+			],
+			"cart_phys_rate_dps_max": 34.2366327076357,
+			"cart_phys_rate_dps_p99": 32.2009172370716,
+			"duration_s": 20.0,
+			"finite": true,
+			"mast_normal_deg_max_phys": 9.95322315856209,
+			"mast_normal_deg_max_vis": 13.5574559269699,
+			"roll_rel_deg_phys": [
+				0.0,
+				0.0
+			],
+			"roll_rel_deg_vis": [
+				0.0,
+				0.0
+			],
+			"throttle": "full",
+			"vis_lag_deg_max": 6.57569376021714,
+			"vis_lag_deg_max_by_limit_dps": {
+				"180": 0.0559529096807445,
+				"40": 0.0559529096807445,
+				"60": 0.0559529096807445,
+				"90": 0.0559529096807445
+			},
+			"wheels_to_air_jump_deg": 8.54417220826138,
+			"yaw_rel_deg_phys": [
+				0.0,
+				0.0
+			],
+			"yaw_rel_deg_vis": [
+				0.0,
+				0.0
+			]
+		},
+		"pitch_pump_2p0": {
+			"airspeed_kmh": [
+				46.0065776824951,
+				84.539005279541
+			],
+			"bar_deg_phys": [
+				1.26127087383705,
+				12.2209810360028
+			],
+			"bar_deg_vis": [
+				1.26126542003492,
+				15.974041723631
+			],
+			"cart_phys_rate_dps_max": 34.2366327076357,
+			"cart_phys_rate_dps_p99": 30.7690395811213,
+			"duration_s": 20.0,
+			"finite": true,
+			"mast_normal_deg_max_phys": 9.38218092413494,
+			"mast_normal_deg_max_vis": 13.1352409532364,
+			"roll_rel_deg_phys": [
+				0.0,
+				0.0
+			],
+			"roll_rel_deg_vis": [
+				0.0,
+				0.0
+			],
+			"throttle": "full",
+			"vis_lag_deg_max": 4.1883454235854,
+			"vis_lag_deg_max_by_limit_dps": {
+				"180": 0.0559529096807445,
+				"40": 0.0559529096807445,
+				"60": 0.0559529096807445,
+				"90": 0.0559529096807445
+			},
+			"wheels_to_air_jump_deg": 8.54417220826138,
+			"yaw_rel_deg_phys": [
+				0.0,
+				0.0
+			],
+			"yaw_rel_deg_vis": [
+				0.0,
+				0.0
+			]
+		},
+		"pitch_pump_3p2": {
+			"airspeed_kmh": [
+				47.7381053924561,
+				84.4710960388184
+			],
+			"bar_deg_phys": [
+				0.691289452050564,
+				12.9385827886969
+			],
+			"bar_deg_vis": [
+				0.691291253703917,
+				18.6965970328391
+			],
+			"cart_phys_rate_dps_max": 34.2366327076357,
+			"cart_phys_rate_dps_p99": 31.4931154055537,
+			"duration_s": 20.0,
+			"finite": true,
+			"mast_normal_deg_max_phys": 10.0997845039986,
+			"mast_normal_deg_max_vis": 15.8577987526331,
+			"roll_rel_deg_phys": [
+				0.0,
+				0.0
+			],
+			"roll_rel_deg_vis": [
+				0.0,
+				0.0
+			],
+			"throttle": "full",
+			"vis_lag_deg_max": 7.59036788029401,
+			"vis_lag_deg_max_by_limit_dps": {
+				"180": 0.0559529096807445,
+				"40": 0.0559529096807445,
+				"60": 0.0559529096807445,
+				"90": 0.0559529096807445
+			},
+			"wheels_to_air_jump_deg": 8.54417220826138,
+			"yaw_rel_deg_phys": [
+				0.0,
+				0.0
+			],
+			"yaw_rel_deg_vis": [
+				0.0,
+				0.0
+			]
+		},
+		"pitch_pump_4p0": {
+			"airspeed_kmh": [
+				47.9546871185303,
+				84.4710960388184
+			],
+			"bar_deg_phys": [
+				0.537141078059365,
+				13.0883489194956
+			],
+			"bar_deg_vis": [
+				0.537141078059365,
+				19.881478105986
+			],
+			"cart_phys_rate_dps_max": 34.2366327076357,
+			"cart_phys_rate_dps_p99": 30.7690395811213,
+			"duration_s": 20.0,
+			"finite": true,
+			"mast_normal_deg_max_phys": 10.2495543307977,
+			"mast_normal_deg_max_vis": 17.0426794792794,
+			"roll_rel_deg_phys": [
+				0.0,
+				0.0
+			],
+			"roll_rel_deg_vis": [
+				0.0,
+				0.0
+			],
+			"throttle": "full",
+			"vis_lag_deg_max": 8.62721194064311,
+			"vis_lag_deg_max_by_limit_dps": {
+				"180": 0.0559529096807445,
+				"40": 0.0559529096807445,
+				"60": 0.0559529096807445,
+				"90": 0.0559529096807445
+			},
+			"wheels_to_air_jump_deg": 8.54417220826138,
+			"yaw_rel_deg_phys": [
+				0.0,
+				0.0
+			],
+			"yaw_rel_deg_vis": [
+				0.0,
+				0.0
+			]
+		},
+		"pull_full": {
+			"airspeed_kmh": [
+				68.3938064575195,
+				100.144953918457
+			],
+			"bar_deg_phys": [
+				0.51103213283544,
+				6.47531546839025
+			],
+			"bar_deg_vis": [
+				0.511035713069818,
+				6.47531546839025
+			],
+			"cart_phys_rate_dps_max": 18.9910533722234,
+			"cart_phys_rate_dps_p99": 11.6295952798984,
+			"duration_s": 20.0,
+			"finite": true,
+			"mast_normal_deg_max_phys": 3.63651736506714,
+			"mast_normal_deg_max_vis": 3.63651736506714,
+			"roll_rel_deg_phys": [
+				0.0,
+				0.0
+			],
+			"roll_rel_deg_vis": [
+				0.0,
+				0.0
+			],
+			"throttle": "full",
+			"vis_lag_deg_max": 0.0559529096807445,
+			"vis_lag_deg_max_by_limit_dps": {
+				"180": 0.0559529096807445,
+				"40": 0.0559529096807445,
+				"60": 0.0559529096807445,
+				"90": 0.0559529096807445
+			},
+			"wheels_to_air_jump_deg": 8.54417220826138,
+			"yaw_rel_deg_phys": [
+				0.0,
+				0.0
+			],
+			"yaw_rel_deg_vis": [
+				0.0,
+				0.0
+			]
+		},
+		"push_full": {
+			"airspeed_kmh": [
+				20.0522083282471,
+				95.5227996826172
+			],
+			"bar_deg_phys": [
+				3.972682264704,
+				14.5039507561505
+			],
+			"bar_deg_vis": [
+				-63.8668452731541,
+				24.7728887925731
+			],
+			"cart_phys_rate_dps_max": 97.7632253971923,
+			"cart_phys_rate_dps_p99": 95.1930871111058,
+			"duration_s": 20.0,
+			"finite": true,
+			"mast_normal_deg_max_phys": 11.6651511636442,
+			"mast_normal_deg_max_vis": 66.7056423401497,
+			"roll_rel_deg_phys": [
+				0.0,
+				0.0
+			],
+			"roll_rel_deg_vis": [
+				0.0,
+				0.0
+			],
+			"throttle": "full",
+			"vis_lag_deg_max": 78.2032412794906,
+			"vis_lag_deg_max_by_limit_dps": {
+				"180": 0.0559529096807445,
+				"40": 45.1858506995551,
+				"60": 21.6294537428137,
+				"90": 1.72601078793361
+			},
+			"wheels_to_air_jump_deg": 8.54417220826138,
+			"yaw_rel_deg_phys": [
+				0.0,
+				0.0
+			],
+			"yaw_rel_deg_vis": [
+				0.0,
+				0.0
+			]
+		},
+		"reversal45": {
+			"airspeed_kmh": [
+				72.0808731079102,
+				105.525096130371
+			],
+			"bar_deg_phys": [
+				3.19406631736438,
+				4.52876624127764
+			],
+			"bar_deg_vis": [
+				-3.63902969142987,
+				48.032745779975
+			],
+			"cart_phys_rate_dps_max": 65.615625257112,
+			"cart_phys_rate_dps_p99": 61.5382328414989,
+			"duration_s": 32.0,
+			"finite": true,
+			"mast_normal_deg_max_phys": 10.2288861783692,
+			"mast_normal_deg_max_vis": 65.3476982803136,
+			"roll_rel_deg_phys": [
+				-10.2069665498782,
+				6.72388106870508
+			],
+			"roll_rel_deg_vis": [
+				-65.7074410561868,
+				62.3344015084492
+			],
+			"throttle": "half",
+			"vis_lag_deg_max": 69.7007212723353,
+			"vis_lag_deg_max_by_limit_dps": {
+				"180": 0.0559529096807445,
+				"40": 9.91655101913464,
+				"60": 0.75381388110931,
+				"90": 0.0559529096807445
+			},
+			"wheels_to_air_jump_deg": 8.54417220826138,
+			"yaw_rel_deg_phys": [
+				-0.00000685013093179488,
+				0.00000513759819884617
+			],
+			"yaw_rel_deg_vis": [
+				-41.1442720373524,
+				40.9988942090165
+			]
+		},
+		"reversal45_idle": {
+			"airspeed_kmh": [
+				69.9019683837891,
+				103.766473388672
+			],
+			"bar_deg_phys": [
+				3.20540996324345,
+				4.53968385813381
+			],
+			"bar_deg_vis": [
+				-3.14956516094169,
+				65.5556640009968
+			],
+			"cart_phys_rate_dps_max": 77.7246221767044,
+			"cart_phys_rate_dps_p99": 72.316085656011,
+			"duration_s": 32.0,
+			"finite": true,
+			"mast_normal_deg_max_phys": 11.7537318869901,
+			"mast_normal_deg_max_vis": 59.5590924681603,
+			"roll_rel_deg_phys": [
+				-11.7469079912984,
+				8.14502245248015
+			],
+			"roll_rel_deg_vis": [
+				-59.8439828309494,
+				58.7662280748307
+			],
+			"throttle": "idle",
+			"vis_lag_deg_max": 67.8659343857839,
+			"vis_lag_deg_max_by_limit_dps": {
+				"180": 0.0559529096807445,
+				"40": 12.328800517933,
+				"60": 3.78682464237656,
+				"90": 0.0559529096807445
+			},
+			"wheels_to_air_jump_deg": 8.54417220826138,
+			"yaw_rel_deg_phys": [
+				-0.00000513759850596497,
+				0.00000513759850596497
+			],
+			"yaw_rel_deg_vis": [
+				-48.5511658502295,
+				58.3632712017753
+			]
+		},
+		"roll_pump": {
+			"airspeed_kmh": [
+				78.9245452880859,
+				125.685420227051
+			],
+			"bar_deg_phys": [
+				1.99196212580039,
+				5.13012125786693
+			],
+			"bar_deg_vis": [
+				0.27565125292572,
+				148.137047823069
+			],
+			"cart_phys_rate_dps_max": 118.695518316328,
+			"cart_phys_rate_dps_p99": 115.324089984459,
+			"duration_s": 20.0,
+			"finite": true,
+			"mast_normal_deg_max_phys": 11.0179062161945,
+			"mast_normal_deg_max_vis": 131.550153754119,
+			"roll_rel_deg_phys": [
+				-10.9695400444298,
+				10.9941089719932
+			],
+			"roll_rel_deg_vis": [
+				-179.723187458883,
+				179.444897788343
+			],
+			"throttle": "full",
+			"vis_lag_deg_max": 143.314471580549,
+			"vis_lag_deg_max_by_limit_dps": {
+				"180": 0.0559529096807445,
+				"40": 41.333986007694,
+				"60": 19.4758199654278,
+				"90": 6.23404086774393
+			},
+			"wheels_to_air_jump_deg": 8.54417220826138,
+			"yaw_rel_deg_phys": [
+				-0.00000513759850596497,
+				0.0000051375978917274
+			],
+			"yaw_rel_deg_vis": [
+				-0.00207094028884723,
+				160.065849600193
+			]
+		},
+		"roll_pump_idle": {
+			"airspeed_kmh": [
+				76.1874664306641,
+				89.3662811279297
+			],
+			"bar_deg_phys": [
+				3.25584071060325,
+				5.14673298977864
+			],
+			"bar_deg_vis": [
+				-1.97595847516992,
+				21.9967029879181
+			],
+			"cart_phys_rate_dps_max": 83.5934856998131,
+			"cart_phys_rate_dps_p99": 78.4463255776173,
+			"duration_s": 20.0,
+			"finite": true,
+			"mast_normal_deg_max_phys": 12.277542509533,
+			"mast_normal_deg_max_vis": 36.7698452835217,
+			"roll_rel_deg_phys": [
+				-11.4911545154686,
+				12.2576198090439
+			],
+			"roll_rel_deg_vis": [
+				-35.362850024153,
+				21.6007286493702
+			],
+			"throttle": "idle",
+			"vis_lag_deg_max": 48.5221283166341,
+			"vis_lag_deg_max_by_limit_dps": {
+				"180": 0.0559529096807445,
+				"40": 19.7447364658822,
+				"60": 6.57837717078731,
+				"90": 0.0559529096807445
+			},
+			"wheels_to_air_jump_deg": 8.54417220826138,
+			"yaw_rel_deg_phys": [
+				-0.0000051375978917274,
+				0.00000856266315287896
+			],
+			"yaw_rel_deg_vis": [
+				-0.00238596616005865,
+				26.043464910466
+			]
+		},
+		"throttle_step": {
+			"airspeed_kmh": [
+				40.9886169433594,
+				92.2244018554688
+			],
+			"bar_deg_phys": [
+				3.78890004129003,
+				4.53968385813381
+			],
+			"bar_deg_vis": [
+				-9.9235858851338,
+				4.53968385813381
+			],
+			"cart_phys_rate_dps_max": 33.2343654127427,
+			"cart_phys_rate_dps_p99": 32.5490455757648,
+			"duration_s": 35.0,
+			"finite": true,
+			"mast_normal_deg_max_phys": 1.70088433624613,
+			"mast_normal_deg_max_vis": 12.7623834877663,
+			"roll_rel_deg_phys": [
+				0.0,
+				0.0
+			],
+			"roll_rel_deg_vis": [
+				0.0,
+				0.0
+			],
+			"throttle": "0 -> 1 on 5 s -> 0",
+			"vis_lag_deg_max": 14.1516396960787,
+			"vis_lag_deg_max_by_limit_dps": {
+				"180": 0.0559529096807445,
+				"40": 0.0559529096807445,
+				"60": 0.0559529096807445,
+				"90": 0.0559529096807445
+			},
+			"wheels_to_air_jump_deg": 8.54417220826138,
+			"yaw_rel_deg_phys": [
+				0.0,
+				0.0
+			],
+			"yaw_rel_deg_vis": [
+				0.0,
+				0.0
+			]
+		},
+		"trim_full": {
+			"airspeed_kmh": [
+				53.2491188049316,
+				92.5446327209473
+			],
+			"bar_deg_phys": [
+				3.78581624505561,
+				4.51784685872134
+			],
+			"bar_deg_vis": [
+				3.78581802576039,
+				4.51784713307731
+			],
+			"cart_phys_rate_dps_max": 18.9910533722234,
+			"cart_phys_rate_dps_p99": 14.2432880281355,
+			"duration_s": 30.0,
+			"finite": true,
+			"mast_normal_deg_max_phys": 1.67904736769596,
+			"mast_normal_deg_max_vis": 1.67904907524325,
+			"roll_rel_deg_phys": [
+				0.0,
+				0.0
+			],
+			"roll_rel_deg_vis": [
+				0.0,
+				0.0
+			],
+			"throttle": "full",
+			"vis_lag_deg_max": 0.0559529096807445,
+			"vis_lag_deg_max_by_limit_dps": {
+				"180": 0.0559529096807445,
+				"40": 0.0559529096807445,
+				"60": 0.0559529096807445,
+				"90": 0.0559529096807445
+			},
+			"wheels_to_air_jump_deg": 8.54417220826138,
+			"yaw_rel_deg_phys": [
+				0.0,
+				0.0
+			],
+			"yaw_rel_deg_vis": [
+				0.0,
+				0.0
+			]
+		},
+		"turn30_half": {
+			"airspeed_kmh": [
+				68.6007614135742,
+				87.634513092041
+			],
+			"bar_deg_phys": [
+				3.78734068615759,
+				4.52876624127764
+			],
+			"bar_deg_vis": [
+				3.78733890547941,
+				4.52876447366861
+			],
+			"cart_phys_rate_dps_max": 22.7694756012603,
+			"cart_phys_rate_dps_p99": 22.2689870865253,
+			"duration_s": 25.0,
+			"finite": true,
+			"mast_normal_deg_max_phys": 3.98185984035263,
+			"mast_normal_deg_max_vis": 3.9818594134658,
+			"roll_rel_deg_phys": [
+				-3.80303635873114,
+				2.53006644673182
+			],
+			"roll_rel_deg_vis": [
+				-3.80303507476625,
+				2.53006216111556
+			],
+			"throttle": "half",
+			"vis_lag_deg_max": 0.907413149516114,
+			"vis_lag_deg_max_by_limit_dps": {
+				"180": 0.0559529096807445,
+				"40": 0.0559529096807445,
+				"60": 0.0559529096807445,
+				"90": 0.0559529096807445
+			},
+			"wheels_to_air_jump_deg": 8.54417220826138,
+			"yaw_rel_deg_phys": [
+				-0.00000513759850596497,
+				0.00000685013093179488
+			],
+			"yaw_rel_deg_vis": [
+				-0.0000171253263057575,
+				0.737261825815056
+			]
+		},
+		"turn30_idle": {
+			"airspeed_kmh": [
+				68.3500122070313,
+				85.8340118408203
+			],
+			"bar_deg_phys": [
+				3.78890004129003,
+				4.53968385813381
+			],
+			"bar_deg_vis": [
+				3.78890004129003,
+				4.53968385813381
+			],
+			"cart_phys_rate_dps_max": 23.2591985639247,
+			"cart_phys_rate_dps_p99": 21.7569870349962,
+			"duration_s": 25.0,
+			"finite": true,
+			"mast_normal_deg_max_phys": 4.26205511756088,
+			"mast_normal_deg_max_vis": 4.26205042180583,
+			"roll_rel_deg_phys": [
+				-4.08580162043599,
+				0.774453474525299
+			],
+			"roll_rel_deg_vis": [
+				-4.0857967304886,
+				0.774454715026331
+			],
+			"throttle": "idle",
+			"vis_lag_deg_max": 1.0497842806185,
+			"vis_lag_deg_max_by_limit_dps": {
+				"180": 0.0559529096807445,
+				"40": 0.0559529096807445,
+				"60": 0.0559529096807445,
+				"90": 0.0559529096807445
+			},
+			"wheels_to_air_jump_deg": 8.54417220826138,
+			"yaw_rel_deg_phys": [
+				-0.00000685013093179488,
+				0.00000685012970331996
+			],
+			"yaw_rel_deg_vis": [
+				-0.0000171253263057575,
+				0.838488814198981
+			]
+		},
+		"turn45_full": {
+			"airspeed_kmh": [
+				69.5822250366211,
+				102.712397003174
+			],
+			"bar_deg_phys": [
+				3.76635744784875,
+				4.51784685872134
+			],
+			"bar_deg_vis": [
+				3.78581802576039,
+				48.8723587464332
+			],
+			"cart_phys_rate_dps_max": 69.9391990347536,
+			"cart_phys_rate_dps_p99": 64.4020073633066,
+			"duration_s": 25.0,
+			"finite": true,
+			"mast_normal_deg_max_phys": 10.4364069621481,
+			"mast_normal_deg_max_vis": 36.8117553242689,
+			"roll_rel_deg_phys": [
+				-10.4066828074893,
+				10.3425877636625
+			],
+			"roll_rel_deg_vis": [
+				-4.46897367570012,
+				26.1605351588197
+			],
+			"throttle": "full",
+			"vis_lag_deg_max": 54.6024617535225,
+			"vis_lag_deg_max_by_limit_dps": {
+				"180": 0.0559529096807445,
+				"40": 14.2145278090879,
+				"60": 2.21452320628926,
+				"90": 0.0559529096807445
+			},
+			"wheels_to_air_jump_deg": 8.54417220826138,
+			"yaw_rel_deg_phys": [
+				-0.00000513759850596497,
+				0.0000059938642070153
+			],
+			"yaw_rel_deg_vis": [
+				-0.00000342506526115161,
+				47.1313014936738
+			]
+		},
+		"turn45_half": {
+			"airspeed_kmh": [
+				71.581111907959,
+				102.174156188965
+			],
+			"bar_deg_phys": [
+				3.78734068615759,
+				4.52876624127764
+			],
+			"bar_deg_vis": [
+				3.78733890547941,
+				51.88411851676
+			],
+			"cart_phys_rate_dps_max": 35.8448573102192,
+			"cart_phys_rate_dps_p99": 35.2103828955268,
+			"duration_s": 25.0,
+			"finite": true,
+			"mast_normal_deg_max_phys": 5.72725064972592,
+			"mast_normal_deg_max_vis": 39.6192499410893,
+			"roll_rel_deg_phys": [
+				-5.61479696877592,
+				3.42196622281203
+			],
+			"roll_rel_deg_vis": [
+				-5.97803735740881,
+				17.8719641735227
+			],
+			"throttle": "half",
+			"vis_lag_deg_max": 55.5766516348414,
+			"vis_lag_deg_max_by_limit_dps": {
+				"180": 0.0559529096807445,
+				"40": 0.0559529096807445,
+				"60": 0.0559529096807445,
+				"90": 0.0559529096807445
+			},
+			"wheels_to_air_jump_deg": 8.54417220826138,
+			"yaw_rel_deg_phys": [
+				-0.00000685013052230319,
+				0.00000513759850596497
+			],
+			"yaw_rel_deg_vis": [
+				-0.0000059938642070153,
+				46.7224991836052
+			]
+		},
+		"turn45_idle": {
+			"airspeed_kmh": [
+				68.7548377990723,
+				100.785065460205
+			],
+			"bar_deg_phys": [
+				3.78890004129003,
+				4.53968385813381
+			],
+			"bar_deg_vis": [
+				3.62814374767208,
+				70.5921334566735
+			],
+			"cart_phys_rate_dps_max": 34.2366327076357,
+			"cart_phys_rate_dps_p99": 33.9058349067443,
+			"duration_s": 25.0,
+			"finite": true,
+			"mast_normal_deg_max_phys": 6.080667262384,
+			"mast_normal_deg_max_vis": 51.7054575076291,
+			"roll_rel_deg_phys": [
+				-5.96756990319017,
+				1.21677932095721
+			],
+			"roll_rel_deg_vis": [
+				-8.30586092621816,
+				20.1792313517054
+			],
+			"throttle": "idle",
+			"vis_lag_deg_max": 71.7956290832374,
+			"vis_lag_deg_max_by_limit_dps": {
+				"180": 0.0559529096807445,
+				"40": 0.0559529096807445,
+				"60": 0.0559529096807445,
+				"90": 0.0559529096807445
+			},
+			"wheels_to_air_jump_deg": 8.54417220826138,
+			"yaw_rel_deg_phys": [
+				-0.00000513759819884617,
+				0.00000513759850596497
+			],
+			"yaw_rel_deg_vis": [
+				-0.000000856266417660831,
+				66.8383888898896
+			]
+		}
+	},
+	"version": 1
+}
