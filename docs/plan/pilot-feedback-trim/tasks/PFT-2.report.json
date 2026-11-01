@@ -1,0 +1,71 @@
+{
+  "status": "done",
+  "summary": "Вердикт config: по умолчанию ход до упора 2500 отсч. = 2 см при 3200 DPI (1 мм = 5 % хода); отклик модели на штангу не быстрее норм (перекладка 45→45 3,6–4,7 с при HGMA <=4 с, DHV 5 с). Предложено bar_travel_px 2500->4000 и bar_sensitivity_range [0,25;4]->[0,1;4].",
+  "commits": [
+    "88b869fc7 PFT-2: мышь и отклик крыла — записка, замеры, вердикт config"
+  ],
+  "checks": [
+    {
+      "name": "note",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "verdict",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "sport перекладка 45->45, с",
+      "value": "4.28",
+      "pass": true
+    },
+    {
+      "name": "DPI пилотов из 7-8 см при x0,25",
+      "value": "3200-3600",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Данные Cook/Kilkenny/de Matteis по времени перекладки не найдены; формула HGMA недоступна; для 30->30 числовой нормы нет"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept PFT-2",
+  "uncertain": [
+    {
+      "where": "docs/research/pilot-feedback-trim/mouse.md#1",
+      "why": "DPI пилотов оценён по словам '7-8 см при x0,25'; '~800 px' не объяснено; статистика DPI слабая (блоги)",
+      "checked": "формула ход=px/(DPI/2,54); ограничено таблицей"
+    },
+    {
+      "where": "docs/research/pilot-feedback-trim/mouse.md#2",
+      "why": "перекладка 45->45 у модели на уровне нормативного предела (до 4,7 с у training): топлесс в реальности быстрее, возможна вялость модели — не исследовано (не входит: ПИД-пилот, штиль)",
+      "checked": "5 крыльев, 30 и 45 градусов"
+    },
+    {
+      "where": "mouse.md#4",
+      "why": "значения 4000 и 0,1 — компромисс без статистики DPI",
+      "checked": "таблица ходов 400-6400 DPI"
+    }
+  ],
+  "dp_feedback": "Нужен автоподстановщик frontmatter (summary/updated) для README в tools; docs check падал на них. Первый --import не уложился в 120 с foreground.",
+  "extra": {
+    "travel_cm_3200dpi_default": 2.0,
+    "pilots_dpi_est": 3400,
+    "reversal45_s": {
+      "sport": 4.28,
+      "litespeed_rx": 4.17,
+      "t2c": 4.33,
+      "u2": 3.64,
+      "training": 4.65
+    }
+  },
+  "t": "2026-11-02T02:29:52",
+  "by": "executor"
+}
