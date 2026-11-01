@@ -49,7 +49,8 @@ related: ["docs/contracts/pilot-feedback-trim.md", "docs/contracts/bar-mouse.md"
 - **PFT-3** итог: ход мыши 4000, слайдер от ×0,1 (PFT-К1 v2), guide и CHANGELOG — в той же задаче. П. 2 (X) — без правки (решение 2026-11-02).
 - **PFT-4** (dp-researcher) — по Q1 (а): переход ноги → подвеска после отрыва, физична ли раскачка тангажа при штанге в нейтрали; правка — по итогам. Подвеска и трим крыльев не меняются (Q1).
   Приёмка: записка `docs/research/pilot-feedback-trim/liftoff.md`, verdict `out/PFT-4_verdict.json`.
-- **PFT-5** (dp-writer) — `registry/findings.md` (строки PFT-1/2/4), если нужно — guide. После PFT-4.
+- **PFT-4** итог: none — раскачка после отрыва физична (Q2 (а), 2026-11-02: ничего не менять).
+- **PFT-5** (dp-writer) — `registry/findings.md` (строки PFT-1/2/4); guide не меняется (поведение игры по пп. 1–2 прежнее).
 
 ## 5. Волны
 

@@ -1,0 +1,50 @@
+{
+  "id": "PFT-5",
+  "module": "pilot-feedback-trim",
+  "type": "dp-writer",
+  "title": "Выводы модуля в реестр находок",
+  "goal": "Записать выводы PFT-1, PFT-2, PFT-4 строками в новый файл docs/registry/findings/pilot-feedback-trim.md со ссылкой из docs/registry/findings.md; числа — только из записок.",
+  "plan_ref": "§4 PFT-5",
+  "contracts": [
+    {
+      "name": "PFT-К2",
+      "version": "1",
+      "ref": "docs/contracts/pilot-feedback-trim.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/pilot-feedback-trim-PFT-5",
+  "branch": "pilot-feedback-trim/PFT-5",
+  "base": "feature/pilot-feedback-trim",
+  "scope": [
+    "docs/registry/findings/pilot-feedback-trim.md",
+    "docs/registry/findings.md",
+    "docs/INDEX.md"
+  ],
+  "dont_touch": [
+    "docs/research/",
+    "docs/guide/",
+    "scripts/",
+    "configs/",
+    "CHANGELOG.md"
+  ],
+  "accept": [
+    {
+      "name": "file",
+      "cmd": "test -s docs/registry/findings/pilot-feedback-trim.md && grep -c '^- ' docs/registry/findings/pilot-feedback-trim.md",
+      "expect": "num:(\\d+) >=4"
+    },
+    {
+      "name": "link",
+      "cmd": "grep -c 'findings/pilot-feedback-trim.md' docs/registry/findings.md",
+      "expect": "num:(\\d+) >=1"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-02T04:25:35"
+}
