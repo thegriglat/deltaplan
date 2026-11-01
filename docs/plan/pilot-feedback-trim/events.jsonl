@@ -58,3 +58,5 @@
 {"t": "2026-11-02T04:21:50", "by": "executor", "task": "PFT-4", "ev": "reported", "commits": ["PFT-4:"], "note": "done: Раскачка после отрыва физична в рамках модели: это фугоида от состояния (ΔV от трима, Δγ траектории) на передаче рук со…", "dp_feedback": "Вставка sleep в одну команду блокируется, а lock cpu в foreground ушёл в фон и вернул пустой вывод без файлов — пришлось запускать через job start. В docs check лимит summary 140 символов виден только после прогона — желательно в docs init -h/шаблоне."}
 {"t": "2026-11-02T04:22:05", "by": "coordinator", "task": "PFT-4", "ev": "checked", "note": "3/3 note=ok:exit 0; verdict=ok:ok; docs=ok:exit 0"}
 {"t": "2026-11-02T04:22:28", "by": "coordinator", "task": "PFT-4", "ev": "accepted", "note": "по отчёту: исследование, код игры не менялся; варианты правки — шлюз Q2"}
+{"t": "2026-11-02T04:22:29", "by": "coordinator", "task": "PFT-4", "ev": "accepted", "commits": ["04bad658a"], "note": "3/3 note=ok:exit 0; verdict=ok:ok; docs=ok:exit 0"}
+{"t": "2026-11-02T04:22:29", "by": "coordinator", "task": "PFT-4", "ev": "merged", "note": "04bad658a"}
