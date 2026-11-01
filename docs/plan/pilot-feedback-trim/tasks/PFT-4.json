@@ -1,0 +1,57 @@
+{
+  "id": "PFT-4",
+  "module": "pilot-feedback-trim",
+  "type": "dp-researcher",
+  "title": "Переход после отрыва: физична ли раскачка тангажа при штанге в нейтрали (Q1 (а))",
+  "goal": "Разобрать по шагам, откуда после отрыва при штанге в нейтрали раскачка тангажа (θ до 9–12° у sport, 17–23° у ww_t2c, затухание 30–40 с), и ответить, физична ли она и её размах; при нефизичной части — место в коде и предложение правки с замером (verdict по PFT-К2).",
+  "plan_ref": "§6 шлюз Q1",
+  "contracts": [
+    {
+      "name": "PFT-К1",
+      "version": "2",
+      "ref": "docs/contracts/pilot-feedback-trim.md"
+    },
+    {
+      "name": "PFT-К2",
+      "version": "1",
+      "ref": "docs/contracts/pilot-feedback-trim.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/pilot-feedback-trim-PFT-4",
+  "branch": "pilot-feedback-trim/PFT-4",
+  "base": "feature/pilot-feedback-trim",
+  "scope": [
+    "docs/research/pilot-feedback-trim/liftoff.md",
+    "tools/research/pilot-feedback-trim/liftoff/",
+    "tools/research/pilot-feedback-trim/out/PFT-4_verdict.json"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "project.godot",
+    "docs/guide/",
+    "rust/",
+    "tools/research/pilot-feedback-trim/longitudinal/"
+  ],
+  "accept": [
+    {
+      "name": "note",
+      "cmd": "test -s docs/research/pilot-feedback-trim/liftoff.md && test -s tools/research/pilot-feedback-trim/liftoff/README.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "verdict",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/pilot-feedback-trim/out/PFT-4_verdict.json'));it=d['items'];assert d['task']=='PFT-4';assert [i['item'] for i in it]==[1];assert all(i['verdict'] in ('physics','config','none') and len(i['evidence'])>=3 for i in it);print('ok')\"",
+      "expect": "re:^ok"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-02T04:08:38"
+}

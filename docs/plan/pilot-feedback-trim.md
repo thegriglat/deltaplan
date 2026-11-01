@@ -46,10 +46,14 @@ related: ["docs/contracts/pilot-feedback-trim.md", "docs/contracts/bar-mouse.md"
   Приёмка: записка `docs/research/pilot-feedback-trim/mouse.md`, данные — `tools/research/pilot-feedback-trim/`.
 - **PFT-3** (dp-engineer) — правка по выводам PFT-1/2, только конфиги и их тесты (PFT-К1 → v2 до запуска). Карточка —
   после итогов PFT-1/2.
-- **PFT-4** (dp-writer) — `docs/guide`, `registry/findings.md`, CHANGELOG «В работе». Может войти в PFT-3.
+- **PFT-3** итог: ход мыши 4000, слайдер от ×0,1 (PFT-К1 v2), guide и CHANGELOG — в той же задаче. П. 2 (X) — без правки (решение 2026-11-02).
+- **PFT-4** (dp-researcher) — по Q1 (а): переход ноги → подвеска после отрыва, физична ли раскачка тангажа при штанге в нейтрали; правка — по итогам. Подвеска и трим крыльев не меняются (Q1).
+  Приёмка: записка `docs/research/pilot-feedback-trim/liftoff.md`, verdict `out/PFT-4_verdict.json`.
+- **PFT-5** (dp-writer) — `registry/findings.md` (строки PFT-1/2/4), если нужно — guide. После PFT-4.
 
 ## 5. Волны
-1: PFT-1, PFT-2 параллельно. 2: PFT-3 (+ PFT-4) по итогам или шлюз.
+
+1: PFT-1, PFT-2 параллельно. 2: PFT-3 (мышь) + шлюз Q1 по п. 1. 3: PFT-4 (отрыв) → правка по итогам или шлюз; PFT-5.
 
 ## 6. Условия остановки (шлюз)
 Причина в физике/коде модели (регрессия коммитом, нейтраль рук, демпфирование) — шлюз с вариантами до правки.
