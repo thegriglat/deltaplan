@@ -1,0 +1,30 @@
+{"task": "PFT-1", "items": [
+  {"item": 1, "verdict": "none",
+   "cause": "Трим на нейтрали паспортный (эталонная масса +0,3 км/ч), регресса по тегам нет; дефицит из-за массы пилота 85 кг у безмачтовых <= 0,75 см подвески; +2...+4 см = +3...+7 км/ч над паспортом; 'кабрирует' = theta 6-9 градусов (alpha трима) и фугоида после отрыва (theta до 12-23 градусов).",
+   "evidence": [
+     {"what": "нейтраль (ввод 0) минус паспорт, эталонная масса, безмачтовые (15), максимум по крыльям", "value": 0.39, "unit": "км/ч", "ref": "docs/research/pilot-feedback-trim/longitudinal.md#2-а-установившийся-режим-при-вводе-0"},
+     {"what": "нейтраль минус паспорт, масса игры 85 кг, moyes_litespeed_rx (худшее безмачтовое)", "value": -1.27, "unit": "км/ч", "ref": "docs/research/pilot-feedback-trim/longitudinal.md#2-а-установившийся-режим-при-вводе-0"},
+     {"what": "сдвиг подвески до паспорта у худшего безмачтового (moyes_litespeed_rx)", "value": 0.72, "unit": "см", "ref": "docs/research/pilot-feedback-trim/longitudinal.md#2-а-установившийся-режим-при-вводе-0"},
+     {"what": "sport: прибавка скорости за +4 см относительно нейтрали (35,8 -> 42,0)", "value": 6.2, "unit": "км/ч", "ref": "docs/research/pilot-feedback-trim/longitudinal.md#2-а-установившийся-режим-при-вводе-0"},
+     {"what": "брошенная ручка минус нейтраль, среднее безмачтовых", "value": -0.09, "unit": "км/ч", "ref": "docs/research/pilot-feedback-trim/longitudinal.md#2-а-установившийся-режим-при-вводе-0"},
+     {"what": "ww_t2c после отрыва со склона 17: максимум тангажа (V мин 29,3 км/ч при трим 35,5)", "value": 23.3, "unit": "град", "ref": "docs/research/pilot-feedback-trim/longitudinal.md#3-б-переход-после-старта"},
+     {"what": "sport после отрыва со склона 12: максимум тангажа (training 10,1)", "value": 11.2, "unit": "град", "ref": "docs/research/pilot-feedback-trim/longitudinal.md#3-б-переход-после-старта"},
+     {"what": "рост kmh_per_cm_hang sport v1.5.20 -> v1.5.21 (VM-4 cbe15a5a8), трим на нейтрали не менялся", "value": 60, "unit": "%", "ref": "docs/research/pilot-feedback-trim/longitudinal.md#5-регрессия-по-версиям-5-крыльев-outversions_tabletxt"}
+   ],
+   "proposal": []},
+  {"item": 2, "verdict": "config",
+   "cause": "X равносильна мгновенному отпусканию штанги (постоянная 0,2 с много меньше периода 5 с); качает фугоида безмачтовых с малым демпфированием (zeta 0,03-0,04 против 0,07-0,08 у учебного и Апогея, T около 5,3 с, в пределах Cook); конфиг лишь снижает амплитуду первых колебаний, затухание не меняет.",
+   "evidence": [
+     {"what": "sport, X из хода -0,4: логарифмический декремент за период", "value": 0.22, "unit": "1", "ref": "docs/research/pilot-feedback-trim/longitudinal.md#4-в-x-и-отпускание-штанги"},
+     {"what": "sport, X из хода -0,4: zeta (training 0,070, apogee 0,080)", "value": 0.034, "unit": "1", "ref": "docs/research/pilot-feedback-trim/longitudinal.md#4-в-x-и-отпускание-штанги"},
+     {"what": "sport: период фугоиды после X", "value": 5.1, "unit": "с", "ref": "docs/research/pilot-feedback-trim/longitudinal.md#4-в-x-и-отпускание-штанги"},
+     {"what": "sport, X из хода -0,4: размах скорости за первые 10 с", "value": 22.5, "unit": "км/ч", "ref": "docs/research/pilot-feedback-trim/longitudinal.md#4-в-x-и-отпускание-штанги"},
+     {"what": "sport: остаточный размах V за последние 30 с из 90 после X (training 0,05)", "value": 1.72, "unit": "км/ч", "ref": "docs/research/pilot-feedback-trim/longitudinal.md#4-в-x-и-отпускание-штанги"},
+     {"what": "sport, center_time_s 2 с вместо 0,2: размах theta за 10 с (37,9 -> 24,2)", "value": -36, "unit": "%", "ref": "docs/research/pilot-feedback-trim/longitudinal.md#4-в-x-и-отпускание-штанги"},
+     {"what": "sport, center_time_s 2 с: размах V за 10 с (22,5 -> 17,2)", "value": -24, "unit": "%", "ref": "docs/research/pilot-feedback-trim/longitudinal.md#4-в-x-и-отпускание-штанги"},
+     {"what": "ζ по Cook & Spottiswoode (Hiway Demon), слабо неустойчива", "value": -0.08, "unit": "1", "ref": "docs/research/pendulum/prototype.md"}
+   ],
+   "proposal": [
+     {"key": "configs/controls.json → keyboard.center_time_s", "from": 0.2, "to": 2.0, "why": "режет размах theta за 10 с на 31-53 % и V на 17-32 % у пяти проверенных крыльев; затухание фугоиды не меняет (физика, ζ безмачтовых 0,03-0,04); влияние на возврат крена при X не проверено на игроке"}
+   ]}
+]}
