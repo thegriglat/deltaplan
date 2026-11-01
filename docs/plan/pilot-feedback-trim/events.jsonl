@@ -55,3 +55,6 @@
 {"t": "2026-11-02T04:09:16", "by": "coordinator", "task": "PFT-4", "ev": "started", "note": "dp-researcher (sonnet), по Q1 (а)"}
 {"t": "2026-11-02T04:09:16", "by": "coordinator", "task": null, "ev": "plan", "note": "план 4. Задачи: замена «- **PFT-4** (dp-writer) …»"}
 {"t": "2026-11-02T04:09:17", "by": "coordinator", "task": null, "ev": "plan", "note": "план 5. Волны: тело заменено (1 стр.)"}
+{"t": "2026-11-02T04:21:50", "by": "executor", "task": "PFT-4", "ev": "reported", "commits": ["PFT-4:"], "note": "done: Раскачка после отрыва физична в рамках модели: это фугоида от состояния (ΔV от трима, Δγ траектории) на передаче рук со…", "dp_feedback": "Вставка sleep в одну команду блокируется, а lock cpu в foreground ушёл в фон и вернул пустой вывод без файлов — пришлось запускать через job start. В docs check лимит summary 140 символов виден только после прогона — желательно в docs init -h/шаблоне."}
+{"t": "2026-11-02T04:22:05", "by": "coordinator", "task": "PFT-4", "ev": "checked", "note": "3/3 note=ok:exit 0; verdict=ok:ok; docs=ok:exit 0"}
+{"t": "2026-11-02T04:22:28", "by": "coordinator", "task": "PFT-4", "ev": "accepted", "note": "по отчёту: исследование, код игры не менялся; варианты правки — шлюз Q2"}
