@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-30"
+updated: "2026-11-02"
 summary: "Точка входа: модули docs/ по подпроектам, прочие документы по типам."
 related: []
 generated: true
@@ -161,6 +161,14 @@ generated: true
   - [tools/research/trike-pilot/README.md](../tools/research/trike-pilot/README.md) — Замеры дельталёта: скорость от хода штанги (TP-17), качания на газу и линия тяги (TP-19).
   - [tools/research/trike-pilot/tug/README.md](../tools/research/trike-pilot/tug/README.md) — TP-23: прогоны связки буксировщик + sport на тросе с подменой линии тяги, хода штанги, площади крыла, тяги и массы.
 - **trike-cockpit** — Приборы дельталёта в виде от первого лица (кабина) ничего не показывают — найти причину и исправить. [closed 2026-10-24] — [план](plan/trike-cockpit.md) · [контракты](contracts/trike-cockpit.md) · [решения](plan/trike-cockpit/decisions.md) · [сводка](plan/trike-cockpit/summary.md) · полный журнал: `archive/trike-cockpit`
+- **pilot-feedback-trim** — Отзыв пилотов 2026-11-01: кабрирование на нейтрали, маятник после X, дёрганая мышь — сначала замер «физика или конфиг», потом правка. [closed 2026-11-02] — [план](plan/pilot-feedback-trim.md) · [контракты](contracts/pilot-feedback-trim.md) · [решения](plan/pilot-feedback-trim/decisions.md) · [сводка](plan/pilot-feedback-trim/summary.md) · полный журнал: `archive/pilot-feedback-trim`
+  - [docs/registry/findings/pilot-feedback-trim.md](registry/findings/pilot-feedback-trim.md) — Выводы pilot-feedback-trim: трим паспортный, раскачка после отрыва и после X — фугоида, дёрганье мышью — чувствительность.
+  - [docs/research/pilot-feedback-trim/liftoff.md](research/pilot-feedback-trim/liftoff.md) — Раскачка после отрыва — фугоида от ΔV и Δγ на передаче рук, рывка нет; у ww_t2c вдвое больше из-за ΔV +4,6 км/ч.
+  - [docs/research/pilot-feedback-trim/longitudinal.md](research/pilot-feedback-trim/longitudinal.md) — Трим на нейтрали паспортный, регресса нет; кабрирование — переход после отрыва; X не хуже ручной отдачи, фугоида безмачтовых ζ 0,03.
+  - [docs/research/pilot-feedback-trim/mouse.md](research/pilot-feedback-trim/mouse.md) — Дёрганье мышью — config: ход до упора 2 см при 3200 DPI; отклик модели не быстрее норм (45→45 3,6–4,7 с)
+  - [tools/research/pilot-feedback-trim/liftoff/README.md](../tools/research/pilot-feedback-trim/liftoff/README.md) — PFT-4: сценарий разбега и отрыва с рядом 1/120 с, подмены α_neutral и момента передачи рук, разбор; воспроизведение.
+  - [tools/research/pilot-feedback-trim/longitudinal/README.md](../tools/research/pilot-feedback-trim/longitudinal/README.md) — PFT-1: скрипты и данные замера трима на нейтрали и фугоиды после X (Godot headless).
+  - [tools/research/pilot-feedback-trim/mouse/README.md](../tools/research/pilot-feedback-trim/mouse/README.md) — Команды воспроизведения замеров отклика Маятника на ход штанги (PFT-2)
 
 ## world
 
