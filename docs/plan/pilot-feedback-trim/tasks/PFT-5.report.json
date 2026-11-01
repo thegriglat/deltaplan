@@ -1,0 +1,38 @@
+{
+  "status": "done",
+  "summary": "Выводы PFT-1, PFT-2, PFT-4 записаны 8 строками в docs/registry/findings/pilot-feedback-trim.md со ссылкой из findings.md; INDEX пересобран. Чтобы findings.md уложился в 40 КБ (40949 -> 40929 Б), сокращены формулировки двух соседних пунктов без потери чисел.",
+  "commits": [
+    "be1212c99 PFT-5: выводы pilot-feedback-trim в реестр находок"
+  ],
+  "checks": [
+    {
+      "name": "file",
+      "value": "8",
+      "pass": true
+    },
+    {
+      "name": "link",
+      "value": "1",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept PFT-5",
+  "uncertain": [
+    {
+      "where": "docs/registry/findings.md",
+      "why": "лимит 40 КБ почти исчерпан (40929 Б); сокращены пункты bar-mouse и указатель haze-humidity",
+      "checked": "числа и ссылки сохранены"
+    }
+  ],
+  "dp_feedback": "docs index переписывает contracts.md и research.md вне скоупа задачи — пришлось откатывать. Лимит размера findings.md мешает даже указателю: нужен авто-вынос или раннее предупреждение.",
+  "t": "2026-11-02T04:27:56",
+  "by": "executor"
+}
