@@ -27,3 +27,7 @@
 {"t": "2026-11-02T02:30:18", "by": "coordinator", "task": "PFT-2", "ev": "accepted", "note": "по отчёту: исследование, код игры не менялся"}
 {"t": "2026-11-02T02:30:27", "by": "coordinator", "task": "PFT-2", "ev": "accepted", "commits": ["725a31b3c"], "note": "3/3 note=ok:exit 0; verdict=ok:ok; docs=ok:exit 0"}
 {"t": "2026-11-02T02:30:27", "by": "coordinator", "task": "PFT-2", "ev": "merged", "note": "725a31b3c"}
+{"t": "2026-11-02T03:35:36", "by": "executor", "task": "PFT-1", "ev": "reported", "commits": ["c5b730bd0"], "note": "done: П. 1 — none: трим на нейтрали паспортный (+0,3 км/ч при эталонной массе у всех 48 крыльев, при 85 кг безмачтовые ниже п…", "dp_feedback": ["lock cpu / job --lock cpu: скрипт, который cd в соседний worktree и запускает godot, молча зависает (замок держится, процессов нет); сообщения об ошибке нет", "job start: 'идёт' остаётся после гибели дочерних процессов; хотелось бы статус по реальному PID дерева", "accept --dry сильно помогает; хотелось бы заготовку r-<ID>.json из report --template с подставленными commit/checks"]}
+{"t": "2026-11-02T03:35:48", "by": "coordinator", "task": "PFT-1", "ev": "checked", "note": "3/3 note=ok:exit 0; verdict=ok:ok; docs=ok:exit 0; scope=FAIL:вне scope: r-PFT-1.json"}
+{"t": "2026-11-02T03:36:32", "by": "coordinator", "task": "PFT-1", "ev": "checked", "note": "3/3 note=ok:exit 0; verdict=ok:ok; docs=ok:exit 0"}
+{"t": "2026-11-02T03:36:36", "by": "coordinator", "task": "PFT-1", "ev": "accepted", "note": "по отчёту: исследование, код игры не менялся; открытое — переход после отрыва — в шлюз"}
