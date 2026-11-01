@@ -25,3 +25,5 @@
 {"t": "2026-11-02T02:30:00", "by": "coordinator", "task": "PFT-2", "ev": "checked", "note": "3/3 note=ok:exit 0; verdict=ok:ok; docs=ok:exit 0; scope=FAIL:вне scope: r-PFT-2.json"}
 {"t": "2026-11-02T02:30:12", "by": "coordinator", "task": "PFT-2", "ev": "checked", "note": "3/3 note=ok:exit 0; verdict=ok:ok; docs=ok:exit 0"}
 {"t": "2026-11-02T02:30:18", "by": "coordinator", "task": "PFT-2", "ev": "accepted", "note": "по отчёту: исследование, код игры не менялся"}
+{"t": "2026-11-02T02:30:27", "by": "coordinator", "task": "PFT-2", "ev": "accepted", "commits": ["725a31b3c"], "note": "3/3 note=ok:exit 0; verdict=ok:ok; docs=ok:exit 0"}
+{"t": "2026-11-02T02:30:27", "by": "coordinator", "task": "PFT-2", "ev": "merged", "note": "725a31b3c"}
