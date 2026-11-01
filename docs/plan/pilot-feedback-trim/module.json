@@ -1,0 +1,11 @@
+{
+  "module": "pilot-feedback-trim",
+  "plan": "docs/plan/pilot-feedback-trim.md",
+  "contracts": "docs/contracts/pilot-feedback-trim.md",
+  "branch": "feature/pilot-feedback-trim",
+  "copy": "~/worktrees/deltaplan/pilot-feedback-trim",
+  "created": "2026-11-02T02:17:12",
+  "code": "PFT",
+  "area": "flight",
+  "base": "main"
+}
