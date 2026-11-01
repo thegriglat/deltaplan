@@ -58,3 +58,7 @@
 {"t": "2026-11-02T03:54:37", "by": "coordinator", "task": "TKF-2", "ev": "accepted", "note": "по отчёту"}
 {"t": "2026-11-02T03:54:38", "by": "coordinator", "task": "TKF-2", "ev": "checked", "commits": ["471375f0c"], "note": "1/3 control=FAIL:exit 2 · python3: can't open …; note=FAIL:exit 1 ·; docs=ok:ошибок 0"}
 {"t": "2026-11-02T03:54:39", "by": "coordinator", "task": "TKF-2", "ev": "merged"}
+{"t": "2026-11-02T03:54:54", "by": "coordinator", "task": "TKF-2", "ev": "note", "note": "merged записан ошибочно: слияние отменено конфликтом в tools/research/trike-fix/README.md (TKF-1 и TKF-2); исполнителю — task sync TKF-2 и разрешить, затем повторное слияние"}
+{"t": "2026-11-02T03:55:17", "by": "coordinator", "task": "TKF-6", "ev": "checked", "note": "4/4 grass=ok:38/38 (пропуск 31); gpu_wash=ok:5/5; gpu_grass=ok:69/69; perf=ok:exit 0"}
+{"t": "2026-11-02T03:55:19", "by": "executor", "task": "TKF-2", "ev": "checked", "note": "3/3 control=ok:exit 0; note=ok:exit 0; docs=ok:ошибок 0"}
+{"t": "2026-11-02T03:55:27", "by": "coordinator", "task": "TKF-6", "ev": "accepted", "note": "по отчёту; вид — сборка Linux у главной"}
