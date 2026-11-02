@@ -6,7 +6,7 @@ description: "Which ways of computing wind over terrain, thermals, wings and wor
 
 # Approaches and results
 
-The game is built on physics, and physics can be computed in different ways. This page is a map of what we tried on the key topics: the numbers, the choice, the reason for it and what is in the game now (version 1.7.0). The longest topic is wind over terrain: it went from formulas through a GPU solver and a neural network to a field assembled by flow phases.
+The game is built on physics, and physics can be computed in different ways. This page is a map of what we tried on the key topics: the numbers, the choice, the reason for it and what is in the game now (version 1.7.0). The longest topic is wind over terrain: it went from formulas through a GPU solver and a neural network to a field assembled by flow phases and, finally, to all wind in a Rust crate.
 
 How to read it: for each approach — what was done, what came out, what was decided and why. All numbers are taken from the repository documents — the [findings registry](/research/findings/), [research](/research/), the [CHANGELOG](/releases/) and the [diary](https://github.com/thegriglat/deltaplan/tree/main/diary); where a number is an estimate rather than a measurement, it says so. The selection criterion is the same everywhere (the author's decision): first physics within the model's limits, then accuracy, then cost. "The pilot likes it" is a reference, not a requirement: tuning coefficients "so that it feels right" is a dead end, so tuning follows a scheme with measurements and uncertainties. Build numbers and dates follow the CHANGELOG; the pages of old builds describe what was true then.
 
@@ -36,6 +36,7 @@ Summary of the approaches in order:
 | 6 | Neural network instead of the solver: pilots P1, P2, P3; the network in builds 1.0.5–1.2.0 | Oct 2–5 | replacing the solver failed; removed in 1.3.0 |
 | 7 | WindNinja as an independent reference | Oct 4 | not a solver replacement; confirms the speed-up on ridges |
 | 8 | Field assembled by flow phases + Picard | build 1.3.0, Oct 7 | in the game: assembly by phases + Picard; since 1.7.0 in a Rust crate |
+| 9 | All wind in a Rust crate on the CPU | build 1.7.0, Oct 30 | in the game; the "Heuristic" mode and the setting were removed |
 
 ### 1. Formulas (version 0.8.0)
 
@@ -184,6 +185,14 @@ There is no bias; on the non-converged ones the network errs at the level of the
 **What came out (at 1.3.0, computed on the graphics card; since 1.7.0 the computation moved to a Rust crate on the CPU, and these measurements do not exist for it).** The "Computing wind" stage on an RTX 4070 SUPER (Ongudai, 12:00, 3 m/s) takes 3.3–3.9 s; on weak graphics cards the estimate is ×2…×11, one computation is limited to 60 s: at loading the formulas of the "Heuristic" mode applied after that (the mode no longer exists in the game), in flight the previous field stays. If Picard did not converge, in calm and blocking cells the mechanism's field is taken, elsewhere the mean of the late iterations.
 
 **Known discrepancies (not fixed, the author's decision):** in strong wind behind a ridge the shear layer gives turbulence 3–4 times higher than in the literature; the separation bubble behind three-dimensional bumps is overestimated by about 1.8 times; the speed-up at the brow is underestimated by 15–20 %; saddle ×2.05 instead of ×1.5; calm and evening drainage are the weakest spots, the nocturnal low-level jet is not reproduced. Details — "Model limits" on the pages of the [air model](/mechanics/air-model/) and of [turbulence](/mechanics/air-model/turbulence/).
+
+### 9. All wind in a Rust crate on the CPU (1.7.0)
+
+**Why.** Wind was spread over GDScript and GPU shaders; the computation depended on the graphics card and its driver. The goal was a single crate, `dp-air`, which Godot only queries.
+
+**What was done.** The crate took over the wind field over terrain (including assembly by phases and the Picard solver), thermals, waves and rotors, thunderstorms, cloud outflow, turbulence and gusts; the day's weather is computed there by the same formulas and ERA5 grids (0 discrepancies on 9 reference weather sets). The old wind code in GDScript/GLSL and its tests were deleted. Gone: wind computation on the graphics card, the "Heuristic" mode and the "Wind over terrain" setting (wind is always computed as a field), and the baked fields of two islands (≈45 MB).
+
+**What came out and the limits.** The cost of an air step does not depend on place size (≈41 ms per game second on 3041² versus 1041², within noise), nor does the game's main thread (21.1 versus 21.5 ms/s), but the crate's background CPU grows with place size about 1.7 times (219 → 373 ms/s). The computation loads the processor: on weak machines loading a place takes longer, and in weak summer wind (a high gentle start above a valley) the solver hits the 3000-iteration limit and hands over the last iteration's field. There is no macOS build in 1.7.0: the library does not build for macOS yet. Source — the [CHANGELOG](/releases/).
 
 ## Thermals and weather
 
