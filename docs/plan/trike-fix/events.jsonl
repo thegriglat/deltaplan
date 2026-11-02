@@ -144,3 +144,4 @@
 {"t": "2026-11-02T08:01:22", "by": "coordinator", "task": "TKF-8", "ev": "accepted", "note": "3/3 docs=ok:ошибок 0; i18n=ok:exit 0; hugo=ok:0"}
 {"t": "2026-11-02T08:01:29", "by": "coordinator", "task": "TKF-8", "ev": "accepted", "note": "по отчёту"}
 {"t": "2026-11-02T08:01:29", "by": "coordinator", "task": "TKF-8", "ev": "merged", "note": "6afa1a180"}
+{"t": "2026-11-02T10:25:50", "by": "coordinator", "task": null, "ev": "note", "note": "Итог: TKF-1..9 приняты и влиты (TKF-1,2,3,9 — записки; TKF-4 вид тележки; TKF-5 упор подкоса, знак CART_CM_MODEL, ход 0,178; TKF-6 трава; TKF-7 кадры; TKF-8 документы и сайт). Полный tests_vs_base --base main: новых падений 0, исправлено 4 (97 против 101 в базе). dpcli: lock cpu -- cmd уходит в фон через 180 с — исполнители путаются; копии без Rust tune; tests_vs_base стоит советовать в карточках по умолчанию."}
