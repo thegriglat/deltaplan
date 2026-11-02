@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://tools/research/trike-fix/bar_stop/push_speed_run.gd" id="1"]
+
+[node name="PushSpeedRun" type="Node"]
+script = ExtResource("1")

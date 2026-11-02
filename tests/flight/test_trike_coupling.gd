@@ -3,7 +3,7 @@ extends TestCase
 ## Сценарии, ввод, регулятор крена и формулы величин - из tools/research/trike-fix/coupling_run.gd (TKF-1): штиль,
 ## старт в воздухе 300 м, 80 км/ч, шаг 1/120 с, тяга по таблице configs/tow_tug.json напрямую (газ g).
 ## Инварианты: (1) yaw_rel_deg_vis <= 1 град; (2) vis_lag_deg_max <= 1 (виражи, перекладка) / 3 (push_full, pitch_pump,
-## roll_pump); (3) mast_normal_deg_max_vis <= 20; (4) bar_deg_vis в [-pull; push + 0,5] (кроме push_full, pitch_pump);
+## roll_pump); (3) mast_normal_deg_max_vis <= 20; (4) bar_deg_vis в [-10,7; push + 0,5] (TKF-К4 v2, во всех сценариях);
 ## (5) |roll_rel_deg_vis| <= 15; (6) колёса -> воздух: cart_basis непрерывен и через <= 0,6 с совпадает с C_phys (<= 0,5 град).
 ## Первая секунда после старта и 0,5 с после отрыва в (1)-(5) не учитываются. Длительности сокращены против инструмента.
 
@@ -139,7 +139,8 @@ func _run(name: String) -> Dictionary:
 
 func _limits() -> Dictionary:
 	var tp: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://tools/blender/trike_params.json"))
-	return {"push": float(tp.bar.push_deg), "pull": float(tp.bar.pull_deg)}
+	# «на себя» - ответ Q4 (б), TKF-К4 v2: ход 0,178 м доходит до груди (bar_deg -10,29, strut.md) вместо предела TT-К6 -8,39
+	return {"push": float(tp.bar.push_deg), "pull": 10.29 + 0.4}
 
 
 func _check_scenarios(names: Array, lag_max: float, bar_checked := true) -> void:
@@ -162,13 +163,13 @@ func test_turns_follow_physics() -> void:
 
 func test_straight_and_throttle() -> void:
 	_check_scenarios(["trim_full", "throttle_step"], 3.0)
-	_check_scenarios(["pull_full"], 3.0, false)  # штанга на себя до упора: вне перечня (4)
+	_check_scenarios(["pull_full"], 3.0)
 
 
 func test_pumps() -> void:
 	_check_scenarios(["roll_pump"], 3.0)
-	# выход за упор «от себя» в физике (вариант V2 - отдельно): штанга не проверяется
-	_check_scenarios(["push_full", "pitch_pump"], 3.0, false)
+	# TKF-К1 v2 (7): упор подкоса в физике (TKF-К4) - штанга не выходит за упор и в push_full, pitch_pump
+	_check_scenarios(["push_full", "pitch_pump"], 3.0)
 
 
 ## (6) Разбег, отрыв: cart_basis непрерывен, после отрыва за <= 0,6 с совпадает с C_phys.
@@ -221,5 +222,5 @@ func test_takeoff_continuity() -> void:
 	check(settled, "не дошли до 0,6 с после отрыва")
 	var limit := TrikeRig.CART_TURN_DEG_S * DT + 0.05  # + второй порядок: смещение в осях цели при её повороте
 	check(max_over <= limit, "cart_basis за шаг повернулся сверх цели на %.3f град (> %.3f)" % [max_over, limit])
-	check(jump <= 15.0, "скачок на отрыве %.2f град (ожидается ~8,5, непрерывно)" % jump)
+	check(jump <= 20.0, "скачок на отрыве %.2f град (ожидается ~16,3 после исправления знака z ЦМ тележки: было ~8,5; непрерывно)" % jump)
 	g.free()

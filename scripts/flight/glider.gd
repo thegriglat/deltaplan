@@ -106,6 +106,11 @@ func setup_trike(cfg: Dictionary, pilot_mass_kg_: float, ops_cfg: Dictionary) ->
 	trike.terrain = func(x: float, z: float) -> float:
 		return float(ground_fn.call(x, z)) if ground_fn.is_valid() else 0.0
 	trike.setup(model, cfg)
+	if ops_cfg.has("arms"):  # TKF-К4: ход «на себя» игрока (TowTug и cart.arms_shift_pull_m — прежние)
+		var pull := float(ops_cfg.arms.shift_pull_m)
+		model.arms.shift_x_pull = pull
+		model.arms.shift_x_pull_full = pull
+		model.arms.pull_limit = pull
 	_trike_wheels = cfg.ground.duplicate(true)
 	_trike_wheels.merge(ops_cfg.get("wheels", {}), true)
 	_trike_wheels["land_on_wheels"] = true

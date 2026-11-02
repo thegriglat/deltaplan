@@ -21,7 +21,7 @@ extends RefCounted
 ## climb / circuit / away; agl_m (низ колёс над землёй), gone, throttle, prop_rpm, airspeed_ms, model.
 
 const WING_DEFAULT := "trike_ixess15"
-const CART_CM_MODEL := Vector3(0.0, -1.70, -0.13)  ## = TrikeRig.CART_CM_MODEL (для тестов)
+const CART_CM_MODEL := Vector3(0.0, -1.70, 0.13)  ## = TrikeRig.CART_CM_MODEL (для тестов)
 
 var pos := Vector3.ZERO  ## точка tow_hook в мире - конец троса
 var vel := Vector3.ZERO  ## её скорость
