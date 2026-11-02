@@ -1,0 +1,56 @@
+{
+  "status": "done",
+  "summary": "Описано по фактам модуля: вид тележки без отставания, знак z ЦМ, упор подкоса (~55 км/ч), ход 0,178 м, отклик (крен резкий, тангаж на себя туговат), трава от винта, границы модели. Обновлены guide, реестр findings (новый файл trike-fix.md), CHANGELOG «В работе», сайт ru/en (trike, player-guide, flight).",
+  "commits": [
+    "TKF-8: документация, findings, CHANGELOG и сайт по итогам trike-fix"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "i18n",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "hugo",
+      "value": "WARN/ERROR 0",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "14 файлов в границах",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Скорость на полном «на себя» при ходе 0,178 м после правки не перемерялась — в тексте прямо сказано; числа 81,5/74 км/ч оставлены с пометкой «для хода 0,1107»."
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TKF-8",
+  "uncertain": [
+    {
+      "where": "docs/registry/findings.md",
+      "why": "файл упёрся в лимит 40 КБ; раздел grass-rocks вынесен в docs/registry/findings/grass-rocks.md дословно (не в моей задаче, но иначе docs check падал)",
+      "checked": "docs findings grass-rocks находит пункты; docs check ошибок 0"
+    },
+    {
+      "where": "docs/INDEX.md, docs/registry/{contracts,research}.md",
+      "why": "перегенерированы docs index (добавились записи соседних задач модуля)",
+      "checked": "diff только добавления"
+    },
+    {
+      "where": "trike-pilot.md «Камера и вид»",
+      "why": "скачок колёса→воздух ≈16° и гашение ≈0,8 с взяты из контракта TKF-К1 v3; TKF-4 в отчёте писал 7,6°/0,38 с до исправления знака",
+      "checked": "использованы значения v3 после TKF-5"
+    }
+  ],
+  "dp_feedback": "docs check упирается в размер findings.md без подсказки, что выносить; хорошо бы dpcli docs findings --split. В карточке не было указано, что docs/INDEX.md пересобирается docs index.",
+  "extra": {},
+  "t": "2026-11-02T08:00:58",
+  "by": "executor"
+}
