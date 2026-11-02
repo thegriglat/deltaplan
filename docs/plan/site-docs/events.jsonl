@@ -106,3 +106,5 @@
 {"t": "2026-11-02T05:26:12", "by": "coordinator", "task": "SD-6", "ev": "accepted", "commits": ["3f6c81cd3"], "note": "3/3 i18n=ok:exit 0; forbidden=ok:exit 0; pairs=ok:exit 0"}
 {"t": "2026-11-02T05:26:12", "by": "coordinator", "task": "SD-6", "ev": "merged"}
 {"t": "2026-11-02T05:26:26", "by": "coordinator", "task": "SD-11", "ev": "accepted", "note": "4/4 i18n=ok:exit 0; now_ru=ok:exit 0; now_en=ok:exit 0; pairs=ok:exit 0"}
+{"t": "2026-11-02T05:27:14", "by": "reviewer", "task": "SD-11", "ev": "reviewed", "note": "Подход 9 (1.7.0) добавлен в ru/en; числа сверены с CHANGELOG 1.7.0. Ссылка heuristic не возвращена по указанию координатора. research/_index верен по main.", "verdict": "accept", "issues": {"minor": 1}, "review": "docs/plan/site-docs/tasks/SD-11.review.json"}
+{"t": "2026-11-02T05:27:22", "by": "coordinator", "task": "SD-11", "ev": "accepted", "note": "по ревью"}
