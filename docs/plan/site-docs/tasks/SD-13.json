@@ -1,0 +1,56 @@
+{
+  "id": "SD-13",
+  "module": "site-docs",
+  "type": "dp-engineer",
+  "title": "Сайт: скорость «на себя» на страницах крыльев по текущей модели",
+  "goal": "Страницы крыльев показывают скорость при трапеции полностью на себя по текущей модели игры — явно с добором и без добора — рядом с паспортным значением конфига; все страницы wings ru/en перегенерированы.",
+  "plan_ref": "§4 SD-13",
+  "contracts": [
+    {
+      "name": "SD-К1",
+      "version": "2",
+      "ref": "docs/contracts/site-docs.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/site-docs-SD-13",
+  "branch": "site-docs/SD-13",
+  "base": "feature/site-docs",
+  "scope": [
+    "tools/site/gen_wings.py",
+    "site/content/wings/",
+    "tools/research/site-docs/"
+  ],
+  "dont_touch": [
+    "configs/",
+    "scripts/",
+    "site/content/mechanics/",
+    "site/content/docs/",
+    "site/content/releases/",
+    "docs/"
+  ],
+  "accept": [
+    {
+      "name": "gen_wings",
+      "cmd": "python3 tools/site/gen_wings.py --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "contracts",
+      "cmd": "uv run -q --with pillow python tools/site/check_contracts.py --only=C1,C2",
+      "expect": "exit=0"
+    },
+    {
+      "name": "i18n",
+      "cmd": "python3 tools/site/check_i18n.py --pages=wings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "pullin_rows",
+      "cmd": "grep -q 'добор' site/content/wings/topless/sport.ru.md && test $(grep -l 'добор' site/content/wings/*/*.ru.md | wc -l) -ge 48",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-02T05:30:16"
+}

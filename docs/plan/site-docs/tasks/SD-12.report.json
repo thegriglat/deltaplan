@@ -1,0 +1,50 @@
+{
+  "status": "done",
+  "summary": "Сняты с сайта guide air-model.md, air-model-gpu(.md,/**), air-model/runtime.md (GPU/Пикар на GPU, режим «Эвристика»); удалена heuristic, ссылки заменены; mechanics/_index, главная, player-guide, flight обновлены ссылками на /mechanics/trike/.",
+  "commits": [
+    "67b210c62 SD-12: снят устаревший guide GPU-ветра, heuristic, ссылки на дельталёт"
+  ],
+  "checks": [
+    {
+      "name": "i18n",
+      "value": "exit=0",
+      "pass": true
+    },
+    {
+      "name": "forbidden",
+      "value": "exit=0",
+      "pass": true
+    },
+    {
+      "name": "heuristic",
+      "value": "exit=0",
+      "pass": true
+    },
+    {
+      "name": "guide_gpu",
+      "value": "exit=0",
+      "pass": true
+    },
+    {
+      "name": "trike_links",
+      "value": "exit=0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Остальные guide с упоминанием GPU (phases, field-cpu, turbulence, gpu-validation и др.) оставлены: GPU там не центральная тема или другой предмет; решение по сути"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SD-12",
+  "uncertain": [
+    {
+      "where": "site/hugo.toml:231",
+      "why": "air-model/phases.md и field-cpu.md частично описывают GPU-путь, но оставлены",
+      "checked": "grep GPU/Эвристик по docs/guide"
+    }
+  ],
+  "dp_feedback": "Нет команды для списка опубликованных guide и входящих ссылок на страницу; K4 не ловит ссылки на снятые страницы из guide (render-hook терпим).",
+  "t": "2026-11-02T05:31:18",
+  "by": "executor"
+}
