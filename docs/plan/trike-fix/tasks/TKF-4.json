@@ -34,16 +34,18 @@
       "tests": "trike_coupling"
     },
     {
-      "name": "trike",
-      "tests": "trike"
+      "name": "vs_base_trike",
+      "cmd": "tools/tests_vs_base.sh --base feature/trike-fix --filter=trike",
+      "expect": "exit=0"
     },
     {
-      "name": "tow",
-      "tests": "tow"
+      "name": "vs_base_tow",
+      "cmd": "tools/tests_vs_base.sh --base feature/trike-fix --filter=tow",
+      "expect": "exit=0"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-11-02T03:41:00",
-  "edited": "2026-11-02T04:05:21"
+  "edited": "2026-11-02T04:22:34"
 }

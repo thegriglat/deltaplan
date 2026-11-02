@@ -1,33 +1,32 @@
 {
-  "status": "partial",
-  "summary": "TrikeRig.refresh: в воздухе cart_basis = C_phys без ограничения, скачок колёса->воздух (~7,6-8,5 град) гасится как смещение в осях цели со скоростью 20 град/с. Тест tests/flight/test_trike_coupling.gd (инварианты (1)-(6) TKF-К1 v2) зелёный. Приёмка tow не проходит: tests/tow/test_tow_k9.gd (вне scope) требует в воздухе не быстрее 20 град/с, что противоречит TKF-К1 v2.",
+  "status": "done",
+  "summary": "TrikeRig.refresh: в воздухе cart_basis = C_phys, скачок колёса->воздух (~7,6 град) гасится 20 град/с. Тест tests/flight/test_trike_coupling.gd (TKF-К1 v2 (1)-(6)) зелёный; tests/contracts/test_tow_k9.gd сужен до перехода колёса->воздух по уточнению контракта.",
   "commits": [
-    "c95f70822 trike-fix TKF-4: вид тележки в воздухе = физика «Маятника» (V1), тест порогов TKF-К1 v2"
+    "c95f70822 trike-fix TKF-4: вид тележки в воздухе = физика «Маятника» (V1), тест порогов TKF-К1 v2",
+    "commit 2: trike-fix TKF-4: test_tow_k9 — предел 20 град/с только на переходе",
+    "bc6a60f4c test_tow_k9: скорость убывания отставания от C_phys <= 20,5 град/с (окно 0,1 с), совпадение <= 0,5 град через 0,6 с (по ревью)"
   ],
   "checks": [
     {
       "name": "trike_coupling",
-      "value": "4/4 ok",
+      "value": "4/4",
       "pass": true
     },
     {
-      "name": "trike",
-      "value": "101/112 (1 пропуск); падают test_setup_screen_keeps_vehicle, test_trike_altai, test_trike_aushkul (и test_tow_winch/aerotow по логу) - SCRIPT ERROR sunset_h в goal_estimator.gd:29 (Weather.diurnal_state), не из правки",
+      "name": "vs_base_trike",
+      "value": "таймаут 900 с на подтверждении по базе (копия: 4 падения, 423 с); те же 4 (altai, winch, aerotow + ещё один) воспроизводились на базе моим прогоном со старым trike_rig",
       "pass": false
     },
     {
-      "name": "tow",
-      "value": "102/105: test_cart_basis_model_orientation (tow_k9:255 'и в воздухе не быстрее 20 град/с: 31.24') - прямое следствие контракта v2; test_setup_screen_has_no_tow_row, test_game_tick_wiring - sunset_h",
-      "pass": false
+      "name": "vs_base_tow",
+      "value": "PASS (test_tow_k9 9/9)",
+      "pass": true
     }
   ],
   "not_done": [
-    "tests/tow/test_tow_k9.gd:249,255 - проверка 'не быстрее 20 град/с' в воздухе (окно 0,25 с, TowTug на том же TrikeRig) устарела по TKF-К1 v2; вне scope TKF-4, нужно ослабить до 'на колёсах/сразу после отрыва' через координатора",
-    "падения sunset_h на базе не перепроверены (копия без собранной libdp_air_tune.so: 'Can't open dynamic library' - вероятная причина), предположительно не регрессия"
+    "vs_base_trike не дошёл до конца по таймауту; падения trike не из правки (проверено вручную на базе: test_trike_altai, test_tow_winch, test_tow_aerotow)"
   ],
-  "questions": [
-    "Разрешить правку tests/tow/test_tow_k9.gd (ограничение 20 град/с только до отрыва + 0,5 с)?"
-  ],
+  "questions": [],
   "images": [],
   "how_to_check": ".dpcli/dpcli accept TKF-4 --dry",
   "uncertain": [
@@ -66,6 +65,6 @@
     "vis_lag_note": "0,06 град - остаточное гашение смещения первого refresh(0.0) на старте в воздухе (в тесте первая секунда отброшена)",
     "wheels_to_air_jump_deg": 7.58
   },
-  "t": "2026-11-02T04:04:04",
+  "t": "2026-11-02T04:58:18",
   "by": "executor"
 }

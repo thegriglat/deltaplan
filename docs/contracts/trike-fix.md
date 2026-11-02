@@ -6,7 +6,7 @@ area: flight
 updated: "2026-11-02"
 summary: "Стыки trike-fix: углы тележки к крылу (TKF-К1), отклик (TKF-К2), трава от винта (TKF-К3), упор подкоса и ход штанги (TKF-К4)."
 related: ["docs/plan/trike-fix.md", "docs/contracts/trike-pilot.md", "docs/contracts/tow-trike.md"]
-contracts: [{"id": "TKF-К1", "version": 2}, {"id": "TKF-К2", "version": 1}, {"id": "TKF-К3", "version": 1}, {"id": "TKF-К4", "version": 1}]
+contracts: [{"id": "TKF-К1", "version": 2}, {"id": "TKF-К2", "version": 1}, {"id": "TKF-К3", "version": 1}, {"id": "TKF-К4", "version": 2}]
 ---
 # Контракты trike-fix (код задач TKF)
 
@@ -112,7 +112,7 @@ TKF-7 (кадры и таблица «после» тем же инструме�
   кадра без струи, вне конуса (сбоку > 6 м, дальше 25 м) — не отличается; (3) цена по протоколу G3
   (`docs/contracts/grass-rocks.md`, `tools/bench/frame_profile.sh`, замок gpu) — разница в пределах шума ±0,1 мс.
 
-## TKF-К4 v1. Упор переднего подкоса и ход штанги «на себя» дельталёта
+## TKF-К4 v2. Упор переднего подкоса и ход штанги «на себя» дельталёта
 Владелец — TKF-5; потребители — `TrikeRig`/`Glider` (игрок), `TowTug` (тот же `cart`), TKF-7. Основание — ответ Q2 (а)
 (2026-11-02), `docs/research/trike-fix/coupling.md` §3 V2, `docs/research/trike-fix/control.md` §4–6. Контрактный тест —
 `tests/flight/test_trike_bar_stop.gd` (пишет TKF-5).
@@ -140,3 +140,15 @@ TKF-7 (кадры и таблица «после» тем же инструме�
   (6) тесты `tow`, `tow_trike`, `trike` — по своим порогам; числа связки буксировщика (скорость, набор) — в отчёт.
 - Условия остановки (шлюз через координатора): k > 0,65 или `tow` не держит пороги с упором; упор требует правки
   `PendulumModel` вне ключа аппарата; ход 0,20 уже заводит штангу в грудь.
+- v2 (2026-11-02, Q3 (а), TKF-9 `docs/research/trike-fix/strut.md`): **исправление вида** — знак z в `CART_CM_MODEL`
+  (`scripts/flight/trike_rig.gd` и `scripts/game/tow_tug.gd`): ЦМ тележки на 0,13 м **за** подвеской (cart.py, TT-8),
+  модель тележки была повёрнута на 8,75°. Физика не меняется; после правки `bar_deg` при вводе 0 ≈ −4,65° (TT-8:
+  −4,68°). Упор подкоса — там, где `bar_deg_phys` = `push_deg` 4,95° в исправленных осях (у TKF-5 параметр `a_stop`
+  ≈ −10,87° вместо −2,13°). Упор действует и у `TowTug`: `TrikeRig.model_params` передаёт ключ упора из `cart`.
+  Ход «на себя» игрока — по ответу Q4 (до ответа — 0,118 м, предел груди TT-К6). Инварианты v2 вместо (2)–(3):
+  (2') сценарии TKF-К1 `push_full`, `pitch_pump`, `trim_full`, `throttle_step`: `bar_deg_vis` = `bar_deg_phys` ≤
+  `push_deg` + 0,5°; (3') полный «от себя» на газу 0, установившаяся скорость ≤ 58 км/ч (без упора 52–56; упор не
+  отнимает ход); (3'') полный «на себя» — `bar_deg_vis` ≥ предела по Q4 (а: −`pull_deg`; б: касание тела, зазор ≥ 0);
+  (7) тест TKF-К1 v2 `test_trike_coupling` (4) проверяет `bar_deg_vis` и в `push_full`, `pitch_pump` (раньше
+  исключены); `test_tow_k9` и `test_trike_coupling` — на исправленной константе; (8) кадры «после» тем же
+  `coupling_shots.gd` — `/home/greg/deltaplan/build/screenshots/trike-fix/after2/`.

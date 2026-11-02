@@ -1,0 +1,72 @@
+{
+  "id": "TKF-5",
+  "module": "trike-fix",
+  "type": "dp-engineer",
+  "title": "Упор переднего подкоса в физике и ход штанги «на себя» дельталёта",
+  "goal": "По TKF-К4: штанга дельталёта в физике не уходит за передний подкос (упор по ключу аппарата, дельтапланы бит в бит), ход «на себя» игрока 0,20–0,25 м в границах груди; фугоида k ≤ 0,65, tow/trike зелёные.",
+  "plan_ref": "§4 Волна 2",
+  "contracts": [
+    {
+      "name": "TKF-К4",
+      "version": "2",
+      "ref": "docs/contracts/trike-fix.md"
+    },
+    {
+      "name": "TKF-К1",
+      "version": "2",
+      "ref": "docs/contracts/trike-fix.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/trike-fix-TKF-5",
+  "branch": "trike-fix/TKF-5",
+  "base": "feature/trike-fix",
+  "scope": [
+    "scripts/flight/pendulum/pendulum_model.gd",
+    "scripts/flight/glider.gd",
+    "scripts/flight/trike_rig.gd",
+    "scripts/game/tow_tug.gd",
+    "configs/tow_tug.json",
+    "configs/trike_pilot.json",
+    "tests/flight/test_trike_bar_stop.gd",
+    "tests/flight/test_trike_bar_stop.gd.uid",
+    "tests/flight/test_trike_coupling.gd",
+    "tests/contracts/test_tow_k9.gd",
+    "tools/research/trike-fix/bar_stop"
+  ],
+  "dont_touch": [
+    "configs/wings",
+    "configs/pilot.json",
+    "tools/blender",
+    "scripts/terrain"
+  ],
+  "accept": [
+    {
+      "name": "trike_bar_stop",
+      "tests": "trike_bar_stop"
+    },
+    {
+      "name": "vs_base_trike",
+      "cmd": "tools/tests_vs_base.sh --base feature/trike-fix --filter=trike",
+      "expect": "exit=0"
+    },
+    {
+      "name": "vs_base_tow",
+      "cmd": "tools/tests_vs_base.sh --base feature/trike-fix --filter=tow",
+      "expect": "exit=0"
+    },
+    {
+      "name": "vs_base_pendulum",
+      "cmd": "tools/tests_vs_base.sh --base feature/trike-fix --filter=pendulum",
+      "expect": "exit=0"
+    },
+    {
+      "name": "frames_after2",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/trike-fix/after2/ | grep -c png",
+      "expect": "num:(\\d+) >=9"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-02T04:09:35",
+  "edited": "2026-11-02T06:27:17"
+}

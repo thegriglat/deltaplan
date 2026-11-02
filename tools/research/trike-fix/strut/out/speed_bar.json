@@ -1,0 +1,128 @@
+{
+	"g0_p+0.00": {
+		"alt_end": 553.0,
+		"bar_max": 4.1,
+		"bar_mean": 4.09,
+		"v_mean_kmh": 73.3,
+		"v_min_kmh": 70.5
+	},
+	"g0_p+0.25": {
+		"alt_end": 585.0,
+		"bar_max": 6.38,
+		"bar_mean": 6.36,
+		"v_mean_kmh": 68.2,
+		"v_min_kmh": 62.2
+	},
+	"g0_p+0.50": {
+		"alt_end": 608.0,
+		"bar_max": 8.68,
+		"bar_mean": 8.62,
+		"v_mean_kmh": 63.7,
+		"v_min_kmh": 54.8
+	},
+	"g0_p+0.75": {
+		"alt_end": 624.0,
+		"bar_max": 10.99,
+		"bar_mean": 10.88,
+		"v_mean_kmh": 59.6,
+		"v_min_kmh": 48.8
+	},
+	"g0_p+1.00": {
+		"alt_end": 635.0,
+		"bar_max": 13.34,
+		"bar_mean": 13.14,
+		"v_mean_kmh": 55.9,
+		"v_min_kmh": 45.2
+	},
+	"g0_p-0.25": {
+		"alt_end": 511.0,
+		"bar_max": 2.12,
+		"bar_mean": 2.11,
+		"v_mean_kmh": 78.8,
+		"v_min_kmh": 78.7
+	},
+	"g0_p-0.50": {
+		"alt_end": 459.0,
+		"bar_max": 0.15,
+		"bar_mean": 0.14,
+		"v_mean_kmh": 85.0,
+		"v_min_kmh": 83.6
+	},
+	"g0_p-0.75": {
+		"alt_end": 397.0,
+		"bar_max": -1.81,
+		"bar_mean": -1.84,
+		"v_mean_kmh": 91.4,
+		"v_min_kmh": 88.5
+	},
+	"g0_p-1.00": {
+		"alt_end": 321.0,
+		"bar_max": -3.76,
+		"bar_mean": -3.82,
+		"v_mean_kmh": 98.1,
+		"v_min_kmh": 94.1
+	},
+	"g1_p+0.00": {
+		"alt_end": 1280.0,
+		"bar_max": 4.15,
+		"bar_mean": 4.09,
+		"v_mean_kmh": 75.0,
+		"v_min_kmh": 55.4
+	},
+	"g1_p+0.25": {
+		"alt_end": 1268.0,
+		"bar_max": 6.46,
+		"bar_mean": 6.35,
+		"v_mean_kmh": 69.9,
+		"v_min_kmh": 46.5
+	},
+	"g1_p+0.50": {
+		"alt_end": 1226.0,
+		"bar_max": 8.83,
+		"bar_mean": 8.62,
+		"v_mean_kmh": 65.2,
+		"v_min_kmh": 38.5
+	},
+	"g1_p+0.75": {
+		"alt_end": 699.0,
+		"bar_max": 92.78,
+		"bar_mean": 8.11,
+		"v_mean_kmh": 91.5,
+		"v_min_kmh": 0.7
+	},
+	"g1_p+1.00": {
+		"alt_end": 627.0,
+		"bar_max": 91.29,
+		"bar_mean": 11.46,
+		"v_mean_kmh": 93.5,
+		"v_min_kmh": 7.9
+	},
+	"g1_p-0.25": {
+		"alt_end": 1281.0,
+		"bar_max": 2.15,
+		"bar_mean": 2.11,
+		"v_mean_kmh": 81.4,
+		"v_min_kmh": 64.0
+	},
+	"g1_p-0.50": {
+		"alt_end": 1265.0,
+		"bar_max": 0.17,
+		"bar_mean": 0.12,
+		"v_mean_kmh": 87.6,
+		"v_min_kmh": 72.4
+	},
+	"g1_p-0.75": {
+		"alt_end": 1232.0,
+		"bar_max": -1.81,
+		"bar_mean": -1.86,
+		"v_mean_kmh": 94.5,
+		"v_min_kmh": 80.3
+	},
+	"g1_p-1.00": {
+		"alt_end": 1181.0,
+		"bar_max": -3.75,
+		"bar_mean": -3.84,
+		"v_mean_kmh": 101.3,
+		"v_min_kmh": 88.1
+	}
+}
