@@ -19,17 +19,21 @@ OpenStreetMap (the project's own tiles, worldwide); if the tiles are unavailable
 | `askarovo` | Bashkiria, the Biyagoda ridge near Idyash-Kuskarovo (hang gliding site, Russian Championship 2025) | west at the upper camp 294°, east 94°, south summit 285° |
 | `aushkul` | Bashkiria, Lake Aushkul: Mount Austau ("pupyr") and the ridge near Starobayramgulovo | Austau east 119°, Austau south 170°, ridge west 273° |
 | `altai` | Altai near Manzherok: Malaya Sinyukha and Tugaya | Sinyukha west 276°, Sinyukha summit east 115°, Tugaya south 150° |
+| `wilotree_park` | Florida, Groveland: the flat grass hang glider towing field Wilotree Park (Quest Air), OSM airfield "Sheets Airport" | runway 36 (heading 356.8°) and runway 18 (176.8°), 610 m run; towing by aerotow or winch |
 
 Sources and assumptions for each place are in the `_sources_doc` of the place config, for example
-[configs/locations/ongudai.json](/configs/locations/ongudai.json). In addition, the "Popular places" window offers a
+[configs/locations/ongudai.json](/configs/locations/ongudai.json). Two more places are shipped inside the game and open
+only from the "Training" window: the training island and the volcanic island, see the page
+[Training islands](/mechanics/training-islands/). In addition, the "Popular places" window offers a
 catalog of ≈ 700 hang gliding launches in 24 countries (`data/places/hg_takeoffs.json`, from OpenStreetMap data:
 name, height, the wind the launch works in); choosing one sets the launch point, like a point from the map.
 
 ## Building a place and flight by coordinates
 
 A built-in place and any point on the map get the same set of layers: the code is one, the place builder
-(`scripts/terrain/build/`), and five stages run in order: terrain (Copernicus GLO-30 + Terrarium), rivers from the
-terrain, ESA WorldCover 10 m land cover, smoothing under forest and buildings, OpenStreetMap tiles. The game package holds no place data: the four built-in places are **downloaded
+(`scripts/terrain/build/`), and six stages run in order: terrain (Copernicus GLO-30 + Terrarium), rivers from the
+terrain, ESA WorldCover 10 m land cover, smoothing under forest and buildings, sea (levelling the water at the coast for ships, see "Ships at sea"), OpenStreetMap tiles.
+The game package holds no data for these places: the built-in places (except the two Training islands) are **downloaded
 on first selection** and cached in `user://locations/<key>`. A cache with a different format version (`FORMAT_VERSION`) is
 deleted and rebuilt. Example: the first build of `aushkul` with an empty cache takes 55.8 s and 166 requests.
 Place data is stored as lossless WebP; elevations are 24 bit with a 1/32 m step (error against float32 is 0).
@@ -47,13 +51,15 @@ standard OpenStreetMap tiles, with a disk cache and attribution on the map. It i
 
 ### Wind cache on disk {#wind-cache}
 
-The wind field of a place is computed at load time (≈ 15 s), so the finished computation is saved to disk: if the
-place, the start and the conditions are the same, the field is taken from the file. Reloading Ongudai takes 12.5 s
-instead of 29.2, a map point 18 s instead of 40; the loading screen freezes for at most ~1-1.5 s (it was 6-12 s). The
-first load of a place or of new conditions is hardly faster. The cache size is set in "Settings → Game → Wind cache on
-disk": 0-2000 MB, 200 by default (an Ongudai entry is ≈ 17 MB, so about 11 places); long-unused entries are deleted,
-0 turns the cache off. The cache lives only on this computer. Limit: on a processor with 4 cores or fewer loading is
-slower - Ongudai 18 s on 4 threads and 24 s on 2, and the screen freezes for 3-6 s.
+The wind field of a place is computed at load time by the Rust library `dp-air` on the processor; on the loading
+screen this is the "Computing wind from terrain..." stage with an "Iteration: N" line. The finished field is saved to
+disk (a `.dpac` file, lossless zstd): if the place, the start and the conditions are the same, the field is taken from
+the file instead of being computed again. The cache size is set in "Settings → Game → Wind cache on disk": 0-2000 MB,
+200 by default; when the limit is exceeded the entries unused for longest are deleted, 0 turns the cache off. The cache
+lives only on this computer; an entry from another model or a damaged one is discarded and recomputed. There are no
+speed-up measurements here for the current processor computation. Limit: loading a place is slower on weak processors,
+and in weak summer wind (a high gentle start above a valley) the solver can hit the limit of 3000 iterations - the game
+then flies with the field of the last iteration.
 
 ### Exact start on the terrain {#exact-start}
 
@@ -183,7 +189,7 @@ Four levels of forest seen from altitude (parameters in `configs/world.json → 
    (birch, larch, cedar, spruce, pine, oak, palm, tropical tree); which of them exist at a place is decided by the
    region ([below](#regional-vegetation)), and within a region the species depends on the altitude belt and slope
    aspect (spruce on north, pine on south dry slopes), and a location can override the species weights. There is one tree per 8 m cell; presence, species
-   and offset come from the cell hash (identical on CPU and GPU).
+   and offset come from the cell hash, so the forest is deterministic for a place.
 2. **Crosses** (LOD2, up to 900 / 1100 / 1500 m): two perpendicular billboards per tree built by the vertex
    shader; every tree has its own "model → cross" switch distance, so there is no visible ring on the slope.
 3. **Impostors** (up to 3.5 km): billboards from an atlas on a 12 m grid; at the seam with the crosses they are
