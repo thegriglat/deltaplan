@@ -1,0 +1,50 @@
+{
+  "id": "TKF-8",
+  "module": "trike-fix",
+  "type": "dp-writer",
+  "title": "Документация, findings, CHANGELOG и сайт по итогам trike-fix",
+  "goal": "Описать по фактам модуля, как теперь ведёт себя дельталёт (вид тележки, упор подкоса, ход штанги, трава от винта, отклик на газу) и чего модель не умеет: guide, findings, CHANGELOG «В работе», сайт ru/en.",
+  "plan_ref": "§4 Волна 2",
+  "contracts": [],
+  "copy": "~/worktrees/deltaplan/trike-fix-TKF-8",
+  "branch": "trike-fix/TKF-8",
+  "base": "feature/trike-fix",
+  "scope": [
+    "docs/guide/flight/trike-pilot.md",
+    "docs/registry",
+    "CHANGELOG.md",
+    "site/content/mechanics/trike",
+    "site/content/docs/player-guide",
+    "site/content/mechanics/flight.ru.md",
+    "site/content/mechanics/flight.en.md",
+    "docs/INDEX.md"
+  ],
+  "dont_touch": [
+    "site/content/releases",
+    "scripts",
+    "configs",
+    "docs/contracts",
+    "docs/plan"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    },
+    {
+      "name": "i18n",
+      "cmd": "python3 tools/site/check_i18n.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "hugo",
+      "cmd": "cd site && hugo --quiet 2>&1 | grep -E -c 'WARN|ERROR' ; true",
+      "expect": "num:^(\\d+) ==0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-02T07:56:05",
+  "edited": "2026-11-02T07:56:32"
+}
