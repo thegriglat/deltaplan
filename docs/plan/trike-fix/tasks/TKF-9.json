@@ -1,0 +1,43 @@
+{
+  "id": "TKF-9",
+  "module": "trike-fix",
+  "type": "dp-researcher",
+  "title": "Где штанга трайка на триме и на упоре: данные и поправка вида",
+  "goal": "По реальным трайкам (iXess 15 / Tanarg, аналоги) и замеру в игре найти, где должна стоять штанга на триме относительно переднего подкоса и при какой скорости полный «от себя» упирается в подкос; предложить поправку вида (трапеция крыла или посадка тележки) с числами так, чтобы касание подкоса совпало с прежней минимальной скоростью, и угол упора для физики. Код игры не менять.",
+  "plan_ref": "§4 Волна 2",
+  "contracts": [],
+  "copy": "~/worktrees/deltaplan/trike-fix-TKF-9",
+  "branch": "trike-fix/TKF-9",
+  "base": "feature/trike-fix",
+  "scope": [
+    "tools/research/trike-fix/strut",
+    "docs/research/trike-fix/strut.md"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "tools/blender",
+    "tests",
+    "docs/contracts"
+  ],
+  "accept": [
+    {
+      "name": "note",
+      "cmd": "test -s docs/research/trike-fix/strut.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "proposal",
+      "cmd": "grep -c -E 'Предложение:' docs/research/trike-fix/strut.md",
+      "expect": "num:(\\d+) >=1"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-02T05:48:14"
+}
