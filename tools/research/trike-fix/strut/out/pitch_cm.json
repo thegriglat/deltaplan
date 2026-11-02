@@ -1,0 +1,42 @@
+{
+ "g0_p+0.00": {
+  "alt_end": 678.0,
+  "bar_max": 4.1,
+  "bar_mean": 4.09,
+  "bar_mean_cm_behind": -4.65,
+  "cart_pitch_cm_behind_deg": 0.51,
+  "cart_pitch_old_deg": -8.23,
+  "v_mean_kmh": 73.7,
+  "v_min_kmh": 70.5
+ },
+ "g0_p+0.50": {
+  "alt_end": 707.0,
+  "bar_max": 8.68,
+  "bar_mean": 8.62,
+  "bar_mean_cm_behind": -0.13,
+  "cart_pitch_cm_behind_deg": 0.3,
+  "cart_pitch_old_deg": -8.45,
+  "v_mean_kmh": 63.9,
+  "v_min_kmh": 54.8
+ },
+ "g1_p+0.00": {
+  "alt_end": 1034.0,
+  "bar_max": 4.15,
+  "bar_mean": 4.09,
+  "bar_mean_cm_behind": -4.66,
+  "cart_pitch_cm_behind_deg": 21.46,
+  "cart_pitch_old_deg": 12.71,
+  "v_mean_kmh": 73.7,
+  "v_min_kmh": 55.4
+ },
+ "g1_p+0.50": {
+  "alt_end": 1023.0,
+  "bar_max": 8.83,
+  "bar_mean": 8.6,
+  "bar_mean_cm_behind": -0.14,
+  "cart_pitch_cm_behind_deg": 27.83,
+  "cart_pitch_old_deg": 19.08,
+  "v_mean_kmh": 65.9,
+  "v_min_kmh": 38.5
+ }
+}
