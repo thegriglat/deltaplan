@@ -92,3 +92,5 @@
 {"t": "2026-11-02T05:23:49", "by": "executor", "task": "SD-2", "ev": "reported", "commits": ["87b98feee", "последний"], "note": "done: flight.ru/en: убраны прежние режимы, раздел «Ввод» по коду (мышь=штанга, ход 4000, X, «Крен мышью»), en «Apparatus». До…", "dp_feedback": "task show обрезает дополнения; полный текст только --full."}
 {"t": "2026-11-02T05:24:00", "by": "coordinator", "task": "SD-8", "ev": "accepted", "commits": ["c189d25f8"], "note": "3/3 i18n=ok:exit 0; forbidden=ok:exit 0; pairs=ok:exit 0"}
 {"t": "2026-11-02T05:24:01", "by": "coordinator", "task": "SD-8", "ev": "merged"}
+{"t": "2026-11-02T05:24:12", "by": "coordinator", "task": "SD-9", "ev": "accepted", "commits": ["7b6ad573d"], "note": "3/3 i18n=ok:exit 0; forbidden=ok:exit 0; pairs=ok:exit 0"}
+{"t": "2026-11-02T05:24:13", "by": "coordinator", "task": "SD-9", "ev": "merged"}
