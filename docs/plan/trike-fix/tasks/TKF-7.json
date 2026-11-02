@@ -1,0 +1,54 @@
+{
+  "id": "TKF-7",
+  "module": "trike-fix",
+  "type": "dp-mechanic",
+  "title": "Кадры и числа «после» TKF-4 (пп. 1, 2, 4)",
+  "goal": "Готовыми инструментами TKF-1 снять кадры «после» правки вида тележки (те же моменты и ракурсы, что «до») и таблицу чисел TKF-К1 до/после; код не менять.",
+  "plan_ref": "§4 Волна 2",
+  "contracts": [
+    {
+      "name": "TKF-К1",
+      "version": "2",
+      "ref": "docs/contracts/trike-fix.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/trike-fix-TKF-7",
+  "branch": "trike-fix/TKF-7",
+  "base": "feature/trike-fix",
+  "scope": [
+    "tools/research/trike-fix/out_after",
+    "tools/research/trike-fix/after.md"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "tests",
+    "tools/research/trike-fix/out"
+  ],
+  "accept": [
+    {
+      "name": "frames_after",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/trike-fix/after/ | grep -c png",
+      "expect": "num:(\\d+) >=9"
+    },
+    {
+      "name": "summary_after",
+      "cmd": "python3 tools/research/trike-fix/check_summary.py tools/research/trike-fix/out_after/summary.json",
+      "expect": "exit=0"
+    },
+    {
+      "name": "table",
+      "cmd": "test -s tools/research/trike-fix/after.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-02T05:28:52",
+  "edited": "2026-11-02T05:29:03"
+}
