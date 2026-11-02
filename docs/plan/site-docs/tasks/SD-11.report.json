@@ -1,0 +1,48 @@
+{
+  "status": "done",
+  "summary": "approaches ru/en: «Что в игре сейчас» и колонка итогов таблицы переписаны по main 1.7.0 (ветер полем в Rust-крейте dp-air на процессоре, режима «Эвристика» и пункта настроек нет); история подходов сохранена с пометками «в игре нет»; ссылки на страницу heuristic убраны. research/_index не менялся — «сейчас»-утверждений, расходящихся с main, нет.",
+  "commits": [
+    "see git log site-docs/SD-11"
+  ],
+  "checks": [
+    {
+      "name": "i18n",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "now_ru",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "now_en",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "pairs",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SD-11 --dry",
+  "uncertain": [
+    {
+      "where": "site/content/approaches.ru.md:184",
+      "why": "замеры 3,3–3,9 с — для GPU-версии 1.3.0, для крейта замеров нет; помечено в тексте",
+      "checked": "CHANGELOG 1.7.0"
+    },
+    {
+      "where": "site/content/approaches.ru.md:6 (таблица, п.1)",
+      "why": "утверждение «отдельного режима формул в игре нет» взято из CHANGELOG 1.7.0, код не просматривал",
+      "checked": "CHANGELOG"
+    }
+  ],
+  "dp_feedback": "Примечание координатора в task show обрезано (…); полный текст пришлось искать в плане. plan <раздел> не принимает ID задачи.",
+  "t": "2026-11-02T05:21:47",
+  "by": "executor"
+}

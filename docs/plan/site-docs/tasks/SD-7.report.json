@@ -1,0 +1,58 @@
+{
+  "status": "done",
+  "summary": "Страница «Рельеф и места» (ru+en) сверена с кодом main: добавлено место wilotree_park и два острова Тренировки, шесть стадий сборки (добавлено «море»), раздел про кеш ветра переписан под расчёт на процессоре без устаревших замеров, убрано «на CPU и GPU» у хеша деревьев. Остальное совпало с configs/кодом и оставлено.",
+  "commits": [
+    "see git log site-docs/SD-7: SD-7 сайт, рельеф и места"
+  ],
+  "checks": [
+    {
+      "name": "i18n",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "forbidden",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "pairs",
+      "value": "16/16",
+      "pass": true
+    },
+    {
+      "name": "docs check",
+      "value": "0 ошибок",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SD-7",
+  "uncertain": [
+    {
+      "where": "site/content/mechanics/terrain/index.ru.md: Кеш ветра на диске",
+      "why": "Прежние замеры (Онгудай 12,5 против 29,2 с, 4 ядра, запись 17 МБ) сняты: сделаны для GPU-ветра, для расчёта на процессоре замеров в репозитории не нашёл",
+      "checked": "CHANGELOG 1.7.0, rust/dp-air/src/field/field_cache.rs, runtime.rs"
+    },
+    {
+      "where": "docs/guide/fast-load.md, docs/guide/location-data.md",
+      "why": "Вероятно содержат прежние цифры кеша ветра и перечень пяти стадий сборки (в коде шесть: добавлена sea) и фразу «встроенных данных в паке нет» (есть bundled-острова)",
+      "checked": "scripts/terrain/build/location_builder.gd default_stages, configs/locations/*.json; guide целиком не перечитывал"
+    },
+    {
+      "where": "index.*.md: числа таблицы пресетов, граница леса/снега, суда 2–6",
+      "why": "Сверены выборочно (treeline_m, snow_line_summer, пресет low, городские деревья); остальное не пересчитывал",
+      "checked": "configs/world.json, configs/game.json"
+    },
+    {
+      "where": "trike-fix",
+      "why": "Пунктов trike-fix на странице нет — не описан",
+      "checked": "страница рельефа дельталёта не касается"
+    }
+  ],
+  "dp_feedback": "Хватило. Было бы удобно, чтобы task show --full показывал дополнения без обрезки сразу.",
+  "t": "2026-11-02T05:19:06",
+  "by": "executor"
+}

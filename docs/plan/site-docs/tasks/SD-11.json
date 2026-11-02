@@ -1,0 +1,57 @@
+{
+  "id": "SD-11",
+  "module": "site-docs",
+  "type": "dp-writer",
+  "title": "Сайт: история исследований (approaches, research)",
+  "goal": "approaches и research/_index остаются историей пробованных подходов (Q1 (б)), а «Что в игре сейчас» и все утверждения о текущей игре — по main (весь ветер в Rust-крейте на процессоре, «Маятник» — единственная физика игрока).",
+  "plan_ref": "§4 SD-11",
+  "contracts": [
+    {
+      "name": "SD-К1",
+      "version": "2",
+      "ref": "docs/contracts/site-docs.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/site-docs-SD-11",
+  "branch": "site-docs/SD-11",
+  "base": "feature/site-docs",
+  "scope": [
+    "site/content/approaches.ru.md",
+    "site/content/approaches.en.md",
+    "site/content/research/_index.ru.md",
+    "site/content/research/_index.en.md"
+  ],
+  "dont_touch": [
+    "site/content/releases/",
+    "site/content/mechanics/",
+    "site/content/docs/",
+    "site/content/wings/",
+    "docs/",
+    "site/hugo.toml"
+  ],
+  "accept": [
+    {
+      "name": "i18n",
+      "cmd": "python3 tools/site/check_i18n.py --pages=approaches,research/_index",
+      "expect": "exit=0"
+    },
+    {
+      "name": "now_ru",
+      "cmd": "awk '/^## /{f=($0 ~ /^## Что в игре сейчас/)} f' site/content/approaches.ru.md | grep -niE 'onnx|air[-_]synth|нейросет|нейронн|neural|weight[_ -]?shift|смещени[а-я]* веса|Пикар[а-я]* на (GPU|видеокарт)|ветер[а-я]* на (GPU|видеокарт)|расч[её]т[а-я]* на GPU|GPU-ветер|Picard[a-z ]* on (the )?GPU|wind on (the )?GPU|GPU wind'; test $? -eq 1",
+      "expect": "exit=0"
+    },
+    {
+      "name": "now_en",
+      "cmd": "awk '/^## /{f=($0 ~ /^## What is in the game now/)} f' site/content/approaches.en.md | grep -niE 'onnx|air[-_]synth|нейросет|нейронн|neural|weight[_ -]?shift|смещени[а-я]* веса|Пикар[а-я]* на (GPU|видеокарт)|ветер[а-я]* на (GPU|видеокарт)|расч[её]т[а-я]* на GPU|GPU-ветер|Picard[a-z ]* on (the )?GPU|wind on (the )?GPU|GPU wind'; test $? -eq 1",
+      "expect": "exit=0"
+    },
+    {
+      "name": "pairs",
+      "cmd": "test $(grep -c '^## ' site/content/approaches.ru.md) -eq $(grep -c '^## ' site/content/approaches.en.md) && test $(grep -c '^## ' site/content/research/_index.ru.md) -eq $(grep -c '^## ' site/content/research/_index.en.md)",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-02T05:19:34"
+}

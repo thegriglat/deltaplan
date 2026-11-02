@@ -1,0 +1,59 @@
+{
+  "status": "done",
+  "summary": "flight.ru/en: убраны упоминания прежних режимов (description, модель ботов, варианты); раздел «Ввод» переписан по коду: мышь = штанга (ход 4000 отсч., слайдер 0,1…4×, мёртвая зона 2 %), «Крен мышью», клавиша X (обнуление, τ 0,2 с); en «Vehicle» исправлено на «Apparatus» как в locale. visual-cues и motion-platform проверены — правок не потребовали.",
+  "commits": [
+    "87b98feee SD-2: страница полёта — мышь-штанга, ход 4000, клавиша X, без удалённых режимов"
+  ],
+  "checks": [
+    {
+      "name": "i18n",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "forbidden",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "pairs",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SD-2",
+  "uncertain": [
+    {
+      "where": "site/content/mechanics/flight.ru.md: раздел «Ленточки» vs visual-cues/index.ru.md «Ленточка на тросе трапеции»",
+      "why": "flight: «у ботов ленточек нет», visual-cues: у ботов лента в вираже смотрит назад — противоречие (старое)",
+      "checked": "не правил, код ленточки у ботов не проверял"
+    },
+    {
+      "where": "flight.*: триммер",
+      "why": "отдельной механики триммера в коде/меню не нашёл (grep по scripts, locale/ui.csv), в тексте не упомянута",
+      "checked": "input_controller.gd, controls.json, locale/ui.csv"
+    },
+    {
+      "where": "flight.*: «Модель ботов» и motion-platform «модель точки»",
+      "why": "FlightModel у ботов есть в main — оставлено как есть; числа 2,3–2,7 с и пр. не перепроверял",
+      "checked": "наличие scripts/flight/flight_model.gd"
+    },
+    {
+      "where": "flight.*: визуал дельталёта, trike-fix",
+      "why": "trike-fix — не описан (страница дельталёта вне SD-2); на страницах дельталёта нет",
+      "checked": "grep"
+    },
+    {
+      "where": "flight.*: старое «ПИД/Шум» числа (поляры, Vmax, штопор)",
+      "why": "числа исследовательские, с кодом не пересверял, только расхождений по вводу",
+      "checked": "configs/pendulum.json arms.*"
+    }
+  ],
+  "dp_feedback": "task show обрезает дополнения координатора до ~300 символов; полный текст только через --full (вывод ~48 КБ, уходит в файл). Хотелось бы task show --notes.",
+  "extra": {},
+  "t": "2026-11-02T05:19:53",
+  "by": "executor"
+}

@@ -1,0 +1,69 @@
+{
+  "status": "done",
+  "summary": "Страницы «Термики» и «Болтанка и ротор» (ru/en) приведены к main: расчёт в Rust-крейте dp-air на процессоре, убраны режим «Эвристика», сетевая рассылка источников термиков, ссылки на /heuristic/, удалённые GD-файлы, истории «было/стало»; числа жизни термика, фона и опускания, пыльных вихрей, ослабления ротора нагревом — из configs/.",
+  "commits": [
+    "bbe441cf5 SD-5: страницы «Термики» и «Болтанка и ротор» под main"
+  ],
+  "checks": [
+    {
+      "name": "i18n",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "forbidden",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "pairs",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SD-5 --dry",
+  "uncertain": [
+    {
+      "where": "thermals/index.*.md: таблица Cb (+26/+30/+34 °C)",
+      "why": "замер из tools/weather/storm_rarity.tscn, которого в main нет; в коде есть только столбец cb_thermal_chance в weather_model.json (0,0001 при запасе 700 м, 0,0025 при 900, 0,005 от 1100); сам замер не перепроверен",
+      "checked": "оставлена с пометкой «замер при введении правила, до переноса ветра в Rust»"
+    },
+    {
+      "where": "thermals/index.*.md: числа Онгудая/Каянчи (4,9 источника/км², столб 575/1440/1640 м), z_i по рельефу в Алматы/Аскарово, 0,95 (w* болтанка/источник)",
+      "why": "замеры исследований AM-07б/CLF до переноса в Rust; код крейта их не пересчитывает (нет запуска Godot/cargo test по условию)",
+      "checked": "параметры (α=1/3, σ 5/10 км, τ 3 ч, 15 мин пересчёта) сверены с configs/atmosphere.json и rust/dp-air"
+    },
+    {
+      "where": "thermals/index.*.md, «Чего не умеет»: «Улиц вдоль ветра нет»",
+      "why": "в крейте улицы (street_*) есть у клеток за краем поля; у источников из поля выстраивания нет",
+      "checked": "уточнено как «источники поля»; поведение за краем поля не описано"
+    },
+    {
+      "where": "turbulence.*.md: перенос границы «полоса 5 клеток, упрощённые формулы»",
+      "why": "формулировка по _doc air_model.edge_blend_cells и docs/plan/rust-wind.md (аналитика в полосе края), в коде turb/ напрямую не прослежено",
+      "checked": "configs/atmosphere.json air_model.edge_blend_cells_doc"
+    },
+    {
+      "where": "turbulence.*.md: Perdigão, AP-10, Askervein, «расхождение (а)/(б)»",
+      "why": "цифры из research/findings, не из кода; Rust-порт не перемерялся",
+      "checked": "ссылки на docs/registry/findings.md, docs/research/air_phase_results.md живые (check_i18n K4)"
+    },
+    {
+      "where": "thermals/index.ru.md: картинки Алматы (потолок, опускание)",
+      "why": "подписи сравнивают «до и после учёта рельефа» — это сравнение с выключенным эффектом (α=0), не удалённая механика",
+      "checked": "оставлены"
+    },
+    {
+      "where": "trike-fix",
+      "why": "пункты trike-fix к термикам и болтанке не относятся",
+      "checked": "trike-fix: ничего не описано"
+    }
+  ],
+  "dp_feedback": "Карточка не говорила, какие картинки/графики показывают удалённое — пришлось смотреть PNG (spectrum.png сравнивает поле с «аналитикой» старого шума, убрана). Полезен список рисунков с пометкой устаревшего. docs/guide расходится с кодом: docs/guide/air-model/thermals.md — ссылки на scripts/atmosphere/air_model/air_thermals.gd и thermal_field.gd (файлов нет; код теперь rust/dp-air/src/terms/thermal_air и thermal), раздел «Сеть» (рассылка маски источников ведущим, ZoneState.thermal_sources — воздух по сети не ходит, net_zone.gd); docs/guide/air-model/turbulence.md — field_turbulence.gd, gust_spectrum.gd, air_model.enabled=off (удалены, код в rust/dp-air/src/terms/turb); docs/guide/air-model/surface-heat.md — «ядро scripts/atmosphere/surface_heat.gd» (теперь rust/dp-air/src/field/surface_heat.rs).",
+  "extra": {},
+  "t": "2026-11-02T05:22:31",
+  "by": "executor"
+}
