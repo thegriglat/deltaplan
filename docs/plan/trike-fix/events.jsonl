@@ -88,3 +88,5 @@
 {"t": "2026-11-02T05:02:18", "by": "executor", "task": "TKF-5", "ev": "reported", "commits": ["ad4cdcd6c"], "note": "partial: Упор переднего подкоса в физике (cart.strut_stop в tow_tug.json, момент пружина-демпфер около подвески в PendulumModel,…", "dp_feedback": "job wait на 180 с уходит в фон и просит ждать уведомление - неудобно в цикле; tests_vs_base работает хорошо."}
 {"t": "2026-11-02T05:06:03", "by": "coordinator", "task": "TKF-4", "ev": "checked", "note": "3/3 trike_coupling=ok:4/4; vs_base_trike=ok:exit 0; vs_base_tow=ok:exit 0"}
 {"t": "2026-11-02T05:06:18", "by": "coordinator", "task": "TKF-4", "ev": "accepted", "note": "по ревью (accept), замечания k9 исправлены bc6a60f4c, accept PASS"}
+{"t": "2026-11-02T05:06:19", "by": "coordinator", "task": "TKF-4", "ev": "merged", "note": "a930a19ad"}
+{"t": "2026-11-02T05:21:45", "by": "coordinator", "task": "TKF-4", "ev": "accepted", "commits": ["a930a19"], "note": "3/3 trike_coupling=ok:4/4; vs_base_trike=ok:exit 0; vs_base_tow=ok:exit 0"}
