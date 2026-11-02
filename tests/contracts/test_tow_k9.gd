@@ -252,7 +252,7 @@ func test_cart_basis_model_orientation() -> void:
 	# скорость убывания отставания от C_phys (окно 0,1 с), как test_trike_coupling (6); <= 0,6 с после отрыва - совпадение
 	var lags: Array[float] = []
 	var fall := 0.0
-	for i in int(0.6 / DT):
+	for i in int(0.9 / DT):  # 0,9 с: после исправления знака z ЦМ (TKF-К4 v2) скачок колёса -> воздух ~16 град, гашение 20 град/с ~0,8 с
 		t.set_rope_force(Vector3.ZERO)
 		t.step(DT, 10.0)
 		lags.append(_lag_deg(t))
@@ -260,7 +260,7 @@ func test_cart_basis_model_orientation() -> void:
 			fall = maxf(fall, (lags[lags.size() - 13] - lags[lags.size() - 1]) / (12.0 * DT))
 	check(fall <= 20.5, "переход колёса -> воздух: отставание от физики убывает не быстрее 20 град/с: %.2f" % fall)
 	var lag := _lag_deg(t)
-	check(lag <= 0.5, "через 0,6 с после отрыва cart_basis = физика: отставание %.3f град" % lag)
+	check(lag <= 0.5, "через 0,9 с после отрыва cart_basis = физика: отставание %.3f град" % lag)
 	for i in int(10.0 / DT):
 		t.set_rope_force(Vector3.ZERO)
 		t.step(DT, 10.0)
