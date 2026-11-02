@@ -1,0 +1,66 @@
+{
+  "status": "done",
+  "summary": "На страницах 49 крыльев (ru/en): строка «эталон конфига» (паспортная цель, бот-эталон) плюс «в игре: полностью на себя, с добором» и «без добора» по перемеру текущей игры; у trike_ixess15 — «нет замера».",
+  "commits": [
+    "9c3e5fe6d SD-13: скорость «на себя» на страницах крыльев — по модели игры (с добором / без)"
+  ],
+  "checks": [
+    {
+      "name": "gen_wings",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "contracts",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "i18n",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "pullin_rows",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "111 файлов в границах",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept SD-13",
+  "uncertain": [
+    {
+      "where": "tools/site/gen_wings.py (pullin_rows)",
+      "why": "Отметка у чисел модели — «оценка» (правило генератора: числа модели игры = оценка); отдельной отметки «модель» нет, контракт не менял.",
+      "checked": "Текст строки прямо говорит «замер модели Маятник в игре», ссылки на записки pitch-nonlinear и pullin-speed."
+    },
+    {
+      "where": "trike_ixess15",
+      "why": "Перемер дал 112,8 км/ч (1,375 эталона) без разницы с добором и без — у дельталёта нет трапеции «на себя»; число не показано, строка «нет замера».",
+      "checked": "Решение — по карточке («не мерили → нет замера»)."
+    },
+    {
+      "where": "tools/research/site-docs/pullin_vmax.json",
+      "why": "Модель после 2026-10-19 менялась (VM-12 отпускание, roll-modes, tow, trike в pendulum_model.gd), поэтому перемерено, а не взято из out/vm4.",
+      "checked": "Перемер на коммите a970628b5: для 48 крыльев с добором и без добора совпал со старым замером out/vm4 до 0,0 км/ч."
+    }
+  ],
+  "dp_feedback": "job wait из foreground уходит в фон по 180 с, пришлось повторять; блокировка cpu показала CPUQuota=100%, хотя прогон занял 8 процессов.",
+  "extra": {
+    "data_date": "2026-11-02 (перемер); прежний замер 2026-10-19, коммит cbe15a5a8/b6f84c7b1 VM-4",
+    "remeasured": true,
+    "game_commit": "a970628b5",
+    "median_full_to_config_ref_49": 0.982,
+    "median_normal_to_config_ref_49": 0.786,
+    "median_full_to_passport_vmax_vg0_40_uncensored": 0.979,
+    "reproduce": "tools/research/site-docs/run_pullin_vmax.sh && python3 tools/research/site-docs/pullin_vmax.py; python3 tools/site/gen_wings.py"
+  },
+  "t": "2026-11-02T05:40:33",
+  "by": "executor"
+}
