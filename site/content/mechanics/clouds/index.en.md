@@ -15,11 +15,11 @@ lies, new thermals are weaker.
 
 A cloud is visible only where the air has risen high enough to cool to saturation. That height is the **condensation
 level**; it is one for the whole place and day, so all clouds of the day share one flat base. Its height depends on the
-air temperature and the dew point; the game takes the dew point from the place's climate (there is no separate humidity
-by height or by area, see "Model limits").
+air temperature and the dew point; the dew point of the day comes from the place's climate,
+corrected for the temperature and sky cover of the day (see [Weather](/mechanics/weather/)); there is no separate
+humidity by height or by area, see "Model limits".
 
-The model then works on a grid of 96 x 96 cells of 400 m (38 x 38 km around the place; the step is 20 game seconds,
-computed in a separate thread). Each cell stores:
+The model then works on a grid of 96 x 96 cells of 400 m (38 x 38 km around the place; the step is 20 game seconds). Each cell stores:
 
 - what share of the area is covered by **active** cloud, above a working lift;
 - what share is **passive**: the lift has gone, the cloud still stands and dissolves;
@@ -28,7 +28,7 @@ computed in a separate thread). Each cell stores:
 
 **Where a cloud comes from.** There are three sources: convection of the air field (what the game computes as thermals:
 the ceiling and the flow at the base from [Thermals](/mechanics/air-model/thermals/)), lift of air on a windward slope,
-and, if there is no air field, the live thermals of the older analytic model. A cloud appears where the lift reaches the
+and, if there is no air field, the live thermals of the analytic model. A cloud appears where the lift reaches the
 condensation level: the higher the thermal ceiling above the base, the more of the flow reaches it. If the ceiling barely
 reaches it, a sparse scatter remains; if it is below the base, the day is cloudless (a "blue day").
 
@@ -75,7 +75,11 @@ disappears in about a minute.
 
 ### Different days, different places
 
-The same calculation, days of 15 July, 13:00 (cover is the average over the 38 x 38 km grid):
+The same calculation, days of 15 July, 13:00 (cover is the average over the 38 x 38 km grid). The figures come from the
+research in [docs/research/cloud_field.md](/docs/research/cloud_field.md) on reference days "weak" and "strong" (they are not
+in the menu: the pilot sets a temperature, see [Weather](/mechanics/weather/)); the base and the ceiling there were computed
+before the dew point moved to the ERA5 climate, so in the game they are now different for these places, while the
+regularities are the same:
 
 | place, weather | base, m | mixed-layer top z_i, m | cover | clouds (cover >= 0.3) |
 |---|---|---|---|---|
@@ -127,17 +131,19 @@ layer ceiling over the column: by 130 m on average, by 380 m for the top 10%. Sm
 
 The result is modest: over the plain the cover decreases by only a tenth (0.25 -> 0.23). The expectation "clearly clear
 over the city, cover <= 0.1" is **not met**, and will not come out of this physics: for the city to be clear, drier air
-over the plain (a higher base) is needed, and the dew point in the model is one per place.
+over the plain (a higher base) is needed, and the dew point in the model is one per place and day.
 
 ## Special clouds
 
 Field cumulus are not all the clouds of the game. The rest are separate records, built by the same shader from the same
 physical model (details in [docs/guide/atmosphere/clouds.md](/docs/guide/atmosphere/clouds.md)):
-- cumulonimbus (`storm_field.gd`): strong mature thermals overdevelop into a tower up to the tropopause with an anvil,
+- cumulonimbus ([rust/dp-air/src/terms/storm/field.rs](/rust/dp-air/src/terms/storm/field.rs)): strong mature thermals overdevelop into a tower up to the tropopause with an anvil,
   and below the base a rain shaft of soft translucent streaks; beneath it a downdraft, outflow along the ground
   and a gust front. Thunderstorms are rare in the model: from hundredths of a percent per thermal at a small
   temperature margin to 0.5% at a large one;
-- lenticular lenses, a cap on the highest point of the terrain and rotor fragments in the crests of a lee wave (`wave_field.gd`);
+- lenticular lenses, a cap on the highest point of the terrain and rotor fragments in the crests of a lee wave
+  ([rust/dp-air/src/terms/waves/field.rs](/rust/dp-air/src/terms/waves/field.rs)); the wave is off by default
+  (see [Weather](/mechanics/weather/)), so in ordinary conditions these clouds do not appear;
 - an upper-level cirrus veil (`cirrus_layer.gd`): ribbons of fibres along the wind; it suppresses thermals (lower
   insolation) and makes cumulus shadows paler.
 
@@ -177,8 +183,8 @@ the same division of the ground into "heating" and "not heating" that the model 
 
 ## Model limits
 
-- **Humidity is one dew point per place** (from climate), with no dry and moist air by height and no difference between
-  mountain and plain. Hence the base is flat and common for the whole day, there is no evening rise of the base, and over
+- **Humidity is one dew point per day and place** (the place's climate corrected for the temperature and sky cover of
+  the day), with no dry and moist air by height and no difference between mountain and plain. Hence the base is flat and common for the whole day, there is no evening rise of the base, and over
   the plain the clouds are not as sparse as in real life (see "Subsidence over the plain").
 - **There is no comparison with observations**: no satellite images and no pilot records for these places. The reference
   was the expectation for Almaty (a streak along the main ridge, a base at 3-3.5 km, summits in cloud): the base and
@@ -219,7 +225,7 @@ the same division of the ground into "heating" and "not heating" that the model 
 - **A cloud field vs one cloud per thermal.** Before, each cloud was tied to one thermal and lived together with it. The
   field instead computes the share of sky under cloud in every cell: a lift fills the cloud in minutes, and the cloud
   keeps dissolving after the lift has gone. The cost is a somewhat heavier calculation (a 96 x 96 grid step takes 6-7 ms
-  on the development machine, once per 20 game seconds, in a separate thread) and the honest limits listed above. The
+  on the development machine, once per 20 game seconds) and the honest limits listed above. The
   old path remains as a fallback: without an air field, clouds are built from live thermals.
 - **The layer top follows terrain by 1/3, not "fully" and not "not at all".** Without the correction the ceiling and the
   clouds over ridges do not differ from valley ones; the layer does not repeat the terrain fully (observations show a
