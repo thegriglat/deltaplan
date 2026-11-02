@@ -25,8 +25,7 @@ If there is no level ground in that ring, the radius grows in steps of 60, 80 an
 tents at all: fewer tents, or none. Tents stand in a cluster, three types (dome, tunnel, tarp), six colors; the entrance mostly faces
 downwind; each tent is tilted to follow the terrain.
 
-A campfire burns near the camp; its smoke is carried by the model's local wind: a thin column in calm air, leaning at 3 m/s,
-pressed down and trailing at 7 m/s. The other pilots wait their turn off to the side of the tents and gear.
+A campfire burns near the camp; its smoke is carried by the model's local wind: in calm air it rises almost as a column, gusts sway it, strong wind presses it down. The other pilots wait their turn off to the side of the tents and gear.
 
 ![The camp from 25 m: tents, a wing, people and a pilot before the run](camp-view-25m.jpg "The camp from 25 m")
 
@@ -92,6 +91,7 @@ geese and aircraft are rarer.
 | Balloons | One balloon or a festival group | Morning and evening, in light wind, in the warm season |
 | Eagle | Overtakes you off to the side in a thermal or near rocks | By day |
 | Group of hang gliders | Other pilots on a neighboring slope | By day, in moderate wind |
+| Dog at the launch | Walks and plays near the camp; when a pilot runs for take-off it runs up and barks, at the edge it barks after the pilot | In about 60 % of flights, not in the dark |
 
 The conditions in the table are in general terms; exact thresholds are in the game configuration.
 
