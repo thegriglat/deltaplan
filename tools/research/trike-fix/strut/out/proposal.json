@@ -1,0 +1,50 @@
+{
+ "shift_deg": 8.745862553762255,
+ "push_contact_view_deg": 4.94999999999999,
+ "push_contact_phys_deg": 13.695862553762245,
+ "v_at_contact_kmh": 54.98995953587597,
+ "v_full_push_g0_kmh": 55.9,
+ "bar_full_push_phys": 13.14,
+ "variants": {
+  "0.111": {
+   "bar_phys_min": 0.5779599999999996,
+   "bar_view_min": -8.167902553762255,
+   "body_gap_m": 0.056166644962436146,
+   "pass_TTK6_body_0.05": true
+  },
+  "0.118": {
+   "bar_phys_min": 0.3564799999999999,
+   "bar_view_min": -8.389382553762255,
+   "body_gap_m": 0.049999803671698054,
+   "pass_TTK6_body_0.05": true
+  },
+  "0.178": {
+   "bar_phys_min": -1.5419200000000002,
+   "bar_view_min": -10.287782553762256,
+   "body_gap_m": -0.0003965257372413773,
+   "pass_TTK6_body_0.05": false
+  },
+  "0.2": {
+   "bar_phys_min": -2.2380000000000004,
+   "bar_view_min": -10.983862553762254,
+   "body_gap_m": -0.007684090276857342,
+   "pass_TTK6_body_0.05": false
+  },
+  "0.25": {
+   "bar_phys_min": -3.8200000000000003,
+   "bar_view_min": -12.565862553762255,
+   "body_gap_m": 0.00013893902479044339,
+   "pass_TTK6_body_0.05": false
+  }
+ },
+ "a_stop_deg_after_fix": -10.86999999999999,
+ "a_stop_deg_tkf5": -2.1299999999999906,
+ "worst_gaps_full_travel_m": {
+  "mast": 0.9092379542320782,
+  "strut": 0.0101517162503022,
+  "keel": 0.46851899666095154,
+  "body": -0.0002945543933003114,
+  "panel": 0.03843712844353869,
+  "view": 0.05219411348389068
+ }
+}
