@@ -123,7 +123,7 @@ Common to the whole model; specific ones are on the level pages.
 
 ## More
 
-- [The air model in the game](/docs/guide/air-model.md): the main document, what works, laws, numbers, limits.
+- Parts of the in-game description: [field on the CPU](/docs/guide/air-model/field-cpu.md), [thermals](/docs/guide/air-model/thermals.md), [turbulence](/docs/guide/air-model/turbulence.md), [limits](/docs/guide/air-model/limits.md).
 - [Calibration](/docs/research/air-model-tune.md), [sensitivity](/docs/research/air-model-sensitivity.md), [the Picard field path in the Rust crate](/docs/research/rust-wind-field-path.md).
 - Joint calibration on two data sets: [Askervein and Perdigão](/tools/research/cases/b1/README.md).
 - [Catalog of experimental data](/docs/research/experimental_data.md); data of [Askervein](/tools/research/data/askervein/README.md) and [Perdigão](/tools/research/data/perdigao/README.md).

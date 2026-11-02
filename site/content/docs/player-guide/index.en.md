@@ -61,6 +61,8 @@ The window is not shown in multiplayer (there it is always a hang glider without
 
 ### The player's trike {#player-guide-trike}
 
+How it works, the numbers and the model limits are on the page [Trike and towing](/mechanics/trike/).
+
 The trike is a powered cart with an Air Creation iXess 15 wing; the wing cannot be chosen. It is put on its wheels at the launch point of the chosen place with the engine off and a full tank (53 l). The game does not check the terrain under the wheels: on a steep slope the cart simply rolls away. Single player only.
 
 | Action | Key |

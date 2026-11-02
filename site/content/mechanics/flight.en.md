@@ -387,6 +387,7 @@ pilots flew. Further decisions:
 
 ## Further reading
 
+- [Trike and towing](/mechanics/trike/): the other aircraft of the player, the powered trike, and towing a hang glider.
 - [docs/guide/flight.md](/docs/guide/flight.md) — the full description of the flight model, the
   `FlightModel`/`Glider` API, the visual contract and tests.
 - [docs/research/pilot_mass.md](/docs/research/pilot_mass.md) — the derivation of the polar scaling with

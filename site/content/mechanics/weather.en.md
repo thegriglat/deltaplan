@@ -118,8 +118,7 @@ The air field is computed from the terrain, so at a particular launch the wind m
 What remains imprecise. At 100–200 m above the ground the wind at island launches stays 1.9–2.1 times above the
 forecast: this is the growth of wind with height and the acceleration over the island, not a model correction. It
 was measured at several launches in Rapa Nui, at Ongudai and at Askarovo (6 m/s, 12:00, 15 July), not at all
-places of the game. About wind as such and about flow separation behind a ridge, see the pages
-[Heuristic mode](/mechanics/air-model/heuristic/) and
+places of the game. About wind as such and about flow separation behind a ridge, see the page
 [Wind field: phases and Picard](/mechanics/air-model/wind-phases/).
 
 ## The daily cycle
@@ -200,7 +199,7 @@ to mean, physically, "higher and stronger thermals".
   error of ±300–500 m; the share of cirrus comes from the high-cloud climate of the place and the latitude belt.
 - **The wave is hidden and off by default** (`wave.enabled = false`): the physics of the lee wave (strong wind
   across a ridge + stable air) exists in the code, but the pilot does not know the word "wave" and it is not
-  switched on by default; see the page [Slope wind](/mechanics/air-model/heuristic/).
+  switched on by default; see the page [Wind field: phases and Picard](/mechanics/air-model/wind-phases/).
 
 ## What was considered and why this way
 
@@ -218,7 +217,7 @@ when the wind or weather changes), **thermals** (a bubble model, but the sources
 field, not from the anchor table) and **perturbations** (turbulence and gusts, from the turbulence statistics of
 the field). The daily cycle, heating inertia by surface class and temperature as an input parameter stayed the
 same: the field takes them as input. More in the [air model](/mechanics/air-model/) and
-[docs/guide/air-model.md](/docs/guide/air-model.md).
+[the air model](/mechanics/air-model/).
 
 ## More
 

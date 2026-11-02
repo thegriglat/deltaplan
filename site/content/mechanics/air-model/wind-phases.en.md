@@ -101,4 +101,4 @@ Recomputation is every 15 game minutes and when the wind or weather changes: in 
 - [Phase diagram research](/docs/research/air_phase.md) — phases, order parameters, thresholds from the literature.
 - [Measurements on ideal terrain](/docs/research/air_phase_results.md) — what is sharp, what is smooth, hysteresis, transfer to eroded terrain.
 - [Experts and assembly by phases](/docs/research/air_phase_experts.md) (§15) — mechanisms and stitching.
-- [The air model in the game](/docs/guide/air-model.md), [overview page](/mechanics/air-model/).
+- [Overview page of the air model](/mechanics/air-model/), [the field on the CPU](/docs/guide/air-model/field-cpu.md).

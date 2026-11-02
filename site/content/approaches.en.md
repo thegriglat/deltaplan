@@ -44,7 +44,7 @@ Summary of the approaches in order:
 
 $$ u = u_{ref} \cdot \left(\frac{agl}{10\,\text{m}}\right)^{0.14} \cdot \left(1 + 0.6 \cdot \frac{msl - msl_{start}}{1000\,\text{m}}\right) $$
 
-Slope lift is $w_{ridge} = \mathrm{clamp}(0.85 \cdot u \cdot (\hat w \cdot \nabla h) \cdot e^{-agl_s / 250}, \pm 6\ \text{m/s})$ with the slope point shifted upwind by $0.8\,agl$ (no more than 400 m). The lee zone is the "shadow line": below a line sloping at 12° from the ridge the air is in a rotor (sink $0.25\ldots0.7\,u$, turbulence $0.5\ldots0.9\,u$, downward gusts, reverse flow). Details — [the "Heuristic" mode](/mechanics/air-model/heuristic/).
+Slope lift is $w_{ridge} = \mathrm{clamp}(0.85 \cdot u \cdot (\hat w \cdot \nabla h) \cdot e^{-agl_s / 250}, \pm 6\ \text{m/s})$ with the slope point shifted upwind by $0.8\,agl$ (no more than 400 m). The lee zone is the "shadow line": below a line sloping at 12° from the ridge the air is in a rotor (sink $0.25\ldots0.7\,u$, turbulence $0.5\ldots0.9\,u$, downward gusts, reverse flow). Current treatment of this zone — [Turbulence and rotor](/mechanics/air-model/turbulence/).
 
 **What came out.** The consultant pilot said the flow around terrain is "not physical". The analysis ([research](/docs/research/slope_wind.md)) found three discrepancies with real life: no wind speed-up at the brow, the lift band is a fixed 250 m, and the "pipe" in a saddle works the wrong way round. The pilot's reference points: speed-up up to about two mountain heights from the foot, laminar at 2.5 heights, the steeper the slope the stronger, saddle ×1.5 along the axis even with an oblique wind of 15° ([diary Sep 29](https://github.com/thegriglat/deltaplan/blob/main/diary/2026-09-29.en.md)).
 
