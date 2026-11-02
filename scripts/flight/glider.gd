@@ -100,8 +100,6 @@ func setup_trike(cfg: Dictionary, pilot_mass_kg_: float, ops_cfg: Dictionary) ->
 	pilot_mass_kg = pm
 	wing_id = String(cfg.get("wing", TrikeRig.WING_DEFAULT))
 	var mp := TrikeRig.model_params(cfg, float(cart.empty_mass_kg) + pm + engine.fuel_mass_kg)
-	if cart.has("strut_stop"):  # TKF-К4: упор переднего подкоса (необязательный ключ cart)
-		mp.apparatus["strut_stop"] = cart.strut_stop
 	model = PendulumModel.new()
 	model.setup(mp.wing, mp.pilot, {}, mp.apparatus)
 	trike = TrikeRig.new()

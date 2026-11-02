@@ -12,8 +12,8 @@ extends RefCounted
 ## terrain(x, z) -> высота земли (для нормали на колёсах и agl_m). Чтение после refresh(): hang_pos, wing_basis,
 ## cart_basis, pilot_pos, agl_m.
 
-## ЦМ тележки в осях trike.glb от HangPoint (Godot: -Z вперёд): 0,13 м вперёд, 1,70 м вниз (docs/research/tow/trike-tug.md).
-const CART_CM_MODEL := Vector3(0.0, -1.70, -0.13)
+## ЦМ тележки в осях trike.glb от HangPoint (Godot: -Z вперёд): 0,13 м ЗА подвеской (+Z модели), 1,70 м вниз (cart.py, TT-8; TKF-К4 v2, docs/research/trike-fix/strut.md: раньше знак был обратный).
+const CART_CM_MODEL := Vector3(0.0, -1.70, 0.13)
 const CART_TURN_DEG_S := 20.0  ## предел скорости смены ориентации на колёсах и гашения скачка колёса -> воздух, град/с (в воздухе вид = физика)
 const WING_DEFAULT := "trike_ixess15"
 
@@ -47,6 +47,8 @@ static func model_params(cfg: Dictionary, cart_mass_kg: float) -> Dictionary:
 		"pilot_cda_m2": float(cart.cda_m2),
 		"arms_force_max_n": float(cart.arms_force_max_n),
 	}
+	if cart.has("strut_stop"):  # TKF-К4: упор переднего подкоса (необязательный ключ cart)
+		app["strut_stop"] = cart.strut_stop
 	return {"wing": wing, "pilot": pilot, "apparatus": app}
 
 
