@@ -1,0 +1,52 @@
+{
+  "id": "SD-6",
+  "module": "site-docs",
+  "type": "dp-writer",
+  "title": "Сайт: погода и облака",
+  "goal": "Страницы «Погода» и «Облака и тени» — по main: прогноз → воздух, облака и тени как сейчас считаются и рисуются; без нейросети и GPU-ветра (GPU для отрисовки облаков — можно).",
+  "plan_ref": "§4 SD-6",
+  "contracts": [
+    {
+      "name": "SD-К1",
+      "version": "1",
+      "ref": "docs/contracts/site-docs.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/site-docs-SD-6",
+  "branch": "site-docs/SD-6",
+  "base": "feature/site-docs",
+  "scope": [
+    "site/content/mechanics/weather.ru.md",
+    "site/content/mechanics/weather.en.md",
+    "site/content/mechanics/clouds/index.ru.md",
+    "site/content/mechanics/clouds/index.en.md"
+  ],
+  "dont_touch": [
+    "site/content/releases/",
+    "site/content/wings/",
+    "docs/",
+    "scripts/",
+    "configs/",
+    "site/hugo.toml"
+  ],
+  "accept": [
+    {
+      "name": "i18n",
+      "cmd": "python3 tools/site/check_i18n.py --pages=mechanics/weather,mechanics/clouds",
+      "expect": "exit=0"
+    },
+    {
+      "name": "forbidden",
+      "cmd": "! grep -niE 'onnx|air[-_]synth|нейросет|нейронн|neural|weight[_ -]?shift|смещени[а-я]* веса|Пикар[а-я]* на (GPU|видеокарт)|ветер[а-я]* на (GPU|видеокарт)|расч[её]т[а-я]* на GPU|GPU-ветер|Picard[a-z ]* on (the )?GPU|wind on (the )?GPU|GPU wind'  site/content/mechanics/weather.ru.md site/content/mechanics/weather.en.md site/content/mechanics/clouds/index.ru.md site/content/mechanics/clouds/index.en.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "pairs",
+      "cmd": "r=0; test $(grep -c '^## ' site/content/mechanics/weather.ru.md) -eq $(grep -c '^## ' site/content/mechanics/weather.en.md) || r=1; test $(grep -c '^## ' site/content/mechanics/clouds/index.ru.md) -eq $(grep -c '^## ' site/content/mechanics/clouds/index.en.md) || r=1; exit $r",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-02T05:15:16"
+}

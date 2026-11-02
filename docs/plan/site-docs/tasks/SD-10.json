@@ -1,0 +1,51 @@
+{
+  "id": "SD-10",
+  "module": "site-docs",
+  "type": "dp-engineer",
+  "title": "Сайт: страницы крыльев с trike_ixess15",
+  "goal": "tools/site/gen_wings.py --check проходит: страница крыла дельталёта trike_ixess15 (группа tug) генерируется из данных, рендер iso45 есть; страницы крыльев совпадают с данными.",
+  "plan_ref": "§4 SD-10",
+  "contracts": [
+    {
+      "name": "SD-К1",
+      "version": "1",
+      "ref": "docs/contracts/site-docs.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/site-docs-SD-10",
+  "branch": "site-docs/SD-10",
+  "base": "feature/site-docs",
+  "scope": [
+    "tools/site/gen_wings.py",
+    "site/content/wings/",
+    "docs/models/screenshots/glider_trike_ixess15/",
+    "docs/research/glider_3d_tz.md"
+  ],
+  "dont_touch": [
+    "configs/",
+    "scripts/",
+    "site/content/releases/",
+    "site/content/mechanics/",
+    "assets/"
+  ],
+  "accept": [
+    {
+      "name": "gen_wings",
+      "cmd": "python3 tools/site/gen_wings.py --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "contracts",
+      "cmd": "uv run -q --with pillow python tools/site/check_contracts.py --only=C1,C2",
+      "expect": "exit=0"
+    },
+    {
+      "name": "i18n",
+      "cmd": "python3 tools/site/check_i18n.py --pages=wings",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-02T05:15:37"
+}

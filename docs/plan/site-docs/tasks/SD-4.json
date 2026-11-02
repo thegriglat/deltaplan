@@ -1,0 +1,52 @@
+{
+  "id": "SD-4",
+  "module": "site-docs",
+  "type": "dp-writer",
+  "title": "Сайт: модель воздуха — общая картина и поле ветра",
+  "goal": "Страницы «Модель воздуха» и «Поле ветра» описывают расчёт как в main — весь ветер в Rust-крейте на процессоре (фазы течения, Пикар, уровни, кэш); без нейросети и GPU-ветра.",
+  "plan_ref": "§4 SD-4",
+  "contracts": [
+    {
+      "name": "SD-К1",
+      "version": "1",
+      "ref": "docs/contracts/site-docs.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/site-docs-SD-4",
+  "branch": "site-docs/SD-4",
+  "base": "feature/site-docs",
+  "scope": [
+    "site/content/mechanics/air-model/_index.ru.md",
+    "site/content/mechanics/air-model/_index.en.md",
+    "site/content/mechanics/air-model/wind-phases.ru.md",
+    "site/content/mechanics/air-model/wind-phases.en.md"
+  ],
+  "dont_touch": [
+    "site/content/releases/",
+    "site/content/wings/",
+    "docs/",
+    "scripts/",
+    "configs/",
+    "site/hugo.toml"
+  ],
+  "accept": [
+    {
+      "name": "i18n",
+      "cmd": "python3 tools/site/check_i18n.py --pages=mechanics/air-model/_index,mechanics/air-model/wind-phases",
+      "expect": "exit=0"
+    },
+    {
+      "name": "forbidden",
+      "cmd": "! grep -niE 'onnx|air[-_]synth|нейросет|нейронн|neural|weight[_ -]?shift|смещени[а-я]* веса|Пикар[а-я]* на (GPU|видеокарт)|ветер[а-я]* на (GPU|видеокарт)|расч[её]т[а-я]* на GPU|GPU-ветер|Picard[a-z ]* on (the )?GPU|wind on (the )?GPU|GPU wind'  site/content/mechanics/air-model/_index.ru.md site/content/mechanics/air-model/_index.en.md site/content/mechanics/air-model/wind-phases.ru.md site/content/mechanics/air-model/wind-phases.en.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "pairs",
+      "cmd": "r=0; test $(grep -c '^## ' site/content/mechanics/air-model/_index.ru.md) -eq $(grep -c '^## ' site/content/mechanics/air-model/_index.en.md) || r=1; test $(grep -c '^## ' site/content/mechanics/air-model/wind-phases.ru.md) -eq $(grep -c '^## ' site/content/mechanics/air-model/wind-phases.en.md) || r=1; exit $r",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-02T05:15:05"
+}

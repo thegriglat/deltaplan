@@ -1,0 +1,60 @@
+{
+  "id": "SD-3",
+  "module": "site-docs",
+  "type": "dp-writer",
+  "title": "Сайт: страницы игроку",
+  "goal": "Руководство игрока, обучение, цели, острова обучения и стартовый лагерь — по main: меню, настройки, клавиши, мышь, режимы игры; без удалённых настроек и механик.",
+  "plan_ref": "§4 SD-3",
+  "contracts": [
+    {
+      "name": "SD-К1",
+      "version": "1",
+      "ref": "docs/contracts/site-docs.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/site-docs-SD-3",
+  "branch": "site-docs/SD-3",
+  "base": "feature/site-docs",
+  "scope": [
+    "site/content/docs/player-guide/index.ru.md",
+    "site/content/docs/player-guide/index.en.md",
+    "site/content/docs/training/index.ru.md",
+    "site/content/docs/training/index.en.md",
+    "site/content/docs/goals/index.ru.md",
+    "site/content/docs/goals/index.en.md",
+    "site/content/docs/_index.ru.md",
+    "site/content/docs/_index.en.md",
+    "site/content/mechanics/training-islands/index.ru.md",
+    "site/content/mechanics/training-islands/index.en.md",
+    "site/content/mechanics/launch-camp/index.ru.md",
+    "site/content/mechanics/launch-camp/index.en.md"
+  ],
+  "dont_touch": [
+    "site/content/releases/",
+    "site/content/wings/",
+    "docs/",
+    "scripts/",
+    "configs/",
+    "site/hugo.toml"
+  ],
+  "accept": [
+    {
+      "name": "i18n",
+      "cmd": "python3 tools/site/check_i18n.py --pages=docs/player-guide,docs/training,docs/goals,docs/_index,mechanics/training-islands,mechanics/launch-camp",
+      "expect": "exit=0"
+    },
+    {
+      "name": "forbidden",
+      "cmd": "! grep -niE 'onnx|air[-_]synth|нейросет|нейронн|neural|weight[_ -]?shift|смещени[а-я]* веса|Пикар[а-я]* на (GPU|видеокарт)|ветер[а-я]* на (GPU|видеокарт)|расч[её]т[а-я]* на GPU|GPU-ветер|Picard[a-z ]* on (the )?GPU|wind on (the )?GPU|GPU wind'  site/content/docs/player-guide/index.ru.md site/content/docs/player-guide/index.en.md site/content/docs/training/index.ru.md site/content/docs/training/index.en.md site/content/docs/goals/index.ru.md site/content/docs/goals/index.en.md site/content/docs/_index.ru.md site/content/docs/_index.en.md site/content/mechanics/training-islands/index.ru.md site/content/mechanics/training-islands/index.en.md site/content/mechanics/launch-camp/index.ru.md site/content/mechanics/launch-camp/index.en.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "pairs",
+      "cmd": "r=0; test $(grep -c '^## ' site/content/docs/player-guide/index.ru.md) -eq $(grep -c '^## ' site/content/docs/player-guide/index.en.md) || r=1; test $(grep -c '^## ' site/content/docs/training/index.ru.md) -eq $(grep -c '^## ' site/content/docs/training/index.en.md) || r=1; test $(grep -c '^## ' site/content/docs/goals/index.ru.md) -eq $(grep -c '^## ' site/content/docs/goals/index.en.md) || r=1; test $(grep -c '^## ' site/content/docs/_index.ru.md) -eq $(grep -c '^## ' site/content/docs/_index.en.md) || r=1; test $(grep -c '^## ' site/content/mechanics/training-islands/index.ru.md) -eq $(grep -c '^## ' site/content/mechanics/training-islands/index.en.md) || r=1; test $(grep -c '^## ' site/content/mechanics/launch-camp/index.ru.md) -eq $(grep -c '^## ' site/content/mechanics/launch-camp/index.en.md) || r=1; exit $r",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-02T05:15:00"
+}
