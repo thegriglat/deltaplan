@@ -1,0 +1,48 @@
+{
+  "status": "done",
+  "summary": "Крыло trike_ixess15 (группа tug) добавлено в генератор: раздел E10 в glider_3d_tz.md, запись в таблице OLD (все числа — оценка, непаспортные источники), прототип для en; рендер iso45 собран Blender; страницы wings/tug/* и сводные таблицы сгенерированы.",
+  "commits": [
+    "bd5f03210 SD-10: страница крыла trike_ixess15 (группа tug), рендер iso45, раздел E10 ТЗ"
+  ],
+  "checks": [
+    {
+      "name": "gen_wings",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "contracts",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "i18n",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "в границах",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SD-10",
+  "uncertain": [
+    {
+      "where": "site/content/wings/tug/trike_ixess15.*.md: строка «Годы выпуска»",
+      "why": "значение era в конфиге «2000-е–» на en-странице остаётся с кириллической «е»; источник строки — общий wings-lineup.md, не специфичный",
+      "checked": "i18n K5 проходит; configs/ не трогал по границам"
+    },
+    {
+      "where": "docs/research/glider_3d_tz.md раздел E10",
+      "why": "мачта и 90 % двойной обшивки — по Wikipedia, по фото не проверены (так в configs/wings/trike_ixess15.json)",
+      "checked": "в разделе и на странице отмечено как оценка; термин про перенос веса не употреблял"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-11-02T05:20:08",
+  "by": "executor"
+}

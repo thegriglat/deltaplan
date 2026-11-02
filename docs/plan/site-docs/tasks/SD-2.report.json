@@ -1,0 +1,40 @@
+{
+  "status": "done",
+  "summary": "flight.ru/en: убраны прежние режимы, раздел «Ввод» по коду (мышь=штанга, ход 4000, X, «Крен мышью»), en «Apparatus». Доработка: visual-cues — у ботов ленточек не видно (telltale.gd), как во flight.",
+  "commits": [
+    "87b98feee flight: ввод и без удалённых режимов",
+    "последний коммит ветки: ленточки у ботов"
+  ],
+  "checks": [
+    {
+      "name": "i18n",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "forbidden",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "pairs",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SD-2",
+  "uncertain": [
+    {
+      "where": "flight.*: триммер",
+      "why": "отдельной механики триммера в коде нет, не упомянута",
+      "checked": "input_controller.gd, controls.json, locale/ui.csv"
+    }
+  ],
+  "dp_feedback": "task show обрезает дополнения; полный текст только --full.",
+  "extra": {},
+  "t": "2026-11-02T05:23:49",
+  "by": "executor"
+}

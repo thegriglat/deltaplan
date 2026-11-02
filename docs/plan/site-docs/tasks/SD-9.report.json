@@ -1,0 +1,54 @@
+{
+  "status": "done",
+  "summary": "Новая страница mechanics/trike (ru+en, по 11 разделов): старт, управление, двигатель и топливо, колёса, приборы, буксировка за дельталётом, лебёдка, физика, границы модели. Факты по коду и configs (trike_pilot, tow_tug, tow, tow_dolly, controls, ui.csv), guide — только подсказка.",
+  "commits": [
+    "см. git log site-docs/SD-9: SD-9 страница сайта «Дельталёт и буксировка»"
+  ],
+  "checks": [
+    {
+      "name": "i18n",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "forbidden",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "pairs",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SD-9",
+  "uncertain": [
+    {
+      "where": "site/content/mechanics/trike/index.ru.md: «Тяга действует по оси винта на 1,40 м»",
+      "why": "числа тяги, оси, разбега и обоснование подгонки взяты из configs и guide/trike-pilot.md; тест-цифры разбега (34–35 м, 9,2 с, отрыв 15,3 м/с) в коде не перепроверял",
+      "checked": "configs/tow_tug.json, trike_pilot.json, TrikeRig/TrikeEngine"
+    },
+    {
+      "where": "index.ru.md: таблица фаз буксировщика",
+      "why": "скорость буксировки в configs/tow_tug.json 63 км/ч, в guide — 60 км/ч (набор держит 60); написал 63 по конфигу",
+      "checked": "tow_speed_kmh в конфиге"
+    },
+    {
+      "where": "index.ru.md: «Лебёдка»",
+      "why": "числа регулятора (41/80 даН, 4 с, 25 м/с, 60°) из configs/tow.json; поведение в коде TowLine не читал построчно",
+      "checked": "configs/tow.json"
+    },
+    {
+      "where": "trike-fix",
+      "why": "по SD-К1: trike-fix: вид тележки и поворот в вираже — не описан; trike-fix: упор переднего подкоса и ход штанги «на себя» — не описан (числа хода штанги и скорости от штанги опущены); trike-fix: трава от винта — не описан; trike-fix: тяжесть управления на газу — не описан",
+      "checked": "в тексте нет"
+    }
+  ],
+  "dp_feedback": "plan site-docs <раздел> не находит SD-9 по ID задачи (только по номеру раздела/тексту) — пришлось искать вручную в docs/plan/site-docs.md.",
+  "extra": {},
+  "t": "2026-11-02T05:20:39",
+  "by": "executor"
+}

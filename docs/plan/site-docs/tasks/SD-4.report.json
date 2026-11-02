@@ -1,0 +1,80 @@
+{
+  "status": "done",
+  "summary": "Страницы «Модель воздуха» и «Поле ветра» (ru/en) переписаны под main: ветер считает Rust-крейт dp-air/picard_rs на процессоре; убраны GPU-счёт, режимы настроек, нейросеть, ссылки на heuristic и GPU-гайд; добавлены потоки, tol_scale, кеш, замеры загрузки на CPU.",
+  "commits": [
+    "03d8bc875 SD-4: модель воздуха и поле ветра — расчёт в Rust-крейте на процессоре"
+  ],
+  "checks": [
+    {
+      "name": "i18n",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "forbidden",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "pairs",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "hugo --minify",
+      "value": "без ошибок",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SD-4 --dry",
+  "uncertain": [
+    {
+      "where": "_index.ru.md:48 (загрузка 78 с на 8 потоках, 94–104 с на 2)",
+      "why": "замеры RW-6q на Xeon с ограничением потоков, до поздних правок крейта; на машинах игроков не мерили",
+      "checked": "docs/research/rust-wind-rw6-acceptance.md п.6 и строка про 78 с"
+    },
+    {
+      "where": "_index.ru.md:48 (поведение при отказе загрузки)",
+      "why": "код: Failed при загрузке даёт состояние FAILED, комментарий formula.rs говорит про нули; что видит игрок — не проверено, поэтому в тексте не описано",
+      "checked": "formula.rs job_failed, game.gd:523"
+    },
+    {
+      "where": "_index.ru.md:50 (сеть)",
+      "why": "прежнее утверждение про места термиков от ведущего и числа 0,008 м/с / 0,4 м не подтверждено кодом main, убрано; оставлено только побитное совпадение по потокам одной машины",
+      "checked": "scripts/net, docs/research"
+    },
+    {
+      "where": "_index.ru.md:44 (стык окон 9–12 %/9–18 %, сдвиг окон 1–3 с)",
+      "why": "числа окон взяты из исследований GPU-версии; 1–3 с убрано, проценты оставлены (итерации окон крейта побитно совпадают с окнами GPU по rust-wind-state)",
+      "checked": "rust-wind-state.md"
+    },
+    {
+      "where": "wind-phases.ru.md:97, 60-62",
+      "why": "исследовательские числа (Пикар, сравнение стартов) оставлены без изменений; время GPU 4,34→3,75 с заменено на -37 % тонких итераций (RW-6q)",
+      "checked": "rust-wind-rw6-acceptance.md T4a"
+    },
+    {
+      "where": "docs/guide/air-model.md",
+      "why": "гайд устарел (GPU, режим off/Эвристика); ссылка на него осталась в «Подробнее» (верен код); обновление гайда — RW-13/отдельная задача",
+      "checked": "сверка с кодом"
+    },
+    {
+      "where": "trike-fix",
+      "why": "пунктов trike-fix в моих страницах нет",
+      "checked": "grep"
+    }
+  ],
+  "dp_feedback": "task notes — нет такой подкоманды (note); вывод contracts/plan обрезается rtk, пришлось читать файл через Read.",
+  "extra": {
+    "снято_ссылок": [
+      "/mechanics/air-model/heuristic/ (2)",
+      "/docs/guide/air-model-gpu.md"
+    ],
+    "добавлена_ссылка": "/docs/research/rust-wind-field-path.md"
+  },
+  "t": "2026-11-02T05:20:54",
+  "by": "executor"
+}

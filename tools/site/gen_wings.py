@@ -161,6 +161,12 @@ OLD = {
                 "note": ("не паспорт: en.wikipedia Icaro_Laminar, руководство icaro2000.com (прямого паспорта Laminar Easy 14 нет)",
                  "not a passport: en.wikipedia Icaro_Laminar, icaro2000.com manual (there is no direct passport for the Laminar Easy 14)"),
                 "ref": "Icaro|Easy 2||M"},
+    "trike_ixess15": {"note": ("не паспорт: Wikipedia «Air Creation iXess», BMAA HADS HM16, расчёт TT-1 (tools/research/tow-trike/wing_trike_ixess15.json, docs/research/tow/trike-tug.md); паспорта производителя в наборе нет",
+                 "not a passport: Wikipedia “Air Creation iXess”, BMAA HADS HM16, the TT-1 calculation (tools/research/tow-trike/wing_trike_ixess15.json, docs/research/tow/trike-tug.md); no manufacturer passport in the set"),
+                       "notes": {"pilot_mass_min_kg": ("масса тележки с экипажем: тележка 150 кг + пилот от 55 кг (HADS §7(B)) + 15 кг топлива",
+                 "mass of the trike cart with crew: cart 150 kg + a pilot from 55 kg (HADS §7(B)) + 15 kg of fuel"),
+                                 "pilot_mass_max_kg": ("масса тележки с экипажем: MTOW 450 кг (HADS §7(A)) минус крыло 53 кг",
+                 "mass of the trike cart with crew: MTOW 450 kg (HADS §7(A)) minus the 53 kg wing")}},
     "target": {"note": ("не паспорт: en.wikipedia Aeros_Target, delta-nsk.ucoz.ru (ТТХ), aeros.com.ua",
                  "not a passport: en.wikipedia Aeros_Target, delta-nsk.ucoz.ru (specifications), aeros.com.ua"),
                "ref": "Aeros|Fox||", "ref_note": ("тождество Target 16 = Fox не доказано",
@@ -681,6 +687,7 @@ PROTO_EN = {  # прототипы с русскими названиями в �
     "laminar": "Icaro Laminar Easy 14 (kingposted)",
     "atlas": "“Atlas” (copy of the La Mouette Atlas 16)",
     "slavutich_ut": "Slavutich-UT",
+    "trike_ixess15": "Air Creation iXess 15 (tug)",
     "apogee": "“Apogee” (V. V. Mysenko)",
 }
 

@@ -1,0 +1,53 @@
+{
+  "status": "done",
+  "summary": "Страницы приборов, ботов и сети сверены с main. Убрано упоминание удалённых режимов крена; в «Детерминизме мира» снят устаревший рассказ про GPU-поле, источники термиков и снимок облачности (в ZoneState остались clock и queue); у ботов уточнено, что FlightModel только у них, у игрока «Маятник»; в PilotState добавлен режим управления.",
+  "commits": [
+    "b4bc8d997 SD-8: сайт — приборы, боты, сеть под main"
+  ],
+  "checks": [
+    {
+      "name": "i18n",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "forbidden",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "pairs",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SD-8 --dry",
+  "uncertain": [
+    {
+      "where": "multiplayer.*.md «Детерминизм мира»",
+      "why": "Совпадение воздуха у клиентов после rust-wind не проверено кодом; написано, что игра его не проверяет и не гарантирует",
+      "checked": "net.proto ZoneState (reserved 3,4), docs/plan/rust-wind.md"
+    },
+    {
+      "where": "multiplayer.*.md «Через Steam»",
+      "why": "Статус Steam и проверка на App ID 480 взяты из старого текста, по коду не перепроверялись",
+      "checked": "наличие docs/guide/steam.md"
+    },
+    {
+      "where": "docs/guide/net-protocol.md, docs/guide/game/network.md",
+      "why": "Возможно, ещё описывают thermalSources/cloudField в ZoneState (удалены в net.proto)",
+      "checked": "только net.proto"
+    },
+    {
+      "where": "trike-fix",
+      "why": "trike-fix: вид тележки/поворот, упор подкоса, трава от винта, тяжесть на газу — не описаны (в этих страницах их и не было)",
+      "checked": "страницы"
+    }
+  ],
+  "dp_feedback": "Команда plan site-docs SD-8 не находит раздел по ID задачи; rtk-хук сокращает вывод grep по proto.",
+  "t": "2026-11-02T05:20:36",
+  "by": "executor"
+}
