@@ -84,9 +84,9 @@ spot. Shift in flight is the extra pull-in. What the input means in "Pendulum":
 - **Extra pull-in**: Shift (mouse) or the gamepad's right bumper — the pilot pulls up to the hips, 0.7 m (from the
   T2C manual); on release the limit returns smoothly to 0.45 m at 0.5 m/s. A home-built control frame gives the full
   travel at once. Beyond the usual limit the suspension indicator is red. Speed at full pull-in is from the SD-13 re-measurement
-  (game commit a970628b5, 49 models): the median against the config reference `full_pull_speed_kmh` (the passport
-  target, which the bots fly by; not the player's speed) is **0.98 with the extra pull-in, 0.79 without it** (range with
-  it 0.81–1.38; 34 of 49 within ±10 % of the reference, 5 below 0.90, 10 above 1.10); against the passport Vmax at VG 0
+  (game commit a970628b5, 48 hang gliders, the trike excluded): the median against the config reference `full_pull_speed_kmh` (the passport
+  target, which the bots fly by; not the player's speed) is **0.98 with the extra pull-in, 0.78 without it** (range with
+  it 0.81–1.38; 34 of 48 within ±10 % of the reference, 5 below 0.90, 9 above 1.10); against the passport Vmax at VG 0
   it is 0.98 with the extra pull-in (40 wings without a Vne-capped value). Before the change it was 0.69–0.73. For this
   the pitch stiffness below trim is halved (one number for every wing); trim did not change. The trike shows no
   difference with and without the extra pull-in. Per-wing numbers:
