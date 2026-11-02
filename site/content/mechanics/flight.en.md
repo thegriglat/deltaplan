@@ -83,15 +83,19 @@ spot. Shift in flight is the extra pull-in. What the input means in "Pendulum":
   Flight only. The wing returns to level and flies straight.
 - **Extra pull-in**: Shift (mouse) or the gamepad's right bumper — the pilot pulls up to the hips, 0.7 m (from the
   T2C manual); on release the limit returns smoothly to 0.45 m at 0.5 m/s. A home-built control frame gives the full
-  travel at once. Beyond the usual limit the suspension indicator is red. Speed at full pull-in with the extra
-  pull-in: a median of 0.98 of the passport Vmax at VG 0 over 48 wings (the lowest tenth is below 0.90; before it was
-  0.69–0.73), without it 0.785. For this the pitch stiffness below trim is halved (one number for every wing); trim
-  did not change.
+  travel at once. Beyond the usual limit the suspension indicator is red. Speed at full pull-in is from the SD-13 re-measurement
+  (game commit a970628b5, 49 models): the median against the config reference `full_pull_speed_kmh` (the passport
+  target, which the bots fly by; not the player's speed) is **0.98 with the extra pull-in, 0.79 without it** (range with
+  it 0.81–1.38; 34 of 49 within ±10 % of the reference, 5 below 0.90, 10 above 1.10); against the passport Vmax at VG 0
+  it is 0.98 with the extra pull-in (40 wings without a Vne-capped value). Before the change it was 0.69–0.73. For this
+  the pitch stiffness below trim is halved (one number for every wing); trim did not change. The trike shows no
+  difference with and without the extra pull-in. Per-wing numbers:
+  [tools/research/site-docs/pullin_vmax.md](/tools/research/site-docs/pullin_vmax.md).
 - A neutral bar in straight flight is the wing's trim; a released bar — the wing flies straight.
 
-![Vmax at full pull-in over 48 wings](/tools/research/pendulum/out/vm2/fig/vmax_48.png "Vmax at full pull-in: grey — before the change (0.45 m), blue — with the softened pitch stiffness at the same travel, red — with the extra pull-in; black dash — the passport value at VG 0. The red bars use a 0.95 m extra pull-in (the VM-2 bench); the game uses 0.7 m, and over 48 wings the median is 0.98 of the passport")
+![Vmax at full pull-in over 48 wings](/tools/research/pendulum/out/vm2/fig/vmax_48.png "Vmax at full pull-in: grey — before the change (0.45 m), blue — with the softened pitch stiffness at the same travel, red — with the extra pull-in; black dash — the passport value at VG 0. The chart is the VM-2 bench (0.95 m extra pull-in, 48 wings, against the passport); the game uses 0.7 m, and the in-game re-measurement is in the text above")
 
-Without the change (grey bars) almost every wing falls short of the passport speed, and with the softened stiffness
+Without the change (grey bars) on the bench almost every wing falls short of the passport speed, and with the softened stiffness
 and the extra pull-in (red) they come up to the black dashes; for some wings the bar is still above or below the
 dash — one number fitted to the whole fleet.
 

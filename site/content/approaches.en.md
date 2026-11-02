@@ -112,7 +112,7 @@ Incidentally it turned out that the reference solutions in the database are unde
 
 ![Ground speed against 6 m/s wind by wing model](/tools/research/wing_physics_check/out/fig_penetration_6ms.png "Ground speed against 6 m/s wind by wing model")
 
-*Ground speed against a 6 m/s wind for all wings: light bars at trim, dark bars with full pull-in. At trim every wing makes headway, so the cause of "blown away" is the menu wind, not the polars.*
+*Ground speed against a 6 m/s wind for all wings: light bars at trim, dark bars with full pull-in at the config reference `full_pull_speed_kmh` (calculation of 2026-10-01), not the in-game speed with or without the extra pull-in. At trim every wing makes headway, so the cause of "blown away" is the menu wind, not the polars.*
 
 ### 5. Simplified mode "as in 0.8.0"
 

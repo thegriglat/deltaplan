@@ -48,7 +48,7 @@ idea its start; this page is about how it works in the game and where the model 
 | Throttle: more / less | W / S | on the ground and in the air; both together — zero |
 | Start / stop the engine | Space | will not start with an empty tank |
 | Nosewheel steering | A / D | on the ground only |
-| Wheel brake | Shift | on the ground only; in the air Shift is "pull in", as on the hang glider |
+| Wheel brake | Shift | on the ground only; in the air Shift is "pull in"; it does not change the trike's speed (SD-13 measurement: the same with and without) |
 | Control bar (pitch, roll) | mouse / stick | no keyboard for the bar |
 | Look around | mouse, right button held | no keyboard look: W/S are the throttle |
 
