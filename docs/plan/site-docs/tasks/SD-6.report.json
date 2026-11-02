@@ -1,0 +1,67 @@
+{
+  "status": "done",
+  "summary": "Страницы «Погода» и «Облака и тени» (ru+en) сверены с кодом main: погода переписана под климат ERA5 по месту (точка росы дня td_day, T700, Tx/DTR, тропопауза, перистые), Rust-крейт dp-air, шаг 60 с; таблица кромки пересчитана самой моделью (временный тест dp-air, удалён); облака — поправлены точка росы, ссылки на storm/waves в Rust, оговорка про таблицу исследования.",
+  "commits": [
+    "12131e672 SD-6: сайт — погода и облака"
+  ],
+  "checks": [
+    {
+      "name": "i18n",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "forbidden",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "pairs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "4 файла",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept SD-6 --dry",
+  "uncertain": [
+    {
+      "where": "weather.*.md, таблица кромки",
+      "why": "числа — для одного места и даты (Синюха, 15.07, небо «Ясно»), Td дня включает детерминированный случайный член r",
+      "checked": "посчитано derive из dp-air с реальными сетками data/climate; одноразовый тест в rust/dp-air/tests удалён, в коммит не попал"
+    },
+    {
+      "where": "clouds/index.*.md, таблица «Разные дни, разные места»",
+      "why": "числа из docs/research/cloud_field.md (17.10.2026), до перехода точки росы на ERA5; пересчитать без Godot и рельефа нельзя",
+      "checked": "в тексте оговорено, что в игре сейчас значения иные; пресеты «слабый/сильный» в меню нет"
+    },
+    {
+      "where": "weather.*.md, «Ветер прогноза»",
+      "why": "цифры 1,9–2,1 раза на 100–200 м — из tools/research/lee_cal/README.md, замер на нескольких стартах до ERA5-роста ветра по месту",
+      "checked": "приток k ≤ 1 подтверждён в case_prepare.rs и docs/guide/air-model/runtime.md"
+    },
+    {
+      "where": "weather.*.md, «Границы»",
+      "why": "про иранские станции (+2,4–2,5 К) и 3 года таблиц — из docs/guide/atmosphere/weather.md; сверку с Open-Meteo (67 %) не взял: даты в гайде выглядят неверно (22.10–06.11.2026)",
+      "checked": "код td_day и конфиг подтверждают таблицы 2011–2013"
+    },
+    {
+      "where": "clouds/index.*.md",
+      "why": "docs/guide/atmosphere/clouds.md ссылается на storm_field.gd/wave_field.gd — файлов в scripts/ нет, код в rust/dp-air/src/terms/{storm,waves}; гайд устарел",
+      "checked": "ссылки на страницах заменены на rust-пути"
+    },
+    {
+      "where": "weather.*.md, часы старта",
+      "why": "9/12/15/20 ч — configs/world.json time.start_hours; что окно выбирает именно из них — по комментарию конфига",
+      "checked": "—"
+    }
+  ],
+  "dp_feedback": "Хорошо бы в dpcli команда «прогнать временный rust-тест/пример без следа в git» и подсказка, где в карточке брать фактические числа модели; accept --dry отработал быстро и понятно.",
+  "t": "2026-11-02T05:25:30",
+  "by": "executor"
+}
