@@ -94,3 +94,7 @@
 {"t": "2026-11-02T05:24:01", "by": "coordinator", "task": "SD-8", "ev": "merged"}
 {"t": "2026-11-02T05:24:12", "by": "coordinator", "task": "SD-9", "ev": "accepted", "commits": ["7b6ad573d"], "note": "3/3 i18n=ok:exit 0; forbidden=ok:exit 0; pairs=ok:exit 0"}
 {"t": "2026-11-02T05:24:13", "by": "coordinator", "task": "SD-9", "ev": "merged"}
+{"t": "2026-11-02T05:24:26", "by": "coordinator", "task": "SD-10", "ev": "accepted", "commits": ["34f15d392"], "note": "3/3 gen_wings=ok:exit 0; contracts=ok:exit 0; i18n=ok:exit 0"}
+{"t": "2026-11-02T05:24:26", "by": "coordinator", "task": "SD-10", "ev": "merged"}
+{"t": "2026-11-02T05:24:41", "by": "coordinator", "task": "SD-2", "ev": "accepted", "note": "3/3 i18n=ok:exit 0; forbidden=ok:exit 0; pairs=ok:exit 0"}
+{"t": "2026-11-02T05:24:48", "by": "coordinator", "task": "SD-11", "ev": "note", "note": "Доработка по ревью (.dpcli/dpcli review SD-11 --show): замечания 1, 3, 4 — выполнить; замечание 2 (вернуть ссылку на heuristic) — НЕ выполнять: режима «Эвристика» в main нет (SD-4, SD-5), страницу снимает SD-12, снятая ссылка верна. Затем accept --dry и report заново.", "addendum": true}
