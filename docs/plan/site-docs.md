@@ -46,19 +46,20 @@ related: ["docs/contracts/site-docs.md", "docs/contracts/site-i18n.md"]
 - **SD-3** — игроку: `docs/player-guide`, `docs/training`, `docs/goals`, `docs/_index`, `mechanics/training-islands`,
   `mechanics/launch-camp`; управление дельталётом — по main, без ссылки на новую страницу (её даёт SD-10).
 - **SD-4** — воздух, поле: `mechanics/air-model/_index`, `wind-phases`, `heuristic` (есть ли режим в main — по коду;
-  нет — страницу удалить, ссылки на неё в своих файлах убрать; прочие ссылки — SD-10).
+  нет — файлы `heuristic` не править, ссылки на неё в своих файлах убрать, в отчёт; страницу и прочие ссылки снимает SD-11).
 - **SD-5** — воздух, термики и болтанка: `mechanics/air-model/thermals`, `turbulence`.
-- **SD-6** — погода, облака, рельеф: `mechanics/weather`, `mechanics/clouds`, `mechanics/terrain`.
-- **SD-7** — приборы, боты, сеть: `mechanics/instruments`, `mechanics/bots`, `mechanics/multiplayer`.
-- **SD-8** — новая страница `mechanics/trike/` (дельталёт игрока и буксировка за дельталётом), ru и en.
-- **SD-9** (dp-engineer) — крылья: `gen_wings.py --check` 0 с крылом `trike_ixess15` (группа `tug`), рендер iso45.
-- **SD-10** — после SD-2…SD-8 и Q1: `_index`, `mechanics/_index`, `approaches`, `research/_index`, перекрёстные
-  ссылки (на `mechanics/trike/`, снятая `heuristic`), итоговый прогон проверок по всему сайту.
+- **SD-6** — погода и облака: `mechanics/weather`, `mechanics/clouds`.
+- **SD-7** — рельеф и места: `mechanics/terrain`.
+- **SD-8** — приборы, боты, сеть: `mechanics/instruments`, `mechanics/bots`, `mechanics/multiplayer`.
+- **SD-9** — новая страница `mechanics/trike/` (дельталёт игрока и буксировка за дельталётом), ru и en.
+- **SD-10** (dp-engineer) — крылья: `gen_wings.py --check` 0 с крылом `trike_ixess15` (группа `tug`), рендер iso45.
+- **SD-11** — после SD-2…SD-9 и Q1/Q2: `_index`, `mechanics/_index`, `approaches`, `research/_index`, перекрёстные
+  ссылки (на `mechanics/trike/`, снятие `heuristic`, если её нет в main), итоговый прогон проверок по всему сайту.
 
 ## 5. Волны
 1. SD-1 (быстро, до остальных — от него зависит сборка в проверках) и шлюзы Q1/Q2.
-2. SD-2…SD-9 параллельно (у каждой задачи свои файлы).
-3. SD-10 → `site-docs done`.
+2. SD-2…SD-10 параллельно (у каждой задачи свои файлы).
+3. SD-11 → `site-docs done`.
 
 ## 6. Условия остановки (шлюз)
 - Страница описывает то, чего в main нет, а убрать — значит снять раздел/страницу целиком сверх плана — шлюз.
