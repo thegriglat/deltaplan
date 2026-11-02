@@ -71,6 +71,20 @@ States: off → starting → running → stopping → off.
   linear in between. Tank 53 l, density 0.75 kg/l. A full tank lasts 2–4 hours.
 - **Tank empty** — the engine dies, thrust 0, then you glide; it will not start without fuel.
 
+## The bar: strut stop and pull-in travel
+
+- **Front strut stop.** Before, in the physics the pushed-out bar went past the cart's front strut (up to 14.5° with the strut at
+  4.95°). Now in the air the strut stops the bar: the bar angle is at most 5.04°. The stop is placed so that contact comes at the
+  old minimum speed: full push-out at zero throttle gives 55.1 km/h (before, 52–56). The tug has the stop too (same strut); hang
+  gliders do not.
+- **Pull-in travel** is 0.178 m instead of 0.111: at full pull-in the bar reaches the pilot's chest and touches it. The wing's pitch
+  rate at full pull-in (throttle 0 / 0.5 / 1) is 7.5 / 8.0 / 12.3 °/s (before 5.9 / 6.1 / 14.9; `sport` 32).
+- **Response.** In roll the trike is not heavier but quicker than a hang glider: a 30°→30° reversal takes 2.0–2.1 s at any throttle
+  (`sport` 2.7 s; per Gratton, flex-wing trikes 2.5–5 s). It stays heavy in pitch on pull-in: the cause is the short bar travel, not
+  mass or thrust. Roll was not changed in this fix. The mode where the control bar moves instead of the pilot's mass (the former
+  `weight_shift`) was not brought back: it is kinematic, with no cart mass and no arm-force limit; the "Pendulum" already computes
+  the wing on a hinge above a heavy cart.
+
 ## Wheels: steering, brake, landing
 
 The wheel mode is the same code as the tug's cart.
@@ -92,6 +106,16 @@ The wheel mode is the same code as the tug's cart.
   scale is an estimate) and a **fuel gauge** 0…53 l with E and F marks. In the cockpit they sit on the cart's panel; in the
   third-person view they are in the right column with the tablet; hidden in the cockpit view.
 - The cockpit view is from the seated pilot's head. The pilot's body is not visible from the cockpit. The propeller spins with revs.
+- **In the air the cart is drawn exactly as the physics computes it.** The hang joint of real trikes is a pitch-and-roll hinge; the
+  cart's yaw relative to the wing is shared with the wing, and the model computes it that way. Before, the view turned the cart no
+  faster than 20°/s and in turns it lagged by 55–72° (up to 143° when pumping the roll): the cart looked turned sideways while the wing
+  pointed ahead, passed through the wing, and the control bar sat ahead of the front strut. Now the view lag is ≤ 0.06°; the 20°/s
+  limit remains only for the wheels ↔ air transition (a jump of ≈ 16°, smoothed in ≈ 0.8 s). This is a fix to the view; the physics
+  did not change. It applies in the cockpit, in the third-person view and to the tug.
+- **Grass lies down in the propeller wash.** While thrust is at least 100 N and the propeller axis is below 5 m above the ground,
+  the near grass (up to 25 m behind the propeller, 6 m to the sides) leans with the jet. The jet speed is an ideal actuator disc:
+  36.6 m/s at 2070 N of thrust, core about 7.6 m; the decay and width are an estimate from the literature on turbulent jets, not a
+  measurement. The cost is within measurement noise (−0.03 ms against noise of ±0.1 ms).
 - The sound is procedural: engine firings (by revs), the propeller blade frequency, exhaust. Loudness in the cockpit is 3 dB below
   the tug's. On pause and in menus the engine sound is silent.
 
@@ -152,6 +176,17 @@ Where the simulator lies or does not know:
 - **No propeller wash on the wing**, no reaction torque or gyroscopics; the drag and windmilling of a stopped propeller are not modelled.
 - **Gear impact is not computed**: however hard you land on the wheels, they are "wheels". There is no belly landing. Surface does
   not affect wheel friction (wet grass and asphalt are not modelled); `lat_mu` 0.4, `brake_mu` 0.3 and the 35° nosewheel angle are estimates.
+- **The strut stop works in the air only**; on wheels the wheel model sets the wing's pitch, so the stop is not needed there and was
+  not tested. Its stiffness and damping are estimates. Open sources give no numbers for the bar position at the strut: "contact at
+  the old minimum speed" is a decision, not data; the same goes for "the bar reaches the chest" at 0.178 m travel.
+- **Hang joint**: limits of the cart's roll relative to the wing and bearing friction were not found in sources and are not set in
+  the model; the cart's roll relative to the wing reaches ±12° when pumping the roll and 45° at full throttle — a model result,
+  not a check against reality.
+- **Spiral at full throttle**: from a 20° bank with the bar released the model returns to level (−4° after 10 s), whereas real
+  trikes at high power have an unstable spiral; a weak input of 0.1 for 10 s gives a bank of 38° / 53° / 73° at throttle 0 / 0.5 / 1.
+- **Propeller wash on grass** reaches the near grass only (up to 25 m); there is no jet on the middle and far grass; swirl, spreading
+  along the ground and the axis tilt are not modelled; the lean threshold and strength were set from the scale of the pilot's
+  trampling and not checked by eye in the game. The jet does not act on the wing.
 - **"Bar pushed out + full throttle"** (≈ 59 km/h) is close to a stall and barely damped; this is the physics of minimum climb speed
   at full throttle, and the game does not limit it.
 - **The tug is a point mass**: there is no rope moment about the cart's centre of mass; thrust does not depend on bank; the place's

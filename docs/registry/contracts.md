@@ -95,6 +95,7 @@ generated: true
 - training-island: TI-К1 v1, TI-К2 v2, TI-К3 v3 — [docs/contracts/training-island.md](../contracts/training-island.md)
 - trike-anywhere: TA-К1 v1, TA-К2 v1 — [docs/contracts/trike-anywhere.md](../contracts/trike-anywhere.md)
 - trike-cockpit: TC-К1 v1 — [docs/contracts/trike-cockpit.md](../contracts/trike-cockpit.md)
+- trike-fix: TKF-К1 v3, TKF-К2 v1, TKF-К3 v1, TKF-К4 v2 — [docs/contracts/trike-fix.md](../contracts/trike-fix.md)
 - trike-model: TK-K1 v5, TK-K2 v4, TK-K3 v2 — [docs/contracts/trike-model.md](../contracts/trike-model.md)
 - trike-pilot: TP-К1 v3, TP-К2 v1, TP-К3 v2, TP-К4 v2, TP-К5 v1, TP-К6 v2, TP-К7 v3, TP-К8 v1, TP-К9 v1 — [docs/contracts/trike-pilot.md](../contracts/trike-pilot.md)
 - ui-controls: У1 v5, У2 v2 — [docs/contracts/ui-controls.md](../contracts/ui-controls.md)

@@ -274,6 +274,10 @@ in wing axes moves by 5–10 cm (RMS).
 
 ## Model limits
 
+- **The trike on the "Pendulum".** The cart is a point mass on the hang point with no yaw relative to the wing (the joint is a pitch-and-roll
+  hinge); in the air the view follows the physics without lag (before, a 20°/s limit gave a 55–72° lag in turns). The front strut stops the
+  bar on push-out (contact ≈ 55 km/h at zero throttle), pull-in travel is 0.178 m, to the chest; the stop's stiffness is an estimate. The
+  spiral at full throttle returns to level in the model, whereas on real trikes it is unstable. Details and numbers: [Trike and towing](/mechanics/trike/).
 - **The pilot is a point.** No body rotation, pulling up, postures or body aerodynamics. "Body perpendicular to
   the bar" is taken as an assumption; in the game the pilot hangs vertically under the hang point.
 - **No VG.** Sail tightening (+~20 % speed on sport wings) is not modelled. The passport Vmax at VG 0 is reached
