@@ -82,6 +82,12 @@ Details: how the passports went into the configs and where the sources disagree 
 | [DesignProducts SHE 1 12.7](/wings/topless/dp_she1/) | DesignProducts SHE 1, 2023– | no | 12.7 | 10.35 | 28.4 | 70–101 | DHV 3 |
 | [Icaro Laminar 13.7](/wings/topless/icaro_laminar_z9/) | Icaro Laminar (Zero 9 / Zero 7 / Z8), 1994– | no | 13.83 | 10.02 | 30.9 | 80–95 | class 3 |
 
+## [Tugs](/wings/tug/)
+
+| Model | Prototype, years | Kingpost | Area, m² | Span, m | Mass, kg | Pilot, kg | Class |
+|---|---|---|---|---|---|---|---|
+| [Air Creation iXess 15 (tug)](/wings/tug/trike_ixess15/) | Air Creation iXess 15 (tug), 2000-е– | yes | 15 | 10 | 53 | 220–397 | — |
+
 ## Provenance marks {#provenance-marks}
 
 - **passport** — a number from the passport of the same model and size: the manufacturer's page or PDF, a placard, a DHV card (link and quote are in the “Source” column). If the sources differ from the game by more than 3 %, the other value is shown next to it.
