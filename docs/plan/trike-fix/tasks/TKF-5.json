@@ -43,19 +43,23 @@
       "tests": "trike_bar_stop"
     },
     {
-      "name": "trike",
-      "tests": "trike"
+      "name": "vs_base_trike",
+      "cmd": "tools/tests_vs_base.sh --base feature/trike-fix --filter=trike",
+      "expect": "exit=0"
     },
     {
-      "name": "tow",
-      "tests": "tow"
+      "name": "vs_base_tow",
+      "cmd": "tools/tests_vs_base.sh --base feature/trike-fix --filter=tow",
+      "expect": "exit=0"
     },
     {
-      "name": "pendulum",
-      "tests": "pendulum"
+      "name": "vs_base_pendulum",
+      "cmd": "tools/tests_vs_base.sh --base feature/trike-fix --filter=pendulum",
+      "expect": "exit=0"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-11-02T04:09:35"
+  "created": "2026-11-02T04:09:35",
+  "edited": "2026-11-02T04:39:21"
 }

@@ -1,0 +1,89 @@
+{
+  "status": "partial",
+  "summary": "Упор переднего подкоса в физике (cart.strut_stop в tow_tug.json, момент пружина-демпфер около подвески в PendulumModel, ключа нет - модель прежняя) и ход «на себя» игрока 0,25 м (trike_pilot.json arms.shift_pull_m, применяет Glider.setup_trike). Для дельталёта игрока упор работает; для TowTug - нет: TrikeRig.model_params (trike_rig.gd, dont_touch) не передаёт ключ.",
+  "commits": [
+    "ad4cdcd6c TKF-5: упор переднего подкоса в физике и ход «на себя» игрока 0,25 м (TKF-К4 v1)"
+  ],
+  "checks": [
+    {
+      "name": "trike_bar_stop",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "vs_base_trike/tow/pendulum",
+      "value": "нет новых падений против feature/trike-fix",
+      "pass": true
+    },
+    {
+      "name": "bar_deg_phys max push_full/pitch_pump/trim_full/throttle_step",
+      "value": "5,22 / 5,23 / 4,15 / 4,30 (порог 4,95+0,5=5,45)",
+      "pass": true
+    },
+    {
+      "name": "bar_deg_phys min полный на себя газ 0/0,5/1",
+      "value": "-3,82 / -3,80 / -3,82 (порог -8,39)",
+      "pass": true
+    },
+    {
+      "name": "скорость тангажа на себя газ 0/0,5/1, °/с",
+      "value": "11,2 / 11,6 / 15,8 (до: 4,3 / 4,5 / 9,0)",
+      "pass": true
+    },
+    {
+      "name": "скачок скорости тангажа за шаг у упора, °/с",
+      "value": "push_full 3,65; pitch_pump 9,36; pitch_pump_idle 9,55 (порог 10)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Упор у TowTug: нужна строка в TrikeRig.model_params (scripts/flight/trike_rig.gd, не мой скоуп): if cart.has(\"strut_stop\"): app[\"strut_stop\"] = cart.strut_stop. Glider.setup_trike пока дописывает ключ сам, TowTug его не получает."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept TKF-5 --dry; tools: godot --headless --path . res://tools/research/trike-fix/bar_stop/bar_stop_run.tscn -- --out=f.json [--nostop] [--pull=м]",
+  "uncertain": [
+    {
+      "where": "scripts/flight/pendulum/pendulum_model.gd _strut_stop_force",
+      "why": "жёсткость 2e5 Н*м/рад и демпфирование 5000 - оценка, не измерение; a_stop=-2,13 градуса выведен геометрией (bar_deg = 2,82 - a)",
+      "checked": "bar_deg_phys в игре упирается в 5,22-5,23 (push_deg 4,95, допуск 0,5); на 150000/3000 скачок 10,04 (чуть выше порога), на 600000 - 12,4"
+    },
+    {
+      "where": "tests/flight/test_trike_bar_stop.gd",
+      "why": "скачок скорости тангажа измерен только у упора; в pitch_pump вне упора скачок 13,4 °/с уже на базе (смена знака ввода руками), упор его не вызывает",
+      "checked": "сравнение с --nostop: 13,36 без упора на тех же шагах"
+    },
+    {
+      "where": "упор на колёсах/тележке (_dolly_substep)",
+      "why": "упор действует только в воздушном шаге _substep; на колёсах наклон мачты решается отдельно и в упор не упирается",
+      "checked": "не проверял"
+    }
+  ],
+  "dp_feedback": "job wait на 180 с уходит в фон и просит ждать уведомление - неудобно в цикле; tests_vs_base работает хорошо.",
+  "extra": {
+    "bar_deg_phys_до": {
+      "газ0 pitch-1": 0.58,
+      "газ0 pitch0": 4.09,
+      "газ0 pitch+1": 13.2,
+      "газ1 pitch-1": 0.6,
+      "газ1 pitch0": 4.11,
+      "газ1 pitch+1": 13.22
+    },
+    "bar_deg_phys_после": {
+      "газ0 pitch-1 (ход 0,25)": -3.82,
+      "газ0 pitch0": 4.09,
+      "газ0 pitch+1": 5.28,
+      "газ1 pitch-1": -3.82,
+      "газ1 pitch0": 4.11,
+      "газ1 pitch+1": 5.27
+    },
+    "выход за упор до/после": {
+      "push_full": "14,5 -> 5,22",
+      "pitch_pump": "12,8 -> 5,23"
+    },
+    "ход на себя": "0,25 м (наибольший из 0,20-0,25; на 0,20: min bar -2,3, скорость тангажа 8,6 °/с на газу 0 - меньше 10)",
+    "фугоида": "test_trike_pilot_k6 (k <= 0,65) зелёный в vs_base_trike",
+    "tow": "в vs_base_tow без новых падений; TowTug упор не получает (см. not_done); числа связки прежние"
+  },
+  "t": "2026-11-02T05:02:18",
+  "by": "executor"
+}
