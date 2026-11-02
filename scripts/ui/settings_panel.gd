@@ -112,7 +112,7 @@ func _ready() -> void:
 	_sens = UiKit.slider_row(
 		box_ctl, tr("settings_mouse_sensitivity"), float(sr[0]), float(sr[1]), 0.01, "%.2f °/px"
 	)
-	var bsr: Array = ui.get("bar_sensitivity_range", [0.25, 4.0])
+	var bsr: Array = ui.get("bar_sensitivity_range", [0.1, 4.0])
 	_bar_sens = UiKit.slider_row(
 		box_ctl, tr("settings_bar_sensitivity"), float(bsr[0]), float(bsr[1]), 0.05, "%.2f×"
 	)
@@ -121,7 +121,7 @@ func _ready() -> void:
 	bar_lbl.custom_minimum_size.x = 210
 	_bar_sens.value_changed.connect(
 		func(x: float) -> void:
-			var travel := float(Config.value("controls", "mouse.bar_travel_px", 2500.0))
+			var travel := float(Config.value("controls", "mouse.bar_travel_px", 4000.0))
 			if _bar_cm_valid():
 				bar_lbl.text = tr("settings_bar_sensitivity_fmt") % [x, travel / maxf(x, 0.05) / 315.0]
 			else:

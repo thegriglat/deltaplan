@@ -1,0 +1,13 @@
+{"task": "PFT-4", "items": [
+  {"item": 1, "verdict": "none",
+   "cause": "Раскачка тангажа после отрыва — фугоида модели от состояния на передаче рук со стоек на штангу (ΔV от трима и Δγ траектории); рывка при передаче нет, ошибки в переходе нет. Размах совпадает с оценкой Ланчестера (прогон/оценка 1,07) и с ответом той же модели на ΔV 2…7 км/ч при старте в воздухе. У ww_t2c вдвое больше из-за ΔV +4,6 км/ч (нейтраль разбега 11,5° ниже α трима 12,58°).",
+   "evidence": [
+     {"what": "sport, склон 12°: полуразмах V за 20 с после передачи, прогон / оценка Ланчестера по ΔV=+0,3 км/ч и Δγ=−3,3°", "value": 1.72, "unit": "км/ч (оценка 1,47)", "ref": "docs/research/pilot-feedback-trim/liftoff.md#2-что-задаёт-размах--вклад-каждого-фактора-таблицы--liftoffoutbase_tabletxt-scan_tabletxt"},
+     {"what": "ww_t2c, склон 12°: полуразмах V, ΔV на передаче +4,6 км/ч (sport +0,3), оценка Ланчестера 4,68", "value": 4.29, "unit": "км/ч", "ref": "docs/research/pilot-feedback-trim/liftoff.md#4-почему-у-ww_t2c-вдвое-больше-чем-у-sport"},
+     {"what": "рывок при передаче: перелёт θ после передачи у sport/12 (из размаха 4,25°)", "value": 0.33, "unit": "град", "ref": "docs/research/pilot-feedback-trim/liftoff.md#1-разложение-по-времени-sport-склон-12-отрыв-на-417-с-разбега"},
+     {"what": "эталон: sport, старт в воздухе на 38 км/ч (ΔV +2,2 км/ч), полуразмах θ", "value": 3.67, "unit": "град (база после отрыва 4,25)", "ref": "docs/research/pilot-feedback-trim/liftoff.md#3-физичность"},
+     {"what": "передача при отрыве вместо 1 с (bar_after 0): полуразмах θ sport/12 против 4,25 в базе — размах задаёт момент передачи", "value": 7.5, "unit": "град", "ref": "docs/research/pilot-feedback-trim/liftoff.md#2-что-задаёт-размах--вклад-каждого-фактора-таблицы--liftoffoutbase_tabletxt-scan_tabletxt"},
+     {"what": "ww_t2c/12 с launch.alpha_neutral_deg 14,0 вместо 11,5 (потолок K1 v2 14,3): полуразмах V против 4,29", "value": 2.15, "unit": "км/ч", "ref": "docs/research/pilot-feedback-trim/liftoff.md#5-сетка-по-alpha_neutral-outscan_tabletxt-минимум-v_амп-по-нейтрали"}
+   ],
+   "proposal": []}
+]}

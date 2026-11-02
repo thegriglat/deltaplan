@@ -161,6 +161,12 @@ OLD = {
                 "note": ("не паспорт: en.wikipedia Icaro_Laminar, руководство icaro2000.com (прямого паспорта Laminar Easy 14 нет)",
                  "not a passport: en.wikipedia Icaro_Laminar, icaro2000.com manual (there is no direct passport for the Laminar Easy 14)"),
                 "ref": "Icaro|Easy 2||M"},
+    "trike_ixess15": {"note": ("не паспорт: Wikipedia «Air Creation iXess», BMAA HADS HM16, расчёт TT-1 (tools/research/tow-trike/wing_trike_ixess15.json, docs/research/tow/trike-tug.md); паспорта производителя в наборе нет",
+                 "not a passport: Wikipedia “Air Creation iXess”, BMAA HADS HM16, the TT-1 calculation (tools/research/tow-trike/wing_trike_ixess15.json, docs/research/tow/trike-tug.md); no manufacturer passport in the set"),
+                       "notes": {"pilot_mass_min_kg": ("масса тележки с экипажем: тележка 150 кг + пилот от 55 кг (HADS §7(B)) + 15 кг топлива",
+                 "mass of the trike cart with crew: cart 150 kg + a pilot from 55 kg (HADS §7(B)) + 15 kg of fuel"),
+                                 "pilot_mass_max_kg": ("масса тележки с экипажем: MTOW 450 кг (HADS §7(A)) минус крыло 53 кг",
+                 "mass of the trike cart with crew: MTOW 450 kg (HADS §7(A)) minus the 53 kg wing")}},
     "target": {"note": ("не паспорт: en.wikipedia Aeros_Target, delta-nsk.ucoz.ru (ТТХ), aeros.com.ua",
                  "not a passport: en.wikipedia Aeros_Target, delta-nsk.ucoz.ru (specifications), aeros.com.ua"),
                "ref": "Aeros|Fox||", "ref_note": ("тождество Target 16 = Fox не доказано",
@@ -637,6 +643,32 @@ def dhv_rows(spec, recs, kind):
     return out
 
 
+PULLIN = {}
+
+
+def pullin_rows(wid):
+    """Строки «в игре: полностью на себя» с добором и без — замер tools/research/site-docs/pullin_vmax.json (SD-13)."""
+    if not PULLIN:
+        PULLIN.update(load(os.path.join(ROOT, "tools", "research", "site-docs", "pullin_vmax.json")))
+    pv = PULLIN["wings"].get(wid)
+    pn = L("в игре: полностью на себя, с добором", "in game: fully pulled in, with the extra pull")
+    pw = L("в игре: полностью на себя, без добора", "in game: fully pulled in, without the extra pull")
+    if not pv or wid == "trike_ixess15":
+        why = L("нет замера: у дельталёта нет трапеции «на себя» и добора, модель «Маятник» к нему не применяется",
+                "no measurement: the trike has no pull-in control frame or extra pull, the Pendulum model is not applied to it")
+        return [row(L("в игре: полностью на себя, с добором и без добора", "in game: fully pulled in, with and without the extra pull"), L("нет замера", "no measurement"), "оценка", why)]
+    note = L("замер модели «Маятник» в игре (tools/research/site-docs/pullin_vmax.json): полный «на себя» %s, установившаяся скорость; "
+             "добор — Shift у мыши или кнопка модификатора у геймпада, ход рук до «штанги у бёдер» %s м вместо %s м, усилие рук не более 300 Н "
+             "(docs/research/pendulum/pitch-nonlinear.md); границы модели — docs/research/pendulum/pullin-speed.md",
+             "measured on the Pendulum model in the game (tools/research/site-docs/pullin_vmax.json): fully pulled in %s, steady speed; "
+             "the extra pull is Shift on the mouse or the modifier button on the gamepad, hand travel to the bar at the hips %s m instead of %s m, "
+             "hand force at most 300 N (docs/research/pendulum/pitch-nonlinear.md); model limits — docs/research/pendulum/pullin-speed.md")
+    return [
+        row(pn, "%s %s" % (fm(pv["full_kmh"]), kmh()), "оценка", note % (L("с добором", "with the extra pull"), dec("0.7"), dec("0.45"))),
+        row(pw, "%s %s" % (fm(pv["normal_kmh"]), kmh()), "оценка", note % (L("без добора", "without the extra pull"), dec("0.7"), dec("0.45"))),
+    ]
+
+
 def model_rows(wid, cfg, spec, base_name):
     ref = cfg.get("reference", {})
     if spec:
@@ -649,7 +681,11 @@ def model_rows(wid, cfg, spec, base_name):
     ms = L("м/с", "m/s")
     out = [
         row(L("Скорость трима", "Trim speed"), "%s %s" % (fm(cfg["trim_speed_kmh"]), kmh()), "оценка", how),
-        row(L("Скорость, трапеция полностью на себя", "Speed, control frame fully pulled in"), "%s %s" % (fm(cfg["full_pull_speed_kmh"]), kmh()), "оценка", how),
+        row(L("Скорость, трапеция полностью на себя — эталон конфига", "Speed, control frame fully pulled in — config reference"),
+            "%s %s" % (fm(cfg["full_pull_speed_kmh"]), kmh()), "оценка",
+            how + L("; паспортная цель (Vmax при VG 0), по ней настроены боты, а не результат модели «Маятник»",
+                    "; the passport target (Vmax at VG 0) the bots are tuned to, not a result of the Pendulum model")),
+    ] + pullin_rows(wid) + [
         row(L("Сваливание (прямой полёт)", "Stall (straight flight)"), "%s %s" % (fm(ref["stall_speed_kmh"]), kmh()), "оценка", how),
         row(L("Минимальное снижение", "Minimum sink"), L("%s м/с на %s км/ч", "%s m/s at %s km/h") % (fm(ref["min_sink_ms"]), fm(ref["min_sink_speed_kmh"])), "оценка", how),
         row(L("Качество", "Glide ratio"), L("%s на %s км/ч", "%s at %s km/h") % (fm(ref["best_glide"]), fm(ref["best_glide_speed_kmh"])), "оценка",
@@ -681,6 +717,7 @@ PROTO_EN = {  # прототипы с русскими названиями в �
     "laminar": "Icaro Laminar Easy 14 (kingposted)",
     "atlas": "“Atlas” (copy of the La Mouette Atlas 16)",
     "slavutich_ut": "Slavutich-UT",
+    "trike_ixess15": "Air Creation iXess 15 (tug)",
     "apogee": "“Apogee” (V. V. Mysenko)",
 }
 

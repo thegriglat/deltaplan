@@ -131,7 +131,7 @@ remapped in the controls settings file; they are not shown on the "Controls" scr
 **F7 in more detail.** This is an input of the air model: how much heat the surface gives off at the moment. It is not
 a measured temperature and not a map of actual thermals. The map comes from the coarsest grid of the model, so small
 patches (a single field, a house) are not there; it is rebuilt as the day goes on and when the pilot moves away from the centre.
-At 300 W/m² and above the model removes the lee rotor (see the [lee-side heuristic](/mechanics/air-model/heuristic/)),
+At 300 W/m² and above the model removes the lee rotor (see [turbulence and rotor](/mechanics/air-model/turbulence/)),
 and thermals follow from the same flux ([thermals](/mechanics/air-model/thermals/)). The F7 layer only shows; it adds
 nothing to the flight. Details are in the [CHANGELOG](/CHANGELOG.md) (build 1.5.19) and in the
 [cameras and input guide](/docs/guide/game/cameras-input.md), which describes layers F1-F6.
@@ -168,7 +168,7 @@ sideslip angle.
 
 - In the player's "Pendulum" physics sideslip arises on its own and the string shows it. A known error: in a
   steady turn of about 30° the string deflects up to 12° inward, while the consultant pilot says that in a turn
-  the string points straight back (docs/guide/flight/pendulum.md, "Model limits"). In the bots' model (`FlightModel`; the two former player modes, weight shift and "simple", are no longer in the game)
+  the string points straight back (docs/guide/flight/pendulum.md, "Model limits"). In the bots' model (`FlightModel`, direct roll commands)
   the flight is without sideslip (the heading follows the airspeed exactly), so in a steady
   turn the string points straight back — it responds only to the entry into bank (rotation of the attachment
   point) and to the difference between the wind at the attachment point and at the centre of the wing

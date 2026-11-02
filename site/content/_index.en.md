@@ -12,7 +12,8 @@ fly a wing in a thermal over real terrain. The game has the "Pendulum" mode (win
 
 - [Flight and controls](/mechanics/flight/) — a wing of strips and a pilot on the hang chain, the launch run, stall, spin and crash
 - [Wing models](/wings/) — 48 wings in four groups: prototype, sizes, masses and where each number comes from
-- [Slope wind](/mechanics/air-model/wind-phases/) — airflow over terrain, separation and rotor behind a ridge, calm and evening drainage; the simple mode is ["Heuristic"](/mechanics/air-model/heuristic/)
+- [Slope wind](/mechanics/air-model/wind-phases/) — airflow over terrain, separation and rotor behind a ridge, calm and evening drainage; all wind is computed by a Rust crate on the CPU
+- [Trike and towing](/mechanics/trike/) — the powered trike as the player's aircraft; towing a hang glider behind a trike or a winch
 - [Thermals](/mechanics/air-model/thermals/) — strength and frequency by time of day, the edge, dry thermals
 - [Weather](/mechanics/weather/) — temperature, wind and cloud cover from a forecast the pilot sets; thunderstorms
 - [Clouds](/mechanics/clouds/) — cumulus, cumulonimbus, cloud shadows
