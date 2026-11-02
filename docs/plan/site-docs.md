@@ -36,7 +36,8 @@ related: ["docs/contracts/site-docs.md", "docs/contracts/site-i18n.md"]
   раздела в `docs/research/glider_3d_tz.md`, нет рендера `docs/models/screenshots/glider_trike_ixess15/iso45.jpg`
   (рендер — `tools/blender/render_wings_site.sh <id>`, Blender есть).
 - На сайте нет страницы про дельталёт и буксировку.
-- `approaches.*` и `research/_index.*` — история пробованных подходов (нейросеть P1–P3, Пикар на GPU) — шлюз Q1.
+- `approaches.*` и `research/_index.*` — история пробованных подходов (нейросеть P1–P3, Пикар на GPU): Q1 (б) — оставить историю.
+- Q2 (в): устаревшие `docs/guide/**` снять с подключения в `hugo.toml`, guide не переписывать.
 
 ## 4. Задачи
 Все тексты — контракт SD-К1. Тип `dp-writer` (sonnet), если не указано иначе.
@@ -53,13 +54,16 @@ related: ["docs/contracts/site-docs.md", "docs/contracts/site-i18n.md"]
 - **SD-8** — приборы, боты, сеть: `mechanics/instruments`, `mechanics/bots`, `mechanics/multiplayer`.
 - **SD-9** — новая страница `mechanics/trike/` (дельталёт игрока и буксировка за дельталётом), ru и en.
 - **SD-10** (dp-engineer) — крылья: `gen_wings.py --check` 0 с крылом `trike_ixess15` (группа `tug`), рендер iso45.
-- **SD-11** — после SD-2…SD-9 и Q1/Q2: `_index`, `mechanics/_index`, `approaches`, `research/_index`, перекрёстные
-  ссылки (на `mechanics/trike/`, снятие `heuristic`, если её нет в main), итоговый прогон проверок по всему сайту.
+- **SD-11** — история исследований по Q1 (б): `approaches`, `research/_index` — история остаётся, «Что в игре сейчас»
+  и все «сейчас» — по main (SD-К1 v2). Файлы не пересекаются с волной 2 — запускается сразу.
+- **SD-12** — после SD-2…SD-11: Q2 (в) — снять устаревшие `docs/guide/**` с подключения в `site/hugo.toml`; `_index`,
+  `mechanics/_index`; перекрёстные ссылки по всему сайту (на `mechanics/trike/`, снятие `heuristic`, если её нет в main,
+  ссылки на снятые guide); итоговый прогон проверок по всему сайту.
 
 ## 5. Волны
 1. SD-1 (быстро, до остальных — от него зависит сборка в проверках) и шлюзы Q1/Q2.
-2. SD-2…SD-10 параллельно (у каждой задачи свои файлы).
-3. SD-11 → `site-docs done`.
+2. SD-2…SD-11 параллельно (у каждой задачи свои файлы).
+3. SD-12 → `site-docs done`.
 
 ## 6. Условия остановки (шлюз)
 - Страница описывает то, чего в main нет, а убрать — значит снять раздел/страницу целиком сверх плана — шлюз.
