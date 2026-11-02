@@ -8,7 +8,7 @@
   "contracts": [
     {
       "name": "TKF-К4",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/trike-fix.md"
     },
     {
@@ -23,19 +23,21 @@
   "scope": [
     "scripts/flight/pendulum/pendulum_model.gd",
     "scripts/flight/glider.gd",
+    "scripts/flight/trike_rig.gd",
+    "scripts/game/tow_tug.gd",
     "configs/tow_tug.json",
     "configs/trike_pilot.json",
     "tests/flight/test_trike_bar_stop.gd",
     "tests/flight/test_trike_bar_stop.gd.uid",
+    "tests/flight/test_trike_coupling.gd",
+    "tests/contracts/test_tow_k9.gd",
     "tools/research/trike-fix/bar_stop"
   ],
   "dont_touch": [
-    "scripts/flight/trike_rig.gd",
     "configs/wings",
     "configs/pilot.json",
     "tools/blender",
-    "scripts/terrain",
-    "tests/flight/test_trike_coupling.gd"
+    "scripts/terrain"
   ],
   "accept": [
     {
@@ -56,10 +58,15 @@
       "name": "vs_base_pendulum",
       "cmd": "tools/tests_vs_base.sh --base feature/trike-fix --filter=pendulum",
       "expect": "exit=0"
+    },
+    {
+      "name": "frames_after2",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/trike-fix/after2/ | grep -c png",
+      "expect": "num:(\\d+) >=9"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-11-02T04:09:35",
-  "edited": "2026-11-02T04:39:21"
+  "edited": "2026-11-02T06:27:17"
 }
