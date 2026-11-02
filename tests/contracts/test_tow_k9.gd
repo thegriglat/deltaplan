@@ -247,16 +247,34 @@ func test_cart_basis_model_orientation() -> void:
 			break
 	check(air_seen, "оторвался с колёс")
 	check(worst <= 20.5, "поворот модели не быстрее 20 град/с: %.2f" % worst)
-	# в воздухе (после перехода) вектор подвеска -> ЦМ в осях модели совпадает с модельным
+	# TKF-К1 v2: предел 20 град/с - только переход колёса -> воздух (гашение скачка, <= 0,6 с после отрыва);
+	# дальше cart_basis = ориентация по физике без отставания
+	# скорость убывания отставания от C_phys (окно 0,1 с), как test_trike_coupling (6); <= 0,6 с после отрыва - совпадение
+	var lags: Array[float] = []
+	var fall := 0.0
+	for i in int(0.9 / DT):  # 0,9 с: после исправления знака z ЦМ (TKF-К4 v2) скачок колёса -> воздух ~16 град, гашение 20 град/с ~0,8 с
+		t.set_rope_force(Vector3.ZERO)
+		t.step(DT, 10.0)
+		lags.append(_lag_deg(t))
+		if lags.size() > 12:
+			fall = maxf(fall, (lags[lags.size() - 13] - lags[lags.size() - 1]) / (12.0 * DT))
+	check(fall <= 20.5, "переход колёса -> воздух: отставание от физики убывает не быстрее 20 град/с: %.2f" % fall)
+	var lag := _lag_deg(t)
+	check(lag <= 0.5, "через 0,9 с после отрыва cart_basis = физика: отставание %.3f град" % lag)
 	for i in int(10.0 / DT):
 		t.set_rope_force(Vector3.ZERO)
 		t.step(DT, 10.0)
-		worst = maxf(worst, _rate(hist, t.cart_basis))
-	check(worst <= 20.5, "и в воздухе не быстрее 20 град/с: %.2f" % worst)
+	check(_lag_deg(t) <= 0.5, "и дальше в воздухе cart_basis = физика: %.3f град" % _lag_deg(t))
 	var want := (t.model.pilot_position - t.hang_pos).normalized()
 	var got: Vector3 = t.cart_basis * TowTug.CART_CM_MODEL.normalized()
 	check(got.dot(want) > 0.999, "в воздухе подвеска->ЦМ модели = модель полёта: cos %.5f" % got.dot(want))
 	check(absf(t.cart_basis.determinant() - 1.0) < 1e-4, "ортонормирован")
+
+
+## Угол между cart_basis и ориентацией по физике «Маятника» (C_phys), град.
+func _lag_deg(t: TowTug) -> float:
+	var phys := t.rig._cart_model_basis(t.model.pilot_position, t.hang_pos, t.model.wing_basis(), false)
+	return rad_to_deg(t.cart_basis.get_rotation_quaternion().angle_to(phys.get_rotation_quaternion()))
 
 
 ## Скорость поворота (град/с) по окну 30 шагов.

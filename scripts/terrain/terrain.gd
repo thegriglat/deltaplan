@@ -485,6 +485,12 @@ func set_pilot(node: Node3D) -> void:
 		grass.pilot = node
 
 
+## TKF-К3: струя винта дельталёта игрока по ближней траве (pos - центр диска, dir - ось струи назад, thrust_n - тяга).
+func set_wash(pos: Vector3, dir: Vector3, thrust_n: float) -> void:
+	if grass != null:
+		grass.set_wash(pos, dir, thrust_n)
+
+
 func _make_grass(cfg: Dictionary, look: Dictionary) -> void:
 	if grass != null:
 		grass.queue_free()

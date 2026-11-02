@@ -163,6 +163,12 @@ var _air_c := Vector3.ZERO  ## ветер в ЦМ крыла при послед
 var _aero_f_b := Vector3.ZERO
 var _aero_m_b := Vector3.ZERO
 var _pilot_cda: float = 0.21
+## TKF-К4: упор переднего подкоса (необязательный ключ аппарата strut_stop): мачта не уходит вперёд по тангажу
+## крыла дальше _stop_a (угол мачты к оси z крыла, пилот вперёд +), момент пружина-демпфер около подвески.
+var _stop_on := false
+var _stop_a := 0.0  ## рад
+var _stop_k := 0.0  ## Н·м/рад
+var _stop_c := 0.0  ## Н·м·с/рад
 var _alt_dep := true
 var _rho_sea: float = 1.225
 var _scale_h: float = 10400.0
@@ -361,6 +367,12 @@ func setup(
 	_ge_on = bool(pendulum.ground_effect.get("enabled", true))
 	chain.setup(ch, pilot_mass, _hang_len)
 	arms.setup(pendulum.arms)
+	_stop_on = apparatus_cfg.has("strut_stop")
+	if _stop_on:
+		var st: Dictionary = apparatus_cfg.strut_stop
+		_stop_a = deg_to_rad(float(st.angle_deg))
+		_stop_k = float(st.stiffness_nm_rad)
+		_stop_c = float(st.damping_nms_rad)
 	if apparatus_cfg.has("arms_force_max_n"):
 		arms.force_max = float(apparatus_cfg.arms_force_max_n)  # TT-К3: предел рук для массы тележки
 	# земля: ноги, хват за стойки, точки касания крыла
@@ -1473,6 +1485,12 @@ func _substep(h: float, input: ControlInput) -> void:
 		var r_pil_x := _r_hang_b.x + rel.x
 		tb += _r_bar_b.cross(Vector3(-fb.x, 0.0, 0.0))
 		tb += Vector3(r_pil_x, 0.0, _r_bar_b.z).cross(Vector3(0.0, -fb.y, 0.0))
+	if _stop_on and not _uprights:
+		var fs := _strut_stop_force(rel, Rt * (vp - _vel) - wb.cross(_r_hang_b + rel))
+		if fs != Vector3.ZERO:
+			f_p += R * fs
+			f_wb -= fs
+			tb += _r_hang_b.cross(-fs) - rel.cross(fs)  # сила на подвеске и пара — момент упора, обратный на крыло
 	# скорости и позиции
 	var pos_prev := _pos
 	var r_prev := R
@@ -1518,6 +1536,20 @@ func _substep(h: float, input: ControlInput) -> void:
 	var d := _R * r_prev.transposed()
 	_w = Vector3(d.y.z - d.z.y, d.z.x - d.x.z, d.x.y - d.y.x) * (0.5 / h)
 	chain.velocities_from_prev(h)
+
+
+## TKF-К4: упор переднего подкоса. rel, vrel — пилот относительно подвески в осях крыла. Угол мачты a = atan2(rel.x,
+## rel.z) (пилот вперёд +); при a < _stop_a (штанга «от себя» дальше подкоса) пара сил пилот/подвеска по дуге мачты
+## с моментом k·(a_stop − a) − c·ȧ ≥ 0 (упор не тянет). → сила на пилота, оси B (на подвеску — минус она же).
+func _strut_stop_force(rel: Vector3, vrel: Vector3) -> Vector3:
+	var a := atan2(rel.x, rel.z)
+	var pen := _stop_a - a
+	if pen <= 0.0:
+		return Vector3.ZERO
+	var r2 := rel.x * rel.x + rel.z * rel.z
+	var a_dot := (rel.z * vrel.x - rel.x * vrel.z) / r2
+	var m := maxf(_stop_k * pen - _stop_c * a_dot, 0.0)
+	return Vector3(cos(a), 0.0, -sin(a)) * (m / sqrt(r2))
 
 
 ## FB-3: старт — пилот уже стоит с крылом, а не только что взял его: интеграл удержания носа

@@ -12,9 +12,9 @@ extends RefCounted
 ## terrain(x, z) -> высота земли (для нормали на колёсах и agl_m). Чтение после refresh(): hang_pos, wing_basis,
 ## cart_basis, pilot_pos, agl_m.
 
-## ЦМ тележки в осях trike.glb от HangPoint (Godot: -Z вперёд): 0,13 м вперёд, 1,70 м вниз (docs/research/tow/trike-tug.md).
-const CART_CM_MODEL := Vector3(0.0, -1.70, -0.13)
-const CART_TURN_DEG_S := 20.0  ## предел скорости смены ориентации модели (колёса <-> воздух), град/с
+## ЦМ тележки в осях trike.glb от HangPoint (Godot: -Z вперёд): 0,13 м ЗА подвеской (+Z модели), 1,70 м вниз (cart.py, TT-8; TKF-К4 v2, docs/research/trike-fix/strut.md: раньше знак был обратный).
+const CART_CM_MODEL := Vector3(0.0, -1.70, 0.13)
+const CART_TURN_DEG_S := 20.0  ## предел скорости смены ориентации на колёсах и гашения скачка колёса -> воздух, град/с (в воздухе вид = физика)
 const WING_DEFAULT := "trike_ixess15"
 
 var thrust_split := -1.0  ## доля тяги на тележку (pilot); < 0 - из cart.prop_axis_below_hang_m / cg_below_hang_m. TowTug: 1,0 до TP-23
@@ -31,6 +31,8 @@ var agl_m := 0.0  ## низ колёс над землёй
 
 var model: PendulumModel
 var _cfg: Dictionary = {}
+var _off := Quaternion.IDENTITY  ## остаточное смещение вида от физики после отрыва (гасится), в осях цели
+var _was_wheels := true
 
 
 ## Параметры PendulumModel.setup: {wing, pilot, apparatus}. cart_mass_kg - масса тележки (с пилотом, топливом) в
@@ -45,6 +47,8 @@ static func model_params(cfg: Dictionary, cart_mass_kg: float) -> Dictionary:
 		"pilot_cda_m2": float(cart.cda_m2),
 		"arms_force_max_n": float(cart.arms_force_max_n),
 	}
+	if cart.has("strut_stop"):  # TKF-К4: упор переднего подкоса (необязательный ключ cart)
+		app["strut_stop"] = cart.strut_stop
 	return {"wing": wing, "pilot": pilot, "apparatus": app}
 
 
@@ -84,11 +88,28 @@ func refresh(dt: float) -> void:
 	hang_pos = model.hang_position
 	pilot_pos = model.pilot_position
 	wing_basis = model.wing_basis()
-	var target := _cart_model_basis(pilot_pos, hang_pos, wing_basis, model.on_wheels)
+	var wheels := model.on_wheels
+	var target := _cart_model_basis(pilot_pos, hang_pos, wing_basis, wheels)
 	if dt <= 0.0:
 		cart_basis = target
-	else:
+		_off = Quaternion.IDENTITY
+	elif wheels:
+		# на колёсах - как раньше: ограничение поворота (переход воздух -> колёса и неровности)
 		cart_basis = _turn_toward(cart_basis, target, deg_to_rad(CART_TURN_DEG_S) * dt)
+		_off = Quaternion.IDENTITY
+	else:
+		# В воздухе вид = физика (TKF-К1 v2). Скачок колёса -> воздух (~8,5 град) запоминаем как смещение
+		# относительно цели и гасим со скоростью CART_TURN_DEG_S: ориентация непрерывна, дальше точно по физике.
+		if _was_wheels:
+			_off = target.get_rotation_quaternion().inverse() * cart_basis.get_rotation_quaternion()
+		var ang := _off.angle_to(Quaternion.IDENTITY)
+		var step := deg_to_rad(CART_TURN_DEG_S) * dt
+		if ang <= step:
+			_off = Quaternion.IDENTITY
+		else:
+			_off = _off.slerp(Quaternion.IDENTITY, step / ang)
+		cart_basis = Basis(target.get_rotation_quaternion() * _off)
+	_was_wheels = wheels
 	agl_m = maxf(pilot_pos.y - float(_cfg.ground.wheel_base_agl_m) - _ground(pilot_pos.x, pilot_pos.z), 0.0)
 
 

@@ -33,6 +33,11 @@
 		"red_rpm": 6800,
 		"red_rpm_doc": "Красная черта 6800 об/мин: взлётные обороты - предел (OM 2.1 'Take-off speed 6800 rpm (max. 5 min.)'); превышение записывают в журнал (OM 4.2)."
 	},
+	"arms": {
+		"_doc": "TKF-К4: руки игрока на штанге дельталёта. Применяет Glider.setup_trike после TrikeRig.apply_arms; TowTug и tow_tug.json cart.arms_shift_pull_m (0,1107 м) не затронуты. Расчёт и таблица bar_deg: tools/research/trike-fix/bar_stop, docs/research/trike-fix/control.md §4-6.",
+		"shift_pull_m": 0.178,
+		"shift_pull_m_doc": "Ход штанги «на себя» от нуля ввода, м (в cart - 0,1107). 0,178 м - ответ пользователя Q4 (б), TKF-К4 v2: на полном «на себя» штанга доходит до груди (bar_deg -10,29 градуса по расчёту TKF-9, зазор до вершин pilot.glb 0, без прохода сквозь тело), предел TT-К6 -8,39 (0,118 м) превышен сознательно. Нуль ввода bar_deg -4,65 (после исправления знака z у ЦМ тележки). Замер: tests/flight/test_trike_bar_stop.gd."
+	},
 	"wheels": {
 		"wheelbase_m": 1.8,
 		"wheelbase_m_doc": "База (носовое колесо - ось задних) = tools/blender/trike_params.json dims.wheelbase = 1,8 м (схема пилота ref/papa_sketch_v2.jpeg; прототип Airborne XT912 - 1,89 м).",
