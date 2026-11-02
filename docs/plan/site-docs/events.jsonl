@@ -122,3 +122,5 @@
 {"t": "2026-11-02T05:30:34", "by": "coordinator", "task": "SD-13", "ev": "started"}
 {"t": "2026-11-02T05:31:18", "by": "executor", "task": "SD-12", "ev": "reported", "commits": ["67b210c62"], "note": "done: Сняты с сайта guide air-model.md, air-model-gpu(.md,/**), air-model/runtime.md (GPU/Пикар на GPU, режим «Эвристика»); у…", "dp_feedback": "Нет команды для списка опубликованных guide и входящих ссылок на страницу; K4 не ловит ссылки на снятые страницы из guide (render-hook терпим)."}
 {"t": "2026-11-02T05:32:34", "by": "coordinator", "task": "SD-12", "ev": "accepted", "note": "5/5 i18n=ok:exit 0; forbidden=ok:exit 0; heuristic=ok:exit 0; guide_gpu=ok:exit 0; trike_links=ok:exit 0"}
+{"t": "2026-11-02T05:32:54", "by": "coordinator", "task": "SD-12", "ev": "accepted", "commits": ["e2e85e130"], "note": "5/5 i18n=ok:exit 0; forbidden=ok:exit 0; heuristic=ok:exit 0; guide_gpu=ok:exit 0; trike_links=ok:exit 0"}
+{"t": "2026-11-02T05:32:54", "by": "coordinator", "task": "SD-12", "ev": "merged"}
