@@ -12,7 +12,7 @@ Besides the pilot themselves, "other pilots" — bots — fly in the sky. They a
 
 The number of bots is the "Other pilots in the sky" setting, 0–20 (`bots.count`, default 4, takes effect from the next flight). Each bot has its own wing (random from the list `configs/bots.json → wings`, all about equally likely; Soviet wings are rare in the sky — only the "Apogey"), a pilot mass of 65–95 kg and a sail colour from a brand-free palette (red, orange, yellow, green, turquoise, blue, violet, crimson, graphite). All parameters come from the flight seed (`configs/bots.json → seed`, mixed with the launch site), so the same flight (same site, same seed) gives the same bots.
 
-The flight model of the bots is the same as the player's — `FlightModel` and `Atmosphere.air_velocity_at` — only the physics step is less frequent when the bot is far away: 30 Hz near the player (< 1500 m) and on the ground, 10 Hz farther, 4 Hz beyond 4000 m.
+The bots fly on `FlightModel` — a point mass on a polar with direct roll commands — in the same air as the player (`Atmosphere.air_velocity_at`); the player has a different model, the pendulum ([Flight](/mechanics/flight/)). The bot's physics step is less frequent when it is far away: 30 Hz near the player (< 1500 m) and on the ground, 10 Hz farther, 4 Hz beyond 4000 m.
 
 ### How the bots fly
 

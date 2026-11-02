@@ -1,7 +1,7 @@
 ---
 title: "Flight goals and tracks"
 weight: 10
-description: "How to pick goals in the Flight window, how they are computed and scored, what the goal list, the instrument, the pillars and the result screen show, how tracks are recorded and drawn, and what is simplified."
+description: "How to pick goals on the Goals tab of the Flight settings window, how they are computed and scored, what the goal list, the instrument, the pillars and the result screen show, how tracks are recorded and drawn, and what is simplified."
 ---
 
 # Flight goals and tracks
@@ -10,7 +10,7 @@ Goals are an optional layer on top of free flight: before launch you tick what y
 
 ## Kinds of goals
 
-![The Goals tab of the Flight window: a row per goal kind with a tick, a level and a number; below, the previous-attempt trace and track loading](goals-tab.jpg "The Goals tab: every goal has a tick, a level and a number; unavailable rows are greyed out. The frame predates the “Load task…” button, which sits next to the route choice.")
+![The Goals tab of the Flight settings window: a row per goal kind with a tick, a level and a number; below, the previous-attempt trace and track loading](goals-tab.jpg "The Goals tab: every goal has a tick, a level and a number; unavailable rows are greyed out. The frame predates the “Load task…” button, which sits next to the route choice.")
 
 | Goal | What counts |
 |---|---|
@@ -20,10 +20,10 @@ Goals are an optional layer on top of free flight: before launch you tick what y
 | Out and return | a turn point at the given distance, then back into the cylinder at take-off |
 | Triangle | an equilateral triangle from take-off with the given perimeter, then back |
 | Route | a ready-made task for this place: a built-in one or your own, loaded from an `.xctsk` file |
-| Time limit | fly the lead route from start to ESS (no ESS: to goal) within the given time |
-| Landing | land inside a circle of the given radius without crashing |
+| Speed (time limit) | fly the lead route from start to ESS (no ESS: to goal) within the given time |
+| Landing circle | land inside a circle of the given radius without crashing |
 
-The time limit only works together with a route, a triangle or an out-and-return. Return and triangle are built from the take-off point: the first leg goes into the wind (if the surface wind is at least 2 m/s), otherwise along the start heading; cylinders have a 400 m radius. The whole figure is rotated around take-off in 15° steps until it fits into the terrain zone; if it fits at no angle, the goal is unavailable. A landing circle exists only in some places: it needs a landing site in the location or the target of the "landing accuracy" training; for a place picked on the map there is none.
+"Speed (time limit)" only works together with a route, a triangle or an out-and-return. Return and triangle are built from the take-off point: the first leg goes into the wind (if the surface wind is at least 2 m/s), otherwise along the start heading; cylinders have a 400 m radius. The whole figure is rotated around take-off in 15° steps until it fits into the terrain zone; if it fits at no angle, the goal is unavailable. A landing circle exists only in some places: it needs a landing site in the location or the target of the "landing accuracy" training; for a place picked on the map there is none.
 
 ## Levels and numbers
 
@@ -57,7 +57,7 @@ Times in `.xctsk` are UTC clock; in the game the flight starts 20 minutes before
 
 While you are airborne the game records a track once a second. At the end of the flight, if take-off happened, it is saved as IGC — one record per place, a new one replaces the previous.
 
-In the Flight window you can switch on the **trace of the previous attempt** (available once the place has a record) and **load your own tracks** (`.igc` or `.gpx`). A file is accepted if at least half of its points fall into this place's zone; otherwise the window says the track is from elsewhere.
+On the "Goals" tab you can switch on the **"Last attempt track"** (available once the place has a record) and **load your own tracks** ("Load track…", `.igc` or `.gpx`). A file is accepted if at least half of its points fall into this place's zone; otherwise the window says the track is from elsewhere.
 
 A track is drawn as a ribbon over its whole length: its width on screen is constant (4 pixels) at any distance, and it is translucent. Colour follows the vertical speed over 5 s: climb is red, sink is blue, near zero the ribbon is almost invisible. A long track is thinned to 2000 points without losing its shape.
 

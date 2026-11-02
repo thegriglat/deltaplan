@@ -12,7 +12,7 @@ in the game, where the formulas come from and what the model cannot do. This is 
 
 ## What is computed at level 2
 
-For each field (a flight hour; the field is recomputed every 15 game minutes) the game builds a **list of thermal sources** (`AirThermals`, `scripts/atmosphere/air_model/air_thermals.gd`). The data for it come from the level 1 wind field — from the 400 m area for the whole place, the same for all players in a network game (the 100 and 50 m windows around the pilot are not used to choose sources):
+For each field (a flight hour; the field is recomputed every 15 game minutes) the calculation builds a **list of thermal sources** (`AirThermals`, [rust/dp-air/src/terms/thermal_air/](/rust/dp-air/src/terms/thermal_air/mod.rs); computed by the Rust crate on the CPU). The data for it come from the level 1 wind field — from its coarsest level, the 400 m area for the whole place (the 100 and 50 m windows around the pilot are not used to choose sources):
 
 - **Where.** A source appears where there is more heat flux at the ground and the air converges near the ground: over heated slopes dense, over weakly heated ones sparse, in shade, where there is no heat flux, none at all. This ties sources to the sunny side of a slope rather than to grid nodes.
 - **Strength.** The Deardorff scale w<sub>\*</sub> from the heat flux at the point and the mixing-layer height; the core gains a fraction of w<sub>\*</sub>. In the morning the layer is thin — cores are small and frequent, weaker; toward noon wider and stronger.
@@ -20,9 +20,9 @@ For each field (a flight hour; the field is recomputed every 15 game minutes) th
 - **Drift.** The axis is tilted by the wind from the same field: the cloud ends up kilometers downwind of the source.
 - **How many.** The number, radius and strength of cores follow Allen's updraft model from layer thickness and w<sub>\*</sub>; the field only decides **where** there are more. The field's updraft beyond what the cores carry is a broad weak lift "in between".
 
-In the "Heuristic" mode and outside the field's area thermals follow simplified formulas instead of the field — see [Heuristic mode](/mechanics/air-model/heuristic/). A thermal that received its place, strength, radius, ceiling and drift from the field lives like an ordinary cell: its own period, phase, growth — maturity — decay (see "Shape and life of a bubble" below).
+Where the field covers the ground (the field's edge weight is at least ½), grid cells do not spawn thermals — the sources come from the field; beyond the edge of the area thermals spawn on a regular grid of cells. A thermal that received its place, strength, radius, ceiling and drift from the field lives like an ordinary cell: its own period, phase, growth — maturity — decay (see "Shape and life of a bubble" below).
 
-**Multiplayer.** The host chooses the sources and sends them to the others; each computes strength, ceiling and drift from its own field, and the differences are vanishingly small (hundredths of a meter per second, tens of centimeters in the axis).
+**Multiplayer.** Air is not sent over the network: neither thermal sources nor cloudiness. Each client has its own air from the shared weather and seed (`scripts/net/net_zone.gd`), so two pilots in the same zone do not see thermals in the same places.
 
 The strength, ceiling and drift of a thermal are not made up separately but agree with levels 1 and 3: the w<sub>\*</sub> of turbulence at a source point equals the w<sub>\*</sub> of the source itself (ratio 1.001 ± 0.038 at Kayancha, 12:00).
 
@@ -31,8 +31,6 @@ An example result — Ongudai, 12:00 (wind 3 m/s, clear, a typical July): on hea
 ![Where thermals are born: heat flux, air convergence and sources over Kayancha, 12:00](/tools/research/air_thermals/out/fig_sources_kayancha_w100_h12.png "Kayancha, 12:00: heat flux, mean convergence of air in the layer and 109 thermal sources (a dot is proportional to strength)")
 
 **What it cannot do.** The core strength is a single fraction of w<sub>\*</sub> without spread between neighbors; in life the spread is wider. "Strong thermals every 1–1.5 layer thicknesses" the model does not reproduce: the density of all cores matches the literature, the spacing of strong ones does not. There are no "streets" along the wind. The source list is updated when the field is recomputed (every 15 game minutes); live thermals live out their life, and the course of the day within a period is not accounted for. Small morning thermals with a column shorter than 300 m are not born. The position of particular thermals is statistics, not a computation.
-
-![Before and after: thermal sources over Ongudai, 12:00](/tools/research/air_thermals/out/fig_before_after_ongudai_d400_h12.png "Ongudai, 12:00, 400 m area: left the earlier choice — 8463 sources (6.0 per km²), cores carry 93 % of the flux; right by Allen's model — 2860 (2.0 per km²), cores carry 42 %. Conclusion: three times fewer sources, placed by air convergence rather than as a solid grid; the rest of the lift is a broad weak lift in between")
 
 ![Heat flux, air convergence and sources over Ongudai, 12:00](/tools/research/air_thermals/out/fig_sources_ongudai_d400_h12.png "Ongudai, 12:00: left the heat flux H (W/m²; less in shade and on moist ground), middle the mean layer lift W̄ (red — lift at slopes, blue — sinking over the neighboring valley), right the flux carried by bubbles. Conclusion: sources cluster where there is much heat and the air converges; over valleys with blue W̄ there are few")
 
@@ -45,19 +43,19 @@ The source strength and the solver input are computed from one heat flux H (W/m�
 - **Wet heats less.** The wetter the soil, the more energy goes into evaporation and the less is left for the air. Wetness comes from the terrain: damp hollows heat the air less, dry ridges and rock more. There is no rain or irrigation in the game, so this is drainage geometry, not weather.
 - **Lag.** The sun for a class is taken with a delay: meadow, field and snow 0.3 h, shrub 0.4 h, forest 0.6 h, rock 0.9 h, built-up 1.2 h (water has no lag; `configs/weather_model.json → heating.lag_h`). Rock and villages start heating later and keep giving heat longer than open fields.
 
-At noon on level ground, clear sky, midsummer (50° N): meadow ≈ 210 W/m², forest ≈ 290, rock ≈ 300, built-up ≈ 320, snow ≈ 20. The previous heating was the same everywhere — 275 for meadow. Averaged over the areas, noon heating is 10–16 % lower, but the spread is wider: southern rocky slopes are stronger, northern slopes and damp hollows weaker. The number of thermal sources stays about the same (within ±8 %); the ceiling is 1–10 % lower.
+At noon on level ground, clear sky, midsummer (50° N): meadow ≈ 210 W/m², forest ≈ 290, rock ≈ 300, built-up ≈ 320, snow ≈ 20. The spread across a place is large: southern rocky slopes heat more, northern slopes and damp hollows less. The number of sources is set by the field (flux and layer depth), not by the heat flux directly.
 
-**Forest heats the air no less than meadow.** By the literature values forest is dark and hides almost no heat in the ground, so the air over it warms more than over meadow. The game used to make forest weaker; now thermal sources can also form over forest. The field–forest boundary is still a place where thermals break off: at a class boundary the source strength gets an extra boost (up to +30 % in a 50–150 m band).
+**Forest heats the air no less than meadow.** By the literature values forest is dark and hides almost no heat in the ground, so the air over it warms more than over meadow. Thermal sources can also form over forest. The field–forest boundary is a place where thermals break off: at a class boundary the source strength gets an extra boost (up to +30 % in a 50–150 m band).
 
-**Water.** On a summer day water is colder than the air, and the air above it is cooled — "the lake sinks you": at Lake Aushkul over open water the flux is about −30 W/m² (3 m/s wind, water 6 K colder than air), and there are no thermals. A thermal source is not placed over water at all — neither over a lake nor over the sea: the source point is chosen on land only, and the column's heat flux goes to sources only from its land part (a coastal column by its land fraction). On the volcanic island before this fix about half of the thermals arose over the sea (957 sources over water), now 0 over water, and the thermal strength over land is the same (90th percentile of the core 4.21 → 4.23 m/s). In the evening warm water heats the air. Water temperature follows the climate a month earlier: the daily mean air temperature 30 days before the date (at the site's altitude). Below zero the water is ice and behaves like snow.
+**Water.** On a summer day water is colder than the air, and the air above it is cooled — "the lake sinks you": at Lake Aushkul over open water the flux is about −30 W/m² (3 m/s wind, water 6 K colder than air), and there are no thermals. A thermal source is not placed over water at all — neither over a lake nor over the sea: the source point is chosen on land only, and the column's heat flux goes to sources only from its land part (a coastal column by its land fraction). Measured when the rule was introduced, volcanic island: sources over water 957 → 0, the thermal strength over land is the same (90th percentile of the core 4.21 → 4.23 m/s). In the evening warm water heats the air. Water temperature follows the climate a month earlier: the daily mean air temperature 30 days before the date (at the site's altitude). Below zero the water is ice and behaves like snow.
 
-**Roughness.** The wind near the ground accounts for the cover: over forest and a village it is weaker, over meadow and water stronger. At launches this is a few percent: at 30 m over forest about −5 % from before, over meadow about +3…5 %.
+**Roughness.** The wind near the ground accounts for the cover: over forest and a village it is weaker, over meadow and water stronger. At launches this is a few percent: at 30 m over forest the wind is about ×0.95, over meadow ×1.03–1.05 (see ["Forest"](/mechanics/air-model/turbulence/#forest)).
 
 **What the model cannot do.** Soil moisture comes from terrain only (no rain, irrigation or moisture forecast). Cold mountain rivers (snowmelt) are treated as warm as lakes. There is no daily cycle of water temperature (0.5–2 K for small lakes), and ice has no thickness or melting. There is no terrain shadowing in the heating. Water or land smaller than a 400 m cell that touches neither a corner nor the center of the column is not seen in the land fraction; open sea without a water map is recognized by height ≤ 0.5 m, and a place without a surface map counts as land.
 
 ## Layer ceiling and subsidence {#thermal-ceiling}
 
-The thermal ceiling is the top of the mixing layer z<sub>i</sub> (above sea level) at the source point. It used to be one value for the whole place; now it is computed per air column and depends on the terrain:
+The thermal ceiling is the top of the mixing layer z<sub>i</sub> (above sea level) at the source point. It is computed per air column and depends on the terrain:
 
 - **Over ridges the layer is higher.** The layer top follows the terrain "in a muted form" (De Wekker and Kossmann, 2015): z<sub>i</sub>(x) = day z<sub>i</sub> + ⅓·(h̃(x) − valley height), where h̃ is the terrain smoothed to a scale of about 5 km but not lower than the terrain itself + 300 m. Over mountains this adds to the ceiling; over the lowland z<sub>i</sub> stays at the day value. The layer top over ridges compared with the valley (median / 90th percentile, m): Ongudai weak day +105 / +102, strong +101 / +135; Askarovo weak +5 / +21, strong +39 / +65; Almaty weak +41 / +169, strong +147 / +414. One and the same z<sub>i</sub> sets the thermal ceiling, w<sub>\*</sub>, the number of sources and the cloud base, so the thermal ceiling and the clouds agree.
 - **Over the plain by a ridge the layer sinks.** By day air flows from the plain to the slopes; aloft it returns over the plain and sinks weakly there (Whiteman, 2000; Zardi and Whiteman, 2013). The game smooths the mean lift of the columns to a 10 km scale and where it is negative lowers the layer top by |W̄<sub>m</sub>|·3 h. Example, Almaty, strong day: over the ridge W̄<sub>m</sub> is +1.2…1.5 cm/s — no subsidence; over the lowland about −1.2 cm/s, and the layer top is lower by 130 m (median) and 379 m (90th percentile). For a pilot: over a valley by a big ridge the thermal ceiling is lower than the "average" computation of the day suggests, and nearer the crest higher.
@@ -71,9 +69,9 @@ The thermal ceiling is the top of the mixing layer z<sub>i</sub> (above sea leve
 ## Shape and life of the bubble
 
 Every thermal in the game is a bubble (`AtmoThermal`) with a source on the ground, a life cycle of growth → maturity →
-decay and a lift profile over the radius. The world is divided into cells (`thermal_spacing_m`), and each cell has
+decay and a lift profile over the radius. A source from the field is a "cell" with its own cycle; beyond the edge of the field the world is divided into cells (`thermal_spacing_m`), and each cell has
 its own cycle with a deterministic phase, strength and source point (chosen by the solar illumination
-of the slope); the same day is fully reproducible regardless of where the pilot flew.
+of the slope). A thermal is a pure function of the cell and the cycle, so the same day is reproducible regardless of where the pilot flew.
 
 **Profile over the radius** is Gedeon's "Mexican hat": a core with lift in the center, around it a ring of weak
 sink, then zero. The mass flux through a horizontal section is exactly zero: as much air as rose,
@@ -91,7 +89,7 @@ $$ R(\xi) \propto \xi^{1/3}(1 - 0.25\,\xi), \qquad \xi = \frac{y - h_s}{z_{top} 
 downwind of the source; the tilt angle is capped from above, otherwise the thermal would simply have to be torn apart
 by the wind, as it happens in real life.
 
-**Life cycle**: a cumulus cloud lives 15–30 min, a "good" thermal 10–20 min. In the decay stage
+**Life cycle** (`configs/atmosphere.json → thermal`): growth 2–4 min, maturity 5–12 min, decay 2.5–5 min, a pause between a cell's cycles of 1–5 min; a thermal lives about 10–21 min, and the cloud lingers 240 s after it (`clouds.linger_s`). In the decay stage
 the bottom of the column detaches from the source earlier than the top: a pilot low under a decaying cloud no longer finds
 lift, a familiar situation.
 
@@ -102,8 +100,8 @@ the thermal weakens toward the top, as without a cloud.
 
 **Wind and turbulence.** The wind profile in the mixing layer is almost constant; fluctuations (gusts, jolts, rotor) are computed by [level 3](/mechanics/air-model/turbulence/) — at the thermal edge turbulence is added as an independent component.
 
-**Background sink** between thermals is −0.3…−1 m/s (−0.5 by default), from mass conservation: what
-rose in the thermals must sink somewhere. This is a weather preset value: in "Calculation" mode it does not act inside the field's area — there the field itself gives the lift and sink "between" (w<sub>conv</sub> minus the bubble flux), so mass is conserved on average.
+**Background sink** between thermals is −0.3…−0.8 m/s depending on layer depth (`background_sink_ms` in `configs/weather_model.json → anchors_by_top_agl`), from mass conservation: what
+rose in the thermals must sink somewhere. This is a weather-of-the-day value: inside the field's area it is replaced by the field's share (the mask grows by the field's share) — there the field itself gives the lift and sink "between" (w<sub>conv</sub> minus the bubble flux), so mass is conserved on average.
 
 ![Flow and temperature difference over a single sun-heated slope — a prototype of the air model](/tools/research/heat_ca/out/s1_sun_one_slope/flow.png "s1_sun_one_slope/flow.png")
 
@@ -130,14 +128,13 @@ $$ \hat w / w_* = (z/z_i)^{1/3} (1 - 1.1\, z/z_i) $$
 over flat terrain ≈ 1.03 m/s, in high mountains ≈ 1.41 m/s, which is accounted for indirectly through the source strength
 tied to terrain classes.
 
-**Dust devils** are born at the base of a young strong thermal over a dry surface, live
-10–60 s, are 20–200 m high depending on the thermal strength, and drift with the surface wind.
+**Dust devils** are a visible sign of a young thermal over a dry surface (in `configs/atmosphere.json → dust`: cropland and bare ground, a thermal stronger than 2 m/s): they live 10–60 s, are 20–200 m high depending on the thermal strength, and drift with the surface wind; no more than three are shown.
 
 ## Model limits
 
 - **Not CFD.** A thermal is an analytical formula (Gedeon + Allen), not a flow computation: the shape of the core and
   the sink ring is fitted to the feel of an experienced pilot rather than derived from the equations from scratch.
-- **The life of a thermal is a deterministic generator by cell, cycle and seed** (in "Heuristic" mode and outside the field — on a regular grid of cells; in "Calculation" — a cell sits on a source from the field), unlike in the real boundary layer, where the number
+- **The life of a thermal is a deterministic generator by cell, cycle and seed** (beyond the edge of the field — on a regular grid of cells; inside the field's area — a cell sits on a source from the field), unlike in the real boundary layer, where the number
   and positions of thermals are a random but statistically structured process.
 - **The upper fall-off of lift at the top** is made adjustable (`top_taper_m`), rather than strictly 10 % of the layer
   height, as follows from Allen's formula — otherwise under a growing cloud the lift would die out unrealistically early.
@@ -160,8 +157,8 @@ tied to terrain classes.
 
 **Thunderstorms are a rare phenomenon**, not a typical element of weather. The share of strong thermals that actually
 become cumulonimbus (Cb) is separated from the overall "thunderstorminess of the day" (commit {{< commit 105bf45 >}}):
-previously, with a daytime maximum of +26 °C, a thunderstorm near the start occurred in almost every flight, which does not match
-real life. Measured over 100 random days at Ongudai (`tools/weather/storm_rarity.tscn`):
+with a daytime maximum of +26 °C a thunderstorm at the start in every flight would not match
+real life; the share is set by the `cb_thermal_chance` column in `configs/weather_model.json → clouds_by_margin` (0 up to a 600 m margin, 0.0001 at 700 m ≈ +26 °C at Ongudai, 0.0025 at 900, 0.005 from 1100). Measured when the rule was introduced, 100 random days at Ongudai (September 2026; the game test for the measurement predates the move of wind to Rust and is not in this version):
 
 | Daytime temperature | Cb within 15 km in the first hour | Thunderstorm at the start at the beginning of the flight |
 |---|---|---|
@@ -169,23 +166,23 @@ real life. Measured over 100 random days at Ongudai (`tools/weather/storm_rarity
 | +30 °C | 20–40 % | 0–4 % |
 | +34 °C | 50–70 % | 3–6 % |
 
-Inside a storm cell (`storm_field.gd`) there are a downdraft under the downpour, spreading near the ground and a gust
-front; the outflows of neighboring cells **are not added up**: previously, without this limit, the outflow speeds of several
-cells summed to 30–60 m/s, which is physically wrong (a real squall of such
+Inside a storm cell ([rust/dp-air/src/terms/storm/field.rs](/rust/dp-air/src/terms/storm/field.rs)) there are a downdraft under the downpour, spreading near the ground and a gust
+front; the outflows of neighboring cells **are not added up** (in the code they merge, the flow is no stronger than one cell's): the summed speeds of several
+cells would give 30–60 m/s, which is physically wrong (a real squall of such
 strength is a rare natural disaster, not an ordinary thunderstorm).
 
 ## Details
 
-- [Wind field: phases and Picard](/mechanics/air-model/wind-phases/), [turbulence and rotor](/mechanics/air-model/turbulence/), [air model](/mechanics/air-model/); [docs/guide/air-model/thermals.md](/docs/guide/air-model/thermals.md) → "Scale 2: thermals from the field".
+- [Wind field: phases and Picard](/mechanics/air-model/wind-phases/), [turbulence and rotor](/mechanics/air-model/turbulence/), [air model](/mechanics/air-model/).
 - [docs/research/thermals.md](/docs/research/thermals.md): formulas and sources: Gedeon, Allen,
   Lenschow and Stevens, Deardorff.
 - [docs/research/calibration_data.md](/docs/research/calibration_data.md): the table of observables with
   uncertainties (§1 "Thermals").
 - [docs/research/xc_reference.md](/docs/research/xc_reference.md): references for cross-country flights
   (climb, share of time spent circling, number of thermals per 10 km).
-- [docs/guide/atmosphere.md](/docs/guide/atmosphere.md): the structure of the atmosphere module; the table "pilot's words
-  in numbers" is in [docs/guide/atmosphere/wind-field.md](/docs/guide/atmosphere/wind-field.md).
 - [rust/dp-air/src/terms/thermal/](/rust/dp-air/src/terms/thermal/mod.rs),
+  [rust/dp-air/src/terms/thermal_air/](/rust/dp-air/src/terms/thermal_air/mod.rs),
+  [rust/dp-air/src/field/surface_heat.rs](/rust/dp-air/src/field/surface_heat.rs),
   [scripts/atmosphere/atmo_thermal.gd](/scripts/atmosphere/atmo_thermal.gd),
   [rust/dp-air/src/terms/storm/field.rs](/rust/dp-air/src/terms/storm/field.rs),
   [scripts/atmosphere/dust_devils.gd](/scripts/atmosphere/dust_devils.gd): code.

@@ -248,6 +248,7 @@ generated: true
   - [tools/research/crash-reports/cr-11/README.md](../tools/research/crash-reports/cr-11/README.md) — Скрипты CR-11: классификатор строк потери устройства GPU и проба нативного дескриптора устройства.
   - [tools/research/crash-reports/cr-3/README.md](../tools/research/crash-reports/cr-3/README.md) — Скрипт повторной загрузки точки для CR-3 и источники данных.
   - [tools/research/crash-reports/cr-4/README.md](../tools/research/crash-reports/cr-4/README.md) — Скрипты и черновик манифеста CR-4: сводка отчётов и itch.toml с двумя действиями запуска.
+- **site-docs** — Документация сайта (site/content, ru и en) под main после 1.7.0 и pilot-feedback-trim: механики по коду, без удалённых механик. [closed 2026-11-02] — [план](plan/site-docs.md) · [контракты](contracts/site-docs.md) · [решения](plan/site-docs/decisions.md) · [сводка](plan/site-docs/summary.md) · полный журнал: `archive/site-docs`
 
 ## process
 
