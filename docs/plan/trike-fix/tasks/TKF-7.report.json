@@ -1,0 +1,62 @@
+{
+  "status": "done",
+  "summary": "Кадры «после» TKF-4 (9 PNG, те же моменты и ракурсы, что «до»), прогон coupling_run в out_after (check_summary exit 0), таблица TKF-К1 до/после в after.md. Код не менялся. vis_lag_deg_max снизился с 1–143° до 0,056° во всех сценариях; физика не менялась.",
+  "commits": [
+    "f361dc5d5 trike-fix TKF-7: кадры и числа TKF-К1 «после» TKF-4 (out_after, after.md)"
+  ],
+  "checks": [
+    {
+      "name": "frames_after",
+      "value": "9 png",
+      "pass": true
+    },
+    {
+      "name": "summary_after",
+      "value": "check_summary.py exit 0",
+      "pass": true
+    },
+    {
+      "name": "table",
+      "value": "after.md непустой, exit 0",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "docs check: ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "accept --dry",
+      "value": "4/4 PASS, scope 19 файлов",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "build/screenshots/trike-fix/after/TKF-1_p1_side.png",
+    "build/screenshots/trike-fix/after/TKF-1_p1_rear.png",
+    "build/screenshots/trike-fix/after/TKF-1_p1_front.png",
+    "build/screenshots/trike-fix/after/TKF-1_p2_side.png",
+    "build/screenshots/trike-fix/after/TKF-1_p2_rear.png",
+    "build/screenshots/trike-fix/after/TKF-1_p2_front.png",
+    "build/screenshots/trike-fix/after/TKF-1_p4_side.png",
+    "build/screenshots/trike-fix/after/TKF-1_p4_rear.png",
+    "build/screenshots/trike-fix/after/TKF-1_p4_front.png"
+  ],
+  "how_to_check": ".dpcli/dpcli accept TKF-7 --dry",
+  "uncertain": [
+    {
+      "where": "tools/research/trike-fix/after.md (таблица «до»)",
+      "why": "числа «до» взяты из out/summary.json, созданного до TKF-4; сборка «до» не пересобиралась",
+      "checked": "physics-поля (cart_phys_rate_dps_p99, mast_normal_deg_max_phys) совпадают между out и out_after во всех сценариях"
+    }
+  ],
+  "dp_feedback": "В карточке не указано, куда класть r-файл: писал в общий scratchpad с ID в имени. Лог импорта/кадров пришлось писать во временный файл вне копии (удалён).",
+  "extra": {
+    "vis_lag_deg_max": "до → после: turn45_idle 71,8 → 0,056; reversal45 69,7 → 0,056; roll_pump 143,3 → 0,056; push_full 78,2 → 0,056",
+    "build": "rust tune linux (TKF-7-rust, код 0); godot --import код 0; coupling_shots код 0; coupling_run код 0"
+  },
+  "t": "2026-11-02T05:37:06",
+  "by": "executor"
+}
