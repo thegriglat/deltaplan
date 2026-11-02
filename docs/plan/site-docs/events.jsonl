@@ -108,3 +108,7 @@
 {"t": "2026-11-02T05:26:26", "by": "coordinator", "task": "SD-11", "ev": "accepted", "note": "4/4 i18n=ok:exit 0; now_ru=ok:exit 0; now_en=ok:exit 0; pairs=ok:exit 0"}
 {"t": "2026-11-02T05:27:14", "by": "reviewer", "task": "SD-11", "ev": "reviewed", "note": "Подход 9 (1.7.0) добавлен в ru/en; числа сверены с CHANGELOG 1.7.0. Ссылка heuristic не возвращена по указанию координатора. research/_index верен по main.", "verdict": "accept", "issues": {"minor": 1}, "review": "docs/plan/site-docs/tasks/SD-11.review.json"}
 {"t": "2026-11-02T05:27:22", "by": "coordinator", "task": "SD-11", "ev": "accepted", "note": "по ревью"}
+{"t": "2026-11-02T05:27:26", "by": "executor", "task": "SD-3", "ev": "reported", "commits": ["724d2fc5d"], "note": "done: Переписаны по коду main пары ru/en: меню и настройки (новые разделы: окно «Старт», дельталёт игрока, мышь и клавиши; уб…", "dp_feedback": "Замечаний к dpcli нет; неудобство среды — rtk режет вывод grep/sed (помогает rtk proxy)."}
+{"t": "2026-11-02T05:27:34", "by": "coordinator", "task": "SD-11", "ev": "accepted", "commits": ["671a9f29f"], "note": "4/4 i18n=ok:exit 0; now_ru=ok:exit 0; now_en=ok:exit 0; pairs=ok:exit 0"}
+{"t": "2026-11-02T05:27:34", "by": "coordinator", "task": "SD-11", "ev": "merged"}
+{"t": "2026-11-02T05:27:51", "by": "coordinator", "task": "SD-3", "ev": "accepted", "note": "3/3 i18n=ok:exit 0; forbidden=ok:exit 0; pairs=ok:exit 0"}

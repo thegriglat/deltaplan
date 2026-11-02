@@ -1,0 +1,88 @@
+{
+  "status": "done",
+  "summary": "Переписаны по коду main пары ru/en: меню и настройки (новые разделы: окно «Старт», дельталёт игрока, мышь и клавиши; убраны выбор модели ветра и устаревшие числа), тренировка, цели (названия видов как в игре), острова, лагерь; в docs/_index — ссылки на player-guide и training.",
+  "commits": [
+    "724d2fc5d SD-3: страницы игроку — меню и настройки, тренировка, цели, острова, лагерь — по main"
+  ],
+  "checks": [
+    {
+      "name": "i18n",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "forbidden",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "pairs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "12 файлов в границах",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SD-3",
+  "uncertain": [
+    {
+      "where": "site/content/mechanics/training-islands/index.*.md",
+      "why": "сняты числа воздуха (подъём +1,83 м/с, ядра термиков, обратный ветер 56 %, набор 788 м, кромка 1741 м) и глава про запечённые поля",
+      "checked": "замеры от 2026-10-16 на старом ветре (docs/guide/volcano-island.md: «поле GPU игры»); data/locations/*/air удалены (RW-P10/P12); на Rust-Пикаре не переснимались"
+    },
+    {
+      "where": "site/content/docs/training/index.*.md",
+      "why": "сняты база кучёвки 3,8–3,9 км, «5–10°», «уступы 4–8°» для вулканического острова",
+      "checked": "числа из docs/guide/volcano-island.md до rust-wind, в коде не подтверждены; оставлено «в модели нет пассатной инверсии»"
+    },
+    {
+      "where": "site/content/docs/player-guide/index.*.md (Подождать час)",
+      "why": "снято «на пересчётах ветра картинка замирает»",
+      "checked": "configs/game.json wait_speed_doc про «рывки поля ветра» — от прежнего расчёта; в game.gd при ожидании только refresh_scale"
+    },
+    {
+      "where": "site/content/docs/player-guide/index.*.md (Размер игры)",
+      "why": "удалён раздел «Размер игры» (МБ по сборкам 1.5.1/1.5.13)",
+      "checked": "числа из CHANGELOG, текущий размер кодом не проверяется"
+    },
+    {
+      "where": "site/content/docs/player-guide/index.*.md (Аппарат)",
+      "why": "убрано «Маятник — единственная физика игрока» (SD-К1); четыре ползунка описаны только названиями",
+      "checked": "flight_setup_screen.gd, locale/ui.csv"
+    },
+    {
+      "where": "site/content/docs/player-guide/index.*.md (Популярные места)",
+      "why": "каталог 702 записи (698 в 24 странах + 4 старта учебного острова), встроенных 16; на старой странице было 696 / 10 и «оба острова только из Тренировки» — для учебного острова неверно (training_only только у вулканического)",
+      "checked": "data/places/hg_takeoffs.json, configs/locations/*.json"
+    },
+    {
+      "where": "site/content/docs/training/index.*.md",
+      "why": "не выяснено, какой аппарат берётся на карточке: settings_for копирует vehicle из последнего выбора; написано только, что окно «Старт» не показывается",
+      "checked": "training_menu.gd, scenes/main.gd _on_menu_training"
+    },
+    {
+      "where": "site/content/docs/player-guide/index.*.md (Дельталёт)",
+      "why": "trike-fix: вид тележки и поворот в вираже, упор переднего подкоса и ход штанги «на себя», трава от винта, тяжесть управления на газу — не описан",
+      "checked": "в тексте нет"
+    },
+    {
+      "where": "расхождения docs/guide и кода",
+      "why": "volcano-island.md: «числа воздуха — поле GPU игры» и запечённые поля устарели; menus-settings.md не сверял; configs/game.json wait_speed_doc — «рывки поля ветра»; locale/ui.csv gpu_fail_text/gpu_fail_update говорят «расчёт ветра на видеокарте» — устаревшая подпись окна «Видеокарта не отвечает» в самой игре",
+      "checked": "grep по репозиторию; в страницах не использовано"
+    },
+    {
+      "where": "site/content/mechanics/launch-camp/index.*.md",
+      "why": "добавлена строка «Собака у старта» (configs/easter_eggs.json start_dog, шапка start_dog.gd: присутствие 0,6, реакция на бегущего пилота ближе 80 м); числа лагеря сверены с world_objects.json и easter_eggs.json; gloria и crop_circles не описаны",
+      "checked": "configs, scripts/world_objects/easter_eggs/start_dog.gd"
+    }
+  ],
+  "dp_feedback": "Замечаний к dpcli нет; неудобство среды — rtk режет вывод grep/sed (помогает rtk proxy).",
+  "t": "2026-11-02T05:27:26",
+  "by": "executor"
+}
