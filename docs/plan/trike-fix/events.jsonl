@@ -102,3 +102,4 @@
 {"t": "2026-11-02T05:37:36", "by": "coordinator", "task": "TKF-7", "ev": "accepted", "note": "по отчёту; кадры after/ просмотрены (p4 rear: тележка по курсу крыла)"}
 {"t": "2026-11-02T05:37:38", "by": "coordinator", "task": "TKF-7", "ev": "accepted", "commits": ["7df5f4499"], "note": "4/4 frames_after=ok:9; summary_after=ok:exit 0; table=ok:exit 0; docs=ok:ошибок 0"}
 {"t": "2026-11-02T05:37:38", "by": "coordinator", "task": "TKF-7", "ev": "merged", "note": "7df5f4499"}
+{"t": "2026-11-02T05:37:39", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: tests_vs_base закрыл шум базовых падений (altai, winch, aerotow, game_tick_wiring) — стоит советовать по умолчанию в карточках; Rust tune не попадает в новые копии (worktree.copy/link пуст) — каждая копия собирает 5–10 мин, просится link addons/dp_air/bin; task show усекает заметки без --full; merge при конфликте печатает одну строку в середине вывода — легко принять за успех."}
