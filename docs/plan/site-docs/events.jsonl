@@ -87,3 +87,5 @@
 {"t": "2026-11-02T05:23:32", "by": "reviewer", "task": "SD-11", "ev": "reviewed", "note": "Переписан «Что в игре сейчас» и статусы по main 1.7.0 — хорошо, но не выполнен пункт (3) задания и нарушен запрет на ссылку heuristic.", "verdict": "rework", "issues": {"major": 2, "minor": 2}, "review": "docs/plan/site-docs/tasks/SD-11.review.json"}
 {"t": "2026-11-02T05:23:36", "by": "coordinator", "task": "SD-5", "ev": "accepted", "commits": ["b26a3c5be"], "note": "3/3 i18n=ok:exit 0; forbidden=ok:exit 0; pairs=ok:exit 0"}
 {"t": "2026-11-02T05:23:36", "by": "coordinator", "task": "SD-5", "ev": "merged"}
+{"t": "2026-11-02T05:23:48", "by": "coordinator", "task": "SD-7", "ev": "accepted", "commits": ["2474fc6f5"], "note": "3/3 i18n=ok:exit 0; forbidden=ok:exit 0; pairs=ok:exit 0"}
+{"t": "2026-11-02T05:23:48", "by": "coordinator", "task": "SD-7", "ev": "merged"}
