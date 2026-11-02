@@ -84,3 +84,6 @@
 {"t": "2026-11-02T05:22:59", "by": "coordinator", "task": "SD-2", "ev": "note", "note": "Доработка: противоречие в своих файлах — flight «у ботов ленточек нет» против visual-cues «у ботов лента в вираже смотрит назад»: проверить по коду (ленточки/telltale у ботов, scripts/ и docs/guide/telltale.md — сверка с кодом) и привести оба файла и обе локали к коду; затем accept --dry и report заново.", "addendum": true}
 {"t": "2026-11-02T05:23:22", "by": "coordinator", "task": "SD-4", "ev": "accepted", "commits": ["9506b02cc"], "note": "3/3 i18n=ok:exit 0; forbidden=ok:exit 0; pairs=ok:exit 0"}
 {"t": "2026-11-02T05:23:22", "by": "coordinator", "task": "SD-4", "ev": "merged"}
+{"t": "2026-11-02T05:23:32", "by": "reviewer", "task": "SD-11", "ev": "reviewed", "note": "Переписан «Что в игре сейчас» и статусы по main 1.7.0 — хорошо, но не выполнен пункт (3) задания и нарушен запрет на ссылку heuristic.", "verdict": "rework", "issues": {"major": 2, "minor": 2}, "review": "docs/plan/site-docs/tasks/SD-11.review.json"}
+{"t": "2026-11-02T05:23:36", "by": "coordinator", "task": "SD-5", "ev": "accepted", "commits": ["b26a3c5be"], "note": "3/3 i18n=ok:exit 0; forbidden=ok:exit 0; pairs=ok:exit 0"}
+{"t": "2026-11-02T05:23:36", "by": "coordinator", "task": "SD-5", "ev": "merged"}
