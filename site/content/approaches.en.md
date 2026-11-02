@@ -6,14 +6,14 @@ description: "Which ways of computing wind over terrain, thermals, wings and wor
 
 # Approaches and results
 
-The game is built on physics, and physics can be computed in different ways. This page is a map of what we tried on the key topics: the numbers, the choice, the reason for it and what is in the game now (version 1.5.15). The longest topic is wind over terrain: it went from formulas through a GPU solver and a neural network to a field assembled by flow phases.
+The game is built on physics, and physics can be computed in different ways. This page is a map of what we tried on the key topics: the numbers, the choice, the reason for it and what is in the game now (version 1.7.0). The longest topic is wind over terrain: it went from formulas through a GPU solver and a neural network to a field assembled by flow phases.
 
 How to read it: for each approach — what was done, what came out, what was decided and why. All numbers are taken from the repository documents — the [findings registry](/research/findings/), [research](/research/), the [CHANGELOG](/releases/) and the [diary](https://github.com/thegriglat/deltaplan/tree/main/diary); where a number is an estimate rather than a measurement, it says so. The selection criterion is the same everywhere (the author's decision): first physics within the model's limits, then accuracy, then cost. "The pilot likes it" is a reference, not a requirement: tuning coefficients "so that it feels right" is a dead end, so tuning follows a scheme with measurements and uncertainties. Build numbers and dates follow the CHANGELOG; the pages of old builds describe what was true then.
 
 ## What is in the game now
 
-- **Wind over terrain.** The "Wind over terrain" setting: "GPU solver" (default) — the field is assembled by flow phases and refined by the Picard method on the GPU; "Heuristic" — formulas without a field. Without a GPU there is no solver, the formulas apply.
-- **Thermals and turbulence.** Sources, strength, ceiling and drift are taken from the wind field and from ground heating by land cover; the thermal's shape is a formula (Gedeon, Allen).
+- **Wind over terrain.** Wind is always computed as a field: it is assembled by flow phases and refined by the Picard method. The computation runs in the Rust crate `dp-air` on the CPU (since 1.7.0, Oct 30, 2026); Godot requests the finished field. There is no "Wind over terrain" setting and no field-free mode.
+- **Thermals and turbulence.** Sources, strength, ceiling and drift are taken from the wind field and from ground heating by land cover; the thermal's shape is a formula (Gedeon, Allen). Thermals, waves and rotors, thunderstorms, turbulence and gusts are also computed in the `dp-air` crate.
 - **Wings.** 48 models in four groups, numbers from DHV and manufacturer datasheets, the origin of every number is marked.
 - **Flight.** The player's physics is a single one, "Pendulum": a wing of 16 strips and a pilot on the hang chain, sideslip and stall come from forces; a simpler model (`FlightModel`) remains for bots and remote players over the network.
 - **Takeoff.** Physics only: liftoff when lift is not less than weight; there are no fixed times.
@@ -26,16 +26,16 @@ Where the simulator simplifies or errs is said in the sections below and under "
 
 Summary of the approaches in order:
 
-| # | Approach | When | Outcome and what is in the game now |
+| # | Approach | When | Outcome |
 |---|---|---|---|
-| 1 | Formulas: wind profile, slope lift, the "shadow line" behind a ridge | from the first build; version 0.8.0 | "not physical"; remain as the "Heuristic" mode and a fallback |
+| 1 | Formulas: wind profile, slope lift, the "shadow line" behind a ridge | from the first build; version 0.8.0 | "not physical"; replaced by the field; there is no separate formula mode in the game (removed in 1.7.0) |
 | 2 | Mass-consistent wind field (Poisson equation) | Sep 29 | not taken into work: no heat and no air inertia |
 | 3 | Coupled "heating → buoyancy → flow" system: 2D prototype and six experiments | Sep 29 | the idea is physically right; the Picard method was chosen |
-| 4 | Picard solver on the GPU, three scales | build 1.0.0, Oct 1 | in the game, but now as part of item 8 |
-| 5 | Simplified mode "as in 0.8.0" | 1.0.3 and 1.0.4, Oct 3 | in the game as the "Heuristic" mode |
+| 4 | Picard solver on the GPU, three scales | build 1.0.0, Oct 1 | the solver is part of item 8; since 1.7.0 it runs in a Rust crate on the CPU |
+| 5 | Simplified mode "as in 0.8.0" | 1.0.3 and 1.0.4, Oct 3 | the mode existed in 1.0.3–1.6.x; removed in 1.7.0 |
 | 6 | Neural network instead of the solver: pilots P1, P2, P3; the network in builds 1.0.5–1.2.0 | Oct 2–5 | replacing the solver failed; removed in 1.3.0 |
 | 7 | WindNinja as an independent reference | Oct 4 | not a solver replacement; confirms the speed-up on ridges |
-| 8 | Field assembled by flow phases + Picard | build 1.3.0, Oct 7 | in the game, the "GPU solver" mode |
+| 8 | Field assembled by flow phases + Picard | build 1.3.0, Oct 7 | in the game: assembly by phases + Picard; since 1.7.0 in a Rust crate |
 
 ### 1. Formulas (version 0.8.0)
 
@@ -49,7 +49,7 @@ Slope lift is $w_{ridge} = \mathrm{clamp}(0.85 \cdot u \cdot (\hat w \cdot \nabl
 
 When the solver was put next to it, defects in the formulas themselves turned up as well: at 9 m/s the heuristics' "downward gusts" gave −13…−18 m/s (in the formula they are proportional to the highest wind above the ridge), and the heuristics' reverse flow duplicated the solver's flow — the minimum along-wind speed at the start was −4.66 m/s instead of −0.52 m/s (a double rotor). Literature check: the maximum reverse flow behind ridges is 0.22 ± 0.08 of the wind at ridge level (Menke et al. 2019); the field gives ≈ 0.2, with the heuristics ≈ 0.4. So in the "GPU solver" mode the heuristics weight is 1 − smoothstep(2, 4, excess/dx), i.e. it fades out where the solver itself resolves separation; gusts are 0.42·ΔU (3σ<sub>w</sub>).
 
-**What is in the game now.** The formulas were replaced by a physical field but remain: the "Heuristic" mode (the field is not computed on the GPU, the "Computing wind" stage is skipped), a fallback if the field was not computed, and the air outside the field's area.
+**What is in the game now.** The formulas were replaced by a physical field. There is no separate "Heuristic" mode in the game any more (removed in 1.7.0): wind is always computed as a field.
 
 ### 2. Mass-consistent field
 
@@ -57,7 +57,7 @@ When the solver was put next to it, defects in the formulas themselves turned up
 
 **What came out.** Not taken into work. The approach solved only the flow around terrain and gave neither heat nor air inertia: without heating of the ground there is no inflow to a heated slope, no column over the ridge and no thermal ceiling at the inversion. The same was shown later by the WindNinja check (item 7): a mass-consistent diagnostic model conserves mass but does not lose speed on flow around terrain.
 
-**What was chosen.** The [three-scale air model](/mechanics/air-model/); the sections on the grid, clipmaps and GPU were reused. Compute platform: **CUDA rejected** (AMD cards are expected among the pilots), **Rust + rayon / GDExtension** considered and rejected (offline CPU computation is too slow for recomputing the field in the game), portable Vulkan compute (RenderingDevice in Godot) chosen.
+**What was chosen.** The [three-scale air model](/mechanics/air-model/); the sections on the grid, clipmaps and GPU were reused. Compute platform: **CUDA rejected** (AMD cards are expected among the pilots), **Rust + rayon / GDExtension** considered and rejected (offline CPU computation is too slow for recomputing the field in the game), portable Vulkan compute (RenderingDevice in Godot) chosen. The decision was revisited later: in 1.7.0 (Oct 30, 2026) all wind moved into the Rust crate `dp-air` and runs on the CPU.
 
 ### 3. Coupled system and the 2D prototype
 
@@ -119,7 +119,7 @@ Incidentally it turned out that the reference solutions in the database are unde
 
 **What was done.** In [1.0.3](/releases/1.0.3/) — a settings item "Wind over terrain": calculation from terrain or a simplified mode (the GPU solver is not started, the "Computing wind" stage is skipped). Slope, lee zones, thermals and turbulence in it are the same; what changed is the wind profile with height — in 1.x it depended on the hour and cloudiness. In [1.0.4](/releases/1.0.4/) the profile in the simplified mode is as in 0.8.0: power law, α = 0.14, no more than ×1.8 of the wind at 10 m. Automatic switch-off after a crash was not implemented (the author's decision): the settings item is enough.
 
-**What is in the game now.** The item is called "Heuristic (wind profile without terrain)"; details — on the [«Heuristic» mode](/mechanics/air-model/heuristic/) page. In it terrain neither turns nor speeds up the wind.
+**What is in the game now.** There is no such mode: the "Wind over terrain" setting and the simplified mode were removed in 1.7.0 (Oct 30, 2026), wind is always computed as a field. This is history: the mode existed in 1.0.3–1.6.x, and in it terrain neither turned nor sped up the wind.
 
 ### 6. Neural network instead of the solver: pilots P1, P2, P3
 
@@ -181,7 +181,7 @@ There is no bias; on the non-converged ones the network errs at the level of the
 
 **What was done.** A classifier on the GPU determines the regime of each cell (flow over, separation, waves, blocking and bypass, convection, evening drainage, calm) from the Froude number, the convection parameter, the slope steepness and the ratio of terrain height to the mixing layer. Blocking, convection, drainage and calm are computed by their own mechanisms, the rest by Picard, which starts from this assembly; the seams are removed by a projection step. The regime boundaries were measured on idealised terrain (about 8000 runs: hill, ridge, escarpment) and checked on terrain with erosion: lift at a slope and mean speed transfer well, rotor, stagnation and reverse flow worse, and the transition between regimes is 5–10 times wider. Details — [«Wind field: phases and Picard»](/mechanics/air-model/wind-phases/), the research on the [phase diagram](/docs/research/air_phase.md) and on the [measurements](/docs/research/air_phase_results.md).
 
-**What came out.** The "Computing wind" stage on an RTX 4070 SUPER (Ongudai, 12:00, 3 m/s) takes 3.3–3.9 s; on weak graphics cards the estimate is ×2…×11, one computation is limited to 60 s: at loading the formulas of the "Heuristic" mode apply after that, in flight the previous field stays. If Picard did not converge, in calm and blocking cells the mechanism's field is taken, elsewhere the mean of the late iterations.
+**What came out (at 1.3.0, computed on the graphics card; since 1.7.0 the computation moved to a Rust crate on the CPU, and these measurements do not exist for it).** The "Computing wind" stage on an RTX 4070 SUPER (Ongudai, 12:00, 3 m/s) takes 3.3–3.9 s; on weak graphics cards the estimate is ×2…×11, one computation is limited to 60 s: at loading the formulas of the "Heuristic" mode applied after that (the mode no longer exists in the game), in flight the previous field stays. If Picard did not converge, in calm and blocking cells the mechanism's field is taken, elsewhere the mean of the late iterations.
 
 **Known discrepancies (not fixed, the author's decision):** in strong wind behind a ridge the shear layer gives turbulence 3–4 times higher than in the literature; the separation bubble behind three-dimensional bumps is overestimated by about 1.8 times; the speed-up at the brow is underestimated by 15–20 %; saddle ×2.05 instead of ×1.5; calm and evening drainage are the weakest spots, the nocturnal low-level jet is not reproduced. Details — "Model limits" on the pages of the [air model](/mechanics/air-model/) and of [turbulence](/mechanics/air-model/turbulence/).
 
@@ -257,5 +257,5 @@ Details — [«Multiplayer»](/mechanics/multiplayer/).
 
 - Numbers and sources for closed work — the [findings registry](/research/findings/).
 - Research and prototypes by topic — [«Research»](/research/).
-- How all this works in the game — [«Mechanics»](/mechanics/): [air model](/mechanics/air-model/), [the "Heuristic" mode](/mechanics/air-model/heuristic/), [thermals](/mechanics/air-model/thermals/), [flight and wing](/mechanics/flight/).
+- How all this works in the game — [«Mechanics»](/mechanics/): [air model](/mechanics/air-model/), [thermals](/mechanics/air-model/thermals/), [flight and wing](/mechanics/flight/).
 - Chronology of decisions and pilots' feedback — the [diary](https://github.com/thegriglat/deltaplan/tree/main/diary).
