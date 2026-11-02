@@ -140,3 +140,4 @@
 {"t": "2026-11-02T05:45:16", "by": "coordinator", "task": "SD-14", "ev": "accepted", "commits": ["5092b75f8"], "note": "1/1 i18n=ok:exit 0"}
 {"t": "2026-11-02T05:45:16", "by": "coordinator", "task": "SD-14", "ev": "merged"}
 {"t": "2026-11-02T05:45:40", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: исполнители оставляют r-<ID>.json в корне копии — accept падает по scope (каждая задача, удалял вручную); task show обрезает дополнения координатора до ~300 символов (нужен --full, в -h не видно); plan <м> «§4 SD-n» не находит раздел по ID задачи; rtk режет вывод grep/sed у исполнителей"}
+{"t": "2026-11-02T05:49:33", "by": "user", "task": null, "ev": "delivered", "commits": ["bc78b6afa"], "note": "squash в main: bc78b6afa"}
