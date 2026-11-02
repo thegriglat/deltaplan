@@ -369,6 +369,7 @@ Airborne, Жеглов 1983. Ответы пилота-консультанта 
 
 ## Подробнее
 
+- [Дельталёт и буксировка](/mechanics/trike/) — другие аппараты игрока: моторная тележка и буксировка дельтаплана.
 - [docs/guide/flight.md](/docs/guide/flight.md) — полное описание модели полёта, API `FlightModel`/`Glider`, контракт
   визуала и тесты.
 - [docs/research/pilot_mass.md](/docs/research/pilot_mass.md) — вывод масштабирования поляры по массе и

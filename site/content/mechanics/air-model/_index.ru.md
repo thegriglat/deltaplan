@@ -123,7 +123,7 @@ description: "Почему воздух в игре считается на тр
 
 ## Подробнее
 
-- [Модель воздуха в игре](/docs/guide/air-model.md) — главный документ: что работает, законы, числа, границы.
+- Части описания в игре: [поле на процессоре](/docs/guide/air-model/field-cpu.md), [термики](/docs/guide/air-model/thermals.md), [болтанка](/docs/guide/air-model/turbulence.md), [границы](/docs/guide/air-model/limits.md).
 - [Калибровка](/docs/research/air-model-tune.md), [чувствительность](/docs/research/air-model-sensitivity.md), [путь поля Пикара в Rust-крейте](/docs/research/rust-wind-field-path.md).
 - Совместная калибровка по двум наборам: [Askervein и Perdigão](/tools/research/cases/b1/README.md).
 - [Каталог экспериментальных данных](/docs/research/experimental_data.md); данные [Askervein](/tools/research/data/askervein/README.md) и [Perdigão](/tools/research/data/perdigao/README.md).

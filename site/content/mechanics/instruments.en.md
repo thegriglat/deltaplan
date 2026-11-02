@@ -131,7 +131,7 @@ remapped in the controls settings file; they are not shown on the "Controls" scr
 **F7 in more detail.** This is an input of the air model: how much heat the surface gives off at the moment. It is not
 a measured temperature and not a map of actual thermals. The map comes from the coarsest grid of the model, so small
 patches (a single field, a house) are not there; it is rebuilt as the day goes on and when the pilot moves away from the centre.
-At 300 W/m² and above the model removes the lee rotor (see the [lee-side heuristic](/mechanics/air-model/heuristic/)),
+At 300 W/m² and above the model removes the lee rotor (see [turbulence and rotor](/mechanics/air-model/turbulence/)),
 and thermals follow from the same flux ([thermals](/mechanics/air-model/thermals/)). The F7 layer only shows; it adds
 nothing to the flight. Details are in the [CHANGELOG](/CHANGELOG.md) (build 1.5.19) and in the
 [cameras and input guide](/docs/guide/game/cameras-input.md), which describes layers F1-F6.
