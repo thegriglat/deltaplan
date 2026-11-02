@@ -1,0 +1,33 @@
+{
+  "status": "done",
+  "summary": "В mouse.md значения summary и title взяты в двойные кавычки: двоеточие «config:» ломало YAML, hugo падал. Текст не менялся. liftoff.md и longitudinal.md уже были корректны.",
+  "commits": [
+    "6483ead4d SD-1: frontmatter mouse.md — summary и title в кавычках (YAML ломал hugo)"
+  ],
+  "checks": [
+    {
+      "name": "i18n",
+      "value": "exit 0, нарушений 0 (K1–K5), битых ссылок 0",
+      "pass": true
+    },
+    {
+      "name": "hugo",
+      "value": "cd site && hugo --renderToMemory --quiet → exit 0",
+      "pass": true
+    },
+    {
+      "name": "accept --dry",
+      "value": "PASS i18n, PASS hugo, PASS scope 1 файл",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SD-1 --dry",
+  "uncertain": [],
+  "dp_feedback": "",
+  "extra": {},
+  "t": "2026-11-02T05:12:15",
+  "by": "executor"
+}
