@@ -5,7 +5,7 @@ module: site-docs
 area: release
 updated: "2026-11-02"
 summary: "Документация сайта (site/content, ru и en) под main после 1.7.0 и pilot-feedback-trim: механики по коду, без удалённых механик."
-related: ["docs/contracts/site-docs.md", "docs/contracts/site-i18n.md", "docs/plan/trike-fix.md"]
+related: ["docs/contracts/site-docs.md", "docs/contracts/site-i18n.md"]
 ---
 
 # site-docs — документация сайта под текущий main (код задач SD)
