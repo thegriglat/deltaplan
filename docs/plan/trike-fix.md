@@ -73,6 +73,7 @@ related: ["docs/contracts/trike-fix.md", "docs/contracts/trike-pilot.md", "docs/
 - **TKF-7** (dp-mechanic) — кадры «после» инструментом TKF-1 (вид сзади и сбоку от 3-го лица — пп. 1, 2, 4; трава на земле с полным газом) — `…/trike-fix/after/`, таблица до/после.
 - **TKF-8** (dp-writer) — `docs/guide/flight/trike-pilot.md` (границы модели), `registry/findings.md`, CHANGELOG «В работе».
 - **TKF-9** (dp-researcher) — Q3 (а): где штанга на триме и на упоре у реальных трайков; поправка вида (трапеция/посадка тележки), чтобы касание подкоса совпало с прежней мин. скоростью; угол упора. Затем TKF-К4 v2 и правка (TKF-5 / новая задача): вид + упор + строка strut_stop для TowTug; ход «на себя» 0,25 м остаётся.
+- **TKF-8** (dp-writer) после TKF-5: `docs/guide/flight/trike-pilot.md`, `registry/findings.md`, CHANGELOG «В работе» и сайт ru/en (решение 2026-11-02): `site/content/mechanics/trike/`, «Дельталёт» в player-guide, страница полёта — вид тележки в вираже, упор подкоса (≈ 55 км/ч), ход «на себя» 0,178 м, трава от винта, тяжесть управления на газу; проверки `tools/site/check_i18n.py`, hugo без WARN/ERROR.
 
 ## 5. Волны
 1. TKF-1, TKF-2, TKF-3 параллельно (код игры не меняют).
