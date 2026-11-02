@@ -76,6 +76,8 @@ The trike is a powered cart with an Air Creation iXess 15 wing; the wing cannot 
 
 The other keys (X, C, V, Q, Tab, 1–5, R, Esc, M, F12) are as on the hang glider; there is no walking or running, the pilot sits. The panel has two gauges: a tachometer (green arc 2000–6500 engine rpm, red line 6800) and a fuel gauge 0–53 l. The engine starts in 3 s and stops in 4 s; an empty tank stops the engine and then you glide. Consumption runs from 2 l/h at idle to 26.5 l/h at full power (an estimate from the Rotax 582 manual, not a measurement).
 
+In the air the cart is drawn in exactly the position the physics computes: no lag in a turn and no twisting under the wing. The front strut stops the bar on push-out (about 55 km/h at zero throttle), and pull-in travel is 0.178 m, to the pilot's chest. Pitch on pull-in stays rather heavy, roll is quick. Grass up to 25 m behind the propeller lies down in its wash while thrust is at least 100 N and the propeller is below 5 m above the ground. Numbers and sources are on the page [Trike and towing](/mechanics/trike/).
+
 Model limits: propeller thrust and consumption are calculated, not measured; fuel burn does not change the mass in flight; a hard landing on the wheels is not counted as a crash (the wing or keel touching the ground is a crash, as on a hang glider); "Fly again" (R) puts you back on the wheels.
 
 ## Mouse and keys {#player-guide-controls}

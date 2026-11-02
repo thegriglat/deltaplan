@@ -152,7 +152,7 @@ generated: true
   - [tools/research/tow-trike/README.md](../tools/research/tow-trike/README.md) — Скрипты и воспроизведение расчёта параметров буксировщика-дельталёта (TT-1)
 - **trike-anywhere** — Дельталёт и буксировка в любом месте: окно выбора по «Лететь», старт на колёсах в точке старта, без лётных проверок. [closed 2026-10-23] — [план](plan/trike-anywhere.md) · [контракты](contracts/trike-anywhere.md) · [решения](plan/trike-anywhere/decisions.md) · [сводка](plan/trike-anywhere/summary.md) · полный журнал: `archive/trike-anywhere`
 - **trike-pilot** — Дельталёт для игрока: «Маятник» + тяга tow-trike, газ W/S, двигатель пробелом, руление, приборы, звук; одиночная игра. [closed 2026-10-23] — [план](plan/trike-pilot.md) · [контракты](contracts/trike-pilot.md) · [решения](plan/trike-pilot/decisions.md) · [сводка](plan/trike-pilot/summary.md) · полный журнал: `archive/trike-pilot`
-  - [docs/guide/flight/trike-pilot.md](guide/flight/trike-pilot.md) — Дельталёт игрока: старт на колёсах, клавиши, двигатель и топливо, приборы, камера, звук, руление и посадка на колёса; границы модели.
+  - [docs/guide/flight/trike-pilot.md](guide/flight/trike-pilot.md) — Дельталёт игрока: старт, клавиши, двигатель, приборы, вид тележки, колёса, упор подкоса, ход штанги, трава от винта; границы.
   - [docs/research/trike-pilot/engine-ops.md](research/trike-pilot/engine-ops.md) — Эксплуатация Rotax 582 UL на трайке: расход по оборотам, запуск и остановка, рычаг газа, топливо на старте, тахометр.
   - [docs/research/trike-pilot/pitch-oscillation.md](research/trike-pilot/pitch-oscillation.md) — Качания на газу — фугоида от момента тяги ниже ЦМ при жёсткой штанге; тяга по оси винта даёт ζ 0,11–0,15.
   - [docs/research/trike-pilot/speed-range.md](research/trike-pilot/speed-range.md) — 130 км/ч штангой недостижимы: ход 0,11 м мал, потолок модели ≈117 км/ч, тяга 582 держит горизонт до ≈120; решение за пользователем.
@@ -169,6 +169,15 @@ generated: true
   - [tools/research/pilot-feedback-trim/liftoff/README.md](../tools/research/pilot-feedback-trim/liftoff/README.md) — PFT-4: сценарий разбега и отрыва с рядом 1/120 с, подмены α_neutral и момента передачи рук, разбор; воспроизведение.
   - [tools/research/pilot-feedback-trim/longitudinal/README.md](../tools/research/pilot-feedback-trim/longitudinal/README.md) — PFT-1: скрипты и данные замера трима на нейтрали и фугоиды после X (Godot headless).
   - [tools/research/pilot-feedback-trim/mouse/README.md](../tools/research/pilot-feedback-trim/mouse/README.md) — Команды воспроизведения замеров отклика Маятника на ход штанги (PFT-2)
+- **trike-fix** — Замечания по дельталёту: трапеция за подкосом, раскачка до невозможного, тугое управление на газу, тележка отстаёт в вираже, трава. [active 2026-11-02] — [план](plan/trike-fix.md) · [контракты](contracts/trike-fix.md)
+  - [docs/registry/findings/trike-fix.md](registry/findings/trike-fix.md) — Выводы trike-fix: тележка отставала из-за предела вида 20 °/с, знак z ЦМ, упор подкоса, ход штанги, крен резкий, трава от винта.
+  - [docs/research/trike-fix/control.md](research/trike-fix/control.md) — Дельталёт по крену не туже, а быстрее дельтаплана; туго по тангажу «на себя» (ход 0,111 м), крен насыщает предел рук 500 Н.
+  - [docs/research/trike-fix/coupling.md](research/trike-fix/coupling.md) — TKF-1: пп. 1, 2, 4 — причина в виде (предел 20 °/с cart_basis), реальный узел подвеса, варианты правки и пороги теста
+  - [docs/research/trike-fix/grass-wash.md](research/trike-fix/grass-wash.md) — Пригиб травы струёй винта дельталёта: образец press_pos, оценка струи, цена, план правки для TKF-6.
+  - [docs/research/trike-fix/strut.md](research/trike-fix/strut.md) — Упор штанги на 8,7° рано из-за знака z у ЦМ тележки; с поправкой касание ~55 км/ч, но ход 0,25 м входит в тело.
+  - [tools/research/trike-fix/README.md](../tools/research/trike-fix/README.md) — Инструмент TKF-1 и TKF-2 (control_*): замер углов тележки к крылу дельталёта игрока (TKF-К1 v1), кадры «до»; воспроизведение
+  - [tools/research/trike-fix/strut/README.md](../tools/research/trike-fix/strut/README.md) — TKF-9: воспроизведение замера и расчёта штанги у подкоса
+  - [tools/research/trike-fix/strut/summary.md](../tools/research/trike-fix/strut/summary.md) — TKF-9: вывод - знак z у ЦМ тележки, упор -10,87 град
 
 ## world
 
@@ -176,6 +185,7 @@ generated: true
   - [docs/perf/grass_rocks.md](perf/grass_rocks.md) — Замеры цены травы и камней модуля grass-rocks по протоколу G3: база (GR-2) и после каждой правки, medium и high, ongudai.
   - [docs/perf/grass_rocks_2.md](perf/grass_rocks_2.md) — Продолжение замеров grass-rocks: GR-22, режим angle против shell (G3, medium и high, ongudai), кадры angle/ и final/9.
   - [docs/perf/offscreen_audit.md](perf/offscreen_audit.md) — Аудит GR-1: работа вне кадра. Заметно: трава (≈ 2 млн вершин за спиной), кресты, импостеры; CPU-отсечение при вращении не годится.
+  - [docs/registry/findings/grass-rocks.md](registry/findings/grass-rocks.md) — Выводы grass-rocks (вынесены из findings.md по размеру): аудит вне кадра, ранний выход травы, средняя трава, камни, шум G3.
 - **offline_world_data** — Отложено 30.09: офлайн-пакет региона и подложка поверхности из OSM; кода нет, роль частично закрыли osm-any и osm-tiles. [postponed 2026-10-15] — [план](plan/offline_world_data.md)
 - **osm_vector_pack** — Замер размера офлайн-пакета (Словения ≈ 80 МБ); §9 тайлы 20 км реализованы в osm-tiles, офлайн-пакет не сделан (отложен). [postponed 2026-10-15] — [план](plan/osm_vector_pack.md)
   - [docs/plan/osm_vector_pack/minimal-package.md](plan/osm_vector_pack/minimal-package.md) — Минимальный пакет OSM (замер 10.10.2026, Словения): что нужно игре из вектора и сколько это весит. [postponed]
