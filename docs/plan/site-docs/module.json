@@ -1,0 +1,11 @@
+{
+  "module": "site-docs",
+  "plan": "docs/plan/site-docs.md",
+  "contracts": "docs/contracts/site-docs.md",
+  "branch": "feature/site-docs",
+  "copy": "~/worktrees/deltaplan/site-docs",
+  "created": "2026-11-02T05:05:03",
+  "code": "SD",
+  "area": "release",
+  "base": "main"
+}
