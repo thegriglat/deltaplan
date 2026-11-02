@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-30"
+updated: "2026-11-02"
 summary: "Контракты стыков по модулям: id и версии из заголовков."
 related: []
 generated: true
@@ -54,6 +54,7 @@ generated: true
 - pendulum: PD-К1 v5, PD-К2 v9, PD-К3 v2, PD-К4 v2, PD-К5 v2, PD-К6 v2 — [docs/contracts/pendulum.md](../contracts/pendulum.md)
 - perf: PF-К2 v2, PF-К4 v2 — [docs/contracts/perf.md](../contracts/perf.md)
 - picard-rs: R1 v1, R2 v3, R3 v4, R4 v2, R5 v1, R6 v3, R7 v1 — [docs/contracts/picard-rs.md](../contracts/picard-rs.md)
+- pilot-feedback-trim: PFT-К1 v2, PFT-К2 v1 — [docs/contracts/pilot-feedback-trim.md](../contracts/pilot-feedback-trim.md)
 - pilot-hud: PH-К1 v2, PH-К2 v1, PH-К3 v2, PH-К4 v2, PH-К5 v1, PH-К6 v1, PH-К7 v1 — [docs/contracts/pilot-hud.md](../contracts/pilot-hud.md)
 - pilot-view: PV1 v3, PV2 v1, PV3 v2 — [docs/contracts/pilot-view.md](../contracts/pilot-view.md)
 - popular-places: PP-К1 v3, PP-К2 v1 — [docs/contracts/popular-places.md](../contracts/popular-places.md)
@@ -73,6 +74,7 @@ generated: true
 - rust-wind: W1 v2, W2 v6, W3 v9, W4 v10, W5 v11, W6 v4, W7 v1, W8 v3, W9 v2, W10 v2, W11 v11, W12 v3 — [docs/contracts/rust-wind.md](../contracts/rust-wind.md)
 - scene-look: SL-К1 v4, SL-К2 v2, SL-К3 v1, SL-К4 v2, SL-К5 v1, SL-К6 v2, SL-К7 v1 — [docs/contracts/scene-look.md](../contracts/scene-look.md)
 - sea-ships: S1 v2, S2 v4, S3 v3, S4 v1 — [docs/contracts/sea-ships.md](../contracts/sea-ships.md)
+- site-docs: SD-К1 v2 — [docs/contracts/site-docs.md](../contracts/site-docs.md)
 - site-i18n: SI-К1 v2, SI-К2 v1, SI-К3 v2, SI-К4 v3, SI-К5 v1, SI-К6 v1 — [docs/contracts/site-i18n.md](../contracts/site-i18n.md)
 - site-research: SRS-К1 v1 — [docs/contracts/site-research.md](../contracts/site-research.md)
 - snow-plume: — — [docs/contracts/snow-plume.md](../contracts/snow-plume.md)

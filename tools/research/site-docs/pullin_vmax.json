@@ -1,0 +1,503 @@
+{
+ "summary": {
+  "task": "SD-13",
+  "game_commit": "a970628b5",
+  "wings": 49,
+  "median_full_to_ref": 0.982,
+  "median_normal_to_ref": 0.786,
+  "median_full_to_passport_uncensored": 0.979,
+  "n_uncensored": 40
+ },
+ "wings": {
+  "aeros_combat_c": {
+   "config_ref_kmh": 89.7,
+   "normal_kmh": 75.4,
+   "full_kmh": 97.7,
+   "full_std_kmh": 1.02,
+   "passport_vmax_vg0_kmh": 89.7,
+   "passport_censored_by_vne": true,
+   "full_to_ref": 1.089,
+   "normal_to_ref": 0.841
+  },
+  "aeros_combat_l": {
+   "config_ref_kmh": 89.4,
+   "normal_kmh": 78.7,
+   "full_kmh": 105.9,
+   "full_std_kmh": 0.64,
+   "passport_vmax_vg0_kmh": 89.4,
+   "passport_censored_by_vne": true,
+   "full_to_ref": 1.184,
+   "normal_to_ref": 0.88
+  },
+  "aeros_discus": {
+   "config_ref_kmh": 84.2,
+   "normal_kmh": 63.6,
+   "full_kmh": 78.6,
+   "full_std_kmh": 0.62,
+   "passport_vmax_vg0_kmh": 84.2,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 0.933,
+   "normal_to_ref": 0.756
+  },
+  "aeros_fox": {
+   "config_ref_kmh": 78.8,
+   "normal_kmh": 52.6,
+   "full_kmh": 63.9,
+   "full_std_kmh": 0.0,
+   "passport_vmax_vg0_kmh": 78.8,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 0.811,
+   "normal_to_ref": 0.668
+  },
+  "air_c4": {
+   "config_ref_kmh": 98.5,
+   "normal_kmh": 74.5,
+   "full_kmh": 98.0,
+   "full_std_kmh": 0.97,
+   "passport_vmax_vg0_kmh": 98.5,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 0.995,
+   "normal_to_ref": 0.756
+  },
+  "air_f2": {
+   "config_ref_kmh": 60.1,
+   "normal_kmh": 49.6,
+   "full_kmh": 61.2,
+   "full_std_kmh": 0.02,
+   "passport_vmax_vg0_kmh": 60.1,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 1.018,
+   "normal_to_ref": 0.826
+  },
+  "air_rev": {
+   "config_ref_kmh": 80.8,
+   "normal_kmh": 73.9,
+   "full_kmh": 97.4,
+   "full_std_kmh": 0.89,
+   "passport_vmax_vg0_kmh": 80.8,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 1.205,
+   "normal_to_ref": 0.914
+  },
+  "air_sting3": {
+   "config_ref_kmh": 86.4,
+   "normal_kmh": 68.1,
+   "full_kmh": 87.9,
+   "full_std_kmh": 0.11,
+   "passport_vmax_vg0_kmh": 86.4,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 1.018,
+   "normal_to_ref": 0.788
+  },
+  "apogee": {
+   "config_ref_kmh": 63.2,
+   "normal_kmh": 56.7,
+   "full_kmh": 69.9,
+   "full_std_kmh": 0.0,
+   "passport_vmax_vg0_kmh": 63.2,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 1.106,
+   "normal_to_ref": 0.898
+  },
+  "atlas": {
+   "config_ref_kmh": 72.0,
+   "normal_kmh": 55.8,
+   "full_kmh": 69.1,
+   "full_std_kmh": 0.0,
+   "passport_vmax_vg0_kmh": 72.0,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 0.959,
+   "normal_to_ref": 0.775
+  },
+  "bautek_astir": {
+   "config_ref_kmh": 69.4,
+   "normal_kmh": 46.9,
+   "full_kmh": 60.1,
+   "full_std_kmh": 0.03,
+   "passport_vmax_vg0_kmh": 69.4,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 0.866,
+   "normal_to_ref": 0.676
+  },
+  "bautek_fizz": {
+   "config_ref_kmh": 92.1,
+   "normal_kmh": 62.3,
+   "full_kmh": 79.2,
+   "full_std_kmh": 0.02,
+   "passport_vmax_vg0_kmh": 92.1,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 0.86,
+   "normal_to_ref": 0.676
+  },
+  "bautek_kite": {
+   "config_ref_kmh": 69.6,
+   "normal_kmh": 46.0,
+   "full_kmh": 58.9,
+   "full_std_kmh": 0.11,
+   "passport_vmax_vg0_kmh": 69.6,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 0.846,
+   "normal_to_ref": 0.66
+  },
+  "combat": {
+   "config_ref_kmh": 100.0,
+   "normal_kmh": 76.2,
+   "full_kmh": 99.8,
+   "full_std_kmh": 0.9,
+   "passport_vmax_vg0_kmh": 100.0,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 0.998,
+   "normal_to_ref": 0.762
+  },
+  "condor_crex3": {
+   "config_ref_kmh": 79.0,
+   "normal_kmh": 65.8,
+   "full_kmh": 79.8,
+   "full_std_kmh": 0.09,
+   "passport_vmax_vg0_kmh": 79.0,
+   "passport_censored_by_vne": true,
+   "full_to_ref": 1.01,
+   "normal_to_ref": 0.833
+  },
+  "condor_flex": {
+   "config_ref_kmh": 63.8,
+   "normal_kmh": 51.1,
+   "full_kmh": 62.3,
+   "full_std_kmh": 0.0,
+   "passport_vmax_vg0_kmh": 63.8,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 0.976,
+   "normal_to_ref": 0.801
+  },
+  "dp_she1": {
+   "config_ref_kmh": 97.5,
+   "normal_kmh": 88.4,
+   "full_kmh": 108.7,
+   "full_std_kmh": 0.68,
+   "passport_vmax_vg0_kmh": 97.5,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 1.115,
+   "normal_to_ref": 0.907
+  },
+  "fs_crossover": {
+   "config_ref_kmh": 88.3,
+   "normal_kmh": 67.8,
+   "full_kmh": 83.5,
+   "full_std_kmh": 0.39,
+   "passport_vmax_vg0_kmh": 88.3,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 0.946,
+   "normal_to_ref": 0.767
+  },
+  "fs_funky": {
+   "config_ref_kmh": 65.9,
+   "normal_kmh": 50.6,
+   "full_kmh": 62.0,
+   "full_std_kmh": 0.0,
+   "passport_vmax_vg0_kmh": 65.9,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 0.941,
+   "normal_to_ref": 0.768
+  },
+  "fs_space": {
+   "config_ref_kmh": 68.1,
+   "normal_kmh": 56.8,
+   "full_kmh": 69.9,
+   "full_std_kmh": 0.0,
+   "passport_vmax_vg0_kmh": 68.1,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 1.027,
+   "normal_to_ref": 0.834
+  },
+  "icaro_alto": {
+   "config_ref_kmh": 86.7,
+   "normal_kmh": 71.4,
+   "full_kmh": 88.5,
+   "full_std_kmh": 0.25,
+   "passport_vmax_vg0_kmh": 86.7,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 1.021,
+   "normal_to_ref": 0.824
+  },
+  "icaro_laminar_z9": {
+   "config_ref_kmh": 75.0,
+   "normal_kmh": 70.2,
+   "full_kmh": 91.5,
+   "full_std_kmh": 0.98,
+   "passport_vmax_vg0_kmh": 75.0,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 1.219,
+   "normal_to_ref": 0.935
+  },
+  "icaro_mastr": {
+   "config_ref_kmh": 76.1,
+   "normal_kmh": 73.6,
+   "full_kmh": 90.4,
+   "full_std_kmh": 1.02,
+   "passport_vmax_vg0_kmh": 76.1,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 1.187,
+   "normal_to_ref": 0.967
+  },
+  "icaro_piuma": {
+   "config_ref_kmh": 81.6,
+   "normal_kmh": 57.6,
+   "full_kmh": 69.2,
+   "full_std_kmh": 0.14,
+   "passport_vmax_vg0_kmh": 81.6,
+   "passport_censored_by_vne": true,
+   "full_to_ref": 0.848,
+   "normal_to_ref": 0.706
+  },
+  "laminar": {
+   "config_ref_kmh": 85.0,
+   "normal_kmh": 65.7,
+   "full_kmh": 83.5,
+   "full_std_kmh": 0.16,
+   "passport_vmax_vg0_kmh": 85.0,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 0.982,
+   "normal_to_ref": 0.773
+  },
+  "magic": {
+   "config_ref_kmh": 75.0,
+   "normal_kmh": 58.1,
+   "full_kmh": 71.6,
+   "full_std_kmh": 0.07,
+   "passport_vmax_vg0_kmh": 75.0,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 0.954,
+   "normal_to_ref": 0.774
+  },
+  "moyes_gecko": {
+   "config_ref_kmh": 75.0,
+   "normal_kmh": 62.2,
+   "full_kmh": 79.0,
+   "full_std_kmh": 0.07,
+   "passport_vmax_vg0_kmh": 75.0,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 1.053,
+   "normal_to_ref": 0.83
+  },
+  "moyes_litespeed_rx": {
+   "config_ref_kmh": 71.9,
+   "normal_kmh": 74.9,
+   "full_kmh": 99.3,
+   "full_std_kmh": 0.37,
+   "passport_vmax_vg0_kmh": 71.9,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 1.381,
+   "normal_to_ref": 1.042
+  },
+  "moyes_litespeed_s": {
+   "config_ref_kmh": 80.8,
+   "normal_kmh": 67.3,
+   "full_kmh": 91.5,
+   "full_std_kmh": 0.17,
+   "passport_vmax_vg0_kmh": 80.8,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 1.132,
+   "normal_to_ref": 0.833
+  },
+  "moyes_litesport": {
+   "config_ref_kmh": 85.9,
+   "normal_kmh": 65.9,
+   "full_kmh": 86.0,
+   "full_std_kmh": 0.12,
+   "passport_vmax_vg0_kmh": 85.9,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 1.001,
+   "normal_to_ref": 0.768
+  },
+  "moyes_malibu2": {
+   "config_ref_kmh": 69.3,
+   "normal_kmh": 53.8,
+   "full_kmh": 67.5,
+   "full_std_kmh": 0.05,
+   "passport_vmax_vg0_kmh": 69.3,
+   "passport_censored_by_vne": true,
+   "full_to_ref": 0.974,
+   "normal_to_ref": 0.776
+  },
+  "seed_skyrunner_xr": {
+   "config_ref_kmh": 91.0,
+   "normal_kmh": 71.6,
+   "full_kmh": 86.8,
+   "full_std_kmh": 0.61,
+   "passport_vmax_vg0_kmh": 91.0,
+   "passport_censored_by_vne": true,
+   "full_to_ref": 0.954,
+   "normal_to_ref": 0.786
+  },
+  "seed_spyder": {
+   "config_ref_kmh": 81.9,
+   "normal_kmh": 73.1,
+   "full_kmh": 94.3,
+   "full_std_kmh": 0.09,
+   "passport_vmax_vg0_kmh": 81.9,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 1.151,
+   "normal_to_ref": 0.892
+  },
+  "slavutich_ut": {
+   "config_ref_kmh": 55.0,
+   "normal_kmh": 44.3,
+   "full_kmh": 53.0,
+   "full_std_kmh": 0.0,
+   "passport_vmax_vg0_kmh": 55.0,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 0.963,
+   "normal_to_ref": 0.805
+  },
+  "sport": {
+   "config_ref_kmh": 103.2,
+   "normal_kmh": 71.7,
+   "full_kmh": 93.5,
+   "full_std_kmh": 0.71,
+   "passport_vmax_vg0_kmh": 103.2,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 0.906,
+   "normal_to_ref": 0.695
+  },
+  "target": {
+   "config_ref_kmh": 60.0,
+   "normal_kmh": 48.0,
+   "full_kmh": 58.4,
+   "full_std_kmh": 0.0,
+   "passport_vmax_vg0_kmh": 60.0,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 0.973,
+   "normal_to_ref": 0.801
+  },
+  "training": {
+   "config_ref_kmh": 62.6,
+   "normal_kmh": 51.0,
+   "full_kmh": 62.4,
+   "full_std_kmh": 0.0,
+   "passport_vmax_vg0_kmh": 62.6,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 0.996,
+   "normal_to_ref": 0.815
+  },
+  "trike_ixess15": {
+   "config_ref_kmh": 82.0,
+   "normal_kmh": 112.8,
+   "full_kmh": 112.8,
+   "full_std_kmh": 2.51,
+   "passport_vmax_vg0_kmh": null,
+   "passport_censored_by_vne": null,
+   "full_to_ref": 1.375,
+   "normal_to_ref": 1.376
+  },
+  "ww_cross_country": {
+   "config_ref_kmh": 85.6,
+   "normal_kmh": 67.8,
+   "full_kmh": 78.2,
+   "full_std_kmh": 0.57,
+   "passport_vmax_vg0_kmh": 85.6,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 0.913,
+   "normal_to_ref": 0.792
+  },
+  "ww_eagle": {
+   "config_ref_kmh": 80.0,
+   "normal_kmh": 62.6,
+   "full_kmh": 73.3,
+   "full_std_kmh": 0.42,
+   "passport_vmax_vg0_kmh": 80.0,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 0.916,
+   "normal_to_ref": 0.782
+  },
+  "ww_fusion": {
+   "config_ref_kmh": 106.6,
+   "normal_kmh": 83.9,
+   "full_kmh": 102.3,
+   "full_std_kmh": 0.9,
+   "passport_vmax_vg0_kmh": 106.6,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 0.96,
+   "normal_to_ref": 0.787
+  },
+  "ww_spectrum": {
+   "config_ref_kmh": 63.5,
+   "normal_kmh": 51.6,
+   "full_kmh": 63.5,
+   "full_std_kmh": 0.0,
+   "passport_vmax_vg0_kmh": 63.5,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 1.0,
+   "normal_to_ref": 0.813
+  },
+  "ww_sport3": {
+   "config_ref_kmh": 69.4,
+   "normal_kmh": 50.3,
+   "full_kmh": 64.1,
+   "full_std_kmh": 0.02,
+   "passport_vmax_vg0_kmh": 69.4,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 0.923,
+   "normal_to_ref": 0.725
+  },
+  "ww_super_sport": {
+   "config_ref_kmh": 77.7,
+   "normal_kmh": 59.6,
+   "full_kmh": 72.8,
+   "full_std_kmh": 0.17,
+   "passport_vmax_vg0_kmh": 77.7,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 0.937,
+   "normal_to_ref": 0.767
+  },
+  "ww_t2c": {
+   "config_ref_kmh": 85.0,
+   "normal_kmh": 65.4,
+   "full_kmh": 85.5,
+   "full_std_kmh": 0.02,
+   "passport_vmax_vg0_kmh": 85.0,
+   "passport_censored_by_vne": true,
+   "full_to_ref": 1.006,
+   "normal_to_ref": 0.77
+  },
+  "ww_t3": {
+   "config_ref_kmh": 96.6,
+   "normal_kmh": 70.9,
+   "full_kmh": 92.8,
+   "full_std_kmh": 0.22,
+   "passport_vmax_vg0_kmh": 96.6,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 0.96,
+   "normal_to_ref": 0.734
+  },
+  "ww_talon": {
+   "config_ref_kmh": 100.3,
+   "normal_kmh": 77.5,
+   "full_kmh": 99.5,
+   "full_std_kmh": 0.46,
+   "passport_vmax_vg0_kmh": 100.3,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 0.992,
+   "normal_to_ref": 0.773
+  },
+  "ww_u2": {
+   "config_ref_kmh": 85.4,
+   "normal_kmh": 62.3,
+   "full_kmh": 79.2,
+   "full_std_kmh": 0.06,
+   "passport_vmax_vg0_kmh": 85.4,
+   "passport_censored_by_vne": true,
+   "full_to_ref": 0.927,
+   "normal_to_ref": 0.729
+  },
+  "ww_ultra_sport": {
+   "config_ref_kmh": 78.2,
+   "normal_kmh": 59.9,
+   "full_kmh": 74.5,
+   "full_std_kmh": 0.09,
+   "passport_vmax_vg0_kmh": 78.2,
+   "passport_censored_by_vne": false,
+   "full_to_ref": 0.952,
+   "normal_to_ref": 0.766
+  }
+ }
+}

@@ -16,6 +16,7 @@ contracts: [{"id": "BM-К1", "version": 2}, {"id": "BM-К2", "version": 1}]
 это ожидаемо (класса и ключей ещё нет); `mouse_bar.gd` грузится через `load()`.
 
 ## BM-К1. Мышь → штанга (v2)
+**Значения по умолчанию заменены PFT-К1 v2 (`docs/contracts/pilot-feedback-trim.md`, 2026-11-02): `bar_travel_px` 4000 (и `MouseBar` при отсутствии ключа), `bar_sensitivity_range` [0.1, 4.0]; подсказка «≈ N см» считается из них же. Ниже — числа v2 для истории.**
 Владелец: BM-3. Потребители: `scripts/game/input_controller.gd` (`_unhandled_input`, `_update_bar`), настройки
 (`scripts/ui/settings_panel.gd`, вкладка «Управление»), тесты маятника, читающие ход мыши (`tests/flight/pendulum/test_pendulum_symmetry.gd`,
 `tests/game/test_mouse_bar_flight.gd`).

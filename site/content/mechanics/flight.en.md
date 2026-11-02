@@ -1,7 +1,7 @@
 ---
 title: "Wing and flight"
 weight: 10
-description: "How flight is computed in the Pendulum mode: a wing of 16 strips, a pilot on the hang chain, arms, ground, stall and spin, controls and the control frame, speed feel, telltales, model limits; the older modes; groups and classes of 48 wings."
+description: "How flight is computed in the Pendulum mode: a wing of 16 strips, a pilot on the hang chain, arms, ground, stall and spin, controls and the control frame, speed feel, telltales, model limits, the bots' model; groups and classes of 48 wings."
 ---
 
 # Wing and flight
@@ -59,29 +59,43 @@ Air density is \(\rho(h) = 1.225\cdot e^{-h/10400}\) kg/m³ (ISA approximation):
 already ~10 % higher than at ground level. A detailed derivation, checked against data-sheet values of two
 sizes of one wing (Litespeed RS 3.5 and RS 4), is in [docs/research/pilot_mass.md](/docs/research/pilot_mass.md).
 
-## Input and the "Vehicle" tab
+## Input and the "Apparatus" tab
 
 The wing is steered by the mouse, the gamepad stick and the home-made control frame (a USB joystick, see below);
-there is no pitch or roll from the keyboard, neither in flight nor on the ground. The mouse steers while it is captured (the M key);
-W/S/A/D never move the wing: in flight they turn the head, on the ground they walk and turn on the spot. Shift in
-flight is the extra pull-in. What the input means in "Pendulum":
+there is no pitch or roll from the keyboard, neither in flight nor on the ground. The mouse is the bar: while it is
+captured (the M key), its motion accumulates as the bar position and stays where it was left (by default there is no
+return to neutral). W/S/A/D never move the wing: in flight they turn the head, on the ground they walk and turn on the
+spot. Shift in flight is the extra pull-in. What the input means in "Pendulum":
 
+- **Mouse travel.** To the stop on one side — `mouse.bar_travel_px` = 4000 mouse counts at multiplier 1 (≈ 12.7 cm at
+  800 DPI, ≈ 3.2 cm at 3200 DPI); window size and frame rate do not enter. The "Bar sensitivity" slider (0.1…4×)
+  divides the travel: `4000 / multiplier` counts to the stop, higher is more sensitive. The 2 % dead zone is
+  subtracted, with no jump at the threshold. Mouse acceleration in the operating system changes the bar travel, so it
+  is better turned off (a flat profile).
 - Roll right or left — the target displacement of the pilot across the bar up to ±0.45 m; the arms pull the
   pilot to the target (a spring with damping). The technique is as in real life: move the body — the wing
-  banks and turns.
+  banks and turns. The mouse direction is set by "Roll by mouse": "Like the body" (the default, right — roll right)
+  or "Like the bar" (right — the bar goes right, the roll goes left).
 - "Pull in" — the pilot forward up to 0.45 m, "push out" — back up to 0.30 m (push out — nose up, braking;
-  pull in — acceleration).
+  pull in — acceleration). Mouse forward is the bar pushed out; the shared pitch inversion (`invert_pitch`) flips the axis.
+- **The X key — "to centre".** One press is enough: the accumulated mouse position is zeroed on both axes, the bar
+  eases to neutral (time constant 0.2 s) and stays there after the key is released, until the mouse is moved again.
+  Flight only. The wing returns to level and flies straight.
 - **Extra pull-in**: Shift (mouse) or the gamepad's right bumper — the pilot pulls up to the hips, 0.7 m (from the
   T2C manual); on release the limit returns smoothly to 0.45 m at 0.5 m/s. A home-built control frame gives the full
-  travel at once. Beyond the usual limit the suspension indicator is red. Speed at full pull-in with the extra
-  pull-in: a median of 0.98 of the passport Vmax at VG 0 over 48 wings (the lowest tenth is below 0.90; before it was
-  0.69–0.73), without it 0.785. For this the pitch stiffness below trim is halved (one number for every wing); trim
-  did not change.
+  travel at once. Beyond the usual limit the suspension indicator is red. Speed at full pull-in is from the SD-13 re-measurement
+  (game commit a970628b5, 48 hang gliders, the trike excluded): the median against the config reference `full_pull_speed_kmh` (the passport
+  target, which the bots fly by; not the player's speed) is **0.98 with the extra pull-in, 0.78 without it** (range with
+  it 0.81–1.38; 34 of 48 within ±10 % of the reference, 5 below 0.90, 9 above 1.10); against the passport Vmax at VG 0
+  it is 0.98 with the extra pull-in (40 wings without a Vne-capped value). Before the change it was 0.69–0.73. For this
+  the pitch stiffness below trim is halved (one number for every wing); trim did not change. The trike shows no
+  difference with and without the extra pull-in. Per-wing numbers:
+  [tools/research/site-docs/pullin_vmax.md](/tools/research/site-docs/pullin_vmax.md).
 - A neutral bar in straight flight is the wing's trim; a released bar — the wing flies straight.
 
-![Vmax at full pull-in over 48 wings](/tools/research/pendulum/out/vm2/fig/vmax_48.png "Vmax at full pull-in: grey — before the change (0.45 m), blue — with the softened pitch stiffness at the same travel, red — with the extra pull-in; black dash — the passport value at VG 0. The red bars use a 0.95 m extra pull-in (the VM-2 bench); the game uses 0.7 m, and over 48 wings the median is 0.98 of the passport")
+![Vmax at full pull-in over 48 wings](/tools/research/pendulum/out/vm2/fig/vmax_48.png "Vmax at full pull-in: grey — before the change (0.45 m), blue — with the softened pitch stiffness at the same travel, red — with the extra pull-in; black dash — the passport value at VG 0. The chart is the VM-2 bench (0.95 m extra pull-in, 48 wings, against the passport); the game uses 0.7 m, and the in-game re-measurement is in the text above")
 
-Without the change (grey bars) almost every wing falls short of the passport speed, and with the softened stiffness
+Without the change (grey bars) on the bench almost every wing falls short of the passport speed, and with the softened stiffness
 and the extra pull-in (red) they come up to the black dashes; for some wings the bar is still above or below the
 dash — one number fitted to the whole fleet.
 
@@ -122,9 +136,9 @@ and the sources give no geometry or travel of a real frame — it is set by the 
 the behaviour on all three systems were checked against the documentation, not on hardware; sensor latency and
 jitter were not measured. Research: [docs/research/control-bar-input.md](/docs/research/control-bar-input.md).
 
-### The "Vehicle" tab
+### The "Apparatus" tab
 
-The "Flight settings" screen is split into the "Place" and "Vehicle" tabs. "Vehicle" holds the wing class and
+The "Flight settings" screen is split into the "Place" and "Apparatus" tabs. "Apparatus" holds the wing class and
 model, the pilot mass and four parameters that act on "Pendulum"; the values are stored per
 wing and reset to the wing's defaults.
 
@@ -173,8 +187,7 @@ itself, on sport wings the exit is by opposite body displacement. Reversal times
 - **Landing on the feet.** The knees absorb the vertical speed: a squat of up to 0.3 m
   (since 1.5.8) — a landing at 3.5 m/s down gives about 4 g instead of 22–44 g, 1 m/s — under 2 g, at 5.5 m/s the leg
   travel runs out and the impact is 10–15 g; the landing rating (soft/hard/crash) did not change. A crash does not
-  stop the pilot in one step: the speed is shed at about 20 g. Thresholds on vertical speed and bank are the
-  same as in the other modes: soft — vertical < 5 m/s, bank ≤ 15°; hard — vertical 5…7 m/s; crash —
+  stop the pilot in one step: the speed is shed at about 20 g. Thresholds on vertical speed and bank: soft — vertical < 5 m/s, bank ≤ 15°; hard — vertical 5…7 m/s; crash —
   vertical > 7 m/s or bank > 35°. The thresholds were set from consulting pilots' answers ("from 5 m/s the
   landing is already hard"). The legs decide on the horizontal speed: up to 2 m/s the pilot stands, up to
   5 m/s he runs it out (a step every 0.33 s), faster — he cannot run it out, a hard landing. Touching with the
@@ -302,8 +315,8 @@ in wing axes moves by 5–10 cm (RMS).
   (bank up to 65° at a step of 1/30 s).
 - **The ground** was checked on a flat slope; the flare and landing on uneven terrain were not computed in the
   prototype.
-- **Bots and remote players over the network** stay on the older model (`FlightModel`); the mode and the body
-  position relative to the suspension go over the network.
+- **Bots and remote players over the network** stay on the `FlightModel` model; the body
+  position relative to the suspension goes over the network.
 - Load factor is computed, but breaking the wing when it is exceeded is not modelled.
 - The polars are synthesised from manufacturers' data-sheet landmarks (they do not publish full measured
   polars) and by a method checked on a pair of real sizes of one wing.
@@ -322,7 +335,7 @@ the ground is a phenomenological model. The roll input here directly sets the ro
 bank holds, a 45°→45° reversal ≈ 2.3–2.7 s. The turn is coordinated: radius \(V^2/(g\,\mathrm{tg}\varphi)\), in a turn
 the speed grows as \(\sqrt n\) and the sink rate as \(n^{1.5}\). The control frame sets the angle of attack (0 — trim,
 −1 — acceleration, +1 — up to the stall); the phugoid is damped by an angle-of-attack term ∝ \(dV/dt\). The player
-cannot select this model: there is no choice of roll physics in the settings, and the two former player modes (weight shift and "simple") are removed from the game.
+cannot select this model: there is no choice of roll physics in the settings.
 
 Its stall is a dynamic stall of the sail as a plate across the flow
 (\(C_L = C_N\sin\alpha\cos\alpha\), \(C_D = C_N\sin^2\alpha\), \(C_N=2\)); the nose drops by itself after
@@ -349,7 +362,7 @@ exists in open sources) the answers of a consulting pilot; the polars and parame
 `configs/wings/*.json` and [docs/research/pilot_mass.md](/docs/research/pilot_mass.md).
 
 The handling of each wing is its own: strip geometry, centre of mass, inertia, sail moment and drag
-multiplier are in the `pendulum` block of `configs/wings/<id>.json`; the "Vehicle" defaults come from the
+multiplier are in the `pendulum` block of `configs/wings/<id>.json`; the "Apparatus" defaults come from the
 wing class (see above). The wing also carries `stall.*` parameters, but "Pendulum" does not use them (they are for the bots' model).
 
 ![Icaro Piuma from behind in flight](/docs/screenshots/site/06_icaro_piuma_сзади.jpg "Icaro Piuma, a kingposted trainer")
@@ -373,12 +386,12 @@ pilots flew. Further decisions:
   game by the user's decision of 28 September 2026: the config, the 3D model and the name key were
   deleted, the id `kingpost` in tests was replaced with `laminar` ({{< commit 8633fa7 >}},
   {{< commit e2704c4 >}}) with no compatibility layer for saved settings — "there are no users".
-- **Wing and pilot as two bodies** instead of one point with kinematic roll: this became the only physics for
-  the player. The two older roll modes (weight shift and "simple") were removed from the game: maintaining three physics
-  instead of one was not worth it; the simpler model stays for bots only.
+- **Wing and pilot as two bodies** instead of one point with kinematic roll: this became the physics of the
+  player; the simpler model stays for bots only.
 
 ## Further reading
 
+- [Trike and towing](/mechanics/trike/): the other aircraft of the player, the powered trike, and towing a hang glider.
 - [docs/guide/flight.md](/docs/guide/flight.md) — the full description of the flight model, the
   `FlightModel`/`Glider` API, the visual contract and tests.
 - [docs/research/pilot_mass.md](/docs/research/pilot_mass.md) — the derivation of the polar scaling with

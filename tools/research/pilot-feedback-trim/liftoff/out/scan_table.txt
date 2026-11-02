@@ -1,0 +1,88 @@
+an_trim       sport/12     aN= 11.7 tB= 0.99 thB=  8.7 dV= +2.4 dg= -2.9 | Vamp= 2.39 Lanch= 2.68 thAmp= 5.07
+an_trim       sport/17     aN= 11.7 tB= 0.82 thB=  4.2 dV= +5.3 dg= +0.6 | Vamp= 5.18 Lanch= 5.29 thAmp= 9.73
+an_trim       ww_t2c/12    aN= 12.6 tB= 0.92 thB= 10.1 dV= +3.4 dg= -2.5 | Vamp= 3.27 Lanch= 3.56 thAmp= 6.80
+an_trim       ww_t2c/17    aN= 12.6 tB= 0.77 thB=  5.5 dV= +6.1 dg= +1.1 | Vamp= 6.05 Lanch= 6.12 thAmp=12.11
+an_trim_bar0  sport/12     aN= 11.7 tB= 0.01 thB=  0.1 dV= +1.3 dg= +5.1 | Vamp= 3.93 Lanch= 2.61 thAmp= 8.10
+an_trim_bar0  sport/17     aN= 11.7 tB= 0.01 thB= -5.5 dV= +2.5 dg= +9.9 | Vamp= 6.91 Lanch= 5.03 thAmp=14.28
+an_trim_bar0  ww_t2c/12    aN= 12.6 tB= 0.01 thB=  0.9 dV= +1.9 dg= +6.1 | Vamp= 4.59 Lanch= 3.28 thAmp=10.35
+an_trim_bar0  ww_t2c/17    aN= 12.6 tB= 0.01 thB= -4.6 dV= +3.0 dg=+10.9 | Vamp= 7.32 Lanch= 5.64 thAmp=16.53
+bar0          sport/12     aN= 13.5 tB= 0.01 thB=  1.8 dV= -0.4 dg= +5.0 | Vamp= 3.40 Lanch= 2.26 thAmp= 7.50
+bar0          sport/17     aN= 13.5 tB= 0.01 thB= -3.8 dV= +0.8 dg= +9.7 | Vamp= 6.17 Lanch= 4.38 thAmp=12.84
+bar0          ww_t2c/12    aN= 11.5 tB= 0.01 thB= -0.2 dV= +2.9 dg= +6.3 | Vamp= 5.10 Lanch= 4.02 thAmp=11.57
+bar0          ww_t2c/17    aN= 11.5 tB= 0.01 thB= -5.6 dV= +4.0 dg=+11.0 | Vamp= 7.82 Lanch= 6.28 thAmp=17.78
+bar2          sport/12     aN= 13.5 tB= 2.01 thB= 18.4 dV= -3.9 dg= -8.2 | Vamp= 5.82 Lanch= 5.32 thAmp=12.33
+bar2          sport/17     aN= 13.5 tB= 2.01 thB= 25.1 dV= -3.4 dg=-14.6 | Vamp= 8.68 Lanch= 7.30 thAmp=19.13
+bar2          ww_t2c/12    aN= 11.5 tB= 2.01 thB= 19.9 dV= +0.1 dg=-11.0 | Vamp= 4.97 Lanch= 4.82 thAmp=11.81
+bar2          ww_t2c/17    aN= 11.5 tB= 2.01 thB= 25.4 dV= +1.3 dg=-16.5 | Vamp= 7.91 Lanch= 7.35 thAmp=19.56
+bar3          sport/12     aN= 13.5 tB= 3.01 thB=  9.3 dV= -6.8 dg= +2.0 | Vamp= 6.50 Lanch= 6.88 thAmp=13.33
+bar3          sport/17     aN= 13.5 tB= 3.01 thB= 14.3 dV= -9.7 dg= +0.3 | Vamp= 9.11 Lanch= 9.71 thAmp=18.43
+bar3          ww_t2c/12    aN= 11.5 tB= 3.01 thB= 14.0 dV= -4.8 dg= -3.5 | Vamp= 4.69 Lanch= 5.01 thAmp=10.54
+bar3          ww_t2c/17    aN= 11.5 tB= 3.01 thB= 21.2 dV= -7.3 dg= -8.5 | Vamp= 7.76 Lanch= 8.23 thAmp=17.15
+bar05         sport/12     aN= 13.5 tB= 0.50 thB=  5.4 dV= +0.6 dg= +1.4 | Vamp= 1.39 Lanch= 0.85 thAmp= 2.63
+bar05         sport/17     aN= 13.5 tB= 0.50 thB=  1.4 dV= +2.9 dg= +4.5 | Vamp= 4.08 Lanch= 3.51 thAmp= 7.94
+bar05         ww_t2c/12    aN= 11.5 tB= 0.50 thB=  3.7 dV= +4.4 dg= +2.4 | Vamp= 4.87 Lanch= 4.54 thAmp= 9.70
+bar05         ww_t2c/17    aN= 11.5 tB= 0.50 thB= -0.5 dV= +6.6 dg= +5.8 | Vamp= 7.50 Lanch= 7.10 thAmp=15.63
+base          sport/12     aN= 13.5 tB= 1.01 thB= 10.8 dV= +0.3 dg= -3.3 | Vamp= 1.72 Lanch= 1.47 thAmp= 4.25
+base          sport/17     aN= 13.5 tB= 0.81 thB=  6.4 dV= +3.3 dg= -0.1 | Vamp= 3.33 Lanch= 3.27 thAmp= 6.18
+base          ww_t2c/12    aN= 11.5 tB= 0.93 thB=  8.8 dV= +4.6 dg= -2.2 | Vamp= 4.29 Lanch= 4.68 thAmp= 8.76
+base          ww_t2c/17    aN= 11.5 tB= 0.78 thB=  4.1 dV= +7.3 dg= +1.6 | Vamp= 7.13 Lanch= 7.31 thAmp=14.45
+scan_an9      sport/12     aN=  9.0 tB= 0.99 thB=  5.2 dV= +6.1 dg= -2.1 | Vamp= 5.54 Lanch= 6.12 thAmp=10.69
+scan_an9      sport/17     aN=  9.0 tB= 0.83 thB=  0.8 dV= +8.9 dg= +1.4 | Vamp= 8.52 Lanch= 8.97 thAmp=16.40
+scan_an9      ww_t2c/12    aN=  9.0 tB= 0.95 thB=  5.6 dV= +7.8 dg= -1.5 | Vamp= 7.07 Lanch= 7.85 thAmp=14.56
+scan_an9      ww_t2c/17    aN=  9.0 tB= 0.81 thB=  0.8 dV=+10.4 dg= +2.8 | Vamp= 9.90 Lanch=10.48 thAmp=20.89
+scan_an10     sport/12     aN= 10.0 tB= 1.00 thB=  6.7 dV= +4.6 dg= -2.6 | Vamp= 4.26 Lanch= 4.76 thAmp= 8.30
+scan_an10     sport/17     aN= 10.0 tB= 0.83 thB=  2.2 dV= +7.5 dg= +1.0 | Vamp= 7.21 Lanch= 7.54 thAmp=13.74
+scan_an10     ww_t2c/12    aN= 10.0 tB= 0.94 thB=  6.9 dV= +6.5 dg= -1.9 | Vamp= 5.88 Lanch= 6.52 thAmp=12.02
+scan_an10     ww_t2c/17    aN= 10.0 tB= 0.79 thB=  2.1 dV= +9.1 dg= +2.3 | Vamp= 8.75 Lanch= 9.14 thAmp=18.13
+scan_an11     sport/12     aN= 11.0 tB= 1.00 thB=  7.9 dV= +3.3 dg= -2.9 | Vamp= 3.12 Lanch= 3.50 thAmp= 6.31
+scan_an11     sport/17     aN= 11.0 tB= 0.82 thB=  3.3 dV= +6.2 dg= +0.8 | Vamp= 6.01 Lanch= 6.19 thAmp=11.35
+scan_an11     ww_t2c/12    aN= 11.0 tB= 0.93 thB=  8.0 dV= +5.2 dg= -1.9 | Vamp= 4.79 Lanch= 5.24 thAmp= 9.78
+scan_an11     ww_t2c/17    aN= 11.0 tB= 0.79 thB=  3.5 dV= +7.9 dg= +1.8 | Vamp= 7.65 Lanch= 7.90 thAmp=15.61
+scan_an12     sport/12     aN= 12.0 tB= 0.99 thB=  9.1 dV= +2.0 dg= -3.0 | Vamp= 2.12 Lanch= 2.40 thAmp= 4.67
+scan_an12     sport/17     aN= 12.0 tB= 0.82 thB=  4.7 dV= +5.0 dg= +0.3 | Vamp= 4.88 Lanch= 4.98 thAmp= 9.15
+scan_an12     ww_t2c/12    aN= 12.0 tB= 0.93 thB=  9.4 dV= +4.0 dg= -2.4 | Vamp= 3.80 Lanch= 4.15 thAmp= 7.81
+scan_an12     ww_t2c/17    aN= 12.0 tB= 0.78 thB=  4.6 dV= +6.7 dg= +1.5 | Vamp= 6.62 Lanch= 6.75 thAmp=13.34
+scan_an13     sport/12     aN= 13.0 tB= 0.99 thB= 10.2 dV= +0.9 dg= -3.1 | Vamp= 1.71 Lanch= 1.62 thAmp= 3.96
+scan_an13     sport/17     aN= 13.0 tB= 0.81 thB=  5.7 dV= +3.8 dg= +0.2 | Vamp= 3.82 Lanch= 3.82 thAmp= 7.11
+scan_an13     ww_t2c/12    aN= 13.0 tB= 0.92 thB= 10.8 dV= +2.9 dg= -2.8 | Vamp= 2.91 Lanch= 3.18 thAmp= 6.15
+scan_an13     ww_t2c/17    aN= 13.0 tB= 0.77 thB=  6.1 dV= +5.7 dg= +0.8 | Vamp= 5.66 Lanch= 5.71 thAmp=11.25
+scan_an14     sport/12     aN= 14.0 tB= 1.01 thB= 11.3 dV= -0.3 dg= -3.2 | Vamp= 1.82 Lanch= 1.45 thAmp= 4.57
+scan_an14     sport/17     aN= 14.0 tB= 0.81 thB=  7.0 dV= +2.7 dg= -0.3 | Vamp= 2.86 Lanch= 2.74 thAmp= 5.32
+scan_an14     ww_t2c/12    aN= 14.0 tB= 0.92 thB= 11.9 dV= +2.0 dg= -3.0 | Vamp= 2.15 Lanch= 2.36 thAmp= 4.86
+scan_an14     ww_t2c/17    aN= 14.0 tB= 0.77 thB=  7.4 dV= +4.7 dg= +0.4 | Vamp= 4.76 Lanch= 4.68 thAmp= 9.32
+scan_an15     sport/12     aN= 15.0 tB= 1.01 thB= 12.3 dV= -1.4 dg= -3.2 | Vamp= 2.32 Lanch= 1.99 thAmp= 5.54
+scan_an15     sport/17     aN= 15.0 tB= 0.81 thB=  8.1 dV= +1.7 dg= -0.5 | Vamp= 1.95 Lanch= 1.72 thAmp= 3.72
+scan_an15     ww_t2c/12    aN= 15.0 tB= 0.91 thB= 13.2 dV= +1.0 dg= -3.4 | Vamp= 1.76 Lanch= 1.81 thAmp= 4.48
+scan_an15     ww_t2c/17    aN= 15.0 tB= 0.76 thB=  8.3 dV= +3.7 dg= +0.4 | Vamp= 3.94 Lanch= 3.73 thAmp= 7.57
+scan_an16     sport/12     aN= 16.0 tB= 1.01 thB= 13.3 dV= -2.5 dg= -3.2 | Vamp= 3.00 Lanch= 2.87 thAmp= 6.73
+scan_an16     sport/17     aN= 16.0 tB= 0.81 thB=  9.3 dV= +0.7 dg= -0.8 | Vamp= 1.14 Lanch= 0.75 thAmp= 3.02
+scan_an16     ww_t2c/12    aN= 16.0 tB= 0.90 thB= 14.6 dV= +0.1 dg= -3.6 | Vamp= 1.76 Lanch= 1.57 thAmp= 5.08
+scan_an16     ww_t2c/17    aN= 16.0 tB= 0.76 thB=  9.6 dV= +2.9 dg= -0.2 | Vamp= 3.17 Lanch= 2.87 thAmp= 6.04
+scan_bar0.3   sport/12     aN= 13.5 tB= 0.30 thB=  3.7 dV= +0.4 dg= +2.9 | Vamp= 2.20 Lanch= 1.33 thAmp= 4.72
+scan_bar0.3   sport/17     aN= 13.5 tB= 0.30 thB= -1.2 dV= +2.3 dg= +7.0 | Vamp= 4.83 Lanch= 3.81 thAmp= 9.97
+scan_bar0.3   ww_t2c/12    aN= 11.5 tB= 0.30 thB=  1.9 dV= +4.1 dg= +3.9 | Vamp= 5.02 Lanch= 4.43 thAmp=10.51
+scan_bar0.3   ww_t2c/17    aN= 11.5 tB= 0.30 thB= -3.0 dV= +5.8 dg= +8.3 | Vamp= 7.58 Lanch= 6.80 thAmp=16.57
+scan_bar0.4   sport/12     aN= 13.5 tB= 0.40 thB=  4.6 dV= +0.5 dg= +2.1 | Vamp= 1.73 Lanch= 1.07 thAmp= 3.66
+scan_bar0.4   sport/17     aN= 13.5 tB= 0.40 thB=  0.0 dV= +2.6 dg= +5.8 | Vamp= 4.36 Lanch= 3.65 thAmp= 8.93
+scan_bar0.4   ww_t2c/12    aN= 11.5 tB= 0.40 thB=  2.8 dV= +4.3 dg= +3.0 | Vamp= 4.96 Lanch= 4.53 thAmp=10.10
+scan_bar0.4   ww_t2c/17    aN= 11.5 tB= 0.40 thB= -1.8 dV= +6.2 dg= +7.1 | Vamp= 7.56 Lanch= 6.96 thAmp=16.10
+scan_bar0.6   sport/12     aN= 13.5 tB= 0.60 thB=  6.5 dV= +0.6 dg= +0.5 | Vamp= 1.11 Lanch= 0.67 thAmp= 1.75
+scan_bar0.6   sport/17     aN= 13.5 tB= 0.60 thB=  2.9 dV= +3.1 dg= +3.1 | Vamp= 3.81 Lanch= 3.40 thAmp= 7.06
+scan_bar0.6   ww_t2c/12    aN= 11.5 tB= 0.60 thB=  4.9 dV= +4.6 dg= +1.1 | Vamp= 4.75 Lanch= 4.67 thAmp= 9.33
+scan_bar0.6   ww_t2c/17    aN= 11.5 tB= 0.60 thB=  1.0 dV= +6.9 dg= +4.4 | Vamp= 7.40 Lanch= 7.20 thAmp=15.15
+scan_bar0.7   sport/12     aN= 13.5 tB= 0.70 thB=  7.5 dV= +0.6 dg= -0.4 | Vamp= 0.89 Lanch= 0.65 thAmp= 1.35
+scan_bar0.7   sport/17     aN= 13.5 tB= 0.70 thB=  4.5 dV= +3.2 dg= +1.6 | Vamp= 3.55 Lanch= 3.32 thAmp= 6.44
+scan_bar0.7   ww_t2c/12    aN= 11.5 tB= 0.70 thB=  6.0 dV= +4.7 dg= +0.1 | Vamp= 4.62 Lanch= 4.71 thAmp= 9.03
+scan_bar0.7   ww_t2c/17    aN= 11.5 tB= 0.70 thB=  2.7 dV= +7.2 dg= +2.9 | Vamp= 7.26 Lanch= 7.28 thAmp=14.73
+scan_bar0.8   sport/12     aN= 13.5 tB= 0.81 thB=  8.6 dV= +0.6 dg= -1.4 | Vamp= 0.87 Lanch= 0.84 thAmp= 2.15
+scan_bar0.8   sport/17     aN= 13.5 tB= 0.81 thB=  6.3 dV= +3.3 dg= +0.1 | Vamp= 3.33 Lanch= 3.27 thAmp= 6.18
+scan_bar0.8   ww_t2c/12    aN= 11.5 tB= 0.81 thB=  7.2 dV= +4.7 dg= -0.8 | Vamp= 4.47 Lanch= 4.67 thAmp= 8.82
+scan_bar0.8   ww_t2c/17    aN= 11.5 tB= 0.81 thB=  4.4 dV= +7.3 dg= +1.4 | Vamp= 7.08 Lanch= 7.32 thAmp=14.39
+scan_bar1.2   sport/12     aN= 13.5 tB= 1.21 thB= 13.0 dV= -0.2 dg= -5.0 | Vamp= 2.75 Lanch= 2.23 thAmp= 6.41
+scan_bar1.2   sport/17     aN= 13.5 tB= 1.21 thB= 13.6 dV= +2.4 dg= -6.3 | Vamp= 4.32 Lanch= 3.67 thAmp= 9.53
+scan_bar1.2   ww_t2c/12    aN= 11.5 tB= 1.21 thB= 12.3 dV= +4.1 dg= -5.2 | Vamp= 3.99 Lanch= 4.64 thAmp= 9.24
+scan_bar1.2   ww_t2c/17    aN= 11.5 tB= 1.21 thB= 12.0 dV= +6.8 dg= -5.4 | Vamp= 6.51 Lanch= 7.22 thAmp=14.75
+scan_bar1.5   sport/12     aN= 13.5 tB= 1.51 thB= 15.9 dV= -1.4 dg= -7.2 | Vamp= 4.20 Lanch= 3.45 thAmp= 9.33
+scan_bar1.5   sport/17     aN= 13.5 tB= 1.51 thB= 18.9 dV= +0.8 dg=-10.6 | Vamp= 6.28 Lanch= 4.74 thAmp=14.05
+scan_bar1.5   ww_t2c/12    aN= 11.5 tB= 1.51 thB= 15.9 dV= +2.9 dg= -8.2 | Vamp= 4.35 Lanch= 4.61 thAmp=10.33
+scan_bar1.5   ww_t2c/17    aN= 11.5 tB= 1.51 thB= 17.8 dV= +5.4 dg=-10.3 | Vamp= 6.81 Lanch= 7.06 thAmp=16.45

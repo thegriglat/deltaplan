@@ -19,9 +19,9 @@ This is not a course or an exam. There are no lessons, hints or a "training scor
 3. Press a card. The window closes, loading begins, then you fly from the card's start.
 4. "Cancel" closes the window without starting.
 
-The wing, mass and vehicle come from the last choice in the "Flight…" window; the place, start, weather and goal come from the card. A point picked on the map and an exact start are reset. The track of the previous attempt is not shown, and the pilot's "last flight" (what "Fly" repeats) is not overwritten. While a flight is loading, the button is unavailable.
+The wing, mass and hang parameters come from the last choice in the "Flight settings" window; the place, start, weather and goal come from the card. A point picked on the map and an exact start are reset. The track of the previous attempt is not shown, and the pilot's "last flight" (what "Fly" repeats) is not overwritten. While a flight is loading, the button is unavailable.
 
-Both islands are reachable only from here: they are not in "Popular places" or in the "Flight…" menu.
+The Volcanic Island is reachable only from here: it is not in "Popular places". The four Training Island starts are in "Popular places" too (without a country), but without the card's goal. The "Start" window for choosing the aircraft and towing is not shown on the cards.
 
 ## Cards {#training-cards}
 
@@ -49,7 +49,7 @@ The island's real terrain (open data, unedited).
 | Thermals | finding and centering thermals over the island slopes at hot midday | Height gain 300 m |
 | Plateau landing | short approach and landing in the circle on the plateau | Landing in a 25 m circle |
 
-The volcanic island has a 110° trade wind, about 6 m/s at the slopes. More about the islands is in the [system descriptions](/docs/) and the [CHANGELOG](../../CHANGELOG.md) (builds 1.5.19 and 1.5.20).
+On the volcanic island the weather set at every start has wind from 110° (trade wind); at "Cliffs" and "Crater" it is 6 m/s. More about the islands is on the page [Training islands](/mechanics/training-islands/).
 
 ## In flight {#training-flight}
 
@@ -65,11 +65,11 @@ Card names promise more than the goal checks. The goal is an ordinary flight goa
 - **Rotor** and **Crater** are also time aloft. The lee side's turbulence and sink are in the air, but completing the goal does not depend on them.
 - **Thermals** is a gain above the take-off point held for 10 s in a row, not centering in a thermal as such: a climb in ridge lift counts the same.
 - **Landing** is a 25 m circle on the place's landing site. There is no circle everywhere: with no site or target the goal is unavailable. A landing with a crash does not count.
-- The volcanic island is a simplification. The model has no trade-wind inversion, and the cumulus base is about 3.8–3.9 km (in real life usually 1.5–2.5 km), so climbs in thermals up to 3 km are higher than real ones. Lift comes from the cliff facing the sea; on gentle 5–10° slopes there is almost none. There are no level landing fields, only ledges sloping 4–8°.
+- The volcanic island is a simplification. The model has no trade-wind inversion, so thermals lift higher than in real life. There are no level landing fields, only ledges.
 - The same goal can be done in an ordinary flight; the cards are only a convenient way to reach the right start with the right weather.
 
 ## If you need your own goal {#training-own-goal}
 
-Cards do not change their goals. To set another goal or several, use the "Goals" tab of the "Flight…" window: levels, a route, loading a task and a track.
+Cards do not change their goals. To set another goal or several, use the "Goals" tab of the "Flight settings" window: levels, a route, loading a task and a track.
 
-![The "Goals" tab of the "Flight…" window: the goal list, levels and values](training-goals-tab.jpg "The Goals tab of the Flight… window")
+![The "Goals" tab of the "Flight settings" window: the goal list, levels and values](training-goals-tab.jpg "The Goals tab of the Flight settings window")

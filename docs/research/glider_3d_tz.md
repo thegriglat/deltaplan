@@ -460,6 +460,27 @@ generated: true
 
 ---
 
+## Раздел E10. Air Creation iXess 15 (буксировщик) (`trike_ixess15`) — существующая модель
+
+- **Модель:** Air Creation iXess 15 (крыло дельталёта-буксировщика); файл `assets/models/glider_trike_ixess15.glb`, параметры — `tools/blender/glider_params.json` → `wings.trike_ixess15`, конфиг — `configs/wings/trike_ixess15.json`.
+- **Класс:** мачтовое двухобшивочное 90 %, 2000-е–. Группа игры: `tug` (скрыта от игрока и ботов; крыло ведёт буксировщик, а не пилот с трапецией).
+- **Что есть сейчас:** размах 10 м, площадь 15 м², масса крыла 53 кг; «пилот» крыла — тележка с экипажем и топливом, 220–397 кг.
+- **Конструкция:** мачтовое (Wikipedia, не сайт производителя; по фото не проверено).
+
+### Что менять
+
+Числовых правок нет.
+
+- Паспорта производителя в наборе нет: числа — из `tools/research/tow-trike/wing_trike_ixess15.json` (Wikipedia, BMAA HADS HM16), поляра — модельная оценка.
+
+### Источники
+
+- `docs/research/tow/trike-tug.md`, `tools/research/tow-trike/wing_trike_ixess15.json`.
+
+### Открытые вопросы
+
+- Мачта и доля двойной обшивки — по Wikipedia, фото не сверялись.
+
 ## Раздел N1. Icaro Piuma (`icaro_piuma`) — новая модель, приоритет P1
 
 - **Модель:** Icaro Piuma; будущий файл `assets/models/glider_icaro_piuma.glb`, запись `tools/blender/glider_params.json` → `wings.icaro_piuma` (новая), конфиг `configs/wings/icaro_piuma.json` (новый; физику и поляру ведёт отдельная задача).
