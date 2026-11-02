@@ -13,7 +13,7 @@
     },
     {
       "name": "TKF-К1",
-      "version": "2",
+      "version": "3",
       "ref": "docs/contracts/trike-fix.md"
     }
   ],
@@ -63,5 +63,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-11-02T04:09:35",
-  "edited": "2026-11-02T06:39:09"
+  "edited": "2026-11-02T07:24:48"
 }
