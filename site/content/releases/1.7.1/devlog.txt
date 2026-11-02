@@ -1,0 +1,18 @@
+Deltaplan 1.7.1 — trike fixes
+
+A patch release focused on the trike. The cart no longer lags behind the wing in turns: what you see now matches the physics exactly, so the cart does not twist, pass through the wing or leave the control bar in front of the front strut.
+
+Trike:
+- The cart in the air is drawn exactly as the physics computes it, with no lag (cockpit, third-person view and tow tug)
+- Cart pitch in the view fixed (was rotated 8.75 degrees nose down)
+- The front strut now stops the bar when pushing out; at idle the stop is reached at about 55 km/h
+- More pull-in travel: 0.178 m instead of 0.111, pull-in pitch is more responsive
+- Grass bends in the propeller wash, up to 25 m behind the trike
+
+Controls:
+- Softer mouse bar by default (about 12.7 cm of mouse travel to the stop at 800 DPI)
+- Bar sensitivity slider now goes down to x0.1 for high-DPI mice
+
+Known issues:
+- Trike pull-in pitch control is still stiff
+- No macOS build: the Rust wind library does not build for macOS yet, Mac stays on 1.6.1
