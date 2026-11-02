@@ -1,0 +1,43 @@
+{
+  "id": "SD-14",
+  "module": "site-docs",
+  "type": "dp-writer",
+  "title": "Сайт: скорости «на себя» на прочих страницах",
+  "goal": "Все утверждения о скорости при трапеции на себя на страницах сайта (кроме wings и releases) совпадают с итогом pullin-speed и перемером SD-13 — явно с добором или без.",
+  "plan_ref": "§4 SD-14",
+  "contracts": [
+    {
+      "name": "SD-К1",
+      "version": "2",
+      "ref": "docs/contracts/site-docs.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/site-docs-SD-14",
+  "branch": "site-docs/SD-14",
+  "base": "feature/site-docs",
+  "scope": [
+    "site/content/_index.ru.md",
+    "site/content/_index.en.md",
+    "site/content/approaches.ru.md",
+    "site/content/approaches.en.md",
+    "site/content/mechanics/",
+    "site/content/docs/"
+  ],
+  "dont_touch": [
+    "site/content/wings/",
+    "site/content/releases/",
+    "site/hugo.toml",
+    "docs/",
+    "tools/"
+  ],
+  "accept": [
+    {
+      "name": "i18n",
+      "cmd": "python3 tools/site/check_i18n.py",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-02T05:41:30"
+}
