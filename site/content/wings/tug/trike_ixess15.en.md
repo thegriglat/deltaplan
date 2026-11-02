@@ -27,7 +27,8 @@ Numbers are as in the game (`configs/wings/trike_ixess15.json`). Marks: **passpo
 | Class / certification | no data | — |
 | Years of production | 2000-е– | **estimate**: docs/archive/plan/wings-lineup.md |
 | Trim speed | 69.7 km/h | **estimate**: game model: the polar is an estimate from the class and the sources (docs/archive/plan/wings-lineup.md) |
-| Speed, control frame fully pulled in | 82 km/h | **estimate**: game model: the polar is an estimate from the class and the sources (docs/archive/plan/wings-lineup.md) |
+| Speed, control frame fully pulled in — config reference | 82 km/h | **estimate**: game model: the polar is an estimate from the class and the sources (docs/archive/plan/wings-lineup.md); the passport target (Vmax at VG 0) the bots are tuned to, not a result of the Pendulum model |
+| in game: fully pulled in, with and without the extra pull | no measurement | **estimate**: no measurement: the trike has no pull-in control frame or extra pull, the Pendulum model is not applied to it |
 | Stall (straight flight) | 49.65 km/h | **estimate**: game model: the polar is an estimate from the class and the sources (docs/archive/plan/wings-lineup.md) |
 | Minimum sink | 1.77 m/s at 57.1 km/h | **estimate**: game model: the polar is an estimate from the class and the sources (docs/archive/plan/wings-lineup.md) |
 | Glide ratio | 10.53 at 79.45 km/h | **estimate**: game model: the polar is an estimate from the class and the sources (docs/archive/plan/wings-lineup.md) |

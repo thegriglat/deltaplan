@@ -1,0 +1,448 @@
+{
+ "wings": {
+  "air_c4": {
+   "cfg": {
+    "trim": 36.4,
+    "full_pull": 98.5,
+    "cg_minus_hang_m": 0.2569,
+    "group": "topless",
+    "wind_class": 4.0
+   },
+   "vm4_trim": {
+    "V_kmh": 36.4030300596301,
+    "alpha_deg": 11.915067910353,
+    "passport_kmh": 36.4,
+    "nl_on": true
+   },
+   "normal": {
+    "finite": true,
+    "V_kmh": 74.5113428220749,
+    "V_std_kmh": 0.553040753500885,
+    "bar_force_max_n": 181.775665283203,
+    "pull_over_mean": 0.0,
+    "alpha_deg": -1.68328854158705,
+    "theta_deg": -7.34935942246132,
+    "tgt_fwd_m": 0.449999988079071
+   },
+   "release_smooth_normal": {
+    "V0_kmh": 74.6699180603027,
+    "V_end_kmh": 40.7719808197656,
+    "theta_min_deg": -61.4800127658531,
+    "alpha_abs_max_deg": 58.6423015924532,
+    "g_max": 2.67458316948768,
+    "load_max": 2.4994226931148,
+    "returned": false,
+    "blowup": false,
+    "tuck": true,
+    "hand_s": 0.5
+   },
+   "full": {
+    "finite": true,
+    "V_kmh": 98.0125891828538,
+    "V_std_kmh": 0.972212918842201,
+    "bar_force_max_n": 300.000091552734,
+    "pull_over_mean": 0.934142165154217,
+    "alpha_deg": -3.57363233664373,
+    "theta_deg": -11.4648574728212,
+    "tgt_fwd_m": 0.699999988079071
+   },
+   "release_smooth": {
+    "V0_kmh": 97.7530792236328,
+    "V_end_kmh": 38.5528704876511,
+    "theta_min_deg": -89.4567934704075,
+    "alpha_abs_max_deg": 179.993282616687,
+    "g_max": 24.9780734049398,
+    "load_max": 8.59100656540931,
+    "returned": true,
+    "blowup": false,
+    "tuck": true,
+    "hand_s": 0.5
+   },
+   "release_1p8": {
+    "V0_kmh": 65.1787742614746,
+    "V_end_kmh": 39.1568615708692,
+    "theta_min_deg": -31.8006501436014,
+    "alpha_abs_max_deg": 31.8139933415108,
+    "g_max": 2.02486173320236,
+    "load_max": 1.84414889495764,
+    "returned": true,
+    "blowup": false,
+    "tuck": false,
+    "V_target_kmh": 65.5254541073341,
+    "V_hold_kmh": 65.6357093410492,
+    "pitch_hold": -0.518581410337147,
+    "secant_iter": 2
+   }
+  },
+  "bautek_kite": {
+   "cfg": {
+    "trim": 28.6,
+    "full_pull": 69.6,
+    "cg_minus_hang_m": 0.2047,
+    "group": "kingpost",
+    "wind_class": 3.0
+   },
+   "vm4_trim": {
+    "V_kmh": 28.600772725734,
+    "alpha_deg": 22.7495208257939,
+    "passport_kmh": 28.6,
+    "nl_on": true
+   },
+   "normal": {
+    "finite": true,
+    "V_kmh": 45.9642151751519,
+    "V_std_kmh": 0.0475048411974801,
+    "bar_force_max_n": 110.537155151367,
+    "pull_over_mean": 0.0,
+    "alpha_deg": 5.30529044970512,
+    "theta_deg": 0.428688843457223,
+    "tgt_fwd_m": 0.450000002980232
+   },
+   "release_smooth_normal": {
+    "V0_kmh": 45.9919486999512,
+    "V_end_kmh": 29.004951910568,
+    "theta_min_deg": -3.38547523924887,
+    "alpha_abs_max_deg": 34.2323568379667,
+    "g_max": 1.50087576009596,
+    "load_max": 1.45379770105645,
+    "returned": true,
+    "blowup": false,
+    "tuck": false,
+    "hand_s": 0.5
+   },
+   "full": {
+    "finite": true,
+    "V_kmh": 58.901351240158,
+    "V_std_kmh": 0.110970704895964,
+    "bar_force_max_n": 223.320205688477,
+    "pull_over_mean": 1.0,
+    "alpha_deg": 0.876900030127102,
+    "theta_deg": -5.80468277507815,
+    "tgt_fwd_m": 0.699999988079071
+   },
+   "release_smooth": {
+    "V0_kmh": 58.8205261230469,
+    "V_end_kmh": 29.9794387068407,
+    "theta_min_deg": -45.5311389753091,
+    "alpha_abs_max_deg": 71.5977172015409,
+    "g_max": 2.14273247508018,
+    "load_max": 2.07109574823564,
+    "returned": true,
+    "blowup": false,
+    "tuck": false,
+    "hand_s": 0.5
+   },
+   "release_1p8": {
+    "V0_kmh": 51.3934284210205,
+    "V_end_kmh": 28.954939296678,
+    "theta_min_deg": -25.7783895559098,
+    "alpha_abs_max_deg": 44.1466665982102,
+    "g_max": 1.94475687524122,
+    "load_max": 1.75479774919569,
+    "returned": true,
+    "blowup": false,
+    "tuck": false,
+    "V_target_kmh": 51.4813909063213,
+    "V_hold_kmh": 51.4838939852715,
+    "pitch_hold": -0.799265223207172,
+    "secant_iter": 2
+   }
+  },
+  "icaro_alto": {
+   "cfg": {
+    "trim": 37.8,
+    "full_pull": 86.7,
+    "cg_minus_hang_m": 0.1897,
+    "group": "kingpost",
+    "wind_class": 3.0
+   },
+   "vm4_trim": {
+    "V_kmh": 37.8025148293066,
+    "alpha_deg": 8.04442654294841,
+    "passport_kmh": 37.8,
+    "nl_on": true
+   },
+   "normal": {
+    "finite": true,
+    "V_kmh": 71.4486707067489,
+    "V_std_kmh": 0.0947611746422178,
+    "bar_force_max_n": 194.866409301758,
+    "pull_over_mean": 0.0,
+    "alpha_deg": -2.03976147697697,
+    "theta_deg": -8.955278531345,
+    "tgt_fwd_m": 0.449999988079071
+   },
+   "release_smooth_normal": {
+    "V0_kmh": 71.5077026367187,
+    "V_end_kmh": 40.3896665093903,
+    "theta_min_deg": -36.992377544536,
+    "alpha_abs_max_deg": 15.8634815349545,
+    "g_max": 2.225044108093,
+    "load_max": 2.00807520884471,
+    "returned": true,
+    "blowup": false,
+    "tuck": false,
+    "hand_s": 0.5
+   },
+   "full": {
+    "finite": true,
+    "V_kmh": 88.5404314699173,
+    "V_std_kmh": 0.246574487551335,
+    "bar_force_max_n": 300.000091552734,
+    "pull_over_mean": 0.844239092409607,
+    "alpha_deg": -3.43136580998605,
+    "theta_deg": -13.7362620168359,
+    "tgt_fwd_m": 0.699999988079071
+   },
+   "release_smooth": {
+    "V0_kmh": 88.5052688598633,
+    "V_end_kmh": 44.7156954129008,
+    "theta_min_deg": -75.4421840822887,
+    "alpha_abs_max_deg": 99.7580530109461,
+    "g_max": 3.25779009954551,
+    "load_max": 2.80700381106912,
+    "returned": false,
+    "blowup": false,
+    "tuck": true,
+    "hand_s": 0.5
+   },
+   "release_1p8": {
+    "V0_kmh": 68.0796524047852,
+    "V_end_kmh": 39.5431780962698,
+    "theta_min_deg": -35.0504288066605,
+    "alpha_abs_max_deg": 16.134717051457,
+    "g_max": 2.24364389559135,
+    "load_max": 1.96938980910863,
+    "returned": true,
+    "blowup": false,
+    "tuck": false,
+    "V_target_kmh": 68.0445266927519,
+    "V_hold_kmh": 68.0990171642303,
+    "pitch_hold": -0.581220545602687,
+    "secant_iter": 2
+   }
+  },
+  "moyes_litespeed_s": {
+   "cfg": {
+    "trim": 33.6,
+    "full_pull": 80.8,
+    "cg_minus_hang_m": 0.2404,
+    "group": "topless",
+    "wind_class": 4.0
+   },
+   "vm4_trim": {
+    "V_kmh": 33.5985243705895,
+    "alpha_deg": 14.6937745716897,
+    "passport_kmh": 33.6,
+    "nl_on": true
+   },
+   "normal": {
+    "finite": true,
+    "V_kmh": 67.2710808391572,
+    "V_std_kmh": 0.325980336715689,
+    "bar_force_max_n": 129.977630615234,
+    "pull_over_mean": 0.0,
+    "alpha_deg": -0.782872336650823,
+    "theta_deg": -6.08147387984706,
+    "tgt_fwd_m": 0.450000002980232
+   },
+   "release_smooth_normal": {
+    "V0_kmh": 67.1464805603027,
+    "V_end_kmh": 36.0365034147824,
+    "theta_min_deg": -48.1301255362655,
+    "alpha_abs_max_deg": 37.6305755319313,
+    "g_max": 2.14948071047129,
+    "load_max": 2.08377173842887,
+    "returned": true,
+    "blowup": false,
+    "tuck": false,
+    "hand_s": 0.5
+   },
+   "full": {
+    "finite": true,
+    "V_kmh": 91.480788062096,
+    "V_std_kmh": 0.172933511264595,
+    "bar_force_max_n": 300.000030517578,
+    "pull_over_mean": 0.984367684990167,
+    "alpha_deg": -3.21095224353769,
+    "theta_deg": -12.7749715597213,
+    "tgt_fwd_m": 0.700000002980232
+   },
+   "release_smooth": {
+    "V0_kmh": 91.5078117370605,
+    "V_end_kmh": 64.1491906126406,
+    "theta_min_deg": -89.2480053982781,
+    "alpha_abs_max_deg": 179.99892881579,
+    "g_max": 18.0073059493073,
+    "load_max": 7.66995730389132,
+    "returned": false,
+    "blowup": false,
+    "tuck": true,
+    "hand_s": 0.5
+   },
+   "release_1p8": {
+    "V0_kmh": 60.8387901306152,
+    "V_end_kmh": 33.3283762482756,
+    "theta_min_deg": -31.7540496796796,
+    "alpha_abs_max_deg": 27.9330428730064,
+    "g_max": 1.84319705357217,
+    "load_max": 1.73690284963323,
+    "returned": true,
+    "blowup": false,
+    "tuck": false,
+    "V_target_kmh": 60.4773438670611,
+    "V_hold_kmh": 60.5268773002625,
+    "pitch_hold": -0.541946382002569,
+    "secant_iter": 2
+   }
+  },
+  "training": {
+   "cfg": {
+    "trim": 32.3,
+    "full_pull": 62.6,
+    "cg_minus_hang_m": 0.1162,
+    "group": "trainer",
+    "wind_class": 1.0
+   },
+   "vm4_trim": {
+    "V_kmh": 32.301559758529,
+    "alpha_deg": 10.42524512051,
+    "passport_kmh": 32.3,
+    "nl_on": true
+   },
+   "normal": {
+    "finite": true,
+    "V_kmh": 51.0489436326002,
+    "V_std_kmh": 0.014410381563811,
+    "bar_force_max_n": 172.265258789062,
+    "pull_over_mean": 0.0,
+    "alpha_deg": 0.611489988318864,
+    "theta_deg": -7.05865053682385,
+    "tgt_fwd_m": 0.449999995529652
+   },
+   "release_smooth_normal": {
+    "V0_kmh": 51.0546993255615,
+    "V_end_kmh": 32.5106929341092,
+    "theta_min_deg": -19.2589218107095,
+    "alpha_abs_max_deg": 18.6705791240193,
+    "g_max": 1.77041146361657,
+    "load_max": 1.60956784844506,
+    "returned": true,
+    "blowup": false,
+    "tuck": false,
+    "hand_s": 0.5
+   },
+   "full": {
+    "finite": true,
+    "V_kmh": 62.3776794433622,
+    "V_std_kmh": 0.0000000000028208546609676,
+    "bar_force_max_n": 300.000091552734,
+    "pull_over_mean": 0.918463039398177,
+    "alpha_deg": -1.63020427723231,
+    "theta_deg": -11.7089727339454,
+    "tgt_fwd_m": 0.700000025331974
+   },
+   "release_smooth": {
+    "V0_kmh": 62.3776794433594,
+    "V_end_kmh": 32.4976735811662,
+    "theta_min_deg": -31.7872541226637,
+    "alpha_abs_max_deg": 27.5960248906272,
+    "g_max": 2.42622571956708,
+    "load_max": 2.1218542106502,
+    "returned": true,
+    "blowup": false,
+    "tuck": false,
+    "hand_s": 0.5
+   },
+   "release_1p8": {
+    "V0_kmh": 58.1227500915527,
+    "V_end_kmh": 32.5579400175225,
+    "theta_min_deg": -27.9046137595452,
+    "alpha_abs_max_deg": 25.5003392007936,
+    "g_max": 2.69585400223186,
+    "load_max": 2.24889821185561,
+    "returned": true,
+    "blowup": false,
+    "tuck": false,
+    "V_target_kmh": 58.1428075653522,
+    "V_hold_kmh": 58.1227501144409,
+    "pitch_hold": -0.86599057438347,
+    "secant_iter": 2
+   }
+  },
+  "ww_t2c": {
+   "cfg": {
+    "trim": 35.8,
+    "full_pull": 85.0,
+    "cg_minus_hang_m": 0.233,
+    "group": "topless",
+    "wind_class": 4.0
+   },
+   "vm4_trim": {
+    "V_kmh": 35.7973112434208,
+    "alpha_deg": 12.5850705026312,
+    "passport_kmh": 35.8,
+    "nl_on": true
+   },
+   "normal": {
+    "finite": true,
+    "V_kmh": 65.4222399044037,
+    "V_std_kmh": 0.0545885677106929,
+    "bar_force_max_n": 125.758323669434,
+    "pull_over_mean": 0.0,
+    "alpha_deg": -0.402904373945674,
+    "theta_deg": -7.28101264425737,
+    "tgt_fwd_m": 0.450000002980232
+   },
+   "release_smooth_normal": {
+    "V0_kmh": 65.4263442993164,
+    "V_end_kmh": 36.5720737577873,
+    "theta_min_deg": -30.638069684222,
+    "alpha_abs_max_deg": 23.4546125134296,
+    "g_max": 1.95895251483027,
+    "load_max": 1.87612520086724,
+    "returned": true,
+    "blowup": false,
+    "tuck": false,
+    "hand_s": 0.5
+   },
+   "full": {
+    "finite": true,
+    "V_kmh": 85.5300289649964,
+    "V_std_kmh": 0.0211033158046992,
+    "bar_force_max_n": 272.242706298828,
+    "pull_over_mean": 0.975763964027166,
+    "alpha_deg": -2.77128548035107,
+    "theta_deg": -14.0903066646515,
+    "tgt_fwd_m": 0.700000002980232
+   },
+   "release_smooth": {
+    "V0_kmh": 85.5386581420898,
+    "V_end_kmh": 49.2863610554852,
+    "theta_min_deg": -84.204545502434,
+    "alpha_abs_max_deg": 125.344794229092,
+    "g_max": 3.18959913041466,
+    "load_max": 2.97615359465977,
+    "returned": false,
+    "blowup": false,
+    "tuck": true,
+    "hand_s": 0.5
+   },
+   "release_1p8": {
+    "V0_kmh": 64.4441734313965,
+    "V_end_kmh": 36.0627580626832,
+    "theta_min_deg": -29.1404106491154,
+    "alpha_abs_max_deg": 24.6808327662613,
+    "g_max": 2.09585473099527,
+    "load_max": 1.88507296167721,
+    "returned": true,
+    "blowup": false,
+    "tuck": false,
+    "V_target_kmh": 64.4351602381574,
+    "V_hold_kmh": 64.4458274917603,
+    "pitch_hold": -0.625716225492213,
+    "secant_iter": 1
+   }
+  }
+ }
+}
