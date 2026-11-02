@@ -143,3 +143,4 @@
 {"t": "2026-11-02T08:00:58", "by": "executor", "task": "TKF-8", "ev": "reported", "commits": ["TKF-8:"], "note": "done: Описано по фактам модуля: вид тележки без отставания, знак z ЦМ, упор подкоса (~55 км/ч), ход 0,178 м, отклик (крен рез…", "dp_feedback": "docs check упирается в размер findings.md без подсказки, что выносить; хорошо бы dpcli docs findings --split. В карточке не было указано, что docs/INDEX.md пересобирается docs index."}
 {"t": "2026-11-02T08:01:22", "by": "coordinator", "task": "TKF-8", "ev": "accepted", "note": "3/3 docs=ok:ошибок 0; i18n=ok:exit 0; hugo=ok:0"}
 {"t": "2026-11-02T08:01:29", "by": "coordinator", "task": "TKF-8", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-11-02T08:01:29", "by": "coordinator", "task": "TKF-8", "ev": "merged", "note": "6afa1a180"}
