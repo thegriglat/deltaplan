@@ -133,3 +133,4 @@
 {"t": "2026-11-02T07:55:04", "by": "executor", "task": "TKF-5", "ev": "checked", "note": "4/4 trike_bar_stop=ok:7/7; vs_base_trike=ok:exit 0; vs_base_tow=ok:exit 0; vs_base_pendulum=ok:exit 0"}
 {"t": "2026-11-02T07:55:30", "by": "executor", "task": "TKF-5", "ev": "reported", "commits": ["ad4cdcd6c", "v2:", "test_trike_coupling", "test_tow_k9"], "note": "done: TKF-К4 v2: исправлен знак z CART_CM_MODEL (trike_rig.gd, tow_tug.gd); упор strut_stop -10,87 градуса передаётся через T…"}
 {"t": "2026-11-02T07:55:42", "by": "coordinator", "task": "TKF-5", "ev": "accepted", "note": "по ревью (accept); major — числа дописаны в отчёт, _doc 5,04 (6bcdf2b6a); допуск и упор на колёсах — TKF-К4 v2"}
+{"t": "2026-11-02T07:55:50", "by": "coordinator", "task": "TKF-5", "ev": "merged", "note": "8d328c7dd"}
