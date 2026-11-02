@@ -1,0 +1,67 @@
+{
+  "id": "SD-12",
+  "module": "site-docs",
+  "type": "dp-writer",
+  "title": "Сайт: подключение guide, главные страницы, перекрёстные ссылки",
+  "goal": "Устаревшие docs/guide сняты с подключения на сайт (Q2 (в)); главная и «Механики» — по main; страница heuristic снята; ссылки на новую страницу дельталёта стоят; весь сайт проходит проверки SD-К1.",
+  "plan_ref": "§4 SD-12",
+  "contracts": [
+    {
+      "name": "SD-К1",
+      "version": "2",
+      "ref": "docs/contracts/site-docs.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/site-docs-SD-12",
+  "branch": "site-docs/SD-12",
+  "base": "feature/site-docs",
+  "scope": [
+    "site/hugo.toml",
+    "site/content/_index.ru.md",
+    "site/content/_index.en.md",
+    "site/content/mechanics/",
+    "site/content/docs/",
+    "site/content/approaches.ru.md",
+    "site/content/approaches.en.md",
+    "site/content/research/_index.ru.md",
+    "site/content/research/_index.en.md"
+  ],
+  "dont_touch": [
+    "docs/",
+    "site/content/releases/",
+    "site/content/wings/",
+    "site/layouts/",
+    "scripts/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "i18n",
+      "cmd": "python3 tools/site/check_i18n.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "forbidden",
+      "cmd": "! (grep -rniE 'onnx|air[-_]synth|нейросет|нейронн|neural|weight[_ -]?shift|смещени[а-я]* веса|Пикар[а-я]* на (GPU|видеокарт)|ветер[а-я]* на (GPU|видеокарт)|расч[её]т[а-я]* на GPU|GPU-ветер|Picard[a-z ]* on (the )?GPU|wind on (the )?GPU|GPU wind' site/content --include=*.md --exclude-dir=releases | grep -vE '^site/content/(approaches|research/_index)\\.')",
+      "expect": "exit=0"
+    },
+    {
+      "name": "heuristic",
+      "cmd": "test ! -e site/content/mechanics/air-model/heuristic.ru.md && test ! -e site/content/mechanics/air-model/heuristic.en.md && ! grep -rn 'air-model/heuristic' site/content --include=*.md --exclude-dir=releases",
+      "expect": "exit=0"
+    },
+    {
+      "name": "guide_gpu",
+      "cmd": "! (cd site && hugo list all 2>/dev/null | grep -q 'docs/guide/air-model-gpu')",
+      "expect": "exit=0"
+    },
+    {
+      "name": "trike_links",
+      "cmd": "grep -q '/mechanics/trike/' site/content/mechanics/_index.ru.md && grep -q '/mechanics/trike/' site/content/mechanics/_index.en.md && grep -q '/mechanics/trike/' site/content/docs/player-guide/index.ru.md && grep -q '/mechanics/trike/' site/content/docs/player-guide/index.en.md",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-02T05:28:23"
+}
