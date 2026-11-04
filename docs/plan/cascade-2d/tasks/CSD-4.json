@@ -1,0 +1,72 @@
+{
+  "id": "CSD-4",
+  "module": "cascade-2d",
+  "type": "dp-researcher",
+  "title": "Опыты каскад против эталона, вердикт по K0–K5, итоговый README",
+  "goal": "Прогнаны все случаи × варианты, посчитаны метрики, цена и сходимость; README даёт вердикт по заранее заданным критериям, механизм простыми словами с картинками полей и ключевыми числами.",
+  "plan_ref": "Критерии (зафиксированы 2026-11-04, до опытов)",
+  "contracts": [
+    {
+      "name": "F0",
+      "version": "1",
+      "ref": "docs/contracts/cascade-2d.md"
+    },
+    {
+      "name": "F1",
+      "version": "1",
+      "ref": "docs/contracts/cascade-2d.md"
+    },
+    {
+      "name": "F2",
+      "version": "1",
+      "ref": "docs/contracts/cascade-2d.md"
+    },
+    {
+      "name": "M1",
+      "version": "2",
+      "ref": "docs/contracts/cascade-2d.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/cascade-2d-CSD-4",
+  "branch": "cascade-2d/CSD-4",
+  "base": "feature/cascade-2d",
+  "scope": [
+    "tools/research/cascade_2d/experiments/",
+    "tools/research/cascade_2d/out/",
+    "tools/research/cascade_2d/README.md",
+    "docs/registry/findings/cascade-2d.md"
+  ],
+  "dont_touch": [
+    "rust/",
+    "tools/research/cascade_2d/cascade_rs/",
+    "tools/research/cascade_2d/metrics/",
+    "tools/research/cascade_2d/cases/",
+    "tools/research/cascade_2d/contract/",
+    "docs/plan/"
+  ],
+  "accept": [
+    {
+      "name": "verdict",
+      "cmd": "python3 -c \"import json;print('verdict:',json.load(open('tools/research/cascade_2d/out/verdict.json'))['verdict'])\"",
+      "expect": "re:verdict: (имеет смысл|при условиях|не имеет)"
+    },
+    {
+      "name": "metrics_count",
+      "cmd": "ls tools/research/cascade_2d/out/metrics/C*.json | wc -l",
+      "expect": "num:(\\d+) >=4"
+    },
+    {
+      "name": "contract",
+      "cmd": "tools/research/cascade_2d/py tools/research/cascade_2d/contract/check_contract.py tools/research/cascade_2d/out/runs tools/research/cascade_2d/out/metrics",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-04T08:40:11"
+}
