@@ -6,7 +6,7 @@ area: flight
 updated: "2026-11-04"
 summary: "Что модуль pilot-handling может менять (подпись ползунка, X) и что нет (ход мыши, боковая модель), формат итогов PHD-2/3."
 related: ["docs/plan/pilot-handling.md", "docs/contracts/pilot-feedback-trim.md", "docs/contracts/bar-mouse.md", "docs/contracts/pendulum.md"]
-contracts: [{"id": "PHD-К1", "version": 1}, {"id": "PHD-К2", "version": 1}]
+contracts: [{"id": "PHD-К1", "version": 2}, {"id": "PHD-К2", "version": 1}]
 ---
 # Контракты модуля pilot-handling
 
@@ -14,7 +14,8 @@ contracts: [{"id": "PHD-К1", "version": 1}, {"id": "PHD-К2", "version": 1}]
 Контрактный тест — `tests/contracts/test_pilot_handling_contracts.gd` (headless): заголовки «## PHD-К<n>. … (v<n>)»,
 значения ключей PHD-К1. Новых интерфейсов кода модуль не вводит; исследования (PHD-2, PHD-3) код и конфиги игры не меняют.
 
-## PHD-К1. Управление и боковая модель: что модуль меняет и что нет (v1)
+## PHD-К1. Управление и боковая модель: что модуль меняет и что нет (v2)
+v2 (2026-11-04, Q1 (а)): `keyboard.center_time_s` удаляется (в коде не действовал, X — ступень, PHD-2); темп руки — новый ключ `arms.cmd_tau_s` 0,15 с в `configs/pendulum.json` (PD-К2 v10), его вносит PHD-4. Потребители: `tests/contracts/test_pilot_feedback_trim_contracts.gd`, `tests/contracts/test_pendulum_contracts_k2*.gd`, `docs/guide/flight/model.md`.
 Владелец — координатор модуля. Потребители — `scripts/ui/settings_panel.gd`, `locale/ui.csv`, `scripts/game/input_controller.gd`,
 `scripts/game/mouse_bar.gd` (BM-К1), PD-К2 (`docs/contracts/pendulum.md`).
 
@@ -32,7 +33,7 @@ contracts: [{"id": "PHD-К1", "version": 1}, {"id": "PHD-К2", "version": 1}]
 - Подпись ползунка (PHD-1): ключи `locale/ui.csv` `settings_bar_sensitivity`, `settings_bar_sensitivity_fmt` и новые ключи
   с префиксом `settings_bar_` (ru и en). Направление — инвариант: больше множитель → меньше ход до упора
   (`bar_travel_px / множитель` отсчётов) → резче. Ход в см — при 800 DPI (315 отсчётов/см), как сейчас.
-- `keyboard.center_time_s` (`configs/controls.json`, сейчас 0.2) — только PHD-4 по итогам PHD-2 и с учётом шлюза (план, § 6).
+- PHD-4 (Q1 (а)): удалить `keyboard.center_time_s` (`configs/controls.json`) и его ветку в `scripts/game/input_controller.gd`; внести `arms.cmd_tau_s` = 0.15 (`configs/pendulum.json`, PD-К2 v10) и фильтр цели руки в `scripts/flight/pendulum/pilot_arms.gd`. Ключи таблицы выше — без изменений.
 
 ## PHD-К2. Итог исследования PHD-2/PHD-3 (v1)
 Владельцы — PHD-2 (п. 3), PHD-3 (п. 2). Потребитель — PHD-4 (карточка правки), координатор (шлюз).

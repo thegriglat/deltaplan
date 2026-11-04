@@ -3,10 +3,10 @@ type: contract
 status: closed
 module: pendulum
 area: flight
-updated: "2026-10-22"
+updated: "2026-11-04"
 summary: "Модель полёта «Маятник» (PD-К1), конфиг маятника (PD-К2), настройки «Аппарат» (PD-К3), сеть и поза (PD-К4–К5), касание ногами (PD-К6)."
 related: ["docs/archive/plan/pendulum.md", "docs/research/pendulum.md", "docs/contracts/control-bar.md", "docs/contracts/motion-rig.md"]
-contracts: [{"id": "PD-К1", "version": 5}, {"id": "PD-К2", "version": 9}, {"id": "PD-К3", "version": 2}, {"id": "PD-К4", "version": 2}, {"id": "PD-К5", "version": 2}, {"id": "PD-К6", "version": 2}]
+contracts: [{"id": "PD-К1", "version": 5}, {"id": "PD-К2", "version": 10}, {"id": "PD-К3", "version": 2}, {"id": "PD-К4", "version": 2}, {"id": "PD-К5", "version": 2}, {"id": "PD-К6", "version": 2}]
 ---
 # Контракты модуля pendulum
 
@@ -68,7 +68,8 @@ v2 (11.10, PD-3): земля маятника — `reset_on_ground`, фазы н
 
 Выбор модели (PD-4): `Glider.setup(wing_id, pilot_mass, apparatus := {})` читает `controls.roll_control_mode`; `"pendulum"` → `PendulumModel`, иначе `FlightModel`; умолчание теперь `pendulum` (PMD-К1, [pendulum-default](pendulum-default.md)); `Glider.model` — без статического типа. Боты, `BotAgent`, `remote_pilots` — только `FlightModel`.
 
-## PD-К2. Конфиг маятника и блок pendulum в крыльях (v9)
+## PD-К2. Конфиг маятника и блок pendulum в крыльях (v10)
+v10 (2026-11-04, pilot-handling PHD-4, Q1 (а)): + `arms.cmd_tau_s` 0,15 с — темп руки: цель руки (положение пилота от ввода `roll`/`pitch` в полёте) проходит фильтр первого порядка с этой постоянной, прежде чем в сервопривод `arms.tau_s`; 0 — без фильтра. Основание — `docs/research/pilot-handling/feel.md` §3–5 (команда без фильтра давала ступень силы на штанге, дрожь мыши 2–4 Гц доходила до крыла без спада). `contract` файла — `"PD-К2 v10"`, блоки крыльев — `"PD-К2 v8"` без изменений.
 v9 (20.10, pullin-speed VM-12, ответы на Q4/Q5): + `arms.release_event`, `arms.release_pull`, `arms.release_settle_m`, `arms.release_settle_periods` — руки отпускают пилота вдоль киля только при возврате ввода к 0 после «на себя», в обычном полёте держат (формула — `docs/research/pendulum/release-tumble.md` «Отпускание по событию (VM-11)» → «Порт в игру»); `contract` файла — `"PD-К2 v9"`, блоки крыльев — `"PD-К2 v8"` без изменений. (Ключ `neutral_relaxed_pitch` из VM-9 не вводится.)
 v8 (19.10, pullin-speed VM-4): нелинейная Cm(α) — `pitch_nl {enabled, sigma, width_deg, luff_cm_per_deg, luff_on_deg}` (формула — ниже, «Нелинейная Cm(α)»); добор «на себя» — `arms.shift_x_pull_full_m`, `arms.pull_full_release_m_s` (VM-К3 v2); в блоке крыла + `cl_alpha_per_rad`, `alpha_zero_lift_deg`, `dcm0` пересчитан с включённой `pitch_nl`; `contract` файла — `"PD-К2 v8"`, блоков крыльев — `"PD-К2 v8"`. Основание — `docs/research/pendulum/pitch-nonlinear.md` (VM-2), `docs/research/pendulum/pitch-release.md` (VM-3: Cmq-поправки нет).
 v7 (11.10, PD-35): убран `arms.flare_shift_x_push_m` (ход у земли — из `arms.flare_reach`); + `strips.stall_cd90_sweep_norm`, `strips.sweep_alpha_exact`, `strips.stall_cp_reverse`, `touchdown {run_max_ms, stand_max_ms, step_period_s}`; `contract` — `"PD-К2 v7"`.
@@ -89,6 +90,7 @@ v2 (11.10, PD-2): + `strips.aero_hz` — частота пересчёта си�
 | `chain.compliance_m_per_n` | м/Н | 4e-5 |
 | `chain.substeps_per_s`, `chain.substeps_min` | 1/с, int | 480, 4 |
 | `arms.force_max_n`, `arms.tau_s`, `arms.ti_s` | Н, с, с | 300, 0,30, 0 (0 — без интеграла: пружина-демпфер + прямая подача m·g/L·(цель − нейтраль), PD-19) |
+| `arms.cmd_tau_s` | с | 0,15 (v10: фильтр цели руки первого порядка; 0 — без фильтра) |
 | `arms.shift_y_max_m`, `arms.shift_x_pull_m`, `arms.shift_x_push_m` | м | 0,45, 0,45, 0,30 |
 | `arms.shift_x_pull_full_m` | м — ход «на себя» с добором (штанга у бёдер, руководство T2C) | 0,7 (v8) |
 | `arms.release_event` | bool — отпускание рук по событию (v9) | true |

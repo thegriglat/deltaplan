@@ -1,5 +1,5 @@
 extends TestCase
-## Контрактные тесты pilot-handling (docs/contracts/pilot-handling.md): PHD-К1 — неизменные ключи хода мыши
+## Контрактные тесты pilot-handling (docs/contracts/pilot-handling.md): PHD-К1 v2 — неизменные ключи хода мыши, удалённый center_time_s и темп руки arms.cmd_tau_s
 ## и боковой модели; PHD-К2 — только заголовок (формат итогов исследования, файлы в tools/research).
 ## Правка контракта (версия +1) — вместе с этим файлом.
 
@@ -15,7 +15,7 @@ func test_doc_headings() -> void:
 	var found := {}
 	for m in re.search_all(text):
 		found[m.get_string(1)] = int(m.get_string(2))
-	check(found.get("PHD-К1", 0) == 1, "PHD-К1 (v1) в заголовках: %s" % found)
+	check(found.get("PHD-К1", 0) == 2, "PHD-К1 (v2) в заголовках: %s" % found)
 	check(found.get("PHD-К2", 0) == 1, "PHD-К2 (v1) в заголовках: %s" % found)
 
 
@@ -34,3 +34,10 @@ func test_k1_yaw() -> void:
 	approx(float(y.get("cn_beta", -99.0)), 0.05, 1e-6, "yaw.cn_beta = 0.05 (PD-К2)")
 	approx(float(y.get("cn_p_add", -99.0)), 0.15, 1e-6, "yaw.cn_p_add = 0.15 (PD-К2)")
 	approx(float(y.get("cn_r_add", -99.0)), -0.03, 1e-6, "yaw.cn_r_add = -0.03 (PD-К2)")
+
+
+func test_k1_v2_hand_rate() -> void:
+	var kb: Dictionary = Config.get_config("controls").get("keyboard", {})
+	check(not kb.has("center_time_s"), "keyboard.center_time_s удалён (PHD-К1 v2)")
+	var a: Dictionary = Config.get_config("pendulum").get("arms", {})
+	approx(float(a.get("cmd_tau_s", -1.0)), 0.15, 1e-6, "arms.cmd_tau_s = 0.15 (PD-К2 v10)")

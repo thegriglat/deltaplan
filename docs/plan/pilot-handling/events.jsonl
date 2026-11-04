@@ -35,3 +35,4 @@
 {"t": "2026-11-04T07:37:08", "by": "coordinator", "task": "PHD-2", "ev": "accepted", "commits": ["cfac6e370"], "note": "3/3 verdict=ok:ok; note=ok:exit 0; docs=ok:ошибок 0"}
 {"t": "2026-11-04T07:37:09", "by": "coordinator", "task": "PHD-2", "ev": "merged"}
 {"t": "2026-11-04T07:37:31", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: (1) отчёт исполнителя оставляет r-<ID>.json в корне копии → accept FAIL scope, приходилось удалять вручную; (2) venv heat_ca из README исследований на машине отсутствует; (3) task show обрезает дополнения многоточием (нужен --full); (4) после merge ветки с locale/*.csv accept --here в копии модуля падает до --import (переводы не пересобраны)"}
+{"t": "2026-11-04T15:39:41", "by": "coordinator", "task": null, "ev": "plan", "note": "план 4. Задачи: дописано 1 стр."}
