@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-11-04"
 summary: "Стыки cascade-2d: случаи и сетки (F0), поле разреза json+f32 (F1), запись прогона (F2), метрики сравнения (M1)."
 related: ["docs/plan/cascade-2d.md", "docs/contracts/air-cascade.md", "docs/contracts/rust-wind/solver.md"]
-contracts: [{"id": "F0", "version": 1}, {"id": "F1", "version": 1}, {"id": "F2", "version": 1}, {"id": "M1", "version": 1}]
+contracts: [{"id": "F0", "version": 1}, {"id": "F1", "version": 1}, {"id": "F2", "version": 1}, {"id": "M1", "version": 2}]
 ---
 # Контракты модуля cascade-2d
 
@@ -73,10 +73,11 @@ contracts: [{"id": "F0", "version": 1}, {"id": "F1", "version": 1}, {"id": "F2",
   `field` (путь F1), `cmd` (командная строка), `host` {`cpu`, `rustc`}, `git`, `notes`.
 - Время — под замком `.dpcli/dpcli lock cpu`, release-сборка, одна машина; U_ref — по M1.
 
-## M1 v1 — метрики сравнения
+## M1 v2 — метрики сравнения
 Владелец — CSD-2; потребитель — CSD-4. Определения — `docs/plan/cascade-2d.md`, «Метрики».
 - Всё на сетке 25 м против P25 (`picard`, dx 25) того же случая; поле грубее (baseline) — линейная
   интерполяция `u`, `w` по своим сеткам граней, в земле 0. Скорости клеток — среднее двух граней.
+- v2 (2026-11-04): у C3 `w_max` — максимум w по столбу |x − x_c| ≤ 3L на всех высотах до z = 2000 м (не только ROI); `F_up` — через z = 750 м.
 - U_ref — |u| P25 в клетке на 100 м над землёй при x = −4800 м (вне губок; иначе ближайшая — в `notes`).
 - Выход: `tools/research/cascade_2d/out/metrics/<C>.json` — `format: "cascade2d-metrics"`, `version: 1`,
   `case`, `ref` (путь P25), `U_ref`, `E_ref` {метрики B50 против P25}, `rows` — список

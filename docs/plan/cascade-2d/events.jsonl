@@ -24,3 +24,5 @@
 {"t": "2026-11-04T07:19:03", "by": "executor", "task": "CSD-2", "ev": "reported", "commits": ["92f58db11"], "note": "done: w_max C3 по столбу до z=2000 м; тест пика на z_agl 600 м добавлен."}
 {"t": "2026-11-04T07:19:19", "by": "coordinator", "task": "CSD-2", "ev": "checked", "note": "2/2 metrics_test=ok:exit 0; docs=ok:ошибок 0"}
 {"t": "2026-11-04T07:19:20", "by": "coordinator", "task": "CSD-2", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-11-04T07:19:24", "by": "coordinator", "task": "CSD-2", "ev": "accepted", "commits": ["ca9ecccd6"], "note": "2/2 metrics_test=ok:exit 0; docs=ok:ошибок 0"}
+{"t": "2026-11-04T07:19:24", "by": "coordinator", "task": "CSD-2", "ev": "merged"}
