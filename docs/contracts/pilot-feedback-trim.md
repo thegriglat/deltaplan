@@ -30,7 +30,7 @@ v2 (2026-11-02, по PFT-2 `docs/research/pilot-feedback-trim/mouse.md`): `mouse
 | `mouse.bar_sensitivity` | `configs/controls.json` | 1.0 | множитель пилота по умолчанию |
 | `mouse.bar_deadzone` | `configs/controls.json` | 0.02 | мёртвая зона, доля хода |
 | `bar_sensitivity_range` | `configs/ui.json` | [0.1, 4.0] (v1: [0.25, 4.0]) | диапазон слайдера «Чувствительность штанги» |
-| `keyboard.center_time_s` | `configs/controls.json` | удалён (pilot-handling PHD-К1 v2, 2026-11-04: не действовал; темп руки — `arms.cmd_tau_s`, PD-К2 v10) | X: постоянная времени ухода штанги в нейтраль, с |
+| `keyboard.center_time_s` | `configs/controls.json` | удалён (pilot-handling PHD-К1 v2, 2026-11-04: не действовал; темп руки — `hand.tau_s`, PHD-К1 v3) | X: постоянная времени ухода штанги в нейтраль, с |
 | `mouse.bar_return_to_center_per_s` | `configs/controls.json` | 0.0 | возврат трапеции в нейтраль без ввода |
 | `apparatus_defaults.hang_shift_cm` | `configs/pendulum.json` | 0.0 | сдвиг подвески по умолчанию, см (+ к носу) |
 | диапазон `hang_shift_cm` | `scripts/game/flight_settings.gd` | [−4, 4, шаг 0,5] | PD-К3 v2 |

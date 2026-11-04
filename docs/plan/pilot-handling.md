@@ -45,6 +45,8 @@ related: ["docs/contracts/pilot-handling.md", "docs/plan/pilot-feedback-trim.md"
 - **PHD-4** (dp-engineer) — правка по итогам PHD-2/3 в границах PHD-К1 (или по шлюзу). Карточка — после итогов.
 - **PHD-5** (dp-writer) — выводы в реестр находок, guide/CHANGELOG — по факту правок.
 - **Q1 (а), 2026-11-04**: PHD-4 — темп руки `arms.cmd_tau_s` 0,15 с (PD-К2 v10, фильтр цели руки в `pilot_arms.gd`), удалить мёртвый `keyboard.center_time_s` (PHD-К1 v2); диапазон слайдера не менять. PHD-5 — хвосты ревью PHD-2/3 (verdict.json, `feel/analyze.py`), registry, guide.
+- **Q2 (а), 2026-11-04**: фильтр темпа руки — на ввод игрока (`input_controller.gd`, `controls.json → hand.tau_s` 0,15 с, PHD-К1 v3); руки модели, боты, тестовые пилоты, трайк, тележка и пороги — без изменений; PD-К2 v10 отменён.
+- Нумерация после Q2: **PHD-5** (dp-mechanic) — сверка падений тестов с main (окружение или регрессия); **PHD-6** (dp-writer) — хвосты ревью PHD-2/3, registry, guide (вместо прежнего PHD-5).
 
 ## 5. Волны
 1: PHD-1, PHD-2, PHD-3 параллельно. 2: шлюз или PHD-4. 3: PHD-5.
