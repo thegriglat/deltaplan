@@ -138,6 +138,7 @@ pub struct QueryRes {
     pub n_points: usize,
     pub us_cold: f64,
     pub us_warm: f64,
+    pub warm_total_s: f64,
     pub max_abs_diff: f64,
     pub total_s: f64,
 }
@@ -183,7 +184,6 @@ pub fn query(st: &Setup, full: &Level, n: usize, seed: u64) -> QueryRes {
             }
         }
     };
-    let t0 = Instant::now();
     let mut cold = 0.0;
     for &p in &pts {
         let t = Instant::now();
@@ -207,8 +207,9 @@ pub fn query(st: &Setup, full: &Level, n: usize, seed: u64) -> QueryRes {
         n_points: n,
         us_cold: cold / nn * 1e6,
         us_warm: warm / nn * 1e6,
+        warm_total_s: warm,
         max_abs_diff: diff,
-        total_s: t0.elapsed().as_secs_f64(),
+        total_s: cold,
     }
 }
 
@@ -227,7 +228,7 @@ pub fn write_results(
     let seed = (o.var == Variant::V3h).then_some(o.seed);
     let mut lv = Vec::new();
     let mut last_name = String::new();
-    let (mut max_all, mut rms_last) = (0.0f64, 0.0);
+    let (mut max_all, mut s2_all, mut n_all) = (0.0f64, 0.0f64, 0usize);
     for (j, l) in levels.iter().enumerate() {
         let g = &st.cgeos[j];
         let dx = st.dxs[j + 1];
@@ -243,10 +244,16 @@ pub fn write_results(
         f1::write_f1(&o.out_dir.join(format!("{name}.json")), &wm, l, g)?;
         let b = f1::balance(l, g, st.u_ref);
         max_all = max_all.max(b.max_rel);
-        rms_last = b.rms_rel;
+        s2_all += b.s2;
+        n_all += b.n;
         lv.push(json!({"dx": dx, "max_rel_div": b.max_rel}));
         last_name = name;
     }
+    let rms_all = if n_all > 0 {
+        (s2_all / n_all as f64).sqrt()
+    } else {
+        0.0
+    };
     let fin = levels.last().context("no levels")?;
     let fg = st.cgeos.last().unwrap();
     let arrays_mb = (fin.u.len()
@@ -267,8 +274,8 @@ pub fn write_results(
         "{geom_note}; U_ref from the parent field (|u| at x=-4800 m, 100 m above ground), not from P25; rules: {}{}",
         st.diag.summary(),
         q.map_or(String::new(), |q| format!(
-            "; query cold {:.2} us/point, warm (shared cache) {:.2} us/point, {} points",
-            q.us_cold, q.us_warm, q.n_points
+            "; query cold {:.2} us/point, warm (shared cache) {:.2} us/point ({:.4} s in total), {} points; work_s = cold passes only, without the comparison with the full field and the warm pass",
+            q.us_cold, q.us_warm, q.warm_total_s, q.n_points
         )),
     );
     let total = total_t0.elapsed().as_secs_f64();
@@ -285,7 +292,7 @@ pub fn write_results(
         "threads": if q.is_some() { 1 } else { o.threads }, "ny": 1, "status": "ok", "iters": null,
         "time": {"total_s": total, "setup_s": st.setup_s, "work_s": work, "per_row_s": work},
         "memory": {"peak_rss_mb": util::peak_rss_mb(), "arrays_mb": arrays_mb},
-        "balance": {"max_rel_div": max_all, "rms_rel_div": rms_last, "levels": lv},
+        "balance": {"max_rel_div": max_all, "rms_rel_div": rms_all, "levels": lv},
         "y_uniform": null, "query": query,
         "field": o.out_dir.join(format!("{last_name}.json")).to_string_lossy(),
         "cmd": cmd, "host": {"cpu": util::cpu_name(), "rustc": util::rustc_version()},

@@ -218,3 +218,45 @@ fn n2_comes_from_case_gam_and_gives_the_froude_formula() {
     let st0 = build(&CONFIGS[0], Variant::V3, 1);
     assert_eq!(st0.ctxs[0].n2(&st0.parent, 15, 40).max(0.0) < 1e-3, true);
 }
+
+#[test]
+fn froude_clips_reverse_flow_and_z_split_never_opposes_parent() {
+    use crate::rules::Ctx;
+    // Reverse flow: the clipped shift is the one with d*u > 0 (flux to the upper sub-face).
+    let st = build(&CONFIGS[2], Variant::V3, 4);
+    let mut v1 = st.ctxs[0].clone();
+    v1.var = Variant::V1;
+    let ctx = &st.ctxs[0];
+    let (mut checked, mut clipped) = (0, 0);
+    for k in 2..st.pgeo.nz - 2 {
+        for i in 1..st.pgeo.nx {
+            let u = st.parent.u[k * (st.pgeo.nx + 1) + i] as f64;
+            let (l1, h1) = v1.split_x(&st.parent, k, i);
+            let (l3, h3) = ctx.split_x(&st.parent, k, i);
+            let (d1, d3) = ((h1 - l1) as f64 / 2.0, (h3 - l3) as f64 / 2.0);
+            if d1 * u > 0.0 && d3.abs() < d1.abs() - 1e-6 {
+                clipped += 1;
+            }
+            if d1 * u <= 0.0 && d1 != 0.0 {
+                assert!((d3 - d1).abs() < 1e-5, "downward shift must stay");
+            }
+            checked += 1;
+        }
+    }
+    assert!(checked > 0 && clipped > 0);
+    // z faces: sub-face velocities share the sign of the parent flux (V3h, strong hash).
+    for var in [Variant::V3, Variant::V3h] {
+        let st = build(&CONFIGS[1], var, 9);
+        let ctx: &Ctx = &st.ctxs[0];
+        for k in 0..=st.pgeo.nz {
+            for i in 0..st.pgeo.nx {
+                let w = st.parent.w[k * st.pgeo.nx + i];
+                let (l, r) = ctx.split_z(&st.parent, k, i);
+                assert!(
+                    l * w >= 0.0 && r * w >= 0.0,
+                    "z split against parent at {k},{i}"
+                );
+            }
+        }
+    }
+}

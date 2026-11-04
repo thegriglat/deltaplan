@@ -140,7 +140,9 @@ pub fn write_f1(path: &Path, wm: &WriteMeta, lvl: &Level, geo: &Geo) -> Result<(
 
 pub struct Balance {
     pub max_rel: f64,
-    pub rms_rel: f64,
+    /// Sum of squares and count (to pool levels).
+    pub s2: f64,
+    pub n: usize,
 }
 
 /// |div| dx / U_ref over air cells (same discretisation as the contract's `div2d`).
@@ -159,10 +161,7 @@ pub fn balance(l: &Level, g: &Geo, u_ref: f64) -> Balance {
             n += 1;
         }
     }
-    Balance {
-        max_rel: mx,
-        rms_rel: if n > 0 { (s2 / n as f64).sqrt() } else { 0.0 },
-    }
+    Balance { max_rel: mx, s2, n }
 }
 
 /// U_ref of M1 taken from the parent: |u| on the x face at x = -4800 m, 100 m above the ground

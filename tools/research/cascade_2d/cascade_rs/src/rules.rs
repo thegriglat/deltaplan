@@ -363,7 +363,7 @@ impl Ctx {
                 } else {
                     0.0
                 };
-                if self.var.stab_heat() && d > 0.0 {
+                if self.var.stab_heat() && d * u > 0.0 {
                     let gfac = self.fr_factor(self.n2_xface(s, k, i), u.abs());
                     if gfac < 1.0 {
                         if count {
@@ -515,6 +515,8 @@ impl Ctx {
                         * self.sigma_z(s, k, i)
                         * face_hash(self.seed, self.n, 1, k, i);
                 }
+                // Keep both sub-faces in the direction of the parent flux (share in [0, 1]).
+                let d = d.clamp(-w.abs(), w.abs());
                 let left = (w - d) as f32;
                 (left, (2.0 * w - left as f64) as f32)
             }
