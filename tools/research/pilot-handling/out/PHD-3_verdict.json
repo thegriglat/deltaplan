@@ -73,14 +73,14 @@
      "ref": "docs/research/pilot-handling/feel.md#2-демпфирование"
     },
     {
-     "what": "Ixx системы sport с присоединённой массой (Cook ≈ 235)",
+     "what": "Ixx системы sport с присоединённой массой (Cook ≈ 235; без неё Ixx крыла 208,4)",
      "value": 405.217252147579,
      "unit": "кг·м²",
      "ref": "docs/research/pilot-handling/feel.md#1-инерции"
     },
     {
-     "what": "Крен-мода λ sport (Cook 22,6)",
-     "value": 8.801130994019568,
+     "what": "Крен-мода λ sport, |Lp|/Ixx (замер спада в игре 6,3; Cook 22,6)",
+     "value": -8.801,
      "unit": "1/с",
      "ref": "docs/research/pilot-handling/feel.md#2-демпфирование"
     },
@@ -122,11 +122,21 @@
  "modes": [
   {
    "wing": "training",
-   "case": "штиль, трим, руки в нейтрали",
+   "case": "|Lp|/Ixx системы (производные игры, штиль, трим)",
    "mode": "roll",
-   "omega_rad_s": 9.985,
-   "zeta": 1.0,
-   "source": "game"
+   "omega_rad_s": null,
+   "zeta": null,
+   "source": "linear",
+   "lambda_1_s": -9.985
+  },
+  {
+   "wing": "training",
+   "case": "замер спада p после снятия момента, λ = 1/t63 (t63 0.116666666666667 с)",
+   "mode": "roll",
+   "omega_rad_s": null,
+   "zeta": null,
+   "source": "game",
+   "lambda_1_s": -8.57
   },
   {
    "wing": "training",
@@ -138,11 +148,21 @@
   },
   {
    "wing": "laminar",
-   "case": "штиль, трим, руки в нейтрали",
+   "case": "|Lp|/Ixx системы (производные игры, штиль, трим)",
    "mode": "roll",
-   "omega_rad_s": 9.267,
-   "zeta": 1.0,
-   "source": "game"
+   "omega_rad_s": null,
+   "zeta": null,
+   "source": "linear",
+   "lambda_1_s": -9.267
+  },
+  {
+   "wing": "laminar",
+   "case": "замер спада p после снятия момента, λ = 1/t63 (t63 0.15 с)",
+   "mode": "roll",
+   "omega_rad_s": null,
+   "zeta": null,
+   "source": "game",
+   "lambda_1_s": -6.67
   },
   {
    "wing": "laminar",
@@ -154,11 +174,21 @@
   },
   {
    "wing": "sport",
-   "case": "штиль, трим, руки в нейтрали",
+   "case": "|Lp|/Ixx системы (производные игры, штиль, трим)",
    "mode": "roll",
-   "omega_rad_s": 8.801,
-   "zeta": 1.0,
-   "source": "game"
+   "omega_rad_s": null,
+   "zeta": null,
+   "source": "linear",
+   "lambda_1_s": -8.801
+  },
+  {
+   "wing": "sport",
+   "case": "замер спада p после снятия момента, λ = 1/t63 (t63 0.158333333333333 с)",
+   "mode": "roll",
+   "omega_rad_s": null,
+   "zeta": null,
+   "source": "game",
+   "lambda_1_s": -6.32
   },
   {
    "wing": "sport",
@@ -170,11 +200,21 @@
   },
   {
    "wing": "ww_u2",
-   "case": "штиль, трим, руки в нейтрали",
+   "case": "|Lp|/Ixx системы (производные игры, штиль, трим)",
    "mode": "roll",
-   "omega_rad_s": 9.355,
-   "zeta": 1.0,
-   "source": "game"
+   "omega_rad_s": null,
+   "zeta": null,
+   "source": "linear",
+   "lambda_1_s": -9.355
+  },
+  {
+   "wing": "ww_u2",
+   "case": "замер спада p после снятия момента, λ = 1/t63 (t63 0.141666666666667 с)",
+   "mode": "roll",
+   "omega_rad_s": null,
+   "zeta": null,
+   "source": "game",
+   "lambda_1_s": -7.06
   },
   {
    "wing": "ww_u2",
@@ -186,11 +226,12 @@
   },
   {
    "wing": "hiway_demon",
-   "case": "Cook, матрица arXiv:2108.02393, Ts 0,01 с",
+   "case": "Cook, матрица arXiv:2108.02393, Ts 0,01 с (полюс крена, апериодический)",
    "mode": "roll",
-   "omega_rad_s": 22.6,
-   "zeta": 1.0,
-   "source": "literature"
+   "omega_rad_s": null,
+   "zeta": null,
+   "source": "literature",
+   "lambda_1_s": -22.6
   },
   {
    "wing": "hiway_demon",
