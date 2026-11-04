@@ -1,0 +1,61 @@
+{
+  "balance": {
+    "levels": [
+      {
+        "dx": 200,
+        "max_rel_div": 0.00002185285926078744
+      },
+      {
+        "dx": 100,
+        "max_rel_div": 0.000010980485961102856
+      },
+      {
+        "dx": 50,
+        "max_rel_div": 5.4996440815491534e-6
+      },
+      {
+        "dx": 25,
+        "max_rel_div": 3.2880350726878927e-6
+      }
+    ],
+    "max_rel_div": 0.00002185285926078744,
+    "rms_rel_div": 1.5900462838583352e-6
+  },
+  "case": "C1",
+  "cmd": "/home/greg/worktrees/deltaplan/cascade-2d-CSD-4/tools/research/cascade_2d/cascade_rs/target/release/cascade query --parent /home/greg/data/cascade_2d/fields/C1/picard_none_d400.json --case C1 --variant V2 --seed 1 --points 5000 --out-dir /home/greg/data/cascade_2d/fields/C1 --runs-dir /home/greg/worktrees/deltaplan/cascade-2d-CSD-4/tools/research/cascade_2d/out/runs/C1",
+  "dx": 25,
+  "field": "/home/greg/data/cascade_2d/fields/C1/cascade_V2_d25_from400.json",
+  "format": "cascade2d-run",
+  "git": "962b15ab0",
+  "host": {
+    "cpu": "Intel(R) Xeon(R) CPU E5-2666 v3 @ 2.90GHz",
+    "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
+  },
+  "iters": null,
+  "memory": {
+    "arrays_mb": 4.93684,
+    "peak_rss_mb": 200.9375
+  },
+  "notes": "geometry of each level from the geometry source (case middle row or synthetic); U_ref from the parent field (|u| at x=-4800 m, 100 m above ground), not from P25; rules: faces=137819 lost_flux_faces=0 wall_parent_open_sub=132 one_sub_closed=84 froude_clipped=0 heat_shifted=0 split_cells=0; query cold 25.01 us/point, warm (shared cache) 4.21 us/point (0.0210 s in total), 5000 points; work_s = cold passes only, without the comparison with the full field and the warm pass",
+  "ny": 1,
+  "parent_dx": 400,
+  "query": {
+    "max_abs_diff_vs_full": 0.0,
+    "n_points": 5000,
+    "threads": 1,
+    "us_per_point": 25.011705600000028
+  },
+  "seed": null,
+  "source": "cascade",
+  "status": "ok",
+  "threads": 1,
+  "time": {
+    "per_row_s": 0.12505852800000014,
+    "setup_s": 0.112216734,
+    "total_s": 0.303923943,
+    "work_s": 0.12505852800000014
+  },
+  "variant": "V2",
+  "version": 1,
+  "y_uniform": null
+}

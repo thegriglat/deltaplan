@@ -1,0 +1,10 @@
+C2 V3 -> 25 m: max_rel_div=1.021e0 work=0.099s 
+C2 V3 -> 25 m: max_rel_div=1.021e0 work=0.100s 
+C2 V3 -> 25 m: max_rel_div=1.021e0 work=0.100s 
+C2 V3 -> 25 m: max_rel_div=1.021e0 work=0.095s 
+C2 V3 -> 25 m: max_rel_div=1.021e0 work=0.101s 
+C2 V3 -> 25 m: max_rel_div=1.021e0 work=0.099s 
+C2 V3 -> 25 m: max_rel_div=1.021e0 work=0.099s 
+C2 V3 -> 25 m: max_rel_div=1.021e0 work=0.102s 
+C2 V3 -> 25 m: max_rel_div=1.021e0 work=0.099s 
+C2 V3 -> 25 m: max_rel_div=1.021e0 work=0.098s 
