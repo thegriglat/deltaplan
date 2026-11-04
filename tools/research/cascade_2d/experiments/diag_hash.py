@@ -1,4 +1,4 @@
-"""CSD-4, V3h (справочно): сохраняет ли хеш среднее поле (СКО среднего по сидам 1-3 минус V3, в ROI, / U_ref)
+"""CSD-4, V3h (справочно): сохраняет ли хеш среднее поле (СКО среднего по сидам 1-8 минус V3, в ROI, / U_ref)
 и σ_u, σ_w по сидам (m/s) на z_agl = 25, 100, 300 м из out/metrics. -> out/diag_hash.json"""
 import json, os, sys
 import numpy as np
@@ -11,8 +11,7 @@ for C in ["C0", "C1", "C2", "C3", "C4"]:
     rm, ra = io.read_f1(f"{DATA}/fields/{C}/picard_none_d25.json")
     xc0, L = M.case_xc_L(C); U = M.u_ref_value(rm, ra)
     us = []
-    for p in (f"{DATA}/fields/{C}/cascade_V3h_d25_from400.json", f"{DATA}/fields_seeds/s2/{C}/cascade_V3h_d25_from400.json",
-              f"{DATA}/fields_seeds/s3/{C}/cascade_V3h_d25_from400.json"):
+    for p in [f"{DATA}/fields/{C}/cascade_V3h_d25_from400.json"] + [f"{DATA}/fields_seeds/s{S}/{C}/cascade_V3h_d25_from400.json" for S in range(2, 9)]:
         m, a = io.read_f1(p); us.append(M.cell_vel(M.to_ref_grid(m, a, rm, ra)[1])[0:2])
     m, a = io.read_f1(f"{DATA}/fields/{C}/cascade_V3_d25_from400.json"); v3 = M.cell_vel(M.to_ref_grid(m, a, rm, ra)[1])
     xs, _ = M.centers(rm); zag = M.z_agl(rm, ra)

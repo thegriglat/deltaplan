@@ -3,30 +3,30 @@
     "levels": [
       {
         "dx": 200,
-        "max_rel_div": 6.630206061954079e-7
+        "max_rel_div": 6.482868149500516e-7
       },
       {
         "dx": 100,
-        "max_rel_div": 1.0209172081333102
+        "max_rel_div": 1.0027363226580233
       },
       {
         "dx": 50,
-        "max_rel_div": 0.6806114799468954
+        "max_rel_div": 0.6684909004348177
       },
       {
         "dx": 25,
-        "max_rel_div": 0.45374098663126367
+        "max_rel_div": 0.4456606189526808
       }
     ],
-    "max_rel_div": 1.0209172081333102,
-    "rms_rel_div": 0.007251724750083154
+    "max_rel_div": 1.0027363226580233,
+    "rms_rel_div": 0.007122583254578452
   },
   "case": "C2",
   "cmd": "/home/greg/worktrees/deltaplan/cascade-2d-CSD-4/tools/research/cascade_2d/cascade_rs/target/release/cascade descend --parent /home/greg/data/cascade_2d/fields/C2/picard_none_d400.json --case C2 --variant V3h --seed 1 --threads 1 --out-dir /home/greg/data/cascade_2d/fields/C2",
   "dx": 25,
   "field": "/home/greg/data/cascade_2d/fields/C2/cascade_V3h_d25_from400.json",
   "format": "cascade2d-run",
-  "git": "962b15ab0",
+  "git": "25edecd97",
   "host": {
     "cpu": "Intel(R) Xeon(R) CPU E5-2666 v3 @ 2.90GHz",
     "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
@@ -34,9 +34,9 @@
   "iters": null,
   "memory": {
     "arrays_mb": 4.93684,
-    "peak_rss_mb": 200.8671875
+    "peak_rss_mb": 201.01953125
   },
-  "notes": "geometry of each level from the geometry source (case middle row or synthetic); U_ref from the parent field (|u| at x=-4800 m, 100 m above ground), not from P25; rules: faces=137819 lost_flux_faces=1 wall_parent_open_sub=116 one_sub_closed=60 froude_clipped=5 heat_shifted=0 split_cells=0",
+  "notes": "geometry of each level from the geometry source (case middle row or synthetic); U_ref from the parent field (|u| at x=-4800 m, 100 m above ground), not from P25; rules: faces=137819 lost_flux_faces=1 wall_parent_open_sub=116 one_sub_closed=60 froude_clipped=12 heat_shifted=0 split_cells=0",
   "ny": 1,
   "parent_dx": 400,
   "query": null,
@@ -45,10 +45,10 @@
   "status": "ok",
   "threads": 1,
   "time": {
-    "per_row_s": 0.14728658,
-    "setup_s": 0.116888704,
-    "total_s": 0.27871254,
-    "work_s": 0.14728658
+    "per_row_s": 0.143132048,
+    "setup_s": 0.097348834,
+    "total_s": 0.25367342,
+    "work_s": 0.143132048
   },
   "variant": "V3h",
   "version": 1,

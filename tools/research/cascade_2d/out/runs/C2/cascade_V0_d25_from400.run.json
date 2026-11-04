@@ -26,7 +26,7 @@
   "dx": 25,
   "field": "/home/greg/data/cascade_2d/fields/C2/cascade_V0_d25_from400.json",
   "format": "cascade2d-run",
-  "git": "962b15ab0",
+  "git": "25edecd97",
   "host": {
     "cpu": "Intel(R) Xeon(R) CPU E5-2666 v3 @ 2.90GHz",
     "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
@@ -34,7 +34,7 @@
   "iters": null,
   "memory": {
     "arrays_mb": 4.93684,
-    "peak_rss_mb": 18.953125
+    "peak_rss_mb": 19.0
   },
   "notes": "geometry of the parent repeated on all levels (no terrain knowledge); U_ref from the parent field (|u| at x=-4800 m, 100 m above ground), not from P25; rules: faces=137819 lost_flux_faces=0 wall_parent_open_sub=0 one_sub_closed=0 froude_clipped=0 heat_shifted=0 split_cells=0",
   "ny": 1,
@@ -45,10 +45,10 @@
   "status": "ok",
   "threads": 1,
   "time": {
-    "per_row_s": 0.049243093,
-    "setup_s": 0.001596141,
-    "total_s": 0.077657821,
-    "work_s": 0.049243093
+    "per_row_s": 0.042556957,
+    "setup_s": 0.001534639,
+    "total_s": 0.061032773,
+    "work_s": 0.042556957
   },
   "variant": "V0",
   "version": 1,

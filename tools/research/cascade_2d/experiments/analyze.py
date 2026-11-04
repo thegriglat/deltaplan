@@ -40,7 +40,12 @@ for C in CASES:
                    parent_rel_div=par, P25_rel_div=P25["balance"]["max_rel_div"],
                    lost_flux=int(re.search(r"lost_flux_faces=(\d+)", rv["notes"]).group(1)),
                    wall_parent_open_sub=int(re.search(r"wall_parent_open_sub=(\d+)", rv["notes"]).group(1)))
-    d["K1"]["pass"] = d["K1"]["max_rel_div"] <= 1e-5
+    # добавка каскада к дивергенции родителя: rel_div уровня n минус унаследованная (rel_div родителя * dx_n/dx_родителя)
+    d["K1"]["added_per_level"] = {str(l["dx"]): max(0.0, l["max_rel_div"] - par * l["dx"] / 400.0) for l in lv}
+    d["K1"]["added_max"] = max(d["K1"]["added_per_level"].values())
+    # C3: родитель не двумерен (решение координатора 2026-11-04) - порог 1e-5 к добавке; остальные - к абсолютному значению
+    d["K1"]["rule"] = "добавка к родителю" if C == "C3" else "абсолютное"
+    d["K1"]["pass"] = (d["K1"]["added_max"] if C == "C3" else d["K1"]["max_rel_div"]) <= 1e-5
     # K3
     Tp = P25["time"]["per_row_s"]
     d["K3"] = dict(T_desc=T_desc, T_desc_all=tim, T_P25_row=Tp, ratio=T_desc / Tp, time_pass=T_desc <= 0.1 * Tp,
@@ -59,7 +64,8 @@ for C in CASES:
         cand.append(dict(k=k, T_row=Tk, E_u=Bk["E_u"], E_w=Bk["E_w"], cheaper_than_desc=Tk <= T_desc,
                          cheaper_than_P400_plus_desc=Tk <= T_desc + run(C, "picard_none_d400")["time"]["per_row_s"]))
     d["K4"] = dict(candidates=cand)
-    d["K4"]["pass"] = all(V["E_u"] < c["E_u"] for c in cand if c["cheaper_than_P400_plus_desc"])
+    d["K4"]["pass"] = all(V["E_u"] < c["E_u"] for c in cand if c["cheaper_than_desc"])  # по плану: T(P_k)/ny <= T_desc
+    d["K4"]["pass_with_P400_cost"] = all(V["E_u"] < c["E_u"] for c in cand if c["cheaper_than_P400_plus_desc"])
     # K5
     nanfree = True
     for f in glob.glob(f"{DATA}/fields/{C}/cascade_V3_d*_from*.json"):

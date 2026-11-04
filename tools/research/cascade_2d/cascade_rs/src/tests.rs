@@ -260,3 +260,22 @@ fn froude_clips_reverse_flow_and_z_split_never_opposes_parent() {
         }
     }
 }
+
+#[test]
+fn slope_at_a_wall_is_one_sided_not_zero() {
+    use crate::rules::Ctx;
+    let v = [0.0, 5.0, 6.0, 6.5, 6.7];
+    // lowest air face n = 1: face 0 is a wall; slope from faces 2, 3 (limited), no zero substituted.
+    let open = |m: i64| m >= 1 && m <= 4;
+    let s = Ctx::limited_slope(1, 5, &open, &|m| v[m]);
+    assert!((s - 0.5).abs() < 1e-12, "{s}"); // minmod(6-5, 6.5-6)
+    // top face n = 4 closed above: one-sided from faces 3, 4... here n = 3 with face 4 closed.
+    let open_top = |m: i64| (0..=3).contains(&m);
+    let t = Ctx::limited_slope(3, 5, &open_top, &|m| v[m]);
+    assert!((t - 0.5).abs() < 1e-12, "{t}"); // minmod(6.5-6, 6-5)
+    // isolated face: nothing to estimate from
+    assert_eq!(Ctx::limited_slope(2, 5, &|_| false, &|m| v[m]), 0.0);
+    // sign change on the interior side -> limiter gives 0
+    let w = [0.0, 1.0, 2.0, 1.5, 0.0];
+    assert_eq!(Ctx::limited_slope(1, 5, &|m| m >= 1, &|m| w[m]), 0.0 + 0.0 * 1.0);
+}

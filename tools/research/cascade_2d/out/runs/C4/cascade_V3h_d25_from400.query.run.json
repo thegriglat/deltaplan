@@ -3,11 +3,11 @@
     "levels": [
       {
         "dx": 200,
-        "max_rel_div": 9.466185613849908e-6
+        "max_rel_div": 9.431510941270965e-6
       },
       {
         "dx": 100,
-        "max_rel_div": 5.946706347172229e-6
+        "max_rel_div": 5.929369010892218e-6
       },
       {
         "dx": 50,
@@ -15,18 +15,18 @@
       },
       {
         "dx": 25,
-        "max_rel_div": 2.704624461195484e-6
+        "max_rel_div": 2.7046244610945674e-6
       }
     ],
-    "max_rel_div": 9.466185613849908e-6,
-    "rms_rel_div": 7.539523611780276e-7
+    "max_rel_div": 9.431510941270965e-6,
+    "rms_rel_div": 7.539515815493541e-7
   },
   "case": "C4",
-  "cmd": "/home/greg/worktrees/deltaplan/cascade-2d-CSD-4/tools/research/cascade_2d/cascade_rs/target/release/cascade query --parent /home/greg/data/cascade_2d/fields/C4/picard_none_d400.json --case C4 --variant V3h --seed 1 --points 5000 --out-dir /home/greg/data/cascade_2d/fields/C4 --runs-dir /home/greg/worktrees/deltaplan/cascade-2d-CSD-4/tools/research/cascade_2d/out/runs/C4",
+  "cmd": "/home/greg/worktrees/deltaplan/cascade-2d-CSD-4/tools/research/cascade_2d/cascade_rs/target/release/cascade query --parent /home/greg/data/cascade_2d/fields/C4/picard_none_d400.json --case C4 --variant V3h --seed 1 --points 10000 --out-dir /home/greg/data/cascade_2d/fields/C4 --runs-dir /home/greg/worktrees/deltaplan/cascade-2d-CSD-4/tools/research/cascade_2d/out/runs",
   "dx": 25,
   "field": "/home/greg/data/cascade_2d/fields/C4/cascade_V3h_d25_from400.json",
   "format": "cascade2d-run",
-  "git": "962b15ab0",
+  "git": "25edecd97",
   "host": {
     "cpu": "Intel(R) Xeon(R) CPU E5-2666 v3 @ 2.90GHz",
     "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
@@ -34,26 +34,26 @@
   "iters": null,
   "memory": {
     "arrays_mb": 4.93684,
-    "peak_rss_mb": 200.95703125
+    "peak_rss_mb": 200.71875
   },
-  "notes": "geometry of each level from the geometry source (case middle row or synthetic); U_ref from the parent field (|u| at x=-4800 m, 100 m above ground), not from P25; rules: faces=137819 lost_flux_faces=0 wall_parent_open_sub=324 one_sub_closed=90 froude_clipped=0 heat_shifted=0 split_cells=0; query cold 36.89 us/point, warm (shared cache) 11.33 us/point (0.0567 s in total), 5000 points; work_s = cold passes only, without the comparison with the full field and the warm pass",
+  "notes": "geometry of each level from the geometry source (case middle row or synthetic); U_ref from the parent field (|u| at x=-4800 m, 100 m above ground), not from P25; rules: faces=137819 lost_flux_faces=0 wall_parent_open_sub=324 one_sub_closed=90 froude_clipped=0 heat_shifted=0 split_cells=0; query cold 38.50 us/point, warm (shared cache) 8.69 us/point (0.0869 s in total), 10000 points; work_s = cold passes only, without the comparison with the full field and the warm pass",
   "ny": 1,
   "parent_dx": 400,
   "query": {
     "max_abs_diff_vs_full": 0.0,
-    "n_points": 5000,
+    "n_points": 10000,
     "threads": 1,
-    "us_per_point": 36.88700800000005
+    "us_per_point": 38.498803999999964
   },
   "seed": 1,
   "source": "cascade",
   "status": "ok",
   "threads": 1,
   "time": {
-    "per_row_s": 0.18443504000000024,
-    "setup_s": 0.103824506,
-    "total_s": 0.526902619,
-    "work_s": 0.18443504000000024
+    "per_row_s": 0.3849880399999996,
+    "setup_s": 0.097379683,
+    "total_s": 0.683228769,
+    "work_s": 0.3849880399999996
   },
   "variant": "V3h",
   "version": 1,

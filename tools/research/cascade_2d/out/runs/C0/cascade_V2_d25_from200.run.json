@@ -15,14 +15,14 @@
       }
     ],
     "max_rel_div": 0.00001561562053099988,
-    "rms_rel_div": 1.6077869288559049e-6
+    "rms_rel_div": 1.6077835838882756e-6
   },
   "case": "C0",
   "cmd": "/home/greg/worktrees/deltaplan/cascade-2d-CSD-4/tools/research/cascade_2d/cascade_rs/target/release/cascade descend --parent /home/greg/data/cascade_2d/fields_p200t/C0/picard_none_d200.json --case C0 --variant V2 --seed 1 --threads 1 --out-dir /home/greg/data/cascade_2d/fields/C0",
   "dx": 25,
   "field": "/home/greg/data/cascade_2d/fields/C0/cascade_V2_d25_from200.json",
   "format": "cascade2d-run",
-  "git": "962b15ab0",
+  "git": "25edecd97",
   "host": {
     "cpu": "Intel(R) Xeon(R) CPU E5-2666 v3 @ 2.90GHz",
     "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
@@ -41,10 +41,10 @@
   "status": "ok",
   "threads": 1,
   "time": {
-    "per_row_s": 0.049821834,
-    "setup_s": 0.109213254,
-    "total_s": 0.171435377,
-    "work_s": 0.049821834
+    "per_row_s": 0.063908433,
+    "setup_s": 0.120511912,
+    "total_s": 0.198399502,
+    "work_s": 0.063908433
   },
   "variant": "V2",
   "version": 1,

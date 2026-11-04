@@ -3,7 +3,7 @@
     "levels": [
       {
         "dx": 200,
-        "max_rel_div": 9.43151094125835e-6
+        "max_rel_div": 9.466185613843601e-6
       },
       {
         "dx": 100,
@@ -11,22 +11,22 @@
       },
       {
         "dx": 50,
-        "max_rel_div": 3.398117912698679e-6
+        "max_rel_div": 3.3981179125977625e-6
       },
       {
         "dx": 25,
         "max_rel_div": 2.704624461195484e-6
       }
     ],
-    "max_rel_div": 9.43151094125835e-6,
-    "rms_rel_div": 7.53987766149244e-7
+    "max_rel_div": 9.466185613843601e-6,
+    "rms_rel_div": 7.539761049287749e-7
   },
   "case": "C4",
   "cmd": "/home/greg/worktrees/deltaplan/cascade-2d-CSD-4/tools/research/cascade_2d/cascade_rs/target/release/cascade descend --parent /home/greg/data/cascade_2d/fields/C4/picard_none_d400.json --case C4 --variant V3 --seed 1 --threads 1 --out-dir /home/greg/data/cascade_2d/fields/C4",
   "dx": 25,
   "field": "/home/greg/data/cascade_2d/fields/C4/cascade_V3_d25_from400.json",
   "format": "cascade2d-run",
-  "git": "962b15ab0",
+  "git": "25edecd97",
   "host": {
     "cpu": "Intel(R) Xeon(R) CPU E5-2666 v3 @ 2.90GHz",
     "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
@@ -34,7 +34,7 @@
   "iters": null,
   "memory": {
     "arrays_mb": 4.93684,
-    "peak_rss_mb": 200.67578125
+    "peak_rss_mb": 200.7890625
   },
   "notes": "geometry of each level from the geometry source (case middle row or synthetic); U_ref from the parent field (|u| at x=-4800 m, 100 m above ground), not from P25; rules: faces=137819 lost_flux_faces=0 wall_parent_open_sub=324 one_sub_closed=90 froude_clipped=0 heat_shifted=0 split_cells=0",
   "ny": 1,
@@ -45,10 +45,10 @@
   "status": "ok",
   "threads": 1,
   "time": {
-    "per_row_s": 0.089390119,
-    "setup_s": 0.09733227,
-    "total_s": 0.197530883,
-    "work_s": 0.089390119
+    "per_row_s": 0.091488599,
+    "setup_s": 0.111038935,
+    "total_s": 0.21699686,
+    "work_s": 0.091488599
   },
   "variant": "V3",
   "version": 1,
