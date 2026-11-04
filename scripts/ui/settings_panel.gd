@@ -118,7 +118,8 @@ func _ready() -> void:
 	)
 	# число справа: множитель и ход до упора в см при 800 DPI (315 отсчётов/см), BM-К1
 	var bar_lbl: Label = _bar_sens.get_parent().get_child(1)
-	bar_lbl.custom_minimum_size.x = 210
+	bar_lbl.custom_minimum_size.x = 300
+	_bar_sens.tooltip_text = tr("settings_bar_direction_hint")
 	_bar_sens.value_changed.connect(
 		func(x: float) -> void:
 			var travel := float(Config.value("controls", "mouse.bar_travel_px", 4000.0))
@@ -127,6 +128,11 @@ func _ready() -> void:
 			else:
 				bar_lbl.text = "%.2f×" % x
 	)
+	var dir_hint := Label.new()
+	dir_hint.text = tr("settings_bar_direction_hint")
+	dir_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	dir_hint.modulate = Color(1, 1, 1, 0.7)
+	box_ctl.add_child(dir_hint)
 	if not _bar_cm_valid():
 		# Wayland/macOS: ввод с ускорением ОС, см неверны (BM-2) — вместо них подсказка
 		var hint := Label.new()
