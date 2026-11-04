@@ -11,18 +11,12 @@ extends RefCounted
 ## sport 0,95 за период вместо 0,80 по Ланчестеру, ζ ≈ 1/(√2·K)), большие размахи кончались
 ## срывом наверху и петлёй.
 ##
-## Темп руки (PD-К2 v10, PHD-К1 v2): цель руки от ввода (мышь, X, стик, боты) проходит фильтр первого порядка
-## с постоянной cmd_tau (arms.cmd_tau_s) перед пружиной-демпфером и прямой подачей — сила на штанге без ступени,
-## дрожь мыши 2–4 Гц гасится (docs/research/pilot-handling/feel.md). События отпускания читают сырой ввод.
-##
 ## Ввод: roll −1…1 → пилот поперёк на roll·shift_y_max (+ вправо); pitch +1 («от себя») → назад
 ## на shift_x_push, −1 («на себя») → вперёд на shift_x_pull, с добором (ControlInput.pull_full, VM-К3) —
 ## на shift_x_pull_full (штанга у бёдер). Вертикально — стропа, не руки.
 
 var force_max: float = 300.0
 var tau: float = 0.3
-## Постоянная времени фильтра цели руки, с; ≤ 0 — без фильтра.
-var cmd_tau: float = 0.0
 var ti: float = 0.0  ## ≤ 0 — без интегральной части
 var shift_y_max: float = 0.45
 var shift_x_pull: float = 0.45
@@ -30,7 +24,7 @@ var shift_x_push: float = 0.3
 ## Добор «на себя» до бёдер (VM-К3 v2, PD-К2 v8): ход при pull_full и скорость возврата предела, м, м/с.
 var shift_x_pull_full: float = 0.45
 var pull_full_release: float = 0.5
-## Отпускание по событию (VM-К7 v2, VM-К8, PD-К2 v10): руки отпускают пилота вдоль киля (f.x = 0) только при
+## Отпускание по событию (VM-К7 v2, VM-К8, PD-К2 v9): руки отпускают пилота вдоль киля (f.x = 0) только при
 ## возврате ввода к 0 после «на себя» (pitch ≤ −release_pull), в остальное время держат. Снова держат, как только
 ## ввод не 0 или пилот успокоился у нейтрали (амплитуда качания вдоль киля < release_settle_m один период маятника
 ## release_settle_periods·2π√(L/g)). Без этого пилот «держал изо всех сил» и после выхода из разгона с ≤ 1,8·Vтрим
@@ -64,19 +58,15 @@ var phi: float = 0.0
 var neutral_rel := Vector3.ZERO
 ## Сила рук на пилота в осях B, Н (последний расчёт).
 var force_b := Vector3.ZERO
-## Цель положения пилота относительно подвески в осях крыла от ввода, до фильтра темпа руки — последний расчёт (для разбора).
+## Цель положения пилота относительно подвески в осях крыла — последний расчёт (для разбора).
 var target_b := Vector3.ZERO
 var _int := Vector3.ZERO
-## Отфильтрованное смещение цели от нейтрали (x, y), м; _tf_ok — состояние задано (иначе берётся цель без переходного).
-var _tf := Vector3.ZERO
-var _tf_ok := false
 
 
 func setup(arms: Dictionary) -> void:
 	force_max = float(arms.force_max_n)
 	tau = float(arms.tau_s)
 	ti = float(arms.ti_s)
-	cmd_tau = float(arms.get("cmd_tau_s", 0.0))
 	shift_y_max = float(arms.shift_y_max_m)
 	shift_x_pull = float(arms.shift_x_pull_m)
 	shift_x_push = float(arms.shift_x_push_m)
@@ -119,7 +109,7 @@ func flare_push() -> float:
 ## Снимок и восстановление состояния закона рук (интеграл, отпускание, последний расчёт): пробные вызовы compute
 ## при поиске равновесия (TT-12) не должны менять состояние.
 func snapshot() -> Array:
-	return [_int, force_b, target_b, phi, _rel_armed, _rel_on, _rel_calm, _tf, _tf_ok]
+	return [_int, force_b, target_b, phi, _rel_armed, _rel_on, _rel_calm]
 
 
 func restore(s: Array) -> void:
@@ -130,13 +120,10 @@ func restore(s: Array) -> void:
 	_rel_armed = s[4]
 	_rel_on = s[5]
 	_rel_calm = s[6]
-	_tf = s[7]
-	_tf_ok = s[8]
 
 
 func reset() -> void:
 	_int = Vector3.ZERO
-	_tf_ok = false
 	force_b = Vector3.ZERO
 	pull_limit = shift_x_pull
 	_rel_armed = false
@@ -158,10 +145,10 @@ func update_pull_limit(pull_full: bool, dt: float) -> void:
 ## rel, vrel — положение и скорость пилота относительно подвески в осях крыла (B);
 ## m_pilot — масса пилота; h — шаг; relaxed — руки отпущены; force_y — заданное поперечное
 ## усилие (NAN — нет); load_b — кажущийся вес пилота в осях B (вес и сопротивление пилота минус
-## m·ускорение подвески), Н; filter — фильтровать цель (false: цель уже сглажена вызывающим, фильтр следует за ней); ext_b — вклад внешней силы (трос) в load_b, Н. → сила рук на пилота в осях B.
+## m·ускорение подвески), Н; ext_b — вклад внешней силы (трос) в load_b, Н. → сила рук на пилота в осях B.
 func compute(
 	rel: Vector3, vrel: Vector3, roll: float, pitch: float, m_pilot: float, h: float,
-	relaxed: bool, force_y: float, load_b: Vector3, ext_b := Vector3.ZERO, filter := true
+	relaxed: bool, force_y: float, load_b: Vector3, ext_b := Vector3.ZERO
 ) -> Vector3:
 	if relaxed:
 		reset()
@@ -172,19 +159,7 @@ func compute(
 	tgt.y += ry * shift_y_max
 	var push := lerpf(shift_x_push, flare_push(), flare_mix)
 	tgt.x += -px * (push if px > 0.0 else pull_limit)
-	target_b = tgt  # цель от ввода (для разбора и предела хода «на себя»), до фильтра
-	var off := tgt - neutral_rel
-	off.z = 0.0
-	if filter and cmd_tau > 0.0:
-		if _tf_ok:
-			_tf += (off - _tf) * (1.0 - exp(-h / cmd_tau))
-		else:
-			_tf = off  # первый вызов после сброса: цель без переходного
-		tgt = neutral_rel + _tf + Vector3(0.0, 0.0, tgt.z - neutral_rel.z)
-		_tf_ok = true
-	else:
-		_tf = off  # без фильтра цель не меняется (ни одного бита); состояние следует за ней
-		_tf_ok = true
+	target_b = tgt
 	var k := m_pilot / (tau * tau)
 	var d := 2.0 * m_pilot / tau
 	var e := tgt - rel

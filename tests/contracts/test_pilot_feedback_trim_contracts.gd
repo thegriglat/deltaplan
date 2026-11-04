@@ -26,7 +26,7 @@ func test_k1_controls() -> void:
 	approx(float(m.get("bar_sensitivity", -1.0)), 1.0, 1e-6, "mouse.bar_sensitivity = 1")
 	approx(float(m.get("bar_deadzone", -1.0)), 0.02, 1e-6, "mouse.bar_deadzone = 0.02")
 	approx(float(m.get("bar_return_to_center_per_s", -1.0)), 0.0, 1e-6, "mouse.bar_return_to_center_per_s = 0")
-	# ключ «в центр» клавиатуры удалён по PHD-К1 v2 (плавность X даёт темп руки arms.cmd_tau_s)
+	# ключ «в центр» клавиатуры удалён по PHD-К1 v2 (плавность X даёт темп руки игрока hand.tau_s)
 	var r: Variant = Config.get_config("ui").get("bar_sensitivity_range")
 	check(r is Array and r.size() == 2, "ui.bar_sensitivity_range — [min, max]")
 	if r is Array and r.size() == 2:

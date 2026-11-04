@@ -58,7 +58,6 @@ static func apply_arms(model_: PendulumModel, cfg: Dictionary) -> void:
 	model_.arms.shift_x_push = float(cart.arms_shift_push_m)
 	model_.arms.shift_x_pull = float(cart.arms_shift_pull_m)
 	model_.arms.shift_x_pull_full = float(cart.arms_shift_pull_m)
-	model_.arms.cmd_tau = 0.0  # темп руки — только дельтаплан, PHD-4; трайк и тележка — как в TKF/TT
 
 
 ## model уже настроен (setup с model_params); rig ставит ходы штанги. Внешнюю силу модели вешает владелец

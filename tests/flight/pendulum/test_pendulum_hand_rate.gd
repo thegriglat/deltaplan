@@ -1,11 +1,52 @@
 extends TestCase
-## Темп руки arms.cmd_tau_s (PD-К2 v10, PHD-К1 v2): цель руки от ввода проходит фильтр первого порядка —
-## (а) ступень roll не даёт ступени силы на штанге, (б) дрожь мыши 4 Гц гасится относительно 0,5 Гц,
-## (в) перекладка 45→45 укладывается в 5 с (DHV). Крылья training и sport, трим, штиль.
+## Темп руки игрока controls.hand.tau_s (PHD-К1 v3): итоговые roll и pitch игрока проходят фильтр первого порядка
+## в InputController — (а) ступень мыши и X без рывка, (б) дрожь мыши 4 Гц гасится относительно 0,5 Гц на модели,
+## (в) перекладка 45→45 укладывается в 5 с (DHV). Крылья training и sport, трим, штиль. Руки модели без фильтра.
 
 const S := preload("res://tests/flight/pendulum/pendulum_sim.gd")
 const WINGS := ["training", "sport"]
 const DT60 := 1.0 / 60.0
+
+
+func _ic() -> InputController:
+	var ic := InputController.new()
+	ic.reload_config()
+	ic.enabled = true
+	ic.on_ground = false
+	return ic
+
+
+## Смещение мыши (доли хода), дающее roll = r после мёртвой зоны.
+func _offset_for(r: float) -> float:
+	var dz := float(Config.get_config("controls").mouse.bar_deadzone)
+	return signf(r) * (absf(r) * (1.0 - dz) + dz) if r != 0.0 else 0.0
+
+
+func test_mouse_step_and_x() -> void:
+	var ic := _ic()
+	ic._mouse_offset = Vector2(_offset_for(0.3), 0.0)
+	var r1 := ic.update(DT60).roll
+	check(r1 <= 0.15 * 0.3, "ступень мыши 0 → 0,3: через кадр roll %.4f ≤ %.4f" % [r1, 0.15 * 0.3])
+	var r := r1
+	for i in 29:
+		r = ic.update(DT60).roll
+	check(r >= 0.95 * 0.3, "через 0,5 с roll %.4f ≥ %.4f" % [r, 0.95 * 0.3])
+	print("    ступень мыши 0,3: через 1/60 с %.4f, через 0,5 с %.4f" % [r1, r])
+	# X: нажатие обнуляет смещение мыши (_update_centering), цель сразу 0; сырой ввод 0 → фильтр уходит к 0
+	for i in 60:
+		ic.update(DT60)
+	ic._mouse_offset = Vector2.ZERO
+	var x1 := ic.update(DT60).roll
+	check(x1 >= 0.85 * 0.3, "X из 0,3: через кадр roll %.4f ≥ %.4f (без рывка)" % [x1, 0.85 * 0.3])
+	var x := x1
+	for i in 29:
+		x = ic.update(DT60).roll
+	check(x <= 0.05 * 0.3, "X: через 0,5 с roll %.4f ≤ %.4f" % [x, 0.05 * 0.3])
+	for i in 300:
+		x = ic.update(DT60).roll
+	check(x == 0.0, "сырой ввод 0 → ровно 0 (события «ввод вернулся к 0»): %s" % x)
+	print("    X из 0,3: через 1/60 с %.4f, через 0,5 с %.4f" % [x1, x])
+	ic.free()
 
 
 func _settled(w: String) -> PendulumModel:
@@ -17,44 +58,22 @@ func _settled(w: String) -> PendulumModel:
 	return m
 
 
-## Отношение силы рук поперёк через 1 кадр (1/60 с) к силе через 0,5 с после ступени roll 0 → 0,3.
-func _step_ratio(w: String, cmd_tau: float) -> Array[float]:
-	var m := _settled(w)
-	m.arms.cmd_tau = cmd_tau
-	var c := S.input(0.0, 0.3)
-	m.step(DT60, c, Callable(), Callable())
-	var f1 := absf(m.arms.force_b.y)
-	for i in 29:
-		m.step(DT60, c, Callable(), Callable())
-	return [f1, absf(m.arms.force_b.y)]
-
-
-func test_step_force_no_jump() -> void:
-	for w: String in WINGS:
-		var r := _step_ratio(w, 0.15)
-		var r0 := _step_ratio(w, 0.0)
-		check(r[1] > 1.0, "%s: сила рук через 0,5 с есть: %.1f Н" % [w, r[1]])
-		# фильтр τ 0,15 с за кадр доводит цель на 10,5 %, а пружина-демпфер плюс прямая подача дают ещё долю силы:
-		# граница 50 % (карточка требовала 25 % — недостижимо при τ 0,15, см. отчёт PHD-4); без фильтра ≈ 100 %
-		check(r[0] <= 0.5 * r[1], "%s: сила через кадр %.1f Н ≤ 50 %% силы через 0,5 с (%.1f Н)" % [w, r[0], r[1]])
-		check(r0[0] >= 0.9 * r0[1], "%s: без фильтра сила через кадр %.1f Н ≈ силе через 0,5 с (%.1f Н)" % [w, r0[0], r0[1]])
-		print("    %s: ступень roll 0,3: сила через 1/60 с %.1f Н, через 0,5 с %.1f Н (%.0f %%); без фильтра %.1f / %.1f Н" % [
-			w, r[0], r[1], 100.0 * r[0] / r[1], r0[0], r0[1]])
-
-
-## Амплитуда скорости крена от синуса roll ±amp на частоте f, рад/с: максимум |p| за ≥ 3 периода после 4 с.
+## Амплитуда скорости крена от синуса roll ±amp на частоте f через фильтр игрока: максимум |p| после 4 с.
 func _amp(w: String, f: float, amp: float) -> float:
 	var m := _settled(w)
+	var ic := _ic()
 	var c := S.input()
 	var t_end := 4.0 + maxf(3.0 / f, 2.0)
 	var mx := 0.0
-	var n := int(round(t_end / S.DT))
-	for i in n:
+	for i in int(round(t_end / S.DT)):
 		var t := (i + 1) * S.DT
-		c.roll = amp * sin(TAU * f * t)
+		ic.control.roll = amp * sin(TAU * f * t)
+		ic._apply_hand(S.DT)
+		c.roll = ic.control.roll
 		m.step(S.DT, c, Callable(), Callable())
 		if t > 4.0:
 			mx = maxf(mx, absf(m.roll_rate))
+	ic.free()
 	return mx
 
 
@@ -75,12 +94,17 @@ func test_reversal_45_within_5s() -> void:
 		for i in int(round(25.0 / S.DT)):
 			c.roll = hold.roll(m)
 			m.step(S.DT, c, Callable(), Callable())
-		c.roll = -1.0
+		var ic := _ic()
+		ic._hand = Vector2(c.roll, 0.0)
 		var t_rev := NAN
 		for i in int(round(15.0 / S.DT)):
+			ic.control.roll = -1.0
+			ic._apply_hand(S.DT)
+			c.roll = ic.control.roll
 			m.step(S.DT, c, Callable(), Callable())
 			if m.bank <= deg_to_rad(-45.0):
 				t_rev = (i + 1) * S.DT
 				break
+		ic.free()
 		check(not is_nan(t_rev) and t_rev <= 5.0, "%s: перекладка 45→45 за %.2f с ≤ 5,0 с" % [w, t_rev])
 		print("    %s: перекладка 45→45 %.2f с" % [w, t_rev])

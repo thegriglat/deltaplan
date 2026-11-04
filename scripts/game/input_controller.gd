@@ -46,6 +46,7 @@ var _cfg: Dictionary
 var _mouse_offset := Vector2.ZERO  # накопленное смещение мыши, доли полного хода
 var _bar_look_held := false  # правая кнопка зажата — мышь крутит голову, не трапецию
 var _center_down := false  # X нажата в прошлом шаге (фронт нажатия, в т.ч. короче шага физики)
+var _hand := Vector2.ZERO  # отфильтрованные roll, pitch (темп руки игрока, PHD-К1 v3)
 var _centering := false  # «в центр» (X): трапеция в нейтраль, крыло в горизонт
 
 
@@ -119,6 +120,7 @@ func reset() -> void:
 	on_ground = true
 	_centering = false
 	_mouse_offset = Vector2.ZERO
+	_hand = Vector2.ZERO
 	control = ControlInput.new()
 
 
@@ -132,6 +134,7 @@ func update(dt: float) -> ControlInput:
 		_toggle_down = false
 		control.pitch = 0.0
 		control.roll = 0.0
+		_hand = Vector2.ZERO
 		control.walk = 0.0
 		control.turn = 0.0
 		control.run = false
@@ -145,6 +148,7 @@ func update(dt: float) -> ControlInput:
 	else:
 		_update_air(dt)
 	_apply_gamepad()
+	_apply_hand(dt)
 	_apply_autopilot()
 	if vehicle == "trike":
 		control.run = false
@@ -157,6 +161,24 @@ func update(dt: float) -> ControlInput:
 	control.walk = clampf(control.walk, -1.0, 1.0)
 	control.turn = clampf(control.turn, -1.0, 1.0)
 	return control
+
+
+## Темп руки игрока (PHD-К1 v3, controls.json → hand.tau_s): итоговые roll и pitch от мыши, клавиатуры, X и стика
+## проходят фильтр первого порядка — дрожь мыши 2–4 Гц гасится, X без рывка. Дельталёт (vehicle trike), боты и
+## автопилот (он ставит команды после) без фильтра. Сырой 0 и |x_f| < 1e-3 — ровно 0 (события «ввод вернулся к 0»).
+func _apply_hand(dt: float) -> void:
+	var tau := float(_cfg.get("hand", {}).get("tau_s", 0.0))
+	if tau <= 0.0 or vehicle == "trike":
+		_hand = Vector2(control.roll, control.pitch)
+		return
+	var raw := Vector2(clampf(control.roll, -1.0, 1.0), clampf(control.pitch, -1.0, 1.0))
+	_hand += (raw - _hand) * (1.0 - exp(-dt / tau))
+	if raw.x == 0.0 and absf(_hand.x) < 1.0e-3:
+		_hand.x = 0.0
+	if raw.y == 0.0 and absf(_hand.y) < 1.0e-3:
+		_hand.y = 0.0
+	control.roll = _hand.x
+	control.pitch = _hand.y
 
 
 ## На земле (С2 v3). Стоя и шагом: W/S — шаг (walk), A/D — поворот на месте (turn). Разбег (зажат
