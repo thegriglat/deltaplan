@@ -74,3 +74,4 @@
 {"t": "2026-11-04T17:44:34", "by": "coordinator", "task": "PHD-4", "ev": "merged", "note": "после слияния: те же красные, что на main (PHD-5)"}
 {"t": "2026-11-04T17:44:36", "by": "coordinator", "task": "PHD-6", "ev": "accepted", "commits": ["5c16dc458"], "note": "4/4 verdicts=ok:ok; analyze_cwd=ok:exit 0; registry=ok:exit 0; docs=ok:ошибок 0"}
 {"t": "2026-11-04T17:44:36", "by": "coordinator", "task": "PHD-6", "ev": "merged"}
+{"t": "2026-11-04T17:44:54", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: report без поля checks с именами проверок карточки отклоняется сообщением «нет результатов проверок» — исполнитель понял это как отсутствие прогона accept; report status=done без commits не принимается для служебных задач (PHD-5); accept --dry в фоне без промежуточного вывода; docs index переписывает чужие реестры (contracts.md, research.md)"}
