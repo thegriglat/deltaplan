@@ -68,7 +68,8 @@ menu_controls,Управление,Controls
 settings_mouse_sensitivity,Обзор мышью,Mouse look
 settings_bar_sensitivity,Чувствительность штанги,Bar sensitivity
 settings_bar_os_accel,Ускорение мыши в системе меняет ход штанги — выключите его (плоский профиль) в настройках ОС,OS mouse acceleration changes bar travel — turn it off (flat profile) in system settings
-settings_bar_sensitivity_fmt,"%.2f×  ≈ %.1f см (800 DPI)","%.2f×  ≈ %.1f cm (800 DPI)"
+settings_bar_sensitivity_fmt,"%.2f×  ≈ %.1f см до упора (800 DPI)","%.2f×  ≈ %.1f cm to the stop (800 DPI)"
+settings_bar_direction_hint,"Ход мыши от центра до упора штанги. Вправо — резче (ход меньше), влево — плавнее (ход больше).","Mouse travel from centre to the bar stop. Right — snappier (shorter travel), left — smoother (longer travel)."
 map_hint,"Щёлкните по карте или введите координаты. Старт — в выбранной точке; точнее — «Выбрать старт на рельефе» в главном меню.","Click the map or enter coordinates. The launch is at the chosen point; for a precise spot use "Pick launch on terrain" in the main menu."
 unit_db,дБ,dB
 unit_kg,кг,kg
