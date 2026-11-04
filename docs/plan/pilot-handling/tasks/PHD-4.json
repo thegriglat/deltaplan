@@ -1,0 +1,99 @@
+{
+  "id": "PHD-4",
+  "module": "pilot-handling",
+  "type": "dp-engineer",
+  "title": "Темп руки arms.cmd_tau_s 0,15 с и удаление мёртвого keyboard.center_time_s (Q1 (а))",
+  "goal": "Цель руки пилота от ввода (мышь, X, стик, боты) проходит фильтр первого порядка τ = arms.cmd_tau_s 0,15 с перед сервоприводом рук — сила на штанге без ступени, дрожь мыши 2–4 Гц гасится; не действовавший keyboard.center_time_s удалён.",
+  "plan_ref": "§4 PHD-4",
+  "contracts": [
+    {
+      "name": "PHD-К1",
+      "version": "2",
+      "ref": "docs/contracts/pilot-handling.md"
+    },
+    {
+      "name": "PD-К2",
+      "version": "10",
+      "ref": "docs/contracts/pilot-handling.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/pilot-handling-PHD-4",
+  "branch": "pilot-handling/PHD-4",
+  "base": "feature/pilot-handling",
+  "scope": [
+    "configs/pendulum.json",
+    "configs/controls.json",
+    "scripts/flight/pendulum/pilot_arms.gd",
+    "scripts/flight/pendulum/pendulum_model.gd",
+    "scripts/game/input_controller.gd",
+    "tests/contracts/test_pendulum_contracts_k2.gd",
+    "tests/contracts/test_pendulum_contracts_k2_ground.gd",
+    "tests/contracts/test_pilot_feedback_trim_contracts.gd",
+    "tests/flight/pendulum/test_pendulum_release_event.gd",
+    "tests/flight/pendulum/test_pendulum_hand_rate.gd",
+    "tests/flight/pendulum/test_pendulum_hand_rate.gd.uid",
+    "docs/guide/flight/model.md",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "configs/wings",
+    "tools/flight/pendulum_params.py",
+    "configs/ui.json",
+    "rust",
+    "tests/flight/pendulum/reference.json",
+    "docs/contracts",
+    "scripts/flight/pendulum/strips.gd"
+  ],
+  "accept": [
+    {
+      "name": "pilot_handling_contracts",
+      "tests": "pilot_handling_contracts"
+    },
+    {
+      "name": "pilot_feedback_trim_contracts",
+      "tests": "pilot_feedback_trim_contracts"
+    },
+    {
+      "name": "pendulum",
+      "tests": "pendulum"
+    },
+    {
+      "name": "pilot_view",
+      "tests": "pilot_view"
+    },
+    {
+      "name": "bar_mouse",
+      "tests": "bar_mouse"
+    },
+    {
+      "name": "mouse_bar_flight",
+      "tests": "mouse_bar_flight"
+    },
+    {
+      "name": "ui_controls",
+      "tests": "ui_controls"
+    },
+    {
+      "name": "bots",
+      "tests": "bots"
+    },
+    {
+      "name": "trike",
+      "tests": "trike"
+    },
+    {
+      "name": "gd",
+      "cmd": "python3 tools/check_gd.py scripts/flight/pendulum/pilot_arms.gd scripts/flight/pendulum/pendulum_model.gd scripts/game/input_controller.gd tests/flight/pendulum/test_pendulum_hand_rate.gd",
+      "expect": "exit=0"
+    },
+    {
+      "name": "no_center_time",
+      "cmd": "git grep -nP '(?<![a-z_])center_time_s' -- configs scripts tests docs/guide ':!tests/contracts/test_pilot_handling_contracts.gd'",
+      "expect": "exit=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-04T15:40:16",
+  "edited": "2026-11-04T15:40:48"
+}
