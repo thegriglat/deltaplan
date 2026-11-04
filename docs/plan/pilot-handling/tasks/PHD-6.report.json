@@ -1,0 +1,49 @@
+{
+  "status": "done",
+  "summary": "Вердикты PHD-2/3 приведены к PHD-К2 v2 (lambda_1_s для крена/спирали, source linear/game/literature, unit — единицы, evidence про center_time_s); замечания ревью внесены в feel.md, lateral-x.md, analyze.py (пути от каталога скрипта), README; создан реестр findings/pilot-handling.md (7 выводов) со строкой-указателем; guide ползунка и темпа руки 0,15 с в menus-settings.md и cameras-input.md.",
+  "commits": [
+    "eb3f2f39a PHD-6: хвосты ревью PHD-2/3, реестр, guide"
+  ],
+  "checks": [
+    {
+      "name": "verdicts",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "analyze_cwd",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "registry",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept PHD-6",
+  "uncertain": [
+    {
+      "where": "tools/research/pilot-handling/out/PHD-3_verdict.json (modes, roll, source game)",
+      "why": "замер спада в игре дан как λ = 1/t63 (decay_t63 из summary.json): training 8,55, laminar 6,67, sport 6,33, ww_u2 7,04; в файлах отдельного числа λ нет, это простое пересчитывание экспоненты",
+      "checked": "sport 6,3 совпадает с указанным в задании"
+    },
+    {
+      "where": "docs/registry/findings/pilot-handling.md, последний пункт",
+      "why": "отчёта PHD-5 нет, источник — build/dpcli/PHD-5/main_vs_feature.md в основной копии (не в git); ссылка на feel.md условная",
+      "checked": "файл прочитан: 16 падений идентичны на main и feature"
+    }
+  ],
+  "dp_feedback": "docs index переписал docs/registry/contracts.md и research.md вне скоупа задачи — пришлось откатывать git checkout; было бы удобно иметь docs index --only INDEX.",
+  "extra": {},
+  "t": "2026-11-04T17:35:20",
+  "by": "executor"
+}
