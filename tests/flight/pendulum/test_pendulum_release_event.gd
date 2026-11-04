@@ -76,6 +76,9 @@ func test_deadzones_give_exact_zero() -> void:
 	var ic := InputController.new()
 	ic.reload_config()
 	ic.enabled = true
+	# темп руки проверяет test_pendulum_hand_rate, PHD-4: здесь только отображение ввода
+	ic._cfg = ic._cfg.duplicate(true)
+	ic._cfg.hand.tau_s = 0.0
 	var mdz := float(Config.get_config("controls").mouse.bar_deadzone)
 	ic._mouse_offset = Vector2(0.9 * mdz, -0.99 * mdz)
 	var c := ic.update(1.0e-4)

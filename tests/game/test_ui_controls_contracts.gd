@@ -284,6 +284,9 @@ func test_u1_v4_pull_full() -> void:
 		var en := tr(key)
 		check(ru != key and en != key and ru != en, "строка %s переведена (ru/en): %s / %s" % [key, ru, en])
 	var ic := _ic(false)
+	# темп руки проверяет test_pendulum_hand_rate, PHD-4: здесь только отображение ввода
+	ic._cfg = ic._cfg.duplicate(true)
+	ic._cfg.hand.tau_s = 0.0
 	# полёт: Shift — pull_full, отпустил — false; без Shift — false
 	ic.update(DT)
 	check(not ic.control.pull_full, "без Shift pull_full = false")
