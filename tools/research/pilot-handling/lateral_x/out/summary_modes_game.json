@@ -1,0 +1,134 @@
+[
+ {
+  "wing": "training",
+  "case": "D: толчок по рысканию 0,15 рад/с, штанга в нейтрали, из прямого полёта",
+  "mode": "dutch_roll",
+  "omega_rad_s": 1.943,
+  "zeta": 0.53,
+  "source": "game"
+ },
+ {
+  "wing": "training",
+  "case": "A: X из виража 30° (r, 8–20 с, полином 3-й ст. вычтен)",
+  "mode": "phugoid",
+  "omega_rad_s": 1.184,
+  "zeta": 0.049,
+  "source": "game"
+ },
+ {
+  "wing": "training",
+  "case": "C: руки отпущены в вираже 30° (угол стропы)",
+  "mode": "pilot_swing",
+  "omega_rad_s": 6.541,
+  "zeta": 0.149,
+  "source": "game"
+ },
+ {
+  "wing": "training",
+  "case": "A: X из виража 30°, ln|φ| на 1–8 с (λ, 1/с; ζ не определена → 0)",
+  "mode": "spiral",
+  "omega_rad_s": 0.0,
+  "zeta": 0.0,
+  "source": "game",
+  "lambda_1_s": -0.3359
+ },
+ {
+  "wing": "laminar",
+  "case": "D: толчок по рысканию 0,15 рад/с, штанга в нейтрали, из прямого полёта",
+  "mode": "dutch_roll",
+  "omega_rad_s": 2.231,
+  "zeta": 0.381,
+  "source": "game"
+ },
+ {
+  "wing": "laminar",
+  "case": "A: X из виража 30° (r, 8–20 с, полином 3-й ст. вычтен)",
+  "mode": "phugoid",
+  "omega_rad_s": 1.148,
+  "zeta": 0.018,
+  "source": "game"
+ },
+ {
+  "wing": "laminar",
+  "case": "C: руки отпущены в вираже 30° (угол стропы)",
+  "mode": "pilot_swing",
+  "omega_rad_s": 4.722,
+  "zeta": 0.187,
+  "source": "game"
+ },
+ {
+  "wing": "laminar",
+  "case": "A: X из виража 30°, ln|φ| на 1–8 с (λ, 1/с; ζ не определена → 0)",
+  "mode": "spiral",
+  "omega_rad_s": 0.0,
+  "zeta": 0.0,
+  "source": "game",
+  "lambda_1_s": 0.0614
+ },
+ {
+  "wing": "sport",
+  "case": "D: толчок по рысканию 0,15 рад/с, штанга в нейтрали, из прямого полёта",
+  "mode": "dutch_roll",
+  "omega_rad_s": 2.131,
+  "zeta": 0.369,
+  "source": "game"
+ },
+ {
+  "wing": "sport",
+  "case": "A: X из виража 30° (r, 8–20 с, полином 3-й ст. вычтен)",
+  "mode": "phugoid",
+  "omega_rad_s": 1.122,
+  "zeta": 0.053,
+  "source": "game"
+ },
+ {
+  "wing": "sport",
+  "case": "C: руки отпущены в вираже 30° (угол стропы)",
+  "mode": "pilot_swing",
+  "omega_rad_s": 4.347,
+  "zeta": 0.234,
+  "source": "game"
+ },
+ {
+  "wing": "sport",
+  "case": "A: X из виража 30°, ln|φ| на 1–8 с (λ, 1/с; ζ не определена → 0)",
+  "mode": "spiral",
+  "omega_rad_s": 0.0,
+  "zeta": 0.0,
+  "source": "game",
+  "lambda_1_s": 0.0427
+ },
+ {
+  "wing": "icaro_mastr",
+  "case": "D: толчок по рысканию 0,15 рад/с, штанга в нейтрали, из прямого полёта",
+  "mode": "dutch_roll",
+  "omega_rad_s": 2.154,
+  "zeta": 0.383,
+  "source": "game"
+ },
+ {
+  "wing": "icaro_mastr",
+  "case": "A: X из виража 30° (r, 8–20 с, полином 3-й ст. вычтен)",
+  "mode": "phugoid",
+  "omega_rad_s": 1.135,
+  "zeta": 0.024,
+  "source": "game"
+ },
+ {
+  "wing": "icaro_mastr",
+  "case": "C: руки отпущены в вираже 30° (угол стропы)",
+  "mode": "pilot_swing",
+  "omega_rad_s": 5.155,
+  "zeta": 0.191,
+  "source": "game"
+ },
+ {
+  "wing": "icaro_mastr",
+  "case": "A: X из виража 30°, ln|φ| на 1–8 с (λ, 1/с; ζ не определена → 0)",
+  "mode": "spiral",
+  "omega_rad_s": 0.0,
+  "zeta": 0.0,
+  "source": "game",
+  "lambda_1_s": 0.0758
+ }
+]

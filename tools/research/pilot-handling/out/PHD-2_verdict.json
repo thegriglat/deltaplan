@@ -1,0 +1,341 @@
+{
+ "task": "PHD-2",
+ "items": [
+  {
+   "item": 3,
+   "verdict": "none",
+   "cause": "Раскачка после X — не боковая мода и не следствие ступени X: после X из виража колеблется фугоида (ω 1,1–1,2 рад/с, ζ 0,02–0,05, амплитуда β 0,3–0,9°), голландский шаг (2,0–2,2; ζ 0,4–0,5) X не возбуждает, ступень/рампа 0,5–2 с/экспонента 0,2 с дают один конечный крен (±0,3°). Руки отпущены качают в 3–6 раз сильнее. Отдельно: спираль laminar/sport/mastr неустойчива (λ +0,04…+0,08 1/с).",
+   "evidence": [
+    {
+     "what": "наибольшее |β| быстрой составляющей после X из виража 30° (training/laminar/sport/mastr), ступень",
+     "value": 0.71,
+     "unit": "градус (training; остальные 0,30–0,48)",
+     "ref": "docs/research/pilot-handling/lateral-x.md#Результаты (игра)"
+    },
+    {
+     "what": "то же, руки отпущены (laminar/sport/mastr)",
+     "value": 1.98,
+     "unit": "градус (1,85–1,98)",
+     "ref": "docs/research/pilot-handling/lateral-x.md#Результаты (игра)"
+    },
+    {
+     "what": "частота колебания r, β после X (sport) совпадает с фугоидой V (1,12 рад/с, ζ 0,05)",
+     "value": 1.03,
+     "unit": "рад/с",
+     "ref": "docs/research/pilot-handling/lateral-x.md#Какая это мода"
+    },
+    {
+     "what": "голландский шаг без X (толчок по рысканию), sport",
+     "value": 2.13,
+     "unit": "рад/с",
+     "ref": "docs/research/pilot-handling/lateral-x.md#Какая это мода"
+    },
+    {
+     "what": "разброс конечного крена между ступенью и рампой 2 с",
+     "value": 0.3,
+     "unit": "градус",
+     "ref": "docs/research/pilot-handling/lateral-x.md#Ответ на вопросы карточки"
+    },
+    {
+     "what": "спираль после X из 30°, sport",
+     "value": 0.043,
+     "unit": "1/с (>0 — расходится)",
+     "ref": "docs/research/pilot-handling/lateral-x.md#Какая это мода"
+    },
+    {
+     "what": "ГШ sport при Cnp +0,057 в прототипе",
+     "value": 1.24,
+     "unit": "рад/с",
+     "ref": "docs/research/pilot-handling/lateral-x.md#Версия (б): чувствительность к Cnp в прототипе"
+    }
+   ],
+   "proposal": []
+  }
+ ],
+ "modes": [
+  {
+   "wing": "training",
+   "case": "D: толчок по рысканию 0,15 рад/с, штанга в нейтрали, из прямого полёта",
+   "mode": "dutch_roll",
+   "omega_rad_s": 1.943,
+   "zeta": 0.53,
+   "source": "game"
+  },
+  {
+   "wing": "training",
+   "case": "A: X из виража 30° (r, 8–20 с, полином 3-й ст. вычтен)",
+   "mode": "phugoid",
+   "omega_rad_s": 1.184,
+   "zeta": 0.049,
+   "source": "game"
+  },
+  {
+   "wing": "training",
+   "case": "C: руки отпущены в вираже 30° (угол стропы)",
+   "mode": "pilot_swing",
+   "omega_rad_s": 6.541,
+   "zeta": 0.149,
+   "source": "game"
+  },
+  {
+   "wing": "training",
+   "case": "A: X из виража 30°, ln|φ| на 1–8 с (λ, 1/с; ζ не определена → 0)",
+   "mode": "spiral",
+   "omega_rad_s": 0.0,
+   "zeta": 0.0,
+   "source": "game",
+   "lambda_1_s": -0.3359
+  },
+  {
+   "wing": "laminar",
+   "case": "D: толчок по рысканию 0,15 рад/с, штанга в нейтрали, из прямого полёта",
+   "mode": "dutch_roll",
+   "omega_rad_s": 2.231,
+   "zeta": 0.381,
+   "source": "game"
+  },
+  {
+   "wing": "laminar",
+   "case": "A: X из виража 30° (r, 8–20 с, полином 3-й ст. вычтен)",
+   "mode": "phugoid",
+   "omega_rad_s": 1.148,
+   "zeta": 0.018,
+   "source": "game"
+  },
+  {
+   "wing": "laminar",
+   "case": "C: руки отпущены в вираже 30° (угол стропы)",
+   "mode": "pilot_swing",
+   "omega_rad_s": 4.722,
+   "zeta": 0.187,
+   "source": "game"
+  },
+  {
+   "wing": "laminar",
+   "case": "A: X из виража 30°, ln|φ| на 1–8 с (λ, 1/с; ζ не определена → 0)",
+   "mode": "spiral",
+   "omega_rad_s": 0.0,
+   "zeta": 0.0,
+   "source": "game",
+   "lambda_1_s": 0.0614
+  },
+  {
+   "wing": "sport",
+   "case": "D: толчок по рысканию 0,15 рад/с, штанга в нейтрали, из прямого полёта",
+   "mode": "dutch_roll",
+   "omega_rad_s": 2.131,
+   "zeta": 0.369,
+   "source": "game"
+  },
+  {
+   "wing": "sport",
+   "case": "A: X из виража 30° (r, 8–20 с, полином 3-й ст. вычтен)",
+   "mode": "phugoid",
+   "omega_rad_s": 1.122,
+   "zeta": 0.053,
+   "source": "game"
+  },
+  {
+   "wing": "sport",
+   "case": "C: руки отпущены в вираже 30° (угол стропы)",
+   "mode": "pilot_swing",
+   "omega_rad_s": 4.347,
+   "zeta": 0.234,
+   "source": "game"
+  },
+  {
+   "wing": "sport",
+   "case": "A: X из виража 30°, ln|φ| на 1–8 с (λ, 1/с; ζ не определена → 0)",
+   "mode": "spiral",
+   "omega_rad_s": 0.0,
+   "zeta": 0.0,
+   "source": "game",
+   "lambda_1_s": 0.0427
+  },
+  {
+   "wing": "icaro_mastr",
+   "case": "D: толчок по рысканию 0,15 рад/с, штанга в нейтрали, из прямого полёта",
+   "mode": "dutch_roll",
+   "omega_rad_s": 2.154,
+   "zeta": 0.383,
+   "source": "game"
+  },
+  {
+   "wing": "icaro_mastr",
+   "case": "A: X из виража 30° (r, 8–20 с, полином 3-й ст. вычтен)",
+   "mode": "phugoid",
+   "omega_rad_s": 1.135,
+   "zeta": 0.024,
+   "source": "game"
+  },
+  {
+   "wing": "icaro_mastr",
+   "case": "C: руки отпущены в вираже 30° (угол стропы)",
+   "mode": "pilot_swing",
+   "omega_rad_s": 5.155,
+   "zeta": 0.191,
+   "source": "game"
+  },
+  {
+   "wing": "icaro_mastr",
+   "case": "A: X из виража 30°, ln|φ| на 1–8 с (λ, 1/с; ζ не определена → 0)",
+   "mode": "spiral",
+   "omega_rad_s": 0.0,
+   "zeta": 0.0,
+   "source": "game",
+   "lambda_1_s": 0.0758
+  },
+  {
+   "wing": "training",
+   "case": "Cnp=+0.000 (cnp0): толчок по рысканию, прототип",
+   "mode": "dutch_roll",
+   "omega_rad_s": 1.541,
+   "zeta": 0.493,
+   "source": "proto"
+  },
+  {
+   "wing": "training",
+   "case": "Cnp=-0.035 (base): толчок по рысканию, прототип",
+   "mode": "dutch_roll",
+   "omega_rad_s": 2.011,
+   "zeta": 0.526,
+   "source": "proto"
+  },
+  {
+   "wing": "training",
+   "case": "Cnp=+0.057 (cook_p057): толчок по рысканию, прототип",
+   "mode": "dutch_roll",
+   "omega_rad_s": 0.985,
+   "zeta": 0.076,
+   "source": "proto"
+  },
+  {
+   "wing": "training",
+   "case": "Cnp=-0.068 (kochi_m068): толчок по рысканию, прототип",
+   "mode": "dutch_roll",
+   "omega_rad_s": 2.468,
+   "zeta": 0.52,
+   "source": "proto"
+  },
+  {
+   "wing": "laminar",
+   "case": "Cnp=-0.000 (cnp0): толчок по рысканию, прототип",
+   "mode": "dutch_roll",
+   "omega_rad_s": 1.855,
+   "zeta": 0.378,
+   "source": "proto"
+  },
+  {
+   "wing": "laminar",
+   "case": "Cnp=-0.035 (base): толчок по рысканию, прототип",
+   "mode": "dutch_roll",
+   "omega_rad_s": 2.088,
+   "zeta": 0.394,
+   "source": "proto"
+  },
+  {
+   "wing": "laminar",
+   "case": "Cnp=+0.057 (cook_p057): толчок по рысканию, прототип",
+   "mode": "dutch_roll",
+   "omega_rad_s": 1.449,
+   "zeta": 0.352,
+   "source": "proto"
+  },
+  {
+   "wing": "laminar",
+   "case": "Cnp=-0.068 (kochi_m068): толчок по рысканию, прототип",
+   "mode": "dutch_roll",
+   "omega_rad_s": 2.395,
+   "zeta": 0.41,
+   "source": "proto"
+  },
+  {
+   "wing": "sport",
+   "case": "Cnp=-0.049 (base): толчок по рысканию, прототип",
+   "mode": "dutch_roll",
+   "omega_rad_s": 1.979,
+   "zeta": 0.41,
+   "source": "proto"
+  },
+  {
+   "wing": "sport",
+   "case": "Cnp=+0.000 (cnp0): толчок по рысканию, прототип",
+   "mode": "dutch_roll",
+   "omega_rad_s": 1.601,
+   "zeta": 0.376,
+   "source": "proto"
+  },
+  {
+   "wing": "sport",
+   "case": "Cnp=+0.057 (cook_p057): толчок по рысканию, прототип",
+   "mode": "dutch_roll",
+   "omega_rad_s": 1.235,
+   "zeta": 0.338,
+   "source": "proto"
+  },
+  {
+   "wing": "sport",
+   "case": "Cnp=-0.068 (kochi_m068): толчок по рысканию, прототип",
+   "mode": "dutch_roll",
+   "omega_rad_s": 2.13,
+   "zeta": 0.411,
+   "source": "proto"
+  },
+  {
+   "wing": "training",
+   "case": "линейная 5-сост. модель, производные игры (связанные оси)",
+   "mode": "dutch_roll",
+   "omega_rad_s": 2.045,
+   "zeta": 0.502,
+   "source": "linear"
+  },
+  {
+   "wing": "training",
+   "case": "линейная модель: производные Kochi 2020 (оси устойчивости), инерции крыла",
+   "mode": "dutch_roll",
+   "omega_rad_s": 0.85,
+   "zeta": 0.331,
+   "source": "linear"
+  },
+  {
+   "wing": "laminar",
+   "case": "линейная 5-сост. модель, производные игры (связанные оси)",
+   "mode": "dutch_roll",
+   "omega_rad_s": 2.09,
+   "zeta": 0.399,
+   "source": "linear"
+  },
+  {
+   "wing": "laminar",
+   "case": "линейная модель: производные Kochi 2020 (оси устойчивости), инерции крыла",
+   "mode": "dutch_roll",
+   "omega_rad_s": 0.853,
+   "zeta": 0.289,
+   "source": "linear"
+  },
+  {
+   "wing": "sport",
+   "case": "линейная 5-сост. модель, производные игры (связанные оси)",
+   "mode": "dutch_roll",
+   "omega_rad_s": 1.921,
+   "zeta": 0.363,
+   "source": "linear"
+  },
+  {
+   "wing": "sport",
+   "case": "линейная модель: производные Kochi 2020 (оси устойчивости), инерции крыла",
+   "mode": "dutch_roll",
+   "omega_rad_s": 0.854,
+   "zeta": 0.26,
+   "source": "linear"
+  },
+  {
+   "wing": "Hiway Demon",
+   "case": "Cook & Spottiswoode 2005 / arXiv:2108.02393",
+   "mode": "dutch_roll",
+   "omega_rad_s": 0.92,
+   "zeta": 0.29,
+   "source": "literature"
+  }
+ ]
+}

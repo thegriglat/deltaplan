@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://tools/research/pilot-handling/lateral_x/lateral_batch.gd" id="1"]
+
+[node name="LateralBatch" type="Node"]
+script = ExtResource("1")
