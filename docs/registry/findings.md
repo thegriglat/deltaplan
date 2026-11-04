@@ -188,6 +188,10 @@ related: ["docs/archive/README.md"]
 
 - [pilot-feedback-trim.md](/docs/registry/findings/pilot-feedback-trim.md).
 
+## pilot-handling
+
+- [pilot-handling.md](/docs/registry/findings/pilot-handling.md).
+
 ## trike-fix
 
 - [trike-fix.md](/docs/registry/findings/trike-fix.md).

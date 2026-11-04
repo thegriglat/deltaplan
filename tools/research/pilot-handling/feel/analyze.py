@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """PHD-3: сводка feel.json + cmdlp.json -> summary.json, таблицы в stdout."""
-import json, math
-d = json.load(open('feel.json')); lp = json.load(open('cmdlp.json'))
+import json, math, os
+HERE = os.path.dirname(os.path.abspath(__file__))  # пути от каталога скрипта, не от cwd
+d = json.load(open(os.path.join(HERE, 'feel.json'))); lp = json.load(open(os.path.join(HERE, 'cmdlp.json')))
 W = ['training', 'laminar', 'sport', 'ww_u2']
 out = {}
 for w in W:
@@ -24,7 +25,7 @@ for w in W:
                   lam_roll=lam_sys2, decay_t63=dv['decay_t63_s'], swing_T=T, swing_zeta=zeta, swing_half_ratio=half,
                   izz_with_body=ine['izz_system_pilot_body_28'])
     print(w, {k: round(v, 3) for k, v in out[w].items()})
-json.dump(out, open('summary.json', 'w'), ensure_ascii=False, indent=1)
+json.dump(out, open(os.path.join(HERE, 'summary.json'), 'w'), ensure_ascii=False, indent=1)
 for w in ['training','laminar','sport']:
     print(w)
     for t, v in lp[w]['cmdlp'].items(): print('  ', t, {k.replace('_p_amp_dps', ''): round(x, 2) for k, x in v.items()})
