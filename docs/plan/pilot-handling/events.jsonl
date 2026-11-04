@@ -72,3 +72,5 @@
 {"t": "2026-11-04T17:35:34", "by": "coordinator", "task": "PHD-6", "ev": "accepted", "note": "по отчёту"}
 {"t": "2026-11-04T17:44:23", "by": "coordinator", "task": "PHD-4", "ev": "checked", "commits": ["5ecfa7d"], "note": "7/12 pilot_handling_contracts=ok:4/4; pilot_feedback_trim_contracts=ok:3/3; pendulum=FAIL:119/120 (пропуск 1); FAIL tes…; pilot_view=FAIL:3/7; FAIL test_pv1_sign_by_de…; bar_mouse=FAIL:6/11; FAIL test_travel_and_ha…; mouse_bar_flight=FAIL:1/4; FAIL test_bar_mouse_in_a…; ui_controls=ok:9/9; bots=ok:13/13; trike=FAIL:116/119 (пропуск 1); FAIL tes…; no_center_time=ok:exit 1; gd=ok:exit 0; base_untouched=ok:exit 0"}
 {"t": "2026-11-04T17:44:34", "by": "coordinator", "task": "PHD-4", "ev": "merged", "note": "после слияния: те же красные, что на main (PHD-5)"}
+{"t": "2026-11-04T17:44:36", "by": "coordinator", "task": "PHD-6", "ev": "accepted", "commits": ["5c16dc458"], "note": "4/4 verdicts=ok:ok; analyze_cwd=ok:exit 0; registry=ok:exit 0; docs=ok:ошибок 0"}
+{"t": "2026-11-04T17:44:36", "by": "coordinator", "task": "PHD-6", "ev": "merged"}
