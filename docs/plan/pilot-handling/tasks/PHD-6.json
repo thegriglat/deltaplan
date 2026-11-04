@@ -1,0 +1,69 @@
+{
+  "id": "PHD-6",
+  "module": "pilot-handling",
+  "type": "dp-writer",
+  "title": "Хвосты ревью PHD-2/3 (PHD-К2 v2), выводы модуля в реестр, guide ползунка",
+  "goal": "Итоги PHD-2/3 приведены к PHD-К2 v2 и замечаниям ревью, выводы модуля (PHD-1…5) — в реестре находок, guide описывает новую подпись ползунка и темп руки игрока.",
+  "plan_ref": "§4 PHD-6",
+  "contracts": [
+    {
+      "name": "PHD-К2",
+      "version": "2",
+      "ref": "docs/contracts/pilot-handling.md"
+    },
+    {
+      "name": "PHD-К1",
+      "version": "3",
+      "ref": "docs/contracts/pilot-handling.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/pilot-handling-PHD-6",
+  "branch": "pilot-handling/PHD-6",
+  "base": "feature/pilot-handling",
+  "scope": [
+    "tools/research/pilot-handling/out/PHD-2_verdict.json",
+    "tools/research/pilot-handling/out/PHD-3_verdict.json",
+    "tools/research/pilot-handling/feel/analyze.py",
+    "tools/research/pilot-handling/feel/README.md",
+    "docs/research/pilot-handling/lateral-x.md",
+    "docs/research/pilot-handling/feel.md",
+    "docs/registry/findings/pilot-handling.md",
+    "docs/registry/findings.md",
+    "docs/INDEX.md",
+    "docs/guide/game/menus-settings.md",
+    "docs/guide/game/cameras-input.md",
+    "tools/research/pilot-handling/feel/summary.json"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "tests",
+    "docs/contracts",
+    "docs/guide/flight/model.md"
+  ],
+  "accept": [
+    {
+      "name": "verdicts",
+      "cmd": "python3 tools/research/pilot-handling/check_verdicts.py",
+      "expect": "re:^ok"
+    },
+    {
+      "name": "analyze_cwd",
+      "cmd": "cd /tmp && python3 \"$OLDPWD/tools/research/pilot-handling/feel/analyze.py\" >/dev/null",
+      "expect": "exit=0"
+    },
+    {
+      "name": "registry",
+      "cmd": "test -s docs/registry/findings/pilot-handling.md && grep -q 'findings/pilot-handling.md' docs/registry/findings.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-04T17:32:03"
+}
