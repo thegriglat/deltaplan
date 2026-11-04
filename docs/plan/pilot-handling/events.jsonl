@@ -13,3 +13,7 @@
 {"t": "2026-11-04T06:59:01", "by": "coordinator", "task": "PHD-1", "ev": "started"}
 {"t": "2026-11-04T06:59:02", "by": "coordinator", "task": "PHD-2", "ev": "started"}
 {"t": "2026-11-04T06:59:02", "by": "coordinator", "task": "PHD-3", "ev": "started"}
+{"t": "2026-11-04T07:01:34", "by": "executor", "task": "PHD-1", "ev": "reported", "commits": ["b320f9117"], "note": "done: Подпись ползунка: «×N ≈ X см до упора (800 DPI)» плюс подсказка направления (вправо — резче, меньше ход; влево — плавне…"}
+{"t": "2026-11-04T07:01:57", "by": "coordinator", "task": "PHD-1", "ev": "checked", "note": "5/5 pilot_handling_contracts=ok:3/3; settings_bar_label=ok:1/1; control_bar_settings=ok:3/3; settings_tabs=ok:1/1; gd=ok:exit 0; scope=FAIL:вне scope: r-PHD-1.json"}
+{"t": "2026-11-04T07:02:21", "by": "coordinator", "task": "PHD-1", "ev": "checked", "note": "5/5 pilot_handling_contracts=ok:3/3; settings_bar_label=ok:1/1; control_bar_settings=ok:3/3; settings_tabs=ok:1/1; gd=ok:exit 0"}
+{"t": "2026-11-04T07:02:32", "by": "coordinator", "task": "PHD-1", "ev": "accepted", "note": "по отчёту"}

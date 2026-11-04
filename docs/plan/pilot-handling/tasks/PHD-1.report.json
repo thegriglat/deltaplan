@@ -1,0 +1,48 @@
+{
+  "status": "done",
+  "summary": "Подпись ползунка: «×N ≈ X см до упора (800 DPI)» плюс подсказка направления (вправо — резче, меньше ход; влево — плавнее) отдельной строкой и тултипом. Ход и диапазон не менялись.",
+  "commits": [
+    "b320f9117 PHD-1: подпись ползунка «Чувствительность штанги» — ход до упора и направление"
+  ],
+  "checks": [
+    {
+      "name": "pilot_handling_contracts",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "settings_bar_label",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "control_bar_settings",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "settings_tabs",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept PHD-1",
+  "uncertain": [
+    {
+      "where": "scripts/ui/settings_panel.gd:~118",
+      "why": "ширина метки 300 px и перенос строки подсказки не проверены визуально",
+      "checked": "только headless-тесты; на Wayland/macOS (нет см) подсказка направления показывается вместе с подсказкой про ускорение ОС"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-11-04T07:01:34",
+  "by": "executor"
+}
