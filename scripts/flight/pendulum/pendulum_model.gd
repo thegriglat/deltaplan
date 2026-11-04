@@ -753,7 +753,7 @@ func _wheel_solve_tilt(h: float, acc: Vector3, ext_p: Vector3, ext_h: Vector3, v
 		var snap: Array = arms.snapshot()
 		var rel := Vector3(sin(a), 0.0, cos(a)) * (_hang_len + _wh_stretch)
 		var vrel := Vector3(cos(a), 0.0, -sin(a)) * ((_hang_len + _wh_stretch) * rate[0])  # пилот относительно подвески (вращение крыла сокращается)
-		var fb := arms.compute(rel, vrel, 0.0, _wh_pitch, pilot_mass, h, false, NAN, load_b, ext_b)
+		var fb := arms.compute(rel, vrel, 0.0, _wh_pitch, pilot_mass, h, false, NAN, load_b, ext_b, false)
 		if not commit[0]:
 			arms.restore(snap)
 		var hat: Vector3 = R * Vector3(sin(a), 0.0, cos(a))
@@ -1473,7 +1473,7 @@ func _substep(h: float, input: ControlInput) -> void:
 			pitch_arms = _wh_pitch
 			_wh_shape = absf(input.pitch - _wh_pitch) > 0.003
 		fb = arms.compute(
-			rel, vrel, input.roll, pitch_arms, pilot_mass, h, arms_relaxed, hands_force_y, load_b, ext_b
+			rel, vrel, input.roll, pitch_arms, pilot_mass, h, arms_relaxed, hands_force_y, load_b, ext_b, not _wh_shape
 		)
 		_hands_p = R * fb
 	if fb != Vector3.ZERO:

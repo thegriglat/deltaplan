@@ -1,5 +1,5 @@
 extends TestCase
-## Отпускание рук по событию (docs/contracts/pullin-speed.md VM-К7 v2, PD-К2 v9, VM-К8): руки отпускают пилота вдоль киля
+## Отпускание рук по событию (docs/contracts/pullin-speed.md VM-К7 v2, PD-К2 v10, VM-К8): руки отпускают пилота вдоль киля
 ## только при возврате ввода к 0 после «на себя»; в остальное время держат. Мёртвая зона мыши и стика даёт ровно pitch = 0.
 
 const S := preload("res://tests/flight/pendulum/pendulum_sim.gd")
@@ -52,9 +52,14 @@ func test_event_settles() -> void:
 	for i in n - 10:
 		released = released and _fx(a, rest, 0.0) == 0.0
 	check(released, "спокоен меньше периода (%.2f с): ещё отпущено" % T)
-	for i in 20:
-		_fx(a, rest, 0.0)
-	check(absf(_fx(a, rest, 0.0)) > 10.0, "спокоен период: руки снова держат")
+	# цель руки после «на себя» сходит к нейтрали с темпом arms.cmd_tau_s (PD-К2 v10): спокойствие отсчитывается с
+	# момента, когда ошибка до отфильтрованной цели < release_settle_m (≈ 5·τ = 0,75 с), руки берут штангу чуть позже
+	var held := false
+	for i in int(0.8 / H):
+		if absf(_fx(a, rest, 0.0)) > 10.0:
+			held = true
+			break
+	check(held, "спокоен период: руки снова держат")
 	# качание больше 5 см сбрасывает счётчик
 	var b := _arms(true)
 	_fx(b, rest, -1.0)

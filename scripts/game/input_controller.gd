@@ -209,17 +209,13 @@ func _roll_sign() -> float:
 ## Трапеция (нос и крен) от мыши. Одна и та же на земле и в полёте; «в центр» (X) — только в полёте
 ## (allow_center).
 func _update_bar(dt: float, allow_center: bool) -> void:
-	var kb: Dictionary = _cfg.keyboard
 	var inv := -1.0 if bool(_cfg.invert_pitch) else 1.0
 	if allow_center:
 		_update_centering()
 	else:
 		_centering = false
-	var c_tau := maxf(float(kb.center_time_s), 0.01)
 	var ret := float(_cfg.mouse.bar_return_to_center_per_s)
-	if _centering:
-		_mouse_offset *= exp(-dt / c_tau)
-	elif ret > 0.0:
+	if not _centering and ret > 0.0:
 		_mouse_offset = _mouse_offset.move_toward(Vector2.ZERO, ret * dt)
 	var dz := float(_cfg.mouse.bar_deadzone)
 	var m_roll := MouseBar.apply_deadzone(_mouse_offset.x, dz) * _roll_sign()
