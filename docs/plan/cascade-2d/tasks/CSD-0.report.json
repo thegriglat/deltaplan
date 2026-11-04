@@ -1,0 +1,46 @@
+{
+  "status": "done",
+  "summary": "Контрактная проверка F1/F2/M1 (check_contract.py, cascade2d_io.py с read/write_f1, read_f2, div2d, rel_div), тест на синтетике, обёртка py с venv (uv), requirements.txt, README-заготовка.",
+  "commits": [
+    "d8d63fde7 CSD-0: контрактная проверка F1/F2/M1, обёртка py с venv, README-заготовка"
+  ],
+  "checks": [
+    {
+      "name": "contract_test",
+      "value": "exit 0, ~50 проверок",
+      "pass": true
+    },
+    {
+      "name": "validator_cli",
+      "value": "selftest: ok",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept CSD-0",
+  "uncertain": [
+    {
+      "where": "contract/cascade2d_io.py: validate_f2, validate_m1",
+      "why": "Контракт допускает не всё однозначно: query у каскада принят и как null (опрос не делался), E_ref проверяется только как объект, F1 z0 жёстко -dz, F2 picard ny>=4, каскад ny=1, sigma_* только у V3h. Это моё прочтение.",
+      "checked": "сверено с текстом F0/F1/F2/M1; при расхождении с практикой CSD-1..3 уточнять контракт через координатора"
+    },
+    {
+      "where": "contract/check_contract.py",
+      "why": "В каталоге файл с чужим format молча пропускается (но cascade2d-* с неизвестным именем — FAIL); явно названный файл с неизвестным format — FAIL.",
+      "checked": "тест"
+    }
+  ],
+  "dp_feedback": "",
+  "extra": {
+    "venv": "~/.cache/cascade_2d/venv (numpy 2.5, scipy, matplotlib, h5py)"
+  },
+  "t": "2026-11-04T07:12:47",
+  "by": "executor"
+}

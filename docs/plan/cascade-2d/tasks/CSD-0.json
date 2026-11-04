@@ -1,0 +1,66 @@
+{
+  "id": "CSD-0",
+  "module": "cascade-2d",
+  "type": "dp-engineer",
+  "title": "Контрактная проверка F1/F2/M1, обёртка venv, заготовка README",
+  "goal": "Есть исполняемая проверка форматов F1, F2, M1 (контракт cascade-2d) с тестом на синтетике, чтение/запись F1 на Python и обёртка py с venv; все задачи модуля проверяют свои выходы ею.",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "F0",
+      "version": "1",
+      "ref": "docs/contracts/cascade-2d.md"
+    },
+    {
+      "name": "F1",
+      "version": "1",
+      "ref": "docs/contracts/cascade-2d.md"
+    },
+    {
+      "name": "F2",
+      "version": "1",
+      "ref": "docs/contracts/cascade-2d.md"
+    },
+    {
+      "name": "M1",
+      "version": "1",
+      "ref": "docs/contracts/cascade-2d.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/cascade-2d-CSD-0",
+  "branch": "cascade-2d/CSD-0",
+  "base": "feature/cascade-2d",
+  "scope": [
+    "tools/research/cascade_2d/contract/",
+    "tools/research/cascade_2d/py",
+    "tools/research/cascade_2d/requirements.txt",
+    "tools/research/cascade_2d/README.md"
+  ],
+  "dont_touch": [
+    "rust/",
+    "scripts/",
+    "docs/contracts/",
+    "tools/research/air3d/"
+  ],
+  "accept": [
+    {
+      "name": "contract_test",
+      "cmd": "tools/research/cascade_2d/py tools/research/cascade_2d/contract/test_contract.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "validator_cli",
+      "cmd": "tools/research/cascade_2d/py tools/research/cascade_2d/contract/check_contract.py --selftest",
+      "expect": "re:selftest: ok"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-04T07:10:27",
+  "edited": "2026-11-04T07:10:42"
+}
