@@ -17,3 +17,7 @@
 {"t": "2026-11-04T07:01:57", "by": "coordinator", "task": "PHD-1", "ev": "checked", "note": "5/5 pilot_handling_contracts=ok:3/3; settings_bar_label=ok:1/1; control_bar_settings=ok:3/3; settings_tabs=ok:1/1; gd=ok:exit 0; scope=FAIL:вне scope: r-PHD-1.json"}
 {"t": "2026-11-04T07:02:21", "by": "coordinator", "task": "PHD-1", "ev": "checked", "note": "5/5 pilot_handling_contracts=ok:3/3; settings_bar_label=ok:1/1; control_bar_settings=ok:3/3; settings_tabs=ok:1/1; gd=ok:exit 0"}
 {"t": "2026-11-04T07:02:32", "by": "coordinator", "task": "PHD-1", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-11-04T07:02:38", "by": "coordinator", "task": "PHD-1", "ev": "checked", "commits": ["8f9e61584"], "note": "4/5 pilot_handling_contracts=ok:3/3; settings_bar_label=FAIL:0/1; FAIL test_label_and_hint; control_bar_settings=ok:3/3; settings_tabs=ok:1/1; gd=ok:exit 0"}
+{"t": "2026-11-04T07:02:39", "by": "coordinator", "task": "PHD-1", "ev": "merged"}
+{"t": "2026-11-04T07:02:51", "by": "coordinator", "task": "PHD-1", "ev": "checked", "commits": ["8f9e615"], "note": "4/5 pilot_handling_contracts=ok:3/3; settings_bar_label=FAIL:0/1; FAIL test_label_and_hint; control_bar_settings=ok:3/3; settings_tabs=ok:1/1; gd=ok:exit 0"}
+{"t": "2026-11-04T07:03:12", "by": "coordinator", "task": "PHD-1", "ev": "accepted", "commits": ["8f9e615"], "note": "5/5 pilot_handling_contracts=ok:3/3; settings_bar_label=ok:1/1; control_bar_settings=ok:3/3; settings_tabs=ok:1/1; gd=ok:exit 0"}
