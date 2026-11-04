@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-11-02"
+updated: "2026-11-04"
 summary: "Точка входа: модули docs/ по подпроектам, прочие документы по типам."
 related: []
 generated: true
@@ -109,6 +109,12 @@ generated: true
   - [tools/research/rust_wind_t1_ref/README.md](../tools/research/rust_wind_t1_ref/README.md) — RW-6u: эталон training_island/landing_hill, перепечатанный CPU-путём фаз (f64) на c591b1026; сравнение с крейтом по классам W8 v2
   - [tools/research/rust_wind_t1_stability/README.md](../tools/research/rust_wind_t1_stability/README.md) — RW-6z: команды воспроизведения опыта устойчивости открытых полей T1 (варианты CHUNK и возмущения), определения R и классов клеток
   - [tools/research/rust_wind/summary.md](../tools/research/rust_wind/summary.md) — RW-6a вывод: в крейте нет сборщика случая, грубого старта, заморозки и фаз; окна переносить последним отключаемым хвостом
+- **cascade-2d** — Исследование: работает ли каскад без состояния (деление граней с балансом массы) против Пикара на мелкой сетке; критерии до опытов. [closed 2026-11-04] — [план](plan/cascade-2d.md) · [контракты](contracts/cascade-2d.md) · [решения](plan/cascade-2d/decisions.md) · [сводка](plan/cascade-2d/summary.md) · полный журнал: `archive/cascade-2d`
+  - [docs/registry/findings/cascade-2d.md](registry/findings/cascade-2d.md) — Выводы cascade-2d: каскад 400→25 м проигрывает интерполяции P400 по точности, дёшев по времени; вердикт «не имеет смысла».
+  - [tools/research/cascade_2d/README.md](../tools/research/cascade_2d/README.md) — cascade-2d: каскад 400→25 м против Пикара 25 м на квази-2D разрезе — вердикт «не имеет смысла»; механизм, числа, воспроизведение [closed]
+  - [tools/research/cascade_2d/cascade_rs/README.md](../tools/research/cascade_2d/cascade_rs/README.md) — cascade_rs: каскад 400 → 25 м делением граней, V0–V3 и V3h, баланс массы точный; всё поле и опрос точки совпадают побитно
+  - [tools/research/cascade_2d/cases/README.md](../tools/research/cascade_2d/cases/README.md) — cascade-2d CSD-1: квази-2D случаи R1 C0–C4 (400…25 м), решения picard_rs, F1/F2, сходимость эталона по сетке.
+  - [tools/research/cascade_2d/metrics/README.md](../tools/research/cascade_2d/metrics/README.md) — Метрики M1 (E_u, E_w, dS, r_w, L_rec, баланс, термик, σ), базовые линии B_k и картинки поле-против-эталона для cascade-2d.
 
 ## flight
 

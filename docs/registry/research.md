@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-11-02"
+updated: "2026-11-04"
 summary: "Исследования: вывод, данные, где применено."
 related: []
 generated: true
@@ -229,6 +229,10 @@ generated: true
 - [tools/research/ann2/README.md](../../tools/research/ann2/README.md) — ann2 лучше P2 на 6–10 %, относительная ошибка ≈ 0,22 при цели 0,10–0,15; предел — постановка или объём данных, не архитектура и не шум цели (docs/archive/rejected/ann2.md §0) (data: out/ (таблицы, метрики, логи); прогоны $AIR_NN_DATA/ann2 удалены 05.10; applied_in: нигде (в игре — сеть P2))
 - [tools/research/b2/README.md](../../tools/research/b2/README.md) — Б2: α и λ в игре — профиль притока по устойчивости, пересчёт эталонов и цена — Записка — docs/archive/plan/air-model-b2.md. (data: tools/research/b2/)
 - [tools/research/basebar_curve/README.md](../../tools/research/basebar_curve/README.md) — Форма штанги подтверждена руководствами/страницами производителей (speedbar стандарт у Falcon, Eagle, Sting 3, Aeros Target/Combat; прямая у Alpha, Spectrum, F2, советских). Числа выноса bow_m в откр… (data: tools/research/basebar_curve/basebar_data.json; applied_in: PV-5)
+- [tools/research/cascade_2d/README.md](../../tools/research/cascade_2d/README.md) — Каскад без состояния (деление граней + баланс массы, V3) от P400 даёт E_u 0,22–0,31 против 0,09–0,18 у линейной интерполяции P400 (нужно ≤ 0,7 от неё): K2, K4, K1 не выполнены; спуск 0,1 с (10⁻³…10⁻⁴… (data: tools/research/cascade_2d/out/; поля F1 и случаи — $CASCADE2D_DATA (~/data/casc…)
+- [tools/research/cascade_2d/cascade_rs/README.md](../../tools/research/cascade_2d/cascade_rs/README.md) — cascade_rs: каскад 400 → 25 м делением граней, V0–V3 и V3h, баланс массы точный; всё поле и опрос точки совпадают побитно
+- [tools/research/cascade_2d/cases/README.md](../../tools/research/cascade_2d/cases/README.md) — cascade-2d CSD-1: квази-2D случаи R1 C0–C4 (400…25 м), решения picard_rs, F1/F2, сходимость эталона по сетке.
+- [tools/research/cascade_2d/metrics/README.md](../../tools/research/cascade_2d/metrics/README.md) — Метрики M1 (E_u, E_w, dS, r_w, L_rec, баланс, термик, σ), базовые линии B_k и картинки поле-против-эталона для cascade-2d.
 - [tools/research/cases/README.md](../../tools/research/cases/README.md) — Perdigão: модель не воспроизводит отрыв за двойной грядой (L/D 0,20–0,40 против 0,50 в данных) — граница модели; см. реестр выводов. (data: tools/research/cases/ и tools/research/data/; applied_in: совместная калибровка (tools/research/tune), контракт C10)
 - [tools/research/cases/b1/README.md](../../tools/research/cases/b1/README.md) — Б1: совместная калибровка Askervein + Perdigão (C10 v2): 765 прогонов, подгонка, проверка у лучшей точки, регрессия А2 (data: tools/research/cases/b1/)
 - [tools/research/cases/perdigao/README.md](../../tools/research/cases/perdigao/README.md) — Случай Perdigão (А4) для калибровки: модуль C10 v2 (dx 30 м, область 6 км, NE и SW), пробный прогон А4 — история (data: tools/research/cases/perdigao/)
