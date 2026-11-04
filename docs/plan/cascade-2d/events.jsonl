@@ -71,3 +71,4 @@
 {"t": "2026-11-04T09:07:11", "by": "coordinator", "task": "CSD-4", "ev": "merged"}
 {"t": "2026-11-04T09:07:22", "by": "coordinator", "task": null, "ev": "plan", "note": "план Задачи: дописано 1 стр."}
 {"t": "2026-11-04T09:07:29", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: lock cpu возвращает сразу (нужен --wait с кодом возврата и выводом); слот lock cpu молча ставит CPUQuota=100% — многопоточные замеры под ним искажены, стоит показывать квоту явно; job stop не убивает дочерний процесс под lock; исполнители оставляют r-<ID>.json в копии — accept падает по scope (report мог бы удалять/класть вне копии)"}
+{"t": "2026-11-04T15:40:39", "by": "main", "task": null, "ev": "delivered", "commits": ["5e9f231a1"], "note": "squash в main: 5e9f231a1"}
