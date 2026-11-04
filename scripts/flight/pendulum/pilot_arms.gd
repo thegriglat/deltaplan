@@ -172,15 +172,19 @@ func compute(
 	tgt.y += ry * shift_y_max
 	var push := lerpf(shift_x_push, flare_push(), flare_mix)
 	tgt.x += -px * (push if px > 0.0 else pull_limit)
+	target_b = tgt  # цель от ввода (для разбора и предела хода «на себя»), до фильтра
 	var off := tgt - neutral_rel
 	off.z = 0.0
-	if filter and cmd_tau > 0.0 and _tf_ok:
-		_tf += (off - _tf) * (1.0 - exp(-h / cmd_tau))
+	if filter and cmd_tau > 0.0:
+		if _tf_ok:
+			_tf += (off - _tf) * (1.0 - exp(-h / cmd_tau))
+		else:
+			_tf = off  # первый вызов после сброса: цель без переходного
+		tgt = neutral_rel + _tf + Vector3(0.0, 0.0, tgt.z - neutral_rel.z)
+		_tf_ok = true
 	else:
-		_tf = off  # без фильтра или первый вызов после сброса: цель без переходного
-	_tf_ok = true
-	target_b = tgt  # цель от ввода (для разбора и предела хода «на себя»), до фильтра
-	tgt = neutral_rel + _tf + Vector3(0.0, 0.0, tgt.z - neutral_rel.z)
+		_tf = off  # без фильтра цель не меняется (ни одного бита); состояние следует за ней
+		_tf_ok = true
 	var k := m_pilot / (tau * tau)
 	var d := 2.0 * m_pilot / tau
 	var e := tgt - rel

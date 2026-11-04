@@ -375,6 +375,7 @@ func setup(
 		_stop_c = float(st.damping_nms_rad)
 	if apparatus_cfg.has("arms_force_max_n"):
 		arms.force_max = float(apparatus_cfg.arms_force_max_n)  # TT-К3: предел рук для массы тележки
+		arms.cmd_tau = 0.0  # темп руки — только дельтаплан, PHD-4; трайк и тележка — как в TKF/TT
 	# земля: ноги, хват за стойки, точки касания крыла
 	var gc: Dictionary = pendulum.ground
 	ground.setup(gc, pilot, flight, wing, pilot_mass, _m_wing)

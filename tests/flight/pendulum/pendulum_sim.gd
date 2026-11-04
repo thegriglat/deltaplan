@@ -95,6 +95,7 @@ static func finite(m: PendulumModel) -> bool:
 
 ## Регулятор пилота-испытателя (как BankHold прототипа): ПИД по крену → положение поперёк.
 class BankHold:
+	const HAND_LEAD_S := 0.15
 	var target: float
 	var kp: float
 	var kd: float
@@ -104,7 +105,7 @@ class BankHold:
 	func _init(target_: float, kp_: float, kd_: float, ki_: float) -> void:
 		target = target_
 		kp = kp_
-		kd = kd_
+		kd = kd_ + HAND_LEAD_S * kp_  # опережение на темп руки arms.cmd_tau_s (PHD-4): рука запаздывает на τ, пилот ведёт крен с упреждением
 		ki = ki_
 
 	func roll(m: PendulumModel) -> float:
