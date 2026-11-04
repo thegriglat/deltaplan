@@ -1,0 +1,31 @@
+{
+  "id": "PHD-5",
+  "module": "pilot-handling",
+  "type": "dp-mechanic",
+  "title": "Сверка падений с main: окружение или регрессия модуля",
+  "goal": "Те же фильтры тестов прогнать на main и на feature/pilot-handling в одинаковом окружении и таблицей показать, какие падения есть на main (окружение/старые), а какие — только в ветке модуля.",
+  "plan_ref": "§4 PHD-5",
+  "contracts": [],
+  "copy": "~/worktrees/deltaplan/pilot-handling-PHD-5",
+  "branch": "pilot-handling/PHD-5",
+  "base": "feature/pilot-handling",
+  "scope": [
+    "build/dpcli/PHD-5"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "tests",
+    "docs"
+  ],
+  "accept": [
+    {
+      "name": "table",
+      "cmd": "test -s /home/greg/deltaplan/build/dpcli/PHD-5/main_vs_feature.md",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-04T16:50:46"
+}
