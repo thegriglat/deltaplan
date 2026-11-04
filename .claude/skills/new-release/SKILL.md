@@ -73,7 +73,7 @@ Known issues:
 - macOS не собирать и не заливать молча: расширение dp-air под macOS не собирается, Mac-пользователи остаются на последней GPU-версии. Спросить пользователя; по умолчанию канал `mac` на itch не трогать.
 - `tools/build.sh linux --release` и `tools/build.sh windows --release` (нужен дисплей: Shader Baker запекает шейдеры только при экспорте с окном; без дисплея — предупреждение и сборка без запекания). Проверить вывод: «готово: build/linux/…», «готово: build/windows/…»; рядом с бинарником — библиотека dp_air (`libdp_air_release.so` / `dp_air_release.dll`).
 - `data/build_info.json` → коммит без `+` (иначе была незакоммиченная правка — вернуться к шагу 0).
-- Smoke Linux: `XDG_DATA_HOME=$(mktemp -d) build/linux/deltaplan.x86_64 --headless -- --smoke | grep smoke` — все крылья из configs/wings, 4 места, `terrain data=true`, `about … ok=true`, «300 шагов … фаза flying».
+- Smoke Linux — с прогретым кэшем ветра: у smoke сторож 90 с, а первый расчёт ветра Онгудая ≈ 280 с (не регрессия). Сначала `P=$(mktemp -d); XDG_DATA_HOME=$P timeout 400 build/linux/deltaplan.x86_64 --headless -- --autostart --autopilot | grep -E "READY|game:"` (дождаться `READY`), затем `XDG_DATA_HOME=$P build/linux/deltaplan.x86_64 --headless -- --smoke | grep smoke` — все крылья из configs/wings, 4 места, `terrain data=true`, `about … ok=true`, «300 шагов … фаза flying».
 - Каталоги (zip не делаются, butler заливает каталоги): `find build/windows -not -path "*/configs/*"` — только `deltaplan.exe` + `deltaplan.pck` + `dp_air_release.dll` (нет `*.console.exe`, временных файлов); то же для `build/linux` (`deltaplan.x86_64`, `deltaplan.pck`, `libdp_air_release.so`).
 
 ## 6. Тег
