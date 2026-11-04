@@ -144,6 +144,9 @@ def test_nesting_baselines_and_thermal():
     m, a = build(25, flow_u, tw, None, case="C3")
     w_max, f_up = M.thermal(m, a, 0.0, 500.0)
     assert 1.5 < w_max <= 2.0 and f_up > 0, (w_max, f_up)
+    pk = lambda x, z: 3.0 * np.exp(-(x / 300.0) ** 2) * np.exp(-((z - 600.0) / 100.0) ** 2)
+    m2, a2 = build(25, flow_u, pk, None, case="C3")
+    assert abs(M.thermal(m2, a2, 0.0, 500.0)[0] - 3.0) < 0.05, M.thermal(m2, a2, 0.0, 500.0)
     met = M.compute_metrics(m, a, m, a, 0.0, 500.0, 5.0, "C3")
     assert met["w_max"] == met["w_max_ref"] and met["F_up"] == met["F_up_ref"]
     met1 = M.compute_metrics(m, a, m, a, 0.0, 500.0, 5.0, "C1")

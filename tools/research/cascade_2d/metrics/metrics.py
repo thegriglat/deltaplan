@@ -184,11 +184,11 @@ def l_rec(meta, arr, xc, L):
 
 
 def thermal(meta, arr, xc, L):
-    """(w_max в ROI, F_up = Σ max(w,0)·dx на z = z_i/2 по |x − xc| ≤ 3L)."""
+    """(w_max по столбу |x − xc| ≤ 3L на всех высотах воздуха до z = 2000 м, F_up = Σ max(w,0)·dx на z = z_i/2 по |x − xc| ≤ 3L)."""
     _, wcell = cell_vel(arr)
-    roi, _, _ = _regions(meta, arr, xc, L)
-    wmax = float(wcell[roi].max()) if roi.any() else None
-    xs, _ = centers(meta)
+    xs, zc = centers(meta)
+    col = (np.abs(xs - xc) <= 3 * L)[None, :] & (arr["cell"] > 0.5) & (zc[:, None] <= 2000.0)
+    wmax = float(wcell[col].max()) if col.any() else None
     zf = _faces_z(meta)
     zq = Z_I_C3 / 2
     t = (zq - zf[0]) / meta["dz"]
