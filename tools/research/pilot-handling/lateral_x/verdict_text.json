@@ -1,0 +1,52 @@
+{
+ "item3": {
+  "item": 3,
+  "verdict": "none",
+  "cause": "Раскачка после X — не боковая мода и не следствие ступени X: после X из виража колеблется фугоида (ω 1,1–1,2 рад/с, ζ 0,02–0,05, амплитуда β 0,3–0,9°), голландский шаг (2,0–2,2; ζ 0,4–0,5) X не возбуждает, ступень/рампа 0,5–2 с/экспонента 0,2 с дают один конечный крен (±0,3°). Руки отпущены качают в 3–6 раз сильнее. Отдельно: спираль laminar/sport/mastr неустойчива (λ +0,04…+0,08 1/с).",
+  "evidence": [
+   {
+    "what": "наибольшее |β| быстрой составляющей после X из виража 30° (training/laminar/sport/mastr), ступень",
+    "value": 0.71,
+    "unit": "градус (training; остальные 0,30–0,48)",
+    "ref": "docs/research/pilot-handling/lateral-x.md#Результаты (игра)"
+   },
+   {
+    "what": "то же, руки отпущены (laminar/sport/mastr)",
+    "value": 1.98,
+    "unit": "градус (1,85–1,98)",
+    "ref": "docs/research/pilot-handling/lateral-x.md#Результаты (игра)"
+   },
+   {
+    "what": "частота колебания r, β после X (sport) совпадает с фугоидой V (1,12 рад/с, ζ 0,05)",
+    "value": 1.03,
+    "unit": "рад/с",
+    "ref": "docs/research/pilot-handling/lateral-x.md#Какая это мода"
+   },
+   {
+    "what": "голландский шаг без X (толчок по рысканию), sport",
+    "value": 2.13,
+    "unit": "рад/с",
+    "ref": "docs/research/pilot-handling/lateral-x.md#Какая это мода"
+   },
+   {
+    "what": "разброс конечного крена между ступенью и рампой 2 с",
+    "value": 0.3,
+    "unit": "градус",
+    "ref": "docs/research/pilot-handling/lateral-x.md#Ответ на вопросы карточки"
+   },
+   {
+    "what": "спираль после X из 30°, sport",
+    "value": 0.043,
+    "unit": "1/с (>0 — расходится)",
+    "ref": "docs/research/pilot-handling/lateral-x.md#Какая это мода"
+   },
+   {
+    "what": "ГШ sport при Cnp +0,057 в прототипе",
+    "value": 1.24,
+    "unit": "рад/с",
+    "ref": "docs/research/pilot-handling/lateral-x.md#Версия (б): чувствительность к Cnp в прототипе"
+   }
+  ],
+  "proposal": []
+ }
+}

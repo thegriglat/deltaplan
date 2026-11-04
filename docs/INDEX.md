@@ -184,6 +184,13 @@ generated: true
   - [tools/research/trike-fix/README.md](../tools/research/trike-fix/README.md) — Инструмент TKF-1 и TKF-2 (control_*): замер углов тележки к крылу дельталёта игрока (TKF-К1 v1), кадры «до»; воспроизведение
   - [tools/research/trike-fix/strut/README.md](../tools/research/trike-fix/strut/README.md) — TKF-9: воспроизведение замера и расчёта штанги у подкоса
   - [tools/research/trike-fix/strut/summary.md](../tools/research/trike-fix/strut/summary.md) — TKF-9: вывод - знак z у ЦМ тележки, упор -10,87 град
+- **pilot-handling** — Отзыв пилота (до 1.7.1): подпись чувствительности, «надувной» отклик, голландский шаг после X — что закрыто PFT, что осталось. [closed 2026-11-04] — [план](plan/pilot-handling.md) · [контракты](contracts/pilot-handling.md) · [решения](plan/pilot-handling/decisions.md) · [сводка](plan/pilot-handling/summary.md) · полный журнал: `archive/pilot-handling`
+  - [docs/registry/findings/pilot-handling.md](registry/findings/pilot-handling.md) — Выводы pilot-handling: «надувной» отклик — ввод, раскачка после X — фугоида, спираль — класс, темп руки 0,15 с.
+  - [docs/research/pilot-handling/feel.md](research/pilot-handling/feel.md) — Инерции и демпфирование не меньше литературных; «надувность» — ввод (1 мм = 13–20 % хода при ×4, 3200 DPI) и мгновенная сила руки
+  - [docs/research/pilot-handling/lateral-x.md](research/pilot-handling/lateral-x.md) — Раскачка после X — не боковая мода: фугоида в вираже (ω 1,1–1,2, ζ ≤ 0,05) и спираль; ступень X не хуже рампы; ГШ без X 2,0–2,2 (ζ 0,4–0,5).
+  - [tools/research/pilot-handling/feel/README.md](../tools/research/pilot-handling/feel/README.md) — Команды воспроизведения замеров «надувного» отклика (PHD-3)
+  - [tools/research/pilot-handling/lateral_x/README.md](../tools/research/pilot-handling/lateral_x/README.md) — PHD-2: боковой отклик после X в игре (headless) и чувствительность к Cnp в прототипе; скрипты и данные.
+  - [tools/research/pilot-handling/feel/summary.md](../tools/research/pilot-handling/feel/summary.md) — Вывод PHD-3: «надувность» — ввод и мгновенная сила руки; инерции и демпфирование модели не меньше литературных
 
 ## world
 
