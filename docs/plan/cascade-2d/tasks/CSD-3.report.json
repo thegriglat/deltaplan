@@ -1,0 +1,114 @@
+{
+  "status": "done",
+  "summary": "Крейт tools/research/cascade_2d/cascade_rs (бинарь cascade): V0–V3 и V3h, режимы descend (всё поле) и query (опрос точки, побитно равен полю), selftest, F1/F2 по контракту (check_contract: 27 файлов OK). Баланс на синтетических бездивергентных родителях P400/P200: max_rel_div = 3.2e-7, path_vs_full = 0; на реальных случаях R1 не прогонялся (cases/ от CSD-1 ещё нет). Доработка: N² = g/θ0·(gam + ∂θ′/∂z) из gam случая R1 (--n-bg только переопределение), тест на формулу Фруда по gam, README про z0/строки. Замечания ревью: Фруд по d*u>0, |d|<=|w| на z-грани, work_s query без сравнения/тёплого прохода, rms по всем уровням; тест добавлен.",
+  "commits": [
+    "d2eabea19 CSD-3: крейт каскада без состояния cascade_rs",
+    "b4e2f75d9 CSD-3: N для правила устойчивости из gam случая R1, тест; README",
+    "467d482e3 CSD-3: замечания ревью — Фруд по d·u, предел доли z-грани, work_s и rms query"
+  ],
+  "checks": [
+    {
+      "name": "build",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "tests",
+      "value": "10 тестов ok",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "balance",
+      "value": "max_rel_div 3.16e-7 (порог 1e-5)",
+      "pass": true
+    },
+    {
+      "name": "path",
+      "value": "path_vs_full 0 (побитно)",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Прогон на реальных случаях C1–C4 не делался: $CASCADE2D_DATA/cases и fields пусты (CSD-1 не сдал). Загрузчик --geom case написан по контракту R1 и picard_rs::case (hc 2D без ореола, tu/tw/Q/cell с ореолом, средний ряд ny/2), не проверен на файлах.",
+    "F1/F2 реальных случаев в out/runs не положены (не обязательно для приёмки; полные прогоны — CSD-4). Синтетические F2 в репозиторий не кладу."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept CSD-3 ; tools/research/cascade_2d/cascade_rs/target/release/cascade selftest ; README tools/research/cascade_2d/cascade_rs/README.md",
+  "uncertain": [
+    {
+      "where": "tools/research/cascade_2d/cascade_rs/src/rules.rs: split_z_d (c_h=0.5, theta_s=0.5 К), fr_factor (Fr_c=1, линейный подъём)",
+      "why": "Коэффициенты правил тепла/устойчивости не измерены, выбраны из физики (предел деления 0.25/0.75, середина Fr 0.8-1.1); определение Fr = U/(N dz_n) из карточки срабатывает только при |U| < N dz (~1 м/с на 400 м при N=0.01)",
+      "checked": "числа срабатывания в notes F2 (froude_clipped, heat_shifted); чувствительность не снималась (CSD-4)"
+    },
+    {
+      "where": "tools/research/cascade_2d/cascade_rs/src/geosrc.rs: GeoSrc::load (Case)",
+      "why": "Индексация R1 (ореол 1, x-грань i между клетками i-1,i; tw k между k-1,k; hc[(ny/2)*nx+i]) выведена из docs и кода picard_rs, на реальном файле не запускалась",
+      "checked": "только сборка и сверка с кодом kernels.rs/case.rs"
+    },
+    {
+      "where": "tools/research/cascade_2d/cascade_rs/src/rules.rs: internal_d",
+      "why": "При несогласованной геометрии уровней (родитель - воздух, все дети - земля) поток теряется и дивергенция детей ненулевая; на синтетике (верхняя огибающая) такого нет, на реальной геометрии возможно",
+      "checked": "счётчик lost_flux_faces в notes F2 (0 на синтетике), баланс честно виден в balance"
+    },
+    {
+      "where": "tools/research/cascade_2d/cascade_rs/src/run.rs: u_ref",
+      "why": "U_ref считается по родителю (|u| на грани x=-4800, 100 м над землёй), а не по P25 как в M1 - эталон крейту читать нельзя",
+      "checked": "оговорено в notes F2 и README"
+    }
+  ],
+  "dp_feedback": "lock cpu запускает команду как job и сразу возвращает; вывод только через job wait + чтение лога с ANSI-кодами. Хотелось бы флаг --wait/--foreground с прямым выводом. Также report не принимается без предыдущего настоящего accept (--dry не записывает проверки) - очевидно, но сообщение можно подсказать; а файл отчёта в копии ломает scope accept.",
+  "extra": {
+    "selftest_max_rel_div": 3.156e-07,
+    "selftest_path_vs_full": 0,
+    "synthetic_C1_P400_to_25m": {
+      "descend_work_s_1thread": {
+        "V0": 0.047,
+        "V1": 0.082,
+        "V2": 0.069,
+        "V3": 0.084,
+        "V3h": 0.125
+      },
+      "query_us_per_point_cold": {
+        "V0": 4.6,
+        "V1": 22.9,
+        "V2": 27.8,
+        "V3": 25.1,
+        "V3h": 36.1
+      },
+      "query_us_per_point_warm": {
+        "V0": 2.9,
+        "V1": 4.5,
+        "V2": 4.9,
+        "V3": 7.4,
+        "V3h": 14.8
+      },
+      "peak_rss_mb": 24
+    },
+    "synthetic_w_over_Udhdx_lowest_cell_windward": {
+      "V0": 0.008,
+      "V1": 0.008,
+      "V2": 0.905,
+      "V3": 1.09,
+      "V3h": 0.646,
+      "note": "синтетика C1, родитель - функция тока над ступенчатым рельефом 400 м: механизм виден, как доказательство не годится"
+    },
+    "rules_activation_synthetic_C1": "faces=137819 wall_parent_open_sub=176 one_sub_closed=78 lost_flux_faces=0"
+  },
+  "t": "2026-11-04T07:40:54",
+  "by": "executor"
+}
