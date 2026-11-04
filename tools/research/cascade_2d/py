@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Обёртка Python для cascade_2d: venv в ${CASCADE2D_VENV:-$HOME/.cache/cascade_2d/venv}.
+set -euo pipefail
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+venv="${CASCADE2D_VENV:-$HOME/.cache/cascade_2d/venv}"
+if [ ! -x "$venv/bin/python" ]; then
+  export PATH="$HOME/.local/bin:$PATH"
+  mkdir -p "$(dirname "$venv")"
+  uv venv "$venv" >&2
+  VIRTUAL_ENV="$venv" uv pip install -r "$here/requirements.txt" >&2
+fi
+exec "$venv/bin/python" "$@"
