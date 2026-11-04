@@ -33,7 +33,12 @@
     "tests/flight/pendulum/test_pendulum_hand_rate.gd",
     "tests/flight/pendulum/test_pendulum_hand_rate.gd.uid",
     "docs/guide/flight/model.md",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "scripts/flight/trike_rig.gd",
+    "scripts/game/tow_tug.gd",
+    "tests/flight/pendulum/pendulum_sim.gd",
+    "tests/flight/pendulum/test_pendulum_robust.gd",
+    "tests/flight/pendulum/test_pendulum_spin.gd"
   ],
   "dont_touch": [
     "configs/wings",
