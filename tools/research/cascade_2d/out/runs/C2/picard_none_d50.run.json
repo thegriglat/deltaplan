@@ -1,0 +1,44 @@
+{
+ "format": "cascade2d-run",
+ "version": 1,
+ "case": "C2",
+ "source": "picard",
+ "variant": null,
+ "dx": 50,
+ "parent_dx": null,
+ "seed": null,
+ "threads": 1,
+ "ny": 4,
+ "status": "ok",
+ "iters": 290,
+ "time": {
+  "total_s": 93.293395773,
+  "setup_s": 4.29509628,
+  "work_s": 88.998299493,
+  "per_row_s": 22.24957487325
+ },
+ "memory": {
+  "peak_rss_mb": 127.68359375,
+  "arrays_mb": 34.53373718261719
+ },
+ "balance": {
+  "max_rel_div": 0.051106650404227155,
+  "rms_rel_div": 0.0016511485979385082,
+  "levels": [
+   {
+    "dx": 50,
+    "max_rel_div": 0.051106650404227155
+   }
+  ]
+ },
+ "y_uniform": 0.11672292193292112,
+ "query": null,
+ "field": "/home/greg/data/cascade_2d/fields/C2/picard_none_d50.json",
+ "cmd": "/home/greg/worktrees/deltaplan/cascade-2d-CSD-1/.dpcli/dpcli lock cpu cascade-ref -- /home/greg/worktrees/deltaplan/cascade-2d-CSD-1/rust/target/release/picard solve /home/greg/data/cascade_2d/cases/C2_d50.json --threads 1 --max-iters 3000 --time-budget 7200.0 --save-state /home/greg/data/cascade_2d/raw/C2/picard_d50.state.json --out /home/greg/data/cascade_2d/raw/C2/picard_d50.r2.json",
+ "host": {
+  "cpu": "Intel(R) Xeon(R) CPU E5-2666 v3 @ 2.90GHz",
+  "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
+ },
+ "git": "5c67610071d4fefde7272aa388d9973233f5d417",
+ "notes": "U_ref=10.3524 м/с (|u| P25 на 100 м над землёй, x=-4800); stop=converged; peak_rss_mb = ru_maxrss процесса (lock+picard, wait4), включает загрузку случая и state; arrays_mb = размер .bin случая + state; ms_per_iter=296.259; mom_rms=5.453794218763659e-06, div_rms решателя (3D, невязка)=7.658831716614314e-07; 3D div_rms из state=7.186e-07, F1 2D div_rms=3.419e-04, max|div|=1.058e-02 1/с; y-среднее по рядам (fields/C2/ymean/): max_rel_div=1.05e-05, max|ymean-mid|/U_ref: u 0.058, w 0.043; physical params as game case, sponge_axes=x; ny=4, средний ряд j=2"
+}
