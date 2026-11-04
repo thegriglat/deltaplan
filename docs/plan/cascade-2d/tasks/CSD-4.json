@@ -34,11 +34,11 @@
     "tools/research/cascade_2d/experiments/",
     "tools/research/cascade_2d/out/",
     "tools/research/cascade_2d/README.md",
-    "docs/registry/findings/cascade-2d.md"
+    "docs/registry/findings/cascade-2d.md",
+    "tools/research/cascade_2d/cascade_rs/"
   ],
   "dont_touch": [
     "rust/",
-    "tools/research/cascade_2d/cascade_rs/",
     "tools/research/cascade_2d/metrics/",
     "tools/research/cascade_2d/cases/",
     "tools/research/cascade_2d/contract/",
@@ -64,9 +64,25 @@
       "name": "docs",
       "cmd": ".dpcli/dpcli docs check",
       "expect": "re:ошибок 0"
+    },
+    {
+      "name": "rs_tests",
+      "cmd": "cargo test --release --manifest-path tools/research/cascade_2d/cascade_rs/Cargo.toml",
+      "expect": "exit=0"
+    },
+    {
+      "name": "rs_clippy",
+      "cmd": "cargo clippy --release --manifest-path tools/research/cascade_2d/cascade_rs/Cargo.toml -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "rs_balance",
+      "cmd": "tools/research/cascade_2d/cascade_rs/target/release/cascade selftest",
+      "expect": "num:max_rel_div=([0-9.eE+-]+) <=0.00001"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-11-04T08:40:11"
+  "created": "2026-11-04T08:40:11",
+  "edited": "2026-11-04T08:54:31"
 }

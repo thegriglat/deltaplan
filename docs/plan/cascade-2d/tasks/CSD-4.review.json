@@ -1,0 +1,42 @@
+{
+  "verdict": "accept",
+  "summary": "Все 5 замечаний прошлого ревью закрыты (10 картинок в README, frontmatter closed + conclusion/data/applied_in, K4 по плану, K1 C3 по добавке, 8 сидов, 10 000 точек, run_all.py), правка наклона у стенки в cascade_rs соответствует постановке и покрыта тестом; серии «до/после» разведены (out/before/), вердикт «не имеет» подтверждается числами verdict.json, accept --dry 7/7, скоуп чист.",
+  "issues": [
+    {
+      "file": "tools/research/cascade_2d/experiments/analyze.py",
+      "line": 43,
+      "severity": "minor",
+      "what": "Добавка каскада к дивергенции родителя (K1 C3) считается как разность максимумов (max rel_div уровня − max rel_div P400·dx/400), а не как максимум разности по клеткам — оценка грубая, может занижать добавку там, где максимум родителя и каскада в разных местах. На вердикт не влияет (K2 не выполнен независимо); исполнитель сам отметил в uncertain.",
+      "fix": "Ничего не менять в этой задаче; в README в оговорке к K1 (2) подписать, что это оценка по максимумам (не поклеточная). Можно сделать при слиянии модуля."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "accept --dry (verdict, metrics_count, contract, docs, rs_tests, rs_clippy, rs_balance, scope)",
+      "value": "7/7 PASS, rs_balance 3.16e-7, scope 234 файла в границах",
+      "pass": true
+    },
+    {
+      "name": "Картинки README существуют в out/fig",
+      "value": "10 из 10 ссылок ![...] → файлы на месте",
+      "pass": true
+    },
+    {
+      "name": "Опрос 10 000 точек, 8 сидов V3h",
+      "value": "out/runs/C1/cascade_V3_d25_from400.query.run.json: --points 10000, cold 22.67 мкс; $CASCADE2D_DATA/fields_seeds/s2..s8 + сид 1",
+      "pass": true
+    },
+    {
+      "name": "verdict.json: K4 по плану (cheaper_than_desc), K1 C3 по добавке",
+      "value": "K4 кандидаты: только B400 дешевле T_desc, pass False везде; C3 K1 rule=«добавка к родителю», added_max 0.078; C1 max_rel_div 2.2e-5, C2 1.0 — совпадает с README",
+      "pass": true
+    },
+    {
+      "name": "Правки вне scope / dont_touch",
+      "value": "0 файлов вне experiments/, out/, README.md, findings, cascade_rs/",
+      "pass": true
+    }
+  ],
+  "t": "2026-11-04T09:06:27",
+  "by": "reviewer"
+}

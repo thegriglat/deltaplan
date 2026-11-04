@@ -1,0 +1,125 @@
+{
+  "status": "done",
+  "summary": "Доработка: односторонний наклон у стенки в cascade_rs (тест), все опыты перепрогнаны (серии до/после), 8 сидов, 10000 точек, K4 по плану, K1 C3 по добавке, 10 картинок в README, frontmatter closed, dS C4 объяснён (карман без потока). Вердикт прежний: не имеет смысла.",
+  "commits": [
+    "25edecd97 CSD-4: опыты, вердикт",
+    "4849b697d CSD-4 доработка: наклон у стенки, серии до/после, README"
+  ],
+  "checks": [
+    {
+      "name": "verdict",
+      "value": "не имеет",
+      "pass": true
+    },
+    {
+      "name": "metrics_count",
+      "value": "5",
+      "pass": true
+    },
+    {
+      "name": "contract",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "rs_tests",
+      "value": "11 из 11",
+      "pass": true
+    },
+    {
+      "name": "rs_clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "rs_balance",
+      "value": "3.2e-7",
+      "pass": true
+    },
+    {
+      "name": "K0",
+      "value": "E_u 0.070 vs B400 0.034",
+      "pass": false
+    },
+    {
+      "name": "K1",
+      "value": "C2 1.0 (потерянная грань), C1 2.2e-5 (родитель), C3 добавка 0.078",
+      "pass": false
+    },
+    {
+      "name": "K2",
+      "value": "E_u V3/B400: C1 0.236/0.178, C2 0.230/0.179, C3 0.312/0.183",
+      "pass": false
+    },
+    {
+      "name": "K3",
+      "value": "T_desc 0.1 с ok; опрос 22.5-30 мкс > 20",
+      "pass": false
+    },
+    {
+      "name": "K4",
+      "value": "B400 дешевле T_desc и точнее",
+      "pass": false
+    },
+    {
+      "name": "K5",
+      "value": "speed x2.0 (C3), x3.35 (C4); рост x1.52 (C0)",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "Сравнение sigma V3h с замыканием игры (справочно)",
+    "Чувствительность коэффициентов V3 не исследована"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept CSD-4; воспроизведение - tools/research/cascade_2d/README.md, раздел Воспроизведение (CSD-4)",
+  "uncertain": [
+    {
+      "where": "cascade_rs/src/rules.rs: limited_slope",
+      "why": "односторонний наклон реализован по формулировке координатора (две внутренние грани, minmod); диагностика CASCADE_WALL_NOLIMIT (наклон u-0 без ограничителя) оставлена в коде как env-флаг",
+      "checked": "cargo test 11/11, баланс, побитность потоков/опроса; E_u изменился на 1-10 %"
+    },
+    {
+      "where": "README, K1 C3",
+      "why": "добавка к родителю = max(0, rel_div_n - rel_div_P400*dx_n/400) - моя формула",
+      "checked": "значения в verdict.json K1.added_per_level"
+    },
+    {
+      "where": "README, память K3",
+      "why": "RSS 201 МБ у V2+ - по-видимому чтение 3D-файла случая",
+      "checked": "сравнил V1 (20 МБ) и V3"
+    }
+  ],
+  "dp_feedback": "lock cpu выполняет команду и сразу возвращает управление (вывод через лог job), удобно было бы явное ожидание/код возврата в stdout; хук rtk переписывает grep/cat - мешает при чтении json.",
+  "extra": {
+    "verdict": "не имеет",
+    "E_u_V3_400": {
+      "C1": 0.2395,
+      "C2": 0.2324,
+      "C3": 0.3145,
+      "C4": 0.2226
+    },
+    "E_u_B400": {
+      "C1": 0.1777,
+      "C2": 0.1789,
+      "C3": 0.1826,
+      "C4": 0.0898
+    },
+    "T_desc_s": 0.093,
+    "E_u_V3_400_after": {
+      "C0": 0.07,
+      "C1": 0.236,
+      "C2": 0.23,
+      "C3": 0.312,
+      "C4": 0.217
+    }
+  },
+  "t": "2026-11-04T09:04:12",
+  "by": "executor"
+}
