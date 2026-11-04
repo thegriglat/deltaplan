@@ -1,0 +1,55 @@
+{
+  "id": "PHD-3",
+  "module": "pilot-handling",
+  "type": "dp-researcher",
+  "title": "П. 2: «надувной» отклик — инерции, демпфирование, связь мыши с пилотом",
+  "goal": "Замерами и по данным docs/ и литературы установить, чем вызвано ощущение «надувного» аппарата: чувствительность ввода, инерции, демпфирование крена/рыскания или мгновенная связь ручки с пилотом; что расходится с физикой/измерениями — предложением по PHD-К2.",
+  "plan_ref": "§4 PHD-3",
+  "contracts": [
+    {
+      "name": "PHD-К1",
+      "version": "1",
+      "ref": "docs/contracts/pilot-handling.md"
+    },
+    {
+      "name": "PHD-К2",
+      "version": "1",
+      "ref": "docs/contracts/pilot-handling.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/pilot-handling-PHD-3",
+  "branch": "pilot-handling/PHD-3",
+  "base": "feature/pilot-handling",
+  "scope": [
+    "docs/research/pilot-handling/feel.md",
+    "tools/research/pilot-handling/feel",
+    "tools/research/pilot-handling/out/PHD-3_verdict.json"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "tests",
+    "rust",
+    "tools/flight"
+  ],
+  "accept": [
+    {
+      "name": "verdict",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/pilot-handling/out/PHD-3_verdict.json'));assert d['task']=='PHD-3';assert [i for i in d['items'] if i['item']==2];assert len(d['modes'])>=3;print('ok')\"",
+      "expect": "re:^ok"
+    },
+    {
+      "name": "note",
+      "cmd": "test -s docs/research/pilot-handling/feel.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-04T06:57:49"
+}

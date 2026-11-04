@@ -1,0 +1,57 @@
+{
+  "id": "PHD-1",
+  "module": "pilot-handling",
+  "type": "dp-engineer",
+  "title": "Подпись ползунка «Чувствительность штанги»: ход до упора и направление",
+  "goal": "Подпись ползунка однозначно говорит, что число в см — ход мыши до упора (800 DPI) и что вправо — резче (меньше ход), влево — плавнее; значения хода и диапазон прежние.",
+  "plan_ref": "§4 PHD-1",
+  "contracts": [
+    {
+      "name": "PHD-К1",
+      "version": "1",
+      "ref": "docs/contracts/pilot-handling.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/pilot-handling-PHD-1",
+  "branch": "pilot-handling/PHD-1",
+  "base": "feature/pilot-handling",
+  "scope": [
+    "locale/ui.csv",
+    "scripts/ui/settings_panel.gd",
+    "tests/ui/test_settings_bar_label.gd",
+    "tests/ui/test_settings_bar_label.gd.uid",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "configs/controls.json",
+    "configs/ui.json",
+    "scripts/game/mouse_bar.gd",
+    "configs/pendulum.json"
+  ],
+  "accept": [
+    {
+      "name": "pilot_handling_contracts",
+      "tests": "pilot_handling_contracts"
+    },
+    {
+      "name": "settings_bar_label",
+      "tests": "settings_bar_label"
+    },
+    {
+      "name": "control_bar_settings",
+      "tests": "control_bar_settings"
+    },
+    {
+      "name": "settings_tabs",
+      "tests": "settings_tabs"
+    },
+    {
+      "name": "gd",
+      "cmd": "python3 tools/check_gd.py scripts/ui/settings_panel.gd tests/ui/test_settings_bar_label.gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-04T06:57:04"
+}

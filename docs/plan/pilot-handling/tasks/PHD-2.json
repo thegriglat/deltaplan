@@ -1,0 +1,55 @@
+{
+  "id": "PHD-2",
+  "module": "pilot-handling",
+  "type": "dp-researcher",
+  "title": "П. 3: боковая раскачка после X — ступенчатый ввод или боковая модель",
+  "goal": "Замерами установить, что за раскачка по крену/рысканию после X при неподвижной мыши (голландский шаг, качание пилота, спираль), её частоту и затухание, и причину: (а) ступенчатый ввод X или (б) боковая модель (Cnp и др.); итог — PHD-К2, правка — предложением.",
+  "plan_ref": "§4 PHD-2",
+  "contracts": [
+    {
+      "name": "PHD-К1",
+      "version": "1",
+      "ref": "docs/contracts/pilot-handling.md"
+    },
+    {
+      "name": "PHD-К2",
+      "version": "1",
+      "ref": "docs/contracts/pilot-handling.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/pilot-handling-PHD-2",
+  "branch": "pilot-handling/PHD-2",
+  "base": "feature/pilot-handling",
+  "scope": [
+    "docs/research/pilot-handling/lateral-x.md",
+    "tools/research/pilot-handling/lateral_x",
+    "tools/research/pilot-handling/out/PHD-2_verdict.json"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "tests",
+    "rust",
+    "tools/flight"
+  ],
+  "accept": [
+    {
+      "name": "verdict",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/pilot-handling/out/PHD-2_verdict.json'));assert d['task']=='PHD-2';assert [i for i in d['items'] if i['item']==3];assert len(d['modes'])>=6;print('ok')\"",
+      "expect": "re:^ok"
+    },
+    {
+      "name": "note",
+      "cmd": "test -s docs/research/pilot-handling/lateral-x.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-04T06:57:46"
+}
