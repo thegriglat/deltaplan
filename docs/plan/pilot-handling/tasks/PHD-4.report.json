@@ -1,0 +1,113 @@
+{
+  "status": "done",
+  "summary": "Темп руки игрока controls.hand.tau_s 0,15 с: фильтр первого порядка итоговых roll и pitch в InputController (после геймпада, до автопилота; дельталёт и боты без него), keyboard.center_time_s удалён, руки модели как на базе. Тесты отображения ввода (ui_controls pull_full, release_event deadzones) идут с hand.tau_s = 0.",
+  "commits": [
+    "31809d7b4 переделка по Q2 (а): hand.tau_s на вводе",
+    "тесты отображения ввода без темпа руки (hand.tau_s = 0)"
+  ],
+  "checks": [
+    {
+      "name": "ступень мыши 0,3: roll через 1/60 с / через 0,5 с",
+      "value": "0.0315 (<=0.045) / 0.2893 (>=0.285)",
+      "pass": true
+    },
+    {
+      "name": "X из 0,3: через 1/60 с / 0,5 с",
+      "value": "0.2684 (>=0.255) / 0.0000 (<=0.015), затем ровно 0",
+      "pass": true
+    },
+    {
+      "name": "дрожь 4 Гц / 0,5 Гц",
+      "value": "training 0.23, sport 0.25 (<=0.40)",
+      "pass": true
+    },
+    {
+      "name": "перекладка 45->45",
+      "value": "training 4.77 с, sport 4.39 с (<=5.0)",
+      "pass": true
+    },
+    {
+      "name": "accept --dry: contracts, ui_controls, bots, gd, no_center_time, base_untouched, scope",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "pilot_handling_contracts",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "pilot_feedback_trim_contracts",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "pendulum",
+      "value": "119/120: FAIL test_pendulum_start_on_slope — то же на main (PHD-5, окружение)",
+      "pass": false
+    },
+    {
+      "name": "pilot_view",
+      "value": "3/7: FAIL 4 — то же на main (PHD-5, окружение)",
+      "pass": false
+    },
+    {
+      "name": "bar_mouse",
+      "value": "6/11: FAIL 5 — то же на main (PHD-5, окружение)",
+      "pass": false
+    },
+    {
+      "name": "mouse_bar_flight",
+      "value": "1/4: FAIL 3 — то же на main (PHD-5, окружение)",
+      "pass": false
+    },
+    {
+      "name": "ui_controls",
+      "value": "9/9",
+      "pass": true
+    },
+    {
+      "name": "bots",
+      "value": "13/13",
+      "pass": true
+    },
+    {
+      "name": "trike",
+      "value": "116/119: FAIL altai, winch, aerotow — то же на main (PHD-5, окружение)",
+      "pass": false
+    },
+    {
+      "name": "no_center_time",
+      "value": "exit 1",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "base_untouched",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept PHD-4 --dry",
+  "uncertain": [
+    {
+      "where": "accept: pilot_view x4, bar_mouse, mouse_bar_flight, pendulum_game::test_pendulum_start_on_slope, trike altai/winch/aerotow",
+      "why": "красные, но те же падения есть на базе feature/pilot-handling (мышь в headless даёт roll 0, автостарт не взлетает: dp_air не доходит до solve_mech)",
+      "checked": "на базе прогнаны pilot_view, bar_mouse, trike; падают те же тесты. Остальные (mouse_bar_flight, start_on_slope) того же класса 'автостарт — в полёте'. Мышиные тесты bar_mouse/pilot_view/mouse_bar_flight не проверяют фильтр на практике — их сверяет PHD-5 на main."
+    },
+    {
+      "where": "scripts/game/input_controller.gd:_apply_hand",
+      "why": "дельталёт (vehicle trike) оставлен без фильтра, чтобы трайк был как на базе; карточка прямо это не требует",
+      "checked": "решение по формулировке 'трайк, тележка — как на базе'; trike-набор не меняется"
+    }
+  ],
+  "dp_feedback": "lock cpu требует -- перед командой; accept --dry не показывает промежуточный прогресс до конца; логи заданий удобно искать по ls -t ~/.cache/dpcli/deltaplan/jobs.",
+  "t": "2026-11-04T17:31:08",
+  "by": "dp-engineer"
+}
