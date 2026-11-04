@@ -31,6 +31,7 @@ from cascade2d_io import LEVELS_DX, data_dir  # noqa: E402
 
 NY = int(os.environ.get("CASCADE2D_NY", "4"))
 TOP = 2500.0
+YMIRROR = os.environ.get("CASCADE2D_YMIRROR", "1") == "1"
 GAME_CASE = Path.home() / "data/air_cascade/ongudai/ongudai_d400_u3_mech_h1200.json"
 GAM_N = SY.GAM_N
 # нулевой уровень h в метрах для M1: x_c, L
@@ -148,8 +149,20 @@ def build(name, dx, outdir):
         parts.append(a)
         off += a.size
 
+    cell_a = S.cell_np.copy()
+    tu_a, tv_a, tw_a = S.tu_np.copy(), S.tv_np.copy(), S.tw_np.copy()
+    if YMIRROR:
+        # зеркальные y-края: ряды ореола по y для u, w - тип 0 (стенка): решатель пропускает диффузию через такую грань
+        # (kernels.rs mom_cell: tt[q]==0 при d != comp -> нулевой градиент), а не держит фон ubg (тип 3, Дирихле).
+        # v на y-гранях уже фиксирован fixed_v (vbg = 0 при ветре вдоль x) - стенка v = 0.
+        for t in (tu_a, tw_a):
+            t[:, 0, :] = 0
+            t[:, -1, :] = 0
+        # клетки ореола по y - "земля" (cell 0): kloc берёт односторонний градиент вместо ореола с нулевой скоростью
+        cell_a[:, 0, :] = 0
+        cell_a[:, -1, :] = 0
     add("hc", hc)
-    add("cell", S.cell_np); add("tu", S.tu_np); add("tv", S.tv_np); add("tw", S.tw_np)
+    add("cell", cell_a); add("tu", tu_a); add("tv", tv_a); add("tw", tw_a)
     add("nu_bg", S.nu_np); add("Q", S.Q_np); add("gam", S.gam_np)
     add("cplz", S.cplz_np); add("sp_u", S.sp_np); add("sp_w", S.spw_np); add("spc", S.spc_np)
     add("ubg", S.ubg_np); add("vbg", S.vbg_np); add("lam", S.lam_np)

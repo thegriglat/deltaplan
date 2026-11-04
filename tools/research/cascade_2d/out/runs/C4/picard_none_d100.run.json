@@ -10,28 +10,28 @@
  "threads": 1,
  "ny": 4,
  "status": "ok",
- "iters": 270,
+ "iters": 390,
  "time": {
-  "total_s": 18.02567749,
-  "setup_s": 0.912388669,
-  "work_s": 17.113288821,
-  "per_row_s": 4.27832220525
+  "total_s": 25.316791641000002,
+  "setup_s": 0.940365921,
+  "work_s": 24.37642572,
+  "per_row_s": 6.09410643
  },
  "memory": {
-  "peak_rss_mb": 35.44921875,
+  "peak_rss_mb": 33.07421875,
   "arrays_mb": 8.867691040039062
  },
  "balance": {
-  "max_rel_div": 0.039409409906632456,
-  "rms_rel_div": 0.0015206763944108485,
+  "max_rel_div": 2.814639856930043e-05,
+  "rms_rel_div": 7.967176832386179e-06,
   "levels": [
    {
     "dx": 100,
-    "max_rel_div": 0.039409409906632456
+    "max_rel_div": 2.814639856930043e-05
    }
   ]
  },
- "y_uniform": 0.10573579526371908,
+ "y_uniform": 1.2236821930190448e-05,
  "query": null,
  "field": "/home/greg/data/cascade_2d/fields/C4/picard_none_d100.json",
  "cmd": "/home/greg/worktrees/deltaplan/cascade-2d-CSD-1/.dpcli/dpcli lock cpu cascade-ref -- /home/greg/worktrees/deltaplan/cascade-2d-CSD-1/rust/target/release/picard solve /home/greg/data/cascade_2d/cases/C4_d100.json --threads 1 --max-iters 3000 --time-budget 7200.0 --save-state /home/greg/data/cascade_2d/raw/C4/picard_d100.state.json --out /home/greg/data/cascade_2d/raw/C4/picard_d100.r2.json",
@@ -39,6 +39,6 @@
   "cpu": "Intel(R) Xeon(R) CPU E5-2666 v3 @ 2.90GHz",
   "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
  },
- "git": "5c67610071d4fefde7272aa388d9973233f5d417",
- "notes": "U_ref=6.7581 м/с (|u| P25 на 100 м над землёй, x=-4800); stop=converged; peak_rss_mb = ru_maxrss процесса (lock+picard, wait4), включает загрузку случая и state; arrays_mb = размер .bin случая + state; ms_per_iter=61.007; mom_rms=6.4902263757072105e-06, div_rms решателя (3D, невязка)=6.969152714857271e-07; 3D div_rms из state=5.719e-07, F1 2D div_rms=1.028e-04, max|div|=2.663e-03 1/с; y-среднее по рядам (fields/C4/ymean/): max_rel_div=2.47e-05, max|ymean-mid|/U_ref: u 0.053, w 0.014; physical params as game case, sponge_axes=x; ny=4, средний ряд j=2"
+ "git": "af52fc7651c0ac79fee89965fe44666ae8f1bc1c",
+ "notes": "U_ref=6.7608 м/с (|u| P25 на 100 м над землёй, x=-4800); stop=converged; peak_rss_mb = VmHWM процесса picard (опрос /proc, 20 мс; если не поймали - ru_maxrss обёртки); y-края зеркальные (ореол tu,tw,cell = 0); arrays_mb = размер .bin случая + state; ms_per_iter=60.499; mom_rms=8.17956090376976e-06, div_rms решателя (3D, невязка)=6.989984744813315e-07; 3D div_rms из state=5.305e-07, F1 2D div_rms=5.386e-07, max|div|=1.903e-06 1/с; диагностика, среднее по рядам (не пишется): max_rel_div=2.14e-05, max|ymean-mid|/U_ref: u 0.000, w 0.000; physical params as game case, sponge_axes=x; ny=4, средний ряд j=2"
 }

@@ -18,6 +18,7 @@ import json
 import os
 import platform
 import subprocess
+import threading
 import sys
 import time
 from pathlib import Path
@@ -71,6 +72,26 @@ def raw_paths(c, dx):
 
 
 # ------------------------------------------------------------------ solve
+def _poll_hwm(case_path, stop, out):
+    """Опрос VmHWM процесса picard (argv[0] оканчивается на /picard, в argv есть путь случая) до остановки."""
+    key = case_path.encode()
+    best = 0.0
+    while not stop.is_set():
+        for d in os.listdir("/proc"):
+            if not d.isdigit():
+                continue
+            try:
+                av = open(f"/proc/{d}/cmdline", "rb").read().split(b"\0")
+                if av[0].endswith(b"/picard") and key in av:
+                    for ln in open(f"/proc/{d}/status"):
+                        if ln.startswith("VmHWM:"):
+                            best = max(best, int(ln.split()[1]) / 1024.0)
+            except OSError:
+                pass
+        stop.wait(0.02)
+    out.append(best)
+
+
 def solve(cases, dxs, force=False):
     for c in cases:
         for dx in dxs:
@@ -84,14 +105,19 @@ def solve(cases, dxs, force=False):
                    "--max-iters", str(MAX_ITERS), "--time-budget", str(TIME_BUDGET_S), "--save-state", str(st),
                    "--out", str(r2)]
             t0 = time.time()
+            stop, hw = threading.Event(), []
+            th = threading.Thread(target=_poll_hwm, args=(str(case), stop, hw))
+            th.start()
             p = subprocess.Popen(cmd)
             _, status, ru = os.wait4(p.pid, 0)
+            stop.set()
+            th.join()
             wall = time.time() - t0
             rc = os.waitstatus_to_exitcode(status)
             if rc != 0:
                 print(f"{c} d{dx}: код {rc}", flush=True)
                 continue
-            meta.write_text(json.dumps(dict(cmd=" ".join(cmd), wall_s=wall, ru_maxrss_mb=ru.ru_maxrss / 1024.0,
+            meta.write_text(json.dumps(dict(cmd=" ".join(cmd), wall_s=wall, ru_maxrss_mb=ru.ru_maxrss / 1024.0, vmhwm_mb=hw[0],
                                             created=datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"))))
             r = json.loads(r2.read_text())
             print(f"{c} d{dx}: {r['status']} iters {r['iters']} total {r['time']['total_s']:.1f} s, rss {ru.ru_maxrss/1024:.0f} МБ",
@@ -212,14 +238,11 @@ def convert(cases, dxs):
             avg["th"] = S["th"][1:nz + 1, 1:ny + 1, 1:nx + 1].mean(axis=1).astype(np.float32)
             avg["u"][arr["tu"] == 0] = 0
             avg["w"][arr["tw"] == 0] = 0
-            fm = fdir / "ymean" / f"picard_none_d{dx}.json"
-            IO.write_f1(fm, meta, avg)
-            ma, aa = IO.read_f1(fm)
-            IO.check_f1_arrays(ma, aa)
-            relm = IO.rel_div(IO.div2d(ma, aa), dx, U_ref)
+            aa = avg
+            relm = IO.rel_div(IO.div2d(m1, aa), dx, U_ref)
             dmean_u = float(np.abs(aa["u"] - a1["u"]).max()) / U_ref
             dmean_w = float(np.abs(aa["w"] - a1["w"]).max()) / U_ref
-            ymean_note = (f"y-среднее по рядам (fields/{c}/ymean/): max_rel_div={relm[aa['cell'] > 0.5].max():.2e}, "
+            ymean_note = (f"диагностика, среднее по рядам (не пишется): max_rel_div={relm[aa['cell'] > 0.5].max():.2e}, "
                           f"max|ymean-mid|/U_ref: u {dmean_u:.3f}, w {dmean_w:.3f}")
             res = r2.get("residuals") or {}
             work = r2["time"]["total_s"] - r2["time"]["setup_s"]
@@ -227,13 +250,13 @@ def convert(cases, dxs):
                 format="cascade2d-run", version=1, case=c, source="picard", variant=None, dx=dx, parent_dx=None, seed=None,
                 threads=int(r2["threads"]), ny=ny, status=r2["status"], iters=int(r2["iters"]),
                 time=dict(total_s=r2["time"]["total_s"], setup_s=r2["time"]["setup_s"], work_s=work, per_row_s=work / ny),
-                memory=dict(peak_rss_mb=mm["ru_maxrss_mb"], arrays_mb=(case_bytes + st_bytes) / 2 ** 20),
+                memory=dict(peak_rss_mb=(mm["vmhwm_mb"] if mm.get("vmhwm_mb") else mm["ru_maxrss_mb"]), arrays_mb=(case_bytes + st_bytes) / 2 ** 20),
                 balance=dict(max_rel_div=float(rel[air].max()), rms_rel_div=float(np.sqrt(np.mean(rel[air] ** 2))),
                              levels=[dict(dx=dx, max_rel_div=float(rel[air].max()))]),
                 y_uniform=yu, query=None, field=str(f1), cmd=mm["cmd"],
                 host=dict(cpu=cpu_name(), rustc=rustc()), git=git_hash(),
                 notes=(f"U_ref={U_ref:.4f} м/с (|u| P25 на 100 м над землёй, x=-4800); stop={r2.get('stop')}; "
-                       f"peak_rss_mb = ru_maxrss процесса (lock+picard, wait4), включает загрузку случая и state; "
+                       f"peak_rss_mb = VmHWM процесса picard (опрос /proc, 20 мс; если не поймали - ru_maxrss обёртки); y-края зеркальные (ореол tu,tw,cell = 0); "
                        f"arrays_mb = размер .bin случая + state; ms_per_iter={r2['time']['ms_per_iter']:.3f}; "
                        f"mom_rms={res.get('mom_rms')}, div_rms решателя (3D, невязка)={res.get('div_rms')}; "
                        f"3D div_rms из state={div3_rms:.3e}, F1 2D div_rms={div2_rms:.3e}, max|div|={div2_max:.3e} 1/с; "
