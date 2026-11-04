@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-11-02"
+updated: "2026-11-04"
 summary: "Точка входа: модули docs/ по подпроектам, прочие документы по типам."
 related: []
 generated: true
@@ -109,6 +109,7 @@ generated: true
   - [tools/research/rust_wind_t1_ref/README.md](../tools/research/rust_wind_t1_ref/README.md) — RW-6u: эталон training_island/landing_hill, перепечатанный CPU-путём фаз (f64) на c591b1026; сравнение с крейтом по классам W8 v2
   - [tools/research/rust_wind_t1_stability/README.md](../tools/research/rust_wind_t1_stability/README.md) — RW-6z: команды воспроизведения опыта устойчивости открытых полей T1 (варианты CHUNK и возмущения), определения R и классов клеток
   - [tools/research/rust_wind/summary.md](../tools/research/rust_wind/summary.md) — RW-6a вывод: в крейте нет сборщика случая, грубого старта, заморозки и фаз; окна переносить последним отключаемым хвостом
+- **cascade-2d** — Исследование: работает ли каскад без состояния (деление граней с балансом массы) против Пикара на мелкой сетке; критерии до опытов. [active 2026-11-04] — [план](plan/cascade-2d.md) · [контракты](contracts/cascade-2d.md)
 
 ## flight
 

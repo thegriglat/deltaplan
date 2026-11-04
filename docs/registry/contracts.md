@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-11-02"
+updated: "2026-11-04"
 summary: "Контракты стыков по модулям: id и версии из заголовков."
 related: []
 generated: true
@@ -24,6 +24,7 @@ generated: true
 - air-phase: P1 v1, P2 v6, P3 v3, P4 v6, P5 v1, P6 v2, P7 v1, P8 v1, P9 v2, P10 v5, P11 v3, P12 v4, P13 v2, P14 v2, P15 v1 — [docs/contracts/air-phase.md](../contracts/air-phase.md)
 - air-weak-wind: W1 v1, W2 v1 — [docs/contracts/air-weak-wind.md](../contracts/air-weak-wind.md)
 - bar-mouse: BM-К1 v2, BM-К2 v1 — [docs/contracts/bar-mouse.md](../contracts/bar-mouse.md)
+- cascade-2d: F0 v1, F1 v1, F2 v1, M1 v1 — [docs/contracts/cascade-2d.md](../contracts/cascade-2d.md)
 - cliff-look: CL-К1 v3, CL-К2 v3 — [docs/contracts/cliff-look.md](../contracts/cliff-look.md)
 - cloud-field: CLF-К1 v1, CLF-К2 v1, CLF-К3 v2, CLF-К4 v1, CLF-К5 v1, CLF-К6 v1 — [docs/contracts/cloud-field.md](../contracts/cloud-field.md)
 - cloud-look: CLK-К1 v1, CLK-К2 v1, CLK-К3 v1 — [docs/contracts/cloud-look.md](../contracts/cloud-look.md)
