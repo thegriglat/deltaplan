@@ -22,7 +22,9 @@
     "tests/flight/pendulum/test_pendulum_hand_rate.gd",
     "tests/flight/pendulum/test_pendulum_hand_rate.gd.uid",
     "docs/guide/flight/model.md",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "tests/game/test_ui_controls_contracts.gd",
+    "tests/flight/pendulum/test_pendulum_release_event.gd"
   ],
   "dont_touch": [
     "configs/wings",
@@ -38,7 +40,6 @@
     "tests/flight/pendulum/pendulum_sim.gd",
     "tests/flight/pendulum/test_pendulum_robust.gd",
     "tests/flight/pendulum/test_pendulum_spin.gd",
-    "tests/flight/pendulum/test_pendulum_release_event.gd",
     "tests/contracts/test_pendulum_contracts_k2.gd",
     "tests/contracts/test_pendulum_contracts_k2_ground.gd"
   ],
@@ -91,12 +92,12 @@
     },
     {
       "name": "base_untouched",
-      "cmd": "git diff --quiet feature/pilot-handling -- configs/pendulum.json scripts/flight scripts/game/tow_tug.gd tests/flight/pendulum/pendulum_sim.gd tests/flight/pendulum/test_pendulum_robust.gd tests/flight/pendulum/test_pendulum_spin.gd tests/flight/pendulum/test_pendulum_release_event.gd tests/contracts/test_pendulum_contracts_k2.gd tests/contracts/test_pendulum_contracts_k2_ground.gd",
+      "cmd": "git diff --quiet feature/pilot-handling -- configs/pendulum.json scripts/flight scripts/game/tow_tug.gd tests/flight/pendulum/pendulum_sim.gd tests/flight/pendulum/test_pendulum_robust.gd tests/flight/pendulum/test_pendulum_spin.gd tests/contracts/test_pendulum_contracts_k2.gd tests/contracts/test_pendulum_contracts_k2_ground.gd",
       "expect": "exit=0"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-11-04T15:40:16",
-  "edited": "2026-11-04T16:50:30"
+  "edited": "2026-11-04T17:05:09"
 }
