@@ -1,0 +1,11 @@
+{
+  "module": "cascade-2d",
+  "plan": "docs/plan/cascade-2d.md",
+  "contracts": "docs/contracts/cascade-2d.md",
+  "branch": "feature/cascade-2d",
+  "copy": "~/worktrees/deltaplan/cascade-2d",
+  "created": "2026-11-04T07:00:21",
+  "code": "CSD",
+  "area": "air",
+  "base": "main"
+}
