@@ -199,3 +199,22 @@ impl Ctx2 {
         crate::rules::Ctx::crow(k, s) as usize
     }
 }
+
+#[test]
+fn n2_comes_from_case_gam_and_gives_the_froude_formula() {
+    // C2-like synthetic: gam = N^2 theta0 / g, N = 0.01. Uniform theta' -> N^2 = 1e-4.
+    let mut st = build(&CONFIGS[2], Variant::V3, 1);
+    st.parent.th.iter_mut().for_each(|t| *t = 0.0);
+    let ctx = &st.ctxs[0];
+    let n2 = ctx.n2(&st.parent, 15, 40);
+    assert!((n2 - 1e-4).abs() < 1e-9, "{n2}");
+    // Override (tests only) replaces the case value.
+    let mut c2 = ctx.clone();
+    let mut cfg = (*c2.cfg).clone();
+    cfg.n_bg = Some(0.02);
+    c2.cfg = std::sync::Arc::new(cfg);
+    assert!((c2.n2(&st.parent, 15, 40) - 4e-4).abs() < 1e-9);
+    // Neutral case has no stability.
+    let st0 = build(&CONFIGS[0], Variant::V3, 1);
+    assert_eq!(st0.ctxs[0].n2(&st0.parent, 15, 40).max(0.0) < 1e-3, true);
+}

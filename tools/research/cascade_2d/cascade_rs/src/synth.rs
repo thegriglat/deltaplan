@@ -66,6 +66,12 @@ pub fn geo(case: &str, n: usize, heated: bool) -> Geo {
             tw[k * nx + i] = u8::from(d && u);
         }
     }
+    // Stable case: gam = N^2 theta0 / g with N = 0.01 1/s.
+    let gam = if case == "C2" {
+        1e-4 * 300.0 / 9.81
+    } else {
+        0.0
+    };
     let mut q = vec![0.0f32; nz * nx];
     if heated {
         for k in 0..nz {
@@ -90,6 +96,7 @@ pub fn geo(case: &str, n: usize, heated: bool) -> Geo {
         tw,
         h,
         q,
+        gam: vec![gam; nz],
     }
 }
 

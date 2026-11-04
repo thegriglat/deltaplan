@@ -80,6 +80,11 @@ pub fn setup(o: &RunOpts) -> Result<Setup> {
     while *dxs.last().unwrap() > o.to {
         dxs.push(dxs.last().unwrap() / 2);
     }
+    let mut pgeo = pgeo;
+    if !o.var.inherits_geometry() {
+        // Background gradient of the parent level comes from its case (F1 has only theta').
+        pgeo.gam = o.geom.load(&o.case, meta.dx, pgeo.nz)?.0.gam;
+    }
     let pgeo = Arc::new(pgeo);
     let mut cgeos: Vec<Arc<Geo>> = Vec::new();
     let mut consts = None;

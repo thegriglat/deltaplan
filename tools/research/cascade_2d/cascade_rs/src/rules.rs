@@ -68,8 +68,8 @@ impl Variant {
 /// Physical constants of the rules (justification in README).
 #[derive(Clone, Debug)]
 pub struct Cfg {
-    /// Background Brunt-Vaisala frequency, 1/s (the F1 field has only theta').
-    pub n_bg: f64,
+    /// Override of the background Brunt-Vaisala frequency, 1/s (default: from the case `gam`).
+    pub n_bg: Option<f64>,
     /// Relaxation time of theta' (case `params.tau_cool`), s.
     pub tau_cool: f64,
     /// Roughness length (case `params.z0`), m.
@@ -89,7 +89,7 @@ pub struct Cfg {
 impl Default for Cfg {
     fn default() -> Self {
         Cfg {
-            n_bg: 0.0,
+            n_bg: None,
             tau_cool: 7200.0,
             z0: 0.1,
             fr_c: 1.0,
@@ -226,7 +226,7 @@ impl Ctx {
     }
 
     /// N^2 of a parent cell: background plus the vertical gradient of theta'.
-    fn n2(&self, s: &dyn Src, k: usize, i: usize) -> f64 {
+    pub(crate) fn n2(&self, s: &dyn Src, k: usize, i: usize) -> f64 {
         let g = &self.pg;
         let t = |kk: usize| s.th(kk, i) as f64;
         let up = g.air(k as i64 + 1, i as i64);
@@ -237,7 +237,11 @@ impl Ctx {
             (true, false) => (t(k) - t(k - 1)) / g.dz,
             _ => 0.0,
         };
-        (self.cfg.n_bg * self.cfg.n_bg + G / THETA0 * d).max(0.0)
+        let gam = match self.cfg.n_bg {
+            Some(n) => n * n * THETA0 / G,
+            None => g.gam[k],
+        };
+        (G / THETA0 * (gam + d)).max(0.0)
     }
 
     /// Mean N^2 of the air cells next to an x face.

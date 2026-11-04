@@ -47,6 +47,7 @@ impl GeoSrc {
                 let jh = c.ny / 2 + 1;
                 let a = |n: &str| c.arr(n).cloned();
                 let (cell, tu, tw, q, hc) = (a("cell")?, a("tu")?, a("tw")?, a("Q")?, a("hc")?);
+                let gamc = a("gam")?;
                 let at = |v: &Vec<f32>, k: usize, i: usize| v[(k * nyh + jh) * nxh + i];
                 let (nx, nzc) = (c.nx, c.nz);
                 let mut g = Geo {
@@ -60,6 +61,9 @@ impl GeoSrc {
                     tw: vec![0; (nzc + 1) * nx],
                     h: (0..nx).map(|i| hc[(c.ny / 2) * nx + i]).collect(),
                     q: vec![0.0; nzc * nx],
+                    gam: (0..nzc)
+                        .map(|k| gamc.get(k + 1).map_or(0.0, |&v| v as f64))
+                        .collect(),
                 };
                 for k in 0..nzc {
                     for i in 0..nx {
@@ -90,7 +94,7 @@ pub fn cfg_from(consts: Option<(f64, f64)>, n_bg: Option<f64>) -> Cfg {
         c.z0 = z0;
     }
     if let Some(n) = n_bg {
-        c.n_bg = n;
+        c.n_bg = Some(n);
     }
     c
 }

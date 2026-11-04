@@ -12,7 +12,7 @@ pub struct Config {
     pub parent_level: usize,
     pub u0: f64,
     pub noise: f64,
-    pub n_bg: f64,
+    pub n_bg: Option<f64>,
 }
 
 pub const CONFIGS: [Config; 4] = [
@@ -21,28 +21,28 @@ pub const CONFIGS: [Config; 4] = [
         parent_level: 0,
         u0: 5.0,
         noise: 0.0,
-        n_bg: 0.0,
+        n_bg: None,
     },
     Config {
         case: "C1",
         parent_level: 1,
         u0: 5.0,
         noise: 3.0,
-        n_bg: 0.0,
+        n_bg: None,
     },
     Config {
         case: "C2",
         parent_level: 0,
         u0: 3.0,
         noise: 2.5,
-        n_bg: 0.02,
+        n_bg: None,
     },
     Config {
         case: "C2",
         parent_level: 1,
         u0: 3.0,
         noise: 2.5,
-        n_bg: 0.02,
+        n_bg: Some(0.02),
     },
 ];
 

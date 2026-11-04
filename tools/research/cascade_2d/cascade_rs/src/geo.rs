@@ -24,6 +24,8 @@ pub struct Geo {
     pub h: Vec<f32>,
     /// Heat source of the cells (K/s), (nz, nx).
     pub q: Vec<f32>,
+    /// Background potential-temperature gradient d(theta_bar)/dz per row, K/m (R1 `gam`).
+    pub gam: Vec<f64>,
 }
 
 impl Geo {
@@ -106,6 +108,7 @@ impl Geo {
             tw,
             h,
             q: vec![0.0; nz * nx],
+            gam: (0..nz).map(|r| self.gam[par_k(r)]).collect(),
         }
     }
 
@@ -116,6 +119,7 @@ impl Geo {
         }
         self.cell.truncate(nz * self.nx);
         self.q.truncate(nz * self.nx);
+        self.gam.truncate(nz);
         self.tu.truncate(nz * (self.nx + 1));
         self.tw.truncate((nz + 1) * self.nx);
         self.nz = nz;

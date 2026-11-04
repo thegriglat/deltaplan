@@ -69,6 +69,7 @@ pub fn read_f1(path: &Path) -> Result<(ParentMeta, Level, Geo)> {
         tw: ty("tw")?,
         h: arr(&m, &bin, "h")?.to_vec(),
         q: vec![0.0; nz * nx],
+        gam: vec![0.0; nz],
     };
     if lvl.u.len() != nz * (nx + 1)
         || lvl.w.len() != (nz + 1) * nx
