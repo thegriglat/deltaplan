@@ -26,3 +26,5 @@
 {"t": "2026-11-04T07:15:05", "by": "coordinator", "task": "PHD-3", "ev": "checked", "note": "3/3 verdict=ok:ok; note=ok:exit 0; docs=ok:ошибок 0"}
 {"t": "2026-11-04T07:16:59", "by": "reviewer", "task": "PHD-3", "ev": "reviewed", "note": "Контракт PHD-К2 соблюдён, правки в скоупе, project.godot не тронут, игра не менялась. Числа записки сходятся с feel.json/summary.json, арифметика доли хода и ф…", "verdict": "accept", "issues": {"minor": 4}, "review": "docs/plan/pilot-handling/tasks/PHD-3.review.json"}
 {"t": "2026-11-04T07:17:14", "by": "coordinator", "task": "PHD-3", "ev": "accepted", "note": "по ревью; minor: λ крен-моды линейная (source game), Ixx без присоединённой массы ≈ Cook, мёртвая зона — только у нейтрали, analyze.py — пути от корня"}
+{"t": "2026-11-04T07:17:15", "by": "coordinator", "task": "PHD-3", "ev": "accepted", "commits": ["52275cb75"], "note": "3/3 verdict=ok:ok; note=ok:exit 0; docs=ok:ошибок 0"}
+{"t": "2026-11-04T07:17:15", "by": "coordinator", "task": "PHD-3", "ev": "merged"}
