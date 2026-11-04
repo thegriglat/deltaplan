@@ -1,0 +1,11 @@
+{
+  "module": "pilot-handling",
+  "plan": "docs/plan/pilot-handling.md",
+  "contracts": "docs/contracts/pilot-handling.md",
+  "branch": "feature/pilot-handling",
+  "copy": "~/worktrees/deltaplan/pilot-handling",
+  "created": "2026-11-04T06:49:00",
+  "code": "PHD",
+  "area": "flight",
+  "base": "main"
+}
