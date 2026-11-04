@@ -168,6 +168,18 @@ pub struct Ctx {
     pub diag: Arc<Diag>,
 }
 
+fn wall_zero() -> bool {
+    static F: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *F.get_or_init(|| std::env::var_os("CASCADE_WALL_ZERO").is_some())
+}
+
+/// Diagnostic only (`CASCADE_WALL_NOLIMIT=1`): at the lowest air face the slope is `u - 0` (the wall as
+/// the neighbour one cell below) without the limiter - what linear interpolation of the coarse field does.
+fn diag_wall_nolimit() -> bool {
+    static F: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *F.get_or_init(|| std::env::var_os("CASCADE_WALL_NOLIMIT").is_some())
+}
+
 fn minmod(a: f64, b: f64) -> f64 {
     if a * b <= 0.0 {
         0.0
@@ -199,30 +211,41 @@ impl Ctx {
 
     // ---- reading helpers -------------------------------------------------------------------
 
+    /// Limited slope of a profile at index `n` from neighbours `n-1`, `n+1` (`open(m)`: the face
+    /// `m` exists and carries flux). Both neighbours open: centred minmod. Exactly one open
+    /// (wall or edge on the other side): one-sided slope from the two interior faces on the open
+    /// side, with the same limiter; no wall value (zero) is substituted. None open: 0.
+    /// `CASCADE_WALL_ZERO=1` restores the original rule (zero slope at a wall) for the "before" series.
+    pub(crate) fn limited_slope(n: usize, len: usize, open: &dyn Fn(i64) -> bool, val: &dyn Fn(usize) -> f64) -> f64 {
+        let lo = n > 0 && open(n as i64 - 1);
+        let hi = n + 1 < len && open(n as i64 + 1);
+        let v0 = val(n);
+        match (lo, hi) {
+            (true, true) => minmod(v0 - val(n - 1), val(n + 1) - v0),
+            _ if wall_zero() => 0.0,
+            (false, true) if diag_wall_nolimit() => v0, // diagnostic: wall value 0 one cell below, no limiter
+            (false, true) => {
+                let a = val(n + 1) - v0;
+                let b = if n + 2 < len && open(n as i64 + 2) { val(n + 2) - val(n + 1) } else { a };
+                minmod(a, b)
+            }
+            (true, false) => {
+                let a = v0 - val(n - 1);
+                let b = if n >= 2 && open(n as i64 - 2) { val(n - 1) - val(n - 2) } else { a };
+                minmod(a, b)
+            }
+            (false, false) => 0.0,
+        }
+    }
+
     fn slope_u(&self, s: &dyn Src, k: usize, i: usize) -> f64 {
         let g = &self.pg;
-        if k == 0
-            || k + 1 >= g.nz
-            || !g.u_open(k as i64 - 1, i as i64)
-            || !g.u_open(k as i64 + 1, i as i64)
-        {
-            return 0.0;
-        }
-        let u0 = s.u(k, i) as f64;
-        minmod(u0 - s.u(k - 1, i) as f64, s.u(k + 1, i) as f64 - u0)
+        Self::limited_slope(k, g.nz, &|m| g.u_open(m, i as i64), &|m| s.u(m, i) as f64)
     }
 
     fn slope_w(&self, s: &dyn Src, k: usize, i: usize) -> f64 {
         let g = &self.pg;
-        if i == 0
-            || i + 1 >= g.nx
-            || !g.w_open(k as i64, i as i64 - 1)
-            || !g.w_open(k as i64, i as i64 + 1)
-        {
-            return 0.0;
-        }
-        let w0 = s.w(k, i) as f64;
-        minmod(w0 - s.w(k, i - 1) as f64, s.w(k, i + 1) as f64 - w0)
+        Self::limited_slope(i, g.nx, &|m| g.w_open(k as i64, m), &|m| s.w(k, m) as f64)
     }
 
     /// N^2 of a parent cell: background plus the vertical gradient of theta'.

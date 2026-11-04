@@ -1,0 +1,56 @@
+{
+  "balance": {
+    "levels": [
+      {
+        "dx": 200,
+        "max_rel_div": 0.00002185285926078744
+      },
+      {
+        "dx": 100,
+        "max_rel_div": 0.000010989887062105712
+      },
+      {
+        "dx": 50,
+        "max_rel_div": 5.499644081554284e-6
+      },
+      {
+        "dx": 25,
+        "max_rel_div": 3.2868599350625355e-6
+      }
+    ],
+    "max_rel_div": 0.00002185285926078744,
+    "rms_rel_div": 1.5900432895535727e-6
+  },
+  "case": "C1",
+  "cmd": "/home/greg/worktrees/deltaplan/cascade-2d-CSD-4/tools/research/cascade_2d/cascade_rs/target/release/cascade descend --parent /home/greg/data/cascade_2d/fields/C1/picard_none_d400.json --case C1 --variant V2 --seed 1 --threads 1 --out-dir /home/greg/data/cascade_2d/fields/C1",
+  "dx": 25,
+  "field": "/home/greg/data/cascade_2d/fields/C1/cascade_V2_d25_from400.json",
+  "format": "cascade2d-run",
+  "git": "25edecd97",
+  "host": {
+    "cpu": "Intel(R) Xeon(R) CPU E5-2666 v3 @ 2.90GHz",
+    "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
+  },
+  "iters": null,
+  "memory": {
+    "arrays_mb": 4.93684,
+    "peak_rss_mb": 201.11328125
+  },
+  "notes": "geometry of each level from the geometry source (case middle row or synthetic); U_ref from the parent field (|u| at x=-4800 m, 100 m above ground), not from P25; rules: faces=137819 lost_flux_faces=0 wall_parent_open_sub=132 one_sub_closed=84 froude_clipped=0 heat_shifted=0 split_cells=0",
+  "ny": 1,
+  "parent_dx": 400,
+  "query": null,
+  "seed": null,
+  "source": "cascade",
+  "status": "ok",
+  "threads": 1,
+  "time": {
+    "per_row_s": 0.063732671,
+    "setup_s": 0.097355039,
+    "total_s": 0.175859015,
+    "work_s": 0.063732671
+  },
+  "variant": "V2",
+  "version": 1,
+  "y_uniform": null
+}

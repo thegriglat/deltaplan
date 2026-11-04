@@ -1,0 +1,56 @@
+{
+  "balance": {
+    "levels": [
+      {
+        "dx": 200,
+        "max_rel_div": 0.11741802786172768
+      },
+      {
+        "dx": 100,
+        "max_rel_div": 0.05870903884897401
+      },
+      {
+        "dx": 50,
+        "max_rel_div": 0.02935456372334952
+      },
+      {
+        "dx": 25,
+        "max_rel_div": 0.014677287399032573
+      }
+    ],
+    "max_rel_div": 0.11741802786172768,
+    "rms_rel_div": 0.00895587175548443
+  },
+  "case": "C3",
+  "cmd": "/home/greg/worktrees/deltaplan/cascade-2d-CSD-4/tools/research/cascade_2d/cascade_rs/target/release/cascade descend --parent /home/greg/data/cascade_2d/fields/C3/picard_none_d400.json --case C3 --variant V1 --seed 1 --threads 1 --out-dir /home/greg/data/cascade_2d/fields/C3",
+  "dx": 25,
+  "field": "/home/greg/data/cascade_2d/fields/C3/cascade_V1_d25_from400.json",
+  "format": "cascade2d-run",
+  "git": "962b15ab0",
+  "host": {
+    "cpu": "Intel(R) Xeon(R) CPU E5-2666 v3 @ 2.90GHz",
+    "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
+  },
+  "iters": null,
+  "memory": {
+    "arrays_mb": 4.93684,
+    "peak_rss_mb": 19.09765625
+  },
+  "notes": "geometry of the parent repeated on all levels (no terrain knowledge); U_ref from the parent field (|u| at x=-4800 m, 100 m above ground), not from P25; rules: faces=137819 lost_flux_faces=0 wall_parent_open_sub=0 one_sub_closed=0 froude_clipped=0 heat_shifted=0 split_cells=0",
+  "ny": 1,
+  "parent_dx": 400,
+  "query": null,
+  "seed": null,
+  "source": "cascade",
+  "status": "ok",
+  "threads": 1,
+  "time": {
+    "per_row_s": 0.062476017,
+    "setup_s": 0.001276584,
+    "total_s": 0.087111885,
+    "work_s": 0.062476017
+  },
+  "variant": "V1",
+  "version": 1,
+  "y_uniform": null
+}

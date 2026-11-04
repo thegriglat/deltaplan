@@ -1,0 +1,52 @@
+{
+  "balance": {
+    "levels": [
+      {
+        "dx": 100,
+        "max_rel_div": 0.04312883264775457
+      },
+      {
+        "dx": 50,
+        "max_rel_div": 0.031342593137947315
+      },
+      {
+        "dx": 25,
+        "max_rel_div": 0.016116455710515867
+      }
+    ],
+    "max_rel_div": 0.04312883264775457,
+    "rms_rel_div": 0.0029756036090942233
+  },
+  "case": "C3",
+  "cmd": "/home/greg/worktrees/deltaplan/cascade-2d-CSD-4/tools/research/cascade_2d/cascade_rs/target/release/cascade descend --parent /home/greg/data/cascade_2d/fields_p200t/C3/picard_none_d200.json --case C3 --variant V3h --seed 1 --threads 1 --out-dir /home/greg/data/cascade_2d/fields/C3",
+  "dx": 25,
+  "field": "/home/greg/data/cascade_2d/fields/C3/cascade_V3h_d25_from200.json",
+  "format": "cascade2d-run",
+  "git": "25edecd97",
+  "host": {
+    "cpu": "Intel(R) Xeon(R) CPU E5-2666 v3 @ 2.90GHz",
+    "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
+  },
+  "iters": null,
+  "memory": {
+    "arrays_mb": 4.93684,
+    "peak_rss_mb": 200.90234375
+  },
+  "notes": "geometry of each level from the geometry source (case middle row or synthetic); U_ref from the parent field (|u| at x=-4800 m, 100 m above ground), not from P25; rules: faces=136097 lost_flux_faces=0 wall_parent_open_sub=124 one_sub_closed=82 froude_clipped=7 heat_shifted=0 split_cells=0",
+  "ny": 1,
+  "parent_dx": 200,
+  "query": null,
+  "seed": 1,
+  "source": "cascade",
+  "status": "ok",
+  "threads": 1,
+  "time": {
+    "per_row_s": 0.14287356,
+    "setup_s": 0.106084292,
+    "total_s": 0.261779705,
+    "work_s": 0.14287356
+  },
+  "variant": "V3h",
+  "version": 1,
+  "y_uniform": null
+}
