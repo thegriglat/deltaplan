@@ -1,0 +1,13 @@
+Deltaplan 1.7.2 — bar control
+
+A small patch release about how the bar responds to your hands. Mouse, keyboard and stick input now reaches the pilot's hands at a human rate instead of instantly, so small hand tremor on the mouse no longer shakes the wing.
+
+Controls:
+- The pilot's hands move the bar with a 0.15 s rate: mouse tremor at 2-4 Hz reaches the wing about 3.5 times weaker, a 45-45 degree roll reversal still takes 4.4-4.8 s
+- X returns the bar to neutral smoothly, at the same hand rate
+- Clearer "Bar sensitivity" label: the number in cm is mouse travel to the stop at 800 DPI, with a hint that right is sharper and left is smoother
+
+Known issues:
+- After X, sport wings still show a slow pitch oscillation (phugoid) and a turn that tightens by itself: these are properties of these wing classes in the model
+- Bots and autopilots control without the hand rate
+- No macOS build: the Rust wind library does not build for macOS yet, Mac stays on 1.6.1
