@@ -16,7 +16,7 @@ func test_doc_headings() -> void:
 	for m in re.search_all(text):
 		found[m.get_string(1)] = int(m.get_string(2))
 	check(found.get("PHD-К1", 0) == 3, "PHD-К1 (v3) в заголовках: %s" % found)
-	check(found.get("PHD-К2", 0) == 1, "PHD-К2 (v1) в заголовках: %s" % found)
+	check(found.get("PHD-К2", 0) == 2, "PHD-К2 (v2) в заголовках: %s" % found)
 
 
 func test_k1_mouse() -> void:

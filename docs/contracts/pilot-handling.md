@@ -6,7 +6,7 @@ area: flight
 updated: "2026-11-04"
 summary: "Что модуль pilot-handling может менять (подпись ползунка, X) и что нет (ход мыши, боковая модель), формат итогов PHD-2/3."
 related: ["docs/plan/pilot-handling.md", "docs/contracts/pilot-feedback-trim.md", "docs/contracts/bar-mouse.md", "docs/contracts/pendulum.md"]
-contracts: [{"id": "PHD-К1", "version": 3}, {"id": "PHD-К2", "version": 1}]
+contracts: [{"id": "PHD-К1", "version": 3}, {"id": "PHD-К2", "version": 2}]
 ---
 # Контракты модуля pilot-handling
 
@@ -36,7 +36,8 @@ v2 (2026-11-04, Q1 (а)): `keyboard.center_time_s` удаляется (в код
   (`bar_travel_px / множитель` отсчётов) → резче. Ход в см — при 800 DPI (315 отсчётов/см), как сейчас.
 - PHD-4 (Q1 (а)): удалить `keyboard.center_time_s` (`configs/controls.json`) и его ветку в `scripts/game/input_controller.gd`; внести `hand.tau_s` = 0.15 (`configs/controls.json`) и фильтр ввода игрока в `scripts/game/input_controller.gd` (v3). Ключи таблицы выше — без изменений.
 
-## PHD-К2. Итог исследования PHD-2/PHD-3 (v1)
+## PHD-К2. Итог исследования PHD-2/PHD-3 (v2)
+v2 (2026-11-04, ревью PHD-2/3): апериодические моды (`roll`, `spiral`) — `omega_rad_s` и `zeta` = `null`, корень — `lambda_1_s` (1/с, < 0 — затухает, > 0 — расходится); `source` `linear` — для чисел из производных (|Lp|/Ixx и т. п.), `game` — только из замера в игре; `unit` в `evidence` — только единица (`рад/с`, `°`, `с`, `1/с`, `—`), пояснения — в `what`. Потребитель — PHD-6.
 Владельцы — PHD-2 (п. 3), PHD-3 (п. 2). Потребитель — PHD-4 (карточка правки), координатор (шлюз).
 
 Файл `tools/research/pilot-handling/out/<ID>_verdict.json` (JSON, UTF-8, пишется один раз: временный файл + переименование):
