@@ -1,0 +1,15 @@
+C1 V0 -> 25 m: max_rel_div=1.426e-7 work=0.047s 
+C1 V0 -> 25 m: max_rel_div=1.426e-7 work=0.079s 
+C1 V0 -> 25 m: max_rel_div=1.426e-7 work=0.040s query cold=4.57us warm=2.86us diff=0
+C1 V1 -> 25 m: max_rel_div=9.510e-8 work=0.082s 
+C1 V1 -> 25 m: max_rel_div=9.510e-8 work=0.030s 
+C1 V1 -> 25 m: max_rel_div=9.510e-8 work=0.139s query cold=22.91us warm=4.50us diff=0
+C1 V2 -> 25 m: max_rel_div=1.590e-7 work=0.069s 
+C1 V2 -> 25 m: max_rel_div=1.590e-7 work=0.028s 
+C1 V2 -> 25 m: max_rel_div=1.590e-7 work=0.166s query cold=27.81us warm=4.85us diff=0
+C1 V3 -> 25 m: max_rel_div=1.560e-7 work=0.084s 
+C1 V3 -> 25 m: max_rel_div=1.560e-7 work=0.070s 
+C1 V3 -> 25 m: max_rel_div=1.560e-7 work=0.165s query cold=25.12us warm=7.39us diff=0
+C1 V3h -> 25 m: max_rel_div=1.813e-7 work=0.125s 
+C1 V3h -> 25 m: max_rel_div=1.813e-7 work=0.144s 
+C1 V3h -> 25 m: max_rel_div=1.813e-7 work=0.257s query cold=36.11us warm=14.81us diff=0

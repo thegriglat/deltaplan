@@ -1,0 +1,29 @@
+[package]
+name = "cascade_rs"
+version = "0.1.0"
+edition = "2024"
+description = "Stateless face-splitting cascade of a coarse 2D wind slice down to 25 m (cascade-2d research)"
+license = "MIT"
+publish = false
+build = "build.rs"
+
+# Not a member of rust/Cargo.toml.
+[workspace]
+
+[[bin]]
+name = "cascade"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+rayon = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+picard_rs = { path = "../../../../rust/picard_rs" }
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
