@@ -1,0 +1,79 @@
+{
+  "id": "CSD-3",
+  "module": "cascade-2d",
+  "type": "dp-researcher",
+  "title": "Крейт каскада без состояния: V0–V3, V3h, всё поле и опрос точки",
+  "goal": "Исследовательский крейт спускает поле родителя (P400/P200) до 25 м делением граней с точным балансом массы в вариантах V0–V3 и V3h, в режимах «всё поле» и «опрос точки по пути» (побитно одинаково), пишет F1/F2 с балансом, временем и памятью.",
+  "plan_ref": "Опыт",
+  "contracts": [
+    {
+      "name": "F0",
+      "version": "1",
+      "ref": "docs/contracts/cascade-2d.md"
+    },
+    {
+      "name": "F1",
+      "version": "1",
+      "ref": "docs/contracts/cascade-2d.md"
+    },
+    {
+      "name": "F2",
+      "version": "1",
+      "ref": "docs/contracts/cascade-2d.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/cascade-2d-CSD-3",
+  "branch": "cascade-2d/CSD-3",
+  "base": "feature/cascade-2d",
+  "scope": [
+    "tools/research/cascade_2d/cascade_rs/",
+    "tools/research/cascade_2d/out/runs/"
+  ],
+  "dont_touch": [
+    "rust/",
+    "scripts/",
+    "tools/research/cascade_2d/contract/",
+    "tools/research/cascade_2d/cases/",
+    "tools/research/cascade_2d/metrics/"
+  ],
+  "accept": [
+    {
+      "name": "build",
+      "cmd": "cargo build --release --manifest-path tools/research/cascade_2d/cascade_rs/Cargo.toml",
+      "expect": "exit=0"
+    },
+    {
+      "name": "tests",
+      "cmd": "cargo test --release --manifest-path tools/research/cascade_2d/cascade_rs/Cargo.toml",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --release --manifest-path tools/research/cascade_2d/cascade_rs/Cargo.toml -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --check --manifest-path tools/research/cascade_2d/cascade_rs/Cargo.toml",
+      "expect": "exit=0"
+    },
+    {
+      "name": "balance",
+      "cmd": "tools/research/cascade_2d/cascade_rs/target/release/cascade selftest",
+      "expect": "num:max_rel_div=([0-9.eE+-]+) <=0.00001"
+    },
+    {
+      "name": "path",
+      "cmd": "tools/research/cascade_2d/cascade_rs/target/release/cascade selftest",
+      "expect": "num:path_vs_full=([0-9.eE+-]+) <=0"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-04T07:13:48"
+}

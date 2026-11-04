@@ -1,0 +1,59 @@
+{
+  "id": "CSD-1",
+  "module": "cascade-2d",
+  "type": "dp-researcher",
+  "title": "Эталоны: квази-2D случаи R1 и решения picard_rs 400…25 м для C0–C3",
+  "goal": "Для случаев F0 есть случаи R1 на 5 уровнях и решения picard_rs (F1 среднего ряда, F2: время, итерации, память, однородность по y), а также сходимость эталона по сетке; всё воспроизводимо одной командой.",
+  "plan_ref": "Опыт",
+  "contracts": [
+    {
+      "name": "F0",
+      "version": "1",
+      "ref": "docs/contracts/cascade-2d.md"
+    },
+    {
+      "name": "F1",
+      "version": "1",
+      "ref": "docs/contracts/cascade-2d.md"
+    },
+    {
+      "name": "F2",
+      "version": "1",
+      "ref": "docs/contracts/cascade-2d.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/cascade-2d-CSD-1",
+  "branch": "cascade-2d/CSD-1",
+  "base": "feature/cascade-2d",
+  "scope": [
+    "tools/research/cascade_2d/cases/",
+    "tools/research/cascade_2d/out/runs/",
+    "tools/research/cascade_2d/requirements.txt"
+  ],
+  "dont_touch": [
+    "rust/",
+    "scripts/",
+    "tools/research/air3d/",
+    "tools/research/cascade_2d/contract/"
+  ],
+  "accept": [
+    {
+      "name": "refs_count",
+      "cmd": "ls tools/research/cascade_2d/out/runs/C[0-3]/picard_none_d*.run.json | wc -l",
+      "expect": "num:(\\d+) >=20"
+    },
+    {
+      "name": "contract",
+      "cmd": "tools/research/cascade_2d/py tools/research/cascade_2d/contract/check_contract.py tools/research/cascade_2d/out/runs /home/greg/data/cascade_2d/fields",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-04T07:13:42"
+}
