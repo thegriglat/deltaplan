@@ -18,3 +18,9 @@
 {"t": "2026-11-04T07:14:14", "by": "coordinator", "task": "CSD-1", "ev": "started"}
 {"t": "2026-11-04T07:14:14", "by": "coordinator", "task": "CSD-2", "ev": "started"}
 {"t": "2026-11-04T07:14:14", "by": "coordinator", "task": "CSD-3", "ev": "started"}
+{"t": "2026-11-04T07:18:07", "by": "executor", "task": "CSD-2", "ev": "reported", "commits": ["c3ed535ad"], "note": "done: metrics.py (библиотека+CLI), plots.py, test_metrics.py, README.md: метрики M1, B_k интерполяцией, картинки fields/profi…"}
+{"t": "2026-11-04T07:18:22", "by": "coordinator", "task": "CSD-2", "ev": "checked", "note": "2/2 metrics_test=ok:exit 0; docs=ok:ошибок 0"}
+{"t": "2026-11-04T07:18:35", "by": "coordinator", "task": "CSD-2", "ev": "note", "note": "Доработка (уточнение M1, координатор): w_max для C3 — максимум w по столбу |x − x_c| ≤ 3L на всех высотах воздуха до z = 2000 м (z_agl ≤ 300 м отсекает термик); F_up — как было (z = 750 м). Остальное без изменений. Добавить тест на синтетике: пик w на z_agl 600 м находится. Затем снова accept --dry и report.", "addendum": true}
+{"t": "2026-11-04T07:19:03", "by": "executor", "task": "CSD-2", "ev": "reported", "commits": ["92f58db11"], "note": "done: w_max C3 по столбу до z=2000 м; тест пика на z_agl 600 м добавлен."}
+{"t": "2026-11-04T07:19:19", "by": "coordinator", "task": "CSD-2", "ev": "checked", "note": "2/2 metrics_test=ok:exit 0; docs=ok:ошибок 0"}
+{"t": "2026-11-04T07:19:20", "by": "coordinator", "task": "CSD-2", "ev": "accepted", "note": "по отчёту"}

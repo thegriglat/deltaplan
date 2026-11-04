@@ -1,0 +1,28 @@
+{
+  "status": "done",
+  "summary": "w_max C3 по столбу до z=2000 м; тест пика на z_agl 600 м добавлен.",
+  "commits": [
+    "92f58db11 w_max термика до 2000 м"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "metrics_test",
+      "value": "7 тестов, exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept CSD-2",
+  "uncertain": [],
+  "dp_feedback": "",
+  "extra": {},
+  "t": "2026-11-04T07:19:03",
+  "by": "executor"
+}
