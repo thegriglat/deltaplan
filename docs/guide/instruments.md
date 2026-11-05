@@ -250,7 +250,7 @@ flight_audio.set_enabled(on)
 Громкость сглаживается (τ 0,2 с); луп ниже −60 дБ останавливается и потом стартует со случайного места.
 
 ### Аудиошины
-`scenes/audio/bus_layout.tres`: Master ← Vario, Wind (ФНЧ → панорама → компрессор −6 дБ, 2:1), Effects, Ambient.
+`scenes/audio/bus_layout.tres`: Master ← Vario, Wind (ФНЧ → панорама → компрессор −6 дБ, 2:1), Effects, Ambient, Voice (реплики пилота, [pilot-voice.md](pilot-voice.md)).
 Интегратору: в `project.godot` → `[audio] buses/default_bus_layout="res://scenes/audio/bus_layout.tres"`.
 Без этого `FlightAudio` сам создаёт недостающие шины при запуске (`create_missing_buses`).
 Вариометр — на шине Vario (`vario_audio.bus`), поверх потока.

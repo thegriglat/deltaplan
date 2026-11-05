@@ -50,6 +50,8 @@ var settings: FlightSettings:
 var recent_places_path: String = RecentPlaces.PATH
 ## Каталог «Популярные места» (PP-К1); файла нет — кнопка скрыта. Тесты подставляют путь до _ready.
 var popular_places_path: String = ""
+## Каталог «Красивые места» (SCP-К1); файла нет — кнопка скрыта.
+var scenic_places_path: String = ""
 ## Список избранных условий (Favorites) — переопределяется в тестах.
 var favorites_path: String = Favorites.PATH
 
@@ -101,6 +103,12 @@ var _places_catalog: Dictionary:
 var _places_btn: Button:
 	get:
 		return _row.places_btn
+var _scenic_btn: Button:
+	get:
+		return _row.scenic_btn
+var _scenic_window: ScenicPlacesWindow:
+	get:
+		return _row.scenic_window
 var _places_window: PopularPlacesWindow:
 	get:
 		return _row.places_window
@@ -173,7 +181,7 @@ func _build() -> void:
 	_row = PlacePickRow.new()
 	_row.settings = settings
 	box_place.add_child(_row)
-	_row.build(self, popular_places_path)
+	_row.build(self, popular_places_path, true, scenic_places_path)
 	_row.changed.connect(_update_dir_hint)
 	_row.changed.connect(_update_weather_lock)
 	_connect_goals_refresh()

@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-11-04"
+updated: "2026-11-05"
 summary: "Контракты стыков по модулям: id и версии из заголовков."
 related: []
 generated: true
@@ -22,6 +22,7 @@ generated: true
 - air-phase: P8 v1, P9 v2, P10 v5, P11 v3, P12 v4, P13 v2, P14 v2, P15 v1 — [docs/contracts/air-phase/assembly-game.md](../contracts/air-phase/assembly-game.md)
 - air-phase: P1 v1, P2 v6, P3 v3, P4 v6, P5 v1, P6 v2, P7 v1 — [docs/contracts/air-phase/experiments-solver.md](../contracts/air-phase/experiments-solver.md)
 - air-phase: P1 v1, P2 v6, P3 v3, P4 v6, P5 v1, P6 v2, P7 v1, P8 v1, P9 v2, P10 v5, P11 v3, P12 v4, P13 v2, P14 v2, P15 v1 — [docs/contracts/air-phase.md](../contracts/air-phase.md)
+- air-start-menu: ASM-К1 v2, ASM-К2 v2, ASM-К3 v1, ASM-К4 v1 — [docs/contracts/air-start-menu.md](../contracts/air-start-menu.md)
 - air-weak-wind: W1 v1, W2 v1 — [docs/contracts/air-weak-wind.md](../contracts/air-weak-wind.md)
 - bar-mouse: BM-К1 v2, BM-К2 v1 — [docs/contracts/bar-mouse.md](../contracts/bar-mouse.md)
 - cascade-2d: F0 v1, F1 v1, F2 v1, M1 v2 — [docs/contracts/cascade-2d.md](../contracts/cascade-2d.md)
@@ -59,6 +60,7 @@ generated: true
 - pilot-handling: PHD-К1 v3, PHD-К2 v2 — [docs/contracts/pilot-handling.md](../contracts/pilot-handling.md)
 - pilot-hud: PH-К1 v2, PH-К2 v1, PH-К3 v2, PH-К4 v2, PH-К5 v1, PH-К6 v1, PH-К7 v1 — [docs/contracts/pilot-hud.md](../contracts/pilot-hud.md)
 - pilot-view: PV1 v3, PV2 v1, PV3 v2 — [docs/contracts/pilot-view.md](../contracts/pilot-view.md)
+- pilot-voice: PV-К1 v3, PV-К2 v3, PV-К3 v1, PV-К4 v3 — [docs/contracts/pilot-voice.md](../contracts/pilot-voice.md)
 - popular-places: PP-К1 v3, PP-К2 v1 — [docs/contracts/popular-places.md](../contracts/popular-places.md)
 - pullin-speed: VM-К0 v1, VM-К1 v2, VM-К2 v3, VM-К4 v3, VM-К6 v2 — [docs/contracts/pullin-speed-research.md](../contracts/pullin-speed-research.md)
 - pullin-speed: VM-К3 v3, VM-К5 v3, VM-К7 v2, VM-К8 v1 — [docs/contracts/pullin-speed.md](../contracts/pullin-speed.md)
@@ -75,6 +77,7 @@ generated: true
 - rust-wind: W12 v3 — [docs/contracts/rust-wind/weather.md](../contracts/rust-wind/weather.md)
 - rust-wind: W1 v2, W2 v6, W3 v9, W4 v10, W5 v11, W6 v4, W7 v1, W8 v3, W9 v2, W10 v2, W11 v11, W12 v3 — [docs/contracts/rust-wind.md](../contracts/rust-wind.md)
 - scene-look: SL-К1 v4, SL-К2 v2, SL-К3 v1, SL-К4 v2, SL-К5 v1, SL-К6 v2, SL-К7 v1 — [docs/contracts/scene-look.md](../contracts/scene-look.md)
+- scenic-places: SCP-К1 v3, SCP-К2 v1, SCP-К3 v3 — [docs/contracts/scenic-places.md](../contracts/scenic-places.md)
 - sea-ships: S1 v2, S2 v4, S3 v3, S4 v1 — [docs/contracts/sea-ships.md](../contracts/sea-ships.md)
 - site-docs: SD-К1 v2 — [docs/contracts/site-docs.md](../contracts/site-docs.md)
 - site-i18n: SI-К1 v2, SI-К2 v1, SI-К3 v2, SI-К4 v3, SI-К5 v1, SI-К6 v1 — [docs/contracts/site-i18n.md](../contracts/site-i18n.md)
