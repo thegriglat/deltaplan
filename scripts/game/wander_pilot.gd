@@ -24,7 +24,26 @@ var circle_dir_fn: Callable
 var traffic_avoid: bool = false
 var traffic_heading_deg: float = 0.0
 
+## Напарник (WM-К1): цели перелётов — у ведущего (игрока). Поля lead_* обновляет BotPilots.
+var wingman: bool = false
+var lead_active: bool = false
+var lead_pos: Vector3 = Vector3.ZERO
+var lead_vel: Vector3 = Vector3.ZERO
+var lead_circling: bool = false
+## Центр круга игрока (x, z).
+var lead_center: Vector2 = Vector2.ZERO
+## configs/bots.json → wingman (near_m, far_m, lead_s, join_m, leave_m, leave_below_m).
+var wm_near_m: float = 500.0
+var wm_far_m: float = 1500.0
+var wm_lead_s: float = 40.0
+var wm_join_m: float = 2000.0
+var wm_leave_m: float = 450.0
+var wm_leave_below_m: float = 300.0
+
 var _wander_ready: bool = false
+## Следы ведущего (x, z) раз в 5 с — по ним видно, что он кружит (путь ≫ смещение).
+var _lead_track: Array[Vector2] = []
+var _lead_track_t: float = -100.0
 
 
 ## Сторона виража: +1 — вправо, −1 — влево.
@@ -99,7 +118,8 @@ func _tick_senses(t: Telemetry, dt: float) -> void:
 
 
 ## Расхождение важнее кружения (после обхода рельефа); счёт витков не копит поворот ухода.
-func _take_over(t: Telemetry, _pos: Vector2, _dt_s: float) -> bool:
+func _take_over(t: Telemetry, pos: Vector2, _dt_s: float) -> bool:
+	_wingman_leave(t, pos)
 	if not traffic_avoid:
 		return false
 	_steer_heading(t, traffic_heading_deg, cruise_bank_max_deg + 10.0)
@@ -124,6 +144,8 @@ func _cruise_target(pos: Vector2, dt: float) -> Vector2:
 
 ## Долетел до цели (или цели ещё нет) — новая случайная точка у дома.
 func _wander_update(pos: Vector2) -> void:
+	if wingman and lead_active and _wingman_update(pos):
+		return
 	if _wander_ready and pos.distance_to(goal) > 300.0:
 		return
 	_wander_ready = true
@@ -140,3 +162,86 @@ func _wander_update(pos: Vector2) -> void:
 		if d >= wander_leg_min_m and d <= wander_leg_max_m:
 			goal = p
 			return
+
+
+## Напарник кружит, а игрок ушёл далеко и нам хватает высоты долететь до него (с запасом leave_below_m) — выйти из
+## термика (обычный выход BotPilot) и лететь к игроку.
+## Ведущий кружит: за последние 20 с сместился меньше, чем на 60% пути (при кружении r ≪ путь/π).
+## Не зависит от lead_circling (там нужен поворот player_turn_deg за ~20 с — вираж шире не пройдёт).
+func _lead_loitering(lp: Vector3) -> bool:
+	var p := Vector2(lp.x, lp.z)
+	if _t - _lead_track_t >= 7.0:
+		_lead_track.clear()  # опрос прерывался (не кружили) — следы устарели
+	if _t - _lead_track_t >= 5.0:
+		_lead_track_t = _t
+		_lead_track.append(p)
+		if _lead_track.size() > 5:
+			_lead_track.pop_front()
+	if _lead_track.size() < 5:
+		return false
+	var path := 0.0
+	for i in range(1, 5):
+		path += _lead_track[i].distance_to(_lead_track[i - 1])
+	return path > 20.0 and _lead_track[0].distance_to(_lead_track[4]) < 0.6 * path
+
+
+func _wingman_leave(t: Telemetry, pos: Vector2) -> void:
+	if not (wingman and lead_active and mode == Mode.CIRCLE):
+		return
+	if pos.distance_to(Vector2(lead_pos.x, lead_pos.z)) <= wm_leave_m:
+		return
+	# Остаться и добрать высоту, если до игрока не долететь: высота над землёй меньше, чем нужно
+	# на дистанцию по осторожной дальности планирования плюс запас leave_below_m. Игрок кружит
+	# в термике — цель известна, и можно меньше запаса (×0,5) и дальность смелее (×0,8 против ×0,6
+	# от расчётной): приходим в его термик и набираем вместе; игрок в перелёте — убегает, и
+	# уходить низко нельзя: догонять нечем, сядет.
+	var dist := pos.distance_to(Vector2(lead_pos.x, lead_pos.z))
+	var v := trim_speed(t.altitude_msl)
+	var ld := v / maxf(_sink_at(v, t.altitude_msl), 0.3)
+	var known := lead_circling or _lead_loitering(lead_pos)
+	var need := (
+		dist / (ld * (0.8 if known else 0.6))
+		+ wm_leave_below_m * (0.5 if known else 1.0)
+	)
+	if t.altitude_agl < need:
+		return
+	_exit_thermal(t, pos)
+
+
+## Цель перелёта напарника: рядом с игроком — случайная точка в круге near_m вокруг него;
+## дальше — упреждённое положение игрока (упреждение растёт от near_m до far_m); игрок кружит
+## не дальше join_m — центр его круга. Возвращает true, если цель выбрана (или оставлена).
+func _wingman_update(pos: Vector2) -> bool:
+	var lp := Vector2(lead_pos.x, lead_pos.z)
+	var d := pos.distance_to(lp)
+	if lead_circling and not is_circling() and d <= wm_join_m and pos.distance_to(lead_center) > 300.0:
+		_set_wingman_goal(pos, lead_center)
+		return true
+	if d > wm_near_m:
+		var k := clampf((d - wm_near_m) / maxf(wm_far_m - wm_near_m, 1.0), 0.0, 1.0)
+		var v := Vector2(lead_vel.x, lead_vel.z)
+		_set_wingman_goal(pos, lp + v * wm_lead_s * k)
+		return true
+	# Рядом: цель — в круге near_m вокруг игрока; пока не долетел и цель не отстала — та же.
+	if _wander_ready and pos.distance_to(goal) > 300.0 and goal.distance_to(lp) <= wm_near_m + 300.0:
+		return true
+	_wander_ready = true
+	_has_cloud_target = false
+	_visited_clouds.clear()
+	route_start = pos
+	goal = lp
+	for i in 12:
+		var p := lp + Vector2.from_angle(rng.randf() * TAU) * wm_near_m * sqrt(rng.randf())
+		if pos.distance_to(p) >= 300.0:
+			goal = p
+			break
+	return true
+
+
+func _set_wingman_goal(pos: Vector2, g: Vector2) -> void:
+	if not _wander_ready:
+		_has_cloud_target = false
+		_visited_clouds.clear()
+	_wander_ready = true
+	route_start = pos
+	goal = g

@@ -162,6 +162,7 @@ helmet_open,Открытая,Open face
 helmet_visor,С визором,With visor
 helmet_visor_dark,С тёмным визором,With dark visor
 settings_bots,Другие пилоты в небе,Other pilots in the sky
+settings_wingman,Напарники,Wingmen
 settings_pilot_names,Имена пилотов,Pilot names
 settings_pilot_names_hint,над другими пилотами,above other pilots
 settings_peak_names,Подписи вершин,Peak labels

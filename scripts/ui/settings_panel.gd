@@ -51,6 +51,7 @@ var _eye_mode: OptionButton
 var _eye_modes: Array = ["back_hidden", "eyes"]
 var _helmet_modes: Array = []
 var _bots: HSlider
+var _wingman: HSlider
 var _names: CheckBox
 var _peak_names: CheckBox
 var _pilot_shift: CheckBox
@@ -242,6 +243,8 @@ func _ready() -> void:
 	UiKit.row(box_gfx, tr("settings_helmet"), _helmet)
 	var bots_max := float(Config.value("bots", "count_max", 20))
 	_bots = UiKit.slider_row(box_game, tr("settings_bots"), 0.0, bots_max, 1.0, "%.0f")
+	var wm_max := float(Config.value("bots", "wingman.count_max", 2))
+	_wingman = UiKit.slider_row(box_game, tr("settings_wingman"), 0.0, wm_max, 1.0, "%.0f")
 	_names = CheckBox.new()
 	_names.text = tr("settings_pilot_names_hint")
 	UiKit.row(box_game, tr("settings_pilot_names"), _names)
@@ -457,6 +460,8 @@ func load_values() -> void:
 	_helmet.select(maxi(_helmet_modes.find(hm), 0))
 	_bots.value = float(Config.value("bots", "count", 4))
 	_bots.value_changed.emit(_bots.value)
+	_wingman.value = float(Config.value("bots", "wingman.count", 1))
+	_wingman.value_changed.emit(_wingman.value)
 	_names.button_pressed = bool(Config.value("bots", "names.show", true))
 	_peak_names.button_pressed = bool(Config.value("world_objects", "osm_pilot.peaks.show", true))
 	_pilot_shift.button_pressed = bool(Config.value("ui", "pilot_shift.enabled", true))
@@ -546,7 +551,7 @@ func save() -> bool:
 		}
 	}
 	ok = UserSettings.save_patch("game", dp, config_dir) and ok
-	var bp := {"count": int(_bots.value), "names": {"show": _names.button_pressed}}
+	var bp := {"count": int(_bots.value), "names": {"show": _names.button_pressed}, "wingman": {"count": int(_wingman.value)}}
 	ok = UserSettings.save_patch("bots", bp, config_dir) and ok
 	var pk := {"osm_pilot": {"peaks": {"show": _peak_names.button_pressed}}}
 	ok = UserSettings.save_patch("world_objects", pk, config_dir) and ok

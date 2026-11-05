@@ -234,6 +234,14 @@ generated: true
   - [tools/research/snow_plume/SNW-5/README.md](../tools/research/snow_plume/SNW-5/README.md) — SNW-5 (частично): шлейфы есть при 16 м/с (24 источника, Эверест и Шымбулак), нет при 2 м/с (0); цена кадра не мерилась.
   - [tools/research/snow_plume/SNW-9/README.md](../tools/research/snow_plume/SNW-9/README.md) — SNW-9: кадры струек v3 (Эверест, Шымбулак; ветер 16 и 2 м/с; вблизи гребня). Струйки редкие и бледные, издалека не видны.
 - **cloud-base** — Основания кучевых по кромке инверсии с разбросом 50–150 м между облаками вместо одной плоскости. [closed 2026-10-24] — [план](plan/cloud-base.md) · [решения](plan/cloud-base/decisions.md) · [сводка](plan/cloud-base/summary.md) · полный журнал: `archive/cloud-base`
+- **cloud-view** — Вид у облаков и над ними: белёсый экран выше некой высоты в ясном воздухе; на границе облака другие облака будто инвертируются по цвету. [closed 2026-11-05] — [план](plan/cloud-view.md) · [контракты](contracts/cloud-view.md) · [решения](plan/cloud-view/decisions.md) · [сводка](plan/cloud-view/summary.md) · полный журнал: `archive/cloud-view`
+  - [tools/research/cloud_view/CVW-1/README.md](../tools/research/cloud_view/CVW-1/README.md) — CVW-1: белёсая пелена в слое облаков — CloudWhiteout по грубой плотности поля (cover × профиль) без шума; над слоем пелены нет
+  - [tools/research/cloud_view/CVW-2/README.md](../tools/research/cloud_view/CVW-2/README.md) — CVW-2 — смена цвета облаков и неба на кромке слоя; причина — туман окружения мглы CloudWhiteout и дымка облаков
+  - [tools/research/cloud_view/CVW-3/README.md](../tools/research/cloud_view/CVW-3/README.md) — CVW-3 — мгла (К2 v3) без ступенек неба, рельефа и цвета облаков на кромке слоя; числа до/после стенда CVW-2
+  - [tools/research/cloud_view/CVW-4/README.md](../tools/research/cloud_view/CVW-4/README.md) — CVW-4: мгла по рисуемым облакам: в ясном столбце 0 (было 0,145), в рисуемом облаке 1,0 (грубое поле 0,28)
+  - [tools/research/cloud_view/CVW-5/README.md](../tools/research/cloud_view/CVW-5/README.md) — CVW-5: облака-записи на сцене: Cb — мгла 1,0 в теле и 0 в просвете; башни считаются без выделений
+  - [tools/research/cloud_view/CVW-1/summary.md](../tools/research/cloud_view/CVW-1/summary.md) — CVW-1: белёсая пелена в слое облаков — CloudWhiteout по грубой плотности поля (cover × профиль) без шума; над слоем пелены нет
+  - [tools/research/cloud_view/CVW-2/summary.md](../tools/research/cloud_view/CVW-2/summary.md) — CVW-2 вывод — мгла CloudWhiteout включает туман окружения: скачок неба и переключение дымки облаков в cloud_layer
 
 ## game
 
@@ -248,9 +256,12 @@ generated: true
 - **pilot-voice** — Голосовые реплики пилота игрока на ситуации полёта («вот чёрт», «вроде нашёл»): список ситуаций, синтез голоса локально (RTX 4070 SUPER), RU/EN, мужской и женский голос. [closed 2026-11-05] — [план](plan/pilot-voice.md) · [контракты](contracts/pilot-voice.md) · [решения](plan/pilot-voice/decisions.md) · [сводка](plan/pilot-voice/summary.md) · полный журнал: `archive/pilot-voice`
   - [docs/guide/pilot-voice.md](guide/pilot-voice.md) — Голос пилота: реплики по данным игрока, ситуации, очередь, пасхалки, файлы голосов, шина Voice, настройка, границы.
   - [docs/research/pilot-voice-tts.md](research/pilot-voice-tts.md) — Голос пилота: Qwen3-TTS-1.7B VoiceDesign (Apache-2.0, RU+EN, голос по описанию), 4 ГБ VRAM; образцы не прослушаны
+- **sail-texture** — Своя текстура паруса: игрок загружает картинку (PNG/JPG), она ложится на парус его крыла; только у себя, не по сети. [active 2026-11-05] — [план](plan/sail-texture.md) · [контракты](contracts/sail-texture.md)
+  - [tools/research/sail-texture/README.md](../tools/research/sail-texture/README.md) — SLT-1: UV1 паруса у всех 49 glb одной схемы (верх v 0,5–1, низ 0–0,5); формула наложения своей картинки
 - **scenic-places** — Красивые места: наборы по 5–10 природных пейзажей на страну (~20–30 стран), кнопка рядом с «Популярными местами», старт в воздухе над видом. [closed 2026-11-05] — [план](plan/scenic-places.md) · [контракты](contracts/scenic-places.md) · [решения](plan/scenic-places/decisions.md) · [сводка](plan/scenic-places/summary.md) · полный журнал: `archive/scenic-places`
   - [docs/research/scenic-places-table.md](research/scenic-places-table.md) — Таблица 236 красивых мест по странам: место, тип, чем красиво, старт, курс, высота, карта — для просмотра
   - [docs/research/scenic-places.md](research/scenic-places.md) — Каталог красивых мест: 236 мест в 29 странах, метод отбора, проверка по рельефу (checked 236, failed 0), её пределы
+- **wingman** — Напарник: 1–2 бота держатся поближе к пилоту игрока, чтобы в одиночной игре не было одиноко. [closed 2026-11-05] — [план](plan/wingman.md) · [контракты](contracts/wingman.md) · [решения](plan/wingman/decisions.md) · [сводка](plan/wingman/summary.md) · полный журнал: `archive/wingman`
 
 ## perf
 
@@ -334,7 +345,7 @@ generated: true
 - [docs/guide/models/instruments-3d.md](guide/models/instruments-3d.md) — 3D-модели приборов (планшет, вариометр, часы, компас): оси, ноды, крепление к кисти и к штанге, кабинная камера.
 - [docs/guide/models/pilot.md](guide/models/pilot.md) — Модель пилота pilot.glb: меши, кости, пустышки, анимации и порядок фаз, перчатки, кабинный вид, сборка (MPFB), высота в подвеске.
 - [docs/guide/models/references.md](guide/models/references.md) — Скриншоты моделей, приёмка по фото реальных прототипов, что улучшить, источники референсов.
-- [docs/guide/models/sail-shader.md](guide/models/sail-shader.md) — Шейдер паруса: просвечивание, анимация вершин, подключение к GliderVisual, стенд и сравнение с фото.
+- [docs/guide/models/sail-shader.md](guide/models/sail-shader.md) — Шейдер паруса: просвечивание, анимация вершин (маска UV2), своя картинка паруса, подключение к GliderVisual, стенд и сравнение с фото.
 - [docs/guide/models/trees.md](guide/models/trees.md) — Модели деревьев (5 пород, 8 вариантов, 3 LOD) и их подключение в мире.
 - [docs/guide/models/wing-contract.md](guide/models/wing-contract.md) — Контракт имён и осей модели крыла: ноды Sail, Frame, ControlFrame, маркеры (HangPoint, BaseBar, InstrumentMount, Upright*), материалы.
 - [docs/guide/models/wings.md](guide/models/wings.md) — Модели крыльев (assets/models/glider_*.glb, 49 шт.): таблица, параметры glider_params.json, трапеция, центровка, подвеска.

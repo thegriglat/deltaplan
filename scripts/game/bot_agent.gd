@@ -26,6 +26,11 @@ var control := ControlInput.new()
 var pilot_rel: Vector3 = Vector3.ZERO
 var pilot_rel_valid: bool = false
 var brain := WanderPilot.new()
+## Напарник игрока (WM-К1, configs/bots.json → wingman): цели перелётов — у игрока.
+var wingman: bool = false:
+	set(v):
+		wingman = v
+		brain.wingman = v
 var state: State = State.WAIT
 var wing_id: String = ""
 var mass_kg: float = 0.0
@@ -97,6 +102,14 @@ func setup(
 	var leg: Array = wd.get("leg_m", [800.0, 2500.0])
 	brain.wander_leg_min_m = float(leg[0])
 	brain.wander_leg_max_m = float(leg[1])
+	var wm: Dictionary = cfg.get("wingman", {})
+	brain.wm_near_m = float(wm.get("near_m", brain.wm_near_m))
+	brain.wm_far_m = float(wm.get("far_m", brain.wm_far_m))
+	brain.wm_lead_s = float(wm.get("lead_s", brain.wm_lead_s))
+	brain.wm_join_m = float(wm.get("join_m", brain.wm_join_m))
+	brain.wm_leave_m = float(wm.get("leave_m", brain.wm_leave_m))
+	brain.wm_leave_below_m = float(wm.get("leave_below_m", brain.wm_leave_below_m))
+	brain.wingman = wingman
 	var la: Dictionary = cfg.get("launch", {})
 	_run_nose = float(la.get("run_nose", 0.3))
 	_nose.configure(la.get("auto_nose", {}))

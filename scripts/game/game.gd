@@ -245,7 +245,13 @@ func _ready() -> void:
 func _process(dt: float) -> void:
 	# Белая мгла в облаке — по положению камеры (кадр, не шаг физики).
 	if air.has_method("cloud_density_at") and sky.world_env != null:
-		var d := float(air.call("cloud_density_at", camera.global_position))
+		# CVW-К3: плотность по рисуемым облакам; −1 (не рисуются) — грубое поле как запасной путь.
+		var d := -1.0
+		var layer := air.get_node_or_null("Clouds") as CloudLayer
+		if layer != null:
+			d = layer.visible_density_at(camera.global_position)
+		if d < 0.0:
+			d = float(air.call("cloud_density_at", camera.global_position))
 		if d > 0.0 or _whiteout.amount > 0.0:
 			_whiteout.update(d, dt)
 			_whiteout.apply(sky.world_env.environment)
@@ -458,6 +464,8 @@ func start(s: FlightSettings) -> bool:
 	await get_tree().process_frame
 	# Боты: места и агенты — сразу, вид — порциями вместе с термиками ниже (FL-10).
 	_make_tow_session()
+	# Напарники (WM-К1): в одиночной игре; в сети — нет
+	bots.wingmen = int(Config.value("bots", "wingman.count", 1)) if net == null else 0
 	await bots.setup_in_world_async(
 		terrain, air, _start_pos, _start_heading, bots_count, world_link.objects, 50.0, _tow_bots_opts()
 	)

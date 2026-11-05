@@ -1,0 +1,77 @@
+{
+ "sky_g_step_max": 0.004060000000000008,
+ "other_rgb_step_max": 0.0020000000000000018,
+ "terrain_step_max": 0.012340000000000004,
+ "fog_frac_at_L_amount1": 1.0,
+ "fog_frac_at_20km_amount1": 1.0,
+ "L_m": 65.0,
+ "frames_in_window_min": 8,
+ "code_commit": "fad629946",
+ "before_linear_cvw2": {
+  "sky_g_step_max": 0.13992000000000002,
+  "terrain_step_max": 0.0,
+  "frames_in_window_min": 4,
+  "other_rgb_step_max": 0.10099000000000002
+ },
+ "before_geometric": {
+  "sky_g_step_max": 0.002229999999999982,
+  "terrain_step_max": 0.0,
+  "frames_in_window_min": 4,
+  "other_rgb_step_max": 0.00378999999999996
+ },
+ "per_hour": {
+  "after_13": {
+   "other_rgb_step_max_raw": 0.04366999999999999,
+   "nc_outlier_frames": [
+    15,
+    37
+   ],
+   "sky_g_step_max": 0.004060000000000008,
+   "other_rgb_step_max": 0.0019899999999999918,
+   "frames_in_window": 16,
+   "terrain_step_max": 0.012340000000000004
+  },
+  "after_18": {
+   "other_rgb_step_max_raw": 0.0020000000000000018,
+   "nc_outlier_frames": [
+    30
+   ],
+   "sky_g_step_max": 0.0021499999999999853,
+   "other_rgb_step_max": 0.0020000000000000018,
+   "frames_in_window": 8,
+   "terrain_step_max": 0.0024299999999999877
+  },
+  "before_13": {
+   "other_rgb_step_max_raw": 0.05293999999999999,
+   "nc_outlier_frames": [],
+   "sky_g_step_max": 0.13992000000000002,
+   "other_rgb_step_max": 0.05293999999999999,
+   "frames_in_window": 8,
+   "terrain_step_max": 0.0
+  },
+  "before_18": {
+   "other_rgb_step_max_raw": 0.10099000000000002,
+   "nc_outlier_frames": [],
+   "sky_g_step_max": 0.09386999999999998,
+   "other_rgb_step_max": 0.10099000000000002,
+   "frames_in_window": 4,
+   "terrain_step_max": 0.0
+  },
+  "geo_13": {
+   "other_rgb_step_max_raw": 0.00378999999999996,
+   "nc_outlier_frames": [],
+   "sky_g_step_max": 0.002229999999999982,
+   "other_rgb_step_max": 0.00378999999999996,
+   "frames_in_window": 8,
+   "terrain_step_max": 0.0
+  },
+  "geo_18": {
+   "other_rgb_step_max_raw": 0.0035399999999999876,
+   "nc_outlier_frames": [],
+   "sky_g_step_max": 0.002019999999999994,
+   "other_rgb_step_max": 0.0035399999999999876,
+   "frames_in_window": 4,
+   "terrain_step_max": 0.0
+  }
+ }
+}
