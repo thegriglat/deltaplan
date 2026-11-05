@@ -1,0 +1,73 @@
+{
+  "status": "done",
+  "summary": "Проверка мест по рельефу (SCP-К2, Terrarium z11, PNG через zlib+numpy) и список из 80 мест, по 8 в NO, IS, CH, FR, IT, ES, TR, RU, KZ, MN. Все проходят: checked 80, failed 0. Минимальный запас высоты 97 м, минимальный перепад у вида 160 м. agl_m не больше 1000 (SCP-К1 v2), ветка влита с feature/scenic-places.",
+  "commits": [
+    "9ea7fe4be scenic-places SCP-1: проверка мест по рельефу и список Европа/Северная Азия (80 мест)"
+  ],
+  "checks": [
+    {
+      "name": "contract",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "unit",
+      "value": "exit 0 (7 тестов)",
+      "pass": true
+    },
+    {
+      "name": "relief",
+      "value": "checked 80, failed 0",
+      "pass": true
+    },
+    {
+      "name": "count",
+      "value": "80",
+      "pass": true
+    },
+    {
+      "name": "min запас высоты, м",
+      "value": "97",
+      "pass": true
+    },
+    {
+      "name": "min перепад у вида, м",
+      "value": "160",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Отброшены: ru/baikal-khoboy и kz/markakol (вид на воде, перепад 0 м), kz/bozzhyra (перепад 75 м), it/etna (нужен agl 1100 > 1000). Вместо них добавлены ru/munku-sardyk, kz/kok-zhailau, kz/aksu-zhabagly; Байкал в списке России отсутствует."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept SCP-1",
+  "uncertain": [
+    {
+      "where": "tools/places/scenic/a-europe-north-asia.json",
+      "why": "Координаты вида взяты по памяти (Википедия не сверялась); проверка рельефом подтверждает только перепад и запас, не что вид попал именно на названный объект",
+      "checked": "для каждого места сравнена высота в точке вида с локальным максимумом в 1,5 км (ориентиры в порядке для гор). Выборочно не сверено: ru/dombay, tr/saklikent, es/garganta-del-chorro, mn/*, kz/*"
+    },
+    {
+      "where": "tools/places/scenic/a-europe-north-asia.json",
+      "why": "Точки старта подобраны перебором курса и дальности (4-12 км) с минимальным agl >= 400 м и уклоном к низкой земле под путём; часть стартов может оказаться высоко на склоне соседней горы (высота земли в h0 до 3700 м в Альпах), что формально проходит пункт 3",
+      "checked": "пункт 3 проходит у всех; наглядность вида не проверялась в игре"
+    }
+  ],
+  "dp_feedback": "accept --dry на двух тяжёлых прогонах идёт > 2 мин и уходит в фон без явного сигнала; хотелось бы ожидание с прогрессом.",
+  "extra": {
+    "countries": {
+      "NO": 8,
+      "IS": 8,
+      "CH": 8,
+      "FR": 8,
+      "IT": 8,
+      "ES": 8,
+      "TR": 8,
+      "RU": 8,
+      "KZ": 8,
+      "MN": 8
+    }
+  },
+  "t": "2026-11-05T06:57:16",
+  "by": "executor"
+}

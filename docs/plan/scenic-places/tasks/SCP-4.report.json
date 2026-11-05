@@ -1,0 +1,48 @@
+{
+  "status": "done",
+  "summary": "ScenicPlaces, ScenicPlacesWindow и кнопка «Красивые места…» после «Популярных» в «Настройках полёта» (на экране сети кнопки нет, PlacePickRow.build(overlay, path, scenic, scenic_path)). Выбор ставит pick_lat/lon, set_exact_start(lat, lon, heading_deg), название на языке интерфейса; другие способы выбора снимают его. Ключи перевода и scenic_places_path добавлены.",
+  "commits": [
+    "e23afd3d6 scenic-places SCP-4: окно «Красивые места» и кнопка",
+    "6b8c01a54 контрактный тест под SCP-К3 v2"
+  ],
+  "checks": [
+    {
+      "name": "scenic_places",
+      "value": "13/13",
+      "pass": true
+    },
+    {
+      "name": "popular_places",
+      "value": "13/13",
+      "pass": true
+    },
+    {
+      "name": "contract",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept SCP-4",
+  "uncertain": [
+    {
+      "where": "tests/ui/test_scenic_places.gd (test_choice_sets_start_and_heading)",
+      "why": "после «Готово» экран подменяет объект settings, поэтому проверка снятия выбора идёт по row.settings",
+      "checked": "тест зелёный; логика сброса scenic_id в set_pick/_on_map_ok/choose_place"
+    },
+    {
+      "where": "accept --dry",
+      "why": "в копии не было addons/dp_air/bin (в .gitignore): без него goals_tab падает на sunset_h и Godot без импорта висел до таймаута 900 с",
+      "checked": "скопировал .so из основной копии (libdp_air_release.so, он же как _tune); после этого все тесты зелёные"
+    }
+  ],
+  "dp_feedback": "Свежая копия не содержит addons/dp_air/bin и .godot: accept --dry молча упирается в таймаут 900 с. Хорошо бы, чтобы task создавал копию с нативной библиотекой и импортом, либо accept предупреждал.",
+  "t": "2026-11-05T06:49:19",
+  "by": "executor"
+}
