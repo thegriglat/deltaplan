@@ -63,9 +63,20 @@
       "name": "gd_check",
       "cmd": "python3 tools/check_gd.py scripts/atmosphere/cloud_layer.gd tests/atmosphere/test_cloud_visible_density.gd tools/shots/cloud_view_climb_shot.gd",
       "expect": "exit=0"
+    },
+    {
+      "name": "edge_offset",
+      "cmd": "python3 -c \"import json;print(json.load(open('tools/research/cloud_view/CVW-5/after.json'))['edge_offset_measured_m'])\"",
+      "expect": "num:([0-9.]+) <=10"
+    },
+    {
+      "name": "synced",
+      "cmd": "git merge-base --is-ancestor feature/cloud-view HEAD",
+      "expect": "exit=0"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-11-05T13:26:08"
+  "created": "2026-11-05T13:26:08",
+  "edited": "2026-11-05T15:06:34"
 }
