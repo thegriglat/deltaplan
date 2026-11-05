@@ -1,0 +1,40 @@
+{
+  "id": "WMN-3",
+  "module": "wingman",
+  "type": "dp-writer",
+  "title": "Guide и CHANGELOG: напарник",
+  "goal": "В docs/guide/game/bots.md — раздел «Напарник» (как устроено, настройки, границы модели); в docs/guide/game/menus-settings.md — пункт «Напарники»; в CHANGELOG.md «В работе» — строка по-русски, функционально.",
+  "plan_ref": "§4 Задачи",
+  "contracts": [
+    {
+      "name": "wingman",
+      "version": "1",
+      "ref": "docs/contracts/wingman.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/wingman-WMN-3",
+  "branch": "wingman/WMN-3",
+  "base": "feature/wingman",
+  "scope": [
+    "docs/guide/game/bots.md",
+    "docs/guide/game/menus-settings.md",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "tests",
+    "docs/contracts",
+    "docs/plan"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-05T09:41:28"
+}

@@ -1,0 +1,52 @@
+{
+  "id": "WMN-4",
+  "module": "wingman",
+  "type": "dp-engineer",
+  "title": "Напарник: устойчивость параметров выхода из термика на нескольких сценариях",
+  "goal": "Пороги test_wingman выполняются не только на одном сценарии: 2 дополнительных варианта дня; параметры wingman.* (без правок физики) подобраны по всем сразу; поправлены два замечания ревью WMN-1.",
+  "plan_ref": "§4 Задачи",
+  "contracts": [
+    {
+      "name": "wingman",
+      "version": "1",
+      "ref": "docs/contracts/wingman.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/wingman-WMN-4",
+  "branch": "wingman/WMN-4",
+  "base": "feature/wingman",
+  "scope": [
+    "configs/bots.json",
+    "scripts/game/wander_pilot.gd",
+    "tests/game/test_wingman.gd"
+  ],
+  "dont_touch": [
+    "scripts/flight",
+    "scripts/core",
+    "scripts/game/bot_pilot.gd",
+    "scripts/game/bot_pilots.gd",
+    "scripts/game/net_bots.gd",
+    "scripts/net",
+    "scripts/ui",
+    "docs",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "wingman",
+      "tests": "wingman"
+    },
+    {
+      "name": "test_bots",
+      "tests": "test_bots"
+    },
+    {
+      "name": "gd",
+      "cmd": "python3 tools/check_gd.py --changed",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-05T09:41:32"
+}
