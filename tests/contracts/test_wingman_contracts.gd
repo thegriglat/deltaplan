@@ -12,7 +12,7 @@ func _read(path: String) -> String:
 
 
 func test_versions() -> void:
-	check(_read(DOC).contains("## WM-К1 v1"), "WM-К1 v1 заголовок")
+	check(_read(DOC).contains("## WM-К1 v2"), "WM-К1 v2 заголовок")
 
 
 func test_k1_config() -> void:
