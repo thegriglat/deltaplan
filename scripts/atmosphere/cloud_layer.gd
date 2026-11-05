@@ -131,6 +131,9 @@ var _cf_key: String = ""
 var _cf_t_upd: float = 0.0
 var _cf_step: float = 20.0
 var _cf_img: Image
+var _cf_prev_img: Image
+## Срезы шума noise_shape для CPU-выборки (visible_density_at); null до готовности текстуры.
+var _nz_slices: Array[Image] = []
 var _cf_quant := PackedFloat32Array()
 ## Квантили маски по текстуре шума (путь → 16 значений) — считаются раз на процесс.
 static var _quant_cache: Dictionary = {}
@@ -1181,6 +1184,7 @@ func _upload_field(r: Dictionary, t: float) -> void:
 	else:
 		field_tex_prev = ImageTexture.create_from_image(prev)
 		field_tex = ImageTexture.create_from_image(img)
+	_cf_prev_img = prev
 	_cf_img = img
 	_cf_t_upd = t
 	field_uploads += 1
@@ -1214,6 +1218,366 @@ func _upload_field(r: Dictionary, t: float) -> void:
 	for k in 4:
 		field_params["cf_q%d" % k] = Vector4(q[k * 4], q[k * 4 + 1], q[k * 4 + 2], q[k * 4 + 3])
 	field_params["cf_on"] = 1.0 if any_cloud and top > 1.0 else 0.0
+
+
+# ---------------------------------------------------------------- CVW-К3: плотность рисуемых облаков
+
+# Константы формы — копия из cloud_common.gdshaderinc (тест сверяет).
+const V_FADE_H0 := 1.2
+const V_FADE_H1 := 1.35
+const V_FADE_R1 := 1.6
+const V_TOWERS := 8
+const V_CF_DOME_E := 0.6
+const V_CF_ASPECT := 0.55
+const V_CF_D_REF := 1500.0
+const V_CF_W_MIN := 200.0
+const V_CF_W_MAX := 3000.0
+const V_CF_XI_MU := 0.866
+const V_CF_XI_SD := 0.219
+const V_CF_XI_LO := -1.0
+const V_CF_XI_HI := 2.5
+const V_CF_MASK_K := 0.7351
+const V_CF_MASK_O := Vector3(0.317, 0.642, 0.139)
+const V_CF_EDGE_E := 0.12
+
+
+## Плотность 0..1 в точке p (мир) по облакам, которые сейчас рисуются: записи облаков (объекты,
+## волновые) и слой поля облачности. Форма — крупная часть cloud_density / cf_density_top из
+## cloud_common.gdshaderinc (без мелкой эрозии краёв, без клочьев вне границы, без вирги).
+## −1 — ничего не рисуется (слой не настроен, нет записей с видимостью > 0, поле выключено).
+## Вне всех рисуемых облаков — 0. Цена: одна точка, обход записей (десятки), без выделений в цикле.
+func visible_density_at(p: Vector3) -> float:
+	if atmo == null:
+		return -1.0
+	_ensure_nz()
+	var drawn := false
+	var best := 0.0
+	for i in _rec.size():
+		if _slot_obj[i] == null:
+			continue
+		var r: PackedFloat32Array = _rec[i]
+		if r.size() < 21 or r[20] <= 0.0:
+			continue
+		drawn = true
+		best = maxf(best, _rec_density(r, p))
+	for r: PackedFloat32Array in _wave_rec:
+		if r.size() < 21 or r[20] <= 0.0:
+			continue
+		drawn = true
+		best = maxf(best, _rec_density(r, p))
+	if float(field_params.get("cf_on", 0.0)) > 0.5 and _cf_img != null and _cf_quant.size() == 16:
+		drawn = true
+		best = maxf(best, _field_density(p))
+	return clampf(best, 0.0, 1.0) if drawn else -1.0
+
+
+static func _vfract(x: float) -> float:
+	return x - floorf(x)
+
+
+## Выборка канала (0 R, 1 G, 2 B) 3D-шума в координатах текстуры u (повтор), мип 0, трилинейно.
+func _nz(ch: int, u: Vector3) -> float:
+	var sl := _nz_slices
+	var nd := sl.size()
+	if nd == 0:
+		return 0.5
+	var w := sl[0].get_width()
+	var h := sl[0].get_height()
+	var x := u.x * w - 0.5
+	var y := u.y * h - 0.5
+	var z := u.z * nd - 0.5
+	var x0 := floori(x)
+	var y0 := floori(y)
+	var z0 := floori(z)
+	var fx := x - x0
+	var fy := y - y0
+	var fz := z - z0
+	var acc := 0.0
+	for dz in 2:
+		var im := sl[posmod(z0 + dz, nd)]
+		var wz := fz if dz == 1 else 1.0 - fz
+		for dy in 2:
+			var wy := fy if dy == 1 else 1.0 - fy
+			var yy := posmod(y0 + dy, h)
+			for dx in 2:
+				var wx := fx if dx == 1 else 1.0 - fx
+				var c := im.get_pixel(posmod(x0 + dx, w), yy)
+				acc += (c.r if ch == 0 else (c.g if ch == 1 else c.b)) * wx * wy * wz
+	return acc
+
+
+## Срезы шума из текстуры слоя (один раз; без сжатия, RGB8).
+func _ensure_nz() -> void:
+	if not _nz_slices.is_empty():
+		return
+	var tex: Texture3D = _material.get_shader_parameter("noise_shape")
+	if tex == null or (tex is NoiseTexture3D and tex.get_data().is_empty()):
+		return
+	for im: Image in tex.get_data():
+		var c := im.duplicate() as Image
+		if c.is_compressed():
+			c.decompress()
+		c.convert(Image.FORMAT_RGB8)
+		_nz_slices.append(c)
+
+
+## Башни облака-записи (cloud_init_towers): центр (u, v), высота, радиус; seed_off — зерно.
+static func _towers(seed_off: Vector3, kind: int) -> Array[Vector4]:
+	var out: Array[Vector4] = []
+	for k in V_TOWERS:
+		var n := seed_off.x * 13.1 + float(k) * 7.13
+		var hx := _vfract(sin(n) * 43758.5453)
+		var hy := _vfract(sin(n + 1.7) * 22578.1459)
+		var hz := _vfract(sin(n + 3.1) * 19642.3490)
+		var main_t := k == 0
+		var ang := hx * TAU
+		var rr := 0.12 * hy if main_t else lerpf(0.25, 0.62, hy)
+		var th := 1.0 if main_t else lerpf(0.45, 0.85, hz) * (1.0 - 0.45 * rr)
+		var rk := 0.8 if main_t else lerpf(0.35, 0.55, _vfract(hz * 7.1 + hx)) * lerpf(0.75, 1.0, th)
+		if kind == 3:
+			th = 1.0 if main_t else lerpf(0.6, 0.95, hz)
+			rk = 0.9 if main_t else lerpf(0.45, 0.65, _vfract(hz * 7.1 + hx))
+		out.append(Vector4(cos(ang) * rr, sin(ang) * rr, th, rk))
+	return out
+
+
+static func _towers_at(tw: Array[Vector4], uv: Vector2, h: float, kind: int) -> float:
+	var best := -2.0
+	for t in tw:
+		var q := Vector2(uv.distance_to(Vector2(t.x, t.y)) / t.w, h / t.z)
+		if kind == 3:
+			var q2x := q.x * q.x
+			var q2y := q.y * q.y
+			best = maxf(best, 1.0 - sqrt(sqrt(q2x * q2x + q2y * q2y)))
+		else:
+			best = maxf(best, 1.0 - q.length())
+	return best
+
+
+## Плотность одной записи облака в точке (крупная форма cloud_density_raw × vis³).
+func _rec_density(r: PackedFloat32Array, p: Vector3) -> float:
+	var kind := int(r[19] + 0.5)
+	var height := maxf(r[9], 10.0)
+	var rx := maxf(r[10], 10.0)
+	var rz := maxf(r[11], 10.0)
+	var h := (p.y - r[8]) / height
+	var dx := p.x - r[0]
+	var dz := p.z - r[2]
+	# бокс записи: вне него шейдер облако не рисует
+	var bx := dx * r[4] + dz * r[5]
+	var bz := -dx * r[5] + dz * r[4]
+	if absf(bx) > r[6] or absf(bz) > r[7] or absf(p.y - r[1]) > r[3]:
+		return 0.0
+	var uv := Vector2(bx / rx, bz / rz)
+	var vis := clampf(r[20], 0.0, 1.0)
+	var v3 := vis * vis * vis
+	if kind == 1 or kind == 2:
+		if h < 0.0 or h > 1.0:
+			return 0.0
+		return _lens(kind, uv, h, r[15]) * v3
+	if h < 0.0 or h > V_FADE_H1:
+		return 0.0  # вирга под основанием не учитывается
+	var spread := r[16]
+	var anvil := r[17]
+	var a_spread := float(acfg.storm.anvil_spread)
+	var a_shift := float(acfg.storm.anvil_shift)
+	var fade_r := V_FADE_R1 + spread * 0.8 + anvil * (a_spread + a_shift)
+	var r_box := uv.length()
+	if r_box > fade_r:
+		return 0.0
+	var box_fade := (1.0 - smoothstep(fade_r - 0.25, fade_r, r_box)) * (1.0 - smoothstep(V_FADE_H0, V_FADE_H1, h))
+	var spread_k := 1.0 + spread * smoothstep(0.55, 1.0, h)
+	if kind == 3:
+		spread_k += anvil * 0.8 * smoothstep(0.6, 0.95, h)
+	var s := r[15]
+	var seed_off := Vector3(_vfract(s * 0.1031), _vfract(s * 0.1130), _vfract(s * 0.0973)) * 7.0
+	var decay := r[13]
+	var growth := r[12]
+	var shape := _towers_at(_towers(seed_off, kind), uv / spread_k, h, kind)
+	shape -= decay * 0.15 + (1.0 - vis) * 0.35
+	shape = clampf(shape / lerpf(0.55, 0.8, decay), 0.0, 1.0)
+	var anvil_m := 0.0
+	if anvil > 0.0 and h > 0.7:
+		var ua := uv - Vector2(a_shift * anvil, 0.0)
+		var ra := 1.0 + a_spread * anvil
+		var rr := Vector2(ua.x, ua.y * 1.6).length() / ra
+		var thick := lerpf(0.12, 0.03, smoothstep(0.0, 1.0, rr))
+		var av := smoothstep(0.97 - thick, 0.97 - thick + 0.02, h) * (1.0 - smoothstep(0.97, 1.0, h))
+		var ah := 1.0 - smoothstep(0.7, 1.0, rr)
+		anvil_m = av * ah * anvil * lerpf(1.0, 0.35, smoothstep(0.1, 0.8, rr))
+	if shape <= 0.0 and anvil_m <= 0.0:
+		return 0.0
+	# клубы (канал R шума), как у шейдера: ветер и «кипение»
+	var ns := clampf(height / 2500.0, 1.0, 3.5) if kind == 3 else 1.0
+	var billow := _billow(p, seed_off, ns, true)
+	var base_soft := lerpf(10.0, 120.0, decay) / height
+	var base_lift := (float(cfg.base_relief_m) / height + decay * 0.3) * (1.0 - billow)
+	var dns := shape * smoothstep(base_lift, base_lift + base_soft, h)
+	var erosion := (lerpf(0.75, 0.93, decay) + (1.0 - growth) * 0.15) * (1.0 - 0.6 * anvil_m)
+	if kind == 3:
+		erosion *= 0.8
+	dns = clampf(_remap01(dns, erosion * (1.0 - billow)), 0.0, 1.0)
+	if anvil_m > 0.0:
+		dns = maxf(dns, anvil_m * 0.7)  # волокна ледяной плиты опущены: среднее smoothstep(0,15..0,6)
+	dns = smoothstep(0.0, lerpf(float(cfg.surface_sharpness), 1.0, decay), dns)
+	return dns * box_fade * lerpf(0.3, 1.0, growth) * lerpf(1.0, 0.2, decay * decay) * v3
+
+
+static func _remap01(v: float, lo: float) -> float:
+	return (v - lo) / maxf(1.0 - lo, 1.0e-4)
+
+
+func _wind_off() -> Vector3:
+	var w: Variant = _material.get_shader_parameter("wind_offset")
+	return w if w is Vector3 else Vector3.ZERO
+
+
+## Клубы Уорли (канал R) в точке: seed_off/ns — у записей, нули/1 — у слоя поля.
+func _billow(p: Vector3, seed_off: Vector3, ns: float, two: bool) -> float:
+	if _nz_slices.is_empty():
+		return 0.5
+	var wo := _wind_off()
+	var bv: Variant = _material.get_shader_parameter("boil")
+	var boil := float(bv) if bv != null else 0.0
+	var per := float(cfg.shape_period_m)
+	var sp := (p + wo) / (per * ns) + seed_off + Vector3(0.0, boil, 0.0)
+	var b1 := smoothstep(0.2, 0.85, 1.0 - _nz(0, sp))
+	if not two:
+		return b1
+	var b2 := smoothstep(0.2, 0.85, 1.0 - _nz(0, sp * 2.7 + Vector3(0.5, 0.5, 0.5)))
+	return b1 * 0.6 + b2 * 0.4
+
+
+## Линза (вид 1) и шапка (вид 2): гладкая форма без шума (lens_density).
+static func _lens(kind: int, uv: Vector2, h: float, seed_v: float) -> float:
+	var r := uv.length()
+	if r >= 1.0:
+		return 0.0
+	if kind == 1:
+		var sy := _vfract(seed_v * 0.1130) * 7.0
+		var n := 2 + int(_vfract(sy * 3.7) * 2.99)
+		var fn := float(n)
+		var dns := 0.0
+		for i in n:
+			var hc := (float(i) + 0.5) / fn
+			var mid := absf(float(i) - (fn - 1.0) * 0.5) / fn
+			var ri := r / (1.0 - 0.35 * mid)
+			if ri >= 1.0:
+				continue
+			var th := 0.5 / fn * pow(1.0 - ri * ri, 0.8)
+			dns = maxf(dns, smoothstep(0.0, 0.25 / fn, th - absf(h - hc)))
+		return dns
+	var inside := pow(1.0 - r * r, 0.5) - absf(2.0 * h - 1.0)
+	return smoothstep(0.0, 0.1, inside) if inside > 0.0 else 0.0
+
+
+# --- слой поля облачности (cf_* в cloud_common.gdshaderinc)
+
+func _cf_px(img: Image, nx: int, ny: int, uv: Vector2) -> Color:
+	var x := uv.x * nx - 0.5
+	var y := uv.y * ny - 0.5
+	var x0 := floori(x)
+	var y0 := floori(y)
+	var fx := x - x0
+	var fy := y - y0
+	var c := Color(0, 0, 0, 0)
+	for dy in 2:
+		for dx in 2:
+			var w := (fx if dx == 1 else 1.0 - fx) * (fy if dy == 1 else 1.0 - fy)
+			c += img.get_pixel(clampi(x0 + dx, 0, nx - 1), clampi(y0 + dy, 0, ny - 1)) * w
+	return c
+
+
+## Поле в xz: (покрытие, мощность м, стадия −1..1, активность) — cf_sample.
+func _cf_field(x: float, z: float) -> Vector4:
+	var rect: Vector4 = field_params["cf_rect"]
+	var base: Vector4 = field_params["cf_base"]
+	var uv := Vector2((x - rect.x) * rect.z, (z - rect.y) * rect.w)
+	var nx := _cf_img.get_width()
+	var ny := _cf_img.get_height()
+	var k: float = field_params["cf_misc"].w
+	var v := _cf_px(_cf_img, nx, ny, uv)
+	if _cf_prev_img != null and k < 1.0 and _cf_prev_img.get_size() == _cf_img.get_size():
+		v = _cf_px(_cf_prev_img, nx, ny, uv).lerp(v, k)
+	var ox := maxf(maxf(-uv.x, uv.x - 1.0), 0.0) / rect.z
+	var oz := maxf(maxf(-uv.y, uv.y - 1.0), 0.0) / rect.w
+	var w := clampf(1.0 - Vector2(ox, oz).length() / maxf(float(field_params["cf_edge"]), 1.0), 0.0, 1.0)
+	return Vector4(
+		lerpf(base.z, v.r, w), lerpf(base.w, v.g * base.y, w), (v.b * 2.0 - 1.0) * w, v.a * w
+	)
+
+
+func _cf_threshold(c: float) -> float:
+	var x := clampf(1.0 - c, 0.0, 1.0) * 15.0
+	var i := mini(int(x), 14)
+	return lerpf(_cf_quant[i], _cf_quant[i + 1], x - float(i))
+
+
+## Превышение порога маски (cf_excess): x — превышение, y — предел высоты, м.
+func _cf_excess(p: Vector3, f: Vector4) -> Vector2:
+	var base: Vector4 = field_params["cf_base"]
+	var per: float = field_params["cf_misc"].z
+	var wo := _wind_off()
+	var q := Vector3(p.x + wo.x, (p.y - base.x) * 0.3, p.z + wo.z) / per
+	var q2 := q * V_CF_MASK_K + V_CF_MASK_O
+	var mg := _nz(1, q) + _nz(1, q2)
+	var mb := _nz(2, q) + _nz(2, q2)
+	var xi := clampf(((mb - V_CF_XI_MU) / V_CF_XI_SD - V_CF_XI_LO) / (V_CF_XI_HI - V_CF_XI_LO), 0.0, 1.0)
+	var lim := minf(
+		f.y, V_CF_ASPECT * maxf(1.0, f.y / V_CF_D_REF) * V_CF_W_MIN * pow(V_CF_W_MAX / V_CF_W_MIN, xi)
+	)
+	return Vector2((mg - _cf_threshold(f.x)) / maxf(_cf_quant[15] - _cf_quant[8], 1.0e-3), lim)
+
+
+## Плотность слоя поля в точке (cf_density_top, quality 1): без клочьев вне границы и мелкой эрозии.
+func _field_density(p: Vector3) -> float:
+	var base: Vector4 = field_params["cf_base"]
+	var shell_w0: float = field_params["cf_shell_w"]
+	var shell_h0: float = field_params["cf_shell_h"]
+	var f := _cf_field(p.x, p.z)
+	var h := p.y - base.x
+	if h < -shell_h0 or f.x < 0.004 or f.y < 1.0:
+		return 0.0
+	var ex0 := _cf_excess(p, f)
+	var e := ex0.x
+	var lim := ex0.y
+	if e <= 0.0 or h < 0.0:
+		return 0.0  # снаружи — только редкие клочья (≤ cf_shell_dens), не считаем
+	var shell_w := shell_w0 * lerpf(1.0, 0.5, maxf(f.z, 0.0)) * (1.0 + 0.5 * maxf(-f.z, 0.0))
+	var shell_on := shell_w0 > 0.5
+	var d_in := 1.0e9
+	if shell_on and (e < 0.5 or h < shell_w):
+		var ex := _cf_excess(p + Vector3(30.0, 0.0, 0.0), f).x
+		var ez := _cf_excess(p + Vector3(0.0, 0.0, 30.0), f).x
+		var g := maxf(Vector2(ex - e, ez - e).length() / 30.0, 1.0 / 3000.0)
+		d_in = e / g
+	var x := clampf(e / V_CF_DOME_E, 0.0, 1.0)
+	var top := lim * sqrt(x * (2.0 - x))
+	if h > top * 1.2 + 30.0:
+		return 0.0
+	var growth := 1.0 - 0.7 * maxf(f.z, 0.0)
+	var decay := maxf(-f.z, 0.0)
+	var shape := minf(1.0 - h / maxf(top, 1.0), e / V_CF_EDGE_E)
+	shape -= decay * 0.15
+	shape = clampf(shape / lerpf(0.55, 0.8, decay), 0.0, 1.0)
+	if shape <= 0.0:
+		return 0.0
+	var billow := _billow(p, Vector3.ZERO, 1.0, true)
+	var rag := 1.0 + 2.5 * maxf(f.z, 0.0)
+	var cbs := float(cfg.get("field_base_soft_m", 60.0))
+	var base_soft := lerpf(maxf(cbs, 10.0), maxf(cbs, 120.0), decay) + 40.0 * maxf(f.z, 0.0)
+	var base_lift := (float(cfg.base_relief_m) * rag + decay * decay * 0.45 * minf(top, 700.0)) * (1.0 - billow)
+	var dns := shape * smoothstep(base_lift, base_lift + base_soft, h)
+	if dns <= 0.0:
+		return 0.0
+	var erosion := lerpf(0.75, 0.93, decay) + (1.0 - growth) * 0.15
+	dns = clampf(_remap01(dns, erosion * (1.0 - billow)), 0.0, 1.0)
+	dns = smoothstep(0.0, lerpf(float(cfg.surface_sharpness), 1.0, decay), dns)
+	var shell := 1.0
+	if shell_on:
+		d_in = minf(d_in, top - h)
+		shell = smoothstep(0.0, 1.0, d_in / maxf(shell_w, 1.0))
+	return dns * lerpf(0.3, 1.0, growth) * lerpf(1.0, 0.2, decay * decay) * shell
 
 
 ## Грубая карта поля: блок B × B клеток (B — делитель nx и ny из 4, 3, 2, 1), в блоке — наибольшие
