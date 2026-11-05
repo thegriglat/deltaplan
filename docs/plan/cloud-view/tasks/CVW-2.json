@@ -1,0 +1,65 @@
+{
+  "id": "CVW-2",
+  "module": "cloud-view",
+  "type": "dp-researcher",
+  "title": "Облака будто инвертируются по цвету на границе облака: воспроизвести, найти причину",
+  "goal": "Воспроизвести кадрами и числами (CVW-К1) смену цвета других облаков при входе в облако, выходе и у кромки, и указать причину: файл, функция, механизм. Код игры не править.",
+  "plan_ref": "§1 п.2, §3, §4",
+  "contracts": [
+    {
+      "name": "CVW-К1",
+      "version": "1",
+      "ref": "docs/contracts/cloud-view.md"
+    },
+    {
+      "name": "CVW-К2",
+      "version": "1",
+      "ref": "docs/contracts/cloud-view.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/cloud-view-CVW-2",
+  "branch": "cloud-view/CVW-2",
+  "base": "feature/cloud-view",
+  "scope": [
+    "tools/shots/cloud_view_edge_shot.gd",
+    "tools/shots/cloud_view_edge_shot.gd.uid",
+    "tools/shots/cloud_view_edge_shot.tscn",
+    "tools/research/cloud_view/CVW-2/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "shaders/",
+    "project.godot",
+    "tools/research/cloud_view/CVW-1/"
+  ],
+  "accept": [
+    {
+      "name": "cloud_whiteout",
+      "tests": "cloud_whiteout"
+    },
+    {
+      "name": "csv_header",
+      "cmd": "head -1 tools/research/cloud_view/CVW-2/measures.csv",
+      "expect": "re:^frame,loc,hour,cam_x,cam_z,cam_y_msl,cam_agl,yaw_deg,pitch_deg,cloud_base_msl,cloud_top_msl,cover_cam,density_cam,whiteout_amount,fog_density,fog_r,fog_g,fog_b,fog_sky_affect,mean_r,mean_g,mean_b,luma_mean,luma_std,png"
+    },
+    {
+      "name": "frames",
+      "cmd": "tail -n +2 tools/research/cloud_view/CVW-2/measures.csv | grep -c .",
+      "expect": "num:(\\d+) >=16"
+    },
+    {
+      "name": "readme",
+      "cmd": "test -s tools/research/cloud_view/CVW-2/README.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "gd_check",
+      "cmd": "python3 tools/check_gd.py tools/shots/cloud_view_edge_shot.gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-05T06:07:23"
+}
