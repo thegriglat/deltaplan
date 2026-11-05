@@ -41,6 +41,9 @@ var wm_leave_m: float = 450.0
 var wm_leave_below_m: float = 300.0
 
 var _wander_ready: bool = false
+## Следы ведущего (x, z) раз в 5 с — по ним видно, что он кружит (путь ≫ смещение).
+var _lead_track: Array[Vector2] = []
+var _lead_track_t: float = -100.0
 
 
 ## Сторона виража: +1 — вправо, −1 — влево.
@@ -161,14 +164,46 @@ func _wander_update(pos: Vector2) -> void:
 			return
 
 
-## Напарник кружит, а игрок ушёл далеко и не выше нас больше чем на leave_below_m — выйти из
+## Напарник кружит, а игрок ушёл далеко и нам хватает высоты долететь до него (с запасом leave_below_m) — выйти из
 ## термика (обычный выход BotPilot) и лететь к игроку.
+## Ведущий кружит: за последние 20 с сместился меньше, чем на 60% пути (при кружении r ≪ путь/π).
+## Не зависит от lead_circling (там нужен поворот player_turn_deg за ~20 с — вираж шире не пройдёт).
+func _lead_loitering(lp: Vector3) -> bool:
+	var p := Vector2(lp.x, lp.z)
+	if _t - _lead_track_t >= 7.0:
+		_lead_track.clear()  # опрос прерывался (не кружили) — следы устарели
+	if _t - _lead_track_t >= 5.0:
+		_lead_track_t = _t
+		_lead_track.append(p)
+		if _lead_track.size() > 5:
+			_lead_track.pop_front()
+	if _lead_track.size() < 5:
+		return false
+	var path := 0.0
+	for i in range(1, 5):
+		path += _lead_track[i].distance_to(_lead_track[i - 1])
+	return path > 20.0 and _lead_track[0].distance_to(_lead_track[4]) < 0.6 * path
+
+
 func _wingman_leave(t: Telemetry, pos: Vector2) -> void:
 	if not (wingman and lead_active and mode == Mode.CIRCLE):
 		return
 	if pos.distance_to(Vector2(lead_pos.x, lead_pos.z)) <= wm_leave_m:
 		return
-	if t.altitude_msl < lead_pos.y - wm_leave_below_m:
+	# Остаться и добрать высоту, если до игрока не долететь: высота над землёй меньше, чем нужно
+	# на дистанцию по осторожной дальности планирования плюс запас leave_below_m. Игрок кружит
+	# в термике — цель известна, и можно меньше запаса (×0,5) и дальность смелее (×0,8 против ×0,6
+	# от расчётной): приходим в его термик и набираем вместе; игрок в перелёте — убегает, и
+	# уходить низко нельзя: догонять нечем, сядет.
+	var dist := pos.distance_to(Vector2(lead_pos.x, lead_pos.z))
+	var v := trim_speed(t.altitude_msl)
+	var ld := v / maxf(_sink_at(v, t.altitude_msl), 0.3)
+	var known := lead_circling or _lead_loitering(lead_pos)
+	var need := (
+		dist / (ld * (0.8 if known else 0.6))
+		+ wm_leave_below_m * (0.5 if known else 1.0)
+	)
+	if t.altitude_agl < need:
 		return
 	_exit_thermal(t, pos)
 
