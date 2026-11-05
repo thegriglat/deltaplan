@@ -1,0 +1,73 @@
+{
+  "id": "CVW-4",
+  "module": "cloud-view",
+  "type": "dp-engineer",
+  "title": "Мгла — по рисуемым облакам, а не по грубому полю",
+  "goal": "CloudLayer.visible_density_at (CVW-К3) — плотность в точке по облакам, которые сейчас рисуются, их формой из шейдера; game.gd подаёт её в CloudWhiteout, грубое поле — только запасной путь. В просвете слоя (столбец CVW-1) мглы нет, внутри рисуемого облака — полная.",
+  "plan_ref": "§1 п.1, §4; решение волны 2 (2026-11-05)",
+  "contracts": [
+    {
+      "name": "CVW-К1",
+      "version": "1",
+      "ref": "docs/contracts/cloud-view.md"
+    },
+    {
+      "name": "CVW-К2",
+      "version": "2",
+      "ref": "docs/contracts/cloud-view.md"
+    },
+    {
+      "name": "CVW-К3",
+      "version": "1",
+      "ref": "docs/contracts/cloud-view.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/cloud-view-CVW-4",
+  "branch": "cloud-view/CVW-4",
+  "base": "feature/cloud-view",
+  "scope": [
+    "scripts/atmosphere/cloud_layer.gd",
+    "scripts/game/game.gd",
+    "tests/atmosphere/test_cloud_visible_density.gd",
+    "tests/atmosphere/test_cloud_visible_density.gd.uid",
+    "tools/shots/cloud_view_climb_shot.gd",
+    "tools/research/cloud_view/CVW-4/"
+  ],
+  "dont_touch": [
+    "scripts/game/cloud_whiteout.gd",
+    "scripts/atmosphere/cloud_common.gdshaderinc",
+    "scripts/atmosphere/cloud_raymarch_cs.gdshaderinc",
+    "rust/",
+    "configs/",
+    "project.godot",
+    "tools/research/cloud_view/CVW-1/"
+  ],
+  "accept": [
+    {
+      "name": "test_game_logic",
+      "tests": "test_game_logic"
+    },
+    {
+      "name": "cloud_visible_density",
+      "tests": "cloud_visible_density"
+    },
+    {
+      "name": "clear_amount",
+      "cmd": "python3 -c \"import json;print(json.load(open('tools/research/cloud_view/CVW-4/after.json'))['clear_amount_max'])\"",
+      "expect": "num:([0-9.]+) <=0.01"
+    },
+    {
+      "name": "in_cloud_amount",
+      "cmd": "python3 -c \"import json;print(json.load(open('tools/research/cloud_view/CVW-4/after.json'))['in_cloud_amount_max'])\"",
+      "expect": "num:([0-9.]+) >=0.9"
+    },
+    {
+      "name": "gd_check",
+      "cmd": "python3 tools/check_gd.py scripts/atmosphere/cloud_layer.gd scripts/game/game.gd tests/atmosphere/test_cloud_visible_density.gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-05T11:34:44"
+}

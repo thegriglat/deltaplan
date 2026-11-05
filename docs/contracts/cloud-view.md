@@ -31,7 +31,7 @@ frame,loc,hour,cam_x,cam_z,cam_y_msl,cam_agl,yaw_deg,pitch_deg,cloud_base_msl,cl
 Нет величины (нет поля, нет мглы) — пустое поле, не 0. Дополнительные колонки — после `png`, имя с префиксом `x_` (например `x_haze_top_msl`, `x_cloud_alpha_center`), смысл и единицы — в README рядом. Контрактная проверка — первая строка файла совпадает с заголовком выше (проверка `csv_header` в карточках).
 
 ## CVW-К2. CloudWhiteout — «белая мгла» в облаке (v2)
-Владелец — `scripts/game/cloud_whiteout.gd` (правит CVW-3); вызывает `scripts/game/game.gd` (`_whiteout.update(d, dt)`, `_whiteout.apply(environment)`), параметры — `configs/game.json → cloud_whiteout`. Потребитель тумана — `scripts/atmosphere/cloud_layer.gd::_update_light` (дымка облаков). v1 → v2 (2026-11-05, по CVW-1/CVW-2): источник `density` — К3; мгла не протекает в небо ступенькой и в дымку облаков.
+Владелец — `scripts/game/cloud_whiteout.gd` (правит CVW-3); вызывает `scripts/game/game.gd` (`_whiteout.update(d, dt)`, `_whiteout.apply(environment)`), параметры — `configs/game.json → cloud_whiteout`. Потребитель тумана — `scripts/atmosphere/cloud_layer.gd::_update_light` (дымка облаков). v1 → v2 (2026-11-05, по CVW-1/CVW-2): источник `density` — К3; мгла не протекает в небо ступенькой и в дымку облаков; облака закрывает вуалью по `amount`, а не экспонентой по расстоянию.
 
 ```
 var amount: float                       # 0..1
@@ -40,13 +40,17 @@ func update(density: float, dt: float) -> void   # density — К3 (плотно
 func apply(env: Environment) -> void    # смешивает исходный туман окружения с мглой по amount
 ```
 
-Метаданные окружения (стык с дымкой облаков): пока `amount > 0`, `apply` держит `env.get_meta("fog_base")` = `{"enabled": bool, "density": float, "color": Color, "sky_affect": float}` — туман окружения **до** мглы; при `amount = 0` и возврате исходных параметров метаданные удаляются. `cloud_layer._update_light`: есть `fog_base` → дымку облаков (`fog_color`, `fog_density` шейдера) считает по нему, как при `enabled`/без мглы; нет — как сейчас.
+Метаданные окружения (стык с облаками): пока `amount > 0`, `apply` держит
+- `env.get_meta("fog_base")` = `{"enabled": bool, "density": float, "color": Color, "sky_affect": float}` — туман окружения **до** мглы;
+- `env.get_meta("whiteout_veil")` = `{"v": float, "color": Color}` — вуаль мглы для облаков: доля `v` 0..1 (непрерывная функция `amount`, `v(0) = 0`, `v(1) = 1`), цвет — цвет мглы;
+
+при `amount = 0` и возврате исходных параметров оба ключа удаляются. Облака (`cloud_layer.gd`, шейдер прохода): базовая дымка (`fog_color`, `fog_density`) — по `fog_base`, если он есть (иначе как сейчас: окружение или `*_fallback`); поверх — вуаль, **не зависящая от расстояния**: `col = col·(1−v) + color·alpha·v` (та же форма, что дымка в `cloud_raymarch_cs.gdshaderinc`); вуаль обновляется каждый кадр, не по таймеру `_update_light` (1 с).
 
 Инварианты:
-- `amount = 0` → параметры тумана окружения и дымки облаков побитно те же, что без мглы (вид вне облака не меняется);
-- непрерывность по `amount`: каждый параметр, который `apply` пишет в `env` (включая вклад тумана в небо: `fog_sky_affect`, включение `fog_enabled`), — непрерывная функция `amount`, равная исходной при `amount = 0`; скачок вида неба при `amount → 0+` отсутствует (критерий в карточке CVW-3);
-- `amount = 1` → видимость как в v1 (`fog_density` мглы, небо в мгле, `fog_sky_affect` → 1);
-- дымка других облаков от мглы не зависит (метаданные `fog_base`).
+- `amount = 0` → параметры тумана окружения и облаков побитно те же, что без мглы (вид вне облака не меняется);
+- непрерывность по `amount`: каждый параметр, который `apply` пишет в `env`, — непрерывная функция `amount`, равная исходной при `amount = 0`; небо: доля тумана на небе `fog_sky_affect` = lerp(s0, 1, v), где s0 — исходная, если исходный туман включён, иначе 0 (туман Godot на небе не зависит от расстояния и насыщается при любой плотности > 0 — ступенька v1); критерии — в карточке CVW-3;
+- `amount = 1` → видимость как в v1: `fog_density` мглы, небо и другие облака скрыты (`fog_sky_affect` = 1, `v` = 1);
+- мгла не меняет базовую дымку облаков (они не получают плотность мглы как экспоненту по расстоянию).
 
 Контрактный тест — `tests/game/test_game_logic.gd::test_cloud_whiteout` (фильтр `test_game_logic`: `--filter` — подстрока имени файла теста) и `tests/game/test_cloud_whiteout_view.gd` (CVW-3, фильтр `cloud_whiteout_view`: инварианты выше). Изменение интерфейса или инвариантов — только координатор, версия +1.
 
