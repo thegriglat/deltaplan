@@ -1,0 +1,58 @@
+{
+  "status": "done",
+  "summary": "PlacePickRow.choose_scenic ставит vehicle=glider и set_air_start(agl_m), запоминая прежние vehicle/air_start_agl_m (только если красивое место не активно); _release_scenic возвращает их при выборе карты, set_pick, «Популярных»/встроенного места. Тесты UI и Game (старт в воздухе над точкой, курс, высота, flying).",
+  "commits": [
+    "1138597ba scenic-places SCP-6: старт в воздухе над видом при выборе красивого места"
+  ],
+  "checks": [
+    {
+      "name": "scenic_places",
+      "value": "15/15, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "air_start_menu",
+      "value": "7 тестов, 0 упало (accept --dry дал таймаут 900 с на холодном ветре; прогнано вручную под lock)",
+      "pass": true
+    },
+    {
+      "name": "popular_places",
+      "value": "13/13",
+      "pass": true
+    },
+    {
+      "name": "contract",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SCP-6",
+  "uncertain": [
+    {
+      "where": "scripts/ui/place_pick_row.gd: _release_scenic",
+      "why": "tow_kind, сброшенный set_air_start при выборе места, при снятии не возвращается (только vehicle и высота, как в карточке); путь снятия через _on_map_ok не покрыт тестом (нужна карта), код тот же _release_scenic",
+      "checked": "set_pick и choose_place проверены тестами; пути одинаковые"
+    },
+    {
+      "where": "tests/game/test_scenic_air_start.gd",
+      "why": "точка места подставляется в центр рельефа игры (сети нет); проверен путь _choose_air_start/_choose_start/restart, а не полный game.start",
+      "checked": "тест проходит: air_start_m==0, курс ±0.5°, высота ±1 м, flying"
+    },
+    {
+      "where": "tests/contracts/test_scenic_places_contracts.gd",
+      "why": "проверка версии в доке была v2, обновил на v3 (в скоупе)",
+      "checked": "тест проходит"
+    }
+  ],
+  "dp_feedback": "plan <м> '§4 старт в воздухе' не находит раздел — в карточке указан не тот ключ; lock cpu в foreground уходит в фон по таймауту harness.",
+  "t": "2026-11-05T17:33:02",
+  "by": "executor"
+}

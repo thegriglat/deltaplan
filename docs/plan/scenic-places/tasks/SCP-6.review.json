@@ -1,0 +1,22 @@
+{
+  "verdict": "accept",
+  "summary": "Логика choose_scenic/_release_scenic соответствует SCP-К3 v3: прежние vehicle/air_start запоминаются только при неактивном месте, снятие на всех трёх путях. Скоуп соблюдён, scripts/game не тронут.",
+  "issues": [
+    {
+      "file": "scripts/ui/place_pick_row.gd",
+      "line": 253,
+      "severity": "minor",
+      "what": "tow_kind при снятии не возвращается (set_air_start его обнуляет); исполнитель это указал",
+      "fix": "не требуется, если контракт этого не требует"
+    }
+  ],
+  "rerun": [
+    {
+      "name": "scenic_places",
+      "value": "15/15",
+      "pass": true
+    }
+  ],
+  "t": "2026-11-05T17:49:21",
+  "by": "reviewer"
+}
