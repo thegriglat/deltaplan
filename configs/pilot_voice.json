@@ -268,14 +268,41 @@
 					"tone": "спокойная радость"
 				},
 				{
-					"ru": "Красота, видно далеко.",
-					"en": "What a view.",
-					"tone": "спокойная радость"
-				},
-				{
 					"ru": "Вот это высота.",
 					"en": "Now that's high.",
 					"tone": "спокойная радость"
+				},
+				{
+					"ru": "Ещё бы повыше.",
+					"en": "A bit higher would be nice.",
+					"tone": "спокойная радость"
+				}
+			]
+		},
+		"view": {
+			"priority": 1,
+			"cooldown_s": 300.0,
+			"chance": 0.3,
+			"params": {
+				"min_agl_m": 150.0,
+				"v_calm_ms": 1.0,
+				"calm_s": 60.0
+			},
+			"lines": [
+				{
+					"ru": "Вот это вид…",
+					"en": "What a view…",
+					"tone": "тихо, любуясь"
+				},
+				{
+					"ru": "Красиво тут.",
+					"en": "Beautiful up here.",
+					"tone": "тихо, любуясь"
+				},
+				{
+					"ru": "Хорошо летим…",
+					"en": "This is nice…",
+					"tone": "тихо, любуясь"
 				}
 			]
 		},
@@ -403,6 +430,292 @@
 					"ru": "Ну вот…",
 					"en": "Oh no…",
 					"tone": "стон"
+				}
+			]
+		},
+		"egg_an2": {
+			"priority": 1,
+			"cooldown_s": 300.0,
+			"chance": 0.8,
+			"params": {
+				"max_dist_m": 1500.0,
+				"cone_deg": 30.0,
+				"hold_s": 1.5
+			},
+			"lines": [
+				{
+					"ru": "О, кукурузник!",
+					"en": "Oh, a biplane!",
+					"tone": "удивление"
+				},
+				{
+					"ru": "Ан-2 летит.",
+					"en": "There goes an An-2.",
+					"tone": "удивление"
+				}
+			]
+		},
+		"egg_airliner": {
+			"priority": 1,
+			"cooldown_s": 300.0,
+			"chance": 0.4,
+			"params": {
+				"max_dist_m": 15000.0,
+				"cone_deg": 30.0,
+				"hold_s": 1.5
+			},
+			"lines": [
+				{
+					"ru": "Лайнер высоко…",
+					"en": "An airliner up high…",
+					"tone": "спокойно"
+				},
+				{
+					"ru": "Кто-то в отпуск полетел.",
+					"en": "Someone's off on holiday.",
+					"tone": "спокойно"
+				}
+			]
+		},
+		"egg_gloria": {
+			"priority": 1,
+			"cooldown_s": 300.0,
+			"chance": 0.9,
+			"params": {
+				"max_dist_m": 3000.0,
+				"cone_deg": 30.0,
+				"hold_s": 1.5
+			},
+			"lines": [
+				{
+					"ru": "Глория!",
+					"en": "A glory!",
+					"tone": "восхищение"
+				},
+				{
+					"ru": "Ух ты, кольца вокруг тени!",
+					"en": "Wow, rings around my shadow!",
+					"tone": "восхищение"
+				}
+			]
+		},
+		"egg_balloon": {
+			"priority": 1,
+			"cooldown_s": 300.0,
+			"chance": 0.8,
+			"params": {
+				"max_dist_m": 2000.0,
+				"cone_deg": 30.0,
+				"hold_s": 1.5
+			},
+			"lines": [
+				{
+					"ru": "О, шар!",
+					"en": "Oh, a balloon!",
+					"tone": "радость"
+				},
+				{
+					"ru": "Воздушный шар летит.",
+					"en": "There's a hot-air balloon.",
+					"tone": "радость"
+				}
+			]
+		},
+		"egg_balloon_festival": {
+			"priority": 1,
+			"cooldown_s": 300.0,
+			"chance": 0.9,
+			"params": {
+				"max_dist_m": 4000.0,
+				"cone_deg": 30.0,
+				"hold_s": 1.5
+			},
+			"lines": [
+				{
+					"ru": "Сколько шаров!",
+					"en": "So many balloons!",
+					"tone": "восторг"
+				},
+				{
+					"ru": "Ого, фестиваль!",
+					"en": "Wow, a balloon festival!",
+					"tone": "восторг"
+				}
+			]
+		},
+		"egg_uaz": {
+			"priority": 1,
+			"cooldown_s": 300.0,
+			"chance": 0.8,
+			"params": {
+				"max_dist_m": 800.0,
+				"cone_deg": 30.0,
+				"hold_s": 1.5
+			},
+			"lines": [
+				{
+					"ru": "О, машина!",
+					"en": "Oh, a car!",
+					"tone": "удивление"
+				},
+				{
+					"ru": "Буханка пылит.",
+					"en": "Look at that van kicking up dust.",
+					"tone": "удивление"
+				}
+			]
+		},
+		"egg_people": {
+			"priority": 1,
+			"cooldown_s": 300.0,
+			"chance": 0.7,
+			"params": {
+				"max_dist_m": 150.0,
+				"cone_deg": 30.0,
+				"hold_s": 1.5
+			},
+			"lines": [
+				{
+					"ru": "Машут!",
+					"en": "They're waving!",
+					"tone": "весело"
+				},
+				{
+					"ru": "Привет, наши!",
+					"en": "Hi, everyone!",
+					"tone": "весело"
+				}
+			]
+		},
+		"egg_herds": {
+			"priority": 1,
+			"cooldown_s": 300.0,
+			"chance": 0.6,
+			"params": {
+				"max_dist_m": 400.0,
+				"cone_deg": 30.0,
+				"hold_s": 1.5
+			},
+			"lines": [
+				{
+					"ru": "Стадо внизу.",
+					"en": "A herd down there.",
+					"tone": "спокойно"
+				},
+				{
+					"ru": "Пасутся…",
+					"en": "Grazing away…",
+					"tone": "спокойно"
+				}
+			]
+		},
+		"egg_group": {
+			"priority": 1,
+			"cooldown_s": 300.0,
+			"chance": 0.7,
+			"params": {
+				"max_dist_m": 4000.0,
+				"cone_deg": 30.0,
+				"hold_s": 1.5
+			},
+			"lines": [
+				{
+					"ru": "Там тоже летают.",
+					"en": "Others are flying over there.",
+					"tone": "интерес"
+				},
+				{
+					"ru": "О, ещё группа!",
+					"en": "Oh, another group!",
+					"tone": "интерес"
+				}
+			]
+		},
+		"egg_eagle": {
+			"priority": 1,
+			"cooldown_s": 300.0,
+			"chance": 1.0,
+			"params": {
+				"max_dist_m": 150.0,
+				"cone_deg": 30.0,
+				"hold_s": 1.5
+			},
+			"lines": [
+				{
+					"ru": "Ух ты, орёл!",
+					"en": "Whoa, an eagle!",
+					"tone": "восторг, вполголоса"
+				},
+				{
+					"ru": "Орёл рядом!",
+					"en": "An eagle right beside me!",
+					"tone": "восторг, вполголоса"
+				}
+			]
+		},
+		"egg_crop_circles": {
+			"priority": 1,
+			"cooldown_s": 300.0,
+			"chance": 0.8,
+			"params": {
+				"max_dist_m": 1500.0,
+				"cone_deg": 30.0,
+				"hold_s": 1.5
+			},
+			"lines": [
+				{
+					"ru": "Это что, круги на поле?",
+					"en": "Are those crop circles?",
+					"tone": "недоумение"
+				},
+				{
+					"ru": "Ну и узор…",
+					"en": "What a pattern…",
+					"tone": "недоумение"
+				}
+			]
+		},
+		"egg_hay_bales": {
+			"priority": 1,
+			"cooldown_s": 300.0,
+			"chance": 0.3,
+			"params": {
+				"max_dist_m": 500.0,
+				"cone_deg": 30.0,
+				"hold_s": 1.5
+			},
+			"lines": [
+				{
+					"ru": "Сено уже скатали.",
+					"en": "They've baled the hay.",
+					"tone": "спокойно"
+				},
+				{
+					"ru": "Рулоны на поле.",
+					"en": "Hay bales in the field.",
+					"tone": "спокойно"
+				}
+			]
+		},
+		"egg_geese": {
+			"priority": 1,
+			"cooldown_s": 300.0,
+			"chance": 0.9,
+			"params": {
+				"max_dist_m": 600.0,
+				"cone_deg": 30.0,
+				"hold_s": 1.5
+			},
+			"lines": [
+				{
+					"ru": "Гуси летят!",
+					"en": "Geese!",
+					"tone": "радость"
+				},
+				{
+					"ru": "Клин…",
+					"en": "Look at that V…",
+					"tone": "радость"
 				}
 			]
 		}

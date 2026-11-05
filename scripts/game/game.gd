@@ -231,6 +231,7 @@ func _ready() -> void:
 	_whiteout.setup(_cfg.get("cloud_whiteout", {}))
 	pilot_voice = PilotVoice.new()
 	pilot_voice.name = "PilotVoice"
+	pilot_voice.height_fn = terrain.height_at
 	add_child(pilot_voice)
 	apply_user_settings()
 	set_flying(false)
@@ -1950,9 +1951,10 @@ func _voice_update(t: Telemetry) -> void:
 	if pilot_voice == null:
 		return
 	pilot_voice.set_suppressed(
-		glider.is_trike() or inspect_mode or not is_equal_approx(sky.clock.speed, 1.0)
+		net != null or glider.is_trike() or inspect_mode or not is_equal_approx(sky.clock.speed, 1.0)
 	)
 	pilot_voice.update(t, _sound_vario().vario_ms, _whiteout.amount, _dt)
+	pilot_voice.watch_eggs(camera, eggs.active(), _dt)
 
 
 func _on_telemetry(t: Telemetry) -> void:

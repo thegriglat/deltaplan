@@ -8,7 +8,7 @@ extends RefCounted
 
 const SITUATIONS: PackedStringArray = [
 	"takeoff", "thermal_found", "thermal_strong", "thermal_lost", "sink", "turbulence", "stall", "fast",
-	"low", "high", "cloud", "turnpoint", "goal", "landing_soft", "landing_hard", "crash",
+	"low", "high", "view", "cloud", "turnpoint", "goal", "landing_soft", "landing_hard", "crash",
 ]
 ## Модель не стартует от нуля: до отрыва «никогда не говорили».
 const NEVER := -1.0e9
@@ -32,6 +32,7 @@ var _last_interrupt := false
 # Состояние условий.
 var _hold: Dictionary = {}  ## id -> непрерывное время условия
 var _quiet_acc := 0.0
+var _calm_t := 0.0
 var _quiet_ok := false
 var _win: Array = []  ## окно вариометра для thermal_lost: Vector2(dt, v)
 var _win_t := 0.0
@@ -43,6 +44,8 @@ var _low_armed := false
 var _takeoff_msl := NAN
 var _high_level := 0
 var _landed_said := false
+var _egg_done: Dictionary = {}  ## id -> true: пасхалка уже замечена в этом полёте
+var _quiet_since := 0.0  ## с какого момента тишина (конец последней реплики / отрыв)
 
 
 func setup(cfg: Dictionary, rng_seed: int = 0) -> void:
@@ -68,12 +71,15 @@ func reset() -> void:
 	_takeoff_msl = NAN
 	_high_level = 0
 	_landed_said = false
+	_egg_done.clear()
+	_quiet_since = 0.0
 	_reset_conditions()
 
 
 func _reset_conditions() -> void:
 	_hold.clear()
 	_quiet_acc = 0.0
+	_calm_t = 0.0
 	_quiet_ok = false
 	_win.clear()
 	_win_t = 0.0
@@ -91,6 +97,7 @@ func event(event_name: String, data := {}) -> void:
 			_takeoff_msl = float(data.get("altitude_msl", NAN))
 			_high_level = 0
 			_landed_said = false
+			_quiet_since = _clock
 			_reset_conditions()
 			_trigger("takeoff", p("takeoff", "delay_s", 0.0))
 		"landed":
@@ -111,6 +118,10 @@ func event(event_name: String, data := {}) -> void:
 			_trigger("turnpoint", 0.0)
 		"goal":
 			_trigger("goal", 0.0)
+		"egg_seen":
+			var egg_id := "egg_" + String(data.get("id", ""))
+			if _sit.has(egg_id) and not _egg_done.has(egg_id) and _trigger(egg_id, 0.0):
+				_egg_done[egg_id] = true
 
 
 ## Параметр ситуации из конфига.
@@ -134,6 +145,7 @@ func line_finished() -> void:
 	if _speaking:
 		_speaking = false
 		_last_end = _clock
+		_quiet_since = _clock
 
 
 func is_interrupting(line_id: String) -> bool:
@@ -147,20 +159,20 @@ func _gap(prio: int) -> float:
 	return float((_rules.get("gap_s", {}) as Dictionary).get(str(prio), 0.0))
 
 
-## Срабатывание ситуации: пауза ситуации, фоновые — не раньше quiet_after_takeoff_s, chance, очередь.
-func _trigger(id: String, delay: float) -> void:
+## Срабатывание ситуации (true — прошло проверки пауз; chance мог не выпасть): пауза ситуации, фоновые — не раньше quiet_after_takeoff_s, chance, очередь.
+func _trigger(id: String, delay: float) -> bool:
 	var cfg: Dictionary = _sit.get(id, {})
 	if cfg.is_empty():
-		return
+		return false
 	var prio := int(cfg.get("priority", 1))
 	if prio == 1 and _flight_t < float(_rules.get("quiet_after_takeoff_s", 0.0)):
-		return
+		return false
 	if _clock - float(_last_fired.get(id, NEVER)) < float(cfg.get("cooldown_s", 0.0)):
-		return
+		return false
 	_last_fired[id] = _clock
-	if _rng.randf() >= float(cfg.get("chance", 1.0)):
-		return
-	_pending.append({"id": id, "ready": _clock + delay, "prio": prio})
+	if _rng.randf() < float(cfg.get("chance", 1.0)):
+		_pending.append({"id": id, "ready": _clock + delay, "prio": prio})
+	return true
 
 
 ## Непрерывное условие: накопленное время, пока cond; true, когда набралось hold_s (счётчик после срабатывания сброшен).
@@ -236,6 +248,14 @@ func _scan(dt: float, s: Dictionary) -> void:
 	if _low_armed and agl < p("low", "agl_m", 80.0) and v < p("low", "v_ms", 0.0):
 		_low_armed = false
 		_trigger("low", 0.0)
+
+	# view: спокойный полёт на высоте и тишина calm_s подряд.
+	var calm_s := p("view", "calm_s", 60.0)
+	var calm := agl >= p("view", "min_agl_m", 150.0) and absf(v) < p("view", "v_calm_ms", 1.0)
+	_calm_t = _calm_t + dt if calm else 0.0
+	if _calm_t >= calm_s and not _speaking and _clock - _quiet_since >= calm_s:
+		_calm_t = 0.0
+		_trigger("view", 0.0)
 
 	# high: ступени высоты над точкой отрыва.
 	if is_nan(_takeoff_msl):

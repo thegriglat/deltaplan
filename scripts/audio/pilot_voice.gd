@@ -14,6 +14,12 @@ var _suppressed := false
 var _line_id := ""  ## звучащая реплика
 var _cache: Dictionary = {}  ## path -> AudioStream или null
 var _lang_override := ""
+## Высота рельефа (x, z) -> м; для закрытия пасхалок землёй. Пусто — не закрыто.
+var height_fn := Callable()
+var _egg_acc := 0.0
+var _egg_seen_t: Dictionary = {}  ## id пасхалки -> непрерывное время в поле зрения, с
+const EGG_STEP_S := 0.25  ## проверка видимости пасхалок — не чаще 4 Гц
+const EGG_OCCLUSION_POINTS := 16
 
 
 func _ready() -> void:
@@ -58,6 +64,7 @@ func set_suppressed(on: bool) -> void:
 
 ## Новый полёт.
 func reset() -> void:
+	_egg_seen_t.clear()
 	_stop()
 	logic.reset()
 
@@ -86,6 +93,62 @@ func update(t: Telemetry, vario_ms: float, cloud: float, dt: float) -> void:
 	)
 	if line != "":
 		_play(line)
+
+
+## Пасхалки в поле зрения (PV-К1): eggs — живые EasterEgg; не чаще 4 Гц; непрерывно hold_s -> egg_seen.
+func watch_eggs(camera: Camera3D, eggs: Array, dt: float) -> void:
+	if not is_active() or camera == null:
+		_egg_seen_t.clear()
+		return
+	_egg_acc += dt
+	if _egg_acc < EGG_STEP_S:
+		return
+	var step := _egg_acc
+	_egg_acc = 0.0
+	var cam := camera.global_transform if camera.is_inside_tree() else camera.transform
+	var seen_now: Dictionary = {}
+	for e: Variant in eggs:
+		var egg := e as EasterEgg
+		if egg == null or egg.id == "" or seen_now.has(egg.id):
+			continue
+		var sit_id := "egg_" + egg.id
+		var max_d := logic.p(sit_id, "max_dist_m", 0.0)
+		if max_d <= 0.0:
+			continue
+		var point := egg.voice_anchor(cam.origin)
+		if egg_in_view(cam, point, logic.p(sit_id, "cone_deg", 30.0), max_d) and not _terrain_hides(cam.origin, point):
+			seen_now[egg.id] = true
+	for id: String in seen_now:
+		var t_seen: float = float(_egg_seen_t.get(id, 0.0)) + step
+		if t_seen >= logic.p("egg_" + id, "hold_s", 1.5):
+			logic.event("egg_seen", {"id": id})
+			t_seen = 0.0
+		_egg_seen_t[id] = t_seen
+	for id: String in _egg_seen_t.keys():
+		if not seen_now.has(id):
+			_egg_seen_t.erase(id)
+
+
+## Точка в конусе взгляда камеры (полуугол cone_deg) и не дальше max_dist_m; рельеф не учитывается.
+static func egg_in_view(cam: Transform3D, point: Vector3, cone_deg: float, max_dist_m: float) -> bool:
+	var d := point - cam.origin
+	var dist := d.length()
+	if dist > max_dist_m:
+		return false
+	if dist < 1e-3:
+		return true
+	return (-cam.basis.z).dot(d / dist) >= cos(deg_to_rad(cone_deg))
+
+
+## Отрезок от глаза до точки уходит под рельеф (16 точек).
+func _terrain_hides(from: Vector3, to: Vector3) -> bool:
+	if not height_fn.is_valid():
+		return false
+	for i in range(1, EGG_OCCLUSION_POINTS + 1):
+		var p := from.lerp(to, float(i) / float(EGG_OCCLUSION_POINTS + 1))
+		if p.y < float(height_fn.call(p.x, p.z)):
+			return true
+	return false
 
 
 ## Путь файла реплики: <dir>/<voice>/<lang>/<id>_<k>.ogg (PV-К3); dir по умолчанию — из конфига.

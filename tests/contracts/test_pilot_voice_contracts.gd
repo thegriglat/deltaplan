@@ -18,7 +18,12 @@ func _table() -> Dictionary:
 	var re := RegEx.create_from_string("(?m)^\\| `(\\w+)` \\|(.*)$")
 	for m in re.search_all(_doc()):
 		var cells := (m.get_string(1) + " |" + m.get_string(2)).split("|")
-		# cells: id, условие, пр., пауза, chance, RU, EN, тон
+		if m.get_string(1).begins_with("egg_"):  # id, пасхалка, max_dist_m, chance, RU, EN, тон: приоритет 1
+			var ru_e := String(cells[4]).strip_edges().split(" · ")
+			var en_e := String(cells[5]).strip_edges().split(" · ")
+			out[m.get_string(1)] = {"priority": 1, "ru": ru_e.size(), "en": en_e.size(), "max_dist": float(String(cells[2]).strip_edges())}
+			continue
+		# id, условие, пр., пауза, chance, RU, EN, тон
 		var ru := String(cells[5]).strip_edges().split(" · ")
 		var en := String(cells[6]).strip_edges().split(" · ")
 		out[m.get_string(1)] = {"priority": int(String(cells[2]).strip_edges()), "ru": ru.size(), "en": en.size()}
@@ -40,13 +45,13 @@ func test_doc_headings() -> void:
 	for m in re.search_all(text):
 		found[m.get_string(1)] = int(m.get_string(2))
 	for id in ["PV-К1", "PV-К2", "PV-К3", "PV-К4"]:
-		check(found.get(id, 0) == 1, "%s (v1) в заголовках: %s" % [id, found])
+		check(found.get(id, 0) == (1 if id == "PV-К3" else 2), "%s (v2) в заголовках: %s" % [id, found])
 
 
 ## PV-К1/К2: ключи situations — ровно id таблицы, число реплик и приоритеты совпадают.
 func test_k2_situations_match_table() -> void:
 	var table := _table()
-	check(table.size() == 16, "в таблице PV-К1 16 ситуаций (%d)" % table.size())
+	check(table.size() == 30, "в таблицах PV-К1 30 ситуаций (17 + 13 пасхалок) (%d)" % table.size())
 	var cfg: Dictionary = Config.get_config("pilot_voice")
 	var sit: Dictionary = cfg.get("situations", {})
 	var keys: Array = sit.keys()
@@ -62,6 +67,11 @@ func test_k2_situations_match_table() -> void:
 		check(lines.size() == int(table[id].ru), "%s: реплик %d, в таблице %d" % [id, lines.size(), table[id].ru])
 		check(table[id].ru == table[id].en, "%s: RU и EN одинаковое число вариантов" % id)
 		check(int(s.get("priority", 0)) == int(table[id].priority), "%s: приоритет" % id)
+		if id.begins_with("egg_"):
+			var pp: Dictionary = s.get("params", {})
+			check(absf(float(pp.get("max_dist_m", -1.0)) - float(table[id].max_dist)) < 1e-6, "%s: max_dist_m" % id)
+			check(float(pp.get("cone_deg", 0.0)) == 30.0 and float(pp.get("hold_s", 0.0)) == 1.5, "%s: cone_deg/hold_s" % id)
+			check(float(s.get("cooldown_s", 0.0)) == 300.0, "%s: пауза 300" % id)
 		var pr := int(s.get("priority", 0))
 		check(pr >= 1 and pr <= 3, "%s: priority 1..3" % id)
 		check(float(s.get("cooldown_s", -1.0)) >= 0.0, "%s: cooldown_s >= 0" % id)
@@ -105,6 +115,8 @@ func test_k2_params_names_and_defaults() -> void:
 		"low": {"agl_m": 80.0, "rearm_agl": 200.0},
 		"high": {"step_m": 300.0},
 		"cloud": {"cloud": 0.6, "hold_s": 1.0},
+		"view": {"min_agl_m": 150.0, "v_calm_ms": 1.0, "calm_s": 60.0},
+		"egg_eagle": {"max_dist_m": 150.0, "cone_deg": 30.0, "hold_s": 1.5},
 		"landing_soft": {"delay_s": 0.6},
 		"landing_hard": {"delay_s": 0.6},
 		"crash": {"delay_s": 0.8},
@@ -132,10 +144,14 @@ func test_k4_class_shape() -> void:
 		check(l.has_method(m), "PilotVoiceLogic.%s()" % m)
 	check(l is RefCounted, "PilotVoiceLogic — RefCounted, без нод")
 	var v := PilotVoice.new()
-	for m in ["set_voice", "on_event", "update"]:
+	for m in ["set_voice", "on_event", "update", "watch_eggs"]:
 		check(v.has_method(m), "PilotVoice.%s()" % m)
 	check(v is Node, "PilotVoice — Node")
 	v.free()
+	check(PilotVoice.egg_in_view(Transform3D.IDENTITY, Vector3(0, 0, -10), 30.0, 100.0), "egg_in_view: статический метод")
+	var egg := EasterEgg.new()
+	check(egg.has_method("voice_anchor"), "EasterEgg.voice_anchor")
+	egg.free()
 	check(AudioBuses.index_or_master("Voice") >= 0, "index_or_master не падает")
 
 
