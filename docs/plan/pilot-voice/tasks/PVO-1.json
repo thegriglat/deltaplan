@@ -1,0 +1,53 @@
+{
+  "id": "PVO-1",
+  "module": "pilot-voice",
+  "type": "dp-researcher",
+  "title": "Выбор модели синтеза голоса и образцы",
+  "goal": "Выбрать локальную модель синтеза речи (RU+EN, эмоции, лицензия на распространение голоса в открытой игре, работает на RTX 4070 SUPER 12 ГБ) и сделать образцы мужского и женского голоса на 6 репликах PV-К1 на обоих языках для прослушивания пользователем.",
+  "plan_ref": "§4 Задачи; §6 шлюз «выбор модели и образцы»",
+  "contracts": [
+    {
+      "name": "PV-К1",
+      "version": "1",
+      "ref": "docs/contracts/pilot-voice.md"
+    },
+    {
+      "name": "PV-К3",
+      "version": "1",
+      "ref": "docs/contracts/pilot-voice.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/pilot-voice-PVO-1",
+  "branch": "pilot-voice/PVO-1",
+  "base": "feature/pilot-voice",
+  "scope": [
+    "docs/research/pilot-voice-tts.md",
+    "tools/sounds/voice/"
+  ],
+  "dont_touch": [
+    "assets/",
+    "configs/",
+    "scripts/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "report_doc",
+      "cmd": "test -f docs/research/pilot-voice-tts.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "readme",
+      "cmd": "test -f tools/sounds/voice/README.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "samples",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/pilot-voice/samples/*/*/*.ogg | wc -l",
+      "expect": "num:(\\d+) >=24"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-05T05:54:35"
+}
