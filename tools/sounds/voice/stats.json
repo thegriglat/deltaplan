@@ -1,0 +1,247 @@
+{
+ "model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+ "load_s": 7.6,
+ "items": [
+  {
+   "lufs": -20.0,
+   "peak_db": -7.4,
+   "dur_s": 1.47,
+   "voice": "male",
+   "lang": "ru",
+   "id": "takeoff_1",
+   "gen_s": 5.39,
+   "raw_dur_s": 1.6
+  },
+  {
+   "lufs": -20.0,
+   "peak_db": -6.6,
+   "dur_s": 1.19,
+   "voice": "male",
+   "lang": "ru",
+   "id": "thermal_found_1",
+   "gen_s": 3.79,
+   "raw_dur_s": 1.28
+  },
+  {
+   "lufs": -20.0,
+   "peak_db": -4.3,
+   "dur_s": 2.03,
+   "voice": "male",
+   "lang": "ru",
+   "id": "thermal_strong_1",
+   "gen_s": 6.54,
+   "raw_dur_s": 2.16
+  },
+  {
+   "lufs": -19.8,
+   "peak_db": -3.6,
+   "dur_s": 3.73,
+   "voice": "male",
+   "lang": "ru",
+   "id": "sink_1",
+   "gen_s": 11.42,
+   "raw_dur_s": 3.76
+  },
+  {
+   "lufs": -20.1,
+   "peak_db": -5.4,
+   "dur_s": 1.12,
+   "voice": "male",
+   "lang": "ru",
+   "id": "stall_2",
+   "gen_s": 3.71,
+   "raw_dur_s": 1.2
+  },
+  {
+   "lufs": -20.0,
+   "peak_db": -7.9,
+   "dur_s": 2.91,
+   "voice": "male",
+   "lang": "ru",
+   "id": "landing_hard_1",
+   "gen_s": 8.88,
+   "raw_dur_s": 2.96
+  },
+  {
+   "lufs": -19.9,
+   "peak_db": -4.6,
+   "dur_s": 0.94,
+   "voice": "male",
+   "lang": "en",
+   "id": "takeoff_1",
+   "gen_s": 3.2,
+   "raw_dur_s": 1.04
+  },
+  {
+   "lufs": -20.0,
+   "peak_db": -5.6,
+   "dur_s": 1.8,
+   "voice": "male",
+   "lang": "en",
+   "id": "thermal_found_1",
+   "gen_s": 5.81,
+   "raw_dur_s": 1.92
+  },
+  {
+   "lufs": -20.0,
+   "peak_db": -4.5,
+   "dur_s": 1.84,
+   "voice": "male",
+   "lang": "en",
+   "id": "thermal_strong_1",
+   "gen_s": 5.84,
+   "raw_dur_s": 1.92
+  },
+  {
+   "lufs": -19.8,
+   "peak_db": -3.8,
+   "dur_s": 2.0,
+   "voice": "male",
+   "lang": "en",
+   "id": "sink_1",
+   "gen_s": 6.43,
+   "raw_dur_s": 2.08
+  },
+  {
+   "lufs": -20.0,
+   "peak_db": -7.0,
+   "dur_s": 0.68,
+   "voice": "male",
+   "lang": "en",
+   "id": "stall_2",
+   "gen_s": 2.52,
+   "raw_dur_s": 0.8
+  },
+  {
+   "lufs": -20.0,
+   "peak_db": -4.3,
+   "dur_s": 2.2,
+   "voice": "male",
+   "lang": "en",
+   "id": "landing_hard_1",
+   "gen_s": 7.1,
+   "raw_dur_s": 2.32
+  },
+  {
+   "lufs": -20.0,
+   "peak_db": -5.2,
+   "dur_s": 1.08,
+   "voice": "female",
+   "lang": "ru",
+   "id": "takeoff_1",
+   "gen_s": 3.69,
+   "raw_dur_s": 1.2
+  },
+  {
+   "lufs": -19.9,
+   "peak_db": -5.6,
+   "dur_s": 1.19,
+   "voice": "female",
+   "lang": "ru",
+   "id": "thermal_found_1",
+   "gen_s": 3.64,
+   "raw_dur_s": 1.2
+  },
+  {
+   "lufs": -20.0,
+   "peak_db": -8.5,
+   "dur_s": 1.79,
+   "voice": "female",
+   "lang": "ru",
+   "id": "thermal_strong_1",
+   "gen_s": 5.97,
+   "raw_dur_s": 1.92
+  },
+  {
+   "lufs": -20.0,
+   "peak_db": -7.6,
+   "dur_s": 1.52,
+   "voice": "female",
+   "lang": "ru",
+   "id": "sink_1",
+   "gen_s": 4.86,
+   "raw_dur_s": 1.6
+  },
+  {
+   "lufs": -20.0,
+   "peak_db": -5.3,
+   "dur_s": 0.84,
+   "voice": "female",
+   "lang": "ru",
+   "id": "stall_2",
+   "gen_s": 2.93,
+   "raw_dur_s": 0.96
+  },
+  {
+   "lufs": -20.0,
+   "peak_db": -5.6,
+   "dur_s": 3.12,
+   "voice": "female",
+   "lang": "ru",
+   "id": "landing_hard_1",
+   "gen_s": 9.42,
+   "raw_dur_s": 3.12
+  },
+  {
+   "lufs": -20.0,
+   "peak_db": -7.9,
+   "dur_s": 1.44,
+   "voice": "female",
+   "lang": "en",
+   "id": "takeoff_1",
+   "gen_s": 4.78,
+   "raw_dur_s": 1.52
+  },
+  {
+   "lufs": -20.0,
+   "peak_db": -3.6,
+   "dur_s": 1.68,
+   "voice": "female",
+   "lang": "en",
+   "id": "thermal_found_1",
+   "gen_s": 5.56,
+   "raw_dur_s": 1.76
+  },
+  {
+   "lufs": -20.0,
+   "peak_db": -7.3,
+   "dur_s": 2.25,
+   "voice": "female",
+   "lang": "en",
+   "id": "thermal_strong_1",
+   "gen_s": 7.15,
+   "raw_dur_s": 2.32
+  },
+  {
+   "lufs": -20.0,
+   "peak_db": -9.1,
+   "dur_s": 1.55,
+   "voice": "female",
+   "lang": "en",
+   "id": "sink_1",
+   "gen_s": 5.37,
+   "raw_dur_s": 1.68
+  },
+  {
+   "lufs": -20.0,
+   "peak_db": -7.9,
+   "dur_s": 0.84,
+   "voice": "female",
+   "lang": "en",
+   "id": "stall_2",
+   "gen_s": 3.16,
+   "raw_dur_s": 0.88
+  },
+  {
+   "lufs": -19.8,
+   "peak_db": -4.1,
+   "dur_s": 3.71,
+   "voice": "female",
+   "lang": "en",
+   "id": "landing_hard_1",
+   "gen_s": 13.6,
+   "raw_dur_s": 3.76
+  }
+ ],
+ "peak_vram_gb": 4.01
+}

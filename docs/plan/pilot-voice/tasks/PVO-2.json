@@ -8,12 +8,12 @@
   "contracts": [
     {
       "name": "PV-К1",
-      "version": "2",
+      "version": "3",
       "ref": "docs/contracts/pilot-voice.md"
     },
     {
       "name": "PV-К2",
-      "version": "2",
+      "version": "3",
       "ref": "docs/contracts/pilot-voice.md"
     },
     {
@@ -23,7 +23,7 @@
     },
     {
       "name": "PV-К4",
-      "version": "2",
+      "version": "3",
       "ref": "docs/contracts/pilot-voice.md"
     }
   ],
@@ -78,12 +78,13 @@
       "expect": "exit=0"
     },
     {
-      "name": "easter",
-      "tests": "easter"
+      "name": "easter_base",
+      "cmd": ".dpcli/dpcli lock cpu PVO-2 -- env XDG_DATA_HOME=/tmp/claude-1000/-home-greg-deltaplan/5bd656e4-218c-470a-8783-b19ee7f043b0/scratchpad/xdg-PVO-2-easter godot --headless --path . res://tests/run_tests.tscn -- --filter=easter",
+      "expect": "num:(\\d+) упало <=2"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-11-05T05:55:01",
-  "edited": "2026-11-05T06:02:04"
+  "edited": "2026-11-05T07:11:11"
 }

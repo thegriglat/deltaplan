@@ -1,0 +1,73 @@
+{
+  "status": "done",
+  "summary": "Выбран Qwen3-TTS-12Hz-1.7B-VoiceDesign (Apache-2.0 код и веса, RU+EN, голос и тон по описанию, 4,0 ГБ VRAM). Сгенерированы 24 образца (2 голоса x 2 языка x 6 реплик), формат PV-К3 (-20 LUFS +-0,3, пик <= -3,6 dBFS). Звук мной не прослушан.",
+  "commits": [
+    "fd02dc3a5 PVO-1: выбор модели синтеза голоса, скрипт, образцы"
+  ],
+  "checks": [
+    {
+      "name": "report_doc",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "readme",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "samples",
+      "value": 24,
+      "pass": true
+    },
+    {
+      "name": "LUFS min..max",
+      "value": "-20,1..-19,8",
+      "pass": true
+    },
+    {
+      "name": "пик VRAM, ГБ",
+      "value": 4.01,
+      "pass": true
+    },
+    {
+      "name": "время счёта / длительность",
+      "value": "~3,1x",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Прослушивание и оценка ударений/эмоций/однородности тембра — за пользователем",
+    "Не опробован путь Voice Design then Clone для стабильного тембра"
+  ],
+  "questions": [
+    "Если тембр между репликами плывёт — разрешить схему Design then Clone (Base-модель клонирует эталон, созданный дизайном)?"
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept PVO-1; образцы в /home/greg/deltaplan/build/screenshots/pilot-voice/samples/",
+  "uncertain": [
+    {
+      "where": "docs/research/pilot-voice-tts.md",
+      "why": "лицензии Chatterbox/Piper проверены только по метаданным HF/GitHub; условий на выход Qwen3-TTS в карточке не найдено",
+      "checked": "LICENSE GitHub и карточки HF Qwen3-TTS (Apache-2.0), Silero CC-BY-NC-SA по LICENSE репозитория"
+    },
+    {
+      "where": "tools/sounds/voice/samples.json",
+      "why": "тембр одного голоса между репликами и ударения RU не проверены на слух; поддержка знака ударения моделью не подтверждена",
+      "checked": "только числа ffmpeg ebur128"
+    },
+    {
+      "where": "tools/sounds/voice/README.md",
+      "why": "драйвер 550 (CUDA 12.4) требует torch cu124; pip по умолчанию ставит cu132 без CUDA",
+      "checked": "torch 2.6.0+cu124: cuda True"
+    }
+  ],
+  "dp_feedback": "Установки pip долгие: стоило бы в карточке сразу указывать job start/wait; отчёт требует имён проверок accept в checks (report_doc, readme, samples) — в шаблоне не сказано.",
+  "extra": {
+    "gen_rtf": 3.1,
+    "model_load_s_cached": 7.6,
+    "first_download_s": 370
+  },
+  "t": "2026-11-05T06:27:09",
+  "by": "executor"
+}
