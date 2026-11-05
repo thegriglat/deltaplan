@@ -1,0 +1,33 @@
+{
+  "status": "done",
+  "summary": "Доработка по ревью: agl_min_m = 60 (ASM-К1 v2, _doc переписан под опоры ЛЭП 28+25=53 -> 60), версия К1=2 в контрактном тесте, влит feature/air-start-menu. Добавлен тест: точный старт над водой/обрывом принимается при старте в воздухе (точка в 1 м, поляна не вырублена), с земли отклоняется.",
+  "commits": [
+    "9b8c3ab17 air-start-menu: ASM-1 доработка по ревью — agl_min_m 60, тест точного старта"
+  ],
+  "checks": [
+    {
+      "name": "air_start_menu",
+      "value": "7/7, 785 с",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "6 файлов в границах",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept ASM-1",
+  "uncertain": [
+    {
+      "where": "tests/game/test_air_start_menu.gd: test_exact_start_water_steep_in_air",
+      "why": "Тест зовёт game._choose_air_start()/_choose_start() напрямую, а не game.start(): иначе каждая новая точка даёт пересчёт поля ветра 280-600 с и приёмка падает по таймауту (так и было при первой версии теста). Счётчик поляны — terrain._start_clearings (приватный).",
+      "checked": "тест прошёл на карте ongudai; вода и обрыв найдены сканом сетки 40 м; точка в 1 м по XZ; поляна не добавлена при воздухе."
+    }
+  ],
+  "dp_feedback": "job start запускает команду через timeout без оболочки: 'cd x && ...' не работает (код 127), cwd не наследуется — стоит сказать в справке. Фильтр тестов --filter — только по пути файла, не по имени теста.",
+  "t": "2026-11-05T16:01:34",
+  "by": "executor"
+}

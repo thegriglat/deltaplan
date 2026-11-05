@@ -62,6 +62,11 @@ var flying_enabled := false
 ## air_start_agl_m м над рельефом, на скорости трима; < 0 — обычный старт с земли.
 var air_start_m := -1.0
 var air_start_agl_m := 300.0
+## Флаг --air-start (Main): главнее выбора игрока (ASM-К2); < 0 — флага нет.
+var cli_air_start_m := -1.0
+var cli_air_start_agl_m := 300.0
+## Настройки воздуха применяются (Main: false в «Тренировке»; в сети и осмотре — всегда нет).
+var menu_air_allowed := true
 var _probe_flight_no := -1  # номер полёта, для которого строка _log_flight_probe уже в журнале
 ## Сид мира (термики, порывы); < 0 — atmosphere.json → seed. Задать до start(): «Лететь» из
 ## меню — новый случайный, «Ещё раз» его не меняет; сеть — сид зоны.
@@ -348,6 +353,7 @@ func start(s: FlightSettings) -> bool:
 	stop_wait()
 	settings = s.duplicate()
 	StartWeather.apply(settings)  # TI-К2: последняя страховка
+	_choose_air_start()
 	eggs.reset()
 	_lock_net_clock()
 	var progress := terrain.progress
@@ -851,6 +857,7 @@ func restart(keep_clock: bool = false) -> void:
 		sky.clock.reset()
 		_air_rebase_clock()
 	stats.reset(glider.get_telemetry().position)
+	stats.armed = air_start_m >= 0.0  # в воздухе взлёта не было — касание это посадка (ASM-К2)
 	stats.trike = _trike_start
 	instrument.reset()
 	_goals_reset()
@@ -1514,6 +1521,18 @@ func _load_terrain() -> bool:
 	return ok
 
 
+## Источник старта в воздухе на полёт (ASM-К2): флаг --air-start, иначе выбор игрока, иначе с земли.
+func _choose_air_start() -> void:
+	if cli_air_start_m >= 0.0:
+		air_start_m = cli_air_start_m
+		air_start_agl_m = cli_air_start_agl_m
+	elif menu_air_allowed and net == null and not inspect_mode and settings.has_air_start():
+		air_start_m = 0.0
+		air_start_agl_m = settings.air_start_agl_m
+	else:
+		air_start_m = -1.0
+
+
 func _choose_start() -> void:
 	_exact_start = false
 	_tow_site = {}
@@ -1523,11 +1542,13 @@ func _choose_start() -> void:
 	if settings.has_exact_start():
 		var q := terrain.latlon_to_local(settings.start_lat, settings.start_lon)
 		var chk := StartSpot.check(terrain, q.x, q.y)
-		if bool(chk.ok):
+		# В воздухе над озером, кратером, обрывом можно: отказ только «вне карты» (ASM-К2)
+		if bool(chk.ok) or (air_start_m >= 0.0 and chk.reason != "outside"):
 			_start_pos = Vector3(q.x, terrain.height_at(q.x, q.y), q.y)
 			_start_heading = settings.start_heading_deg
 			_exact_start = true
-			_clear_exact_start(q)
+			if air_start_m < 0.0:
+				_clear_exact_start(q)
 			return
 		push_warning("Game: точный старт недопустим (%s), автостарт" % chk.reason)
 	if settings.has_pick():
@@ -1538,7 +1559,8 @@ func _choose_start() -> void:
 		_start_heading = float(launch.heading_deg)
 		# Пустырь вокруг старта (≥ 2 длины разбега): в лесу иначе не разбежаться и не набрать
 		# высоту до крон (docs/guide/game.md → «Старт с карты»).
-		terrain.add_start_clearing(_start_pos.x, _start_pos.z, float(cfg.clearing_radius_m))
+		if air_start_m < 0.0:
+			terrain.add_start_clearing(_start_pos.x, _start_pos.z, float(cfg.clearing_radius_m))
 		return
 	var sites := terrain.get_start_sites()
 	if sites.is_empty():

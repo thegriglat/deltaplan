@@ -323,5 +323,12 @@
     "classic_90s": "VarioMount",
     "xctracer": "InstrumentMount"
   },
-  "vario_sound_from_doc": "Какой прибор пищит: пресет звука (audio.json → vario_audio.preset) → маркер прибора. Нет такого прибора — планшет"
+  "vario_sound_from_doc": "Какой прибор пищит: пресет звука (audio.json → vario_audio.preset) → маркер прибора. Нет такого прибора — планшет",
+  "air_start": {
+    "_doc": "Старт в воздухе из настроек полёта (docs/contracts/air-start-menu.md, ASM-К1): высота над рельефом в точке старта. Минимум 60 м — выше самого высокого объекта мира с запасом 25 м: опоры ЛЭП 28 м (configs/world_objects.json, power.tower_height_m) + 25 м = 53 м, вверх до шага 10 м; кроны (до 22 м, configs/vegetation.json) ниже. Максимум 1000 м — граница выбора (решение, не физика).",
+    "agl_min_m": 60.0,
+    "agl_max_m": 1000.0,
+    "agl_default_m": 300.0,
+    "agl_step_m": 10.0
+  }
 }
