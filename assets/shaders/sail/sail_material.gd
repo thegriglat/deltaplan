@@ -96,7 +96,7 @@ static func skin_indices(mesh: Mesh, top: bool) -> PackedInt32Array:
 
 
 ## Аспекты обшивок (размах / корневая хорда, м/м) по вершинам меша Sail: Vector2(верх, низ).
-## Корневая хорда — диапазон z вершин обшивки при |x| < 3 % полуразмаха. Нет данных — 4 (типичное значение).
+## Хорда — наибольший по размаху диапазон z вершин в полосе по x шириной 3 % полуразмаха (К2 v3). Нет данных — 4 (типичное значение).
 static func _skin_aspects(mesh: Mesh) -> Vector2:
 	var out := Vector2(4.0, 4.0)
 	if mesh == null or mesh.get_surface_count() == 0:
@@ -111,16 +111,26 @@ static func _skin_aspects(mesh: Mesh) -> Vector2:
 			xmax = maxf(xmax, verts[i].x)
 		if xmax <= xmin:
 			continue
+		# хорда — диапазон z вершин в полосе по x шириной 3 % полуразмаха; берём наибольшую (SLT-К2 v3)
 		var half := 0.5 * (xmax - xmin)
-		var cx := 0.5 * (xmax + xmin)
-		var zmin := INF
-		var zmax := -INF
+		var w := 0.03 * half
+		var nb := int(ceil((xmax - xmin) / w)) + 1
+		var zlo := PackedFloat32Array()
+		var zhi := PackedFloat32Array()
+		zlo.resize(nb)
+		zhi.resize(nb)
+		zlo.fill(INF)
+		zhi.fill(-INF)
 		for i in ids:
-			if absf(verts[i].x - cx) < 0.03 * half:
-				zmin = minf(zmin, verts[i].z)
-				zmax = maxf(zmax, verts[i].z)
-		if zmax > zmin:
-			out[skin] = (xmax - xmin) / (zmax - zmin)
+			var k := int((verts[i].x - xmin) / w)
+			zlo[k] = minf(zlo[k], verts[i].z)
+			zhi[k] = maxf(zhi[k], verts[i].z)
+		var chord := 0.0
+		for k in nb:
+			if zhi[k] > zlo[k]:
+				chord = maxf(chord, zhi[k] - zlo[k])
+		if chord > 0.0:
+			out[skin] = (xmax - xmin) / chord
 	return out
 
 
