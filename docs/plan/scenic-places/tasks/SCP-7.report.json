@@ -1,0 +1,37 @@
+{
+  "status": "done",
+  "summary": "Абзац «Красивые места…» в guide menus-settings.md, строка в CHANGELOG «В работе», раздел scenic-places в registry/findings.md. docs/INDEX.md не менялся (запись модуля уже была).",
+  "commits": [
+    "a8d69f5a4 scenic-places: SCP-7 guide, CHANGELOG и реестр — красивые места"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "changelog",
+      "value": "Красивые места",
+      "pass": true
+    },
+    {
+      "name": "guide",
+      "value": "1",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept SCP-7",
+  "uncertain": [
+    {
+      "where": "CHANGELOG.md, findings.md",
+      "why": "в карточке «запас ≥ 50 м», а в research запас неотрицательный (min 0 м, us/mount-hood), у 13 мест < 10 м",
+      "checked": "написал по research; контракт SCP-К2 требует 50 м — расхождение контракта и исследования"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-11-05T16:36:08",
+  "by": "executor"
+}
