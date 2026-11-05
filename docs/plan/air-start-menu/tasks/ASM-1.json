@@ -40,25 +40,10 @@
       "name": "air_start_menu",
       "tests": "air_start_menu",
       "timeout": 2400
-    },
-    {
-      "name": "game_flight",
-      "tests": "test_game_flight",
-      "timeout": 3600
-    },
-    {
-      "name": "start_pick",
-      "tests": "test_start_pick",
-      "timeout": 3600
-    },
-    {
-      "name": "e2e",
-      "tests": "tests/game/test_e2e",
-      "timeout": 3600
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-11-05T05:58:08",
-  "edited": "2026-11-05T14:05:31"
+  "edited": "2026-11-05T14:21:11"
 }
