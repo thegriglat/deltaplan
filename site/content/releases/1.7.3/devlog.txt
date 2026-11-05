@@ -1,0 +1,23 @@
+Deltaplan 1.7.3 — air start, scenic places and a pilot voice
+
+A release about getting into the air faster and not flying alone. You can now start already airborne at a chosen height, jump straight above one of 236 scenic natural places around the world, and fly with wingmen who stay close. The pilot now speaks short lines, and you can put your own picture on your sail.
+
+Getting into the air:
+- Air start: "In the air" option in the Start window, height 60-1000 m above the terrain; records and achievements are not counted for such flights
+- Scenic places: 236 natural landscapes in 29 countries (mountains, glaciers, fjords, canyons, volcanoes, lakes), the wing starts in the air above the view
+
+Company:
+- Pilot voice: short lines on takeoff, thermals, sink, turbulence, stall, low height, cloud, turnpoints, goal, landing and spotted easter eggs; male or female, Russian or English, can be turned off
+- Wingmen: 0-2 bots stay close to you and join your thermal, with the same physics
+
+Looks:
+- Your own sail picture (PNG or JPEG), visible only to you
+- Clouds: no whitish veil in clear gaps at cloud height, no sky jump and no colour shift of other clouds at a cloud edge
+- Sail animation fixed for all wings: the leading edge is still, the lower surface moves on its own
+
+Known issues:
+- The air start begins from equilibrium: g-load dips for about 30 ms right after placement
+- Scenic places were checked by terrain geometry only
+- The whiteout boundary follows the coarse cloud shape and may not match the visible edge exactly
+- The synthetic voice has weak intonation, not every line was listened to
+- No macOS build: the Rust wind library does not build for macOS yet, Mac stays on 1.6.1
