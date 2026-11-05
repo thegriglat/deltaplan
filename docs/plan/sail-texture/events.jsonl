@@ -9,3 +9,7 @@
 {"t": "2026-11-05T05:51:53", "by": "coordinator", "task": "SLT-2", "ev": "note", "note": "Godot: профиль своей копии XDG_DATA_HOME=~/.cache/dp-xdg/$(basename \"$PWD\"); первый запуск в копии — godot --headless --path . --import (под .dpcli/dpcli lock cpu). Тесты: .dpcli/dpcli lock cpu slt2 -- godot --headless --path . res://tests/run_tests.tscn -- --filter=sail_texture. Новые .gd — с .uid в одном коммите (хук tools/hooks/pre-commit). project.godot, переписанный редактором, — git checkout -- project.godot. Наложение на парус (шейдер, glider.gd) — не эта задача (SLT-3).", "addendum": true}
 {"t": "2026-11-05T05:52:03", "by": "coordinator", "task": "SLT-1", "ev": "started"}
 {"t": "2026-11-05T05:52:03", "by": "coordinator", "task": "SLT-2", "ev": "started"}
+{"t": "2026-11-05T05:56:24", "by": "executor", "task": "SLT-1", "ev": "checked", "note": "2/2 models=ok:49; docs=ok:ошибок 0"}
+{"t": "2026-11-05T05:56:29", "by": "executor", "task": "SLT-1", "ev": "reported", "commits": ["cb7115339"], "note": "done: У всех 49 glb одна схема UV1: верх v 0.5-1, низ v 0-0.5, u=0 у левой законцовки, v растёт к носу; у 8 моделей карман ки…", "dp_feedback": "Дополнения к карточке в task show обрезаются многоточием; docs check ругается на summary >140 только после написания."}
+{"t": "2026-11-05T05:56:37", "by": "coordinator", "task": "SLT-1", "ev": "checked", "note": "2/2 models=ok:49; docs=ok:ошибок 0"}
+{"t": "2026-11-05T05:57:11", "by": "coordinator", "task": "SLT-1", "ev": "accepted", "note": "по отчёту"}

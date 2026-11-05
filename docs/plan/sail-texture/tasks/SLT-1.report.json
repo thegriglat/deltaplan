@@ -1,0 +1,63 @@
+{
+  "status": "done",
+  "summary": "У всех 49 glb одна схема UV1: верх v 0.5-1, низ v 0-0.5, u=0 у левой законцовки, v растёт к носу; у 8 моделей карман киля (u=0.52). Верх смотрится зеркально, низ повёрнут на 180 градусов; даны формулы шейдера для вариантов 1/верх/низ и вписывания пропорций.",
+  "commits": [
+    "cb7115339 SLT-1: развёртка UV паруса у 49 моделей крыльев"
+  ],
+  "checks": [
+    {
+      "name": "models",
+      "value": "49",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [
+    "Решение по наложению: вариант 1 (обе стороны, читаемо снаружи) или только верх/низ; растянуть или вписать по центру с полями (размах/ср. хорда 4.5-8.5, медиана 7.0)"
+  ],
+  "images": [],
+  "how_to_check": "python3 tools/research/sail-texture/uv_measure.py && .dpcli/dpcli accept SLT-1",
+  "uncertain": [
+    {
+      "where": "assets/shaders/sail/sail.gdshader:61-63",
+      "why": "UV2.y в Godot = 1 - y сборщика (верх 1-t, низ -1..-1.96), шейдер ждёт t и +2: low всегда 0, t перевёрнут",
+      "checked": "GLTFDocument на aeros_discus: UV/UV2 совпали с файлом до 1e-5; остальные 48 моделей - чтением файла; визуально не проверялось"
+    },
+    {
+      "where": "tools/research/sail-texture/README.md (зеркальность)",
+      "why": "знак определителя якобиана UV по экрану в нулевой позе, не проверено рендером",
+      "checked": "обе стороны у всех 49 моделей совпадают по знакам корреляций"
+    }
+  ],
+  "dp_feedback": "Дополнения к карточке в task show обрезаются многоточием; docs check ругается на summary >140 только после написания.",
+  "extra": {
+    "aspect_span_over_mean_chord": {
+      "min": 4.48,
+      "median": 7.04,
+      "max": 8.45
+    },
+    "span_m": {
+      "min": 8.81,
+      "median": 10.0,
+      "max": 10.55
+    },
+    "native_region_aspect": "2:1 (1024x512 на поверхность)",
+    "keel_pocket_models": [
+      "apogee",
+      "atlas",
+      "magic",
+      "slavutich_ut",
+      "ww_cross_country",
+      "ww_eagle",
+      "ww_super_sport",
+      "ww_ultra_sport"
+    ]
+  },
+  "t": "2026-11-05T05:56:29",
+  "by": "executor"
+}
