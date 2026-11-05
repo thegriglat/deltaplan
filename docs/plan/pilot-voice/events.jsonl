@@ -20,3 +20,4 @@
 {"t": "2026-11-05T06:02:05", "by": "coordinator", "task": "PVO-1", "ev": "edited", "note": "contract:PV-К1", "diff": {"contract": ["null", "null"]}}
 {"t": "2026-11-05T06:02:05", "by": "coordinator", "task": "PVO-1", "ev": "note", "note": "PV-К1 → v2 (добавлены view и egg_<id>); реплики образцов (takeoff_1, thermal_found_1, thermal_strong_1, sink_1, stall_2, landing_hard_1) не изменились — работу не менять.", "addendum": true}
 {"t": "2026-11-05T06:02:17", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: Q1 → контракты v2 (view, egg_<id>, только одиночная игра), PVO-2 и PVO-1 уведомлены; docs check: summary плана pilot-voice 169 > 140 — за главной"}
+{"t": "2026-11-05T06:04:33", "by": "coordinator", "task": null, "ev": "note", "note": "ночь 2026-11-05: шлюз «модель и образцы» (после PVO-1) закрою сам — рекомендованный вариант + запасной в decide, затем PVO-3 (полный набор)"}
