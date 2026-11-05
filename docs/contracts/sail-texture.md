@@ -6,7 +6,7 @@ area: game
 updated: "2026-11-05"
 summary: "SLT-К1: хранение своей картинки паруса в user:// (SailTexture); SLT-К2: наложение на парус игрока (SailMaterial.set_custom)."
 related: ["docs/plan/sail-texture.md", "docs/guide/models/wings.md", "docs/guide/models.md"]
-contracts: [{"id": "SLT-К1", "version": 1}]
+contracts: [{"id": "SLT-К1", "version": 1}, {"id": "SLT-К2", "version": 1}]
 ---
 # Контракты модуля sail-texture
 
@@ -45,12 +45,28 @@ contracts: [{"id": "SLT-К1", "version": 1}]
   `ACCESS_FILESYSTEM`, фильтры `*.png, *.jpg, *.jpeg`), «Родная» (сброс), предпросмотр, строка ошибки `tr(error)`.
   Выбор и сброс — отложенные, как всё на экране: «Готово» — `save(image)` или `clear()`; «Назад» — профиль без изменений.
 
-## SLT-К2. Наложение на парус игрока — черновик (версия выставляется после SLT-1)
+## SLT-К2. Наложение на парус игрока — версия 1
 
 - Владелец: SLT-3. Потребитель: `scripts/flight/glider.gd` (визуал игрока). Боты и чужие (`scripts/game/bot_glider.gd`,
-  `scripts/game/remote_pilots.gd`) не вызывают.
+  `scripts/game/remote_pilots.gd`) не вызывают. Тест: `tests/contracts/test_sail_texture_contracts.gd` (раздел К2).
 - `SailMaterial.set_custom(mat: ShaderMaterial, tex: Texture2D) -> void` (`assets/shaders/sail/sail_material.gd`):
   `mat == null` — ничего; `tex == null` — родная текстура (как без вызова). Вызов — в `Glider` после `visual.build(...)`:
   `SailMaterial.set_custom(visual.sail_material, SailTexture.load_texture())`.
-- Карты нормалей, просвечивания, анимация (UV2), тени — как с родной текстурой.
-- Раскладка по UV (верх/низ, ориентация, пропорции) — по итогам SLT-1, решение — `decide` модуля; до этого SLT-3 не запускается.
+- `SailMaterial.apply(...)` дополнительно ставит uniform'ы аспекта обшивок из меша `Sail` (для всех крыльев, в т.ч. ботов —
+  без своей картинки они ничего не меняют): `custom_aspect_top`, `custom_aspect_bottom` (float, размах / корневая хорда
+  этой обшивки, м/м; обшивка — по UV1: верх `UV.y > 0.5`, низ `UV.y < 0.5`; карман киля не входит).
+- Uniform'ы шейдера `assets/shaders/sail/sail.gdshader`: `custom_tex : source_color, filter_linear_mipmap_anisotropic`,
+  `custom_on : float` (0 — родная, 1 — своя), `custom_img_aspect : float` (w/h картинки) — ставит `set_custom`.
+- Раскладка (решение координатора 2026-11-05, по SLT-1 `tools/research/sail-texture/README.md`):
+  - координаты обшивки по UV1 (как приходит в Godot): `s = UV.x` (0 — левая законцовка, −X модели);
+    верх (`UV.y > 0.5`): `q = 2·(1 − UV.y)`; низ (`UV.y < 0.5`): `q = 2·(0.5 − UV.y)`; q = 0 — передняя кромка, 1 — задняя;
+  - верх, взгляд сверху (нос вверху экрана): `(a, b) = (s, q)`; низ, взгляд снизу: `(a, b) = (1 − s, q)` —
+    обе читаются снаружи не зеркально, верх картинки (b = 0) — у передней кромки;
+  - вписать по центру с сохранением пропорций: `A` — аспект обшивки, `r = custom_img_aspect`;
+    `A ≥ r`: `a' = (a − 0.5)·A/r + 0.5`, `b' = b`; `A < r`: `a' = a`, `b' = (b − 0.5)·r/A + 0.5`;
+    вне `[0,1]²` — родная текстура;
+  - смешение: `albedo = mix(родное, custom.rgb, custom.a · внутри)`; к своей картинке `albedo_tint`, `hue_shift_rad`,
+    `sat_scale`, `value_scale` не применяются; нормали, просвечивание, анимация (UV2), тени — как с родной;
+  - карман киля (8 моделей, вертикальная плоскость x = 0) — родная текстура (признак — по нормали/вершине, не по UV.x фрагмента).
+- Проверка ориентации — по геометрии меша (какая законцовка у пилота справа, где нос), не по допущению; визуально —
+  тестовая сборка Linux у главной сессии.

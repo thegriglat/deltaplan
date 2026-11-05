@@ -13,3 +13,7 @@
 {"t": "2026-11-05T05:56:29", "by": "executor", "task": "SLT-1", "ev": "reported", "commits": ["cb7115339"], "note": "done: У всех 49 glb одна схема UV1: верх v 0.5-1, низ v 0-0.5, u=0 у левой законцовки, v растёт к носу; у 8 моделей карман ки…", "dp_feedback": "Дополнения к карточке в task show обрезаются многоточием; docs check ругается на summary >140 только после написания."}
 {"t": "2026-11-05T05:56:37", "by": "coordinator", "task": "SLT-1", "ev": "checked", "note": "2/2 models=ok:49; docs=ok:ошибок 0"}
 {"t": "2026-11-05T05:57:11", "by": "coordinator", "task": "SLT-1", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-11-05T05:57:17", "by": "coordinator", "task": "SLT-1", "ev": "accepted", "commits": ["43c078a37"], "note": "2/2 models=ok:49; docs=ok:ошибок 0"}
+{"t": "2026-11-05T05:57:17", "by": "coordinator", "task": "SLT-1", "ev": "merged"}
+{"t": "2026-11-05T05:57:36", "by": "executor", "task": "SLT-2", "ev": "reported", "commits": ["c7e47c4f9"], "note": "done: SailTexture по SLT-К1 (prepare с проверкой по сигнатуре и размеру из заголовка до декодирования, save через .tmp и rena…", "dp_feedback": "В свежей копии нет addons/dp_air/bin: тесты экрана падают (нет DpWeather -> sunset_h). Пришлось вручную положить libdp_air_release.so и симлинк на tune из чужой копии; хорошо бы dpcli task start делал это сам."}
+{"t": "2026-11-05T05:58:01", "by": "coordinator", "task": "SLT-2", "ev": "checked", "note": "3/3 sail_texture=ok:4/4; gd=ok:exit 0; setup=ok:13/13; scope=FAIL:вне scope: r-SLT-2.json"}

@@ -1,0 +1,54 @@
+{
+  "status": "done",
+  "summary": "SailTexture по SLT-К1 (prepare с проверкой по сигнатуре и размеру из заголовка до декодирования, save через .tmp и rename, import_file, load_texture с мипмапами, clear) и строка «Картинка паруса» на вкладке «Аппарат»: Выбрать…/Родная, предпросмотр, строка ошибки; выбор и сброс отложены до «Готово».",
+  "commits": [
+    "c7e47c4f9 sail-texture SLT-2: SailTexture (SLT-К1) и выбор картинки паруса на экране «Полёт…»"
+  ],
+  "checks": [
+    {
+      "name": "sail_texture",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "setup",
+      "value": "13/13",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "8 файлов в границах",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SLT-2",
+  "uncertain": [
+    {
+      "where": "scripts/game/sail_texture.gd:save",
+      "why": "DirAccess.rename_absolute поверх существующего файла: на Windows поведение не проверено (на Linux перезаписывает)",
+      "checked": "Linux: повторный import_file и сброс в тестах; Windows не запускал"
+    },
+    {
+      "where": "scripts/ui/flight_setup_screen.gd:_on_sail_pick",
+      "why": "нативный FileDialog (use_native_dialog=true по карточке) в headless не проверить; обработчик on_sail_file_selected(path) проверен тестом",
+      "checked": "тест вызывает обработчик с путём; диалог руками не открывал"
+    },
+    {
+      "where": "scripts/ui/flight_setup_screen.gd:_refresh_sail",
+      "why": "подпись «родная» вынесена в строку под предпросмотром (она же строка ошибки), отдельной подписи на самом предпросмотре нет",
+      "checked": "логика в тесте не проверяется, только наличие текста ошибки"
+    }
+  ],
+  "dp_feedback": "В свежей копии нет addons/dp_air/bin: тесты экрана падают (нет DpWeather -> sunset_h). Пришлось вручную положить libdp_air_release.so и симлинк на tune из чужой копии; хорошо бы dpcli task start делал это сам.",
+  "extra": {},
+  "t": "2026-11-05T05:57:36",
+  "by": "executor"
+}
