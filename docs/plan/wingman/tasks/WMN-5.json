@@ -1,0 +1,39 @@
+{
+  "id": "WMN-5",
+  "module": "wingman",
+  "type": "dp-writer",
+  "title": "Guide: выход напарника из термика по WM-К1 v2 и граница 2 км",
+  "goal": "docs/guide/game/bots.md, раздел «Напарник»: правило выхода из термика — по контракту WM-К1 v2 (запас высоты для долёта, leave_below_m); граница модели — при шаге термиков ~2 км напарник отстаёт; числа вариантов сценария test_wingman.",
+  "plan_ref": "§4 Задачи",
+  "contracts": [
+    {
+      "name": "wingman",
+      "version": "2",
+      "ref": "docs/contracts/wingman.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/wingman-WMN-5",
+  "branch": "wingman/WMN-5",
+  "base": "feature/wingman",
+  "scope": [
+    "docs/guide/game/bots.md"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "tests",
+    "docs/contracts",
+    "docs/plan",
+    "CHANGELOG.md"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-05T11:41:29"
+}
