@@ -463,6 +463,18 @@ result_to_start,На старт,Back to launch
 map_layer_opentopomap,OpenTopoMap (топокарта),OpenTopoMap (topographic)
 map_layer_osm,OpenStreetMap,OpenStreetMap
 setup_popular_places,Популярные места…,Popular places…
+setup_scenic_places,Красивые места…,Scenic places…
+scenic_title,Красивые места,Scenic places
+scenic_kind_mountain,Горы,Mountains
+scenic_kind_canyon,Каньон,Canyon
+scenic_kind_lake,Озеро,Lake
+scenic_kind_coast,Побережье,Coast
+scenic_kind_volcano,Вулкан,Volcano
+scenic_kind_glacier,Ледник,Glacier
+scenic_kind_valley,Долина,Valley
+scenic_kind_fjord,Фьорд,Fjord
+scenic_kind_desert,Пустыня,Desert
+scenic_kind_island,Остров,Island
 places_title,Популярные места,Popular places
 places_search_hint,Поиск по названию,Search by name
 places_country_row,%s — %d,%s — %d

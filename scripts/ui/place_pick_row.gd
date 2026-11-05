@@ -13,6 +13,11 @@ var pick_elev_m: float = NAN
 var catalog: Dictionary = {}
 var places_btn: Button
 var places_window: PopularPlacesWindow
+## «Красивые места» (SCP-К3): каталог, кнопка, окно и id выбранного места ("" — не выбрано).
+var scenic_catalog: Dictionary = {}
+var scenic_btn: Button
+var scenic_window: ScenicPlacesWindow
+var scenic_id := ""
 var pick_label: Label
 var exact_label: Label  ## «Старт уточнён на рельефе · курс N°» (SP-2)
 var exact_reset_btn: Button
@@ -25,13 +30,16 @@ var _elev_loader: TerrariumLoader
 
 
 ## Кнопки и подпись — в этот ряд; окна карты и каталога — в overlay (во весь экран, не в контейнер).
-## path — каталог «Популярных мест» (пусто — из configs/ui.json).
-func build(overlay: Control, path: String = "") -> void:
+## path — каталог «Популярных мест», scenic — включить кнопку «Красивых мест» (только «Настройки полёта»), scenic_path — их каталог (пусто — из configs/ui.json).
+func build(overlay: Control, path: String = "", scenic: bool = false, scenic_path: String = "") -> void:
 	_overlay = overlay
 	add_theme_constant_override("separation", 12)
 	UiKit.button(self, tr("setup_pick_on_map"), _open_map)
 	places_btn = UiKit.button(self, tr("setup_popular_places"), _open_places)
 	places_btn.visible = _load_places(path)
+	if scenic:
+		scenic_btn = UiKit.button(self, tr("setup_scenic_places"), _open_scenic)
+		scenic_btn.visible = _load_scenic(scenic_path)
 	pick_label = UiKit.label(self, "", "HintLabel")
 	pick_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	pick_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -85,6 +93,7 @@ func refresh() -> void:
 ## Выбрана точка не картой и не каталогом (например, «Недавние места»).
 func set_pick(lat: float, lon: float) -> void:
 	picked_place_name = ""
+	scenic_id = ""
 	pick_elev_m = NAN
 	settings.clear_exact_start()
 	settings.pick_lat = lat
@@ -135,6 +144,7 @@ func _on_map_ok() -> void:
 	settings.pick_lat = _map.picked.x
 	settings.pick_lon = _map.picked.y
 	picked_place_name = ""
+	scenic_id = ""
 	pick_elev_m = _map.picked_elevation_m
 	_map_layer.visible = false
 	refresh()
@@ -182,6 +192,7 @@ func _open_places() -> void:
 ## Выбор места каталога. Встроенное (location+site) — его рельеф и точный старт; остальное — точка
 ## старта, как с карты и из «Недавних мест» (высоту подтянет подпись).
 func choose_place(p: Dictionary) -> void:
+	scenic_id = ""
 	pick_elev_m = NAN
 	settings.clear_exact_start()
 	if p.has("location") and p.has("site"):
@@ -195,4 +206,36 @@ func choose_place(p: Dictionary) -> void:
 	settings.pick_lat = float(p.get("lat", 0.0))
 	settings.pick_lon = float(p.get("lon", 0.0))
 	picked_place_name = String(p.get("name", ""))
+	refresh()
+
+
+# ------------------------------------------------------- красивые места
+
+
+## Каталог из path (пусто — путь из configs/ui.json); true, если в нём есть места.
+func _load_scenic(path: String) -> bool:
+	if path == "":
+		path = String(Config.get_config("ui").get("scenic_places_path", ""))
+	scenic_catalog = ScenicPlaces.load_catalog(path) if FileAccess.file_exists(path) else {"places": []}
+	return not (scenic_catalog.get("places", []) as Array).is_empty()
+
+
+func _open_scenic() -> void:
+	if scenic_window == null:
+		scenic_window = ScenicPlacesWindow.new()
+		scenic_window.place_chosen.connect(choose_scenic)
+		_overlay.add_child(scenic_window)
+	scenic_window.open(scenic_catalog)
+
+
+## Выбор красивого места (SCP-К3 v1): точка и курс места; высота — позже (air-start-menu, v2).
+func choose_scenic(p: Dictionary) -> void:
+	var lat := float(p.get("lat", 0.0))
+	var lon := float(p.get("lon", 0.0))
+	pick_elev_m = NAN
+	settings.pick_lat = lat
+	settings.pick_lon = lon
+	settings.set_exact_start(lat, lon, float(p.get("heading_deg", 0.0)))
+	picked_place_name = ScenicPlaces.name(p, PopularPlaces.lang())
+	scenic_id = String(p.get("id", ""))
 	refresh()
