@@ -19,7 +19,7 @@ func _doc_line(head: String) -> String:
 
 
 func test_version_in_doc() -> void:
-	check(_doc_line("## SCP-К3.").contains("(v2)"), "SCP-К3 v2 в документе")
+	check(_doc_line("## SCP-К3.").contains("(v3)"), "SCP-К3 v3 в документе")
 
 
 func test_data_api() -> void:

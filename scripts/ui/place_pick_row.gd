@@ -18,6 +18,9 @@ var scenic_catalog: Dictionary = {}
 var scenic_btn: Button
 var scenic_window: ScenicPlacesWindow
 var scenic_id := ""
+## Прежние vehicle и высота старта в воздухе — до выбора красивого места (возвращаются при снятии, SCP-К3 v3).
+var _prev_vehicle := "glider"
+var _prev_air_agl_m := -1.0
 var pick_label: Label
 var exact_label: Label  ## «Старт уточнён на рельефе · курс N°» (SP-2)
 var exact_reset_btn: Button
@@ -93,7 +96,7 @@ func refresh() -> void:
 ## Выбрана точка не картой и не каталогом (например, «Недавние места»).
 func set_pick(lat: float, lon: float) -> void:
 	picked_place_name = ""
-	scenic_id = ""
+	_release_scenic()
 	pick_elev_m = NAN
 	settings.clear_exact_start()
 	settings.pick_lat = lat
@@ -144,7 +147,7 @@ func _on_map_ok() -> void:
 	settings.pick_lat = _map.picked.x
 	settings.pick_lon = _map.picked.y
 	picked_place_name = ""
-	scenic_id = ""
+	_release_scenic()
 	pick_elev_m = _map.picked_elevation_m
 	_map_layer.visible = false
 	refresh()
@@ -192,7 +195,7 @@ func _open_places() -> void:
 ## Выбор места каталога. Встроенное (location+site) — его рельеф и точный старт; остальное — точка
 ## старта, как с карты и из «Недавних мест» (высоту подтянет подпись).
 func choose_place(p: Dictionary) -> void:
-	scenic_id = ""
+	_release_scenic()
 	pick_elev_m = NAN
 	settings.clear_exact_start()
 	if p.has("location") and p.has("site"):
@@ -228,14 +231,28 @@ func _open_scenic() -> void:
 	scenic_window.open(scenic_catalog)
 
 
-## Выбор красивого места (SCP-К3 v1): точка и курс места; высота — позже (air-start-menu, v2).
+## Выбор красивого места (SCP-К3 v3): точка, курс места и старт в воздухе на agl_m над ней (ASM-К1/К2).
 func choose_scenic(p: Dictionary) -> void:
 	var lat := float(p.get("lat", 0.0))
 	var lon := float(p.get("lon", 0.0))
+	if scenic_id == "":
+		_prev_vehicle = settings.vehicle
+		_prev_air_agl_m = settings.air_start_agl_m
 	pick_elev_m = NAN
 	settings.pick_lat = lat
 	settings.pick_lon = lon
 	settings.set_exact_start(lat, lon, float(p.get("heading_deg", 0.0)))
 	picked_place_name = ScenicPlaces.name(p, PopularPlaces.lang())
 	scenic_id = String(p.get("id", ""))
+	settings.vehicle = "glider"
+	settings.set_air_start(float(p.get("agl_m", 0.0)))
 	refresh()
+
+
+## Снять выбор красивого места: вернуть прежние vehicle и старт в воздухе (SCP-К3 v3).
+func _release_scenic() -> void:
+	if scenic_id == "":
+		return
+	scenic_id = ""
+	settings.vehicle = _prev_vehicle
+	settings.set_air_start(_prev_air_agl_m)
