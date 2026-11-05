@@ -4,7 +4,7 @@ extends TestCase
 ## Правка контракта (версия +1) — вместе с этим файлом.
 
 const DOC := "res://docs/contracts/air-start-menu.md"
-const VERSIONS := {"ASM-К1": 1, "ASM-К2": 1}
+const VERSIONS := {"ASM-К1": 1, "ASM-К2": 2}
 
 
 func _read(path: String) -> String:
