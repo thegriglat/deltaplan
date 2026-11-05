@@ -62,8 +62,20 @@ func test_takeoff_after_delay_once() -> void:
 	check(_run(l, 0.9, _s()).is_empty(), "takeoff: раньше delay_s 1,0 тихо")
 	check(_has(_run(l, 0.5, _s()), "takeoff"), "takeoff: после delay_s")
 	_run(l, 6.0, _s())  # пауза gap_s приоритета 2
-	l.event("took_off", {"altitude_msl": 1000.0})  # новый отрыв = новый полёт
-	check(_has(_run(l, 2.0, _s()), "takeoff"), "takeoff: на новом отрыве снова")
+	l.event("took_off", {"altitude_msl": 1000.0})  # повторный отрыв без reset — тот же полёт
+	check(not _has(_run(l, 2.0, _s()), "takeoff"), "takeoff: повторный отрыв в том же полёте молчит")
+	l.reset()
+	l.event("took_off", {"altitude_msl": 1000.0})
+	check(_has(_run(l, 2.0, _s()), "takeoff"), "takeoff: после reset() снова")
+
+
+func test_rebound_keeps_landing_flags() -> void:
+	var l := _flying(_logic())
+	l.event("landed", {"grade": "hard"})
+	check(_has(_run(l, 3.0, _s()), "landing_hard"), "landing: сказана")
+	l.event("took_off", {"altitude_msl": 1000.0})  # подскок
+	l.event("landed", {"grade": "soft"})
+	check(not _has(_run(l, 8.0, _s()), "landing_soft"), "landing: повторная посадка в том же полёте молчит")
 
 
 func test_sink() -> void:

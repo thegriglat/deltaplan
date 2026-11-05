@@ -47,6 +47,7 @@ var _low_armed := false
 var _takeoff_msl := NAN
 var _high_level := 0
 var _landed_said := false
+var _airborne := false  ## отрыв в этом полёте уже был; снимается только reset()
 var _egg_done: Dictionary = {}  ## id -> true: пасхалка уже замечена в этом полёте
 var _quiet_since := 0.0  ## с какого момента тишина (конец последней реплики / отрыв)
 
@@ -74,6 +75,7 @@ func reset() -> void:
 	_takeoff_msl = NAN
 	_high_level = 0
 	_landed_said = false
+	_airborne = false
 	_egg_done.clear()
 	_quiet_since = 0.0
 	_reset_conditions()
@@ -96,10 +98,11 @@ func _reset_conditions() -> void:
 func event(event_name: String, data := {}) -> void:
 	match event_name:
 		"took_off":
+			if _airborne:  # подскок/повторный отрыв: тот же полёт, «раз за полёт» не сбрасываем
+				return
+			_airborne = true
 			_flight_t = 0.0
 			_takeoff_msl = float(data.get("altitude_msl", NAN))
-			_high_level = 0
-			_landed_said = false
 			_quiet_since = _clock
 			_reset_conditions()
 			_enqueue("takeoff", p("takeoff", "delay_s", 0.0))
