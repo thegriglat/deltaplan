@@ -21,3 +21,4 @@
 {"t": "2026-11-05T06:44:22", "by": "coordinator", "task": "WMN-2", "ev": "checked", "commits": ["33f4ca30e"], "note": "1/2 test_settings=FAIL:таймаут; gd=ok:exit 0"}
 {"t": "2026-11-05T06:44:22", "by": "coordinator", "task": "WMN-2", "ev": "merged"}
 {"t": "2026-11-05T06:44:47", "by": "coordinator", "task": "WMN-2", "ev": "note", "note": "accept --here в копии модуля: test_settings — таймаут (под нагрузкой, первый прогон копии), не падение; перепроверить после слияния WMN-1"}
+{"t": "2026-11-05T06:44:56", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: accept --here повторяет проверки в копии модуля и на первом прогоне упирается в таймаут под нагрузкой; task new берёт копию от HEAD до коммита контракта — пришлось ff-merge ветки задачи вручную. Состояние: WMN-2 слита (9dccb5a1b); WMN-1 в работе (исполнитель ждёт очередь cpu); WMN-3 (guide, CHANGELOG, dp-writer) — после слияния WMN-1"}
