@@ -23,7 +23,7 @@ const HEADER := (
 	+ "fog_sky_affect,mean_r,mean_g,mean_b,luma_mean,luma_std,png,"
 	+ "x_mode,x_s_m,x_edge_dist_m,x_in_density,x_own_frac,x_mask_frac,"
 	+ "x_other_r,x_other_g,x_other_b,x_other_luma,x_other_noclouds_luma,"
-	+ "x_bg_r,x_bg_g,x_bg_b,x_bg_luma,x_fog_height_density,x_nc_luma_mean"
+	+ "x_bg_r,x_bg_g,x_bg_b,x_bg_luma,x_fog_height_density,x_nc_luma_mean,x_terr_luma"
 )
 const GW := 192
 const GH := 108
@@ -460,7 +460,7 @@ func _shoot_row(
 		wo.amount, env.fog_density, env.fog_light_color.r, env.fog_light_color.g,
 		env.fog_light_color.b, env.fog_sky_affect, st.mr, st.mg, st.mb, st.lm, st.ls, path,
 		mode + _tag, s, edge, 1 if d > 0.05 else 0, st.inbox, st.mask_frac,
-		st.or, st.og, st.ob, st.ol, st.ol0, st.br, st.bg, st.bb, st.bl, env.fog_height_density, st.l0,
+		st.or, st.og, st.ob, st.ol, st.ol0, st.br, st.bg, st.bb, st.bl, env.fog_height_density, st.l0, st.tl,
 	]
 	f.store_line(",".join(row.map(_fmt)))
 	f.flush()
@@ -507,6 +507,8 @@ func _stats(img: Image, img0: Image, _pos: Vector3, _air: Node) -> Dictionary:
 	var b_sum := Vector3.ZERO
 	var b_n := 0
 	var m_n := 0
+	var t_l := 0.0  ## рельеф: нижняя треть кадра без пикселей облаков, яркость
+	var t_n := 0
 	for j in GH:
 		for i in GW:
 			var x := int((i + 0.5) / GW * w)
@@ -527,12 +529,16 @@ func _stats(img: Image, img0: Image, _pos: Vector3, _air: Node) -> Dictionary:
 			else:
 				b_sum += Vector3(c.r, c.g, c.b)
 				b_n += 1
+				if j >= GH * 2 / 3:
+					t_l += l
+					t_n += 1
 	r.mr = sum.x / n
 	r.mg = sum.y / n
 	r.mb = sum.z / n
 	r.lm = l_sum / n
 	r.ls = sqrt(maxf(l_sq / n - r.lm * r.lm, 0.0))
 	r.l0 = l0_sum / n
+	r.tl = t_l / t_n if t_n > 20 else NAN
 	r.inbox = NAN  ## x_own_frac: не определяется (поле плотности гладкое, «своё» облако не выделить)
 	r.mask_frac = float(m_n) / n
 	var nan := NAN

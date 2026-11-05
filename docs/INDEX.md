@@ -237,6 +237,8 @@ generated: true
 - **cloud-view** — Вид у облаков и над ними: белёсый экран выше некой высоты в ясном воздухе; на границе облака другие облака будто инвертируются по цвету. [active 2026-11-05] — [план](plan/cloud-view.md) · [контракты](contracts/cloud-view.md)
   - [tools/research/cloud_view/CVW-1/README.md](../tools/research/cloud_view/CVW-1/README.md) — CVW-1: белёсая пелена в слое облаков — CloudWhiteout по грубой плотности поля (cover × профиль) без шума; над слоем пелены нет
   - [tools/research/cloud_view/CVW-2/README.md](../tools/research/cloud_view/CVW-2/README.md) — CVW-2 — смена цвета облаков и неба на кромке слоя; причина — туман окружения мглы CloudWhiteout и дымка облаков
+  - [tools/research/cloud_view/CVW-3/README.md](../tools/research/cloud_view/CVW-3/README.md) — CVW-3 — мгла (К2 v3) без ступенек неба, рельефа и цвета облаков на кромке слоя; числа до/после стенда CVW-2
+  - [tools/research/cloud_view/CVW-4/README.md](../tools/research/cloud_view/CVW-4/README.md) — CVW-4: мгла по рисуемым облакам: в ясном столбце 0 (было 0,145), в рисуемом облаке 1,0 (грубое поле 0,28)
   - [tools/research/cloud_view/CVW-1/summary.md](../tools/research/cloud_view/CVW-1/summary.md) — CVW-1: белёсая пелена в слое облаков — CloudWhiteout по грубой плотности поля (cover × профиль) без шума; над слоем пелены нет
   - [tools/research/cloud_view/CVW-2/summary.md](../tools/research/cloud_view/CVW-2/summary.md) — CVW-2 вывод — мгла CloudWhiteout включает туман окружения: скачок неба и переключение дымки облаков в cloud_layer
 

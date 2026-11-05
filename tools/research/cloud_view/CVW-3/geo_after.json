@@ -1,0 +1,31 @@
+{
+ "sky_g_step_max": 0.002229999999999982,
+ "other_rgb_step_max": 0.00378999999999996,
+ "fog_density_at_amount1": 0.0599999986588955,
+ "before": {
+  "sky_g_step_max": 0.13992000000000002,
+  "other_rgb_step_max": 0.10099000000000002
+ },
+ "per_hour": {
+  "after_13": {
+   "sky_g_step_max": 0.002229999999999982,
+   "other_rgb_step_max": 0.00378999999999996,
+   "frames_in_window": 8
+  },
+  "after_18": {
+   "sky_g_step_max": 0.002019999999999994,
+   "other_rgb_step_max": 0.0035399999999999876,
+   "frames_in_window": 4
+  },
+  "before_13": {
+   "sky_g_step_max": 0.13992000000000002,
+   "other_rgb_step_max": 0.05293999999999999,
+   "frames_in_window": 8
+  },
+  "before_18": {
+   "sky_g_step_max": 0.09386999999999998,
+   "other_rgb_step_max": 0.10099000000000002,
+   "frames_in_window": 4
+  }
+ }
+}
