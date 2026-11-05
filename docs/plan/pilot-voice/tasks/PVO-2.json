@@ -8,12 +8,12 @@
   "contracts": [
     {
       "name": "PV-К1",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/pilot-voice.md"
     },
     {
       "name": "PV-К2",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/pilot-voice.md"
     },
     {
@@ -23,7 +23,7 @@
     },
     {
       "name": "PV-К4",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/pilot-voice.md"
     }
   ],
@@ -46,14 +46,18 @@
     "tests/audio/",
     "tests/ui/",
     "tests/contracts/test_pilot_voice_contracts.gd",
-    "tests/contracts/test_pilot_voice_contracts.gd.uid"
+    "tests/contracts/test_pilot_voice_contracts.gd.uid",
+    "scripts/world_objects/easter_egg.gd",
+    "scripts/world_objects/easter_eggs/",
+    "tests/world_objects/"
   ],
   "dont_touch": [
     "assets/sounds/",
     "docs/contracts/",
     "scripts/audio/flight_audio.gd",
     "scripts/audio/flight_sound_mix.gd",
-    "project.godot"
+    "project.godot",
+    "scripts/net/"
   ],
   "accept": [
     {
@@ -72,10 +76,14 @@
       "name": "gd_check",
       "cmd": "python3 tools/check_gd.py scripts/audio/pilot_voice.gd scripts/audio/pilot_voice_logic.gd scripts/game/game.gd scripts/ui/settings_panel.gd",
       "expect": "exit=0"
+    },
+    {
+      "name": "easter",
+      "tests": "easter"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-11-05T05:55:01",
-  "edited": "2026-11-05T05:55:51"
+  "edited": "2026-11-05T06:02:04"
 }
