@@ -62,3 +62,4 @@
 {"t": "2026-11-05T11:42:44", "by": "executor", "task": "WMN-5", "ev": "reported", "commits": ["7a8dae423"], "note": "done: bots.md: правило выхода из термика переписано по WM-К1 v2 (запас высоты для долёта, без чисел параметров); добавлена гр…"}
 {"t": "2026-11-05T11:43:04", "by": "coordinator", "task": "WMN-5", "ev": "checked", "note": "1/1 docs=ok:ошибок 0; scope=FAIL:вне scope: r-WMN-5.json"}
 {"t": "2026-11-05T11:43:15", "by": "coordinator", "task": "WMN-5", "ev": "accepted", "note": "1/1 docs=ok:ошибок 0"}
+{"t": "2026-11-05T11:43:31", "by": "coordinator", "task": "WMN-5", "ev": "merged"}
