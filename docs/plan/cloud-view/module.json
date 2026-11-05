@@ -1,0 +1,11 @@
+{
+  "module": "cloud-view",
+  "plan": "docs/plan/cloud-view.md",
+  "contracts": "docs/contracts/cloud-view.md",
+  "branch": "feature/cloud-view",
+  "copy": "~/worktrees/deltaplan/cloud-view",
+  "created": "2026-11-05T06:03:44",
+  "code": "CVW",
+  "area": "world",
+  "base": "main"
+}
