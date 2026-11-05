@@ -421,9 +421,13 @@ func _pass_series(
 		_wo.amount = 0.0
 		_wo.apply(env)
 		_place(cam, p, look)
+		if tag.begins_with("recs"):
+			layer.field_params["cf_on"] = 0.0  # только записи: слой поля облачности не рисуется и не считается
 		for i in _settle:
 			await RenderingServer.frame_post_draw
 			_place(cam, p, look)
+			if tag.begins_with("recs"):
+				layer.field_params["cf_on"] = 0.0
 		var d_coarse := float(air.call("cloud_density_at", p))
 		var d_vis := layer.visible_density_at(p)
 		var d := d_vis if d_vis >= 0.0 else d_coarse
@@ -488,15 +492,28 @@ func _recs_series(
 			_place(cam, Vector3(cx, gh + 1500.0, cz), Vector3.FORWARD)  # глаз выбора облаков - у столбца
 			layer.set("_acc", 1.0e9)
 			await get_tree().process_frame
+		# записи рисуются в пределах дальности от глаза: глаз - к ближайшей записи (3 км от центра)
+		var near := Vector3.ZERO
+		var nd := 1.0e30
+		for r in layer.records():
+			var dd0 := Vector2(r[0] - cx, r[2] - cz).length()
+			if dd0 < nd:
+				nd = dd0
+				near = Vector3(r[0] - 3000.0, gh + 1500.0, r[2])
+		if near != Vector3.ZERO:
+			for i in 240:
+				_place(cam, near, Vector3.FORWARD)
+				layer.set("_acc", 1.0e9)
+				await get_tree().process_frame
 		var best := 1.0e30
 		var objs: PackedFloat32Array = air.call("cloud_objects", Vector3.ZERO, -1.0, t_air)
 		print("cloud_view_climb_shot: recs - объектов-облаков в атмосфере %d" % objs.size())
 		for r in layer.records():
 			print("cloud_view_climb_shot: recs - запись kind %d vis %.2f центр (%.0f, %.0f, %.0f) основание %.0f высота %.0f ось (%.0f, %.0f) бокс %.0f %.0f d=%.0f" % [int(r[19] + 0.5), r[20], r[0], r[1], r[2], r[8], r[9], r[10], r[11], r[6], r[7], Vector2(r[0] - cx, r[2] - cz).length()])
-			for fr: float in [0.1, 0.25, 0.4, 0.55, 0.7]:
+			for fr: float in [0.3, 0.4, 0.5, 0.6]:
 				var q := Vector3(r[0], r[8] + fr * maxf(r[9], 10.0), r[2])
 				var dd := Vector2(q.x - cx, q.z - cz).length()
-				if dd < best and layer.visible_density_at(q) >= 0.5:
+				if dd < best and r[20] > 0.5 and layer._rec_density(r, q) >= 0.5:  # именно запись, не слой поля
 					best = dd
 					c = q
 					_res.rec_kind = int(r[19] + 0.5)
@@ -506,6 +523,16 @@ func _recs_series(
 			break
 	if c == Vector3.ZERO:
 		return 0
+	# обзор записи снаружи: кадр для сверки, что она рисуется (12 км до центра, взгляд на центр)
+	for dist: float in [12000.0, 5000.0]:
+		var vp := Vector3(c.x - dist, c.y + 800.0, c.z)
+		layer.field_params["cf_on"] = 0.0
+		for i in 40:
+			_place(cam, vp, (c - vp).normalized())
+			layer.field_params["cf_on"] = 0.0
+			await RenderingServer.frame_post_draw
+		await _shoot("%s/recs_view_%d.png" % [_out, int(dist)])
+		print("cloud_view_climb_shot: recs - обзор %d м: записей %d, плотность в центре %.2f" % [int(dist), layer.records().size(), layer.visible_density_at(c)])
 	var n: int = await _pass_series(game, air, layer, env, cam, haze_mat, haze_ext, cx, cz, gh, 0.0, 0.0, raster, c, "recs")
 	# Просвет: от центра вдоль +x до первой точки вне всех рисуемых облаков (шаг 250 м), там 6 кадров
 	var g := c
