@@ -12,12 +12,17 @@ extends Node
 ## noclouds - без прохода облаков (compositor); nofog - туман Environment выключен; bare - всё сразу.
 ## Код игры не меняется, всё в памяти стенда. Подготовка: --air_s - список времён атмосферы, с (перебор, пока не найдётся ясный столбец).
 ## Дополнительные колонки x_*: x_haze_top_msl, x_fog_enabled, x_ground_msl, x_cover_max_near,
-## x_cloud_recs, x_sky_r/g/b (средний цвет верхней четверти кадра), x_flags.
+## x_cloud_recs, x_sky_r/g/b (средний цвет верхней четверти кадра), x_flags,
+## x_visible_density (CVW-К3: плотность рисуемых облаков в точке камеры, как её берёт game.gd; −1 —
+## облака не рисуются), x_amount_coarse (мгла по грубому полю, как до CVW-4, для сравнения).
+## Вариант pass (CVW-4): проход камеры по прямой через центр рисуемого облака рядом с ясным столбцом
+## (строки с префиксом pass_, колонка agl - смещение вдоль прохода). --after=<after.json> пишет итог:
+## clear_amount_max (макс. мгла main в ясном столбце), in_cloud_amount_max (макс. мгла на проходе).
 
 const MAIN_SCENE := preload("res://scenes/main.tscn")
 const TIMEOUT_S := 5000.0
 const HEADER := "frame,loc,hour,cam_x,cam_z,cam_y_msl,cam_agl,yaw_deg,pitch_deg,cloud_base_msl,cloud_top_msl,cover_cam,density_cam,whiteout_amount,fog_density,fog_r,fog_g,fog_b,fog_sky_affect,mean_r,mean_g,mean_b,luma_mean,luma_std,png"
-const XCOLS := "x_haze_top_msl,x_fog_enabled,x_ground_msl,x_cover_max_near,x_cloud_recs,x_sky_r,x_sky_g,x_sky_b,x_flags"
+const XCOLS := "x_haze_top_msl,x_fog_enabled,x_ground_msl,x_cover_max_near,x_cloud_recs,x_sky_r,x_sky_g,x_sky_b,x_flags,x_visible_density,x_amount_coarse"
 
 var _out := ""
 var _csv := ""
@@ -43,6 +48,9 @@ var _vp: SubViewport = null
 var _root_cam: Camera3D = null
 var _lines: PackedStringArray = []
 var _wo := CloudWhiteout.new()
+var _wo_c := CloudWhiteout.new()
+var _after := ""
+var _res := {"clear_amount_max": 0.0, "clear_amount_coarse_max": 0.0, "in_cloud_amount_max": 0.0, "in_cloud_amount_coarse_max": 0.0}
 
 
 func _ready() -> void:
@@ -81,6 +89,8 @@ func _ready() -> void:
 				_settle = int(kv[1])
 			"variants":
 				_variants = kv[1].split(",")
+			"after":
+				_after = kv[1]
 			"agl":
 				_agl_override = _floats(kv[1])
 	if _out == "" or _csv == "":
@@ -182,6 +192,7 @@ func _run() -> void:
 	var layer := air.get_node_or_null("Clouds") as CloudLayer
 	var env: Environment = game.sky.world_env.environment
 	_wo.setup(game.get("_cfg").get("cloud_whiteout", {}))
+	_wo_c.setup(game.get("_cfg").get("cloud_whiteout", {}))
 	var sp: Vector3 = start.position
 	var raster: Dictionary = {}
 	var col := {}
@@ -299,7 +310,12 @@ func _run() -> void:
 						await RenderingServer.frame_post_draw
 						_place(cam, p, look)
 					# Как game.gd._process: плотность в точке камеры, мгла - экспонента, затем apply.
-					var d := float(air.call("cloud_density_at", cam.global_position))
+					var d_coarse := float(air.call("cloud_density_at", cam.global_position))
+					var d := _game_density(layer, air, cam.global_position)
+					var d_vis := layer.visible_density_at(cam.global_position) if layer != null else -1.0
+					_wo_c.amount = 0.0
+					for k in 40:
+						_wo_c.update(d_coarse, 0.1)
 					if _use_whiteout:
 						for k in 40:
 							_wo.update(d, 0.1)
@@ -315,18 +331,117 @@ func _run() -> void:
 					var sm := field_sample(raster, cx, cz)
 					var recs := layer.records().size() if layer != null else -1
 					var row: Array = [
-						name, _location, hour, cx, cz, p.y, agl, syaw, pitch, sm.y, sm.z, sm.x, d,
+						name, _location, hour, cx, cz, p.y, agl, syaw, pitch, sm.y, sm.z, sm.x, d_coarse,
 						_wo.amount, env.fog_density, env.fog_light_color.r, env.fog_light_color.g,
 						env.fog_light_color.b, env.fog_sky_affect, st.r, st.g, st.b, st.luma, st.std,
 						path, game.sky.get_haze_top_msl(), int(env.fog_enabled), gh, col.cmax, recs,
-						st.sr, st.sg, st.sb, vtag
+						st.sr, st.sg, st.sb, vtag, d_vis, _wo_c.amount
 					]
 					_lines.append(",".join(PackedStringArray(row.map(_fmt))))
 					n += 1
+					if vtag == "main":
+						_res.clear_amount_max = maxf(_res.clear_amount_max, _wo.amount)
+						_res.clear_amount_coarse_max = maxf(_res.clear_amount_coarse_max, _wo_c.amount)
 					_flush()
+	if "pass" in _variants:
+		n += await _pass_series(game, air, layer, env, cam, haze_mat, haze_ext, cx, cz, gh, base, top_ref, raster)
 	_flush()
+	if _after != "":
+		var af := FileAccess.open(_after, FileAccess.WRITE)
+		af.store_string(JSON.stringify(_res, "\t") + "\n")
+		af.close()
 	print("cloud_view_climb_shot: OK, кадров %d, %s" % [n, _csv])
 	await _quit(0)
+
+
+## Плотность, которую подаёт в CloudWhiteout game.gd (CVW-К3): рисуемые облака, иначе грубое поле.
+static func _game_density(layer: CloudLayer, air: Node, pos: Vector3) -> float:
+	var d := layer.visible_density_at(pos) if layer != null else -1.0
+	return d if d >= 0.0 else float(air.call("cloud_density_at", pos))
+
+
+## CVW-4: центр рисуемого облака рядом с ясным столбцом — точка сетки с плотностью ≥ 0,9 (по
+## visible_density_at), ближайшая к столбцу; уровни — 30 и 50 % слоя над основанием.
+func _find_visible_cloud(layer: CloudLayer, cx: float, cz: float, base: float, top: float) -> Vector3:
+	var best := Vector3.ZERO
+	var bd := 1.0e30
+	var th := maxf(top - base, 600.0)
+	for fr: float in [0.3, 0.5]:
+		var y := base + th * fr
+		for ix in range(-60, 61):
+			for iz in range(-60, 61):
+				var x := cx + ix * 100.0
+				var z := cz + iz * 100.0
+				var dd := Vector2(x - cx, z - cz).length()
+				if dd >= bd:
+					continue
+				if layer.visible_density_at(Vector3(x, y, z)) >= 0.9:
+					bd = dd
+					best = Vector3(x, y, z)
+	return best
+
+
+## CVW-4: проход камеры вдоль оси x через центр рисуемого облака: от −1000 до +1000 м, шаг 100 м.
+func _pass_series(
+	game: Game, air: Node, layer: CloudLayer, env: Environment, cam: Camera3D, haze_mat: ShaderMaterial,
+	haze_ext: Variant, cx: float, cz: float, gh: float, base: float, top: float, raster: Dictionary
+) -> int:
+	var c := _find_visible_cloud(layer, cx, cz, base, top)
+	if c == Vector3.ZERO:
+		print("cloud_view_climb_shot: pass - рисуемое облако с плотностью >= 0,9 рядом не найдено")
+		return 0
+	print("cloud_view_climb_shot: pass - центр облака (%.0f, %.0f, %.0f), %.0f м от столбца" % [c.x, c.y, c.z, Vector2(c.x - cx, c.z - cz).length()])
+	_use_whiteout = true
+	_use_haze = true
+	_use_clouds = true
+	_use_fog = true
+	_no_cloud_pass = false
+	if haze_mat != null:
+		haze_mat.set_shader_parameter("extinction", haze_ext)
+	var hour := _hours[0]
+	game.sky.clock.set_hour(hour)
+	var sun_h: Vector3 = game.sky.clock.to_sun()
+	var syaw := rad_to_deg(atan2(sun_h.x, -sun_h.z))
+	var pitch := _pitches[0]
+	var look := TerrainGeo.heading_vector(syaw) * cos(deg_to_rad(pitch)) + Vector3.UP * sin(deg_to_rad(pitch))
+	var n := 0
+	for off in range(-1000, 1001, 100):
+		var p := Vector3(c.x + off, c.y, c.z)
+		_wo.amount = 0.0
+		_wo.apply(env)
+		_place(cam, p, look)
+		for i in _settle:
+			await RenderingServer.frame_post_draw
+			_place(cam, p, look)
+		var d_coarse := float(air.call("cloud_density_at", p))
+		var d_vis := layer.visible_density_at(p)
+		var d := d_vis if d_vis >= 0.0 else d_coarse
+		_wo_c.amount = 0.0
+		for k in 40:
+			_wo_c.update(d_coarse, 0.1)
+		for k in 40:
+			_wo.update(d, 0.1)
+		_wo.apply(env)
+		for i in 8:
+			await RenderingServer.frame_post_draw
+		var name := "pass_%03d.png" % (off / 100 + 10)
+		var path := "%s/%s" % [_out, name]
+		await _shoot(path)
+		var st := _stats(path)
+		var sm := field_sample(raster, p.x, p.z)
+		var row: Array = [
+			"pass_" + name, _location, hour, p.x, p.z, p.y, off, syaw, pitch, sm.y, sm.z, sm.x, d_coarse,
+			_wo.amount, env.fog_density, env.fog_light_color.r, env.fog_light_color.g,
+			env.fog_light_color.b, env.fog_sky_affect, st.r, st.g, st.b, st.luma, st.std,
+			path, game.sky.get_haze_top_msl(), int(env.fog_enabled), gh, 0.0, layer.records().size(),
+			st.sr, st.sg, st.sb, "pass", d_vis, _wo_c.amount
+		]
+		_lines.append(",".join(PackedStringArray(row.map(_fmt))))
+		_res.in_cloud_amount_max = maxf(_res.in_cloud_amount_max, _wo.amount)
+		_res.in_cloud_amount_coarse_max = maxf(_res.in_cloud_amount_coarse_max, _wo_c.amount)
+		n += 1
+		_flush()
+	return n
 
 
 static func _fmt(v: Variant) -> String:
