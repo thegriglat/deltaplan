@@ -1,0 +1,11 @@
+{
+  "module": "wingman",
+  "plan": "docs/plan/wingman.md",
+  "contracts": "docs/contracts/wingman.md",
+  "branch": "feature/wingman",
+  "copy": "~/worktrees/deltaplan/wingman",
+  "created": "2026-11-05T06:00:00",
+  "code": "WMN",
+  "area": "game",
+  "base": "main"
+}
