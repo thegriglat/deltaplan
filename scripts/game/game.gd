@@ -245,7 +245,13 @@ func _ready() -> void:
 func _process(dt: float) -> void:
 	# Белая мгла в облаке — по положению камеры (кадр, не шаг физики).
 	if air.has_method("cloud_density_at") and sky.world_env != null:
-		var d := float(air.call("cloud_density_at", camera.global_position))
+		# CVW-К3: плотность по рисуемым облакам; −1 (не рисуются) — грубое поле как запасной путь.
+		var d := -1.0
+		var layer := air.get_node_or_null("Clouds") as CloudLayer
+		if layer != null:
+			d = layer.visible_density_at(camera.global_position)
+		if d < 0.0:
+			d = float(air.call("cloud_density_at", camera.global_position))
 		if d > 0.0 or _whiteout.amount > 0.0:
 			_whiteout.update(d, dt)
 			_whiteout.apply(sky.world_env.environment)
