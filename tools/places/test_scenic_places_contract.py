@@ -54,7 +54,7 @@ def check_file(tc, path, counts):
         tc.assertTrue(-90 <= p["lat"] <= 90 and -180 <= p["lon"] <= 180, pid)
         tc.assertTrue(-90 <= p["view_lat"] <= 90 and -180 <= p["view_lon"] <= 180, pid)
         tc.assertTrue(0 <= p["heading_deg"] < 360, pid + ": heading_deg")
-        tc.assertTrue(50 <= p["agl_m"] <= 2000, pid + ": agl_m")
+        tc.assertTrue(50 <= p["agl_m"] <= 1000, pid + ": agl_m (ASM-К1: 50…1000)")
         dm, brg = dist_bearing(p["lat"], p["lon"], p["view_lat"], p["view_lon"])
         tc.assertLessEqual(dm, 15000.0, pid + ": вид дальше 15 км")
         dh = abs((brg - p["heading_deg"] + 180.0) % 360.0 - 180.0)
