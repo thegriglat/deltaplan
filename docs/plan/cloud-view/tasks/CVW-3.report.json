@@ -1,0 +1,66 @@
+{
+  "status": "done",
+  "summary": "CloudWhiteout v2: fog_base/whiteout_veil, вуаль облаков по amount в compute-шейдере (не зависит от расстояния), дымка облаков из тумана до мглы, fog_sky_affect=lerp(s0,1,v). Плотность тумана сделана геометрической по amount (линейная заливала дальний рельеф ступенькой). Ступенька неба 0,14 -> 0,002, цвет облаков 0,10 -> 0,004.",
+  "commits": [
+    "2291b45a4 cloud-view/CVW-3: мгла без ступеньки неба и смены цвета облаков"
+  ],
+  "checks": [
+    {
+      "name": "test_game_logic",
+      "value": "16/16",
+      "pass": true
+    },
+    {
+      "name": "cloud_whiteout_view",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "sky_step",
+      "value": "0.00223 (до 0.140)",
+      "pass": true
+    },
+    {
+      "name": "clouds_step",
+      "value": "0.00379 (до 0.101)",
+      "pass": true
+    },
+    {
+      "name": "incloud_whiteout",
+      "value": "0.06",
+      "pass": true
+    },
+    {
+      "name": "gd_check",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Запасной шейдер cloud_volume.gdshader (без компоновщика) вуаль не получил: вне скоупа",
+    "Кадры PNG не просматривались глазами, только числа"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept CVW-3",
+  "uncertain": [
+    {
+      "where": "scripts/game/cloud_whiteout.gd::_fog_density",
+      "why": "Отступление от линейной плотности: в середине amount (0,3-0,7) туман Godot слабее, чем в v1 (видимость км вместо десятков м); густота там держится вуалью облаков и долей неба v. Полная мгла (amount>=0,95) как в v1. Параметры: fog_density_floor=1e-6, вес a^8 подобраны под критерий >=0,05 при 0,95.",
+      "checked": "стенд: линейная плотность давала скачок x_bg G 0,133->0,269 при amount 0,007 (рельеф в 5 км заливался); геометрическая — 0,002. Ощущение пилота в среднем диапазоне не проверялось."
+    },
+    {
+      "where": "scripts/atmosphere/cloud_layer.gd::_update_veil",
+      "why": "Цвет вуали использует _fc_k из _update_light (обновляется 1 с) — на закате цвет вуали отстаёт до секунды; CloudLayer не тестировался headless (требует GPU), проверено только стендом.",
+      "checked": "стенд час 13 и 18: плавный ход x_other без смены цвета. Замеры сняты до веса a^8 (он влияет лишь при amount>0,5, вне окна)."
+    },
+    {
+      "where": "tools/research/cloud_view/CVW-3/m18.csv",
+      "why": "Прогон часа 18 содержит 25 кадров, окно ±50 м — 4 кадра.",
+      "checked": "after.json посчитан по ним"
+    }
+  ],
+  "dp_feedback": "job wait возвращает 'completed' пока команда стоит в очереди lock cpu и не стартовала; не видно, что job ждёт замок.",
+  "t": "2026-11-05T12:56:06",
+  "by": "executor"
+}
