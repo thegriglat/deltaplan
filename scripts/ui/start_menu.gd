@@ -365,7 +365,7 @@ func _on_fly() -> void:
 		fly_requested.emit(settings)
 		return
 	choice_dialog = _new_choice_dialog()
-	choice_dialog.chosen.connect(_on_start_chosen)
+	choice_dialog.chosen.connect(_on_start_chosen.bind(choice_dialog))
 	choice_dialog.open(settings, StartChoiceDialog.site_for(settings))
 
 
@@ -377,9 +377,10 @@ func _new_choice_dialog() -> StartChoiceDialog:
 	return d
 
 
-func _on_start_chosen(vehicle: String, tow_kind: String) -> void:
+func _on_start_chosen(vehicle: String, tow_kind: String, d: StartChoiceDialog) -> void:
 	settings.vehicle = vehicle
 	settings.tow_kind = tow_kind
+	settings.set_air_start(d.air_start_agl_m)  # ASM-К3
 	fly_requested.emit(settings)
 
 
