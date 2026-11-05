@@ -16,9 +16,22 @@ def f(r, k):
     return float(r[k]) if r[k] != "" else float("nan")
 
 
-def steps(rows):
+def bad_nc(rows):
+    """Кадры, где «кадр без облаков» (x_nc_luma_mean, опора маски облаков) выпал из гладкого хода:
+    отклонение от среднего соседей > 0,003 (штатный шаг ≈ 0,0003). Это сбой опорного кадра стенда
+    (один кадр на первом amount > 0), а не вида: luma_mean всего кадра гладок."""
+    bad = set()
+    for i in range(1, len(rows) - 1):
+        v = [f(rows[k], "x_nc_luma_mean") for k in (i - 1, i, i + 1)]
+        if abs(v[1] - (v[0] + v[2]) / 2) > 0.003:
+            bad.add(i)
+    return bad
+
+
+def steps(rows, skip_bad=False):
+    bad = bad_nc(rows) if skip_bad else set()
     sky, oth, n, ter = 0.0, 0.0, 0, 0.0
-    for a, b in zip(rows, rows[1:]):
+    for i, (a, b) in enumerate(zip(rows, rows[1:])):
         for r in (a, b):
             if abs(f(r, "cam_y_msl") - f(r, "cloud_base_msl")) > 50.0:
                 break
@@ -27,6 +40,8 @@ def steps(rows):
             sky = max(sky, abs(f(b, "x_bg_g") - f(a, "x_bg_g")))
             if "x_terr_luma" in a and a["x_terr_luma"] != "" and b["x_terr_luma"] != "":
                 ter = max(ter, abs(f(b, "x_terr_luma") - f(a, "x_terr_luma")))
+            if i in bad or i + 1 in bad:
+                continue
             for c in "rgb":
                 oth = max(oth, abs(f(b, "x_other_" + c) - f(a, "x_other_" + c)))
     return sky, oth, n, ter
@@ -40,8 +55,9 @@ for tag, h, src in (("after", "13", "m13.csv"), ("after", "18", "m18.csv"), ("be
     if not os.path.exists(p):
         continue
     rows = load(p)
-    s, o, n, t = steps(rows)
-    res["hours"][f"{tag}_{h}"] = {"sky_g_step_max": s, "other_rgb_step_max": o, "frames_in_window": n, "terrain_step_max": t}
+    s, o, n, t = steps(rows, skip_bad=(tag == "after"))
+    raw = steps(rows)[1]
+    res["hours"][f"{tag}_{h}"] = {"other_rgb_step_max_raw": raw, "nc_outlier_frames": sorted(bad_nc(rows)) if tag == "after" else [], "sky_g_step_max": s, "other_rgb_step_max": o, "frames_in_window": n, "terrain_step_max": t}
     if tag == "after":
         fd = [f(r, "fog_density") for r in rows if f(r, "whiteout_amount") >= 0.95]
         if fd:
