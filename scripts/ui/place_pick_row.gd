@@ -1,6 +1,6 @@
 class_name PlacePickRow
-extends HBoxContainer
-## Выбор места старта: «Выбрать на карте», «Популярные места» и подпись текущего выбора. Общий для
+extends VBoxContainer
+## Выбор места старта: «Выбрать на карте», «Популярные места» и подпись текущего выбора (подпись — строкой ниже кнопок). Общий для
 ## «Настроек полёта» и экрана сети. Работает на общем объекте settings (pick_lat/lon либо
 ## location_id/site_id); о любом изменении сообщает changed.
 
@@ -36,18 +36,24 @@ var _elev_loader: TerrariumLoader
 ## path — каталог «Популярных мест», scenic — включить кнопку «Красивых мест» (только «Настройки полёта»), scenic_path — их каталог (пусто — из configs/ui.json).
 func build(overlay: Control, path: String = "", scenic: bool = false, scenic_path: String = "") -> void:
 	_overlay = overlay
-	add_theme_constant_override("separation", 12)
-	UiKit.button(self, tr("setup_pick_on_map"), _open_map)
-	places_btn = UiKit.button(self, tr("setup_popular_places"), _open_places)
+	add_theme_constant_override("separation", 6)
+	var buttons := HBoxContainer.new()
+	buttons.add_theme_constant_override("separation", 12)
+	add_child(buttons)
+	UiKit.button(buttons, tr("setup_pick_on_map"), _open_map)
+	places_btn = UiKit.button(buttons, tr("setup_popular_places"), _open_places)
 	places_btn.visible = _load_places(path)
 	if scenic:
-		scenic_btn = UiKit.button(self, tr("setup_scenic_places"), _open_scenic)
+		scenic_btn = UiKit.button(buttons, tr("setup_scenic_places"), _open_scenic)
 		scenic_btn.visible = _load_scenic(scenic_path)
-	pick_label = UiKit.label(self, "", "HintLabel")
+	var info := HBoxContainer.new()
+	info.add_theme_constant_override("separation", 12)
+	add_child(info)
+	pick_label = UiKit.label(info, "", "HintLabel")
 	pick_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	pick_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	exact_label = UiKit.label(self, "", "HintLabel")
-	exact_reset_btn = UiKit.button(self, tr("setup_exact_reset"), _on_exact_reset)
+	exact_label = UiKit.label(info, "", "HintLabel")
+	exact_reset_btn = UiKit.button(info, tr("setup_exact_reset"), _on_exact_reset)
 	_refresh_exact()
 
 
