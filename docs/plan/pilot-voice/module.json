@@ -1,0 +1,11 @@
+{
+  "module": "pilot-voice",
+  "plan": "docs/plan/pilot-voice.md",
+  "contracts": "docs/contracts/pilot-voice.md",
+  "branch": "feature/pilot-voice",
+  "copy": "~/worktrees/deltaplan/pilot-voice",
+  "created": "2026-11-05T05:50:02",
+  "code": "PVO",
+  "area": "game",
+  "base": "main"
+}
