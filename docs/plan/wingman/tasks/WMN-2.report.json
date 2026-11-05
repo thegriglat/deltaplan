@@ -1,0 +1,27 @@
+{
+  "status": "done",
+  "summary": "Слайдер «Напарники» 0..wingman.count_max (умолч. 2) в настройках игры под «Другие пилоты в небе»; сохраняется в bots.json → wingman.count вместе с count; строка settings_wingman в ui.csv; тест.",
+  "commits": [
+    "b136a75e0 wingman WMN-2: пункт настроек «Напарники» (0–2)"
+  ],
+  "checks": [
+    {
+      "name": "test_settings",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept WMN-2",
+  "uncertain": [],
+  "dp_feedback": "accept --dry идёт ~6 мин и превышает таймаут foreground; удобно предупреждать/сразу job.",
+  "t": "2026-11-05T06:16:42",
+  "by": "executor"
+}
