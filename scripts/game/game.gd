@@ -1511,7 +1511,7 @@ func _load_terrain() -> bool:
 			ok = _load_error == "" and not terrain.layers.is_empty()
 			_terrain_dirty = not ok
 		else:
-			await terrain.load_point(settings.pick_lat, settings.pick_lon)
+			await terrain.load_point(settings.pick_lat, settings.pick_lon, "", settings.has_air_start())
 			ok = _load_error == "" and not terrain.layers.is_empty()
 			_terrain_dirty = not ok
 	elif (

@@ -153,7 +153,7 @@ func _read_location(id: String) -> Dictionary:
 ## user://locations/<ключ> или собирает стадиями (рельеф, реки, покров), затем обычный путь
 ## load_location. Асинхронно: по готовности — loaded (или load_failed с текстом для пилота).
 ## Ход — progress (этапы и доля для экрана загрузки); сеть молчит stall_timeout_s — отмена.
-func load_point(lat: float, lon: float, builtin_id: String = "") -> void:
+func load_point(lat: float, lon: float, builtin_id: String = "", allow_sea: bool = false) -> void:
 	cancel_load()
 	_load_gen += 1
 	var gen := _load_gen
@@ -204,7 +204,9 @@ func load_point(lat: float, lon: float, builtin_id: String = "") -> void:
 	var surf0: SurfaceLayer = new_surfaces[0] if not new_surfaces.is_empty() else null
 	# проба моря — в выбранной точке (центр места — узел сетки 0,05°, может отличаться)
 	var pq := TerrainGeo.latlon_to_local(lat, lon, float(r.meta.center_lat), float(r.meta.center_lon))
-	if is_sea(r.layers[0], surf0, float(rt.get("sea_depth_m", -450.0)), pq.x, pq.y):
+	# allow_sea — старт в воздухе (точка над водой допустима: фьорды, побережья)
+	var sea_depth := float(rt.get("sea_depth_m", -450.0))
+	if not allow_sea and is_sea(r.layers[0], surf0, sea_depth, pq.x, pq.y):
 		_fail(gen, tr("err_sea"))
 		return
 	location_id = String(res.key)
