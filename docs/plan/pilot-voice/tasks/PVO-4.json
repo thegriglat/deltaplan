@@ -1,0 +1,68 @@
+{
+  "id": "PVO-4",
+  "module": "pilot-voice",
+  "type": "dp-writer",
+  "title": "Документация: голос пилота (guide, настройки, CHANGELOG)",
+  "goal": "Описать в guide, как устроены реплики пилота (ситуации, входы, правила очереди, файлы голосов, настройка, границы), дописать строку настройки в menus-settings и запись в CHANGELOG «В работе».",
+  "plan_ref": "§4 Задачи (ASSETS.md, guide, CHANGELOG)",
+  "contracts": [
+    {
+      "name": "PV-К1",
+      "version": "3",
+      "ref": "docs/contracts/pilot-voice.md"
+    },
+    {
+      "name": "PV-К2",
+      "version": "3",
+      "ref": "docs/contracts/pilot-voice.md"
+    },
+    {
+      "name": "PV-К3",
+      "version": "1",
+      "ref": "docs/contracts/pilot-voice.md"
+    },
+    {
+      "name": "PV-К4",
+      "version": "3",
+      "ref": "docs/contracts/pilot-voice.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/pilot-voice-PVO-4",
+  "branch": "pilot-voice/PVO-4",
+  "base": "feature/pilot-voice",
+  "scope": [
+    "docs/guide/pilot-voice.md",
+    "docs/guide/game/menus-settings.md",
+    "docs/guide/instruments.md",
+    "CHANGELOG.md",
+    "docs/INDEX.md",
+    "docs/registry/"
+  ],
+  "dont_touch": [
+    "docs/contracts/",
+    "scripts/",
+    "configs/",
+    "ASSETS.md",
+    "assets/"
+  ],
+  "accept": [
+    {
+      "name": "guide",
+      "cmd": "test -f docs/guide/pilot-voice.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs_check",
+      "cmd": ".dpcli/dpcli docs check 2>&1 | grep -E 'ОШИБКА.*(guide/pilot-voice|menus-settings|instruments)' | wc -l",
+      "expect": "num:(\\d+) ==0"
+    },
+    {
+      "name": "changelog",
+      "cmd": "git diff feature/pilot-voice -- CHANGELOG.md | grep -ci 'голос'",
+      "expect": "num:(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-05T11:22:12"
+}
