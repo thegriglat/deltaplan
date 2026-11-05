@@ -1,0 +1,49 @@
+{
+  "id": "ASM-1",
+  "module": "air-start-menu",
+  "type": "dp-engineer",
+  "title": "Старт в воздухе из настроек полёта",
+  "goal": "FlightSettings хранит высоту старта в воздухе (ASM-К1), Game ставит по ней крыло в воздух над стартом по его курсу тем же путём, что --air-start (ASM-К2); тест подтверждает установившийся полёт без рывка и срыва.",
+  "plan_ref": "4. Задачи",
+  "contracts": [
+    {
+      "name": "air-start-menu",
+      "version": "3",
+      "ref": "docs/contracts/air-start-menu.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/air-start-menu-ASM-1",
+  "branch": "air-start-menu/ASM-1",
+  "base": "feature/air-start-menu",
+  "scope": [
+    "scripts/game/flight_settings.gd",
+    "scripts/game/game.gd",
+    "scenes/main.gd",
+    "configs/game.json",
+    "tests/contracts/test_air_start_menu_contracts.gd",
+    "tests/contracts/test_air_start_menu_contracts.gd.uid",
+    "tests/game/test_air_start_menu.gd",
+    "tests/game/test_air_start_menu.gd.uid",
+    "tests/game/test_game_flight.gd"
+  ],
+  "dont_touch": [
+    "scripts/ui/",
+    "locale/",
+    "scripts/goals/",
+    "scripts/tasks/flight_records.gd",
+    "scripts/flight/",
+    "docs/",
+    "CHANGELOG.md"
+  ],
+  "accept": [
+    {
+      "name": "air_start_menu",
+      "tests": "air_start_menu",
+      "timeout": 2400
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-05T05:58:08",
+  "edited": "2026-11-05T14:59:55"
+}

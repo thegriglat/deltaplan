@@ -244,9 +244,13 @@ generated: true
   - [docs/research/bar-mouse-raw-input.md](research/bar-mouse-raw-input.md) — Захват мыши в Godot 4.7.2: Windows и X11 — сырые отсчёты, Wayland и macOS — с ускорением ОС; брать screen_relative
 - **menu-shots-pose** — Кадры фона меню (tools/shots/menu_art.py): планер на всех кадрах — в установившемся полёте, без крутого крена и «кивка». [closed 2026-10-23] — [план](plan/menu-shots-pose.md) · [контракты](contracts/menu-shots-pose.md) · [решения](plan/menu-shots-pose/decisions.md) · [сводка](plan/menu-shots-pose/summary.md) · полный журнал: `archive/menu-shots-pose`
 - **grass-near** — Ошибка: ближние травинки видны только в пятне тени/проекции дельтаплана; найти причину и рисовать их вокруг пилота по всей дальности. [closed 2026-10-29] — [план](plan/grass-near.md) · [контракты](contracts/grass-near.md) · [решения](plan/grass-near/decisions.md) · [сводка](plan/grass-near/summary.md) · полный журнал: `archive/grass-near`
+- **air-start-menu** — Старт сразу в воздухе для игрока: выбор в окне «Полёт…» — высота над стартом, крыло уже летит по курсу старта. [closed 2026-11-05] — [план](plan/air-start-menu.md) · [контракты](contracts/air-start-menu.md)
 - **pilot-voice** — Голосовые реплики пилота игрока на ситуации полёта («вот чёрт», «вроде нашёл»): список ситуаций, синтез голоса локально (RTX 4070 SUPER), RU/EN, мужской и женский голос. [active 2026-11-05] — [план](plan/pilot-voice.md) · [контракты](contracts/pilot-voice.md)
   - [docs/guide/pilot-voice.md](guide/pilot-voice.md) — Голос пилота: реплики по данным игрока, ситуации, очередь, пасхалки, файлы голосов, шина Voice, настройка, границы.
   - [docs/research/pilot-voice-tts.md](research/pilot-voice-tts.md) — Голос пилота: Qwen3-TTS-1.7B VoiceDesign (Apache-2.0, RU+EN, голос по описанию), 4 ГБ VRAM; образцы не прослушаны
+- **scenic-places** — Красивые места: наборы по 5–10 природных пейзажей на страну (~20–30 стран), кнопка рядом с «Популярными местами», старт в воздухе над видом. [closed 2026-11-05] — [план](plan/scenic-places.md) · [контракты](contracts/scenic-places.md) · [решения](plan/scenic-places/decisions.md) · [сводка](plan/scenic-places/summary.md) · полный журнал: `archive/scenic-places`
+  - [docs/research/scenic-places-table.md](research/scenic-places-table.md) — Таблица 236 красивых мест по странам: место, тип, чем красиво, старт, курс, высота, карта — для просмотра
+  - [docs/research/scenic-places.md](research/scenic-places.md) — Каталог красивых мест: 236 мест в 29 странах, метод отбора, проверка по рельефу (checked 236, failed 0), её пределы
 
 ## perf
 
