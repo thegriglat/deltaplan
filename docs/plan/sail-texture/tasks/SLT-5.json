@@ -1,0 +1,52 @@
+{
+  "id": "SLT-5",
+  "module": "sail-texture",
+  "type": "dp-engineer",
+  "title": "Маска анимации паруса: UV2 читается без переворота",
+  "goal": "Шейдер паруса правильно читает UV2 после импорта glTF (V перевёрнута): нижняя обшивка распознаётся (lower_surface_factor действует), доля хорды t идёт 0 у передней кромки → 1 у задней; для всех крыльев, в т.ч. ботов; GPU-тест красный до правки и зелёный после.",
+  "plan_ref": "§2 Решения пользователя",
+  "contracts": [
+    {
+      "name": "SLT-К2",
+      "version": "3",
+      "ref": "docs/contracts/sail-texture.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sail-texture-SLT-5",
+  "branch": "sail-texture/SLT-5",
+  "base": "feature/sail-texture",
+  "scope": [
+    "assets/shaders/sail/sail.gdshader",
+    "assets/shaders/sail/sail_material.gd",
+    "tests/flight/test_sail_uv2.gd",
+    "tests/flight/test_sail_uv2.gd.uid",
+    "tests/flight/test_sail_uv2_gpu.gd",
+    "tests/flight/test_sail_uv2_gpu.gd.uid"
+  ],
+  "dont_touch": [
+    "tools/blender/",
+    "assets/models/",
+    "configs/",
+    "scripts/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "sail",
+      "tests": "sail"
+    },
+    {
+      "name": "gpu",
+      "cmd": "tools/gpu_tests.sh --filter=sail",
+      "expect": "tests"
+    },
+    {
+      "name": "gd",
+      "cmd": "python3 tools/check_gd.py assets/shaders/sail/sail_material.gd tests/flight/test_sail_uv2.gd tests/flight/test_sail_uv2_gpu.gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-05T11:31:39"
+}
