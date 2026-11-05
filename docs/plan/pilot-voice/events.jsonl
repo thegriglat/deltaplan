@@ -65,3 +65,7 @@
 {"t": "2026-11-05T11:23:54", "by": "executor", "task": "PVO-4", "ev": "reported", "commits": ["4b29cb742"], "note": "done: Написан docs/guide/pilot-voice.md (принцип, ситуации, очередь, пасхалки, где молчит, файлы и генерация, шина, настройка…", "dp_feedback": "docs check ругается на summary >140 только при проверке, docs init не подсказывает лимит."}
 {"t": "2026-11-05T11:24:08", "by": "coordinator", "task": "PVO-4", "ev": "checked", "note": "3/3 guide=ok:exit 0; docs_check=ok:0; changelog=ok:1; scope=FAIL:вне scope: r-PVO-4.json"}
 {"t": "2026-11-05T11:24:37", "by": "coordinator", "task": "PVO-4", "ev": "accepted", "note": "3/3 guide=ok:exit 0; docs_check=ok:0; changelog=ok:1"}
+{"t": "2026-11-05T11:24:46", "by": "coordinator", "task": "PVO-4", "ev": "checked", "commits": ["ccce2a622"], "note": "2/3 guide=ok:exit 0; docs_check=ok:0; changelog=FAIL:0"}
+{"t": "2026-11-05T11:24:46", "by": "coordinator", "task": "PVO-4", "ev": "merged", "commits": ["ccce2a622"]}
+{"t": "2026-11-05T11:26:53", "by": "coordinator", "task": "PVO-3", "ev": "checked", "note": "4/4 files=ok:288; imports=ok:288; format=ok:exit 0; license=ok:exit 0"}
+{"t": "2026-11-05T11:27:00", "by": "coordinator", "task": "PVO-3", "ev": "accepted", "note": "по отчёту: partial — 10 реплик ниже порогов приняты ночным решением, прослушивание утром"}
