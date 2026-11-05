@@ -1,0 +1,72 @@
+{
+  "id": "WMN-1",
+  "module": "wingman",
+  "type": "dp-engineer",
+  "title": "Напарник: цели перелётов бота у пилота игрока",
+  "goal": "1–2 бота (bots.json → wingman.count, по умолчанию 1) в одиночной игре держатся поближе к игроку — выбирают цели перелётов и термики у него, на той же физике; сеть и остальные боты без изменений.",
+  "plan_ref": "§4 Задачи",
+  "contracts": [
+    {
+      "name": "wingman",
+      "version": "1",
+      "ref": "docs/contracts/wingman.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/wingman-WMN-1",
+  "branch": "wingman/WMN-1",
+  "base": "feature/wingman",
+  "scope": [
+    "scripts/game/bot_pilots.gd",
+    "scripts/game/wander_pilot.gd",
+    "scripts/game/bot_agent.gd",
+    "scripts/game/game.gd",
+    "configs/bots.json",
+    "tests/game/test_wingman.gd",
+    "tests/game/test_wingman.gd.uid",
+    "tests/contracts/test_wingman_contracts.gd",
+    "tests/contracts/test_wingman_contracts.gd.uid"
+  ],
+  "dont_touch": [
+    "scripts/flight",
+    "scripts/core",
+    "scripts/game/bot_pilot.gd",
+    "scripts/game/net_bots.gd",
+    "scripts/game/net_flight.gd",
+    "scripts/game/net_queue.gd",
+    "scripts/net",
+    "scripts/ui",
+    "docs",
+    "CHANGELOG.md",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "wingman",
+      "tests": "wingman"
+    },
+    {
+      "name": "test_bots",
+      "tests": "test_bots"
+    },
+    {
+      "name": "test_bot_names",
+      "tests": "test_bot_names"
+    },
+    {
+      "name": "test_net",
+      "tests": "test_net"
+    },
+    {
+      "name": "test_tow_session",
+      "tests": "test_tow_session"
+    },
+    {
+      "name": "gd",
+      "cmd": "python3 tools/check_gd.py --changed",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-05T06:03:40"
+}

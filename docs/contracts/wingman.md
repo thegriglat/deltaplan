@@ -1,0 +1,53 @@
+---
+type: "contract"
+status: "active"
+module: "wingman"
+area: "game"
+updated: "2026-11-05"
+summary: "Контракт wingman: напарник — бот BotPilots с целями перелётов у пилота игрока; настройка bots.json → wingman, только одиночная игра."
+related: ["docs/plan/wingman.md", "docs/guide/game/bots.md"]
+contracts: []
+---
+# Контракты модуля wingman (WM-К)
+
+Контрактный тест — `tests/contracts/test_wingman_contracts.gd` (пишет владелец WM-К1, WMN-1). Правка контракта —
+только координатор, версия +1, вместе с тестом.
+
+## WM-К1 v1. Напарник в BotPilots
+Владелец — WMN-1; потребители — WMN-2 (пункт настроек), WMN-3 (guide, CHANGELOG).
+
+**Настройка** `configs/bots.json → wingman` (каждый ключ — с `*_doc`, как в остальном файле):
+- `count` int, по умолчанию `1` — сколько ботов летят напарниками (user-конфиг, пункт настроек — WMN-2);
+- `count_max` int `2` — предел; фактически `clampi(count, 0, mini(count_max, число ботов))`;
+- `near_m` float — «рядом»: в этом радиусе от игрока напарник летает как обычный бот (термики, перелёты), цели
+  перелётов — в круге `near_m` вокруг игрока;
+- `far_m` float (> `near_m`) — дальше: цель перелёта — упреждённое положение игрока (`lead_s`);
+- `lead_s` float, с — упреждение положения игрока по его путевой скорости;
+- `join_m` float — игрок кружит (правило `thermal_rule.player_turn_deg`) не дальше этого — цель напарника, который
+  не кружит, — центр круга игрока; дальше подъём ищет своими чувствами, как обычный бот;
+- `leave_m` float — напарник кружит, игрок ушёл из термика дальше этого и напарник не ниже игрока больше чем на
+  `leave_below_m` — напарник выходит из термика (обычный выход BotPilot) и летит к игроку;
+- `leave_below_m` float, м.
+Числа выбирает WMN-1 с обоснованием в `*_doc` (видимость крыла, дальность планирования, расхождение); ориентир плана —
+«в N сотнях метров».
+
+**Код**
+- `BotPilots.wingmen: int = 0` — задаётся до `setup()`/`setup_in_world_async()`; 0 по умолчанию, поэтому
+  `NetBots` (свой `BotPilots.new()`) и тесты без явного значения — без напарников.
+- `Game` (одиночная игра, `net == null`) перед `setup_in_world_async` ставит
+  `bots.wingmen = int(Config.value("bots", "wingman.count", 1))`; в сети — `0`. Сеть (`net_*.gd`) не меняется.
+- Напарники — `agents[0 .. wingmen-1]`; `BotAgent.wingman: bool` (true у них, false у остальных).
+- `WanderPilot`: поля ведущего — `lead_active: bool`, `lead_pos: Vector3`, `lead_vel: Vector3`, `lead_circling: bool`,
+  `lead_center: Vector2` (x, z центра круга игрока). `BotPilots` обновляет их у напарников раз в
+  `separation.check_hz`; `lead_active = false`, пока игрок не в фазе `flying` (или игрока нет) — тогда напарник
+  летает как обычный бот у `wander_home` (старт).
+- Напарник меняет только **выбор цели перелёта** (`_cruise_target`/`_wander_update`) и выход из термика по `leave_m`.
+  Не меняются: `FlightModel` и шаг физики бота, управление (`ControlInput`, пределы крена, скорость по МакКриди),
+  расхождение (`_update_separation`, `separation.player_*` — безопасная дистанция до игрока), правило «в одном термике —
+  в одну сторону», обход рельефа, взлёт/посадка/очередь, частота физики (`physics`). Позиция и скорость бота задаются
+  только физикой — никаких телепортов и подтягивания.
+- Отстал и сел — как обычный бот (стоит, снова в очередь, после взлёта снова напарник).
+
+**Инварианты теста:** ключи `wingman.*` есть, числа, `near_m < far_m`, `count_max == 2`, `count` в `[0, count_max]`;
+`BotPilots.new().wingmen == 0`; у `BotPilots` с `wingmen = 1` и 4 ботами `agents[0].wingman` и не у остальных;
+`wingmen = 5` при 1 боте — один напарник; у `WanderPilot` есть поля `lead_*`.
