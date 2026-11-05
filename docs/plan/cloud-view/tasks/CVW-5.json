@@ -1,0 +1,71 @@
+{
+  "id": "CVW-5",
+  "module": "cloud-view",
+  "type": "dp-engineer",
+  "title": "Плотность облаков-записей: без выделений и проверка на сцене",
+  "goal": "Довести CVW-4 по ревью: _rec_density без выделений памяти в цикле (башни в кэше), путь облаков-записей (кучевые, Cb, линзы) проверен стендом на реальной сцене; оценено отклонение границы записей от шейдера (uv-искажение quality 1).",
+  "plan_ref": "§4; ревью CVW-4 (2026-11-05)",
+  "contracts": [
+    {
+      "name": "CVW-К1",
+      "version": "1",
+      "ref": "docs/contracts/cloud-view.md"
+    },
+    {
+      "name": "CVW-К3",
+      "version": "1",
+      "ref": "docs/contracts/cloud-view.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/cloud-view-CVW-5",
+  "branch": "cloud-view/CVW-5",
+  "base": "feature/cloud-view",
+  "scope": [
+    "scripts/atmosphere/cloud_layer.gd",
+    "tests/atmosphere/test_cloud_visible_density.gd",
+    "tools/shots/cloud_view_climb_shot.gd",
+    "tools/research/cloud_view/CVW-5/"
+  ],
+  "dont_touch": [
+    "scripts/game/",
+    "scripts/atmosphere/cloud_common.gdshaderinc",
+    "scripts/atmosphere/cloud_raymarch_cs.gdshaderinc",
+    "configs/",
+    "rust/",
+    "project.godot",
+    "tools/research/cloud_view/CVW-4/"
+  ],
+  "accept": [
+    {
+      "name": "cloud_visible_density",
+      "tests": "cloud_visible_density"
+    },
+    {
+      "name": "test_game_logic",
+      "tests": "test_game_logic"
+    },
+    {
+      "name": "rec_in_cloud",
+      "cmd": "python3 -c \"import json;print(json.load(open('tools/research/cloud_view/CVW-5/after.json'))['rec_in_cloud_amount_max'])\"",
+      "expect": "num:([0-9.]+) >=0.9"
+    },
+    {
+      "name": "rec_clear",
+      "cmd": "python3 -c \"import json;print(json.load(open('tools/research/cloud_view/CVW-5/after.json'))['rec_clear_amount_max'])\"",
+      "expect": "num:([0-9.]+) <=0.01"
+    },
+    {
+      "name": "rec_frames",
+      "cmd": "python3 -c \"import json;print(json.load(open('tools/research/cloud_view/CVW-5/after.json'))['rec_frames'])\"",
+      "expect": "num:(\\d+) >=8"
+    },
+    {
+      "name": "gd_check",
+      "cmd": "python3 tools/check_gd.py scripts/atmosphere/cloud_layer.gd tests/atmosphere/test_cloud_visible_density.gd tools/shots/cloud_view_climb_shot.gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-05T13:26:08"
+}
