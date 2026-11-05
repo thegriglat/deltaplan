@@ -41,8 +41,62 @@ static func apply(sail: MeshInstance3D, model: String) -> ShaderMaterial:
 	sail.cast_shadow = (GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 			if bool(params.get("cast_shadows", true))
 			else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
+	var asp := _skin_aspects(sail.mesh)
+	mat.set_shader_parameter("custom_aspect_top", asp.x)
+	mat.set_shader_parameter("custom_aspect_bottom", asp.y)
 	sail.material_override = mat
 	return mat
+
+
+## Своя картинка паруса (SLT-К2): tex == null — родная текстура; mat == null — ничего.
+## Вызывать только для паруса игрока (боты и чужие — родная).
+static func set_custom(mat: ShaderMaterial, tex: Texture2D) -> void:
+	if mat == null:
+		return
+	if tex == null or tex.get_width() <= 0 or tex.get_height() <= 0:
+		mat.set_shader_parameter("custom_on", 0.0)
+		return
+	mat.set_shader_parameter("custom_tex", tex)
+	mat.set_shader_parameter("custom_img_aspect", float(tex.get_width()) / float(tex.get_height()))
+	mat.set_shader_parameter("custom_on", 1.0)
+
+
+## Аспекты обшивок (размах / корневая хорда, м/м) по вершинам меша Sail: Vector2(верх, низ).
+## Обшивка — по UV1 (верх v > 0,5); карман киля (|нормаль.x| > 0,7) не входит; корневая хорда — диапазон z
+## вершин обшивки при |x| < 3 % полуразмаха. Нет данных — 4 (типичное значение).
+static func _skin_aspects(mesh: Mesh) -> Vector2:
+	var out := Vector2(4.0, 4.0)
+	if mesh == null or mesh.get_surface_count() == 0:
+		return out
+	var arr := mesh.surface_get_arrays(0)
+	var verts: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+	var uvs: PackedVector2Array = arr[Mesh.ARRAY_TEX_UV]
+	var nrm: PackedVector3Array = arr[Mesh.ARRAY_NORMAL] if arr[Mesh.ARRAY_NORMAL] != null else PackedVector3Array()
+	if verts.is_empty() or uvs.size() != verts.size():
+		return out
+	for skin in 2:
+		var xmin := INF
+		var xmax := -INF
+		for i in verts.size():
+			if (uvs[i].y > 0.5) != (skin == 0) or (nrm.size() == verts.size() and absf(nrm[i].x) > 0.7):
+				continue
+			xmin = minf(xmin, verts[i].x)
+			xmax = maxf(xmax, verts[i].x)
+		if xmax <= xmin:
+			continue
+		var half := 0.5 * (xmax - xmin)
+		var cx := 0.5 * (xmax + xmin)
+		var zmin := INF
+		var zmax := -INF
+		for i in verts.size():
+			if (uvs[i].y > 0.5) != (skin == 0) or (nrm.size() == verts.size() and absf(nrm[i].x) > 0.7):
+				continue
+			if absf(verts[i].x - cx) < 0.03 * half:
+				zmin = minf(zmin, verts[i].z)
+				zmax = maxf(zmax, verts[i].z)
+		if zmax > zmin:
+			out[skin] = (xmax - xmin) / (zmax - zmin)
+	return out
 
 
 ## Параметры полёта: воздушная скорость, м/с; сваливание 0..1; турбулентность 0..1.
