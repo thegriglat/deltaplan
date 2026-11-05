@@ -1,0 +1,66 @@
+{
+  "id": "PVO-3",
+  "module": "pilot-voice",
+  "type": "dp-researcher",
+  "title": "Полный набор реплик: два голоса × RU/EN",
+  "goal": "Сгенерировать все 72 реплики configs/pilot_voice.json для голосов male и female на ru и en (288 файлов) моделью Qwen3-TTS по схеме Design→Clone с ровным тембром, в формате PV-К3, с проверкой формата скриптом и записями о лицензии.",
+  "plan_ref": "§4 Задачи (генерация двух наборов); решение «модель синтеза» 2026-11-05",
+  "contracts": [
+    {
+      "name": "PV-К1",
+      "version": "2",
+      "ref": "docs/contracts/pilot-voice.md"
+    },
+    {
+      "name": "PV-К2",
+      "version": "2",
+      "ref": "docs/contracts/pilot-voice.md"
+    },
+    {
+      "name": "PV-К3",
+      "version": "1",
+      "ref": "docs/contracts/pilot-voice.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/pilot-voice-PVO-3",
+  "branch": "pilot-voice/PVO-3",
+  "base": "feature/pilot-voice",
+  "scope": [
+    "assets/sounds/voice/",
+    "assets/sounds/LICENSES.md",
+    "ASSETS.md",
+    "tools/sounds/voice/",
+    "docs/research/pilot-voice-tts.md"
+  ],
+  "dont_touch": [
+    "configs/",
+    "scripts/",
+    "docs/contracts/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "files",
+      "cmd": "ls assets/sounds/voice/*/*/*.ogg | wc -l",
+      "expect": "num:(\\d+) >=288"
+    },
+    {
+      "name": "imports",
+      "cmd": "ls assets/sounds/voice/*/*/*.ogg.import | wc -l",
+      "expect": "num:(\\d+) >=288"
+    },
+    {
+      "name": "format",
+      "cmd": "python3 tools/sounds/voice/check_voice.py --config configs/pilot_voice.json --dir assets/sounds/voice",
+      "expect": "exit=0"
+    },
+    {
+      "name": "license",
+      "cmd": "grep -c Qwen3-TTS assets/sounds/LICENSES.md ASSETS.md",
+      "expect": "!re::0$"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-05T06:34:23"
+}
