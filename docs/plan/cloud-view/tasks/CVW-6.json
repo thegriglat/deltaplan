@@ -1,0 +1,47 @@
+{
+  "id": "CVW-6",
+  "module": "cloud-view",
+  "type": "dp-writer",
+  "title": "CHANGELOG: белёсая пелена и смена цвета облаков у кромки",
+  "goal": "Строки в CHANGELOG.md, раздел «В работе»: что исправлено (белёсая пелена в ясном просвете слоя; скачок неба и смена цвета облаков у кромки), как мгла устроена теперь, честные границы — по фактам из отчётов CVW-1…CVW-4 и контракта CVW-К2/К3.",
+  "plan_ref": "§4 (CHANGELOG)",
+  "contracts": [
+    {
+      "name": "CVW-К2",
+      "version": "3",
+      "ref": "docs/contracts/cloud-view.md"
+    },
+    {
+      "name": "CVW-К3",
+      "version": "1",
+      "ref": "docs/contracts/cloud-view.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/cloud-view-CVW-6",
+  "branch": "cloud-view/CVW-6",
+  "base": "feature/cloud-view",
+  "scope": [
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "docs/",
+    "site/"
+  ],
+  "accept": [
+    {
+      "name": "changelog_section",
+      "cmd": "awk '/^## В работе/{f=1;next} /^## /{f=0} f' CHANGELOG.md | grep -c '^- '",
+      "expect": "num:(\\d+) >=2"
+    },
+    {
+      "name": "no_ids",
+      "cmd": "awk '/^## В работе/{f=1;next} /^## /{f=0} f' CHANGELOG.md | grep -cE 'CVW-[0-9]|К[23]\\b' || true",
+      "expect": "num:(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-05T14:01:20"
+}
