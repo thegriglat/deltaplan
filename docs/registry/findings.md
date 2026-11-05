@@ -195,3 +195,7 @@ related: ["docs/archive/README.md"]
 ## trike-fix
 
 - [trike-fix.md](/docs/registry/findings/trike-fix.md).
+
+## scenic-places
+
+- **Каталог красивых мест**: 236 мест / 29 стран, проверка рельефом (Terrarium z11) failed 0, min перепад у вида 101 м, запас по планированию 1:10 на 5 км неотрицателен (min 0 м, у 13 мест < 10 м); видимость и рельеф игры (Copernicus 25 м) проверка не знает: [scenic-places.md](/docs/research/scenic-places.md).
