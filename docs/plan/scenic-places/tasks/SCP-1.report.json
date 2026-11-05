@@ -1,8 +1,8 @@
 {
   "status": "done",
-  "summary": "Проверка мест по рельефу (SCP-К2, Terrarium z11, PNG через zlib+numpy) и список из 80 мест, по 8 в NO, IS, CH, FR, IT, ES, TR, RU, KZ, MN. Все проходят: checked 80, failed 0. Минимальный запас высоты 97 м, минимальный перепад у вида 160 м. agl_m не больше 1000 (SCP-К1 v2), ветка влита с feature/scenic-places.",
+  "summary": "Доработка: виды всех 80 мест сверены с координатами статей Википедии (en, API prop=coordinates) и приняты по ним; найдена ошибка знака долготы у is/landmannalaugar (было +19.06, стало -19.07). Старты пересчитаны (agl ≤ 1000, у не-озёрных видов h0 ≤ высота предмета − 200 м), it/etna возвращена (agl 900). checked 80, failed 0; min запас 50 м, min перепад 158 м.",
   "commits": [
-    "9ea7fe4be scenic-places SCP-1: проверка мест по рельефу и список Европа/Северная Азия (80 мест)"
+    "91f2a163e scenic-places SCP-1: виды по координатам Википедии, старты ниже предмета, Этна возвращена"
   ],
   "checks": [
     {
@@ -12,7 +12,7 @@
     },
     {
       "name": "unit",
-      "value": "exit 0 (7 тестов)",
+      "value": "exit 0",
       "pass": true
     },
     {
@@ -26,48 +26,355 @@
       "pass": true
     },
     {
-      "name": "min запас высоты, м",
-      "value": "97",
+      "name": "min запас, м",
+      "value": "50",
       "pass": true
     },
     {
-      "name": "min перепад у вида, м",
-      "value": "160",
+      "name": "min перепад, м",
+      "value": "158",
       "pass": true
     }
   ],
   "not_done": [
-    "Отброшены: ru/baikal-khoboy и kz/markakol (вид на воде, перепад 0 м), kz/bozzhyra (перепад 75 м), it/etna (нужен agl 1100 > 1000). Вместо них добавлены ru/munku-sardyk, kz/kok-zhailau, kz/aksu-zhabagly; Байкал в списке России отсутствует."
+    "Заменены: mn/khongoryn-els (у статьи нет координат) -> mn/gurvan-saikhan; is/hornbjarg (нет координат) -> is/hornstrandir; mn/khuvsgul отброшен (координата статьи — центр озера, перепад 0 м), в MN 7 мест; es/garganta-del-chorro взята по статье Caminito del Rey (у ущелья статьи с координатами нет), хотя предмет — ущелье, не тропа.",
+    "Исключение правила 3 (h0 > предмет − 200): it/lake-como, kz/charyn-canyon, mn/bayanzag — виды в озере/каньоне/пустыне, старт на борту выше предмета по смыслу; правило применено только к горам/вулканам/ледникам/островам/побережью/фьордам.",
+    "Расхождение > 1 км с прежними видами у ~38 мест — исправлено на координаты Википедии (крупнейшие: landmannalaugar 1832 км (знак), lyngen-alps 30 км, aksu-zhabagly 23 км, munku-sardyk 19 км, breidamerkurjokull 16 км)."
   ],
   "questions": [],
   "how_to_check": ".dpcli/dpcli accept SCP-1",
   "uncertain": [
     {
       "where": "tools/places/scenic/a-europe-north-asia.json",
-      "why": "Координаты вида взяты по памяти (Википедия не сверялась); проверка рельефом подтверждает только перепад и запас, не что вид попал именно на названный объект",
-      "checked": "для каждого места сравнена высота в точке вида с локальным максимумом в 1,5 км (ориентиры в порядке для гор). Выборочно не сверено: ru/dombay, tr/saklikent, es/garganta-del-chorro, mn/*, kz/*"
-    },
-    {
-      "where": "tools/places/scenic/a-europe-north-asia.json",
-      "why": "Точки старта подобраны перебором курса и дальности (4-12 км) с минимальным agl >= 400 м и уклоном к низкой земле под путём; часть стартов может оказаться высоко на склоне соседней горы (высота земли в h0 до 3700 м в Альпах), что формально проходит пункт 3",
-      "checked": "пункт 3 проходит у всех; наглядность вида не проверялась в игре"
+      "why": "Для протяжённых объектов (озёра, ледники, ущелья, горные районы) координата Википедии — центроид, а не лучшая точка видимости; для it/etna старт на 13.5 км от вершины на высоте 1012 м (agl 900)",
+      "checked": "пункты 2-4 SCP-К2 проходят"
     }
   ],
-  "dp_feedback": "accept --dry на двух тяжёлых прогонах идёт > 2 мин и уходит в фон без явного сигнала; хотелось бы ожидание с прогрессом.",
+  "dp_feedback": "Для сверки с Википедией хватило API (prop=coordinates); WebFetch не потребовался. Частые 429 — нужны паузы ≥2 с.",
   "extra": {
-    "countries": {
-      "NO": 8,
-      "IS": 8,
-      "CH": 8,
-      "FR": 8,
-      "IT": 8,
-      "ES": 8,
-      "TR": 8,
-      "RU": 8,
-      "KZ": 8,
-      "MN": 8
+    "wikipedia_diff": {
+      "ch/aletsch-glacier": {
+        "diff_km": 6.43,
+        "url": "https://en.wikipedia.org/wiki/Aletsch_Glacier"
+      },
+      "ch/eiger": {
+        "diff_km": 0.06,
+        "url": "https://en.wikipedia.org/wiki/Eiger"
+      },
+      "ch/lauterbrunnen": {
+        "diff_km": 0.19,
+        "url": "https://en.wikipedia.org/wiki/Lauterbrunnen"
+      },
+      "ch/matterhorn": {
+        "diff_km": 0.01,
+        "url": "https://en.wikipedia.org/wiki/Matterhorn"
+      },
+      "ch/oeschinensee": {
+        "diff_km": 0.1,
+        "url": "https://en.wikipedia.org/wiki/Oeschinen_Lake"
+      },
+      "ch/piz-bernina": {
+        "diff_km": 0.03,
+        "url": "https://en.wikipedia.org/wiki/Piz_Bernina"
+      },
+      "ch/ruinaulta": {
+        "diff_km": 3.09,
+        "url": "https://en.wikipedia.org/wiki/Ruinaulta"
+      },
+      "ch/saentis": {
+        "diff_km": 0.05,
+        "url": "https://en.wikipedia.org/wiki/Säntis"
+      },
+      "es/aneto": {
+        "diff_km": 0.2,
+        "url": "https://en.wikipedia.org/wiki/Aneto"
+      },
+      "es/caldera-de-taburiente": {
+        "diff_km": 1.3,
+        "url": "https://en.wikipedia.org/wiki/Caldera_de_Taburiente_National_Park"
+      },
+      "es/formentor": {
+        "diff_km": 5.38,
+        "url": "https://en.wikipedia.org/wiki/Cap_de_Formentor"
+      },
+      "es/garganta-del-chorro": {
+        "diff_km": 1.39,
+        "url": "https://en.wikipedia.org/wiki/Caminito_del_Rey"
+      },
+      "es/mulhacen": {
+        "diff_km": 0.08,
+        "url": "https://en.wikipedia.org/wiki/Mulhacén"
+      },
+      "es/naranjo-de-bulnes": {
+        "diff_km": 0.25,
+        "url": "https://en.wikipedia.org/wiki/Naranjo_de_Bulnes"
+      },
+      "es/ordesa": {
+        "diff_km": 2.3,
+        "url": "https://en.wikipedia.org/wiki/Ordesa_Valley"
+      },
+      "es/teide": {
+        "diff_km": 0.28,
+        "url": "https://en.wikipedia.org/wiki/Teide"
+      },
+      "fr/calanques": {
+        "diff_km": 0.57,
+        "url": "https://en.wikipedia.org/wiki/Calanques_National_Park"
+      },
+      "fr/cirque-de-gavarnie": {
+        "diff_km": 0.79,
+        "url": "https://en.wikipedia.org/wiki/Cirque_de_Gavarnie"
+      },
+      "fr/gorges-du-verdon": {
+        "diff_km": 2.71,
+        "url": "https://en.wikipedia.org/wiki/Verdon_Gorge"
+      },
+      "fr/la-meije": {
+        "diff_km": 0.06,
+        "url": "https://en.wikipedia.org/wiki/Meije"
+      },
+      "fr/mer-de-glace": {
+        "diff_km": 1.8,
+        "url": "https://en.wikipedia.org/wiki/Mer_de_Glace"
+      },
+      "fr/mont-blanc": {
+        "diff_km": 0.03,
+        "url": "https://en.wikipedia.org/wiki/Mont_Blanc"
+      },
+      "fr/monte-cinto": {
+        "diff_km": 0.34,
+        "url": "https://en.wikipedia.org/wiki/Monte_Cinto"
+      },
+      "fr/puy-de-dome": {
+        "diff_km": 0.13,
+        "url": "https://en.wikipedia.org/wiki/Puy_de_Dôme"
+      },
+      "is/askja": {
+        "diff_km": 1.58,
+        "url": "https://en.wikipedia.org/wiki/Askja"
+      },
+      "is/breidamerkurjokull": {
+        "diff_km": 15.83,
+        "url": "https://en.wikipedia.org/wiki/Breiðamerkurjökull"
+      },
+      "is/eyjafjallajokull": {
+        "diff_km": 1.29,
+        "url": "https://en.wikipedia.org/wiki/Eyjafjallajökull"
+      },
+      "is/hekla": {
+        "diff_km": 0.03,
+        "url": "https://en.wikipedia.org/wiki/Hekla"
+      },
+      "is/hornstrandir": {
+        "diff_km": 5.54,
+        "url": "https://en.wikipedia.org/wiki/Hornstrandir"
+      },
+      "is/hvannadalshnukur": {
+        "diff_km": 0.09,
+        "url": "https://en.wikipedia.org/wiki/Hvannadalshnjúkur"
+      },
+      "is/landmannalaugar": {
+        "diff_km": 1831.57,
+        "url": "https://en.wikipedia.org/wiki/Landmannalaugar"
+      },
+      "is/snaefellsjokull": {
+        "diff_km": 0.16,
+        "url": "https://en.wikipedia.org/wiki/Snæfellsjökull"
+      },
+      "it/etna": {
+        "diff_km": "новое",
+        "url": "https://en.wikipedia.org/wiki/Mount_Etna"
+      },
+      "it/gran-paradiso": {
+        "diff_km": 0.35,
+        "url": "https://en.wikipedia.org/wiki/Gran_Paradiso"
+      },
+      "it/lake-como": {
+        "diff_km": 0.51,
+        "url": "https://en.wikipedia.org/wiki/Lake_Como"
+      },
+      "it/marmolada": {
+        "diff_km": 0.1,
+        "url": "https://en.wikipedia.org/wiki/Marmolada"
+      },
+      "it/monte-rosa": {
+        "diff_km": 0.03,
+        "url": "https://en.wikipedia.org/wiki/Monte_Rosa"
+      },
+      "it/seceda": {
+        "diff_km": 0.6,
+        "url": "https://en.wikipedia.org/wiki/Monte_Seceda"
+      },
+      "it/stromboli": {
+        "diff_km": 0.57,
+        "url": "https://en.wikipedia.org/wiki/Stromboli"
+      },
+      "it/tre-cime": {
+        "diff_km": 0.35,
+        "url": "https://en.wikipedia.org/wiki/Tre_Cime_di_Lavaredo"
+      },
+      "it/vesuvius": {
+        "diff_km": 0.04,
+        "url": "https://en.wikipedia.org/wiki/Mount_Vesuvius"
+      },
+      "kz/aksu-zhabagly": {
+        "diff_km": 22.87,
+        "url": "https://en.wikipedia.org/wiki/Aksu_Canyon"
+      },
+      "kz/big-almaty-lake": {
+        "diff_km": 0.41,
+        "url": "https://en.wikipedia.org/wiki/Big_Almaty_Lake"
+      },
+      "kz/charyn-canyon": {
+        "diff_km": 1.35,
+        "url": "https://en.wikipedia.org/wiki/Charyn_Canyon"
+      },
+      "kz/kaindy": {
+        "diff_km": 0.57,
+        "url": "https://en.wikipedia.org/wiki/Lake_Kaindy"
+      },
+      "kz/khan-tengri": {
+        "diff_km": 0.8,
+        "url": "https://en.wikipedia.org/wiki/Khan_Tengri"
+      },
+      "kz/kok-zhailau": {
+        "diff_km": 5.41,
+        "url": "https://en.wikipedia.org/wiki/Kok_Zhailau"
+      },
+      "kz/kolsai-lakes": {
+        "diff_km": 9.46,
+        "url": "https://en.wikipedia.org/wiki/Kolsay_Lakes_National_Park"
+      },
+      "kz/talgar-peak": {
+        "diff_km": 10.59,
+        "url": "https://en.wikipedia.org/wiki/Pik_Talgar"
+      },
+      "mn/bayanzag": {
+        "diff_km": 0.43,
+        "url": "https://en.wikipedia.org/wiki/Flaming_Cliffs"
+      },
+      "mn/bogd-khan-uul": {
+        "diff_km": 2.84,
+        "url": "https://en.wikipedia.org/wiki/Bogd_Khan_Mountain"
+      },
+      "mn/gurvan-saikhan": {
+        "diff_km": 127.95,
+        "url": "https://en.wikipedia.org/wiki/Gurvan_Saikhan_Mountains"
+      },
+      "mn/khorgo": {
+        "diff_km": 1.96,
+        "url": "https://en.wikipedia.org/wiki/Khorgo"
+      },
+      "mn/otgontenger": {
+        "diff_km": 4.67,
+        "url": "https://en.wikipedia.org/wiki/Otgontenger"
+      },
+      "mn/tavan-bogd": {
+        "diff_km": 2.69,
+        "url": "https://en.wikipedia.org/wiki/Khüiten_Peak"
+      },
+      "mn/yolyn-am": {
+        "diff_km": 1.35,
+        "url": "https://en.wikipedia.org/wiki/Yolyn_Am"
+      },
+      "no/galdhopiggen": {
+        "diff_km": 0.02,
+        "url": "https://en.wikipedia.org/wiki/Galdhøpiggen"
+      },
+      "no/geirangerfjord": {
+        "diff_km": 2.55,
+        "url": "https://en.wikipedia.org/wiki/Geirangerfjord"
+      },
+      "no/hardangerjokulen": {
+        "diff_km": 2.66,
+        "url": "https://en.wikipedia.org/wiki/Hardangerjøkulen"
+      },
+      "no/lyngen-alps": {
+        "diff_km": 30.06,
+        "url": "https://en.wikipedia.org/wiki/Lyngen_Alps"
+      },
+      "no/naeroyfjord": {
+        "diff_km": 8.72,
+        "url": "https://en.wikipedia.org/wiki/Nærøyfjord"
+      },
+      "no/preikestolen": {
+        "diff_km": 0.15,
+        "url": "https://en.wikipedia.org/wiki/Preikestolen"
+      },
+      "no/reine-lofoten": {
+        "diff_km": 0.09,
+        "url": "https://en.wikipedia.org/wiki/Reine,_Norway"
+      },
+      "no/trollveggen": {
+        "diff_km": 2.13,
+        "url": "https://en.wikipedia.org/wiki/Troll_Wall"
+      },
+      "ru/avachinsky": {
+        "diff_km": 0.11,
+        "url": "https://en.wikipedia.org/wiki/Avachinsky"
+      },
+      "ru/belukha": {
+        "diff_km": 0.15,
+        "url": "https://en.wikipedia.org/wiki/Belukha_Mountain"
+      },
+      "ru/dombay": {
+        "diff_km": 2.32,
+        "url": "https://en.wikipedia.org/wiki/Dombay-Ulgen"
+      },
+      "ru/elbrus": {
+        "diff_km": 0.75,
+        "url": "https://en.wikipedia.org/wiki/Mount_Elbrus"
+      },
+      "ru/khibiny": {
+        "diff_km": 4.05,
+        "url": "https://en.wikipedia.org/wiki/Khibiny_Mountains"
+      },
+      "ru/klyuchevskaya": {
+        "diff_km": 0.38,
+        "url": "https://en.wikipedia.org/wiki/Klyuchevskaya_Sopka"
+      },
+      "ru/munku-sardyk": {
+        "diff_km": 18.98,
+        "url": "https://en.wikipedia.org/wiki/Mönkh_Saridag"
+      },
+      "ru/teletskoye": {
+        "diff_km": 14.4,
+        "url": "https://en.wikipedia.org/wiki/Lake_Teletskoye"
+      },
+      "tr/ararat": {
+        "diff_km": 0.03,
+        "url": "https://en.wikipedia.org/wiki/Mount_Ararat"
+      },
+      "tr/erciyes": {
+        "diff_km": 0.28,
+        "url": "https://en.wikipedia.org/wiki/Mount_Erciyes"
+      },
+      "tr/ihlara-valley": {
+        "diff_km": 1.2,
+        "url": "https://en.wikipedia.org/wiki/Ihlara_valley"
+      },
+      "tr/kackar": {
+        "diff_km": 0.19,
+        "url": "https://en.wikipedia.org/wiki/Kaçkar_Mountains"
+      },
+      "tr/koprulu-canyon": {
+        "diff_km": 1.19,
+        "url": "https://en.wikipedia.org/wiki/Köprülü_Canyon"
+      },
+      "tr/nemrut-crater": {
+        "diff_km": 1.55,
+        "url": "https://en.wikipedia.org/wiki/Lake_Nemrut"
+      },
+      "tr/oludeniz-babadag": {
+        "diff_km": 3.49,
+        "url": "https://en.wikipedia.org/wiki/Ölüdeniz"
+      },
+      "tr/saklikent": {
+        "diff_km": 1.78,
+        "url": "https://en.wikipedia.org/wiki/Saklıkent_National_Park"
+      }
     }
   },
-  "t": "2026-11-05T06:57:16",
+  "t": "2026-11-05T07:30:20",
   "by": "executor"
 }
