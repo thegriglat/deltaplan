@@ -311,3 +311,17 @@ func _pose(age: float) -> void:
 		# граница видимости: птица сжимается к нулю между f0 и f1 от пилота
 		var sc := clampf((f1 - (xf * p).distance_to(_pilot)) / (f1 - f0), 0.0, 1.0)
 		_mm.set_instance_transform(bird, Transform3D(Basis.from_scale(Vector3.ONE * sc), p))
+
+
+## Ближайшая к from птица, мир (PV-К4: реплики пилота).
+func voice_anchor(from: Vector3) -> Vector3:
+	var best := super.voice_anchor(from)
+	var bd := INF
+	var xf := global_transform if is_inside_tree() else transform
+	for p in _last_pos:
+		var w := xf * p
+		var d := w.distance_squared_to(from)
+		if d < bd:
+			bd = d
+			best = w
+	return best

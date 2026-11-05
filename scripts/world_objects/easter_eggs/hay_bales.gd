@@ -469,3 +469,22 @@ func _fill(mmi: MultiMeshInstance3D, pack: PackedFloat32Array) -> void:
 	mm.instance_count = n
 	if n > 0:
 		mm.buffer = pack
+
+
+## Ближайший к from рулон, мир (PV-К4: реплики пилота); перебор экземпляров — реже 4 Гц.
+func voice_anchor(from: Vector3) -> Vector3:
+	var best := super.voice_anchor(from)
+	var bd := INF
+	for mmi: MultiMeshInstance3D in [_near, _far]:
+		if mmi == null or mmi.multimesh == null or not mmi.is_inside_tree():
+			continue
+		var mm := mmi.multimesh
+		var xf := mmi.global_transform
+		var n := mm.visible_instance_count if mm.visible_instance_count >= 0 else mm.instance_count
+		for i in n:
+			var w := xf * mm.get_instance_transform(i).origin
+			var d := w.distance_squared_to(from)
+			if d < bd:
+				bd = d
+				best = w
+	return best

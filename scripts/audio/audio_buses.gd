@@ -1,6 +1,6 @@
 class_name AudioBuses
 extends RefCounted
-## Аудиошины проекта: Master ← Vario, Wind (ФНЧ, панорама, компрессор), Effects, Ambient.
+## Аудиошины проекта: Master ← Vario, Wind (ФНЧ, панорама, компрессор), Effects, Ambient, Voice (реплики пилота).
 ## Эталон раскладки — scenes/audio/bus_layout.tres (подключается в project.godot интегратором).
 ## ensure() создаёт недостающие шины при запуске — чтобы стенды работали и без раскладки.
 
@@ -21,6 +21,7 @@ static func ensure(cfg: Dictionary) -> void:
 		AudioServer.add_bus_effect(wind, comp)
 	ensure_bus(String(buses.get("effects", "Effects")))
 	ensure_bus(String(buses.get("ambient", "Ambient")))
+	ensure_bus(String(buses.get("voice", "Voice")))
 
 
 ## Эффект заданного класса на шине или null.

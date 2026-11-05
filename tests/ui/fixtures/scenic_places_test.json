@@ -1,0 +1,61 @@
+{
+ "format": "deltaplan.scenic_places",
+ "version": 1,
+ "countries": {
+  "CH": {
+   "en": "Switzerland",
+   "ru": "Швейцария"
+  },
+  "NO": {
+   "en": "Norway",
+   "ru": "Норвегия"
+  }
+ },
+ "places": [
+  {
+   "id": "ch/test-alpine-valley",
+   "country": "CH",
+   "name_en": "Test alpine valley",
+   "name_ru": "Тестовая альпийская долина",
+   "kind": "valley",
+   "lat": 46.6,
+   "lon": 7.9,
+   "heading_deg": 180.0,
+   "agl_m": 600.0,
+   "view_lat": 46.52805,
+   "view_lon": 7.9,
+   "why_en": "Test: steep valley walls and snow",
+   "why_ru": "Тест: крутые склоны долины и снег"
+  },
+  {
+   "id": "ch/test-glacier",
+   "country": "CH",
+   "name_en": "Test glacier",
+   "name_ru": "Тестовый ледник",
+   "kind": "glacier",
+   "lat": 46.5,
+   "lon": 8.0,
+   "heading_deg": 90.0,
+   "agl_m": 800.0,
+   "view_lat": 46.49997,
+   "view_lon": 8.07839,
+   "why_en": "Test: glacier between peaks",
+   "why_ru": "Тест: ледник между вершинами"
+  },
+  {
+   "id": "no/test-fjord",
+   "country": "NO",
+   "name_en": "Test fjord",
+   "name_ru": "Тестовый фьорд",
+   "kind": "fjord",
+   "lat": 62.1,
+   "lon": 7.1,
+   "heading_deg": 270.0,
+   "agl_m": 400.0,
+   "view_lat": 62.09987,
+   "view_lon": 6.90781,
+   "why_en": "Test: fjord with steep walls",
+   "why_ru": "Тест: фьорд с отвесными берегами"
+  }
+ ]
+}

@@ -20,6 +20,8 @@ var visuals_enabled := true
 var sim_time_s := 0.0
 ## Боты (порядок = очередь на старт).
 var agents: Array[BotAgent] = []
+## Сколько ботов — напарники игрока (agents[0 .. wingmen-1]); до setup(). 0 — никого (сеть, тесты).
+var wingmen: int = 0
 ## Когда игрок оторвался (время ботов), с; < 0 — ещё на земле.
 var player_liftoff_s := -1.0
 ## «Занятые» термики: {center: Vector2, dir: float, t: float, owner: int (−1 — игрок)}.
@@ -111,6 +113,9 @@ func setup(opts: Dictionary) -> void:
 	var mass: Array = _cfg.get("mass_kg", [65.0, 95.0])
 	var scheme_order := range(schemes.size())
 	_shuffle(scheme_order, rng)
+	var n_wing := clampi(
+		wingmen, 0, mini(int(_cfg.get("wingman", {}).get("count_max", 2)), count)
+	)
 	for i in count:
 		var a := BotAgent.new()
 		a.id = i
@@ -122,6 +127,7 @@ func setup(opts: Dictionary) -> void:
 			_ground_fn,
 			rng.randi()
 		)
+		a.wingman = i < n_wing
 		a.scheme = schemes[scheme_order[i % scheme_order.size()]]
 		a.set_site(_start, _heading)
 		a.brain.circle_dir_fn = _circle_dir.bind(i)
@@ -483,6 +489,7 @@ func tick(dt: float, player: Telemetry) -> void:
 		_update_separation()
 		_update_claims()
 		_update_avoid()
+		_update_leads()
 	for i in agents.size():
 		var a := agents[i]
 		a.acc_s += dt
@@ -644,6 +651,19 @@ func _observe_player(p: Telemetry, dt: float) -> void:
 	_p_center += (pos - _p_center) * (1.0 - exp(-dt / 15.0))
 	var thr := float(_cfg.get("thermal_rule", {}).get("player_turn_deg", 300.0))
 	_p_center_ok = absf(_p_turn) > thr
+
+
+## Напарникам — игрок как ведущий (WM-К1): положение, скорость, круг; не в полёте — обычные боты.
+func _update_leads() -> void:
+	for a in agents:
+		if not a.wingman:
+			continue
+		var b := a.brain
+		b.lead_active = _player_flying
+		b.lead_pos = _player_pos
+		b.lead_vel = _player_vel
+		b.lead_circling = _player_flying and _p_center_ok
+		b.lead_center = _p_center
 
 
 func _others_flying() -> bool:

@@ -46,6 +46,9 @@ var tow_kind: String = ""
 ## Аппарат старта (TP-К5): "glider" — дельталёт-планер (дельтаплан), "trike" — дельталёт (с мотором).
 ## При "trike" tow_kind = "".
 var vehicle: String = "glider"
+## Старт в воздухе (ASM-К1): высота над рельефом в точке старта, м; < 0 — старт с земли.
+## Только у "glider"; при старте в воздухе tow_kind = "".
+var air_start_agl_m: float = -1.0
 ## Показать след прошлой попытки на этом месте (GL-К1).
 var show_last_track: bool = false
 ## Загруженные IGC/GPX (GL-К1), абсолютные пути.
@@ -92,6 +95,34 @@ static func normalize_tow(k: String) -> String:
 ## Неизвестный аппарат → "glider" (TP-К5).
 static func normalize_vehicle(v: String) -> String:
 	return v if v in VEHICLES else "glider"
+
+
+func has_air_start() -> bool:
+	return air_start_agl_m >= 0.0
+
+
+## Нечисло или < 0 → -1 (с земли); иначе в пределах configs/game.json → air_start.
+static func normalize_air_start(v: float) -> float:
+	if is_nan(v) or v < 0.0:
+		return -1.0
+	return clampf(
+		v,
+		float(Config.value("game", "air_start.agl_min_m", 60.0)),
+		float(Config.value("game", "air_start.agl_max_m", 1000.0))
+	)
+
+
+## Установка высоты + правило совместимости: только glider, без буксировки.
+func set_air_start(v: float) -> void:
+	air_start_agl_m = normalize_air_start(v)
+	_apply_air_compat()
+
+
+func _apply_air_compat() -> void:
+	if vehicle != "glider":
+		air_start_agl_m = -1.0
+	if has_air_start():
+		tow_kind = ""
 
 
 ## Старт дельталётом возможен везде, кроме сети (TA-К1).
@@ -236,6 +267,7 @@ func to_dict() -> Dictionary:
 		"goals": goals.duplicate(true),
 		"tow_kind": tow_kind,
 		"vehicle": vehicle,
+		"air_start_agl_m": air_start_agl_m,
 		"show_last_track": show_last_track,
 		"track_paths": Array(track_paths),
 	}
@@ -260,6 +292,8 @@ static func from_dict(d: Dictionary, base: FlightSettings = null) -> FlightSetti
 	s.vehicle = normalize_vehicle(String(d.get("vehicle", s.vehicle)))
 	if s.vehicle == "trike":
 		s.tow_kind = ""
+	s.air_start_agl_m = normalize_air_start(float(d.get("air_start_agl_m", s.air_start_agl_m)))
+	s._apply_air_compat()
 	var slat: Variant = d.get("start_lat")
 	var slon: Variant = d.get("start_lon")
 	var shead: Variant = d.get("start_heading_deg")
