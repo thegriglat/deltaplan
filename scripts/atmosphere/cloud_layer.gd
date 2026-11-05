@@ -1326,9 +1326,10 @@ func _ensure_nz() -> void:
 		_nz_slices.append(c)
 
 
-## Башни облака-записи (cloud_init_towers): центр (u, v), высота, радиус; seed_off — зерно.
-static func _towers(seed_off: Vector3, kind: int) -> Array[Vector4]:
-	var out: Array[Vector4] = []
+## Форма башен облака-записи (cloud_init_towers + cloud_towers): максимум 1 − |q| по башням в точке
+## (uv, h); seed_off — зерно. Башни считаются в цикле, без массива (без выделений памяти).
+static func _towers_shape(seed_off: Vector3, kind: int, uv: Vector2, h: float) -> float:
+	var best := -2.0
 	for k in V_TOWERS:
 		var n := seed_off.x * 13.1 + float(k) * 7.13
 		var hx := _vfract(sin(n) * 43758.5453)
@@ -1342,14 +1343,7 @@ static func _towers(seed_off: Vector3, kind: int) -> Array[Vector4]:
 		if kind == 3:
 			th = 1.0 if main_t else lerpf(0.6, 0.95, hz)
 			rk = 0.9 if main_t else lerpf(0.45, 0.65, _vfract(hz * 7.1 + hx))
-		out.append(Vector4(cos(ang) * rr, sin(ang) * rr, th, rk))
-	return out
-
-
-static func _towers_at(tw: Array[Vector4], uv: Vector2, h: float, kind: int) -> float:
-	var best := -2.0
-	for t in tw:
-		var q := Vector2(uv.distance_to(Vector2(t.x, t.y)) / t.w, h / t.z)
+		var q := Vector2(uv.distance_to(Vector2(cos(ang) * rr, sin(ang) * rr)) / rk, h / th)
 		if kind == 3:
 			var q2x := q.x * q.x
 			var q2y := q.y * q.y
@@ -1398,7 +1392,7 @@ func _rec_density(r: PackedFloat32Array, p: Vector3) -> float:
 	var seed_off := Vector3(_vfract(s * 0.1031), _vfract(s * 0.1130), _vfract(s * 0.0973)) * 7.0
 	var decay := r[13]
 	var growth := r[12]
-	var shape := _towers_at(_towers(seed_off, kind), uv / spread_k, h, kind)
+	var shape := _towers_shape(seed_off, kind, uv / spread_k, h)
 	shape -= decay * 0.15 + (1.0 - vis) * 0.35
 	shape = clampf(shape / lerpf(0.55, 0.8, decay), 0.0, 1.0)
 	var anvil_m := 0.0

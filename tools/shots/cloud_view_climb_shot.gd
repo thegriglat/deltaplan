@@ -50,7 +50,7 @@ var _lines: PackedStringArray = []
 var _wo := CloudWhiteout.new()
 var _wo_c := CloudWhiteout.new()
 var _after := ""
-var _res := {"clear_amount_max": 0.0, "clear_amount_coarse_max": 0.0, "in_cloud_amount_max": 0.0, "in_cloud_amount_coarse_max": 0.0}
+var _res := {"rec_frames": 0, "rec_in_cloud_amount_max": 0.0, "rec_clear_amount_max": 0.0, "rec_clear_frames": 0, "rec_kind": -1, "rec_time_s": 0.0, "clear_amount_max": 0.0, "clear_amount_coarse_max": 0.0, "in_cloud_amount_max": 0.0, "in_cloud_amount_coarse_max": 0.0}
 
 
 func _ready() -> void:
@@ -345,6 +345,8 @@ func _run() -> void:
 					_flush()
 	if "pass" in _variants:
 		n += await _pass_series(game, air, layer, env, cam, haze_mat, haze_ext, cx, cz, gh, base, top_ref, raster)
+	if "recs" in _variants:
+		n += await _recs_series(game, air, layer, env, cam, haze_mat, haze_ext, cx, cz, gh, raster)
 	_flush()
 	if _after != "":
 		var af := FileAccess.open(_after, FileAccess.WRITE)
@@ -384,9 +386,10 @@ func _find_visible_cloud(layer: CloudLayer, cx: float, cz: float, base: float, t
 ## CVW-4: проход камеры вдоль оси x через центр рисуемого облака: от −1000 до +1000 м, шаг 100 м.
 func _pass_series(
 	game: Game, air: Node, layer: CloudLayer, env: Environment, cam: Camera3D, haze_mat: ShaderMaterial,
-	haze_ext: Variant, cx: float, cz: float, gh: float, base: float, top: float, raster: Dictionary
+	haze_ext: Variant, cx: float, cz: float, gh: float, base: float, top: float, raster: Dictionary,
+	center := Vector3.ZERO, tag := "pass"
 ) -> int:
-	var c := _find_visible_cloud(layer, cx, cz, base, top)
+	var c := center if center != Vector3.ZERO else _find_visible_cloud(layer, cx, cz, base, top)
 	if c == Vector3.ZERO:
 		print("cloud_view_climb_shot: pass - рисуемое облако с плотностью >= 0,9 рядом не найдено")
 		return 0
@@ -424,24 +427,66 @@ func _pass_series(
 		_wo.apply(env)
 		for i in 8:
 			await RenderingServer.frame_post_draw
-		var name := "pass_%03d.png" % (off / 100 + 10)
+		var name := "%s_%03d.png" % [tag, off / 100 + 10]
 		var path := "%s/%s" % [_out, name]
 		await _shoot(path)
 		var st := _stats(path)
 		var sm := field_sample(raster, p.x, p.z)
 		var row: Array = [
-			"pass_" + name, _location, hour, p.x, p.z, p.y, off, syaw, pitch, sm.y, sm.z, sm.x, d_coarse,
+			tag + "_" + name, _location, hour, p.x, p.z, p.y, off, syaw, pitch, sm.y, sm.z, sm.x, d_coarse,
 			_wo.amount, env.fog_density, env.fog_light_color.r, env.fog_light_color.g,
 			env.fog_light_color.b, env.fog_sky_affect, st.r, st.g, st.b, st.luma, st.std,
 			path, game.sky.get_haze_top_msl(), int(env.fog_enabled), gh, 0.0, layer.records().size(),
-			st.sr, st.sg, st.sb, "pass", d_vis, _wo_c.amount
+			st.sr, st.sg, st.sb, tag, d_vis, _wo_c.amount
 		]
 		_lines.append(",".join(PackedStringArray(row.map(_fmt))))
-		_res.in_cloud_amount_max = maxf(_res.in_cloud_amount_max, _wo.amount)
-		_res.in_cloud_amount_coarse_max = maxf(_res.in_cloud_amount_coarse_max, _wo_c.amount)
+		if tag == "pass":
+			_res.in_cloud_amount_max = maxf(_res.in_cloud_amount_max, _wo.amount)
+			_res.in_cloud_amount_coarse_max = maxf(_res.in_cloud_amount_coarse_max, _wo_c.amount)
+		else:
+			var nrec := layer.records().filter(func(r: PackedFloat32Array) -> bool: return r.size() >= 21 and r[20] > 0.0).size()
+			if nrec > 0 and d_vis > 0.0:
+				_res.rec_frames += 1
+			if d_vis > 0.5:
+				_res.rec_in_cloud_amount_max = maxf(_res.rec_in_cloud_amount_max, _wo.amount)
+			elif d_vis == 0.0:
+				_res.rec_clear_frames += 1
+				_res.rec_clear_amount_max = maxf(_res.rec_clear_amount_max, _wo.amount)
 		n += 1
 		_flush()
 	return n
+
+
+## CVW-5: облака-записи (кучевые, Cb, линзы). Перебирает времена атмосферы (--air_s), пока слой не рисует
+## запись с видимостью > 0 и плотностью >= 0,5 в её центре; проход камеры вдоль x через центр.
+## Просвет: кадры прохода, где visible_density_at == 0 (камера вне всех рисуемых облаков).
+func _recs_series(
+	game: Game, air: Node, layer: CloudLayer, env: Environment, cam: Camera3D, haze_mat: ShaderMaterial,
+	haze_ext: Variant, cx: float, cz: float, gh: float, raster: Dictionary
+) -> int:
+	var c := Vector3.ZERO
+	for t_air in _air_list:
+		game.set_world_time(t_air)
+		for i in 240:
+			await get_tree().process_frame
+		var best := 1.0e30
+		for r in layer.records():
+			if r.size() < 21 or r[20] <= 0.0:
+				continue
+			for fr: float in [0.25, 0.4, 0.55]:
+				var q := Vector3(r[0], r[8] + fr * maxf(r[9], 10.0), r[2])
+				var dd := Vector2(q.x - cx, q.z - cz).length()
+				if dd < best and layer.visible_density_at(q) >= 0.5:
+					best = dd
+					c = q
+					_res.rec_kind = int(r[19] + 0.5)
+		print("cloud_view_climb_shot: recs - время %.0f, записей %d, центр %s" % [t_air, layer.records().size(), c])
+		if c != Vector3.ZERO:
+			_res.rec_time_s = t_air
+			break
+	if c == Vector3.ZERO:
+		return 0
+	return await _pass_series(game, air, layer, env, cam, haze_mat, haze_ext, cx, cz, gh, 0.0, 0.0, raster, c, "recs")
 
 
 static func _fmt(v: Variant) -> String:
