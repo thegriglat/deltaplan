@@ -8,7 +8,7 @@
   "contracts": [
     {
       "name": "air-start-menu",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/air-start-menu.md"
     }
   ],
@@ -23,7 +23,8 @@
     "tests/contracts/test_air_start_menu_contracts.gd",
     "tests/contracts/test_air_start_menu_contracts.gd.uid",
     "tests/game/test_air_start_menu.gd",
-    "tests/game/test_air_start_menu.gd.uid"
+    "tests/game/test_air_start_menu.gd.uid",
+    "tests/game/test_game_flight.gd"
   ],
   "dont_touch": [
     "scripts/ui/",
@@ -37,18 +38,27 @@
   "accept": [
     {
       "name": "air_start_menu",
-      "tests": "air_start_menu"
+      "tests": "air_start_menu",
+      "timeout": 2400
     },
     {
-      "name": "contracts",
-      "tests": "contracts"
+      "name": "game_flight",
+      "tests": "test_game_flight",
+      "timeout": 3600
     },
     {
-      "name": "game",
-      "tests": "game"
+      "name": "start_pick",
+      "tests": "test_start_pick",
+      "timeout": 3600
+    },
+    {
+      "name": "e2e",
+      "tests": "tests/game/test_e2e",
+      "timeout": 3600
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-11-05T05:58:08"
+  "created": "2026-11-05T05:58:08",
+  "edited": "2026-11-05T14:05:31"
 }
