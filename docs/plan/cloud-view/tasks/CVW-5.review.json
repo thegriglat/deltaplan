@@ -1,0 +1,46 @@
+{
+  "verdict": "accept",
+  "summary": "К3 соблюдён: _towers_shape считает максимум по башням в цикле, без массива; uv/h-искажение quality 1 (w1, w2, hh, пересчёт spread_k без анвила, ранний выход < −0,7) перенесено на CPU построчно как в cloud_density_raw. Проход сквозь Cb на сцене: мгла 1,0 в теле, 0 вне. Скоуп чистый, project.godot не тронут. Кромка по кадру не измерена; координатор снял edge_offset решением от 11-05 15:35.",
+  "issues": [
+    {
+      "file": "tools/research/cloud_view/CVW-5/README.md",
+      "line": 22,
+      "severity": "minor",
+      "what": "Отчёт ≠ факт. Таблица «Замер» описывает прогон t=3000 с, центр (11378, 3653, 11153): 22 кадра с записью, 5 кадров просвета. В итоговом after.json другой прогон: rec_time_s=3600, rec_frames=21, rec_clear_frames=6.",
+      "fix": "Свести таблицу к прогону из after.json/measures.csv (t=3600, 21/6) или пометить, что таблица относится к другому прогону."
+    },
+    {
+      "file": "tools/shots/cloud_view_climb_shot.gd",
+      "line": 467,
+      "severity": "minor",
+      "what": "rec_clear_amount_max берётся по кадрам с d_vis == 0, а мгла считается от той же d_vis, так что 0 получается по построению. Во всех кадрах recsgap density_cam (грубое поле) тоже 0. Случай из К3 «просвет, где грубое поле > 0» на сцене этим замером не проверен.",
+      "fix": "В следующем замере стенда выбрать точку просвета, где x_amount_coarse > 0 (или density_cam > 0). Сейчас этот случай покрыт только test_field_gaps."
+    },
+    {
+      "file": "scripts/atmosphere/cloud_layer.gd",
+      "line": 1440,
+      "severity": "minor",
+      "what": "Искажение на CPU читает мип 0, шейдер — cloud_lod. Для точки камеры внутри облака lod ≈ 0, поэтому расхождение мало. Также при пустом _nz_slices CPU молча переходит на неискажённую форму (как quality 0). Ни то ни другое не помечено как граница модели в README К3.",
+      "fix": "Одной строкой в README CVW-5, раздел «Границы»: мип 0 вместо lod; без шума — форма quality 0."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "cloud_visible_density",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "rec_in_cloud",
+      "value": "0.999998",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "7 файлов в границах",
+      "pass": true
+    }
+  ],
+  "t": "2026-11-05T15:37:28",
+  "by": "reviewer"
+}

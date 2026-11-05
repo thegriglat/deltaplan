@@ -1,14 +1,21 @@
 {
-  "status": "done",
-  "summary": "_rec_density без выделений (башни считаются в цикле, _towers_shape). Стенд recs прошёл через Cb-запись на реальной сцене: мгла 1,0 в теле, 0 в просвете; оценена граница записи vs шейдер.",
+  "status": "partial",
+  "summary": "_rec_density без выделений; стенд recs на реальной сцене (Cb): мгла 1,0 в теле, 0 в просвете; uv-искажение quality 1 (w1,w2) перенесено на CPU; кромка по кадрам надёжно не меряется, edge_offset_measured_m не получен.",
   "commits": [
-    "69c17b174 башни без массива, проход в стенде",
-    "fe2d33f8b замеры, README, тест Cb"
+    "fc23c5584 cloud-view: CVW-5 — замер кромки записи: по кадрам не меряется, README",
+    "cf1a960d8 cloud-view: CVW-5 — искажение quality 1 на CPU, замер кромки записи по кадрам",
+    "09056e8dc Слияние feature/cloud-view в cloud-view/CVW-5",
+    "8ed566153 cloud-view: CVW-5 на доработку (граница облаков-записей)"
   ],
   "checks": [
     {
       "name": "cloud_visible_density",
       "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "test_game_logic",
+      "value": "16/16",
       "pass": true
     },
     {
@@ -23,44 +30,54 @@
     },
     {
       "name": "rec_frames",
-      "value": "22",
-      "pass": true
-    },
-    {
-      "name": "test_game_logic",
-      "value": "16/16",
+      "value": "21",
       "pass": true
     },
     {
       "name": "gd_check",
       "value": "exit 0",
       "pass": true
+    },
+    {
+      "name": "synced",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "edge_offset",
+      "value": "не измерен (яркость кадра плоская, кромка рваная)",
+      "pass": false
     }
   ],
   "not_done": [
-    "Кучевые (kind 0) и линзы на сцене не встретились - только синтетика; на сцене проверен Cb (kind 3)"
+    "edge_offset_measured_m <= 10 м не подтверждён: у Cb на обеих кромках яркость кадра плоская (0,297 / 0,390), кромка шейдера рваная (клубы), спад CPU-плотности 1,0 -> 0,17 на ~300 м; первый замер 20-30 м был по слою поля, не по записи - отброшен",
+    "Кучевые (kind 0) и линзы на сцене не встретились - только синтетика"
   ],
-  "questions": [],
-  "images": [],
+  "questions": [
+    "Как мерить кромку записи надёжно: сравнивать альфу compute-эффекта с CPU-плотностью на сетке точек (нужен вывод от эффекта) или принять ширину размытия ~300 м как оценку?"
+  ],
+  "images": [
+    "build/screenshots/cloud-view/CVW-5/recs_view_12000.png",
+    "build/screenshots/cloud-view/CVW-5/recs_view_5000.png"
+  ],
   "how_to_check": ".dpcli/dpcli accept CVW-5",
   "uncertain": [
     {
-      "where": "tools/research/cloud_view/CVW-5/after.json: edge_offset_m",
-      "why": "960 м - верхняя оценка 0,15*rx (uv-искажение quality 1), не измерение; кадр с CPU-границей не сверялся",
-      "checked": "расчёт по rx=6390 м Cb; ~5 % ширины облака"
+      "where": "scripts/atmosphere/cloud_layer.gd: _rec_density (искажение quality 1)",
+      "why": "перенос w1/w2 не подтверждён замером по кадру; мип 0 вместо cloud_lod, без мелкой эрозии",
+      "checked": "тесты CVW-К3 5/5; обзорные кадры"
     },
     {
       "where": "tools/shots/cloud_view_climb_shot.gd: _recs_series",
-      "why": "набор объектов-облаков зависит от фонового расчёта атмосферы: на ранних t_air объектов 0, прогон недетерминирован; взят t=3000 с при temp 31, ветре 5",
-      "checked": "повторные прогоны давали Cb на 1800-3000 с; яркость кадров в просвете 0,44-0,57 из-за других облаков, не сверялась с плотностью"
+      "why": "набор объектов-облаков зависит от фонового расчёта атмосферы, прогон недетерминирован; записи рисуются только в дальности от глаза - глаз ставится к ближайшей записи",
+      "checked": "повторные прогоны, Cb найден на t=3000-3600 с, temp 31, ветер 5"
     }
   ],
-  "dp_feedback": "job wait в фоне часто переносится в фон на 180 с; очередь lock cpu долгая (>10 мин), хотелось бы видеть оценку ожидания в job status.",
+  "dp_feedback": "Очередь lock cpu долгая; job wait уходит в фон на 180 с. Файл r-ID.json пропал после task sync - хранить вне копии.",
   "extra": {
-    "rec_time_s": 3000,
-    "rec_kind": 3,
-    "edge_offset_m": 960
+    "rec_time_s": 3600,
+    "rec_kind": 3
   },
-  "t": "2026-11-05T15:06:09",
+  "t": "2026-11-05T15:34:54",
   "by": "executor"
 }
