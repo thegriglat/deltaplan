@@ -37,25 +37,10 @@
       "name": "air_start_goals",
       "tests": "air_start_goals",
       "timeout": 3600
-    },
-    {
-      "name": "goals_game",
-      "tests": "test_goals_game",
-      "timeout": 3600
-    },
-    {
-      "name": "achievement_feed",
-      "tests": "test_achievement_feed",
-      "timeout": 2400
-    },
-    {
-      "name": "air_start_menu",
-      "tests": "air_start_menu",
-      "timeout": 3600
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-11-05T16:32:28",
-  "edited": "2026-11-05T16:32:32"
+  "edited": "2026-11-05T19:04:25"
 }

@@ -1,0 +1,43 @@
+{
+  "id": "ASM-4",
+  "module": "air-start-menu",
+  "type": "dp-writer",
+  "title": "Guide и CHANGELOG: старт в воздухе",
+  "goal": "Описать в guide и CHANGELOG старт в воздухе для игрока: где выбирается, что ставится (высота, курс, трим), что не засчитывается и чего модель не умеет.",
+  "plan_ref": "4. Задачи",
+  "contracts": [
+    {
+      "name": "air-start-menu",
+      "version": "3",
+      "ref": "docs/contracts/air-start-menu.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/air-start-menu-ASM-4",
+  "branch": "air-start-menu/ASM-4",
+  "base": "feature/air-start-menu",
+  "scope": [
+    "docs/guide/game/launch.md",
+    "docs/guide/goals.md",
+    "docs/guide/game/cli-tests.md",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "scenes/",
+    "configs/",
+    "tests/",
+    "locale/",
+    "docs/contracts/",
+    "docs/plan/"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": "python3 .dpcli/dpcli docs check",
+      "expect": "!re:ОШИБКА  docs/guide/(game/launch|goals|game/cli-tests)"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-05T19:04:37"
+}
