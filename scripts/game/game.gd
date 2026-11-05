@@ -445,6 +445,8 @@ func start(s: FlightSettings) -> bool:
 	await get_tree().process_frame
 	# Боты: места и агенты — сразу, вид — порциями вместе с термиками ниже (FL-10).
 	_make_tow_session()
+	# Напарники (WM-К1): в одиночной игре; в сети — нет
+	bots.wingmen = int(Config.value("bots", "wingman.count", 1)) if net == null else 0
 	await bots.setup_in_world_async(
 		terrain, air, _start_pos, _start_heading, bots_count, world_link.objects, 50.0, _tow_bots_opts()
 	)
