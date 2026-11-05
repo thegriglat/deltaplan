@@ -6,7 +6,7 @@ area: game
 updated: "2026-11-05"
 summary: "SLT-К1: хранение своей картинки паруса в user:// (SailTexture); SLT-К2: наложение на парус игрока (SailMaterial.set_custom)."
 related: ["docs/plan/sail-texture.md", "docs/guide/models/wings.md", "docs/guide/models.md"]
-contracts: [{"id": "SLT-К1", "version": 1}, {"id": "SLT-К2", "version": 2}]
+contracts: [{"id": "SLT-К1", "version": 1}, {"id": "SLT-К2", "version": 3}]
 ---
 # Контракты модуля sail-texture
 
@@ -45,7 +45,7 @@ contracts: [{"id": "SLT-К1", "version": 1}, {"id": "SLT-К2", "version": 2}]
   `ACCESS_FILESYSTEM`, фильтры `*.png, *.jpg, *.jpeg`), «Родная» (сброс), предпросмотр, строка ошибки `tr(error)`.
   Выбор и сброс — отложенные, как всё на экране: «Готово» — `save(image)` или `clear()`; «Назад» — профиль без изменений.
 
-## SLT-К2. Наложение на парус игрока — версия 2
+## SLT-К2. Наложение на парус игрока — версия 3
 
 - Владелец: SLT-3. Потребитель: `scripts/flight/glider.gd` (визуал игрока). Боты и чужие (`scripts/game/bot_glider.gd`,
   `scripts/game/remote_pilots.gd`) не вызывают. Тест: `tests/contracts/test_sail_texture_contracts.gd` (раздел К2).
@@ -53,8 +53,8 @@ contracts: [{"id": "SLT-К1", "version": 1}, {"id": "SLT-К2", "version": 2}]
   `mat == null` — ничего; `tex == null` — родная текстура (как без вызова). Вызов — в `Glider` после `visual.build(...)`:
   `SailMaterial.set_custom(visual.sail_material, SailTexture.load_texture())`.
 - `SailMaterial.apply(...)` дополнительно ставит uniform'ы аспекта обшивок из меша `Sail` (для всех крыльев, в т.ч. ботов —
-  без своей картинки они ничего не меняют): `custom_aspect_top`, `custom_aspect_bottom` (float, размах / корневая хорда
-  этой обшивки, м/м; обшивка — по UV1: верх `UV.y > 0.5`, низ `UV.y < 0.5`; карман киля не входит).
+  без своей картинки они ничего не меняют): `custom_aspect_top`, `custom_aspect_bottom` (float, размах / наибольшая
+  хорда этой обшивки по размаху, м/м (v3; у моделей с карманом киля корневая хорда низа почти нулевая); обшивка — по UV1: верх `UV.y > 0.5`, низ `UV.y < 0.5`; карман киля не входит).
 - Uniform'ы шейдера `assets/shaders/sail/sail.gdshader`: `custom_tex : source_color, filter_linear_mipmap_anisotropic`,
   `custom_on : float` (0 — родная, 1 — своя), `custom_img_aspect : float` (w/h картинки) — ставит `set_custom`.
 - Раскладка (решение координатора 2026-11-05, по SLT-1 `tools/research/sail-texture/README.md`):
