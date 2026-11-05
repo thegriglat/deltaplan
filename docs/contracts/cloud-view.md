@@ -6,7 +6,7 @@ area: world
 updated: "2026-11-05"
 summary: "Стыки cloud-view: замеры кадров (CSV v1), CloudWhiteout v2 без протечки в небо и дымку облаков, плотность рисуемого облака (v1)."
 related: ["docs/plan/cloud-view.md", "docs/contracts/cloud-field.md"]
-contracts: [{"id": "CVW-К1", "version": 1}, {"id": "CVW-К2", "version": 2}, {"id": "CVW-К3", "version": 1}]
+contracts: [{"id": "CVW-К1", "version": 1}, {"id": "CVW-К2", "version": 3}, {"id": "CVW-К3", "version": 1}]
 ---
 
 # Контракты модуля cloud-view
@@ -30,8 +30,8 @@ frame,loc,hour,cam_x,cam_z,cam_y_msl,cam_agl,yaw_deg,pitch_deg,cloud_base_msl,cl
 
 Нет величины (нет поля, нет мглы) — пустое поле, не 0. Дополнительные колонки — после `png`, имя с префиксом `x_` (например `x_haze_top_msl`, `x_cloud_alpha_center`), смысл и единицы — в README рядом. Контрактная проверка — первая строка файла совпадает с заголовком выше (проверка `csv_header` в карточках).
 
-## CVW-К2. CloudWhiteout — «белая мгла» в облаке (v2)
-Владелец — `scripts/game/cloud_whiteout.gd` (правит CVW-3); вызывает `scripts/game/game.gd` (`_whiteout.update(d, dt)`, `_whiteout.apply(environment)`), параметры — `configs/game.json → cloud_whiteout`. Потребитель тумана — `scripts/atmosphere/cloud_layer.gd::_update_light` (дымка облаков). v1 → v2 (2026-11-05, по CVW-1/CVW-2): источник `density` — К3; мгла не протекает в небо ступенькой и в дымку облаков; облака закрывает вуалью по `amount`, а не экспонентой по расстоянию.
+## CVW-К2. CloudWhiteout — «белая мгла» в облаке (v3)
+Владелец — `scripts/game/cloud_whiteout.gd` (правит CVW-3); вызывает `scripts/game/game.gd` (`_whiteout.update(d, dt)`, `_whiteout.apply(environment)`), параметры — `configs/game.json → cloud_whiteout`. Потребитель тумана — `scripts/atmosphere/cloud_layer.gd::_update_light` (дымка облаков). v1 → v2 (2026-11-05, по CVW-1/CVW-2): источник `density` — К3; мгла не протекает в небо ступенькой и в дымку облаков; облака закрывает вуалью по `amount`, а не экспонентой по расстоянию. v2 → v3 (2026-11-05, ревью CVW-3): рельеф — тоже вуалью (туман глубины, доля ≤ v), видимость в облаке — из конфига; вуаль — и в запасном шейдере.
 
 ```
 var amount: float                       # 0..1
@@ -49,8 +49,12 @@ func apply(env: Environment) -> void    # смешивает исходный т
 Инварианты:
 - `amount = 0` → параметры тумана окружения и облаков побитно те же, что без мглы (вид вне облака не меняется);
 - непрерывность по `amount`: каждый параметр, который `apply` пишет в `env`, — непрерывная функция `amount`, равная исходной при `amount = 0`; небо: доля тумана на небе `fog_sky_affect` = lerp(s0, 1, v), где s0 — исходная, если исходный туман включён, иначе 0 (туман Godot на небе не зависит от расстояния и насыщается при любой плотности > 0 — ступенька v1); критерии — в карточке CVW-3;
-- `amount = 1` → видимость как в v1: `fog_density` мглы, небо и другие облака скрыты (`fog_sky_affect` = 1, `v` = 1);
+- `amount = 1` → небо и другие облака скрыты (`fog_sky_affect` = 1, `v` = 1), рельеф за `L` скрыт (`F(L) ≥ 0,9`) — как в v1;
 - мгла не меняет базовую дымку облаков (они не получают плотность мглы как экспоненту по расстоянию).
+- рельеф и всё, что под туманом Godot: пока `amount > 0`, доля тумана на расстоянии d — `F(d) = v · c(d / L)`, где `c` — возрастающая 0..1 (форма Бера–Ламберта `1 − exp(−3·d/L)` или ближайшая, что даёт `Environment` в режиме `FOG_MODE_DEPTH`: `fog_density` = v как максимум, `fog_depth_begin/end/curve`), `L` — видимость внутри облака, м (`configs/game.json → cloud_whiteout.visibility_m` с `_doc`, обоснование — Кошмидер, 3,9/σ; v1 давал ≈ 50 м). Значит, `F(d) ≤ v` на любом расстоянии (нет насыщения дальнего рельефа при малом amount) и `F(L) ≥ 0,9 · v`. Режим тумана переключается только при `amount > 0`, при `amount = 0` — исходный (побитно);
+- подобранных констант нет: всё, что задаёт вид мглы, — из конфига с `_doc` или выведено из физической величины;
+- цвет и доля вуали облаков обновляются каждый кадр вместе (множитель света — тот же кадр);
+- запасной путь без компоновщика (`cloud_volume.gdshader`, `renderer: boxes` или без RenderingDevice) — та же вуаль облаков.
 
 Контрактный тест — `tests/game/test_game_logic.gd::test_cloud_whiteout` (фильтр `test_game_logic`: `--filter` — подстрока имени файла теста) и `tests/game/test_cloud_whiteout_view.gd` (CVW-3, фильтр `cloud_whiteout_view`: инварианты выше). Изменение интерфейса или инвариантов — только координатор, версия +1.
 

@@ -13,7 +13,7 @@
     },
     {
       "name": "CVW-К2",
-      "version": "2",
+      "version": "3",
       "ref": "docs/contracts/cloud-view.md"
     }
   ],
@@ -25,6 +25,7 @@
     "scripts/atmosphere/cloud_layer.gd",
     "scripts/atmosphere/cloud_raymarch_cs.gdshaderinc",
     "scripts/atmosphere/cloud_compositor_effect.gd",
+    "scripts/atmosphere/cloud_volume.gdshader",
     "configs/game.json",
     "tests/game/test_cloud_whiteout_view.gd",
     "tests/game/test_cloud_whiteout_view.gd.uid",
@@ -59,9 +60,19 @@
       "expect": "num:([0-9.]+) <=0.02"
     },
     {
-      "name": "incloud_whiteout",
-      "cmd": "python3 -c \"import json;print(json.load(open('tools/research/cloud_view/CVW-3/after.json'))['fog_density_at_amount1'])\"",
-      "expect": "num:([0-9.]+) >=0.05"
+      "name": "terrain_step",
+      "cmd": "python3 -c \"import json;print(json.load(open('tools/research/cloud_view/CVW-3/after.json'))['terrain_step_max'])\"",
+      "expect": "num:([0-9.]+) <=0.02"
+    },
+    {
+      "name": "incloud_terrain",
+      "cmd": "python3 -c \"import json;print(json.load(open('tools/research/cloud_view/CVW-3/after.json'))['fog_frac_at_L_amount1'])\"",
+      "expect": "num:([0-9.]+) >=0.9"
+    },
+    {
+      "name": "measured_on_final",
+      "cmd": "test \"$(python3 -c \"import json;print(json.load(open('tools/research/cloud_view/CVW-3/after.json'))['code_commit'])\")\" = \"$(git log -1 --format=%h -- scripts configs)\"",
+      "expect": "exit=0"
     },
     {
       "name": "gd_check",
@@ -72,5 +83,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-11-05T11:32:09",
-  "edited": "2026-11-05T11:33:32"
+  "edited": "2026-11-05T13:00:09"
 }
