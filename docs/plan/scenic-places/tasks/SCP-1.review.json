@@ -1,0 +1,32 @@
+{
+  "verdict": "accept",
+  "summary": "Скоуп чист (3 файла), проверка SCP-К2 соответствует контракту (пороги 15 км/30°/запас 50 м/перепад 100 м не ослаблены), 80 мест, по стране 7–9, agl ≤ 1000. Отчёт совпал с перезапуском.",
+  "issues": [
+    {
+      "file": "tools/places/check_scenic_places.py",
+      "line": 228,
+      "severity": "minor",
+      "what": "check_format проверяет только набор полей, id и kind; диапазоны и длины проверяет контрактный тест, не инструмент. Дубли id между файлами ловятся.",
+      "fix": "не требуется для приёмки"
+    }
+  ],
+  "rerun": [
+    {
+      "name": "relief (accept --only relief --dry)",
+      "value": "checked 80, failed 0",
+      "pass": true
+    },
+    {
+      "name": "unit",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "contract",
+      "value": "OK (skipped=1)",
+      "pass": true
+    }
+  ],
+  "t": "2026-11-05T07:35:16",
+  "by": "reviewer"
+}
