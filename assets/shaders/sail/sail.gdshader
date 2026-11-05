@@ -2,7 +2,8 @@
 // (латы, швы, ламинат), двусторонний; вершинная анимация по параметрам полёта.
 // Маска анимации — вторая UV меша Sail (tools/blender/build_gliders.py):
 //   UV2.x — вес пролёта между латами (0 на лате), UV2.y — доля хорды (0 — передняя кромка,
-//   1 — задняя), у нижней обшивки UV2.y + 2. Смещение — вдоль +Y модели (вверх по крылу), м.
+//   1 — задняя), у нижней обшивки UV2.y + 2. Экспорт glTF переворачивает V: в Godot приходит
+//   UV2.y = 1 − y_сборщика, поэтому вершина читает y = 1 − UV2.y (верх 1 − t, низ −1…−1,96). Смещение — вдоль +Y модели (вверх по крылу), м.
 // Значения по умолчанию совпадают с assets/shaders/sail/sail_params.json (их ставит SailMaterial).
 shader_type spatial;
 #include "res://scripts/terrain/cloud_shadow.gdshaderinc"
@@ -29,7 +30,7 @@ uniform vec3 transmit_tint : source_color = vec3(1.0, 0.97, 0.9);
 uniform sampler2D custom_tex : source_color, filter_linear_mipmap_anisotropic;
 uniform float custom_on = 0.0;
 uniform float custom_img_aspect = 1.0;     // w/h картинки
-uniform float custom_aspect_top = 4.0;     // размах / корневая хорда верхней обшивки, м/м
+uniform float custom_aspect_top = 4.0;     // размах / наибольшая хорда верхней обшивки (SLT-К2 v3), м/м
 uniform float custom_aspect_bottom = 4.0;  // то же для нижней
 varying flat float v_pocket;               // 1 — карман киля (вертикальная плоскость x = 0): родная текстура
 uniform float forward_gain : hint_range(0.0, 3.0) = 0.7;
@@ -67,8 +68,9 @@ const float TAU_ = 6.28318530718;
 void vertex() {
 	v_pocket = step(0.7, abs(NORMAL.x));  // до деформации (она только по Y)
 	float bay = UV2.x;
-	float low = step(1.5, UV2.y);
-	float t = UV2.y - 2.0 * low;
+	float y = 1.0 - UV2.y;  // V перевёрнута импортом glTF
+	float low = step(1.5, y);
+	float t = y - 2.0 * low;
 	float x = VERTEX.x;
 	float tm = time_override >= 0.0 ? time_override : TIME;
 	float body = bay * smoothstep(0.15, 0.75, t);
@@ -99,7 +101,7 @@ void fragment() {
 		a.rgb = clamp((vec3(g) + c * sat_scale) * value_scale, 0.0, 1.0);
 	}
 	if (custom_on > 0.5 && v_pocket < 0.5) {
-		// Раскладка SLT-К2 v1: верх — взгляд сверху (a = s), низ — взгляд снизу (a = 1 − s); нос — верх картинки.
+		// Раскладка SLT-К2 v3: верх — взгляд сверху (a = s), низ — взгляд снизу (a = 1 − s); нос — верх картинки.
 		bool is_top = UV.y > 0.5;
 		float q = is_top ? 2.0 * (1.0 - UV.y) : 1.0 - 2.0 * UV.y;
 		float ca = is_top ? UV.x : 1.0 - UV.x;
