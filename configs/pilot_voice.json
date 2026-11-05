@@ -1,0 +1,410 @@
+{
+	"_doc": "Реплики пилота (PV-К2). Игрок меняет только voice. Тексты и тон — источник для генерации голосов (PVO-3).",
+	"voice": "male",
+	"voices": [
+		"male",
+		"female"
+	],
+	"bus": "Voice",
+	"volume_db": 0.0,
+	"dir": "res://assets/sounds/voice",
+	"rules": {
+		"gap_s": {
+			"1": 20.0,
+			"2": 5.0,
+			"3": 2.0
+		},
+		"max_wait_s": 3.0,
+		"quiet_after_takeoff_s": 8.0
+	},
+	"situations": {
+		"takeoff": {
+			"priority": 2,
+			"cooldown_s": 0.0,
+			"chance": 0.7,
+			"params": {
+				"delay_s": 1.0
+			},
+			"lines": [
+				{
+					"ru": "Пошёл!",
+					"en": "Here we go!",
+					"tone": "азарт, выдох"
+				},
+				{
+					"ru": "Летим!",
+					"en": "Airborne!",
+					"tone": "азарт, выдох"
+				},
+				{
+					"ru": "Ну, поехали.",
+					"en": "Okay, flying.",
+					"tone": "азарт, выдох"
+				}
+			]
+		},
+		"thermal_found": {
+			"priority": 1,
+			"cooldown_s": 90.0,
+			"chance": 0.6,
+			"params": {
+				"v_ms": 1.0,
+				"hold_s": 3.0,
+				"v_quiet_ms": 0.5,
+				"quiet_s": 20.0
+			},
+			"lines": [
+				{
+					"ru": "Вроде нашёл.",
+					"en": "I think I've got something.",
+					"tone": "неуверенная радость, вполголоса"
+				},
+				{
+					"ru": "О, тянет…",
+					"en": "Ooh, it's pulling…",
+					"tone": "неуверенная радость, вполголоса"
+				},
+				{
+					"ru": "Есть, пошло вверх.",
+					"en": "There we go, going up.",
+					"tone": "неуверенная радость, вполголоса"
+				}
+			]
+		},
+		"thermal_strong": {
+			"priority": 1,
+			"cooldown_s": 180.0,
+			"chance": 0.7,
+			"params": {
+				"v_ms": 3.0,
+				"hold_s": 4.0
+			},
+			"lines": [
+				{
+					"ru": "Ух, как несёт!",
+					"en": "Wow, it's really pulling!",
+					"tone": "восторг"
+				},
+				{
+					"ru": "Вот это термик!",
+					"en": "Now that's a thermal!",
+					"tone": "восторг"
+				},
+				{
+					"ru": "Хорошо пошло!",
+					"en": "Going up nicely!",
+					"tone": "восторг"
+				}
+			]
+		},
+		"thermal_lost": {
+			"priority": 1,
+			"cooldown_s": 120.0,
+			"chance": 0.6,
+			"params": {
+				"v_in_ms": 0.8,
+				"in_s": 30.0,
+				"v_out_ms": -1.0,
+				"hold_s": 5.0
+			},
+			"lines": [
+				{
+					"ru": "Потерял…",
+					"en": "Lost it…",
+					"tone": "разочарование"
+				},
+				{
+					"ru": "Куда делся?",
+					"en": "Where'd it go?",
+					"tone": "разочарование"
+				},
+				{
+					"ru": "Всё, кончился.",
+					"en": "That's it, it's gone.",
+					"tone": "разочарование"
+				}
+			]
+		},
+		"sink": {
+			"priority": 1,
+			"cooldown_s": 90.0,
+			"chance": 0.7,
+			"params": {
+				"v_ms": -3.0,
+				"hold_s": 3.0,
+				"max_airspeed_ms": 15.0
+			},
+			"lines": [
+				{
+					"ru": "Вот чёрт…",
+					"en": "Oh, damn…",
+					"tone": "досада"
+				},
+				{
+					"ru": "Сыплемся…",
+					"en": "We're dropping…",
+					"tone": "досада"
+				},
+				{
+					"ru": "Ну и провал.",
+					"en": "What a sink.",
+					"tone": "досада"
+				}
+			]
+		},
+		"turbulence": {
+			"priority": 1,
+			"cooldown_s": 150.0,
+			"chance": 0.6,
+			"params": {
+				"min_agl_m": 10.0,
+				"window_s": 8.0,
+				"peaks": 3,
+				"n_dev": 0.4
+			},
+			"lines": [
+				{
+					"ru": "Ох, болтает.",
+					"en": "Bumpy…",
+					"tone": "напряжение"
+				},
+				{
+					"ru": "Тише, тише…",
+					"en": "Easy, easy…",
+					"tone": "напряжение"
+				},
+				{
+					"ru": "Ну и трясёт.",
+					"en": "Rough air.",
+					"tone": "напряжение"
+				}
+			]
+		},
+		"stall": {
+			"priority": 3,
+			"cooldown_s": 20.0,
+			"chance": 1.0,
+			"params": {
+				"min_agl_m": 5.0,
+				"hold_s": 0.5
+			},
+			"lines": [
+				{
+					"ru": "Ой-ой!",
+					"en": "Whoa!",
+					"tone": "испуг, резко"
+				},
+				{
+					"ru": "Скорость!",
+					"en": "Speed!",
+					"tone": "испуг, резко"
+				},
+				{
+					"ru": "Держу, держу…",
+					"en": "Hold it, hold it…",
+					"tone": "испуг, резко"
+				}
+			]
+		},
+		"fast": {
+			"priority": 1,
+			"cooldown_s": 180.0,
+			"chance": 0.6,
+			"params": {
+				"airspeed_ms": 22.0,
+				"hold_s": 3.0
+			},
+			"lines": [
+				{
+					"ru": "Ух, свистит!",
+					"en": "The wind's howling!",
+					"tone": "азарт"
+				},
+				{
+					"ru": "Быстро идём.",
+					"en": "We're flying fast.",
+					"tone": "азарт"
+				}
+			]
+		},
+		"low": {
+			"priority": 1,
+			"cooldown_s": 120.0,
+			"chance": 0.7,
+			"params": {
+				"agl_m": 80.0,
+				"v_ms": 0.0,
+				"rearm_agl": 200.0
+			},
+			"lines": [
+				{
+					"ru": "Низковато.",
+					"en": "Getting low.",
+					"tone": "озабоченно"
+				},
+				{
+					"ru": "Пора садиться.",
+					"en": "Time to land.",
+					"tone": "озабоченно"
+				},
+				{
+					"ru": "Где тут сесть?",
+					"en": "Where do I put down?",
+					"tone": "озабоченно"
+				}
+			]
+		},
+		"high": {
+			"priority": 1,
+			"cooldown_s": 120.0,
+			"chance": 0.5,
+			"params": {
+				"step_m": 300.0
+			},
+			"lines": [
+				{
+					"ru": "Хорошо забрался.",
+					"en": "Good height.",
+					"tone": "спокойная радость"
+				},
+				{
+					"ru": "Красота, видно далеко.",
+					"en": "What a view.",
+					"tone": "спокойная радость"
+				},
+				{
+					"ru": "Вот это высота.",
+					"en": "Now that's high.",
+					"tone": "спокойная радость"
+				}
+			]
+		},
+		"cloud": {
+			"priority": 2,
+			"cooldown_s": 120.0,
+			"chance": 0.8,
+			"params": {
+				"cloud": 0.6,
+				"hold_s": 1.0
+			},
+			"lines": [
+				{
+					"ru": "Ничего не видно!",
+					"en": "Can't see a thing!",
+					"tone": "тревога"
+				},
+				{
+					"ru": "Влез в облако…",
+					"en": "I'm in the cloud…",
+					"tone": "тревога"
+				}
+			]
+		},
+		"turnpoint": {
+			"priority": 2,
+			"cooldown_s": 10.0,
+			"chance": 1.0,
+			"params": {},
+			"lines": [
+				{
+					"ru": "Есть точка!",
+					"en": "Got the turnpoint!",
+					"tone": "довольно"
+				},
+				{
+					"ru": "Взял.",
+					"en": "Got it.",
+					"tone": "довольно"
+				}
+			]
+		},
+		"goal": {
+			"priority": 2,
+			"cooldown_s": 0.0,
+			"chance": 1.0,
+			"params": {},
+			"lines": [
+				{
+					"ru": "Есть гол! Долетел!",
+					"en": "Goal! Made it!",
+					"tone": "ликование"
+				},
+				{
+					"ru": "Да! Долетел.",
+					"en": "Yes! Made it.",
+					"tone": "ликование"
+				}
+			]
+		},
+		"landing_soft": {
+			"priority": 2,
+			"cooldown_s": 0.0,
+			"chance": 0.7,
+			"params": {
+				"delay_s": 0.6
+			},
+			"lines": [
+				{
+					"ru": "Мягко.",
+					"en": "Nice and soft.",
+					"tone": "облегчение"
+				},
+				{
+					"ru": "Ну вот и всё.",
+					"en": "And that's it.",
+					"tone": "облегчение"
+				},
+				{
+					"ru": "Красота.",
+					"en": "Lovely.",
+					"tone": "облегчение"
+				}
+			]
+		},
+		"landing_hard": {
+			"priority": 3,
+			"cooldown_s": 0.0,
+			"chance": 1.0,
+			"params": {
+				"delay_s": 0.6
+			},
+			"lines": [
+				{
+					"ru": "Ох… ноги.",
+					"en": "Ouch… my legs.",
+					"tone": "боль, кряхтение"
+				},
+				{
+					"ru": "Жёстко вышло.",
+					"en": "That was hard.",
+					"tone": "боль, кряхтение"
+				},
+				{
+					"ru": "Ай.",
+					"en": "Oof.",
+					"tone": "боль, кряхтение"
+				}
+			]
+		},
+		"crash": {
+			"priority": 3,
+			"cooldown_s": 0.0,
+			"chance": 1.0,
+			"params": {
+				"delay_s": 0.8
+			},
+			"lines": [
+				{
+					"ru": "Ох-х…",
+					"en": "Ugh…",
+					"tone": "стон"
+				},
+				{
+					"ru": "Ну вот…",
+					"en": "Oh no…",
+					"tone": "стон"
+				}
+			]
+		}
+	}
+}

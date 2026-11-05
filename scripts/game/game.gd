@@ -148,6 +148,8 @@ var _motion_gap := false  ## поток движения прерывался (�
 @onready var overlay: InstrumentOverlay = $InstrumentOverlay
 @onready var vario_audio: VarioAudio = $VarioAudio
 @onready var flight_audio: FlightAudio = $FlightAudio
+## Реплики пилота игрока (PV-К4); создаётся в _ready, шина Voice.
+var pilot_voice: PilotVoice
 # Подошвы пилота на прошлом шаге (шуршание о траву, _rustle_feet).
 var _feet_prev := PackedVector3Array()
 var _feet_prev_usec: int = 0
@@ -227,6 +229,9 @@ func _ready() -> void:
 	_connect_achievements()
 	glider.takeoff_failed.connect(_on_takeoff_failed)
 	_whiteout.setup(_cfg.get("cloud_whiteout", {}))
+	pilot_voice = PilotVoice.new()
+	pilot_voice.name = "PilotVoice"
+	add_child(pilot_voice)
 	apply_user_settings()
 	set_flying(false)
 
@@ -344,6 +349,7 @@ func _motion_step(dt: float) -> void:
 ## Асинхронно (рельеф с карты грузится из сети). Возвращает false при ошибке.
 func start(s: FlightSettings) -> bool:
 	flight_no += 1
+	_voice_reset()
 	_tracks_finish()
 	stop_wait()
 	settings = s.duplicate()
@@ -815,6 +821,7 @@ func restart(keep_clock: bool = false) -> void:
 	if settings == null:
 		return
 	flight_no += 1
+	_voice_reset()
 	_tracks_finish()
 	stop_wait()
 	if autopilot != null:
@@ -905,6 +912,7 @@ func air_start_position(forward_m := -1.0, agl_m := -1.0) -> Vector3:
 ## После итога «Продолжить»: пилот на земле ходит дальше; новый разбег — новый полёт.
 func continue_on_foot() -> void:
 	flight_no += 1
+	_voice_reset()
 	_tracks_finish()
 	_ended = false
 	_touchdown = {}
@@ -1231,6 +1239,8 @@ func apply_user_settings() -> void:
 	vario_audio.set_volume_db(float(va.get("volume_db", -6.0)))
 	if va.has("preset") and vario_audio.has_method("set_preset"):
 		vario_audio.call("set_preset", String(va.preset))
+	if pilot_voice != null:
+		pilot_voice.set_voice(String(Config.value("pilot_voice", "voice", "male")))
 
 
 func next_instrument_page() -> void:
@@ -1925,6 +1935,26 @@ func _rustle_feet(t: Telemetry) -> Array:
 	return out
 
 
+func _voice_reset() -> void:
+	if pilot_voice != null:
+		pilot_voice.reset()
+
+
+func _voice_event(event_name: String, data := {}) -> void:
+	if pilot_voice != null:
+		pilot_voice.on_event(event_name, data)
+
+
+## Реплики пилота (PV-К1): только свой дельтаплан, время ×1, не осмотр, не буксир.
+func _voice_update(t: Telemetry) -> void:
+	if pilot_voice == null:
+		return
+	pilot_voice.set_suppressed(
+		glider.is_trike() or inspect_mode or not is_equal_approx(sky.clock.speed, 1.0)
+	)
+	pilot_voice.update(t, _sound_vario().vario_ms, _whiteout.amount, _dt)
+
+
 func _on_telemetry(t: Telemetry) -> void:
 	_update_trike_gauges()
 	_update_trike_wash()
@@ -1947,6 +1977,7 @@ func _on_telemetry(t: Telemetry) -> void:
 		extra["ground_wind_ms"] = (air.call("mean_wind_at", t.position) as Vector3).length()
 	extra["feet"] = _rustle_feet(t)
 	flight_audio.update(t, extra)
+	_voice_update(t)
 	stats.flight_position_started = glider.model.flight_position_started  # FB-К2
 	stats.update(t, _dt)
 	# Старт в воздухе (reset_in_air: тесты, «свободный полёт»): взлёта со склона не было —
@@ -1966,6 +1997,8 @@ static func recenter_on_takeoff(trike: bool, already: bool) -> bool:
 
 ## Отрыв (glider.took_off): взгляд по центру (как средняя кнопка), начало потока ачивок.
 func _on_took_off() -> void:
+	if tow == null:
+		_voice_event("took_off", {"altitude_msl": glider.get_telemetry().altitude_msl})
 	if recenter_on_takeoff(glider.is_trike(), _recentered):
 		camera.recenter()
 	_recentered = true
@@ -2003,6 +2036,8 @@ func _connect_achievements() -> void:
 ## Касание ногами: звук и оценка сейчас, итог — когда FlightStats засчитает посадку.
 func _on_landed(result: Dictionary) -> void:
 	flight_audio.play_landing(result)
+	if tow == null:
+		_voice_event("landed", {"grade": String(result.get("grade", ""))})
 	_touchdown = result.duplicate()
 
 
@@ -2086,6 +2121,8 @@ func _on_collision(hit: Dictionary) -> void:
 		"bank_deg": t.bank_deg,
 	}
 	flight_audio.play_landing(info)
+	if tow == null:
+		_voice_event("landed", {"grade": "crash"})
 	info.merge(stats.summary(t.position), true)
 	_emit_end("landed", info)
 
@@ -2116,6 +2153,8 @@ func _goals_setup() -> void:
 			goals = GoalTracker.new()
 			goals.setup(settings.goals, _goals_ctx())
 			goals.goal_done.connect(func(_i: int) -> void: _goals_sync_instrument(true))
+			goals.turnpoint_taken.connect(func() -> void: _voice_event("turnpoint"))
+			goals.route_goal_reached.connect(func() -> void: _voice_event("goal"))
 			goals.goal_failed.connect(func(_i: int) -> void: _goals_sync_instrument(true))
 		else:
 			push_warning("Game: цели пропущены: %s" % "; ".join(errs))
