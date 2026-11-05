@@ -1,0 +1,38 @@
+{
+  "status": "done",
+  "summary": "Добавлены .uid обоих тестов реплик. PilotVoiceLogic: повторный took_off без reset() игнорируется (флаг _airborne), takeoff/landed_said/high_level не сбрасываются; тесты на повтор и подскок.",
+  "commits": [
+    "1e0c9ae74 PVO-2a: .uid тестов и раз-за-полёт при повторном отрыве"
+  ],
+  "checks": [
+    {
+      "name": "pilot_voice",
+      "value": "41/41",
+      "pass": true
+    },
+    {
+      "name": "uids",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "gd_check",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept PVO-2a",
+  "uncertain": [
+    {
+      "where": "scripts/audio/pilot_voice_logic.gd:event took_off",
+      "why": "новый полёт теперь только через reset()/setup(); если Game при рестарте не вызывает reset, второй полёт без перезапуска сцены не получит takeoff",
+      "checked": "тест: после reset() takeoff снова; вызов в scripts/game вне скоупа, не проверял"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-11-05T11:27:37",
+  "by": "executor"
+}

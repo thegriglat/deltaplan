@@ -69,3 +69,9 @@
 {"t": "2026-11-05T11:24:46", "by": "coordinator", "task": "PVO-4", "ev": "merged", "commits": ["ccce2a622"]}
 {"t": "2026-11-05T11:26:53", "by": "coordinator", "task": "PVO-3", "ev": "checked", "note": "4/4 files=ok:288; imports=ok:288; format=ok:exit 0; license=ok:exit 0"}
 {"t": "2026-11-05T11:27:00", "by": "coordinator", "task": "PVO-3", "ev": "accepted", "note": "по отчёту: partial — 10 реплик ниже порогов приняты ночным решением, прослушивание утром"}
+{"t": "2026-11-05T11:27:37", "by": "executor", "task": "PVO-2a", "ev": "reported", "commits": ["1e0c9ae74"], "note": "done: Добавлены .uid обоих тестов реплик. PilotVoiceLogic: повторный took_off без reset() игнорируется (флаг _airborne), take…"}
+{"t": "2026-11-05T11:28:54", "by": "coordinator", "task": "PVO-3", "ev": "accepted", "commits": ["1b790a3d4"], "note": "4/4 files=ok:288; imports=ok:288; format=ok:exit 0; license=ok:exit 0"}
+{"t": "2026-11-05T11:28:55", "by": "coordinator", "task": "PVO-3", "ev": "merged", "commits": ["1b790a3d4"]}
+{"t": "2026-11-05T11:29:12", "by": "coordinator", "task": "PVO-2a", "ev": "checked", "note": "3/3 pilot_voice=ok:41/41; uids=ok:exit 0; gd_check=ok:exit 0; scope=FAIL:вне scope: r-PVO-2a.json"}
+{"t": "2026-11-05T11:29:58", "by": "coordinator", "task": "PVO-2a", "ev": "checked", "note": "3/3 pilot_voice=ok:41/41; uids=ok:exit 0; gd_check=ok:exit 0"}
+{"t": "2026-11-05T11:30:10", "by": "coordinator", "task": "PVO-2a", "ev": "accepted", "note": "по отчёту (мелкие правки по ревью PVO-2)"}
