@@ -75,6 +75,9 @@ uniform float lod_distance_m = 12000.0;
 uniform vec3 fog_color = vec3(0.66, 0.74, 0.86);
 uniform float fog_density = 0.00004;
 uniform float fog_sun_scatter = 0.15;
+// Вуаль «белой мглы» (CVW-К2): доля и линейный цвет, не зависит от расстояния.
+uniform vec3 veil_color = vec3(0.0);
+uniform float veil_v = 0.0;
 
 varying flat int v_idx;
 
@@ -130,6 +133,7 @@ void fragment() {
 	float cos_t = dot(rd, sun_dir);
 	vec3 fc = fog_color * (1.0 + fog_sun_scatter * pow(max(cos_t, 0.0), 8.0));
 	col = col * (1.0 - fog) + fc * alpha * fog;
+	col = col * (1.0 - veil_v) + veil_color * alpha * veil_v;
 #if CURRENT_RENDERER == RENDERER_COMPATIBILITY
 	// Compatibility не переводит вывод этого материала (unshaded + premul alpha) из линейного
 	// пространства в sRGB — облака выходили темнее и контрастнее, чем в Forward+ (замер:

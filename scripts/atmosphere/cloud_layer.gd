@@ -51,7 +51,6 @@ var model: CloudModel
 var history_free := false
 
 var _material: ShaderMaterial
-var _fc_k := Vector3.ONE  ## множитель света дымки (tint × sky_k) с последнего _update_light
 var _veil_color := Vector3.ZERO  ## вуаль мглы: линейный цвет и доля (0 — нет вуали)
 var _veil_v := 0.0
 var _box: BoxMesh
@@ -435,8 +434,6 @@ func _push_to_effect(recs: Array[PackedFloat32Array]) -> void:
 	var data := PackedFloat32Array()
 	for g in recs:
 		data.append_array(g)
-	_effect.params["veil_color"] = _veil_color
-	_effect.params["veil_v"] = _veil_v
 	_effect.clouds_data = data
 	_effect.cloud_count = recs.size()
 	for k: String in field_params:
@@ -488,8 +485,20 @@ func _exit_tree() -> void:
 		_attach_effect(null)
 
 
-## Вуаль «белой мглы» (CVW-К2 v2): доля v и цвет — из метаданных окружения, каждый кадр.
-## Цвет — в линейном виде, с тем же множителем света, что у дымки (_fc_k).
+## Множители света дымки: оттенок горизонта и яркость неба по высоте солнца (закат) — {tint, sky_k}.
+func _light_factors() -> Dictionary:
+	var tint := Color.WHITE
+	var sky_k := 1.0
+	var sky := _find_sky()
+	if bool(cfg.get("ambient_follows_sunset", true)) and sky != null and sky.clock != null:
+		var el_s: float = sky.clock.angles().y
+		tint = SunClock.light_at(el_s).horizon_tint as Color
+		sky_k = SunTransmission.sky_k(el_s, _tab_params)
+	return {"tint": tint, "sky_k": sky_k}
+
+
+## Вуаль «белой мглы» (CVW-К2 v3): доля v и цвет — из метаданных окружения, каждый кадр.
+## Цвет — в линейном виде, с множителем света того же кадра (_light_factors).
 func _update_veil() -> void:
 	var env: Environment = (
 		get_world_3d().environment if is_inside_tree() and get_world_3d() != null else null
@@ -498,8 +507,13 @@ func _update_veil() -> void:
 	if env != null and env.has_meta("whiteout_veil"):
 		var wv: Dictionary = env.get_meta("whiteout_veil")
 		var lc := (wv.color as Color).srgb_to_linear() * env.fog_light_energy
-		_veil_color = Vector3(lc.r, lc.g, lc.b) * _fc_k
+		var lk := _light_factors()
+		var k := Vector3(lk.tint.r, lk.tint.g, lk.tint.b) * float(lk.sky_k)
+		_veil_color = Vector3(lc.r, lc.g, lc.b) * k
 		_veil_v = clampf(float(wv.v), 0.0, 1.0)
+	# Обе ветки рисования (компоновщик и запасной шейдер) берут их из материала.
+	_material.set_shader_parameter("veil_color", _veil_color)
+	_material.set_shader_parameter("veil_v", _veil_v)
 
 
 ## Солнце и дымка — из сцены (DirectionalLight3D, WorldEnvironment), иначе из конфига.
@@ -523,13 +537,9 @@ func _update_light() -> void:
 	# (SunTransmission.sky_k, одна с рельефом, небом и дымкой SkyEnvironment, HH4 v3);
 	# цвет низа окружения и дымки — × horizon_tint,
 	# верх окружения (ambient_top, зенит) не подкрашивается — на закате зенит синий.
-	var tint := Color.WHITE
-	var sky_k := 1.0
-	var sky := _find_sky()
-	if bool(cfg.get("ambient_follows_sunset", true)) and sky != null and sky.clock != null:
-		var el_s: float = sky.clock.angles().y
-		tint = SunClock.light_at(el_s).horizon_tint as Color
-		sky_k = SunTransmission.sky_k(el_s, _tab_params)
+	var lk := _light_factors()
+	var tint: Color = lk.tint
+	var sky_k: float = lk.sky_k
 	var toa := Vector3(color.r, color.g, color.b)
 	var energy := _sun_energy * atmo.get_insolation()
 	var tab := _update_sun_transmission()
@@ -548,7 +558,6 @@ func _update_light() -> void:
 		get_world_3d().environment if is_inside_tree() and get_world_3d() != null else null
 	)
 	var fc_k := Vector3(tint.r, tint.g, tint.b) * sky_k
-	_fc_k = fc_k
 	# Дымка облаков — из тумана окружения до «белой мглы» (метаданные fog_base, CVW-К2 v2):
 	# мгла красит облака вуалью по amount (_update_veil), а не густой дымкой по расстоянию.
 	var fog_on := env != null and env.fog_enabled
