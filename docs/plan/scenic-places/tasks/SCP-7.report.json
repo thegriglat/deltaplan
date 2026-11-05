@@ -24,14 +24,8 @@
   "not_done": [],
   "questions": [],
   "how_to_check": ".dpcli/dpcli accept SCP-7",
-  "uncertain": [
-    {
-      "where": "CHANGELOG.md, findings.md",
-      "why": "в карточке «запас ≥ 50 м», а в research запас неотрицательный (min 0 м, us/mount-hood), у 13 мест < 10 м",
-      "checked": "написал по research; контракт SCP-К2 требует 50 м — расхождение контракта и исследования"
-    }
-  ],
+  "uncertain": [],
   "dp_feedback": "",
-  "t": "2026-11-05T16:36:08",
+  "t": "2026-11-05T16:36:55",
   "by": "executor"
 }
