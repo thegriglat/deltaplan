@@ -1996,7 +1996,7 @@ func _on_took_off() -> void:
 
 ## Отрыв (glider.took_off) и старт в воздухе: начало потока для ачивок.
 func _feed_begin() -> void:
-	if not _ended and tow == null and not inspect_mode:
+	if not _ended and tow == null and not inspect_mode and not is_air_start():  # ASM-К4: в воздухе ачивки не идут
 		feed.begin(glider.get_telemetry())
 
 
@@ -2061,6 +2061,11 @@ func finish_now() -> bool:
 	return _ended
 
 
+## ASM-К4: у текущего полёта старт в воздухе (флаг или выбор игрока, ASM-К2).
+func is_air_start() -> bool:
+	return air_start_m >= 0.0
+
+
 ## В воздухе (не на земле): R в полёте — удержанием (Q-03).
 func is_airborne() -> bool:
 	return glider != null and settings != null and not glider.get_telemetry().on_ground
@@ -2072,6 +2077,8 @@ func _emit_end(kind: String, info: Dictionary) -> void:
 	if not info.has("finish_reason"):
 		info["finish_reason"] = kind
 	info["flight_no"] = flight_no
+	if is_air_start():
+		info["air_start"] = true  # ASM-К4: пометка в итоге
 	_goals_finish(kind, info)
 	_ended = true
 	_tracks_finish()
@@ -2153,7 +2160,7 @@ func _goals_setup() -> void:
 ## Контекст GoalTracker (GL-К3): старт, ветер, карта, круг посадки.
 func _goals_ctx() -> Dictionary:
 	var ctx := {
-		"start_pos": _start_pos,
+		"start_pos": air_start_position() if is_air_start() else _start_pos,
 		"start_heading_deg": _start_heading,
 		"wind_from_deg": _site_heading if settings.wind_into_launch else settings.wind_from_deg,
 		"wind_ms": settings.wind_speed_kmh / 3.6,
@@ -2262,6 +2269,9 @@ func _goals_finish(kind: String, info: Dictionary) -> void:
 	goal_list.refresh()
 	var res := goals.result()
 	info["goals"] = res
+	if is_air_start():  # ASM-К4: рекорды при старте в воздухе не засчитываются
+		info["new_records"] = {}
+		return
 	if not stats.took_off:
 		return
 	var flight := info.duplicate()

@@ -2,6 +2,7 @@ keys,ru,en
 settings_invert_pitch_hint,"Как ручка самолёта: ↑ и мышь от себя — на себя, ↓ — от себя","Like an aircraft stick: ↑ and mouse forward — pull in, ↓ — push out"
 controls_short_help,"Мышь — трапеция (в полёте Shift — добор до бёдер); на земле W/S — шаг, A/D — поворот, Shift — разбег; в полёте W/A/S/D — осмотреться; C — камера, Tab — прибор, Esc — пауза","Mouse — control bar (in flight Shift — pull to the hips); on the ground W/S — step, A/D — turn, Shift — run; in flight W/A/S/D — look around; C — camera, Tab — instrument, Esc — pause"
 result_crash,Авария,Crash
+result_air_start_note,"Старт в воздухе: рекорды и достижения не засчитываются","Air start: records and achievements are not counted"
 loc_altai,Алтай — Манжерок,Altai — Manzherok
 launch_fail_nose,Нос крыла упёрся в землю,The nose hit the ground
 launch_fail_keel,Киль крыла чиркнул по земле,The keel scraped the ground
