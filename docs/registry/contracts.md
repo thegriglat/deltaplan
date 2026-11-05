@@ -107,4 +107,5 @@ generated: true
 - volcano-island: VI-К1 v3, VI-К2 v2, VI-К3 v1 — [docs/contracts/volcano-island.md](../contracts/volcano-island.md)
 - wind-limits: WL-К1 v2, WL-К2 v1 — [docs/contracts/wind-limits.md](../contracts/wind-limits.md)
 - wing-physics-check: К1 v2, К2 v1, К3 v1, К4 v2, К5 v1, К6 v1 — [docs/contracts/wing-physics-check.md](../contracts/wing-physics-check.md)
+- wingman: — — [docs/contracts/wingman.md](../contracts/wingman.md)
 - wings-models3d: К1 v1, К2 v1, К3 v2, К4 v2 — [docs/contracts/wings-models3d.md](../contracts/wings-models3d.md)

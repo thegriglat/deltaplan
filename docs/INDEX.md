@@ -251,6 +251,7 @@ generated: true
 - **scenic-places** — Красивые места: наборы по 5–10 природных пейзажей на страну (~20–30 стран), кнопка рядом с «Популярными местами», старт в воздухе над видом. [closed 2026-11-05] — [план](plan/scenic-places.md) · [контракты](contracts/scenic-places.md) · [решения](plan/scenic-places/decisions.md) · [сводка](plan/scenic-places/summary.md) · полный журнал: `archive/scenic-places`
   - [docs/research/scenic-places-table.md](research/scenic-places-table.md) — Таблица 236 красивых мест по странам: место, тип, чем красиво, старт, курс, высота, карта — для просмотра
   - [docs/research/scenic-places.md](research/scenic-places.md) — Каталог красивых мест: 236 мест в 29 странах, метод отбора, проверка по рельефу (checked 236, failed 0), её пределы
+- **wingman** — Напарник: 1–2 бота держатся поближе к пилоту игрока, чтобы в одиночной игре не было одиноко. [closed 2026-11-05] — [план](plan/wingman.md) · [контракты](contracts/wingman.md) · [решения](plan/wingman/decisions.md) · [сводка](plan/wingman/summary.md) · полный журнал: `archive/wingman`
 
 ## perf
 
