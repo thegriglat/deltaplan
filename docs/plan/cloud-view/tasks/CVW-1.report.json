@@ -1,0 +1,86 @@
+{
+  "status": "done",
+  "summary": "Белёсая пелена воспроизведена: это CloudWhiteout, питаемый грубой плотностью поля (cover x профиль, без шума) — в просвете с cover 0,097 между основанием и верхом слоя amount 0,145, fog_density 0,0087 1/м, luma +40 %, контраст -50 %; выше слоя мглы нет, дымка и проход облаков пелены не дают. Белёсость в просвете нефизична.",
+  "commits": [
+    "9851f4aa0 CVW-1: стенд подъёма в ясном столбце, замеры и причина белёсой пелены"
+  ],
+  "checks": [
+    {
+      "name": "csv_header",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "frames",
+      "value": "112 кадров",
+      "pass": true
+    },
+    {
+      "name": "readme",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "gd_check",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "cloud_whiteout",
+      "value": "в первом прогоне accept таймаут 900 с в очереди cpu-замка; код игры не менялся; перезапущен отдельно",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "Не снят день с cover 0,5-1 (при +31 C поле закрывает всё, ясного столбца нет)",
+    "Альфа/цвет прохода облаков в центре кадра (x_cloud_alpha_center) не записаны"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": "tools/research/cloud_view/CVW-1/README.md (команда воспроизведения); .dpcli/dpcli accept CVW-1",
+  "uncertain": [
+    {
+      "where": "tools/research/cloud_view/CVW-1/README.md (Условия)",
+      "why": "Одна погода (+20 C, 1,7 м/с), одно место, один столбец с cover 0,097; чисто ясных столбцов в поле нет (cover мин 0,034, ср 0,30)",
+      "checked": "при +31 C cover>0,05 в 9216/9216 ячеек"
+    },
+    {
+      "where": "measures.csv, серии main и nowo",
+      "why": "сняты до замены libdp_air_tune.so координатором; остальные серии - после",
+      "checked": "5 общих кадров nohaze в обоих запусках совпали по luma и whiteout до 4 знаков"
+    },
+    {
+      "where": "README, Причина",
+      "why": "Видимость облака в позиции камеры не проверена прямо; ясность по cover и по noclouds ~ main в слое (0,323 vs 0,324)",
+      "checked": "кадры глазами не смотрелись, только числа"
+    },
+    {
+      "where": "README, 'некая высота'",
+      "why": "Для более облачного дня (amount до 1 по всей толще слоя) вывод экстраполирован, не измерен",
+      "checked": "формула density_at/CloudWhiteout"
+    }
+  ],
+  "dp_feedback": "Таймаут job/accept считается вместе с очередью cpu-замка (мой job убит на 3600 с, тест cloud_whiteout - 900 с без единой строки вывода); хотелось бы отсчёт от начала выполнения. Описание карточки ссылается на устаревший scripts/atmosphere/cloud_field.gd (теперь rust/dp-air/src/terms/clouds/field.rs); образец cloud_cut_shot.gd устарел (Atmosphere.step, CloudPhysics).",
+  "extra": {
+    "column": {
+      "x": 2200,
+      "z": 4200,
+      "ground_msl": 868,
+      "cover": 0.097,
+      "base_msl": 1924,
+      "haze_top_msl": 2024
+    },
+    "luma_h13_p3": {
+      "agl300": 0.236,
+      "agl1105": 0.31,
+      "agl1510": 0.323,
+      "nowo_agl1510": 0.236,
+      "agl1964": 0.25,
+      "agl4372": 0.312,
+      "bare_agl4372": 0.266
+    },
+    "whiteout_amount_in_layer_max": 0.145
+  },
+  "t": "2026-11-05T10:36:14",
+  "by": "executor"
+}

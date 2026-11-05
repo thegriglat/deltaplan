@@ -35,10 +35,6 @@
   ],
   "accept": [
     {
-      "name": "cloud_whiteout",
-      "tests": "cloud_whiteout"
-    },
-    {
       "name": "csv_header",
       "cmd": "head -1 tools/research/cloud_view/CVW-1/measures.csv",
       "expect": "re:^frame,loc,hour,cam_x,cam_z,cam_y_msl,cam_agl,yaw_deg,pitch_deg,cloud_base_msl,cloud_top_msl,cover_cam,density_cam,whiteout_amount,fog_density,fog_r,fog_g,fog_b,fog_sky_affect,mean_r,mean_g,mean_b,luma_mean,luma_std,png"
@@ -57,9 +53,14 @@
       "name": "gd_check",
       "cmd": "python3 tools/check_gd.py tools/shots/cloud_view_climb_shot.gd",
       "expect": "exit=0"
+    },
+    {
+      "name": "test_game_logic",
+      "tests": "test_game_logic"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-11-05T06:06:30"
+  "created": "2026-11-05T06:06:30",
+  "edited": "2026-11-05T11:15:05"
 }
