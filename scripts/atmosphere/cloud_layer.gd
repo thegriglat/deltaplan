@@ -1313,8 +1313,13 @@ func _ensure_nz() -> void:
 	var tex: Texture3D = _material.get_shader_parameter("noise_shape")
 	if tex == null or (tex is NoiseTexture3D and tex.get_data().is_empty()):
 		return
-	for im: Image in tex.get_data():
-		var c := im.duplicate() as Image
+	var data := tex.get_data()
+	# get_data() у импортированной текстуры отдаёт и срезы мипов - берём только мип 0
+	var sz := Vector2i(tex.get_width(), tex.get_height())
+	for src: Image in data:
+		if src.get_size() != sz or _nz_slices.size() >= tex.get_depth():
+			continue
+		var c := src.duplicate() as Image
 		if c.is_compressed():
 			c.decompress()
 		c.convert(Image.FORMAT_RGB8)
