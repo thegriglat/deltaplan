@@ -460,8 +460,9 @@ func _fly(s: FlightSettings, inspect := false) -> void:
 	loading_screen.open(game.terrain.progress, StartMenu.summary_text(s).replace("\n", " · "))
 	loading_screen.set_net_info(NetPauseInfo.build(NetZone, NetPilots))
 	start_menu.visible = false  # под экраном загрузки — только фон (при ошибке меню вернётся)
-	game.air_start_m = opts.air_start_m
-	game.air_start_agl_m = opts.air_start_agl_m
+	game.cli_air_start_m = opts.air_start_m
+	game.cli_air_start_agl_m = opts.air_start_agl_m
+	game.menu_air_allowed = not _training_flight
 	game.inspect_mode = inspect
 	game.bots_count = 0 if inspect else (opts.bots if game.net == null else 0)  # боты зоны — NET-44
 	_note_crash_settings(s, inspect)
