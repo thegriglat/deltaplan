@@ -18,3 +18,5 @@
 {"t": "2026-11-05T06:16:42", "by": "executor", "task": "WMN-2", "ev": "reported", "commits": ["b136a75e0"], "note": "done: Слайдер «Напарники» 0..wingman.count_max (умолч. 2) в настройках игры под «Другие пилоты в небе»; сохраняется в bots.js…", "dp_feedback": "accept --dry идёт ~6 мин и превышает таймаут foreground; удобно предупреждать/сразу job."}
 {"t": "2026-11-05T06:28:44", "by": "coordinator", "task": "WMN-2", "ev": "checked", "note": "2/2 test_settings=ok:5/5; gd=ok:exit 0"}
 {"t": "2026-11-05T06:28:58", "by": "coordinator", "task": "WMN-2", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-11-05T06:44:22", "by": "coordinator", "task": "WMN-2", "ev": "checked", "commits": ["33f4ca30e"], "note": "1/2 test_settings=FAIL:таймаут; gd=ok:exit 0"}
+{"t": "2026-11-05T06:44:22", "by": "coordinator", "task": "WMN-2", "ev": "merged"}
