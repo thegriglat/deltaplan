@@ -45,7 +45,7 @@ func test_doc_headings() -> void:
 	for m in re.search_all(text):
 		found[m.get_string(1)] = int(m.get_string(2))
 	for id in ["PV-К1", "PV-К2", "PV-К3", "PV-К4"]:
-		check(found.get(id, 0) == (1 if id == "PV-К3" else 2), "%s (v2) в заголовках: %s" % [id, found])
+		check(found.get(id, 0) == (1 if id == "PV-К3" else 3), "%s (v3) в заголовках: %s" % [id, found])
 
 
 ## PV-К1/К2: ключи situations — ровно id таблицы, число реплик и приоритеты совпадают.
@@ -95,7 +95,7 @@ func test_k2_top_level_and_rules() -> void:
 	var r: Dictionary = cfg.get("rules", {})
 	var gap: Dictionary = r.get("gap_s", {})
 	check(float(gap.get("1", 0)) == 20.0 and float(gap.get("2", 0)) == 5.0 and float(gap.get("3", 0)) == 2.0, "gap_s")
-	check(float(r.get("max_wait_s", 0)) == 3.0, "max_wait_s")
+	check(float(r.get("max_wait_s", 0)) == 8.0, "max_wait_s 8 (v3)")
 	check(float(r.get("quiet_after_takeoff_s", 0)) == 8.0, "quiet_after_takeoff_s")
 	# голос — настройка игрока, не машинная (облако Steam)
 	check(not UserSettings.is_local_key("pilot_voice.voice"), "voice — не машинный ключ")

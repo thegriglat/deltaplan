@@ -8,6 +8,13 @@ func _node() -> PilotVoice:
 	return v
 
 
+func _queued(v: PilotVoice) -> bool:
+	for e: Dictionary in v.logic._pending:
+		if e.id == "egg_eagle":
+			return true
+	return v.logic._egg_done.has("egg_eagle")
+
+
 func test_set_voice_values() -> void:
 	var v := _node()
 	check(v.voice == "male", "по умолчанию male")
@@ -81,26 +88,23 @@ func test_watch_eggs_hold_and_terrain() -> void:
 	egg.position = Vector3(0, 0, -100)
 	v.on_event("took_off", {"altitude_msl": 0.0})
 	v.logic.update(30.0, {"phase": "flying"})  # позади quiet_after_takeoff_s и gap
-	var seen := 0
 	for i in 20:  # 5 с по 0,25
 		v.watch_eggs(cam, [egg], 0.25)
-		if not v.logic._pending.is_empty() or v.logic._egg_done.has("egg_eagle"):
-			seen += 1
-	check(v.logic._egg_done.has("egg_eagle"), "пасхалка в конусе 1,5 с -> egg_seen")
+	check(_queued(v), "пасхалка в конусе 1,5 с -> egg_seen (событие в очереди)")
 	var w := _node()
 	w.height_fn = func(_x: float, _z: float) -> float: return 50.0  # холм выше глаза (y = 0)
 	w.on_event("took_off", {"altitude_msl": 0.0})
 	w.logic.update(30.0, {"phase": "flying"})
 	for i in 20:
 		w.watch_eggs(cam, [egg], 0.25)
-	check(not w.logic._egg_done.has("egg_eagle"), "за рельефом — не видна")
+	check(not _queued(w), "за рельефом — не видна")
 	var x := _node()
 	x.on_event("took_off", {"altitude_msl": 0.0})
 	x.logic.update(30.0, {"phase": "flying"})
 	egg.position = Vector3(0, 0, -400)  # eagle: max_dist_m 150
 	for i in 20:
 		x.watch_eggs(cam, [egg], 0.25)
-	check(not x.logic._egg_done.has("egg_eagle"), "дальше max_dist_m — нет")
+	check(not _queued(x), "дальше max_dist_m — нет")
 	egg.free()
 	cam.free()
 	v.free()

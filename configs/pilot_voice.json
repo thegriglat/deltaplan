@@ -14,7 +14,7 @@
 			"2": 5.0,
 			"3": 2.0
 		},
-		"max_wait_s": 3.0,
+		"max_wait_s": 8.0,
 		"quiet_after_takeoff_s": 8.0
 	},
 	"situations": {

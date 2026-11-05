@@ -233,13 +233,12 @@ func test_egg_seen_once_per_flight() -> void:
 
 func test_egg_is_background() -> void:
 	var l := _logic()
+	l._rules["gap_s"]["1"] = 0.0  # здесь проверяем только quiet_after_takeoff_s
 	l.event("took_off", {"altitude_msl": 1000.0})
 	_run(l, 2.0, _s())
 	l.event("egg_seen", {"id": "eagle"})
 	check(_run(l, 3.0, _s()).is_empty(), "egg: фон не раньше quiet_after_takeoff_s")
-	_run(l, 20.0, _s())
-	l.event("egg_seen", {"id": "eagle"})  # прежний вызов не потрачен
-	check(_has(_run(l, 1.0, _s()), "egg_eagle"), "egg: после 8 с от отрыва говорит")
+	check(_has(_run(l, 5.0, _s()), "egg_eagle"), "egg: ждала в очереди и сказана после 8 с от отрыва (gap_s прошёл)")
 
 
 # --- правила выдачи -----------------------------------------------------------------------------------
@@ -268,22 +267,18 @@ func test_gap_by_priority() -> void:
 	l.event("turnpoint")
 	check(_run(l, 1.5, _s()).is_empty(), "после реплики приоритет 2 — не раньше gap_s 5")
 	check(_has(_run(l, 1.0, _s()), "turnpoint"), "после 5 с можно (ждала < max_wait_s)")
-	var l3 := _flying(_logic())
-	l3.event("goal")
-	l3.update(DT, _s())
-	l3.line_finished()
-	_run(l3, 0.5, _s())
-	l3.event("turnpoint")
-	check(_run(l3, 8.0, _s()).is_empty(), "ждала gap_s дольше max_wait_s 3 с — отброшена")
-	# приоритет 1 ждёт 20 с, но pending старше max_wait_s отбрасывается
+	# приоритет 1 в паузе 20 с: событие ждёт не дольше max_wait_s 8 с и отбрасывается без траты
 	var l2 := _flying(_logic())
 	l2.event("goal")
 	l2.update(DT, _s())
 	l2.line_finished()
 	_run(l2, 0.5, _s())
 	l2.event("egg_seen", {"id": "eagle"})
-	check(_run(l2, 8.0, _s()).is_empty(), "приоритет 1 в паузе 20 с: ожидание > 3 с — отброшена")
-	check(_run(l2, 30.0, _s()).is_empty(), "…и не возвращается")
+	check(_run(l2, 10.0, _s()).is_empty(), "приоритет 1 в паузе 20 с: ждала > 8 с — отброшена")
+	check(not l2._egg_done.has("egg_eagle") and not l2._last_fired.has("egg_eagle"), "…и ничего не потратила")
+	_run(l2, 12.0, _s())
+	l2.event("egg_seen", {"id": "eagle"})
+	check(_has(_run(l2, 12.0, _s()), "egg_eagle"), "повторное событие после паузы gap_s — звучит")
 
 
 func test_urgent_interrupts_background_only() -> void:
@@ -316,14 +311,60 @@ func _run_noend(l: PilotVoiceLogic, secs: float, s: Dictionary) -> Array:
 	return out
 
 
-func test_max_wait_drops_pending() -> void:
+func test_event_waits_up_to_max_wait() -> void:
 	var l := _flying(_logic())
 	l.event("egg_seen", {"id": "eagle"})
 	l.update(DT, _s())  # звучит фоновая и не кончается
 	l.event("goal")
-	check(_run_noend(l, 3.5, _s()).is_empty(), "goal ждёт звучащую")
+	check(_run_noend(l, 2.0, _s()).is_empty(), "goal ждёт звучащую")
 	l.line_finished()
-	check(_run_noend(l, 8.0, _s()).is_empty(), "goal старше max_wait_s 3 с отброшена")
+	check(_has(_run(l, 6.0, _s()), "goal"), "goal дождалась (gap_s 5, всего < 8 с)")
+	var l2 := _flying(_logic())
+	l2.event("egg_seen", {"id": "eagle"})
+	l2.update(DT, _s())
+	l2.event("goal")
+	check(_run_noend(l2, 9.0, _s()).is_empty(), "goal ждёт звучащую 9 с")
+	l2.line_finished()
+	check(_run(l2, 10.0, _s()).is_empty(), "goal старше max_wait_s 8 с — отброшена")
+	check(not l2._last_fired.has("goal"), "отброшенное событие не тратит паузу")
+
+
+## PV-К1 v3: ситуация по данным во время звучания/gap_s ничего не тратит и скажется, когда станет можно.
+func test_blocked_situation_spends_nothing() -> void:
+	var l := _flying(_logic())
+	l.event("goal")
+	check(l.update(DT, _s({"vario_ms": -4.0})).begins_with("goal_"), "звучит goal")
+	# sink держится 5 с, пока звучит и идёт gap_s
+	check(_run_noend(l, 5.0, _s({"vario_ms": -4.0})).is_empty(), "sink не перебивает")
+	check(not l._last_fired.has("sink"), "пауза sink не потрачена")
+	l.line_finished()
+	check(_run(l, 4.0, _s({"vario_ms": -4.0})).is_empty(), "gap_s 20 для фона ещё идёт")
+	check(_has(_run(l, 17.0, _s({"vario_ms": -4.0})), "sink"), "sink сказан, как только можно, пока условие держится")
+	# ступень high не теряется
+	var l2 := _flying(_logic())
+	l2.event("goal")
+	l2.update(DT, _s())
+	_run_noend(l2, 2.0, _s({"altitude_msl": 1310.0}))
+	check(l2._high_level == 0, "ступень high не потрачена, пока звучит")
+	l2.line_finished()
+	check(_has(_run(l2, 22.0, _s({"altitude_msl": 1310.0})), "high"), "high сказан после gap_s")
+	# условие ушло — не скажется
+	var l3 := _flying(_logic())
+	l3.event("goal")
+	l3.update(DT, _s())
+	_run_noend(l3, 5.0, _s({"vario_ms": -4.0}))
+	l3.line_finished()
+	check(_run(l3, 30.0, _s({"vario_ms": 0.0})).is_empty(), "условие не держится — молчим")
+
+
+func test_events_repeat_egg_until_said() -> void:
+	var l := _flying(_logic())
+	l.event("egg_seen", {"id": "eagle"})
+	l.event("egg_seen", {"id": "eagle"})  # дубль не ставится второй раз
+	check(l._pending.size() == 1, "одно событие на ситуацию")
+	check(_run(l, 1.0, _s()).size() == 1, "сказана один раз")
+	l.event("egg_seen", {"id": "eagle"})
+	check(_run(l, 25.0, _s()).is_empty(), "после сказанного — раз за полёт")
 
 
 func test_variants_do_not_repeat() -> void:
