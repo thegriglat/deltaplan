@@ -6,7 +6,7 @@ area: game
 updated: 2026-11-05
 summary: "Реплики пилота: ситуации, вид, пасхалки (PV-К1), configs/pilot_voice.json (PV-К2), файлы голосов (PV-К3), логика и подключение (PV-К4)."
 related: ["docs/plan/pilot-voice.md", "docs/guide/instruments.md", "docs/guide/game/menus-settings.md"]
-contracts: [{"id": "PV-К1", "version": 2}, {"id": "PV-К2", "version": 2}, {"id": "PV-К3", "version": 1}, {"id": "PV-К4", "version": 2}]
+contracts: [{"id": "PV-К1", "version": 3}, {"id": "PV-К2", "version": 3}, {"id": "PV-К3", "version": 1}, {"id": "PV-К4", "version": 3}]
 ---
 # Контракты модуля pilot-voice
 
@@ -16,13 +16,14 @@ contracts: [{"id": "PV-К1", "version": 2}, {"id": "PV-К2", "version": 2}, {"id
 форма классов PV-К4; путь файла PV-К3.
 
 История: v1 (2026-11-05) — 16 ситуаций; v2 (2026-11-05, Q1) — PV-К1 + `view` и реплики на пасхалки `egg_<id>`, `high` без пересечения с `view`;
-PV-К2 + `params` пасхалок; PV-К4 + `watch_eggs`, `egg_in_view`, `EasterEgg.voice_anchor`.
+PV-К2 + `params` пасхалок; PV-К4 + `watch_eggs`, `egg_in_view`, `EasterEgg.voice_anchor`;
+v3 (2026-11-05, вопрос PVO-2) — заблокированное `gap_s` условие не тратит паузу и не ждёт в очереди; в очередь — только события, `max_wait_s` 8; `watch_eggs` повторяет `egg_seen`.
 
 Принцип: пилот говорит то, что почувствовал бы сам, **по данным, которые есть у игрока** — отфильтрованный вариометр
 (то, что пищит и показывает прибор), воздушная скорость, перегрузка, высота над землёй, касание, облако вокруг, события задачи.
 Скрытые данные поля ветра (где термик, его сила впереди) — не входы.
 
-## PV-К1. Ситуации и реплики (v2)
+## PV-К1. Ситуации и реплики (v3)
 
 Владелец — координатор; потребители — PVO-2 (игра), генерация голосов (PVO-3). Тексты — в `configs/pilot_voice.json` (PV-К2),
 здесь — источник. Приоритет: 3 — срочное, 2 — событие, 1 — фон. `chance` — вероятность сказать, когда условие сработало
@@ -75,14 +76,19 @@ PV-К2 + `params` пасхалок; PV-К4 + `watch_eggs`, `egg_in_view`, `Easte
 
 Общие правила (PV-К2 `rules`):
 - одна реплика за раз; после конца реплики следующая — не раньше `gap_s` по приоритету новой: 1 → 20 с, 2 → 5 с, 3 → 2 с;
-- срочная (3) прерывает звучащую фоновую (1); остальные ждут; ожидающая реплика старше `max_wait_s` 3 с — отбрасывается;
+- срочная (3) прерывает звучащую фоновую (1);
+- ситуация по данным полёта (условие держится — `sink`, `thermal_*`, `turbulence`, `stall`, `fast`, `low`, `high`, `view`, `cloud`),
+  сработавшая, пока звучит реплика или не прошёл `gap_s`, **не ставится в очередь и не тратит** паузу, «раз за полёт», ступень `high`:
+  она проверяется снова на каждом `update` и скажется, когда станет можно, если условие ещё держится;
+- событие (`takeoff`, `landing_*`, `crash`, `turnpoint`, `goal`, `egg_<id>`) в это время ждёт в очереди (одно на ситуацию, порядок —
+  приоритет, затем время) не дольше `max_wait_s` 8 с; не дождалось — отбрасывается **без** траты паузы и «раз за полёт»;
 - фоновые (1) — не раньше `quiet_after_takeoff_s` 8 с после отрыва;
 - вариант — случайный, не совпадает с последним сказанным в этой ситуации (при 3 вариантах — с двумя последними);
-- `chance` не выпал — ситуация уходит на свою паузу так же, как если бы реплика прозвучала;
+- `chance` разыгрывается в момент, когда реплику можно сказать; не выпал — ситуация уходит на свою паузу (и «раз за полёт») так же, как если бы реплика прозвучала;
 - реплик нет: голос «выкл», скорость времени ≠ ×1, пауза игры, буксир, осмотр (`inspect_mode`), дельталёт (v1 — только дельтаплан),
   сетевая игра (`net != null`, решение 2026-11-05: только одиночная игра, сеть не трогаем), фон меню.
 
-## PV-К2. configs/pilot_voice.json (v2)
+## PV-К2. configs/pilot_voice.json (v3)
 
 Владелец — PVO-2; потребители — `PilotVoiceLogic`, генерация голосов (PVO-3, читает `lines` и `tone`). Слой настроек — как у всех
 конфигов (`Config`); игрок меняет только `voice` патчем `UserSettings.save_patch("pilot_voice", {"voice": …})`.
@@ -94,7 +100,7 @@ PV-К2 + `params` пасхалок; PV-К4 + `watch_eggs`, `egg_in_view`, `Easte
   "bus": "Voice",
   "volume_db": 0.0,
   "dir": "res://assets/sounds/voice",
-  "rules": {"gap_s": {"1": 20.0, "2": 5.0, "3": 2.0}, "max_wait_s": 3.0, "quiet_after_takeoff_s": 8.0},
+  "rules": {"gap_s": {"1": 20.0, "2": 5.0, "3": 2.0}, "max_wait_s": 8.0, "quiet_after_takeoff_s": 8.0},
   "situations": {
     "sink": {
       "priority": 1, "cooldown_s": 90.0, "chance": 0.7,
@@ -125,7 +131,7 @@ PV-К2 + `params` пасхалок; PV-К4 + `watch_eggs`, `egg_in_view`, `Easte
 - Лицензия: модель синтеза и голос разрешают распространение в открытой игре (itch.io, Steam), голос — не копия реального человека;
   запись в `assets/sounds/LICENSES.md` и `ASSETS.md`.
 
-## PV-К4. Логика, узел, подключение (v2)
+## PV-К4. Логика, узел, подключение (v3)
 
 Владелец — PVO-2; потребитель — `Game`, тесты.
 
@@ -146,7 +152,8 @@ func set_voice(voice: String) -> void            # "male" | "female" | "off"
 func on_event(name: String, data := {}) -> void
 func update(t: Telemetry, vario_ms: float, cloud: float, dt: float) -> void
 static func line_path(voice: String, lang: String, line_id: String) -> String
-func watch_eggs(camera: Camera3D, eggs: Array, dt: float) -> void   # живые EasterEgg; ≤ 4 Гц; hold_s → logic.event("egg_seen")
+func watch_eggs(camera: Camera3D, eggs: Array, dt: float) -> void   # живые EasterEgg; ≤ 4 Гц; видна hold_s → logic.event("egg_seen");
+                                                 #   пока видна и её egg_<id> не сказана — повторять event раз в hold_s
 static func egg_in_view(cam: Transform3D, point: Vector3, cone_deg: float, max_dist_m: float) -> bool  # без рельефа
 
 # scripts/world_objects/easter_egg.gd (база пасхалок), только чтение, физику и картинку не меняет (К7 пасхалок зелёный):
