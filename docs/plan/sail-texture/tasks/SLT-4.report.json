@@ -1,0 +1,39 @@
+{
+  "status": "done",
+  "summary": "Описаны своя картинка паруса (menus-settings.md, sail-shader.md «Своя картинка» с честными ограничениями) и исправление маски UV2; CHANGELOG «В работе» — две строки; в findings.md раздел sail-texture.",
+  "commits": [
+    "92aebfb24 SLT-4: документация — своя картинка паруса и исправленная маска UV2"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "changelog",
+      "value": "n 4",
+      "pass": true
+    },
+    {
+      "name": "accept --dry",
+      "value": "2/2 PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "docs/INDEX.md не менялся: новых файлов нет; summary sail-shader.md обновлён, строку INDEX не правил"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept SLT-4",
+  "uncertain": [
+    {
+      "where": "docs/guide/models/sail-shader.md",
+      "why": "абзац про переворот UV2 написан по комментарию шейдера и SLT-1; визуально не проверялось",
+      "checked": "assets/shaders/sail/sail.gdshader строки 4-6, 71"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-11-05T11:54:51",
+  "by": "executor"
+}
