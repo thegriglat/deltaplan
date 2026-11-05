@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-11-04"
+updated: "2026-11-05"
 summary: "Точка входа: модули docs/ по подпроектам, прочие документы по типам."
 related: []
 generated: true
@@ -234,6 +234,7 @@ generated: true
   - [tools/research/snow_plume/SNW-5/README.md](../tools/research/snow_plume/SNW-5/README.md) — SNW-5 (частично): шлейфы есть при 16 м/с (24 источника, Эверест и Шымбулак), нет при 2 м/с (0); цена кадра не мерилась.
   - [tools/research/snow_plume/SNW-9/README.md](../tools/research/snow_plume/SNW-9/README.md) — SNW-9: кадры струек v3 (Эверест, Шымбулак; ветер 16 и 2 м/с; вблизи гребня). Струйки редкие и бледные, издалека не видны.
 - **cloud-base** — Основания кучевых по кромке инверсии с разбросом 50–150 м между облаками вместо одной плоскости. [closed 2026-10-24] — [план](plan/cloud-base.md) · [решения](plan/cloud-base/decisions.md) · [сводка](plan/cloud-base/summary.md) · полный журнал: `archive/cloud-base`
+- **cloud-view** — Вид у облаков и над ними: белёсый экран выше некой высоты в ясном воздухе; на границе облака другие облака будто инвертируются по цвету. [active 2026-11-05] — [план](plan/cloud-view.md) · [контракты](contracts/cloud-view.md)
 
 ## game
 
