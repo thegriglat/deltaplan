@@ -1,0 +1,54 @@
+{
+  "id": "SLT-4",
+  "module": "sail-texture",
+  "type": "dp-writer",
+  "title": "Документация: своя картинка паруса и маска UV2",
+  "goal": "Guide описывает своя картинку паруса (где выбрать, форматы и пределы, хранение, раскладка, ограничения) и исправленную маску UV2; CHANGELOG «В работе» — две строки; строка вывода SLT-1 в docs/registry/findings.md.",
+  "plan_ref": "§4 Задачи",
+  "contracts": [
+    {
+      "name": "SLT-К1",
+      "version": "1",
+      "ref": "docs/contracts/sail-texture.md"
+    },
+    {
+      "name": "SLT-К2",
+      "version": "3",
+      "ref": "docs/contracts/sail-texture.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sail-texture-SLT-4",
+  "branch": "sail-texture/SLT-4",
+  "base": "feature/sail-texture",
+  "scope": [
+    "docs/guide/models/sail-shader.md",
+    "docs/guide/game/menus-settings.md",
+    "CHANGELOG.md",
+    "docs/registry/findings.md",
+    "docs/INDEX.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "assets/",
+    "tests/",
+    "docs/contracts/",
+    "docs/plan/",
+    "site/"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    },
+    {
+      "name": "changelog",
+      "cmd": "python3 -c \"s=open('CHANGELOG.md',encoding='utf-8').read().split('## В работе',1)[1].split('\\n## ',1)[0]; print('n', s.lower().count('парус'))\"",
+      "expect": "num:n (\\d+) >=2"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-05T11:53:20",
+  "edited": "2026-11-05T11:53:38"
+}
