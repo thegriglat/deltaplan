@@ -1,9 +1,9 @@
 ---
 type: contract
-status: active
+status: "closed"
 module: air-start-menu
 area: game
-updated: 2026-11-05
+updated: "2026-11-05"
 summary: "Старт в воздухе: настройка и пределы (К1), постановка в Game (К2), пункт в окне «Старт» (К3), цели и рекорды (К4)."
 related: ["docs/plan/air-start-menu.md", "docs/contracts/start-pick.md", "docs/guide/game/launch.md", "docs/contracts/trike-anywhere.md", "docs/contracts/goals.md"]
 contracts: [{"id": "ASM-К1", "version": 2}, {"id": "ASM-К2", "version": 2}, {"id": "ASM-К3", "version": 1}, {"id": "ASM-К4", "version": 1}]

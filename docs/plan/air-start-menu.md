@@ -1,6 +1,6 @@
 ---
 type: plan
-status: "active"
+status: "closed"
 module: air-start-menu
 area: game
 updated: "2026-11-05"
