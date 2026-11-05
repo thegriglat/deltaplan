@@ -214,6 +214,8 @@ func _run() -> void:
 			break
 	if col.is_empty():
 		col = _find_clear(raster, sp, game)
+	if col.is_empty() and _variants == PackedStringArray(["recs"]):
+		col = {"x": sp.x, "z": sp.z, "top": float(raster.get("base_msl", 2000.0)) + 1000.0, "cmax": 0.0}
 	if col.is_empty():
 		_fail("нет ясного столбца у облаков")
 		return
@@ -387,7 +389,7 @@ func _find_visible_cloud(layer: CloudLayer, cx: float, cz: float, base: float, t
 func _pass_series(
 	game: Game, air: Node, layer: CloudLayer, env: Environment, cam: Camera3D, haze_mat: ShaderMaterial,
 	haze_ext: Variant, cx: float, cz: float, gh: float, base: float, top: float, raster: Dictionary,
-	center := Vector3.ZERO, tag := "pass"
+	center := Vector3.ZERO, tag := "pass", offs: Array = []
 ) -> int:
 	var c := center if center != Vector3.ZERO else _find_visible_cloud(layer, cx, cz, base, top)
 	if c == Vector3.ZERO:
@@ -408,7 +410,9 @@ func _pass_series(
 	var pitch := _pitches[0]
 	var look := TerrainGeo.heading_vector(syaw) * cos(deg_to_rad(pitch)) + Vector3.UP * sin(deg_to_rad(pitch))
 	var n := 0
-	for off in range(-1000, 1001, 100):
+	if offs.is_empty():
+		offs = range(-1000, 1001, 100)
+	for off: int in offs:
 		var p := Vector3(c.x + off, c.y, c.z)
 		_wo.amount = 0.0
 		_wo.apply(env)
@@ -443,7 +447,7 @@ func _pass_series(
 		if tag == "pass":
 			_res.in_cloud_amount_max = maxf(_res.in_cloud_amount_max, _wo.amount)
 			_res.in_cloud_amount_coarse_max = maxf(_res.in_cloud_amount_coarse_max, _wo_c.amount)
-		else:
+		elif tag == "recs" or tag == "recsgap":
 			var nrec := layer.records().filter(func(r: PackedFloat32Array) -> bool: return r.size() >= 21 and r[20] > 0.0).size()
 			if nrec > 0 and d_vis > 0.0:
 				_res.rec_frames += 1
@@ -467,13 +471,17 @@ func _recs_series(
 	var c := Vector3.ZERO
 	for t_air in _air_list:
 		game.set_world_time(t_air)
+		layer.set("_instant", true)
 		for i in 240:
+			_place(cam, Vector3(cx, gh + 1500.0, cz), Vector3.FORWARD)  # глаз выбора облаков - у столбца
+			layer.set("_acc", 1.0e9)
 			await get_tree().process_frame
 		var best := 1.0e30
+		var objs: PackedFloat32Array = air.call("cloud_objects", Vector3.ZERO, -1.0, t_air)
+		print("cloud_view_climb_shot: recs - объектов-облаков в атмосфере %d" % objs.size())
 		for r in layer.records():
-			if r.size() < 21 or r[20] <= 0.0:
-				continue
-			for fr: float in [0.25, 0.4, 0.55]:
+			print("cloud_view_climb_shot: recs - запись kind %d vis %.2f центр (%.0f, %.0f, %.0f) основание %.0f высота %.0f ось (%.0f, %.0f) бокс %.0f %.0f d=%.0f" % [int(r[19] + 0.5), r[20], r[0], r[1], r[2], r[8], r[9], r[10], r[11], r[6], r[7], Vector2(r[0] - cx, r[2] - cz).length()])
+			for fr: float in [0.1, 0.25, 0.4, 0.55, 0.7]:
 				var q := Vector3(r[0], r[8] + fr * maxf(r[9], 10.0), r[2])
 				var dd := Vector2(q.x - cx, q.z - cz).length()
 				if dd < best and layer.visible_density_at(q) >= 0.5:
@@ -486,7 +494,15 @@ func _recs_series(
 			break
 	if c == Vector3.ZERO:
 		return 0
-	return await _pass_series(game, air, layer, env, cam, haze_mat, haze_ext, cx, cz, gh, 0.0, 0.0, raster, c, "recs")
+	var n: int = await _pass_series(game, air, layer, env, cam, haze_mat, haze_ext, cx, cz, gh, 0.0, 0.0, raster, c, "recs")
+	# Просвет: от центра вдоль +x до первой точки вне всех рисуемых облаков (шаг 250 м), там 6 кадров
+	var g := c
+	while layer.visible_density_at(g) != 0.0 and g.x - c.x < 40000.0:
+		g.x += 250.0
+	print("cloud_view_climb_shot: recs - просвет в %.0f м от центра записи" % (g.x - c.x))
+	if layer.visible_density_at(g) == 0.0:
+		n += await _pass_series(game, air, layer, env, cam, haze_mat, haze_ext, cx, cz, gh, 0.0, 0.0, raster, g, "recsgap", [0, 100, 200, 300, 400, 500])
+	return n
 
 
 static func _fmt(v: Variant) -> String:

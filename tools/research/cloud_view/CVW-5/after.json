@@ -1,0 +1,13 @@
+{
+	"clear_amount_coarse_max": 0.0,
+	"clear_amount_max": 0.0,
+	"edge_offset_m": 960,
+	"in_cloud_amount_coarse_max": 0.0,
+	"in_cloud_amount_max": 0.0,
+	"rec_clear_amount_max": 0.0,
+	"rec_clear_frames": 5,
+	"rec_frames": 22,
+	"rec_in_cloud_amount_max": 0.999998380403208,
+	"rec_kind": 3,
+	"rec_time_s": 3000.0
+}
