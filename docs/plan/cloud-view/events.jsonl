@@ -56,3 +56,5 @@
 {"t": "2026-11-05T13:24:00", "by": "coordinator", "task": "CVW-4", "ev": "checked", "note": "5/5 test_game_logic=ok:16/16; cloud_visible_density=ok:4/4; clear_amount=ok:0; in_cloud_amount=ok:0.999998; gd_check=ok:exit 0"}
 {"t": "2026-11-05T13:25:26", "by": "reviewer", "task": "CVW-4", "ev": "reviewed", "note": "К3 выполнен: visible_density_at с сигнатурой и семантикой −1/0/0..1 по контракту, game.gd берёт её и уходит на грубое поле только при d < 0. Раскладка записи (…", "verdict": "accept", "issues": {"minor": 3}, "review": "docs/plan/cloud-view/tasks/CVW-4.review.json"}
 {"t": "2026-11-05T13:25:40", "by": "coordinator", "task": "CVW-4", "ev": "accepted", "note": "по ревью (3 minor: выделение в _towers, uv-искажение записей, путь записей не проверен на сцене — в CVW-5)"}
+{"t": "2026-11-05T13:25:40", "by": "coordinator", "task": "CVW-4", "ev": "checked", "commits": ["be21f64d5"], "note": "1/5 gd_check=ok:exit 0"}
+{"t": "2026-11-05T13:25:41", "by": "coordinator", "task": "CVW-4", "ev": "merged"}
