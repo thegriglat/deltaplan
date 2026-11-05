@@ -87,3 +87,5 @@
 {"t": "2026-11-05T15:35:52", "by": "coordinator", "task": "CVW-5", "ev": "checked", "note": "7/7 cloud_visible_density=ok:5/5; test_game_logic=ok:16/16; rec_in_cloud=ok:0.999998; rec_clear=ok:0; rec_frames=ok:21; gd_check=ok:exit 0; synced=ok:exit 0"}
 {"t": "2026-11-05T15:37:28", "by": "reviewer", "task": "CVW-5", "ev": "reviewed", "note": "К3 соблюдён: _towers_shape считает максимум по башням в цикле, без массива; uv/h-искажение quality 1 (w1, w2, hh, пересчёт spread_k без анвила, ранний выход < …", "verdict": "accept", "issues": {"minor": 3}, "review": "docs/plan/cloud-view/tasks/CVW-5.review.json"}
 {"t": "2026-11-05T15:38:02", "by": "coordinator", "task": "CVW-5", "ev": "accepted", "note": "по ревью (3 minor: README по другому прогону, rec_clear 0 по построению — просвет с грубым полем > 0 только в тесте, мип 0 вместо cloud_lod / без шума — без искажения)"}
+{"t": "2026-11-05T15:38:03", "by": "coordinator", "task": "CVW-5", "ev": "checked", "commits": ["b1a99e6c2"], "note": "1/7 gd_check=ok:exit 0"}
+{"t": "2026-11-05T15:38:03", "by": "coordinator", "task": "CVW-5", "ev": "merged"}
