@@ -1,0 +1,56 @@
+{
+  "id": "SCP-2",
+  "module": "scenic-places",
+  "type": "dp-researcher",
+  "title": "Список мест: Америки",
+  "goal": "Список красивых природных мест (SCP-К1 v2) для 8 стран: US, CA, MX, PE, BO, CL, AR, BR — по 5–10 мест, координаты сверены по Википедии, все проходят проверку SCP-К2.",
+  "plan_ref": "§4 список мест",
+  "contracts": [
+    {
+      "name": "SCP-К1",
+      "version": "2",
+      "ref": "docs/contracts/scenic-places.md"
+    },
+    {
+      "name": "SCP-К2",
+      "version": "1",
+      "ref": "docs/contracts/scenic-places.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/scenic-places-SCP-2",
+  "branch": "scenic-places/SCP-2",
+  "base": "feature/scenic-places",
+  "scope": [
+    "tools/places/scenic/b-americas.json",
+    "tools/places/check_scenic_places.py",
+    "tools/places/test_check_scenic_places.py",
+    "tools/places/scenic/a-europe-north-asia.json"
+  ],
+  "dont_touch": [
+    "tools/places/test_scenic_places_contract.py",
+    "docs/contracts/",
+    "data/places/",
+    "scripts/"
+  ],
+  "accept": [
+    {
+      "name": "contract",
+      "cmd": "python3 tools/places/test_scenic_places_contract.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "relief",
+      "cmd": "python3 tools/places/check_scenic_places.py tools/places/scenic/b-americas.json",
+      "expect": "re:checked \\d+, failed 0"
+    },
+    {
+      "name": "count",
+      "cmd": "python3 tools/places/check_scenic_places.py tools/places/scenic/b-americas.json",
+      "expect": "num:checked (\\d+) >=52"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-05T07:01:16",
+  "edited": "2026-11-05T07:01:46"
+}
