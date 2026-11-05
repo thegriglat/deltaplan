@@ -256,6 +256,8 @@ generated: true
 - **pilot-voice** — Голосовые реплики пилота игрока на ситуации полёта («вот чёрт», «вроде нашёл»): список ситуаций, синтез голоса локально (RTX 4070 SUPER), RU/EN, мужской и женский голос. [closed 2026-11-05] — [план](plan/pilot-voice.md) · [контракты](contracts/pilot-voice.md) · [решения](plan/pilot-voice/decisions.md) · [сводка](plan/pilot-voice/summary.md) · полный журнал: `archive/pilot-voice`
   - [docs/guide/pilot-voice.md](guide/pilot-voice.md) — Голос пилота: реплики по данным игрока, ситуации, очередь, пасхалки, файлы голосов, шина Voice, настройка, границы.
   - [docs/research/pilot-voice-tts.md](research/pilot-voice-tts.md) — Голос пилота: Qwen3-TTS-1.7B VoiceDesign (Apache-2.0, RU+EN, голос по описанию), 4 ГБ VRAM; образцы не прослушаны
+- **sail-texture** — Своя текстура паруса: игрок загружает картинку (PNG/JPG), она ложится на парус его крыла; только у себя, не по сети. [closed 2026-11-05] — [план](plan/sail-texture.md) · [контракты](contracts/sail-texture.md) · [решения](plan/sail-texture/decisions.md) · [сводка](plan/sail-texture/summary.md) · полный журнал: `archive/sail-texture`
+  - [tools/research/sail-texture/README.md](../tools/research/sail-texture/README.md) — SLT-1: UV1 паруса у всех 49 glb одной схемы (верх v 0,5–1, низ 0–0,5); формула наложения своей картинки
 - **scenic-places** — Красивые места: наборы по 5–10 природных пейзажей на страну (~20–30 стран), кнопка рядом с «Популярными местами», старт в воздухе над видом. [closed 2026-11-05] — [план](plan/scenic-places.md) · [контракты](contracts/scenic-places.md) · [решения](plan/scenic-places/decisions.md) · [сводка](plan/scenic-places/summary.md) · полный журнал: `archive/scenic-places`
   - [docs/research/scenic-places-table.md](research/scenic-places-table.md) — Таблица 236 красивых мест по странам: место, тип, чем красиво, старт, курс, высота, карта — для просмотра
   - [docs/research/scenic-places.md](research/scenic-places.md) — Каталог красивых мест: 236 мест в 29 странах, метод отбора, проверка по рельефу (checked 236, failed 0), её пределы
@@ -343,7 +345,7 @@ generated: true
 - [docs/guide/models/instruments-3d.md](guide/models/instruments-3d.md) — 3D-модели приборов (планшет, вариометр, часы, компас): оси, ноды, крепление к кисти и к штанге, кабинная камера.
 - [docs/guide/models/pilot.md](guide/models/pilot.md) — Модель пилота pilot.glb: меши, кости, пустышки, анимации и порядок фаз, перчатки, кабинный вид, сборка (MPFB), высота в подвеске.
 - [docs/guide/models/references.md](guide/models/references.md) — Скриншоты моделей, приёмка по фото реальных прототипов, что улучшить, источники референсов.
-- [docs/guide/models/sail-shader.md](guide/models/sail-shader.md) — Шейдер паруса: просвечивание, анимация вершин, подключение к GliderVisual, стенд и сравнение с фото.
+- [docs/guide/models/sail-shader.md](guide/models/sail-shader.md) — Шейдер паруса: просвечивание, анимация вершин (маска UV2), своя картинка паруса, подключение к GliderVisual, стенд и сравнение с фото.
 - [docs/guide/models/trees.md](guide/models/trees.md) — Модели деревьев (5 пород, 8 вариантов, 3 LOD) и их подключение в мире.
 - [docs/guide/models/wing-contract.md](guide/models/wing-contract.md) — Контракт имён и осей модели крыла: ноды Sail, Frame, ControlFrame, маркеры (HangPoint, BaseBar, InstrumentMount, Upright*), материалы.
 - [docs/guide/models/wings.md](guide/models/wings.md) — Модели крыльев (assets/models/glider_*.glb, 49 шт.): таблица, параметры glider_params.json, трапеция, центровка, подвеска.

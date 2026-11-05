@@ -691,3 +691,13 @@ settings_pilot_voice,Голос пилота,Pilot voice
 settings_voice_male,Мужской,Male
 settings_voice_female,Женский,Female
 settings_voice_off,Выкл,Off
+setup_sail_texture,Картинка паруса,Sail picture
+setup_sail_texture_pick,Выбрать…,Choose…
+setup_sail_texture_reset,Родная,Original
+setup_sail_texture_native,Родная картинка паруса,Original sail picture
+setup_sail_texture_dialog,Картинка паруса (PNG или JPEG),Sail picture (PNG or JPEG)
+sail_tex_err_read,Файл не читается,Cannot read the file
+sail_tex_err_format,Нужен PNG или JPEG,A PNG or JPEG file is required
+sail_tex_err_too_big,Файл слишком большой (до 20 МБ и 16384 px),File is too large (up to 20 MB and 16384 px)
+sail_tex_err_too_small,Картинка слишком маленькая (от 16 px),Picture is too small (at least 16 px)
+sail_tex_err_write,Не удалось сохранить картинку,Could not save the picture

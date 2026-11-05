@@ -411,6 +411,7 @@ func _build_visual() -> void:
 	visual.name = "Visual"
 	add_child(visual)
 	visual.build(model.wing, model.pilot, _vis)
+	SailMaterial.set_custom(visual.sail_material, SailTexture.load_texture())  # SLT-К2: только парус игрока
 
 
 func _update_pilot(dt: float) -> void:

@@ -59,6 +59,12 @@ var _groups: Array[Dictionary] = []
 var _wings: PackedStringArray = []  ## модели выбранного класса ("wings/<id>")
 var _class_opt: OptionButton
 var _wing_info: Label
+var _sail_pending: Image  ## выбранная, но ещё не записанная картинка паруса
+var _sail_reset := false  ## отложенный сброс на родную
+var _sail_preview: TextureRect
+var _sail_native_btn: Button
+var _sail_err: Label
+var _sail_dialog: FileDialog
 var _skies: Array = []
 var _wing_opt: OptionButton
 var _mass: HSlider
@@ -127,8 +133,11 @@ func _ready() -> void:
 func set_settings(s: FlightSettings) -> void:
 	settings = s.duplicate()
 	_picked_place_name = ""
+	_sail_pending = null
+	_sail_reset = false
 	if is_node_ready():
 		_apply_settings()
+		_refresh_sail()
 
 
 func _build() -> void:
@@ -154,6 +163,7 @@ func _build() -> void:
 	_tabs.tab_changed.connect(func(_i: int) -> void: sp["scroll"].scroll_vertical = 0)
 
 	_build_wing(box_app)
+	_build_sail_texture(box_app)
 	_mass = UiKit.slider_row(
 		box_app,
 		tr("setup_pilot_mass"),
@@ -258,6 +268,77 @@ func _build_wing(box: Control) -> void:
 	_wing_opt.item_selected.connect(_on_wing_selected)
 	_wing_info = UiKit.label(box, "", "HintLabel")
 	_wing_info.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+
+
+## Своя картинка паруса (SLT-К1): выбор и сброс отложены до «Готово».
+func _build_sail_texture(box: Control) -> void:
+	var h := HBoxContainer.new()
+	h.add_theme_constant_override("separation", 8)
+	UiKit.button(h, tr("setup_sail_texture_pick"), _on_sail_pick)
+	_sail_native_btn = UiKit.button(h, tr("setup_sail_texture_reset"), _on_sail_reset)
+	UiKit.row(box, tr("setup_sail_texture"), h)
+	_sail_preview = TextureRect.new()
+	_sail_preview.custom_minimum_size = Vector2(240, 80)
+	_sail_preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_sail_preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	box.add_child(_sail_preview)
+	_sail_err = UiKit.label(box, "", "HintLabel")
+	_refresh_sail()
+
+
+func _sail_effective_custom() -> bool:
+	return _sail_pending != null or (not _sail_reset and SailTexture.has_custom())
+
+
+func _refresh_sail() -> void:
+	if _sail_preview == null:
+		return
+	_sail_native_btn.disabled = not _sail_effective_custom()
+	if _sail_pending != null:
+		_sail_preview.texture = ImageTexture.create_from_image(_sail_pending)
+	elif _sail_effective_custom():
+		_sail_preview.texture = SailTexture.load_texture()
+	else:
+		_sail_preview.texture = null
+	var native := tr("setup_sail_texture_native")
+	if _sail_effective_custom():
+		if _sail_err.text == native:
+			_sail_err.text = ""
+	elif _sail_err.text == "":
+		_sail_err.text = native
+
+
+func _on_sail_pick() -> void:
+	if _sail_dialog == null:
+		_sail_dialog = FileDialog.new()
+		_sail_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+		_sail_dialog.access = FileDialog.ACCESS_FILESYSTEM
+		_sail_dialog.use_native_dialog = true
+		_sail_dialog.title = tr("setup_sail_texture_dialog")
+		_sail_dialog.filters = PackedStringArray(["*.png, *.jpg, *.jpeg ; PNG/JPEG"])
+		_sail_dialog.file_selected.connect(on_sail_file_selected)
+		add_child(_sail_dialog)
+	_sail_dialog.popup_centered_ratio(0.6)
+
+
+## Файл выбран: проверен и показан в предпросмотре; профиль не тронут до «Готово».
+func on_sail_file_selected(src: String) -> void:
+	var r := SailTexture.prepare(src)
+	var e: String = r["error"]
+	if e != "":
+		_sail_err.text = tr(e)
+		return
+	_sail_pending = r["image"]
+	_sail_reset = false
+	_sail_err.text = ""
+	_refresh_sail()
+
+
+func _on_sail_reset() -> void:
+	_sail_pending = null
+	_sail_reset = true
+	_sail_err.text = ""
+	_refresh_sail()
 
 
 ## Класс и модель по пути крыла ("wings/<id>"); неизвестное крыло — первая модель первого класса.
@@ -571,6 +652,14 @@ func _on_add_favorite() -> void:
 
 
 func _on_done() -> void:
+	if _sail_pending != null:
+		if not SailTexture.save(_sail_pending):
+			_sail_err.text = tr("sail_tex_err_write")
+			return
+	elif _sail_reset:
+		SailTexture.clear()
+	_sail_pending = null
+	_sail_reset = false
 	settings = _collect()
 	if settings.has_pick():
 		RecentPlaces.add(settings.pick_lat, settings.pick_lon, _picked_place_name, recent_places_path)

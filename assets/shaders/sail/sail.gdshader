@@ -2,7 +2,8 @@
 // (латы, швы, ламинат), двусторонний; вершинная анимация по параметрам полёта.
 // Маска анимации — вторая UV меша Sail (tools/blender/build_gliders.py):
 //   UV2.x — вес пролёта между латами (0 на лате), UV2.y — доля хорды (0 — передняя кромка,
-//   1 — задняя), у нижней обшивки UV2.y + 2. Смещение — вдоль +Y модели (вверх по крылу), м.
+//   1 — задняя), у нижней обшивки UV2.y + 2. Экспорт glTF переворачивает V: в Godot приходит
+//   UV2.y = 1 − y_сборщика, поэтому вершина читает y = 1 − UV2.y (верх 1 − t, низ −1…−1,96). Смещение — вдоль +Y модели (вверх по крылу), м.
 // Значения по умолчанию совпадают с assets/shaders/sail/sail_params.json (их ставит SailMaterial).
 shader_type spatial;
 #include "res://scripts/terrain/cloud_shadow.gdshaderinc"
@@ -25,6 +26,13 @@ uniform float translucency : hint_range(0.0, 3.0) = 0.8;  // сила света
 uniform vec3 transmit_tint : source_color = vec3(1.0, 0.97, 0.9);
 // Просвет против солнца (SL-7): рассеяние вперёд через ткань ∝ pow(cos угла между взглядом и
 // солнцем, forward_exp) × пропускание (маска _trans: латы и швы темнее) × цвет солнца.
+// Своя картинка на парусе игрока (SLT-К2, SailMaterial.set_custom): custom_on 0 — родная текстура.
+uniform sampler2D custom_tex : source_color, filter_linear_mipmap_anisotropic;
+uniform float custom_on = 0.0;
+uniform float custom_img_aspect = 1.0;     // w/h картинки
+uniform float custom_aspect_top = 4.0;     // размах / наибольшая хорда верхней обшивки (SLT-К2 v3), м/м
+uniform float custom_aspect_bottom = 4.0;  // то же для нижней
+varying flat float v_pocket;               // 1 — карман киля (вертикальная плоскость x = 0): родная текстура
 uniform float forward_gain : hint_range(0.0, 3.0) = 0.7;
 uniform float forward_exp : hint_range(1.0, 32.0) = 5.0;
 varying float v_cs_sun;
@@ -58,9 +66,11 @@ uniform float lower_surface_factor = 0.35;
 const float TAU_ = 6.28318530718;
 
 void vertex() {
+	v_pocket = step(0.7, abs(NORMAL.x));  // до деформации (она только по Y)
 	float bay = UV2.x;
-	float low = step(1.5, UV2.y);
-	float t = UV2.y - 2.0 * low;
+	float y = 1.0 - UV2.y;  // V перевёрнута импортом glTF
+	float low = step(1.5, y);
+	float t = y - 2.0 * low;
 	float x = VERTEX.x;
 	float tm = time_override >= 0.0 ? time_override : TIME;
 	float body = bay * smoothstep(0.15, 0.75, t);
@@ -89,6 +99,23 @@ void fragment() {
 		vec3 k = vec3(0.57735027);
 		c = c * cos(hue_shift_rad) + cross(k, c) * sin(hue_shift_rad);
 		a.rgb = clamp((vec3(g) + c * sat_scale) * value_scale, 0.0, 1.0);
+	}
+	if (custom_on > 0.5 && v_pocket < 0.5) {
+		// Раскладка SLT-К2 v3: верх — взгляд сверху (a = s), низ — взгляд снизу (a = 1 − s); нос — верх картинки.
+		bool is_top = UV.y > 0.5;
+		float q = is_top ? 2.0 * (1.0 - UV.y) : 1.0 - 2.0 * UV.y;
+		float ca = is_top ? UV.x : 1.0 - UV.x;
+		float asp = max(is_top ? custom_aspect_top : custom_aspect_bottom, 0.01);
+		float r = max(custom_img_aspect, 0.01);
+		vec2 cuv = vec2(ca, q);
+		if (asp >= r) {
+			cuv.x = (ca - 0.5) * asp / r + 0.5;
+		} else {
+			cuv.y = (q - 0.5) * r / asp + 0.5;
+		}
+		vec4 c = texture(custom_tex, cuv);
+		float inside = step(0.0, cuv.x) * step(cuv.x, 1.0) * step(0.0, cuv.y) * step(cuv.y, 1.0);
+		a.rgb = mix(a.rgb, c.rgb, c.a * inside);  // цветокоррекция — только к родной
 	}
 	ALBEDO = a.rgb;
 	ROUGHNESS = roughness;
