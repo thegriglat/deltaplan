@@ -6,7 +6,7 @@ area: game
 updated: 2026-11-05
 summary: "Старт в воздухе: настройка и пределы (К1), постановка в Game (К2), пункт в окне «Старт» (К3), цели и рекорды (К4)."
 related: ["docs/plan/air-start-menu.md", "docs/contracts/start-pick.md", "docs/guide/game/launch.md", "docs/contracts/trike-anywhere.md", "docs/contracts/goals.md"]
-contracts: [{"id": "ASM-К1", "version": 1}, {"id": "ASM-К2", "version": 2}, {"id": "ASM-К3", "version": 1}, {"id": "ASM-К4", "version": 1}]
+contracts: [{"id": "ASM-К1", "version": 2}, {"id": "ASM-К2", "version": 2}, {"id": "ASM-К3", "version": 1}, {"id": "ASM-К4", "version": 1}]
 ---
 # Контракты air-start-menu
 
@@ -14,7 +14,7 @@ contracts: [{"id": "ASM-К1", "version": 1}, {"id": "ASM-К2", "version": 2}, {"
 
 Координаты — как в SP-К1 (`docs/contracts/start-pick.md`): мир X восток, Z юг, Y — м над уровнем моря; курс — градусы, 0 = север, по часовой, `[0, 360)`; «вперёд» `(sin h, 0, −cos h)`.
 
-## ASM-К1 v1
+## ASM-К1 v2
 Выбор старта в воздухе в настройках полёта.
 
 - Владелец: ASM-1. Потребители: окно выбора (UI-задача модуля), `Favorites` и `UserSettings.save_last_flight` (через `to_dict`), scenic-places (SCP).
@@ -25,7 +25,7 @@ contracts: [{"id": "ASM-К1", "version": 1}, {"id": "ASM-К2", "version": 2}, {"
   - `to_dict`/`from_dict` — ключ `air_start_agl_m` (нет ключа → `-1.0`), значение через `normalize_air_start`; `duplicate` переносит поле.
 - Совместимость (в `from_dict` и при любой установке поля через `set_air_start(v)`): старт в воздухе только у `vehicle == "glider"`; при `has_air_start()` → `tow_kind = ""`; `vehicle == "trike"` → `air_start_agl_m = -1.0`.
   - `func set_air_start(v: float) -> void` — `air_start_agl_m = normalize_air_start(v)`, затем правило совместимости; `set_air_start(-1)` — старт с земли.
-- Конфиг `configs/game.json → air_start`: `agl_min_m` 50 (выше крон: деревья `configs/vegetation.json` до 22 м, ≥ 2× с запасом; если `configs/world_objects.json` даёт объект выше 25 м — владелец поднимает минимум и пишет почему), `agl_max_m` 1000 (граница выбора — решение координатора, не физика; правится конфигом), `agl_default_m` 300 (как у `--air-start`), `agl_step_m` 10; ключи `_doc` — по-русски.
+- Конфиг `configs/game.json → air_start`: `agl_min_m` 60 (v2: выше опор ЛЭП `configs/world_objects.json → power.tower_height_m` с запасом 25 м — 53 м, округлено вверх до шага 10; деревья `configs/vegetation.json` до 22 м ниже), `agl_max_m` 1000 (граница выбора — решение координатора, не физика; правится конфигом), `agl_default_m` 300 (как у `--air-start`), `agl_step_m` 10; ключи `_doc` — по-русски.
 - Инварианты: `from_dict(to_dict(s))` сохраняет `air_start_agl_m`; `normalize_air_start` идемпотентна; при `has_air_start()` всегда `vehicle == "glider"` и `tow_kind == ""`.
 
 ## ASM-К2 v2
