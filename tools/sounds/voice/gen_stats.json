@@ -1,0 +1,2882 @@
+[
+ {
+  "lufs": -19.9,
+  "peak_db": -3.7,
+  "dur_s": 0.69,
+  "voice": "male",
+  "lang": "ru",
+  "id": "takeoff_1",
+  "attempt": 2,
+  "gen_s": 4.27
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.4,
+  "dur_s": 1.02,
+  "voice": "male",
+  "lang": "ru",
+  "id": "takeoff_2",
+  "attempt": 0,
+  "gen_s": 10.13
+ },
+ {
+  "lufs": -20.1,
+  "peak_db": -3.9,
+  "dur_s": 1.34,
+  "voice": "male",
+  "lang": "ru",
+  "id": "takeoff_3",
+  "attempt": 0,
+  "gen_s": 7.74
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -4.9,
+  "dur_s": 0.98,
+  "voice": "male",
+  "lang": "ru",
+  "id": "thermal_found_1",
+  "attempt": 6,
+  "gen_s": 5.18
+ },
+ {
+  "lufs": -20.2,
+  "peak_db": -3.5,
+  "dur_s": 1.22,
+  "voice": "male",
+  "lang": "ru",
+  "id": "thermal_found_2",
+  "attempt": 0,
+  "gen_s": 8.01
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -3.5,
+  "dur_s": 1.45,
+  "voice": "male",
+  "lang": "ru",
+  "id": "thermal_found_3",
+  "attempt": 0,
+  "gen_s": 8.33
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.5,
+  "dur_s": 1.59,
+  "voice": "male",
+  "lang": "ru",
+  "id": "thermal_strong_1",
+  "attempt": 0,
+  "gen_s": 9.15
+ },
+ {
+  "lufs": -20.1,
+  "peak_db": -3.5,
+  "dur_s": 1.42,
+  "voice": "male",
+  "lang": "ru",
+  "id": "thermal_strong_2",
+  "attempt": 0,
+  "gen_s": 8.96
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -5.1,
+  "dur_s": 1.21,
+  "voice": "male",
+  "lang": "ru",
+  "id": "thermal_strong_3",
+  "attempt": 0,
+  "gen_s": 7.68
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.8,
+  "dur_s": 0.68,
+  "voice": "male",
+  "lang": "ru",
+  "id": "thermal_lost_1",
+  "attempt": 6,
+  "gen_s": 3.98
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -4.3,
+  "dur_s": 1.06,
+  "voice": "male",
+  "lang": "ru",
+  "id": "thermal_lost_2",
+  "attempt": 0,
+  "gen_s": 5.04
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -4.0,
+  "dur_s": 1.38,
+  "voice": "male",
+  "lang": "ru",
+  "id": "thermal_lost_3",
+  "attempt": 0,
+  "gen_s": 8.1
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.5,
+  "dur_s": 1.14,
+  "voice": "male",
+  "lang": "ru",
+  "id": "sink_1",
+  "attempt": 1,
+  "gen_s": 5.13
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.6,
+  "dur_s": 0.93,
+  "voice": "male",
+  "lang": "ru",
+  "id": "sink_2",
+  "attempt": 0,
+  "gen_s": 5.42
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.3,
+  "dur_s": 1.16,
+  "voice": "male",
+  "lang": "ru",
+  "id": "sink_3",
+  "attempt": 0,
+  "gen_s": 6.52
+ },
+ {
+  "lufs": -20.2,
+  "peak_db": -3.4,
+  "dur_s": 1.16,
+  "voice": "male",
+  "lang": "ru",
+  "id": "turbulence_1",
+  "attempt": 0,
+  "gen_s": 8.04
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -5.0,
+  "dur_s": 1.67,
+  "voice": "male",
+  "lang": "ru",
+  "id": "turbulence_2",
+  "attempt": 0,
+  "gen_s": 8.9
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -5.0,
+  "dur_s": 1.19,
+  "voice": "male",
+  "lang": "ru",
+  "id": "turbulence_3",
+  "attempt": 0,
+  "gen_s": 7.93
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -8.8,
+  "dur_s": 0.78,
+  "voice": "male",
+  "lang": "ru",
+  "id": "stall_1",
+  "attempt": 0,
+  "gen_s": 5.19
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.6,
+  "dur_s": 1.01,
+  "voice": "male",
+  "lang": "ru",
+  "id": "stall_2",
+  "attempt": 0,
+  "gen_s": 9.66
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -5.9,
+  "dur_s": 1.67,
+  "voice": "male",
+  "lang": "ru",
+  "id": "stall_3",
+  "attempt": 1,
+  "gen_s": 6.41
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -4.5,
+  "dur_s": 1.43,
+  "voice": "male",
+  "lang": "ru",
+  "id": "fast_1",
+  "attempt": 0,
+  "gen_s": 9.32
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.5,
+  "dur_s": 1.31,
+  "voice": "male",
+  "lang": "ru",
+  "id": "fast_2",
+  "attempt": 2,
+  "gen_s": 6.18
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -3.5,
+  "dur_s": 0.9,
+  "voice": "male",
+  "lang": "ru",
+  "id": "low_1",
+  "attempt": 6,
+  "gen_s": 5.35
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.6,
+  "dur_s": 0.99,
+  "voice": "male",
+  "lang": "ru",
+  "id": "low_2",
+  "attempt": 0,
+  "gen_s": 8.87
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -3.3,
+  "dur_s": 1.22,
+  "voice": "male",
+  "lang": "ru",
+  "id": "low_3",
+  "attempt": 0,
+  "gen_s": 12.12
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.5,
+  "dur_s": 1.45,
+  "voice": "male",
+  "lang": "ru",
+  "id": "high_1",
+  "attempt": 0,
+  "gen_s": 11.1
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.4,
+  "dur_s": 1.36,
+  "voice": "male",
+  "lang": "ru",
+  "id": "high_2",
+  "attempt": 0,
+  "gen_s": 12.71
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.8,
+  "dur_s": 1.6,
+  "voice": "male",
+  "lang": "ru",
+  "id": "high_3",
+  "attempt": 0,
+  "gen_s": 11.37
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -3.7,
+  "dur_s": 0.85,
+  "voice": "male",
+  "lang": "ru",
+  "id": "view_1",
+  "attempt": 0,
+  "gen_s": 9.05
+ },
+ {
+  "lufs": -20.1,
+  "peak_db": -3.6,
+  "dur_s": 1.41,
+  "voice": "male",
+  "lang": "ru",
+  "id": "view_2",
+  "attempt": 1,
+  "gen_s": 6.62
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.1,
+  "dur_s": 1.43,
+  "voice": "male",
+  "lang": "ru",
+  "id": "view_3",
+  "attempt": 0,
+  "gen_s": 9.24
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -5.0,
+  "dur_s": 1.54,
+  "voice": "male",
+  "lang": "ru",
+  "id": "cloud_1",
+  "attempt": 0,
+  "gen_s": 9.17
+ },
+ {
+  "lufs": -19.8,
+  "peak_db": -3.4,
+  "dur_s": 1.19,
+  "voice": "male",
+  "lang": "ru",
+  "id": "cloud_2",
+  "attempt": 1,
+  "gen_s": 4.94
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -3.5,
+  "dur_s": 1.52,
+  "voice": "male",
+  "lang": "ru",
+  "id": "turnpoint_1",
+  "attempt": 4,
+  "gen_s": 6.2
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.5,
+  "dur_s": 0.69,
+  "voice": "male",
+  "lang": "ru",
+  "id": "turnpoint_2",
+  "attempt": 0,
+  "gen_s": 5.43
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -4.2,
+  "dur_s": 2.34,
+  "voice": "male",
+  "lang": "ru",
+  "id": "goal_1",
+  "attempt": 6,
+  "gen_s": 9.88
+ },
+ {
+  "lufs": -20.1,
+  "peak_db": -3.4,
+  "dur_s": 1.73,
+  "voice": "male",
+  "lang": "ru",
+  "id": "goal_2",
+  "attempt": 1,
+  "gen_s": 7.28
+ },
+ {
+  "lufs": -19.8,
+  "peak_db": -3.5,
+  "dur_s": 0.8,
+  "voice": "male",
+  "lang": "ru",
+  "id": "landing_soft_1",
+  "attempt": 1,
+  "gen_s": 3.67
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -3.6,
+  "dur_s": 1.44,
+  "voice": "male",
+  "lang": "ru",
+  "id": "landing_soft_2",
+  "attempt": 0,
+  "gen_s": 8.37
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.5,
+  "dur_s": 0.83,
+  "voice": "male",
+  "lang": "ru",
+  "id": "landing_soft_3",
+  "attempt": 2,
+  "gen_s": 4.78
+ },
+ {
+  "lufs": -20.1,
+  "peak_db": -3.5,
+  "dur_s": 2.0,
+  "voice": "male",
+  "lang": "ru",
+  "id": "landing_hard_1",
+  "attempt": 0,
+  "gen_s": 9.74
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.3,
+  "dur_s": 1.22,
+  "voice": "male",
+  "lang": "ru",
+  "id": "landing_hard_2",
+  "attempt": 0,
+  "gen_s": 7.39
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.5,
+  "dur_s": 0.56,
+  "voice": "male",
+  "lang": "ru",
+  "id": "landing_hard_3",
+  "attempt": 0,
+  "gen_s": 4.68
+ },
+ {
+  "lufs": -19.8,
+  "peak_db": -3.5,
+  "dur_s": 0.68,
+  "voice": "male",
+  "lang": "ru",
+  "id": "crash_1",
+  "attempt": 0,
+  "gen_s": 4.75
+ },
+ {
+  "lufs": -19.8,
+  "peak_db": -3.4,
+  "dur_s": 0.96,
+  "voice": "male",
+  "lang": "ru",
+  "id": "crash_2",
+  "attempt": 0,
+  "gen_s": 7.21
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -4.1,
+  "dur_s": 1.64,
+  "voice": "male",
+  "lang": "ru",
+  "id": "egg_an2_1",
+  "attempt": 0,
+  "gen_s": 9.33
+ },
+ {
+  "lufs": -20.2,
+  "peak_db": -3.5,
+  "dur_s": 1.72,
+  "voice": "male",
+  "lang": "ru",
+  "id": "egg_an2_2",
+  "attempt": 6,
+  "gen_s": 8.12
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.5,
+  "dur_s": 1.17,
+  "voice": "male",
+  "lang": "ru",
+  "id": "egg_airliner_1",
+  "attempt": 0,
+  "gen_s": 8.07
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -4.5,
+  "dur_s": 2.35,
+  "voice": "male",
+  "lang": "ru",
+  "id": "egg_airliner_2",
+  "attempt": 0,
+  "gen_s": 12.22
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -5.3,
+  "dur_s": 0.82,
+  "voice": "male",
+  "lang": "ru",
+  "id": "egg_gloria_1",
+  "attempt": 0,
+  "gen_s": 5.05
+ },
+ {
+  "lufs": -19.8,
+  "peak_db": -3.3,
+  "dur_s": 2.55,
+  "voice": "male",
+  "lang": "ru",
+  "id": "egg_gloria_2",
+  "attempt": 1,
+  "gen_s": 9.34
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.6,
+  "dur_s": 0.9,
+  "voice": "male",
+  "lang": "ru",
+  "id": "egg_balloon_1",
+  "attempt": 0,
+  "gen_s": 5.38
+ },
+ {
+  "lufs": -19.8,
+  "peak_db": -3.6,
+  "dur_s": 1.94,
+  "voice": "male",
+  "lang": "ru",
+  "id": "egg_balloon_2",
+  "attempt": 0,
+  "gen_s": 9.83
+ },
+ {
+  "lufs": -20.2,
+  "peak_db": -3.5,
+  "dur_s": 1.3,
+  "voice": "male",
+  "lang": "ru",
+  "id": "egg_balloon_festival_1",
+  "attempt": 0,
+  "gen_s": 7.89
+ },
+ {
+  "lufs": -19.8,
+  "peak_db": -3.5,
+  "dur_s": 1.58,
+  "voice": "male",
+  "lang": "ru",
+  "id": "egg_balloon_festival_2",
+  "attempt": 0,
+  "gen_s": 8.85
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -5.0,
+  "dur_s": 1.24,
+  "voice": "male",
+  "lang": "ru",
+  "id": "egg_uaz_1",
+  "attempt": 0,
+  "gen_s": 7.71
+ },
+ {
+  "lufs": -19.8,
+  "peak_db": -3.4,
+  "dur_s": 1.29,
+  "voice": "male",
+  "lang": "ru",
+  "id": "egg_uaz_2",
+  "attempt": 0,
+  "gen_s": 8.98
+ },
+ {
+  "lufs": -19.8,
+  "peak_db": -3.3,
+  "dur_s": 0.7,
+  "voice": "male",
+  "lang": "ru",
+  "id": "egg_people_1",
+  "attempt": 0,
+  "gen_s": 6.1
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -3.7,
+  "dur_s": 1.52,
+  "voice": "male",
+  "lang": "ru",
+  "id": "egg_people_2",
+  "attempt": 0,
+  "gen_s": 8.28
+ },
+ {
+  "lufs": -19.8,
+  "peak_db": -3.5,
+  "dur_s": 1.07,
+  "voice": "male",
+  "lang": "ru",
+  "id": "egg_herds_1",
+  "attempt": 0,
+  "gen_s": 6.77
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -3.7,
+  "dur_s": 0.78,
+  "voice": "male",
+  "lang": "ru",
+  "id": "egg_herds_2",
+  "attempt": 0,
+  "gen_s": 5.57
+ },
+ {
+  "lufs": -20.1,
+  "peak_db": -3.5,
+  "dur_s": 1.59,
+  "voice": "male",
+  "lang": "ru",
+  "id": "egg_group_1",
+  "attempt": 0,
+  "gen_s": 10.29
+ },
+ {
+  "lufs": -19.8,
+  "peak_db": -3.5,
+  "dur_s": 1.54,
+  "voice": "male",
+  "lang": "ru",
+  "id": "egg_group_2",
+  "attempt": 0,
+  "gen_s": 9.37
+ },
+ {
+  "lufs": -20.2,
+  "peak_db": -3.4,
+  "dur_s": 1.75,
+  "voice": "male",
+  "lang": "ru",
+  "id": "egg_eagle_1",
+  "attempt": 1,
+  "gen_s": 8.33
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -4.3,
+  "dur_s": 1.22,
+  "voice": "male",
+  "lang": "ru",
+  "id": "egg_eagle_2",
+  "attempt": 4,
+  "gen_s": 5.1
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.5,
+  "dur_s": 2.02,
+  "voice": "male",
+  "lang": "ru",
+  "id": "egg_crop_circles_1",
+  "attempt": 0,
+  "gen_s": 9.95
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -8.0,
+  "dur_s": 1.13,
+  "voice": "male",
+  "lang": "ru",
+  "id": "egg_crop_circles_2",
+  "attempt": 1,
+  "gen_s": 6.55
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -3.7,
+  "dur_s": 1.57,
+  "voice": "male",
+  "lang": "ru",
+  "id": "egg_hay_bales_1",
+  "attempt": 0,
+  "gen_s": 9.55
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.5,
+  "dur_s": 1.36,
+  "voice": "male",
+  "lang": "ru",
+  "id": "egg_hay_bales_2",
+  "attempt": 2,
+  "gen_s": 6.55
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -4.8,
+  "dur_s": 1.34,
+  "voice": "male",
+  "lang": "ru",
+  "id": "egg_geese_1",
+  "attempt": 0,
+  "gen_s": 8.37
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -5.5,
+  "dur_s": 0.96,
+  "voice": "male",
+  "lang": "ru",
+  "id": "egg_geese_2",
+  "attempt": 0,
+  "gen_s": 5.78
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -4.9,
+  "dur_s": 0.74,
+  "voice": "male",
+  "lang": "en",
+  "id": "takeoff_1",
+  "attempt": 0,
+  "gen_s": 5.54
+ },
+ {
+  "lufs": -19.8,
+  "peak_db": -3.5,
+  "dur_s": 0.73,
+  "voice": "male",
+  "lang": "en",
+  "id": "takeoff_2",
+  "attempt": 0,
+  "gen_s": 6.72
+ },
+ {
+  "lufs": -20.1,
+  "peak_db": -3.5,
+  "dur_s": 1.42,
+  "voice": "male",
+  "lang": "en",
+  "id": "takeoff_3",
+  "attempt": 0,
+  "gen_s": 8.02
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.4,
+  "dur_s": 1.31,
+  "voice": "male",
+  "lang": "en",
+  "id": "thermal_found_1",
+  "attempt": 0,
+  "gen_s": 7.4
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -3.6,
+  "dur_s": 1.69,
+  "voice": "male",
+  "lang": "en",
+  "id": "thermal_found_2",
+  "attempt": 0,
+  "gen_s": 10.14
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -3.5,
+  "dur_s": 1.73,
+  "voice": "male",
+  "lang": "en",
+  "id": "thermal_found_3",
+  "attempt": 0,
+  "gen_s": 13.37
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.4,
+  "dur_s": 1.72,
+  "voice": "male",
+  "lang": "en",
+  "id": "thermal_strong_1",
+  "attempt": 0,
+  "gen_s": 12.69
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.4,
+  "dur_s": 1.25,
+  "voice": "male",
+  "lang": "en",
+  "id": "thermal_strong_2",
+  "attempt": 0,
+  "gen_s": 8.05
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.4,
+  "dur_s": 1.07,
+  "voice": "male",
+  "lang": "en",
+  "id": "thermal_strong_3",
+  "attempt": 0,
+  "gen_s": 7.24
+ },
+ {
+  "lufs": -20.2,
+  "peak_db": -3.4,
+  "dur_s": 0.75,
+  "voice": "male",
+  "lang": "en",
+  "id": "thermal_lost_1",
+  "attempt": 0,
+  "gen_s": 6.6
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -4.3,
+  "dur_s": 0.87,
+  "voice": "male",
+  "lang": "en",
+  "id": "thermal_lost_2",
+  "attempt": 0,
+  "gen_s": 9.02
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.6,
+  "dur_s": 1.74,
+  "voice": "male",
+  "lang": "en",
+  "id": "thermal_lost_3",
+  "attempt": 0,
+  "gen_s": 10.98
+ },
+ {
+  "lufs": -19.8,
+  "peak_db": -3.4,
+  "dur_s": 1.88,
+  "voice": "male",
+  "lang": "en",
+  "id": "sink_1",
+  "attempt": 0,
+  "gen_s": 8.4
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.6,
+  "dur_s": 0.75,
+  "voice": "male",
+  "lang": "en",
+  "id": "sink_2",
+  "attempt": 0,
+  "gen_s": 6.57
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -4.8,
+  "dur_s": 0.98,
+  "voice": "male",
+  "lang": "en",
+  "id": "sink_3",
+  "attempt": 0,
+  "gen_s": 6.63
+ },
+ {
+  "lufs": -20.2,
+  "peak_db": -3.5,
+  "dur_s": 0.49,
+  "voice": "male",
+  "lang": "en",
+  "id": "turbulence_1",
+  "attempt": 0,
+  "gen_s": 6.5
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.3,
+  "dur_s": 1.22,
+  "voice": "male",
+  "lang": "en",
+  "id": "turbulence_2",
+  "attempt": 0,
+  "gen_s": 7.67
+ },
+ {
+  "lufs": -20.2,
+  "peak_db": -3.4,
+  "dur_s": 0.81,
+  "voice": "male",
+  "lang": "en",
+  "id": "turbulence_3",
+  "attempt": 0,
+  "gen_s": 5.62
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.6,
+  "dur_s": 0.61,
+  "voice": "male",
+  "lang": "en",
+  "id": "stall_1",
+  "attempt": 0,
+  "gen_s": 4.78
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -3.6,
+  "dur_s": 0.68,
+  "voice": "male",
+  "lang": "en",
+  "id": "stall_2",
+  "attempt": 0,
+  "gen_s": 6.24
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.5,
+  "dur_s": 1.65,
+  "voice": "male",
+  "lang": "en",
+  "id": "stall_3",
+  "attempt": 0,
+  "gen_s": 9.87
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.3,
+  "dur_s": 1.38,
+  "voice": "male",
+  "lang": "en",
+  "id": "fast_1",
+  "attempt": 0,
+  "gen_s": 7.97
+ },
+ {
+  "lufs": -19.8,
+  "peak_db": -3.5,
+  "dur_s": 1.24,
+  "voice": "male",
+  "lang": "en",
+  "id": "fast_2",
+  "attempt": 0,
+  "gen_s": 6.94
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -4.9,
+  "dur_s": 0.8,
+  "voice": "male",
+  "lang": "en",
+  "id": "low_1",
+  "attempt": 0,
+  "gen_s": 4.41
+ },
+ {
+  "lufs": -19.8,
+  "peak_db": -3.6,
+  "dur_s": 0.96,
+  "voice": "male",
+  "lang": "en",
+  "id": "low_2",
+  "attempt": 0,
+  "gen_s": 5.28
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -5.3,
+  "dur_s": 1.5,
+  "voice": "male",
+  "lang": "en",
+  "id": "low_3",
+  "attempt": 0,
+  "gen_s": 7.91
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -3.7,
+  "dur_s": 0.69,
+  "voice": "male",
+  "lang": "en",
+  "id": "high_1",
+  "attempt": 0,
+  "gen_s": 4.1
+ },
+ {
+  "lufs": -19.8,
+  "peak_db": -3.5,
+  "dur_s": 0.89,
+  "voice": "male",
+  "lang": "en",
+  "id": "high_2",
+  "attempt": 0,
+  "gen_s": 5.85
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -5.0,
+  "dur_s": 1.88,
+  "voice": "male",
+  "lang": "en",
+  "id": "high_3",
+  "attempt": 0,
+  "gen_s": 7.27
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -3.5,
+  "dur_s": 0.86,
+  "voice": "male",
+  "lang": "en",
+  "id": "view_1",
+  "attempt": 0,
+  "gen_s": 4.53
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.5,
+  "dur_s": 1.13,
+  "voice": "male",
+  "lang": "en",
+  "id": "view_2",
+  "attempt": 0,
+  "gen_s": 5.79
+ },
+ {
+  "lufs": -19.8,
+  "peak_db": -3.5,
+  "dur_s": 1.04,
+  "voice": "male",
+  "lang": "en",
+  "id": "view_3",
+  "attempt": 0,
+  "gen_s": 5.09
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -3.6,
+  "dur_s": 1.4,
+  "voice": "male",
+  "lang": "en",
+  "id": "cloud_1",
+  "attempt": 0,
+  "gen_s": 6.87
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.5,
+  "dur_s": 0.95,
+  "voice": "male",
+  "lang": "en",
+  "id": "cloud_2",
+  "attempt": 0,
+  "gen_s": 5.46
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.4,
+  "dur_s": 0.96,
+  "voice": "male",
+  "lang": "en",
+  "id": "turnpoint_1",
+  "attempt": 0,
+  "gen_s": 5.63
+ },
+ {
+  "lufs": -20.2,
+  "peak_db": -3.4,
+  "dur_s": 0.54,
+  "voice": "male",
+  "lang": "en",
+  "id": "turnpoint_2",
+  "attempt": 0,
+  "gen_s": 3.42
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -3.4,
+  "dur_s": 1.22,
+  "voice": "male",
+  "lang": "en",
+  "id": "goal_1",
+  "attempt": 0,
+  "gen_s": 4.74
+ },
+ {
+  "lufs": -20.2,
+  "peak_db": -3.5,
+  "dur_s": 2.52,
+  "voice": "male",
+  "lang": "en",
+  "id": "goal_2",
+  "attempt": 0,
+  "gen_s": 7.83
+ },
+ {
+  "lufs": -20.2,
+  "peak_db": -3.4,
+  "dur_s": 1.34,
+  "voice": "male",
+  "lang": "en",
+  "id": "landing_soft_1",
+  "attempt": 0,
+  "gen_s": 6.05
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -3.5,
+  "dur_s": 0.83,
+  "voice": "male",
+  "lang": "en",
+  "id": "landing_soft_2",
+  "attempt": 0,
+  "gen_s": 4.04
+ },
+ {
+  "lufs": -20.2,
+  "peak_db": -3.4,
+  "dur_s": 0.57,
+  "voice": "male",
+  "lang": "en",
+  "id": "landing_soft_3",
+  "attempt": 0,
+  "gen_s": 4.35
+ },
+ {
+  "lufs": -19.8,
+  "peak_db": -3.5,
+  "dur_s": 1.09,
+  "voice": "male",
+  "lang": "en",
+  "id": "landing_hard_1",
+  "attempt": 0,
+  "gen_s": 5.52
+ },
+ {
+  "lufs": -20.2,
+  "peak_db": -3.4,
+  "dur_s": 0.95,
+  "voice": "male",
+  "lang": "en",
+  "id": "landing_hard_2",
+  "attempt": 0,
+  "gen_s": 7.06
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.5,
+  "dur_s": 0.5,
+  "voice": "male",
+  "lang": "en",
+  "id": "landing_hard_3",
+  "attempt": 0,
+  "gen_s": 5.06
+ },
+ {
+  "lufs": -19.8,
+  "peak_db": -3.5,
+  "dur_s": 0.7,
+  "voice": "male",
+  "lang": "en",
+  "id": "crash_1",
+  "attempt": 0,
+  "gen_s": 7.44
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.8,
+  "dur_s": 0.94,
+  "voice": "male",
+  "lang": "en",
+  "id": "crash_2",
+  "attempt": 0,
+  "gen_s": 10.26
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -3.4,
+  "dur_s": 1.76,
+  "voice": "male",
+  "lang": "en",
+  "id": "egg_an2_1",
+  "attempt": 0,
+  "gen_s": 10.24
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -4.6,
+  "dur_s": 1.87,
+  "voice": "male",
+  "lang": "en",
+  "id": "egg_an2_2",
+  "attempt": 0,
+  "gen_s": 8.39
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.4,
+  "dur_s": 1.46,
+  "voice": "male",
+  "lang": "en",
+  "id": "egg_airliner_1",
+  "attempt": 0,
+  "gen_s": 9.42
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -4.7,
+  "dur_s": 1.54,
+  "voice": "male",
+  "lang": "en",
+  "id": "egg_airliner_2",
+  "attempt": 0,
+  "gen_s": 9.09
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -4.9,
+  "dur_s": 0.8,
+  "voice": "male",
+  "lang": "en",
+  "id": "egg_gloria_1",
+  "attempt": 1,
+  "gen_s": 4.71
+ },
+ {
+  "lufs": -20.2,
+  "peak_db": -3.7,
+  "dur_s": 2.66,
+  "voice": "male",
+  "lang": "en",
+  "id": "egg_gloria_2",
+  "attempt": 0,
+  "gen_s": 13.86
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.5,
+  "dur_s": 1.79,
+  "voice": "male",
+  "lang": "en",
+  "id": "egg_balloon_1",
+  "attempt": 0,
+  "gen_s": 10.06
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.4,
+  "dur_s": 1.34,
+  "voice": "male",
+  "lang": "en",
+  "id": "egg_balloon_2",
+  "attempt": 0,
+  "gen_s": 9.37
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.6,
+  "dur_s": 1.49,
+  "voice": "male",
+  "lang": "en",
+  "id": "egg_balloon_festival_1",
+  "attempt": 0,
+  "gen_s": 8.76
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -4.7,
+  "dur_s": 2.35,
+  "voice": "male",
+  "lang": "en",
+  "id": "egg_balloon_festival_2",
+  "attempt": 0,
+  "gen_s": 14.34
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.5,
+  "dur_s": 1.52,
+  "voice": "male",
+  "lang": "en",
+  "id": "egg_uaz_1",
+  "attempt": 0,
+  "gen_s": 8.42
+ },
+ {
+  "lufs": -19.8,
+  "peak_db": -3.4,
+  "dur_s": 2.07,
+  "voice": "male",
+  "lang": "en",
+  "id": "egg_uaz_2",
+  "attempt": 0,
+  "gen_s": 12.31
+ },
+ {
+  "lufs": -20.1,
+  "peak_db": -4.8,
+  "dur_s": 0.86,
+  "voice": "male",
+  "lang": "en",
+  "id": "egg_people_1",
+  "attempt": 0,
+  "gen_s": 7.0
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -5.2,
+  "dur_s": 0.86,
+  "voice": "male",
+  "lang": "en",
+  "id": "egg_people_2",
+  "attempt": 0,
+  "gen_s": 6.57
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.6,
+  "dur_s": 1.22,
+  "voice": "male",
+  "lang": "en",
+  "id": "egg_herds_1",
+  "attempt": 0,
+  "gen_s": 8.88
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -5.0,
+  "dur_s": 0.92,
+  "voice": "male",
+  "lang": "en",
+  "id": "egg_herds_2",
+  "attempt": 0,
+  "gen_s": 5.29
+ },
+ {
+  "lufs": -19.8,
+  "peak_db": -3.4,
+  "dur_s": 1.59,
+  "voice": "male",
+  "lang": "en",
+  "id": "egg_group_1",
+  "attempt": 0,
+  "gen_s": 9.93
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.5,
+  "dur_s": 1.54,
+  "voice": "male",
+  "lang": "en",
+  "id": "egg_group_2",
+  "attempt": 0,
+  "gen_s": 8.75
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -4.8,
+  "dur_s": 1.34,
+  "voice": "male",
+  "lang": "en",
+  "id": "egg_eagle_1",
+  "attempt": 0,
+  "gen_s": 6.47
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.5,
+  "dur_s": 1.75,
+  "voice": "male",
+  "lang": "en",
+  "id": "egg_eagle_2",
+  "attempt": 0,
+  "gen_s": 8.26
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.4,
+  "dur_s": 1.26,
+  "voice": "male",
+  "lang": "en",
+  "id": "egg_crop_circles_1",
+  "attempt": 0,
+  "gen_s": 6.53
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.6,
+  "dur_s": 0.91,
+  "voice": "male",
+  "lang": "en",
+  "id": "egg_crop_circles_2",
+  "attempt": 0,
+  "gen_s": 5.25
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -4.5,
+  "dur_s": 1.29,
+  "voice": "male",
+  "lang": "en",
+  "id": "egg_hay_bales_1",
+  "attempt": 0,
+  "gen_s": 6.3
+ },
+ {
+  "lufs": -20.2,
+  "peak_db": -3.5,
+  "dur_s": 1.41,
+  "voice": "male",
+  "lang": "en",
+  "id": "egg_hay_bales_2",
+  "attempt": 0,
+  "gen_s": 6.1
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -4.8,
+  "dur_s": 0.64,
+  "voice": "male",
+  "lang": "en",
+  "id": "egg_geese_1",
+  "attempt": 6,
+  "gen_s": 5.05
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -3.6,
+  "dur_s": 1.15,
+  "voice": "male",
+  "lang": "en",
+  "id": "egg_geese_2",
+  "attempt": 0,
+  "gen_s": 5.06
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.4,
+  "dur_s": 0.97,
+  "voice": "female",
+  "lang": "ru",
+  "id": "takeoff_1",
+  "attempt": 0,
+  "gen_s": 5.59
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -7.0,
+  "dur_s": 0.81,
+  "voice": "female",
+  "lang": "ru",
+  "id": "takeoff_2",
+  "attempt": 2,
+  "gen_s": 4.24
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -7.7,
+  "dur_s": 1.16,
+  "voice": "female",
+  "lang": "ru",
+  "id": "takeoff_3",
+  "attempt": 0,
+  "gen_s": 6.43
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.5,
+  "dur_s": 1.03,
+  "voice": "female",
+  "lang": "ru",
+  "id": "thermal_found_1",
+  "attempt": 6,
+  "gen_s": 5.47
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.8,
+  "dur_s": 1.74,
+  "voice": "female",
+  "lang": "ru",
+  "id": "thermal_found_2",
+  "attempt": 0,
+  "gen_s": 8.21
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -4.8,
+  "dur_s": 1.46,
+  "voice": "female",
+  "lang": "ru",
+  "id": "thermal_found_3",
+  "attempt": 0,
+  "gen_s": 7.64
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -5.0,
+  "dur_s": 1.31,
+  "voice": "female",
+  "lang": "ru",
+  "id": "thermal_strong_1",
+  "attempt": 0,
+  "gen_s": 8.68
+ },
+ {
+  "lufs": -20.1,
+  "peak_db": -3.5,
+  "dur_s": 1.27,
+  "voice": "female",
+  "lang": "ru",
+  "id": "thermal_strong_2",
+  "attempt": 0,
+  "gen_s": 6.09
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -7.9,
+  "dur_s": 1.46,
+  "voice": "female",
+  "lang": "ru",
+  "id": "thermal_strong_3",
+  "attempt": 0,
+  "gen_s": 6.79
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -6.0,
+  "dur_s": 0.79,
+  "voice": "female",
+  "lang": "ru",
+  "id": "thermal_lost_1",
+  "attempt": 6,
+  "gen_s": 6.09
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -7.7,
+  "dur_s": 1.0,
+  "voice": "female",
+  "lang": "ru",
+  "id": "thermal_lost_2",
+  "attempt": 0,
+  "gen_s": 4.96
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -5.2,
+  "dur_s": 2.1,
+  "voice": "female",
+  "lang": "ru",
+  "id": "thermal_lost_3",
+  "attempt": 0,
+  "gen_s": 9.8
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -5.5,
+  "dur_s": 0.88,
+  "voice": "female",
+  "lang": "ru",
+  "id": "sink_1",
+  "attempt": 0,
+  "gen_s": 4.45
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -5.4,
+  "dur_s": 0.9,
+  "voice": "female",
+  "lang": "ru",
+  "id": "sink_2",
+  "attempt": 0,
+  "gen_s": 4.34
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -7.4,
+  "dur_s": 1.0,
+  "voice": "female",
+  "lang": "ru",
+  "id": "sink_3",
+  "attempt": 0,
+  "gen_s": 5.17
+ },
+ {
+  "lufs": -20.1,
+  "peak_db": -3.8,
+  "dur_s": 1.6,
+  "voice": "female",
+  "lang": "ru",
+  "id": "turbulence_1",
+  "attempt": 0,
+  "gen_s": 7.51
+ },
+ {
+  "lufs": -20.1,
+  "peak_db": -7.1,
+  "dur_s": 1.42,
+  "voice": "female",
+  "lang": "ru",
+  "id": "turbulence_2",
+  "attempt": 0,
+  "gen_s": 7.65
+ },
+ {
+  "lufs": -19.8,
+  "peak_db": -7.4,
+  "dur_s": 1.2,
+  "voice": "female",
+  "lang": "ru",
+  "id": "turbulence_3",
+  "attempt": 3,
+  "gen_s": 5.46
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -11.0,
+  "dur_s": 1.24,
+  "voice": "female",
+  "lang": "ru",
+  "id": "stall_1",
+  "attempt": 0,
+  "gen_s": 6.74
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -5.4,
+  "dur_s": 0.89,
+  "voice": "female",
+  "lang": "ru",
+  "id": "stall_2",
+  "attempt": 0,
+  "gen_s": 5.19
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -9.0,
+  "dur_s": 1.43,
+  "voice": "female",
+  "lang": "ru",
+  "id": "stall_3",
+  "attempt": 0,
+  "gen_s": 7.09
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.8,
+  "dur_s": 1.41,
+  "voice": "female",
+  "lang": "ru",
+  "id": "fast_1",
+  "attempt": 1,
+  "gen_s": 6.54
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -5.5,
+  "dur_s": 1.28,
+  "voice": "female",
+  "lang": "ru",
+  "id": "fast_2",
+  "attempt": 2,
+  "gen_s": 6.02
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.8,
+  "dur_s": 1.11,
+  "voice": "female",
+  "lang": "ru",
+  "id": "low_1",
+  "attempt": 2,
+  "gen_s": 4.95
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -5.0,
+  "dur_s": 1.1,
+  "voice": "female",
+  "lang": "ru",
+  "id": "low_2",
+  "attempt": 0,
+  "gen_s": 5.55
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.9,
+  "dur_s": 1.41,
+  "voice": "female",
+  "lang": "ru",
+  "id": "low_3",
+  "attempt": 0,
+  "gen_s": 6.64
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -4.2,
+  "dur_s": 1.3,
+  "voice": "female",
+  "lang": "ru",
+  "id": "high_1",
+  "attempt": 0,
+  "gen_s": 5.07
+ },
+ {
+  "lufs": -20.1,
+  "peak_db": -3.4,
+  "dur_s": 1.26,
+  "voice": "female",
+  "lang": "ru",
+  "id": "high_2",
+  "attempt": 0,
+  "gen_s": 6.19
+ },
+ {
+  "lufs": -20.1,
+  "peak_db": -6.6,
+  "dur_s": 1.27,
+  "voice": "female",
+  "lang": "ru",
+  "id": "high_3",
+  "attempt": 0,
+  "gen_s": 6.05
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -5.3,
+  "dur_s": 0.88,
+  "voice": "female",
+  "lang": "ru",
+  "id": "view_1",
+  "attempt": 0,
+  "gen_s": 5.43
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -7.2,
+  "dur_s": 0.89,
+  "voice": "female",
+  "lang": "ru",
+  "id": "view_2",
+  "attempt": 0,
+  "gen_s": 5.07
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -7.8,
+  "dur_s": 1.17,
+  "voice": "female",
+  "lang": "ru",
+  "id": "view_3",
+  "attempt": 0,
+  "gen_s": 6.97
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -7.3,
+  "dur_s": 1.22,
+  "voice": "female",
+  "lang": "ru",
+  "id": "cloud_1",
+  "attempt": 0,
+  "gen_s": 5.91
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.7,
+  "dur_s": 1.33,
+  "voice": "female",
+  "lang": "ru",
+  "id": "cloud_2",
+  "attempt": 0,
+  "gen_s": 7.44
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -3.4,
+  "dur_s": 1.03,
+  "voice": "female",
+  "lang": "ru",
+  "id": "turnpoint_1",
+  "attempt": 1,
+  "gen_s": 7.06
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.6,
+  "dur_s": 0.81,
+  "voice": "female",
+  "lang": "ru",
+  "id": "turnpoint_2",
+  "attempt": 0,
+  "gen_s": 4.77
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.6,
+  "dur_s": 2.17,
+  "voice": "female",
+  "lang": "ru",
+  "id": "goal_1",
+  "attempt": 1,
+  "gen_s": 10.51
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -5.9,
+  "dur_s": 1.83,
+  "voice": "female",
+  "lang": "ru",
+  "id": "goal_2",
+  "attempt": 1,
+  "gen_s": 8.35
+ },
+ {
+  "lufs": -19.8,
+  "peak_db": -3.4,
+  "dur_s": 0.88,
+  "voice": "female",
+  "lang": "ru",
+  "id": "landing_soft_1",
+  "attempt": 0,
+  "gen_s": 5.66
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.2,
+  "dur_s": 1.44,
+  "voice": "female",
+  "lang": "ru",
+  "id": "landing_soft_2",
+  "attempt": 0,
+  "gen_s": 9.19
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.4,
+  "dur_s": 0.88,
+  "voice": "female",
+  "lang": "ru",
+  "id": "landing_soft_3",
+  "attempt": 1,
+  "gen_s": 4.72
+ },
+ {
+  "lufs": -20.5,
+  "peak_db": -7.9,
+  "dur_s": 1.88,
+  "voice": "female",
+  "lang": "ru",
+  "id": "landing_hard_1",
+  "attempt": 0,
+  "gen_s": 11.71
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.8,
+  "dur_s": 1.08,
+  "voice": "female",
+  "lang": "ru",
+  "id": "landing_hard_2",
+  "attempt": 0,
+  "gen_s": 5.56
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -7.6,
+  "dur_s": 0.59,
+  "voice": "female",
+  "lang": "ru",
+  "id": "landing_hard_3",
+  "attempt": 0,
+  "gen_s": 3.85
+ },
+ {
+  "lufs": -20.2,
+  "peak_db": -3.4,
+  "dur_s": 1.69,
+  "voice": "female",
+  "lang": "ru",
+  "id": "crash_1",
+  "attempt": 0,
+  "gen_s": 8.52
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -9.7,
+  "dur_s": 0.57,
+  "voice": "female",
+  "lang": "ru",
+  "id": "crash_2",
+  "attempt": 0,
+  "gen_s": 4.3
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -8.4,
+  "dur_s": 1.42,
+  "voice": "female",
+  "lang": "ru",
+  "id": "egg_an2_1",
+  "attempt": 1,
+  "gen_s": 6.36
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.1,
+  "dur_s": 1.68,
+  "voice": "female",
+  "lang": "ru",
+  "id": "egg_an2_2",
+  "attempt": 3,
+  "gen_s": 7.69
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -8.3,
+  "dur_s": 1.43,
+  "voice": "female",
+  "lang": "ru",
+  "id": "egg_airliner_1",
+  "attempt": 0,
+  "gen_s": 6.82
+ },
+ {
+  "lufs": -19.8,
+  "peak_db": -5.0,
+  "dur_s": 2.3,
+  "voice": "female",
+  "lang": "ru",
+  "id": "egg_airliner_2",
+  "attempt": 0,
+  "gen_s": 9.68
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.9,
+  "dur_s": 0.88,
+  "voice": "female",
+  "lang": "ru",
+  "id": "egg_gloria_1",
+  "attempt": 0,
+  "gen_s": 4.26
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -5.6,
+  "dur_s": 2.34,
+  "voice": "female",
+  "lang": "ru",
+  "id": "egg_gloria_2",
+  "attempt": 0,
+  "gen_s": 9.93
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.5,
+  "dur_s": 1.57,
+  "voice": "female",
+  "lang": "ru",
+  "id": "egg_balloon_1",
+  "attempt": 1,
+  "gen_s": 7.07
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -4.5,
+  "dur_s": 1.79,
+  "voice": "female",
+  "lang": "ru",
+  "id": "egg_balloon_2",
+  "attempt": 0,
+  "gen_s": 6.96
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -5.9,
+  "dur_s": 1.5,
+  "voice": "female",
+  "lang": "ru",
+  "id": "egg_balloon_festival_1",
+  "attempt": 0,
+  "gen_s": 6.09
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.2,
+  "dur_s": 1.71,
+  "voice": "female",
+  "lang": "ru",
+  "id": "egg_balloon_festival_2",
+  "attempt": 1,
+  "gen_s": 8.68
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -7.7,
+  "dur_s": 1.21,
+  "voice": "female",
+  "lang": "ru",
+  "id": "egg_uaz_1",
+  "attempt": 0,
+  "gen_s": 5.68
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -7.6,
+  "dur_s": 1.24,
+  "voice": "female",
+  "lang": "ru",
+  "id": "egg_uaz_2",
+  "attempt": 0,
+  "gen_s": 5.94
+ },
+ {
+  "lufs": -20.1,
+  "peak_db": -7.2,
+  "dur_s": 0.77,
+  "voice": "female",
+  "lang": "ru",
+  "id": "egg_people_1",
+  "attempt": 2,
+  "gen_s": 4.51
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -4.6,
+  "dur_s": 1.4,
+  "voice": "female",
+  "lang": "ru",
+  "id": "egg_people_2",
+  "attempt": 0,
+  "gen_s": 5.74
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -7.6,
+  "dur_s": 1.28,
+  "voice": "female",
+  "lang": "ru",
+  "id": "egg_herds_1",
+  "attempt": 0,
+  "gen_s": 5.38
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.2,
+  "dur_s": 1.02,
+  "voice": "female",
+  "lang": "ru",
+  "id": "egg_herds_2",
+  "attempt": 2,
+  "gen_s": 4.93
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.4,
+  "dur_s": 1.58,
+  "voice": "female",
+  "lang": "ru",
+  "id": "egg_group_1",
+  "attempt": 0,
+  "gen_s": 6.88
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.7,
+  "dur_s": 1.65,
+  "voice": "female",
+  "lang": "ru",
+  "id": "egg_group_2",
+  "attempt": 0,
+  "gen_s": 8.13
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -5.2,
+  "dur_s": 1.84,
+  "voice": "female",
+  "lang": "ru",
+  "id": "egg_eagle_1",
+  "attempt": 3,
+  "gen_s": 7.1
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -8.5,
+  "dur_s": 1.1,
+  "voice": "female",
+  "lang": "ru",
+  "id": "egg_eagle_2",
+  "attempt": 6,
+  "gen_s": 6.31
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -7.9,
+  "dur_s": 1.71,
+  "voice": "female",
+  "lang": "ru",
+  "id": "egg_crop_circles_1",
+  "attempt": 0,
+  "gen_s": 6.89
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -8.0,
+  "dur_s": 1.16,
+  "voice": "female",
+  "lang": "ru",
+  "id": "egg_crop_circles_2",
+  "attempt": 0,
+  "gen_s": 5.95
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.5,
+  "dur_s": 1.91,
+  "voice": "female",
+  "lang": "ru",
+  "id": "egg_hay_bales_1",
+  "attempt": 0,
+  "gen_s": 8.36
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -9.5,
+  "dur_s": 1.6,
+  "voice": "female",
+  "lang": "ru",
+  "id": "egg_hay_bales_2",
+  "attempt": 0,
+  "gen_s": 6.3
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -7.0,
+  "dur_s": 1.23,
+  "voice": "female",
+  "lang": "ru",
+  "id": "egg_geese_1",
+  "attempt": 0,
+  "gen_s": 5.95
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -9.5,
+  "dur_s": 0.7,
+  "voice": "female",
+  "lang": "ru",
+  "id": "egg_geese_2",
+  "attempt": 0,
+  "gen_s": 4.41
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -7.1,
+  "dur_s": 0.84,
+  "voice": "female",
+  "lang": "en",
+  "id": "takeoff_1",
+  "attempt": 0,
+  "gen_s": 5.14
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -7.3,
+  "dur_s": 0.78,
+  "voice": "female",
+  "lang": "en",
+  "id": "takeoff_2",
+  "attempt": 0,
+  "gen_s": 6.71
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -3.9,
+  "dur_s": 1.61,
+  "voice": "female",
+  "lang": "en",
+  "id": "takeoff_3",
+  "attempt": 0,
+  "gen_s": 7.73
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -5.0,
+  "dur_s": 1.37,
+  "voice": "female",
+  "lang": "en",
+  "id": "thermal_found_1",
+  "attempt": 0,
+  "gen_s": 8.89
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -4.4,
+  "dur_s": 1.85,
+  "voice": "female",
+  "lang": "en",
+  "id": "thermal_found_2",
+  "attempt": 0,
+  "gen_s": 8.89
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.5,
+  "dur_s": 1.89,
+  "voice": "female",
+  "lang": "en",
+  "id": "thermal_found_3",
+  "attempt": 0,
+  "gen_s": 9.54
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.8,
+  "dur_s": 2.47,
+  "voice": "female",
+  "lang": "en",
+  "id": "thermal_strong_1",
+  "attempt": 0,
+  "gen_s": 12.06
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.8,
+  "dur_s": 1.61,
+  "voice": "female",
+  "lang": "en",
+  "id": "thermal_strong_2",
+  "attempt": 0,
+  "gen_s": 11.24
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.5,
+  "dur_s": 1.2,
+  "voice": "female",
+  "lang": "en",
+  "id": "thermal_strong_3",
+  "attempt": 0,
+  "gen_s": 7.48
+ },
+ {
+  "lufs": -19.8,
+  "peak_db": -4.3,
+  "dur_s": 0.81,
+  "voice": "female",
+  "lang": "en",
+  "id": "thermal_lost_1",
+  "attempt": 0,
+  "gen_s": 6.32
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -7.6,
+  "dur_s": 0.62,
+  "voice": "female",
+  "lang": "en",
+  "id": "thermal_lost_2",
+  "attempt": 0,
+  "gen_s": 5.66
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -4.5,
+  "dur_s": 1.81,
+  "voice": "female",
+  "lang": "en",
+  "id": "thermal_lost_3",
+  "attempt": 0,
+  "gen_s": 13.05
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -8.2,
+  "dur_s": 1.16,
+  "voice": "female",
+  "lang": "en",
+  "id": "sink_1",
+  "attempt": 0,
+  "gen_s": 8.84
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -5.2,
+  "dur_s": 0.99,
+  "voice": "female",
+  "lang": "en",
+  "id": "sink_2",
+  "attempt": 0,
+  "gen_s": 6.87
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.2,
+  "dur_s": 0.78,
+  "voice": "female",
+  "lang": "en",
+  "id": "sink_3",
+  "attempt": 0,
+  "gen_s": 6.97
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -8.6,
+  "dur_s": 0.71,
+  "voice": "female",
+  "lang": "en",
+  "id": "turbulence_1",
+  "attempt": 0,
+  "gen_s": 8.21
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -9.8,
+  "dur_s": 2.3,
+  "voice": "female",
+  "lang": "en",
+  "id": "turbulence_2",
+  "attempt": 6,
+  "gen_s": 11.2
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.6,
+  "dur_s": 0.96,
+  "voice": "female",
+  "lang": "en",
+  "id": "turbulence_3",
+  "attempt": 0,
+  "gen_s": 6.86
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.6,
+  "dur_s": 0.68,
+  "voice": "female",
+  "lang": "en",
+  "id": "stall_1",
+  "attempt": 0,
+  "gen_s": 6.89
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -5.9,
+  "dur_s": 0.76,
+  "voice": "female",
+  "lang": "en",
+  "id": "stall_2",
+  "attempt": 0,
+  "gen_s": 8.28
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.1,
+  "dur_s": 1.86,
+  "voice": "female",
+  "lang": "en",
+  "id": "stall_3",
+  "attempt": 0,
+  "gen_s": 11.42
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -8.7,
+  "dur_s": 1.42,
+  "voice": "female",
+  "lang": "en",
+  "id": "fast_1",
+  "attempt": 0,
+  "gen_s": 10.33
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -7.5,
+  "dur_s": 1.3,
+  "voice": "female",
+  "lang": "en",
+  "id": "fast_2",
+  "attempt": 0,
+  "gen_s": 10.59
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.8,
+  "dur_s": 0.89,
+  "voice": "female",
+  "lang": "en",
+  "id": "low_1",
+  "attempt": 0,
+  "gen_s": 7.88
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -9.3,
+  "dur_s": 1.03,
+  "voice": "female",
+  "lang": "en",
+  "id": "low_2",
+  "attempt": 0,
+  "gen_s": 7.52
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -4.9,
+  "dur_s": 1.34,
+  "voice": "female",
+  "lang": "en",
+  "id": "low_3",
+  "attempt": 0,
+  "gen_s": 11.16
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.3,
+  "dur_s": 0.76,
+  "voice": "female",
+  "lang": "en",
+  "id": "high_1",
+  "attempt": 0,
+  "gen_s": 6.89
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -8.0,
+  "dur_s": 1.3,
+  "voice": "female",
+  "lang": "en",
+  "id": "high_2",
+  "attempt": 0,
+  "gen_s": 10.0
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -4.8,
+  "dur_s": 1.5,
+  "voice": "female",
+  "lang": "en",
+  "id": "high_3",
+  "attempt": 0,
+  "gen_s": 10.41
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -8.2,
+  "dur_s": 0.9,
+  "voice": "female",
+  "lang": "en",
+  "id": "view_1",
+  "attempt": 0,
+  "gen_s": 7.29
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -4.2,
+  "dur_s": 1.3,
+  "voice": "female",
+  "lang": "en",
+  "id": "view_2",
+  "attempt": 0,
+  "gen_s": 9.18
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -5.9,
+  "dur_s": 1.31,
+  "voice": "female",
+  "lang": "en",
+  "id": "view_3",
+  "attempt": 0,
+  "gen_s": 9.02
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.9,
+  "dur_s": 1.19,
+  "voice": "female",
+  "lang": "en",
+  "id": "cloud_1",
+  "attempt": 0,
+  "gen_s": 9.6
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -8.5,
+  "dur_s": 1.11,
+  "voice": "female",
+  "lang": "en",
+  "id": "cloud_2",
+  "attempt": 0,
+  "gen_s": 9.32
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -5.0,
+  "dur_s": 1.12,
+  "voice": "female",
+  "lang": "en",
+  "id": "turnpoint_1",
+  "attempt": 0,
+  "gen_s": 8.37
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -4.8,
+  "dur_s": 0.61,
+  "voice": "female",
+  "lang": "en",
+  "id": "turnpoint_2",
+  "attempt": 0,
+  "gen_s": 5.33
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -6.6,
+  "dur_s": 1.0,
+  "voice": "female",
+  "lang": "en",
+  "id": "goal_1",
+  "attempt": 0,
+  "gen_s": 8.4
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.1,
+  "dur_s": 1.75,
+  "voice": "female",
+  "lang": "en",
+  "id": "goal_2",
+  "attempt": 0,
+  "gen_s": 11.49
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.2,
+  "dur_s": 1.42,
+  "voice": "female",
+  "lang": "en",
+  "id": "landing_soft_1",
+  "attempt": 0,
+  "gen_s": 8.0
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.0,
+  "dur_s": 0.85,
+  "voice": "female",
+  "lang": "en",
+  "id": "landing_soft_2",
+  "attempt": 0,
+  "gen_s": 6.72
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -4.7,
+  "dur_s": 0.79,
+  "voice": "female",
+  "lang": "en",
+  "id": "landing_soft_3",
+  "attempt": 0,
+  "gen_s": 6.17
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -8.2,
+  "dur_s": 1.31,
+  "voice": "female",
+  "lang": "en",
+  "id": "landing_hard_1",
+  "attempt": 0,
+  "gen_s": 9.93
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -5.7,
+  "dur_s": 1.17,
+  "voice": "female",
+  "lang": "en",
+  "id": "landing_hard_2",
+  "attempt": 0,
+  "gen_s": 7.95
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -3.9,
+  "dur_s": 0.61,
+  "voice": "female",
+  "lang": "en",
+  "id": "landing_hard_3",
+  "attempt": 1,
+  "gen_s": 4.35
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -7.4,
+  "dur_s": 0.65,
+  "voice": "female",
+  "lang": "en",
+  "id": "crash_1",
+  "attempt": 0,
+  "gen_s": 6.98
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -9.6,
+  "dur_s": 0.79,
+  "voice": "female",
+  "lang": "en",
+  "id": "crash_2",
+  "attempt": 0,
+  "gen_s": 6.72
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -4.6,
+  "dur_s": 2.07,
+  "voice": "female",
+  "lang": "en",
+  "id": "egg_an2_1",
+  "attempt": 0,
+  "gen_s": 11.17
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.4,
+  "dur_s": 1.73,
+  "voice": "female",
+  "lang": "en",
+  "id": "egg_an2_2",
+  "attempt": 0,
+  "gen_s": 8.98
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -5.7,
+  "dur_s": 1.73,
+  "voice": "female",
+  "lang": "en",
+  "id": "egg_airliner_1",
+  "attempt": 0,
+  "gen_s": 8.33
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.1,
+  "dur_s": 1.63,
+  "voice": "female",
+  "lang": "en",
+  "id": "egg_airliner_2",
+  "attempt": 0,
+  "gen_s": 7.5
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -7.8,
+  "dur_s": 0.86,
+  "voice": "female",
+  "lang": "en",
+  "id": "egg_gloria_1",
+  "attempt": 0,
+  "gen_s": 5.21
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.8,
+  "dur_s": 2.47,
+  "voice": "female",
+  "lang": "en",
+  "id": "egg_gloria_2",
+  "attempt": 0,
+  "gen_s": 10.52
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -8.0,
+  "dur_s": 1.83,
+  "voice": "female",
+  "lang": "en",
+  "id": "egg_balloon_1",
+  "attempt": 0,
+  "gen_s": 8.14
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -5.5,
+  "dur_s": 1.57,
+  "voice": "female",
+  "lang": "en",
+  "id": "egg_balloon_2",
+  "attempt": 0,
+  "gen_s": 9.38
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -7.8,
+  "dur_s": 1.33,
+  "voice": "female",
+  "lang": "en",
+  "id": "egg_balloon_festival_1",
+  "attempt": 0,
+  "gen_s": 6.0
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -4.9,
+  "dur_s": 2.38,
+  "voice": "female",
+  "lang": "en",
+  "id": "egg_balloon_festival_2",
+  "attempt": 0,
+  "gen_s": 9.99
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.5,
+  "dur_s": 1.98,
+  "voice": "female",
+  "lang": "en",
+  "id": "egg_uaz_1",
+  "attempt": 0,
+  "gen_s": 7.98
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.5,
+  "dur_s": 1.99,
+  "voice": "female",
+  "lang": "en",
+  "id": "egg_uaz_2",
+  "attempt": 0,
+  "gen_s": 8.35
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -8.0,
+  "dur_s": 0.89,
+  "voice": "female",
+  "lang": "en",
+  "id": "egg_people_1",
+  "attempt": 0,
+  "gen_s": 5.01
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -7.7,
+  "dur_s": 0.91,
+  "voice": "female",
+  "lang": "en",
+  "id": "egg_people_2",
+  "attempt": 0,
+  "gen_s": 5.42
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -5.5,
+  "dur_s": 1.22,
+  "voice": "female",
+  "lang": "en",
+  "id": "egg_herds_1",
+  "attempt": 0,
+  "gen_s": 7.99
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -9.4,
+  "dur_s": 1.15,
+  "voice": "female",
+  "lang": "en",
+  "id": "egg_herds_2",
+  "attempt": 0,
+  "gen_s": 5.48
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.4,
+  "dur_s": 1.69,
+  "voice": "female",
+  "lang": "en",
+  "id": "egg_group_1",
+  "attempt": 0,
+  "gen_s": 7.78
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -5.7,
+  "dur_s": 1.91,
+  "voice": "female",
+  "lang": "en",
+  "id": "egg_group_2",
+  "attempt": 0,
+  "gen_s": 9.48
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -5.2,
+  "dur_s": 1.88,
+  "voice": "female",
+  "lang": "en",
+  "id": "egg_eagle_1",
+  "attempt": 0,
+  "gen_s": 7.67
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -5.6,
+  "dur_s": 1.71,
+  "voice": "female",
+  "lang": "en",
+  "id": "egg_eagle_2",
+  "attempt": 0,
+  "gen_s": 6.96
+ },
+ {
+  "lufs": -19.9,
+  "peak_db": -3.6,
+  "dur_s": 1.45,
+  "voice": "female",
+  "lang": "en",
+  "id": "egg_crop_circles_1",
+  "attempt": 0,
+  "gen_s": 6.41
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -7.3,
+  "dur_s": 0.93,
+  "voice": "female",
+  "lang": "en",
+  "id": "egg_crop_circles_2",
+  "attempt": 0,
+  "gen_s": 5.95
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -5.1,
+  "dur_s": 1.19,
+  "voice": "female",
+  "lang": "en",
+  "id": "egg_hay_bales_1",
+  "attempt": 0,
+  "gen_s": 5.32
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -7.0,
+  "dur_s": 1.56,
+  "voice": "female",
+  "lang": "en",
+  "id": "egg_hay_bales_2",
+  "attempt": 0,
+  "gen_s": 5.96
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -6.7,
+  "dur_s": 0.78,
+  "voice": "female",
+  "lang": "en",
+  "id": "egg_geese_1",
+  "attempt": 6,
+  "gen_s": 6.01
+ },
+ {
+  "lufs": -20.0,
+  "peak_db": -3.6,
+  "dur_s": 1.22,
+  "voice": "female",
+  "lang": "en",
+  "id": "egg_geese_2",
+  "attempt": 0,
+  "gen_s": 5.15
+ }
+]

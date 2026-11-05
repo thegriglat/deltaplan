@@ -29,3 +29,19 @@ export HF_HOME=~/data/pilot-voice/hf
 
 ## Лицензии
 Код `qwen-tts` и веса — Apache-2.0 (`https://github.com/QwenLM/Qwen3-TTS/blob/main/LICENSE`, карточка `https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign`). Голос задан описанием, не клон человека. Запись в `ASSETS.md` / `assets/sounds/LICENSES.md` — за PVO-3.
+
+## Полный набор (PVO-3): Design → Clone
+Те же окружение и `HF_HOME`; дополнительно (в тот же venv, затем вернуть torch: `pip install --force-reinstall --no-deps torch==2.6.0 torchaudio==2.6.0 --extra-index-url https://download.pytorch.org/whl/cu124`, иначе speechbrain тянет несовместимый torch): `pip install faster-whisper speechbrain`. Веса: Base `Qwen/Qwen3-TTS-12Hz-1.7B-Base` (Apache-2.0), Whisper small `Systran/faster-whisper-small` (MIT), ECAPA `speechbrain/spkrec-ecapa-voxceleb` (Apache-2.0).
+
+```bash
+export HF_HOME=~/data/pilot-voice/hf; PY=~/data/pilot-voice/venv/bin/python
+$PY tools/sounds/voice/gen_full.py ref --out tools/sounds/voice --seeds 5      # эталоны ref_male.wav / ref_female.wav, refs.json
+$PY tools/sounds/voice/gen_full.py lines --config configs/pilot_voice.json --out assets/sounds/voice --stats tools/sounds/voice/gen_stats.json
+$PY tools/sounds/voice/fix_loop.py --config configs/pilot_voice.json --dir assets/sounds/voice --stats tools/sounds/voice/stats_full.json  # проверка + перегенерация нарушителей
+python3 tools/sounds/voice/check_voice.py --config configs/pilot_voice.json --dir assets/sounds/voice   # быстрая проверка формата (приёмка)
+```
+- Эталон: VoiceDesign по описанию из `samples.json`, 5 seed, выбран медоид по ECAPA среди кандидатов с CER = 0 (`refs.json`); все реплики — Base-клон одного эталона (`ref_audio` + `ref_text`), для RU и EN. Base-модель не принимает `instruct`, поэтому **тон реплики задаётся только её текстом и пунктуацией** (поле `tone` не используется; таблица перевода тона не нужна).
+- Seed реплики = 1000·попытка + индекс; нарушители check (CER, тембр, формат) перегенерируются с другой попыткой до 3 раз (+3 — отдельным запуском).
+- `tts_text.json` — реплики, чей дословный текст модель стабильно читает неверно: для синтеза подставляется близкая запись (субтитров в игре нет).
+- `check_voice.py` — формат PV-К3 (ffmpeg), CER (Whisper small), тембр (ECAPA); `stats_full.json` — числа по каждому файлу. Сырьё (wav) — `~/data/pilot-voice/raw`, не в git.
+- Сброс репозитория: `ref_*.wav` (≈ 250 КБ) — эталоны голосов, лицензия Apache-2.0 (синтез).
