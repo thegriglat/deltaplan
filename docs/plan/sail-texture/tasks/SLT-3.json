@@ -1,0 +1,67 @@
+{
+  "id": "SLT-3",
+  "module": "sail-texture",
+  "type": "dp-engineer",
+  "title": "Своя картинка на парусе крыла игрока (шейдер и наложение)",
+  "goal": "Шейдер и SailMaterial накладывают картинку SailTexture на обе обшивки паруса крыла игрока по SLT-К2 v1 (читаемо снаружи, пропорции, родная вне картинки и на кармане киля); боты и чужие — без изменений; тесты, включая GPU-проверку ориентации.",
+  "plan_ref": "§4 Задачи",
+  "contracts": [
+    {
+      "name": "SLT-К1",
+      "version": "1",
+      "ref": "docs/contracts/sail-texture.md"
+    },
+    {
+      "name": "SLT-К2",
+      "version": "1",
+      "ref": "docs/contracts/sail-texture.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sail-texture-SLT-3",
+  "branch": "sail-texture/SLT-3",
+  "base": "feature/sail-texture",
+  "scope": [
+    "assets/shaders/sail/sail.gdshader",
+    "assets/shaders/sail/sail_material.gd",
+    "scripts/flight/glider.gd",
+    "tests/contracts/test_sail_texture_contracts.gd",
+    "tests/flight/test_sail_custom.gd",
+    "tests/flight/test_sail_custom.gd.uid",
+    "tests/flight/test_sail_custom_gpu.gd",
+    "tests/flight/test_sail_custom_gpu.gd.uid"
+  ],
+  "dont_touch": [
+    "scripts/game/sail_texture.gd",
+    "scripts/ui/",
+    "scripts/game/bot_glider.gd",
+    "scripts/game/remote_pilots.gd",
+    "scripts/net/",
+    "assets/models/",
+    "tools/blender/",
+    "configs/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "sail",
+      "tests": "sail"
+    },
+    {
+      "name": "glider",
+      "tests": "glider"
+    },
+    {
+      "name": "gpu",
+      "cmd": "tools/gpu_tests.sh --filter=sail_custom",
+      "expect": "tests"
+    },
+    {
+      "name": "gd",
+      "cmd": "python3 tools/check_gd.py assets/shaders/sail/sail_material.gd scripts/flight/glider.gd tests/contracts/test_sail_texture_contracts.gd tests/flight/test_sail_custom.gd tests/flight/test_sail_custom_gpu.gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-05T06:05:11"
+}
