@@ -1,0 +1,36 @@
+{
+  "status": "done",
+  "summary": "Тест молчания на подставном dir; добавлен tools/sounds/voice/.gdignore, чтобы импорт не плодил *.wav.import.",
+  "commits": [
+    "785c894d3 .gdignore для tools/sounds/voice"
+  ],
+  "checks": [
+    {
+      "name": "pilot_voice",
+      "value": "41/41",
+      "pass": true
+    },
+    {
+      "name": "audio",
+      "value": "79/79",
+      "pass": true
+    },
+    {
+      "name": "gd_check",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "2 файла",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept PVO-2b",
+  "uncertain": [],
+  "dp_feedback": "",
+  "t": "2026-11-05T11:35:34",
+  "by": "executor"
+}

@@ -22,7 +22,8 @@
   "base": "feature/pilot-voice",
   "scope": [
     "tests/audio/",
-    "scripts/audio/pilot_voice.gd"
+    "scripts/audio/pilot_voice.gd",
+    "tools/sounds/voice/.gdignore"
   ],
   "dont_touch": [
     "assets/",
