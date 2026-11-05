@@ -1,0 +1,86 @@
+{
+  "status": "done",
+  "summary": "Причина найдена и подтверждена разделением режимов: CloudWhiteout.apply включает Godot-туман (fog_density>0 уже при amount≈0,005) на основании слоя облаков (грубое поле cloud_density_at = cover x профиль). Небо получает ступеньку (G 0,133->0,273), а cloud_layer._update_light при env.fog_enabled переключает дымку облаков с 4e-05 на env.fog_density: облака синеют (R 0,40->0,30). В режиме nowhiteout изменений нет; в cloudfogfix облака не меняются, небо скачет.",
+  "commits": [
+    "126e2c9df CVW-2: стенд прохода через облако и причина смены цвета облаков на кромке"
+  ],
+  "checks": [
+    {
+      "name": "accept --dry",
+      "value": "5/5 PASS (cloud_whiteout 16/16, csv_header, frames=325, readme, gd_check, scope)",
+      "pass": true
+    },
+    {
+      "name": "небо x_bg G на кромке слоя, час 13, game",
+      "value": "0,133 -> 0,273 за 12 м; nowhiteout 0,133 -> 0,134",
+      "pass": true
+    },
+    {
+      "name": "облака x_other (R,G,B) на кромке, game / cloudfogfix",
+      "value": "(0,402;0,451;0,521)->(0,300;0,419;0,575) / (0,405;0,455;0,528) без изменений",
+      "pass": true
+    },
+    {
+      "name": "csv_header",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "frames",
+      "value": "325 строк",
+      "pass": true
+    },
+    {
+      "name": "readme",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "gd_check",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_game_logic",
+      "value": "16/16",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Режим fixedfog есть в стенде, но не прогонялся; cloudfogfix на час 18 — только 5 кадров (таймаут); горизонтальный проход не даёт кромки (поле гладкое) — основа вывода вертикальный проход.",
+    "Кандидаты (в) темпоральное накопление и (г) экспозиция отдельно не разделялись; nowhiteout даёт плавный ход, как причина не подтверждены.",
+    "PNG глазами не смотрел (проверка числами)."
+  ],
+  "questions": [
+    "Нужна ли отдельная задача правки (вариант 1: развести дымку облаков и туман окружения; вариант 2: сгладить fog_sky_affect/порог; вариант 3: мгла по реальной форме облака)?"
+  ],
+  "images": [
+    "build/screenshots/cloud-view/CVW-2/ (вне репозитория, *_nc.png — кадры без облаков)"
+  ],
+  "how_to_check": ".dpcli/dpcli accept CVW-2; команды воспроизведения — tools/research/cloud_view/CVW-2/README.md",
+  "uncertain": [
+    {
+      "where": "tools/research/cloud_view/CVW-2/m13.csv, m18.csv",
+      "why": "горизонтальные проходы *_h сняты до замены libdp_air_tune.so (09:05)",
+      "checked": "вертикальные game в mv13/mv18 (после замены) совпадают с mw13 до 3-го знака; *_h только справка"
+    },
+    {
+      "where": "scripts/atmosphere/cloud_layer.gd:530-538",
+      "why": "механизм дымки облаков доказан косвенно (режим cloudfogfix через вызов _update_light при fog_enabled=false), не прямым чтением шейдерных параметров",
+      "checked": "в cloudfogfix цвет облаков постоянен, скачок неба остаётся"
+    },
+    {
+      "where": "x_other_*",
+      "why": "маска = разность с кадром без облаков, 'другое' облако не выделено (поле гладкое, камера в слое)",
+      "checked": "x_bg_* и x_nc_luma_mean для сопоставления"
+    }
+  ],
+  "dp_feedback": "lock cpu стоит в очереди десятки минут (18 слотов, по 6 на запуск) и PID в lock status из другого namespace - не видно, идёт ли процесс; job wait не печатает лог до конца; хотелось бы job log -f. libdp_air_tune.so в копии отсутствует по умолчанию - узнал только из дополнения.",
+  "extra": {
+    "rows": 325,
+    "base_msl": 2774,
+    "whiteout_step_amount": 0.005
+  },
+  "t": "2026-11-05T11:29:09",
+  "by": "executor"
+}
