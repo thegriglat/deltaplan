@@ -17,3 +17,6 @@
 {"t": "2026-11-05T05:57:17", "by": "coordinator", "task": "SLT-1", "ev": "merged"}
 {"t": "2026-11-05T05:57:36", "by": "executor", "task": "SLT-2", "ev": "reported", "commits": ["c7e47c4f9"], "note": "done: SailTexture по SLT-К1 (prepare с проверкой по сигнатуре и размеру из заголовка до декодирования, save через .tmp и rena…", "dp_feedback": "В свежей копии нет addons/dp_air/bin: тесты экрана падают (нет DpWeather -> sunset_h). Пришлось вручную положить libdp_air_release.so и симлинк на tune из чужой копии; хорошо бы dpcli task start делал это сам."}
 {"t": "2026-11-05T05:58:01", "by": "coordinator", "task": "SLT-2", "ev": "checked", "note": "3/3 sail_texture=ok:4/4; gd=ok:exit 0; setup=ok:13/13; scope=FAIL:вне scope: r-SLT-2.json"}
+{"t": "2026-11-05T05:58:54", "by": "coordinator", "task": "SLT-2", "ev": "checked", "note": "3/3 sail_texture=ok:4/4; gd=ok:exit 0; setup=ok:13/13"}
+{"t": "2026-11-05T05:59:36", "by": "reviewer", "task": "SLT-2", "ev": "reviewed", "note": "SailTexture соответствует SLT-К1 (имена, константы, ключи ошибок, формат по сигнатуре, .tmp + rename, RGBA8 без мипмапов, LANCZOS, без увеличения). UI: выбор/с…", "verdict": "accept", "issues": {"minor": 2}, "review": "docs/plan/sail-texture/tasks/SLT-2.review.json"}
+{"t": "2026-11-05T05:59:44", "by": "coordinator", "task": "SLT-2", "ev": "accepted", "note": "по ревью"}

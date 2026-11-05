@@ -1,0 +1,29 @@
+{
+  "verdict": "accept",
+  "summary": "SailTexture соответствует SLT-К1 (имена, константы, ключи ошибок, формат по сигнатуре, .tmp + rename, RGBA8 без мипмапов, LANCZOS, без увеличения). UI: выбор/сброс отложены до «Готово», «Назад» и set_settings сбрасывают ожидание. Скоуп соблюдён, project.godot не тронут. Перезапуск sail_texture 4/4.",
+  "issues": [
+    {
+      "file": "scripts/game/sail_texture.gd",
+      "line": 59,
+      "severity": "minor",
+      "what": "rename_absolute поверх существующего файла на Windows не проверен (сам исполнитель отметил в uncertain). В Godot 4 DirAccessWindows::rename заменяет существующий файл, но проверки на Windows нет.",
+      "fix": "Проверить при выпуске на Windows-сборке: повторный выбор картинки и «Готово» заменяют файл."
+    },
+    {
+      "file": "tests/contracts/test_sail_texture_contracts.gd",
+      "line": 30,
+      "severity": "minor",
+      "what": "Ветка sail_tex_err_too_big (файл > 20 МБ или сторона > 16384 по заголовку) тестом не покрыта; разбор заголовка PNG/JPEG (_header_size) проверяется только косвенно.",
+      "fix": "По желанию: синтетический PNG-заголовок с IHDR 20000×100 (без декодирования) → sail_tex_err_too_big."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "sail_texture",
+      "value": "4/4",
+      "pass": true
+    }
+  ],
+  "t": "2026-11-05T05:59:36",
+  "by": "reviewer"
+}
