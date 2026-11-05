@@ -1,0 +1,53 @@
+{
+  "id": "PVO-2a",
+  "module": "pilot-voice",
+  "type": "dp-engineer",
+  "title": "Ревью PVO-2: .uid тестов и «раз за полёт» при повторном отрыве",
+  "goal": "Закоммитить .uid новых тестов реплик и исправить PilotVoiceLogic: повторный took_off в одном полёте не повторяет takeoff и не сбрасывает признаки landing_*/crash (сброс — только reset()).",
+  "plan_ref": "§4 Задачи (система реплик); ревью PVO-2",
+  "contracts": [
+    {
+      "name": "PV-К1",
+      "version": "3",
+      "ref": "docs/contracts/pilot-voice.md"
+    },
+    {
+      "name": "PV-К4",
+      "version": "3",
+      "ref": "docs/contracts/pilot-voice.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/pilot-voice-PVO-2a",
+  "branch": "pilot-voice/PVO-2a",
+  "base": "feature/pilot-voice",
+  "scope": [
+    "scripts/audio/pilot_voice_logic.gd",
+    "tests/audio/"
+  ],
+  "dont_touch": [
+    "configs/",
+    "docs/contracts/",
+    "assets/",
+    "scripts/game/"
+  ],
+  "accept": [
+    {
+      "name": "pilot_voice",
+      "tests": "pilot_voice",
+      "timeout": 5400
+    },
+    {
+      "name": "uids",
+      "cmd": "for f in tests/audio/test_pilot_voice_logic.gd tests/audio/test_pilot_voice_node.gd; do git ls-files --error-unmatch $f.uid >/dev/null || exit 1; done",
+      "expect": "exit=0"
+    },
+    {
+      "name": "gd_check",
+      "cmd": "python3 tools/check_gd.py scripts/audio/pilot_voice_logic.gd tests/audio/test_pilot_voice_logic.gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-05T11:21:25"
+}
