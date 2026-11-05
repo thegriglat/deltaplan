@@ -4,10 +4,13 @@ extends TestCase
 ## ~3,5 м/с (радиус ~120 м, потолок ~2000 м) вдоль линии от старта с шагом 1,5 км. Игрок —
 ## скрипт: кружит в термике 240 с (набор 1,5 м/с), переходит к следующему ~11 м/с со снижением
 ## ~1 м/с. Напарник (agents[0]) держится рядом; контроль — тот же сценарий без напарников.
+## Варианты (пороги те же): основной; бот стартует с запада и выше игрока на 200 м; шаг термиков 1,2 км.
 
 const DT := 1.0 / 120.0
 const START := Vector3(0.0, 300.0, -1.0)
 const STEP_Z := -1500.0
+## Шаг термиков текущего прогона, м (вариант сценария; по умолчанию STEP_Z).
+var step_z := STEP_Z
 const N_THERMALS := 5
 const CIRCLE_S := 240.0
 const R := 60.0
@@ -21,11 +24,11 @@ static func hill(_x: float, z: float) -> float:
 	return maxf(100.0, 300.0 + z * tan(deg_to_rad(20.0)))
 
 
-static func centre(i: int) -> Vector2:
-	return Vector2(0.0, STEP_Z * (i + 1))
+func centre(i: int) -> Vector2:
+	return Vector2(0.0, step_z * (i + 1))
 
 
-static func air(p: Vector3) -> Vector3:
+func air(p: Vector3) -> Vector3:
 	var w := -0.3
 	if p.y < 2000.0:
 		for i in N_THERMALS:
@@ -64,11 +67,13 @@ class Pilot:
 	var theta0 := 0.0
 	var alt0 := 700.0
 	var pos := Vector3.ZERO
+	var step := STEP_Z
 
 	func _c(i: int) -> Vector2:
-		return Vector2(0.0, STEP_Z * (i + 1))
+		return Vector2(0.0, step * (i + 1))
 
-	func _init() -> void:
+	func _init(step_m: float = STEP_Z) -> void:
+		step = step_m
 		t.phase = "flying"
 		_put_circle()
 
@@ -109,13 +114,16 @@ class Pilot:
 
 
 ## Сутки сценария: возвращает {med, share, end_air, close, n, min_d} по замерам agents[0].
-func scenario(wingmen: int) -> Dictionary:
+## Старт бота: dx — смещение к востоку от игрока (отрицательное — к западу), м; dy — по высоте.
+## step_m — шаг термиков, м (отрицательное z — вдоль линии от старта).
+func scenario(wingmen: int, dx := 500.0, dy := -60.0, step_m := STEP_Z) -> Dictionary:
+	step_z = step_m
 	var b := make(4, wingmen)
-	var pl := Pilot.new()
+	var pl := Pilot.new(step_m)
 	var a := b.agents[0]
-	# Бот в воздухе в ~500 м к востоку от игрока, курс на него.
-	var p0 := Vector3(pl.pos.x + 500.0, pl.pos.y - 60.0, pl.pos.z)
-	a.start_in_air(p0, 270.0, 0.0)
+	# Бот в воздухе в |dx| м от игрока, курс на него.
+	var p0 := Vector3(pl.pos.x + dx, pl.pos.y + dy, pl.pos.z)
+	a.start_in_air(p0, 270.0 if dx > 0.0 else 90.0, 0.0)
 	var dist: Array[float] = []
 	var close := 0
 	var min_d := INF
@@ -128,7 +136,11 @@ func scenario(wingmen: int) -> Dictionary:
 		if t < next:
 			continue
 		next += 0.5
-		if t < 120.0 or not a.is_airborne():
+		if t < 120.0:
+			continue
+		# Не в воздухе (сел) — замер «далеко», а не пропуск.
+		if not a.is_airborne():
+			dist.append(INF)
 			continue
 		var ta := a.telemetry()
 		if ta.altitude_agl < 30.0:
@@ -150,20 +162,53 @@ func scenario(wingmen: int) -> Dictionary:
 	return res
 
 
-func test_wingman_stays_near() -> void:
-	var w := scenario(1)
-	var c := scenario(0)
+## Пороги одного варианта сценария; контроль (без напарника) — только на основном.
+func _check_variant(
+	name: String, dx: float, dy: float, step_m: float, with_control: bool
+) -> void:
+	var w := scenario(1, dx, dy, step_m)
 	var msg := (
-		"напарник: медиана %.0f м, доля ≤1000 м %.2f, замеров %d, мин. %.0f м; контроль: медиана %.0f м, доля %.2f"
-		% [w.med, w.share, w.n, w.min_d, c.med, c.share]
+		"[%s] напарник: медиана %.0f м, доля ≤1000 м %.2f, замеров %d, мин. %.0f м, близких %d"
+		% [name, w.med, w.share, w.n, w.min_d, w.close]
 	)
+	var c := {}
+	if with_control:
+		c = scenario(0, dx, dy, step_m)
+		msg += "; контроль: медиана %.0f м, доля %.2f" % [c.med, c.share]
 	print("wingman ", msg)
 	check(w.n > 1000, "замеров достаточно: %s" % msg)
 	check(w.med <= 600.0, "медиана дистанции ≤ 600 м: %s" % msg)
 	check(w.share >= 0.75, "доля замеров ≤ 1000 м ≥ 0,75: %s" % msg)
 	check(w.end_air, "напарник в воздухе в конце: %s" % msg)
 	check(w.close == 0, "ближе 50 м / 15 м замеров %d: %s" % [w.close, msg])
-	check(c.med >= 1.5 * w.med, "контроль (без напарника) дальше в 1,5 раза: %s" % msg)
+	if with_control:
+		check(c.med >= 1.5 * w.med, "контроль (без напарника) дальше в 1,5 раза: %s" % msg)
+
+
+func test_wingman_stays_near() -> void:
+	_check_variant("основной", 500.0, -60.0, STEP_Z, true)
+
+
+## Напарник стартует к западу от игрока и выше него на 200 м.
+func test_wingman_west_above() -> void:
+	_check_variant("запад +200 м", -500.0, 200.0, STEP_Z, false)
+
+
+## Шаг термиков 1,2 км и 2 км.
+func test_wingman_step_1200() -> void:
+	_check_variant("шаг 1,2 км", 500.0, -60.0, -1200.0, false)
+
+
+## Границы модели (не проверка): термики через 1,8 и 2 км при старте бота на 60 м ниже игрока.
+## Игрок уходит из термика на ~1060 м, бот — на ~400 м: за 2 км по 8:1 он теряет ~240 м и садится
+## или отстаёт на один термик. Числа — в отчёте задачи WMN-4.
+func test_wingman_wide_steps_info() -> void:
+	for st in [-1800.0, -2000.0]:
+		var w := scenario(1, 500.0, -60.0, st)
+		print(
+			"wingman [инфо, шаг %.0f м] медиана %.0f м, доля ≤1000 м %.2f, в воздухе в конце %s"
+			% [-st, w.med, w.share, w.end_air]
+		)
 
 
 ## Игрок на земле — ведущего нет, напарник летает как обычный бот.
