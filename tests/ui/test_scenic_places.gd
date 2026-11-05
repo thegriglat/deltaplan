@@ -159,3 +159,56 @@ func test_window_inside_area() -> void:
 		await get_tree().process_frame
 		check(area.encloses(w.panel_rect()), "%s: в стране окно внутри" % sz)
 		vp.queue_free()
+
+
+func _row(vehicle: String, agl: float) -> PlacePickRow:
+	var host := Control.new()
+	add_child(host)
+	var row := PlacePickRow.new()
+	row.settings = FlightSettings.defaults()
+	row.settings.vehicle = vehicle
+	row.settings.set_air_start(agl)
+	host.add_child(row)
+	row.build(host, "", true, FIXTURE)
+	return row
+
+
+func _place(i: int) -> Dictionary:
+	return ScenicPlaces.load_catalog(FIXTURE).places[i]
+
+
+## Старт в воздухе над видом (SCP-К3 v3): ставится при выборе, снимается выбором другим способом.
+func test_air_start_set_and_released() -> void:
+	var row := _row("glider", -1.0)
+	var s := row.settings
+	var p := _place(0)
+	row.choose_scenic(p)
+	check(s.has_air_start() and is_equal_approx(s.air_start_agl_m, float(p.agl_m)), "agl_m места: %s" % s.air_start_agl_m)
+	check(s.air_start_agl_m >= 60.0 and s.air_start_agl_m <= 1000.0, "в пределах ASM-К1")
+	check(s.vehicle == "glider" and s.tow_kind == "", "glider без буксировки")
+	check(s.has_exact_start() and absf(s.start_heading_deg - float(p.heading_deg)) < 1e-6, "точный старт с курсом")
+	row.set_pick(51.6, 86.4)
+	check(not s.has_air_start() and s.vehicle == "glider", "set_pick возвращает прежнее")
+	row.choose_scenic(p)
+	row.choose_place({"name": "X", "lat": 45.9, "lon": 13.7})
+	check(not s.has_air_start(), "«Популярные» возвращают прежнее")
+	row.get_parent().queue_free()
+
+
+func test_air_start_restores_previous_values() -> void:
+	var row := _row("trike", -1.0)
+	var s := row.settings
+	row.choose_scenic(_place(1))
+	check(s.vehicle == "glider" and s.has_air_start(), "место ставит glider")
+	row.choose_place({"name": "X", "lat": 45.9, "lon": 13.7})
+	check(s.vehicle == "trike" and not s.has_air_start(), "вернулся дельталёт: %s" % s.vehicle)
+	row.get_parent().queue_free()
+	row = _row("glider", 300.0)
+	s = row.settings
+	row.choose_scenic(_place(0))
+	row.choose_scenic(_place(1))  # второе место — прежнее запоминается только раз
+	check(is_equal_approx(s.air_start_agl_m, float(_place(1).agl_m)), "второе место — его agl_m")
+	row.set_pick(51.6, 86.4)
+	check(is_equal_approx(s.air_start_agl_m, 300.0), "после двух мест и снятия — 300: %s" % s.air_start_agl_m)
+	check(row.scenic_id == "", "scenic_id сброшен")
+	row.get_parent().queue_free()
