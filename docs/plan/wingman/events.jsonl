@@ -41,3 +41,6 @@
 {"t": "2026-11-05T09:42:07", "by": "coordinator", "task": "WMN-3", "ev": "started"}
 {"t": "2026-11-05T09:42:07", "by": "coordinator", "task": "WMN-4", "ev": "started"}
 {"t": "2026-11-05T09:42:07", "by": "coordinator", "task": null, "ev": "note", "note": "риск к проверке пользователем в полёте (ревью WMN-1, major): параметры выхода напарника из термика подобраны по одному сценарию; WMN-4 проверяет на 2 вариантах дня"}
+{"t": "2026-11-05T09:42:45", "by": "executor", "task": "WMN-3", "ev": "reported", "commits": ["5885ddcd3"], "note": "done: bots.md: раздел «Напарник» (устройство, параметры без чисел, границы модели, числа сценария test_wingman); menus-settin…"}
+{"t": "2026-11-05T09:42:53", "by": "coordinator", "task": "WMN-3", "ev": "checked", "note": "1/1 docs=ok:ошибок 0; scope=FAIL:вне scope: r-WMN-3.json"}
+{"t": "2026-11-05T09:43:03", "by": "coordinator", "task": "WMN-3", "ev": "accepted", "note": "1/1 docs=ok:ошибок 0"}
