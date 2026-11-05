@@ -1,0 +1,68 @@
+{
+  "status": "done",
+  "summary": "sail.gdshader читает UV2.y как y = 1 - UV2.y (low, t после этого), шапка и формулировки К2 v3 обновлены. Тесты: headless по 49 моделям и GPU по aeros_discus, красные до правки и зелёные после.",
+  "commits": [
+    "7807bf985 SLT-5: шейдер паруса читает UV2 без переворота V; тесты маски анимации"
+  ],
+  "checks": [
+    {
+      "name": "sail",
+      "value": "14/14",
+      "pass": true
+    },
+    {
+      "name": "gpu",
+      "value": "19/19",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "headless 49 моделей: расхождение доли низа (low=1 vs по треугольникам)",
+      "value": "макс 0.0006 (допуск 0.01)",
+      "pass": true
+    },
+    {
+      "name": "headless: corr t с положением по хорде",
+      "value": "мин верх 0.996, низ 0.987 (допуск >0.9)",
+      "pass": true
+    },
+    {
+      "name": "GPU низ: mean|A-B| при lower_surface_factor 1 vs 0",
+      "value": "до правки 0.00/255, после 5.24/255",
+      "pass": true
+    },
+    {
+      "name": "GPU верх: |Δ billow| у передней кромки",
+      "value": "до правки 18.34/255, после 0.00/255",
+      "pass": true
+    },
+    {
+      "name": "GPU верх: |Δ billow| в середине хорды",
+      "value": "до 17.91/255, после 15.36/255",
+      "pass": true
+    },
+    {
+      "name": "accept --dry",
+      "value": "PASS sail 14/14, gpu 19/19, gd, scope",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SLT-5",
+  "uncertain": [
+    {
+      "where": "tests/flight/test_sail_uv2_gpu.gd",
+      "why": "Вид не строго снизу: камера наклонена по хорде (dir y,z = 1,0.7). Смещение идёт вдоль +Y и при взгляде строго вдоль Y в ортогональной проекции не видно, нормали шейдер не пересчитывает.",
+      "checked": "до правки низ даёт ровно 0, после правки 5.24/255; проверено на aeros_discus; точки выбираются по x и доле хорды по вершинам меша."
+    }
+  ],
+  "dp_feedback": "dpcli plan sail-texture \"§2 Решения пользователя\" не находит раздел (нужно имя без §). lock cpu внутри Bash уходит в tmux-job и сразу возвращает управление, это неочевидно.",
+  "t": "2026-11-05T11:39:51",
+  "by": "executor"
+}
