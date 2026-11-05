@@ -1,0 +1,33 @@
+{
+  "status": "done",
+  "summary": "launch.md: источники, постановка, границы и чего модель не умеет; goals.md: цели от точки постановки, ничего не засчитывается; cli-tests.md: пометка у --air-start; CHANGELOG: запись в «В работе».",
+  "commits": [
+    "eedda63a9 air-start-menu: ASM-4 — guide и CHANGELOG: старт в воздухе"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "accept --dry",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept ASM-4",
+  "uncertain": [
+    {
+      "where": "docs/guide/game/launch.md",
+      "why": "факты ASM-К3/К4 взяты из контракта; в копии кода ASM-3 может быть не слит, код К4 не сверял",
+      "checked": "К1/К2 сверены с game.gd и configs/game.json"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-11-05T19:06:10",
+  "by": "executor"
+}

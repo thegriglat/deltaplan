@@ -63,3 +63,6 @@
 {"t": "2026-11-05T19:05:00", "by": "coordinator", "task": "ASM-4", "ev": "started"}
 {"t": "2026-11-05T19:05:06", "by": "coordinator", "task": "ASM-3", "ev": "accepted", "note": "по решению пользователя 2026-11-05: по собственному тесту test_air_start_goals (PASS в accept --dry исполнителя, 562 с), без полного accept и ревью"}
 {"t": "2026-11-05T19:05:14", "by": "coordinator", "task": "ASM-3", "ev": "merged", "note": "813889cb3 (accept --here не перезапускался — решение пользователя)"}
+{"t": "2026-11-05T19:06:10", "by": "executor", "task": "ASM-4", "ev": "reported", "commits": ["eedda63a9"], "note": "done: launch.md: источники, постановка, границы и чего модель не умеет; goals.md: цели от точки постановки, ничего не засчиты…"}
+{"t": "2026-11-05T19:06:20", "by": "coordinator", "task": "ASM-4", "ev": "accepted", "note": "1/1 docs=ok:exit 0"}
+{"t": "2026-11-05T19:06:26", "by": "coordinator", "task": "ASM-4", "ev": "accepted", "note": "без ревью по решению пользователя 2026-11-05; К4 в guide совпадает с отчётом ASM-3"}
