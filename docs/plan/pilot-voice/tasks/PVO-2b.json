@@ -1,0 +1,53 @@
+{
+  "id": "PVO-2b",
+  "module": "pilot-voice",
+  "type": "dp-engineer",
+  "title": "Тест узла голоса после появления файлов",
+  "goal": "test_missing_files_are_silent снова проверяет «файла нет — молчим», не завися от наличия assets/sounds/voice (подставной dir в конфиге), и проходит в ветке модуля с 288 файлами голосов.",
+  "plan_ref": "§4 Задачи (тесты); сводный прогон после слияния PVO-3",
+  "contracts": [
+    {
+      "name": "PV-К3",
+      "version": "1",
+      "ref": "docs/contracts/pilot-voice.md"
+    },
+    {
+      "name": "PV-К4",
+      "version": "3",
+      "ref": "docs/contracts/pilot-voice.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/pilot-voice-PVO-2b",
+  "branch": "pilot-voice/PVO-2b",
+  "base": "feature/pilot-voice",
+  "scope": [
+    "tests/audio/",
+    "scripts/audio/pilot_voice.gd"
+  ],
+  "dont_touch": [
+    "assets/",
+    "configs/",
+    "docs/contracts/",
+    "scripts/game/"
+  ],
+  "accept": [
+    {
+      "name": "pilot_voice",
+      "tests": "pilot_voice",
+      "timeout": 5400
+    },
+    {
+      "name": "audio",
+      "tests": "audio",
+      "timeout": 5400
+    },
+    {
+      "name": "gd_check",
+      "cmd": "python3 tools/check_gd.py tests/audio/test_pilot_voice_node.gd scripts/audio/pilot_voice.gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-05T11:31:04"
+}
