@@ -1,0 +1,85 @@
+{
+  "id": "SCP-5",
+  "module": "scenic-places",
+  "type": "dp-engineer",
+  "title": "Каталог красивых мест и таблица для пользователя",
+  "goal": "Сборка каталога data/places/scenic_places.json из tools/places/scenic/*.json (SCP-К1 v2) детерминированным скриптом и документ docs/research/scenic-places.md с методом проверки и таблицей всех мест для просмотра пользователем.",
+  "plan_ref": "§4 каталог и окно",
+  "contracts": [
+    {
+      "name": "SCP-К1",
+      "version": "2",
+      "ref": "docs/contracts/scenic-places.md"
+    },
+    {
+      "name": "SCP-К2",
+      "version": "1",
+      "ref": "docs/contracts/scenic-places.md"
+    },
+    {
+      "name": "SCP-К3",
+      "version": "2",
+      "ref": "docs/contracts/scenic-places.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/scenic-places-SCP-5",
+  "branch": "scenic-places/SCP-5",
+  "base": "feature/scenic-places",
+  "scope": [
+    "tools/places/build_scenic_places.py",
+    "tools/places/test_build_scenic_places.py",
+    "data/places/scenic_places.json",
+    "docs/research/scenic-places.md",
+    "docs/INDEX.md",
+    "docs/registry/research.md",
+    "docs/research/scenic-places-table.md"
+  ],
+  "dont_touch": [
+    "tools/places/scenic/",
+    "tools/places/check_scenic_places.py",
+    "tools/places/test_scenic_places_contract.py",
+    "scripts/",
+    "configs/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "scenic_places",
+      "tests": "scenic_places"
+    },
+    {
+      "name": "contract",
+      "cmd": "python3 tools/places/test_scenic_places_contract.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "unit",
+      "cmd": "python3 tools/places/test_build_scenic_places.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "determinism",
+      "cmd": "python3 tools/places/build_scenic_places.py && git diff --exit-code -- data/places/scenic_places.json",
+      "expect": "exit=0"
+    },
+    {
+      "name": "relief",
+      "cmd": "python3 tools/places/check_scenic_places.py data/places/scenic_places.json",
+      "expect": "re:checked \\d+, failed 0"
+    },
+    {
+      "name": "count",
+      "cmd": "python3 tools/places/check_scenic_places.py data/places/scenic_places.json",
+      "expect": "num:checked (\\d+) >=230"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-05T07:39:19",
+  "edited": "2026-11-05T07:39:43"
+}
