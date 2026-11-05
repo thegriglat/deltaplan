@@ -1,0 +1,78 @@
+{
+  "status": "done",
+  "summary": "tools/places/scenic/b-americas.json: 56 мест в 8 странах, все проходят SCP-К2 (checked 56, failed 0). view_lat/lon взяты из шапок статей en-Википедии (API prop=coordinates); старт подобран перебором: 4-12 км до вида, 18 курсов, agl 200-1000, h0 <= высота вида - 200 (кроме lake/coast/fjord/canyon).",
+  "commits": [
+    "ddc9ae86b scenic-places SCP-2: список мест — Америки (56 мест, 8 стран)"
+  ],
+  "checks": [
+    {
+      "name": "contract",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "relief",
+      "value": "checked 56, failed 0",
+      "pass": true
+    },
+    {
+      "name": "count",
+      "value": "56 >= 52",
+      "pass": true
+    },
+    {
+      "name": "accept --dry",
+      "value": "PASS 4/4 (scope тоже)",
+      "pass": true
+    },
+    {
+      "name": "min запас высоты",
+      "value": "0 м (минимум по всем местам; порог >= 0)",
+      "pass": true
+    },
+    {
+      "name": "min перепад у вида",
+      "value": "101 м (порог 100)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Отброшены: Yosemite Valley (valley - не из исключений h0<=вид-200, старт не нашёлся; заменён Half Dome), Paine Massif / San Rafael Glacier / Cerro Torre (в en-статьях нет primary-координат в API; Paine заменён Torres del Paine National Park), Pedra Azul (не нашёлся старт с курсом на вид)."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept SCP-2",
+  "uncertain": [
+    {
+      "where": "tools/places/scenic/b-americas.json: ряд мест с запасом высоты < 10 м (ar/nahuel-huapi-lake, ar/perito-moreno-glacier, ar/tronador, bo/huayna-potosi, bo/laguna-colorada, br/pico-da-neblina, br/pico-das-agulhas-negras, br/pedra-da-gavea)",
+      "why": "проход проверки с малым запасом: старт почти на пределе планирования 1:10 над рельефом Terrarium z11; в игре рельеф другого разрешения может дать посадку",
+      "checked": "порог не ослаблялся; agl выбран минимальный из 200/300/400/500/650/800/1000 при котором проверка проходит. Если нужен запас, поднять agl_m этих мест (до 1000)"
+    },
+    {
+      "where": "min перепад 101 м, ar/nahuel-huapi-lake 130 м",
+      "why": "озёра/равнинное окружение у вида - рельефа едва хватает по порогу",
+      "checked": "по порогу SCP-К2 проходят; визуально не смотрелись"
+    },
+    {
+      "where": "Позиции вида",
+      "why": "координаты - точка из шапки статьи (может быть не вершиной, а центром массива/озера: Torres del Paine NP, Copper Canyon, Pico de Orizaba и т.д.)",
+      "checked": "взяты из Википедии как есть, без правок"
+    }
+  ],
+  "dp_feedback": "Хотелось бы режим check_scenic_places --suggest-start (перебор курса/дистанции/agl); я написал свой перебор в scratchpad. Также пригодилась бы вызываемая функция check_place без сети для подбора.",
+  "extra": {
+    "страна_n": {
+      "US": 10,
+      "CA": 7,
+      "MX": 6,
+      "PE": 7,
+      "BO": 6,
+      "CL": 7,
+      "AR": 7,
+      "BR": 6
+    },
+    "id_wikipedia": "id вида us/grand-canyon = https://en.wikipedia.org/wiki/Grand_Canyon и т.д. (заголовок статьи в скрипте-генераторе scratchpad gen_scp2.py: id->title); id в файле по формату К1 (cc/slug)",
+    "генератор": "/tmp/claude-1000/-home-greg-deltaplan/5bd656e4-218c-470a-8783-b19ee7f043b0/scratchpad/gen_scp2.py (не в репозитории)"
+  },
+  "t": "2026-11-05T07:36:58",
+  "by": "executor"
+}
