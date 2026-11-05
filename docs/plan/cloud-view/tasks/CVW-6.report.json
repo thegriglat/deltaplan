@@ -1,0 +1,27 @@
+{
+  "status": "done",
+  "summary": "В CHANGELOG, раздел «В работе», добавлены 3 пункта: белёсая пелена в ясном просвете, ступенька неба и смена цвета облаков у кромки, границы модели. Числа из отчётов CVW-1..4.",
+  "commits": [
+    "d08765333 CVW-6: CHANGELOG"
+  ],
+  "checks": [
+    {
+      "name": "changelog_section",
+      "value": "3",
+      "pass": true
+    },
+    {
+      "name": "no_ids",
+      "value": "0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept CVW-6",
+  "uncertain": [],
+  "dp_feedback": "",
+  "t": "2026-11-05T14:02:11",
+  "by": "executor"
+}

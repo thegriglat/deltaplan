@@ -1,0 +1,66 @@
+{
+  "status": "done",
+  "summary": "_rec_density без выделений (башни считаются в цикле, _towers_shape). Стенд recs прошёл через Cb-запись на реальной сцене: мгла 1,0 в теле, 0 в просвете; оценена граница записи vs шейдер.",
+  "commits": [
+    "69c17b174 башни без массива, проход в стенде",
+    "fe2d33f8b замеры, README, тест Cb"
+  ],
+  "checks": [
+    {
+      "name": "cloud_visible_density",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "rec_in_cloud",
+      "value": "0.999998",
+      "pass": true
+    },
+    {
+      "name": "rec_clear",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "rec_frames",
+      "value": "22",
+      "pass": true
+    },
+    {
+      "name": "test_game_logic",
+      "value": "16/16",
+      "pass": true
+    },
+    {
+      "name": "gd_check",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Кучевые (kind 0) и линзы на сцене не встретились - только синтетика; на сцене проверен Cb (kind 3)"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept CVW-5",
+  "uncertain": [
+    {
+      "where": "tools/research/cloud_view/CVW-5/after.json: edge_offset_m",
+      "why": "960 м - верхняя оценка 0,15*rx (uv-искажение quality 1), не измерение; кадр с CPU-границей не сверялся",
+      "checked": "расчёт по rx=6390 м Cb; ~5 % ширины облака"
+    },
+    {
+      "where": "tools/shots/cloud_view_climb_shot.gd: _recs_series",
+      "why": "набор объектов-облаков зависит от фонового расчёта атмосферы: на ранних t_air объектов 0, прогон недетерминирован; взят t=3000 с при temp 31, ветре 5",
+      "checked": "повторные прогоны давали Cb на 1800-3000 с; яркость кадров в просвете 0,44-0,57 из-за других облаков, не сверялась с плотностью"
+    }
+  ],
+  "dp_feedback": "job wait в фоне часто переносится в фон на 180 с; очередь lock cpu долгая (>10 мин), хотелось бы видеть оценку ожидания в job status.",
+  "extra": {
+    "rec_time_s": 3000,
+    "rec_kind": 3,
+    "edge_offset_m": 960
+  },
+  "t": "2026-11-05T15:06:09",
+  "by": "executor"
+}
