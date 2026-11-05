@@ -85,7 +85,8 @@ func test_aspects_match_uv_table() -> void:
 			var top: float = mat.get_shader_parameter("custom_aspect_top")
 			var bottom: float = mat.get_shader_parameter("custom_aspect_bottom")
 			check(absf(top - want) <= 0.05 * want, "%s: аспект верха %.3f, ожидалось %.3f ± 5 %%" % [id, top, want])
-			check(bottom > 2.0 and bottom < 9.0, "%s: аспект низа %.3f в разумных пределах" % [id, bottom])
+			# нижняя обшивка короче по хорде (у неё свой корневой размер): аспект не меньше верхнего
+			check(bottom >= top * 0.99 and bottom < 40.0, "%s: аспект низа %.3f (верх %.3f)" % [id, bottom, top])
 			check(_on(mat) == 0.0, id + ": без set_custom — родная")
 		v.queue_free()
 

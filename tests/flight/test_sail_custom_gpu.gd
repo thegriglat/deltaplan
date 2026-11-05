@@ -85,16 +85,12 @@ func _shot(r: Rig) -> Image:
 	return r.vp.get_texture().get_image()
 
 
-## Геометрия обшивки: вершины в мире. top — верх (UV.y > 0.5), без кармана киля.
+## Геометрия обшивки: вершины в мире (SailMaterial.skin_indices — по треугольникам, без кармана киля).
 func _skin(r: Rig, top: bool) -> PackedVector3Array:
-	var arr := r.sail.mesh.surface_get_arrays(0)
-	var verts: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
-	var uvs: PackedVector2Array = arr[Mesh.ARRAY_TEX_UV]
-	var nrm: PackedVector3Array = arr[Mesh.ARRAY_NORMAL]
+	var verts: PackedVector3Array = r.sail.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
 	var out := PackedVector3Array()
-	for i in verts.size():
-		if (uvs[i].y > 0.5) == top and absf(nrm[i].x) <= 0.7:
-			out.append(r.sail.global_transform * verts[i])
+	for i in SailMaterial.skin_indices(r.sail.mesh, top):
+		out.append(r.sail.global_transform * verts[i])
 	return out
 
 
@@ -166,51 +162,82 @@ func _quadrants(r: Rig, skin: PackedVector3Array, img: Image, tag: String) -> vo
 	check(_is(screen_right_tail, "yellow"), "%s: у хвоста справа жёлтый: %s" % [tag, screen_right_tail])
 
 
+func _centroid(skin: PackedVector3Array) -> Vector3:
+	var c := Vector3.ZERO
+	for v in skin:
+		c += v
+	return c / maxf(1.0, skin.size())
+
+
+## Снимок с картинкой (img_on) и без (img_off) одним и тем же видом.
+func _pair(r: Rig, above: bool, size: float, center: Vector3) -> Array[Image]:
+	_look(r, above, size, center)
+	var tex := _quad_texture()
+	SailMaterial.set_custom(r.mat, tex)
+	var on := await _shot(r)
+	SailMaterial.set_custom(r.mat, null)
+	var off := await _shot(r)
+	SailMaterial.set_custom(r.mat, tex)
+	return [on, off]
+
+
+## Вне картинки (у законцовок) — родная: совпадает с рендером без своей картинки.
+func _outside_native(r: Rig, skin: PackedVector3Array, on: Image, off: Image, tag: String) -> void:
+	for sx in [-3.6, 3.6]:
+		for f in [0.3, 0.7]:
+			var pt := _point(skin, sx, f)
+			var a := _sample(r, on, pt)
+			var b := _sample(r, off, pt)
+			check(_same(a, b), "%s: x=%.1f f=%.1f вне картинки — родная: %s / %s" % [tag, sx, f, a, b])
+
+
 func _run_model(model: String, with_pocket: bool) -> void:
 	var r := _rig(model)
-	r.mat.set_shader_parameter("custom_on", 0.0)
 	var top := _skin(r, true)
 	var bottom := _skin(r, false)
 	check(top.size() > 100 and bottom.size() > 100, model + ": есть обшивки")
-	var c := Vector3.ZERO
-	for v in top:
-		c += v
-	c /= maxf(1.0, top.size())
-	SailMaterial.set_custom(r.mat, _quad_texture())
+	var ct := _centroid(top)
+	var a_bot: float = r.mat.get_shader_parameter("custom_aspect_bottom")
 	# взгляд сверху
-	_look(r, true, 12.0, c)
-	var img_top := await _shot(r)
-	_quadrants(r, top, img_top, "top " + model)
-	# взгляд снизу
-	_look(r, false, 12.0, c)
-	var img_bot := await _shot(r)
-	if with_pocket:
-		pass  # у моделей с карманом киля нижняя обшивка неполная: снизу в центре видна изнанка верхней (зеркально по К2)
-	else:
-		_quadrants(r, bottom, img_bot, "bottom " + model)
-	# вне картинки (у законцовок) — родная: совпадает с рендером без своей картинки
-	SailMaterial.set_custom(r.mat, null)
-	_look(r, true, 12.0, c)
-	var nat_top := await _shot(r)
-	_look(r, false, 12.0, c)
-	var nat_bot := await _shot(r)
-	for sx in [-3.6, 3.6]:
-		for f in [0.3, 0.7]:
-			var pt := _point(top, sx, f)
-			var a := _sample(r, img_top, pt)
-			var b := _sample(r, nat_top, pt)
-			check(_same(a, b), "%s: вверху x=%.1f f=%.1f вне картинки — родная: %s / %s" % [model, sx, f, a, b])
-			if with_pocket:
-				continue
-			var pb := _point(bottom, sx, f)
-			var ab := _sample(r, img_bot, pb)
-			var bb := _sample(r, nat_bot, pb)
-			check(_same(ab, bb), "%s: внизу x=%.1f f=%.1f вне картинки — родная: %s / %s" % [model, sx, f, ab, bb])
-	check(not _same(_sample(r, img_top, _point(top, -0.3, 0.2)), _sample(r, nat_top, _point(top, -0.3, 0.2))),
+	var p_top := await _pair(r, true, 12.0, ct)
+	_quadrants(r, top, p_top[0], "top " + model)
+	_outside_native(r, top, p_top[0], p_top[1], "top " + model)
+	check(not _same(_sample(r, p_top[0], _point(top, -0.3, 0.2)), _sample(r, p_top[1], _point(top, -0.3, 0.2))),
 			model + ": у картинки есть эффект (контроль)")
+	# взгляд снизу, общий план
+	var p_bot := await _pair(r, false, 12.0, ct)
+	_outside_native(r, bottom, p_bot[0], p_bot[1], "bottom " + model)
+	if with_pocket:
+		_underside_of_top(r, top, bottom, p_bot[0], model)
+	# нижняя обшивка: узкая (короткая по хорде) — крупным планом, точки только на ней
+	if a_bot > 8.0:
+		var p_zoom := await _pair(r, false, 4.0, _centroid(bottom))
+		_quadrants(r, bottom, p_zoom[0], "bottom " + model)
+	else:
+		_quadrants(r, bottom, p_bot[0], "bottom " + model)
 	if with_pocket:
 		await _pocket(r, model)
 	r.vp.queue_free()
+
+
+## К2 v2: там, где нижней обшивки по хорде нет, снизу видна изнанка верхней — раскладка верха как есть
+## (зеркально): цвет из картинки верха, не родной.
+func _underside_of_top(r: Rig, top: PackedVector3Array, bottom: PackedVector3Array, img: Image, model: String) -> void:
+	var span := 0.0
+	for v in top:
+		span = maxf(span, 2.0 * absf(v.x))
+	var a_top: float = r.mat.get_shader_parameter("custom_aspect_top")
+	var dx := 0.25 * span / a_top
+	var zb := _point(bottom, dx, 1.0).z  # задний край нижней обшивки
+	var zt0 := _point(top, dx, 0.0).z
+	var zt1 := _point(top, dx, 1.0).z
+	var z := zt1 - 0.15 * (zt1 - zt0)  # f = 0,85 верха: задняя половина картинки
+	check(z > zb + 0.1, "%s: есть зона без нижней обшивки (z=%.2f, край низа %.2f)" % [model, z, zb])
+	# верх: a = s, b = q (>0,5): x = +dx (s > 0,5) — жёлтый, x = −dx — синий
+	var cp := _sample(r, img, Vector3(dx, 0.0, z))
+	var cm := _sample(r, img, Vector3(-dx, 0.0, z))
+	check(_is(cp, "yellow"), "%s: изнанка верха у +X — жёлтый (раскладка верха): %s" % [model, cp])
+	check(_is(cm, "blue"), "%s: изнанка верха у −X — синий: %s" % [model, cm])
 
 
 ## Карман киля (плоскость x = 0): вид с +X, камера у x = 0,3 (всё правее отсечено), цвет — как без картинки.

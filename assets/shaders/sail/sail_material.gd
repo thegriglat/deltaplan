@@ -61,11 +61,11 @@ static func set_custom(mat: ShaderMaterial, tex: Texture2D) -> void:
 	mat.set_shader_parameter("custom_on", 1.0)
 
 
-## Аспекты обшивок (размах / корневая хорда, м/м) по вершинам меша Sail: Vector2(верх, низ).
-## Обшивка — по UV1 (верх v > 0,5); карман киля (|нормаль.x| > 0,7) не входит; корневая хорда — диапазон z
-## вершин обшивки при |x| < 3 % полуразмаха. Нет данных — 4 (типичное значение).
-static func _skin_aspects(mesh: Mesh) -> Vector2:
-	var out := Vector2(4.0, 4.0)
+## Индексы вершин обшивки меша Sail: top — верх (UV.y > 0,5), иначе низ (UV.y < 0,5). Обшивку определяют
+## треугольники: вершины на шве v = 0,5 (задняя кромка верха, передняя кромка низа) принадлежат своей обшивке.
+## Карман киля (|нормаль.x| > 0,7) не входит.
+static func skin_indices(mesh: Mesh, top: bool) -> PackedInt32Array:
+	var out := PackedInt32Array()
 	if mesh == null or mesh.get_surface_count() == 0:
 		return out
 	var arr := mesh.surface_get_arrays(0)
@@ -74,12 +74,39 @@ static func _skin_aspects(mesh: Mesh) -> Vector2:
 	var nrm: PackedVector3Array = arr[Mesh.ARRAY_NORMAL] if arr[Mesh.ARRAY_NORMAL] != null else PackedVector3Array()
 	if verts.is_empty() or uvs.size() != verts.size():
 		return out
+	var idx: PackedInt32Array = arr[Mesh.ARRAY_INDEX] if arr[Mesh.ARRAY_INDEX] != null else PackedInt32Array()
+	if idx.is_empty():
+		idx.resize(verts.size())
+		for i in verts.size():
+			idx[i] = i
+	var mark := PackedByteArray()
+	mark.resize(verts.size())
+	for t in range(0, idx.size() - 2, 3):
+		var vmin := minf(uvs[idx[t]].y, minf(uvs[idx[t + 1]].y, uvs[idx[t + 2]].y))
+		var vmax := maxf(uvs[idx[t]].y, maxf(uvs[idx[t + 1]].y, uvs[idx[t + 2]].y))
+		var is_top := vmin >= 0.5 - 1e-4 and vmax > 0.5 + 1e-4
+		var is_bottom := vmax <= 0.5 + 1e-4 and vmin < 0.5 - 1e-4
+		if (top and is_top) or (not top and is_bottom):
+			for k in 3:
+				mark[idx[t + k]] = 1
+	for i in verts.size():
+		if mark[i] == 1 and not (nrm.size() == verts.size() and absf(nrm[i].x) > 0.7):
+			out.append(i)
+	return out
+
+
+## Аспекты обшивок (размах / корневая хорда, м/м) по вершинам меша Sail: Vector2(верх, низ).
+## Корневая хорда — диапазон z вершин обшивки при |x| < 3 % полуразмаха. Нет данных — 4 (типичное значение).
+static func _skin_aspects(mesh: Mesh) -> Vector2:
+	var out := Vector2(4.0, 4.0)
+	if mesh == null or mesh.get_surface_count() == 0:
+		return out
+	var verts: PackedVector3Array = mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
 	for skin in 2:
+		var ids := skin_indices(mesh, skin == 0)
 		var xmin := INF
 		var xmax := -INF
-		for i in verts.size():
-			if (uvs[i].y > 0.5) != (skin == 0) or (nrm.size() == verts.size() and absf(nrm[i].x) > 0.7):
-				continue
+		for i in ids:
 			xmin = minf(xmin, verts[i].x)
 			xmax = maxf(xmax, verts[i].x)
 		if xmax <= xmin:
@@ -88,9 +115,7 @@ static func _skin_aspects(mesh: Mesh) -> Vector2:
 		var cx := 0.5 * (xmax + xmin)
 		var zmin := INF
 		var zmax := -INF
-		for i in verts.size():
-			if (uvs[i].y > 0.5) != (skin == 0) or (nrm.size() == verts.size() and absf(nrm[i].x) > 0.7):
-				continue
+		for i in ids:
 			if absf(verts[i].x - cx) < 0.03 * half:
 				zmin = minf(zmin, verts[i].z)
 				zmax = maxf(zmax, verts[i].z)
