@@ -1,0 +1,76 @@
+{
+  "id": "SCP-4",
+  "module": "scenic-places",
+  "type": "dp-engineer",
+  "title": "Окно «Красивые места» и кнопка в выборе места",
+  "goal": "ScenicPlaces, окно ScenicPlacesWindow и кнопка «Красивые места» рядом с «Популярными местами» по SCP-К3 v1: выбор ставит точку старта и курс места; работает на тестовом файле, без настоящего каталога кнопка скрыта.",
+  "plan_ref": "§4 каталог и окно",
+  "contracts": [
+    {
+      "name": "SCP-К1",
+      "version": "2",
+      "ref": "docs/contracts/scenic-places.md"
+    },
+    {
+      "name": "SCP-К3",
+      "version": "2",
+      "ref": "docs/contracts/scenic-places.md"
+    },
+    {
+      "name": "PP-К2",
+      "version": "1",
+      "ref": "docs/contracts/scenic-places.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/scenic-places-SCP-4",
+  "branch": "scenic-places/SCP-4",
+  "base": "feature/scenic-places",
+  "scope": [
+    "scripts/ui/scenic_places.gd",
+    "scripts/ui/scenic_places.gd.uid",
+    "scripts/ui/scenic_places_window.gd",
+    "scripts/ui/scenic_places_window.gd.uid",
+    "scripts/ui/place_pick_row.gd",
+    "scripts/ui/flight_setup_screen.gd",
+    "configs/ui.json",
+    "locale/ui.csv",
+    "tests/ui/test_scenic_places.gd",
+    "tests/ui/test_scenic_places.gd.uid",
+    "tests/contracts/test_scenic_places_contracts.gd",
+    "tests/contracts/test_scenic_places_contracts.gd.uid"
+  ],
+  "dont_touch": [
+    "scripts/ui/popular_places.gd",
+    "scripts/ui/popular_places_window.gd",
+    "data/places/",
+    "tools/places/",
+    "tests/ui/fixtures/",
+    "scripts/game/",
+    "docs/contracts/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "scenic_places",
+      "tests": "scenic_places"
+    },
+    {
+      "name": "popular_places",
+      "tests": "popular_places"
+    },
+    {
+      "name": "contract",
+      "cmd": "python3 tools/places/test_scenic_places_contract.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "gd",
+      "cmd": "python3 tools/check_gd.py scripts/ui/scenic_places.gd scripts/ui/scenic_places_window.gd scripts/ui/place_pick_row.gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-05T05:58:42",
+  "edited": "2026-11-05T06:38:05"
+}

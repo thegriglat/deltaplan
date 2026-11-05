@@ -6,7 +6,7 @@ area: "game"
 updated: "2026-11-05"
 summary: "Красивые места: формат списка и каталога мест (SCP-К1), проверка места по рельефу (SCP-К2), окно и выбор в «Полёт…» (SCP-К3)."
 related: ["docs/plan/scenic-places.md", "docs/contracts/popular-places.md"]
-contracts: [{"id": "SCP-К1", "version": 1}, {"id": "SCP-К2", "version": 1}, {"id": "SCP-К3", "version": 1}]
+contracts: [{"id": "SCP-К1", "version": 2}, {"id": "SCP-К2", "version": 1}, {"id": "SCP-К3", "version": 2}]
 ---
 # Контракты модуля scenic-places
 
@@ -14,7 +14,7 @@ contracts: [{"id": "SCP-К1", "version": 1}, {"id": "SCP-К2", "version": 1}, {"
 Контрактный тест формата — `python3 tools/places/test_scenic_places_contract.py` (без сети и Godot; проверяет
 тестовый файл, все файлы `tools/places/scenic/*.json` и каталог `data/places/scenic_places.json`, если они есть).
 
-## SCP-К1. Файл мест (v1)
+## SCP-К1. Файл мест (v2)
 Владельцы: SCP-1…3 (списки по регионам `tools/places/scenic/<регион>.json`), сборка каталога
 (`res://data/places/scenic_places.json`, путь — `configs/ui.json → scenic_places_path`; появляется только после
 утверждения списка пользователем, шлюз плана). Тестовый — `res://tests/ui/fixtures/scenic_places_test.json`
@@ -29,7 +29,8 @@ contracts: [{"id": "SCP-К1", "version": 1}, {"id": "SCP-К2", "version": 1}, {"
     места: детальный рельеф 40 км вокруг неё, фон 160 км);
   - `heading_deg` ∈ [0, 360) — курс полёта на вид, градусы от севера по часовой (как
     `FlightSettings.start_heading_deg`);
-  - `agl_m` ∈ [50, 2000] — высота старта над рельефом в точке старта, м;
+  - `agl_m` ∈ [50, 1000] — высота старта над рельефом в точке старта, м (пределы — как у старта в воздухе
+    `configs/game.json → air_start`, контракт ASM-К1: `agl_min_m` 50, `agl_max_m` 1000);
   - `view_lat`, `view_lon` — что показываем (вершина, середина озера, устье каньона); от точки старта ≤ 15 км,
     пеленг на неё отличается от `heading_deg` не больше чем на 30°;
   - `why_en`, `why_ru` — непустые, ≤ 140 символов: чем место красиво в игре (рельеф, вода, снег, лес).
@@ -56,7 +57,7 @@ contracts: [{"id": "SCP-К1", "version": 1}, {"id": "SCP-К2", "version": 1}, {"
 - `--table` — таблица Markdown для пользователя: страна, название RU, тип, чем красиво (RU), координаты старта,
   курс, высота, ссылка на карту (`https://www.openstreetmap.org/?mlat=<lat>&mlon=<lon>#map=12/<lat>/<lon>`).
 
-## SCP-К3. Окно «Красивые места» и выбор (v1)
+## SCP-К3. Окно «Красивые места» и выбор (v2)
 Владелец: SCP-4. Потребители: `scripts/ui/place_pick_row.gd`, тесты `tests/ui/test_scenic_places.gd`,
 контрактный тест `tests/contracts/test_scenic_places_contracts.gd` (фильтр `scenic_places`).
 - `ScenicPlaces` (`scripts/ui/scenic_places.gd`, `class_name ScenicPlaces`, `RefCounted`, только static):
@@ -68,13 +69,17 @@ contracts: [{"id": "SCP-К1", "version": 1}, {"id": "SCP-К2", "version": 1}, {"
   (словарь места SCP-К1, окно закрывается) и `closed`. Уровни: страны («<страна> — <n>») → места страны (название,
   тип, чем красиво); «Назад», «Отмена»; списки в `ScrollContainer`; окно целиком в экране при 1280×720,
   1920×1080, 2560×1440, 640×800 (как PP-К2).
-- `PlacePickRow`: кнопка `tr("setup_scenic_places")` сразу после «Популярные места»; каталог пуст или файла нет —
+- `PlacePickRow`: кнопка `tr("setup_scenic_places")` сразу после «Популярные места» — только в «Настройках полёта»
+  (одиночная игра, решение 2026-11-05); на экране сети (`net_screen.gd`) кнопки нет; каталог пуст или файла нет —
   кнопка скрыта. Выбор места: `settings.pick_lat/pick_lon = lat/lon`, `settings.set_exact_start(lat, lon, heading_deg)`,
   `picked_place_name = name` на языке интерфейса (идёт в «Недавние места»); выбор другим способом (карта,
   «Популярные», «Недавние») — снимает выбор красивого места.
 - Старт в воздухе над видом (`agl_m`, без разбега, курс `heading_deg`) — через постановку старта модуля
-  air-start-menu; стык добавится версией 2 после контракта air-start-menu. В v1 выбор ставит только точку и курс.
+  air-start-menu (ASM-К1/К2: `settings.set_exact_start(lat, lon, heading_deg)` + `settings.set_air_start(agl_m)`);
+  войдёт следующей версией SCP-К3, когда ASM будет в базе модуля. В v2 выбор ставит только точку и курс.
 - Тексты — ключи `locale/ui.csv` (ru, en). Окно «Популярные места» (PP-К2) не меняется.
 
 ## История
 - v1 (2026-11-05) — первая версия.
+- v2 (2026-11-05) — SCP-К3: кнопка только в одиночной игре, на экране сети её нет.
+- SCP-К1 v2 (2026-11-05) — `agl_m` ≤ 1000 (было 2000): предел старта в воздухе ASM-К1.
