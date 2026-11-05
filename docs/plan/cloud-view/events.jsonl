@@ -76,3 +76,5 @@
 {"t": "2026-11-05T14:02:11", "by": "executor", "task": "CVW-6", "ev": "reported", "commits": ["d08765333"], "note": "done: В CHANGELOG, раздел «В работе», добавлены 3 пункта: белёсая пелена в ясном просвете, ступенька неба и смена цвета облак…"}
 {"t": "2026-11-05T14:02:23", "by": "coordinator", "task": "CVW-6", "ev": "checked", "note": "2/2 changelog_section=ok:3; no_ids=ok:0; scope=FAIL:вне scope: r-CVW-6.json"}
 {"t": "2026-11-05T14:02:29", "by": "coordinator", "task": "CVW-6", "ev": "accepted", "note": "2/2 changelog_section=ok:3; no_ids=ok:0"}
+{"t": "2026-11-05T14:02:36", "by": "coordinator", "task": "CVW-6", "ev": "accepted", "commits": ["4726a9542"], "note": "2/2 changelog_section=ok:3; no_ids=ok:0"}
+{"t": "2026-11-05T14:02:36", "by": "coordinator", "task": "CVW-6", "ev": "merged"}
