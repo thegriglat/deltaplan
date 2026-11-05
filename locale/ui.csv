@@ -686,3 +686,7 @@ settings_render_driver_restart,Нужен перезапуск,Restart required
 settings_render_driver_restart_btn,Перезапустить игру,Restart game
 menu_safe_graphics,Безопасная графика: прошлый запуск оборвался,Safe graphics: the last run crashed
 menu_safe_restore,Вернуть настройки,Restore settings
+settings_pilot_voice,Голос пилота,Pilot voice
+settings_voice_male,Мужской,Male
+settings_voice_female,Женский,Female
+settings_voice_off,Выкл,Off

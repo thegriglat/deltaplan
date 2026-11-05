@@ -60,6 +60,7 @@ generated: true
 - pilot-handling: PHD-К1 v3, PHD-К2 v2 — [docs/contracts/pilot-handling.md](../contracts/pilot-handling.md)
 - pilot-hud: PH-К1 v2, PH-К2 v1, PH-К3 v2, PH-К4 v2, PH-К5 v1, PH-К6 v1, PH-К7 v1 — [docs/contracts/pilot-hud.md](../contracts/pilot-hud.md)
 - pilot-view: PV1 v3, PV2 v1, PV3 v2 — [docs/contracts/pilot-view.md](../contracts/pilot-view.md)
+- pilot-voice: PV-К1 v3, PV-К2 v3, PV-К3 v1, PV-К4 v3 — [docs/contracts/pilot-voice.md](../contracts/pilot-voice.md)
 - popular-places: PP-К1 v3, PP-К2 v1 — [docs/contracts/popular-places.md](../contracts/popular-places.md)
 - pullin-speed: VM-К0 v1, VM-К1 v2, VM-К2 v3, VM-К4 v3, VM-К6 v2 — [docs/contracts/pullin-speed-research.md](../contracts/pullin-speed-research.md)
 - pullin-speed: VM-К3 v3, VM-К5 v3, VM-К7 v2, VM-К8 v1 — [docs/contracts/pullin-speed.md](../contracts/pullin-speed.md)

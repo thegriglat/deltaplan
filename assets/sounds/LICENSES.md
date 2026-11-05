@@ -88,3 +88,9 @@ Kenney Impact Sounds: «Created/distributed by Kenney (www.kenney.nl)», CC0 (Li
 | raptor_eagle_02.ogg | Kinoton | [Bald Eagle Calls / Chirps](https://freesound.org/s/832476/) | CC0 | орёл, фрагмент, ФВЧ 500 Гц, моно, пик −6 дБ |
 | raptor_eagle_03.ogg | craigsmith | [S28-16 Eagle squawks & calls](https://freesound.org/s/675962/) | CC0 | орёл, фрагмент, ФВЧ 500 Гц, моно, пик −6 дБ |
 | raptor_eagle_04.ogg | craigsmith | [S28-16 Eagle squawks & calls](https://freesound.org/s/675962/) | CC0 | орёл, фрагмент, ФВЧ 500 Гц, моно, пик −6 дБ |
+
+## Реплики пилота (assets/sounds/voice/)
+
+| Файлы | Источник | Лицензия | Заметки |
+|---|---|---|---|
+| voice/*/*/*.ogg (288) | Qwen3-TTS-12Hz-1.7B-VoiceDesign (эталон голоса по описанию) + Qwen3-TTS-12Hz-1.7B-Base (клон эталона), [github.com/QwenLM/Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS), [VoiceDesign](https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign), [Base](https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-Base) | Apache-2.0 (код и веса; [LICENSE](https://github.com/QwenLM/Qwen3-TTS/blob/main/LICENSE)) | голос синтетический, задан описанием, не копия человека; генерация и проверка — `tools/sounds/voice/` |

@@ -22,6 +22,8 @@ var _bar_sens: HSlider
 var _invert: CheckBox
 var _roll_input: OptionButton
 var _sound: OptionButton
+var _voice: OptionButton  ## голос пилота: male / female / off (PV-К4)
+const VOICE_CHOICES: PackedStringArray = ["male", "female", "off"]
 var _graphics: OptionButton
 var _graphics_names: PackedStringArray = []
 var _presets: PackedStringArray = []
@@ -162,6 +164,11 @@ func _ready() -> void:
 			var title := String(p.get("title", k)) if p is Dictionary else k
 			_sound.add_item(tr(title))
 		UiKit.row(box_snd, tr("settings_vario_sound"), _sound)
+	_voice = OptionButton.new()
+	_voice.add_item(tr("settings_voice_male"))
+	_voice.add_item(tr("settings_voice_female"))
+	_voice.add_item(tr("settings_voice_off"))
+	UiKit.row(box_snd, tr("settings_pilot_voice"), _voice)
 	_graphics = OptionButton.new()
 	_graphics_names = GraphicsPresets.names()
 	var presets_cfg: Dictionary = Config.get_config("game").get("graphics_presets", {})
@@ -470,6 +477,8 @@ func load_values() -> void:
 	var sg: Variant = Config.value("motion_rig", "signs", {})
 	for k: String in _motion_signs:
 		(_motion_signs[k] as CheckBox).button_pressed = sg is Dictionary and String(sg.get(k, "direct")) == "inverse"
+	var vi := VOICE_CHOICES.find(String(Config.value("pilot_voice", "voice", "male")))
+	_voice.select(vi if vi >= 0 else VOICE_CHOICES.size() - 1)  # неизвестное = выкл
 	if _sound != null:
 		var cur := String(va.get("preset", ""))
 		_sound.select(maxi(_presets.find(cur), 0))
@@ -482,6 +491,7 @@ func save() -> bool:
 	if _sound != null and _sound.selected >= 0:
 		va["preset"] = _presets[_sound.selected]
 	var ok := UserSettings.save_patch("audio", {"vario_audio": va}, config_dir) and ok_name
+	ok = UserSettings.save_patch("pilot_voice", {"voice": VOICE_CHOICES[maxi(_voice.selected, 0)]}, config_dir) and ok
 	ok = (
 		(
 			UserSettings
