@@ -1,0 +1,60 @@
+{
+  "id": "SCP-1",
+  "module": "scenic-places",
+  "type": "dp-researcher",
+  "title": "Проверка мест по рельефу и список: Европа и Северная Азия",
+  "goal": "Инструмент проверки места по рельефу (SCP-К2) и список красивых природных мест (SCP-К1) для 10 стран: NO, IS, CH, FR, IT, ES, TR, RU, KZ, MN — по 5–10 мест, все проходят проверку.",
+  "plan_ref": "§4 список мест",
+  "contracts": [
+    {
+      "name": "SCP-К1",
+      "version": "1",
+      "ref": "docs/contracts/scenic-places.md"
+    },
+    {
+      "name": "SCP-К2",
+      "version": "1",
+      "ref": "docs/contracts/scenic-places.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/scenic-places-SCP-1",
+  "branch": "scenic-places/SCP-1",
+  "base": "feature/scenic-places",
+  "scope": [
+    "tools/places/check_scenic_places.py",
+    "tools/places/test_check_scenic_places.py",
+    "tools/places/scenic/a-europe-north-asia.json"
+  ],
+  "dont_touch": [
+    "tools/places/test_scenic_places_contract.py",
+    "tests/ui/fixtures/scenic_places_test.json",
+    "docs/contracts/",
+    "data/places/",
+    "scripts/"
+  ],
+  "accept": [
+    {
+      "name": "contract",
+      "cmd": "python3 tools/places/test_scenic_places_contract.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "unit",
+      "cmd": "python3 tools/places/test_check_scenic_places.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "relief",
+      "cmd": "python3 tools/places/check_scenic_places.py tools/places/scenic/a-europe-north-asia.json --table /tmp/scp1_table.md",
+      "expect": "re:checked \\d+, failed 0"
+    },
+    {
+      "name": "count",
+      "cmd": "python3 tools/places/check_scenic_places.py tools/places/scenic/a-europe-north-asia.json",
+      "expect": "num:checked (\\d+) >=60"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-05T05:58:10"
+}
