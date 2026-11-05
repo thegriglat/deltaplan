@@ -1,0 +1,14 @@
+{
+  "lines": [
+    {"id": "takeoff_1", "ru": "Пошёл!", "en": "Here we go!", "tone": "азарт, выдох", "tone_en": "excited, a breathy exhale of eagerness"},
+    {"id": "thermal_found_1", "ru": "Вроде нашёл.", "en": "I think I've got something.", "tone": "неуверенная радость, вполголоса", "tone_en": "tentative joy, speaking quietly under the breath"},
+    {"id": "thermal_strong_1", "ru": "Ух, как несёт!", "en": "Wow, it's really pulling!", "tone": "восторг", "tone_en": "thrilled, delighted"},
+    {"id": "sink_1", "ru": "Вот чёрт…", "en": "Oh, damn…", "tone": "досада", "tone_en": "annoyed, vexed"},
+    {"id": "stall_2", "ru": "Скорость!", "en": "Speed!", "tone": "испуг, резко", "tone_en": "frightened, sharp and abrupt"},
+    {"id": "landing_hard_1", "ru": "Ох… ноги.", "en": "Ouch… my legs.", "tone": "боль, кряхтение", "tone_en": "in pain, groaning"}
+  ],
+  "voices": {
+    "male": "A man in his thirties, warm medium-low voice, natural, relaxed, a little breathy like someone speaking in a flight harness outdoors. Close microphone, dry, no echo, no music.",
+    "female": "A woman in her thirties, warm medium voice, natural, relaxed, a little breathy like someone speaking in a flight harness outdoors. Close microphone, dry, no echo, no music."
+  }
+}

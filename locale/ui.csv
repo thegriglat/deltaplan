@@ -2,6 +2,7 @@ keys,ru,en
 settings_invert_pitch_hint,"Как ручка самолёта: ↑ и мышь от себя — на себя, ↓ — от себя","Like an aircraft stick: ↑ and mouse forward — pull in, ↓ — push out"
 controls_short_help,"Мышь — трапеция (в полёте Shift — добор до бёдер); на земле W/S — шаг, A/D — поворот, Shift — разбег; в полёте W/A/S/D — осмотреться; C — камера, Tab — прибор, Esc — пауза","Mouse — control bar (in flight Shift — pull to the hips); on the ground W/S — step, A/D — turn, Shift — run; in flight W/A/S/D — look around; C — camera, Tab — instrument, Esc — pause"
 result_crash,Авария,Crash
+result_air_start_note,"Старт в воздухе: рекорды и достижения не засчитываются","Air start: records and achievements are not counted"
 loc_altai,Алтай — Манжерок,Altai — Manzherok
 launch_fail_nose,Нос крыла упёрся в землю,The nose hit the ground
 launch_fail_keel,Киль крыла чиркнул по земле,The keel scraped the ground
@@ -464,6 +465,18 @@ result_to_start,На старт,Back to launch
 map_layer_opentopomap,OpenTopoMap (топокарта),OpenTopoMap (topographic)
 map_layer_osm,OpenStreetMap,OpenStreetMap
 setup_popular_places,Популярные места…,Popular places…
+setup_scenic_places,Красивые места…,Scenic places…
+scenic_title,Красивые места,Scenic places
+scenic_kind_mountain,Горы,Mountains
+scenic_kind_canyon,Каньон,Canyon
+scenic_kind_lake,Озеро,Lake
+scenic_kind_coast,Побережье,Coast
+scenic_kind_volcano,Вулкан,Volcano
+scenic_kind_glacier,Ледник,Glacier
+scenic_kind_valley,Долина,Valley
+scenic_kind_fjord,Фьорд,Fjord
+scenic_kind_desert,Пустыня,Desert
+scenic_kind_island,Остров,Island
 places_title,Популярные места,Popular places
 places_search_hint,Поиск по названию,Search by name
 places_country_row,%s — %d,%s — %d
@@ -583,6 +596,8 @@ start_choice_title,Старт,Start
 start_choice_tow,Буксировка (дельтаплан),Tow (hang glider)
 start_choice_glider,Дельтаплан,Hang glider
 start_choice_trike,Дельталёт,Trike
+start_choice_air,В воздухе,In the air
+start_choice_air_height,Высота над стартом,Height above launch
 setup_tow_none,Нет,None
 setup_tow_winch,Лебёдка,Winch
 setup_tow_aerotow,Аэробуксировка (дельталёт),Aerotow (trike)
@@ -672,3 +687,7 @@ settings_render_driver_restart,Нужен перезапуск,Restart required
 settings_render_driver_restart_btn,Перезапустить игру,Restart game
 menu_safe_graphics,Безопасная графика: прошлый запуск оборвался,Safe graphics: the last run crashed
 menu_safe_restore,Вернуть настройки,Restore settings
+settings_pilot_voice,Голос пилота,Pilot voice
+settings_voice_male,Мужской,Male
+settings_voice_female,Женский,Female
+settings_voice_off,Выкл,Off

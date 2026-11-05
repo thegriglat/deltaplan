@@ -228,3 +228,19 @@ func _finish_mesh(cell: Vector2i, verts: PackedVector3Array, nx: int, nz: int) -
 	mi.material_override = m
 	add_child(mi)
 	_items[cell] = mi
+
+
+## Центр ближайшего к from построенного круга, мир (PV-К4: реплики пилота).
+func voice_anchor(from: Vector3) -> Vector3:
+	var best := super.voice_anchor(from)
+	var bd := INF
+	for cell in _items:
+		var mi: MeshInstance3D = _items[cell]
+		if not mi.is_inside_tree() or mi.mesh == null:
+			continue
+		var w := mi.global_transform * mi.get_aabb().get_center()
+		var d := w.distance_squared_to(from)
+		if d < bd:
+			bd = d
+			best = w
+	return best

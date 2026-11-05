@@ -6,6 +6,9 @@ extends RefCounted
 
 signal goal_done(index: int)
 signal goal_failed(index: int)
+## Маршрут: взята точка / достигнут гол (из TaskTracker; для реплик пилота, PV-К4).
+signal turnpoint_taken
+signal route_goal_reached
 
 const ROUTE_KINDS := ["route", "triangle", "return"]  # порядок ведущего маршрута
 
@@ -277,6 +280,8 @@ func _attach(item: Dictionary, task: Task) -> void:
 		return
 	var tr := TaskTracker.new()
 	tr.setup(task)
+	tr.turnpoint_reached.connect(func(_i: int, _n: String, _t: float) -> void: turnpoint_taken.emit())
+	tr.goal_reached.connect(func(_r: Dictionary) -> void: route_goal_reached.emit())
 	_trackers[item.kind] = tr
 	if item.kind == "route":
 		item.task_name = task.name

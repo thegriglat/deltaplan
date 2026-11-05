@@ -1,0 +1,76 @@
+{
+ "male": {
+  "seed": 100,
+  "text": "The wind is steady today, and the ridge looks good for a long and quiet flight.",
+  "description": "A man in his thirties, warm medium-low voice, natural, relaxed, a little breathy like someone speaking in a flight harness outdoors. Close microphone, dry, no echo, no music.",
+  "candidates": [
+   {
+    "seed": 100,
+    "cer": 0.0,
+    "sim_to_others": 0.384,
+    "dur_s": 5.28
+   },
+   {
+    "seed": 101,
+    "cer": 0.0,
+    "sim_to_others": 0.304,
+    "dur_s": 5.04
+   },
+   {
+    "seed": 102,
+    "cer": 0.0,
+    "sim_to_others": 0.34,
+    "dur_s": 4.72
+   },
+   {
+    "seed": 103,
+    "cer": 0.0,
+    "sim_to_others": 0.363,
+    "dur_s": 5.28
+   },
+   {
+    "seed": 104,
+    "cer": 0.0,
+    "sim_to_others": 0.302,
+    "dur_s": 5.44
+   }
+  ]
+ },
+ "female": {
+  "seed": 102,
+  "text": "The wind is steady today, and the ridge looks good for a long and quiet flight.",
+  "description": "A woman in her thirties, warm medium voice, natural, relaxed, a little breathy like someone speaking in a flight harness outdoors. Close microphone, dry, no echo, no music.",
+  "candidates": [
+   {
+    "seed": 100,
+    "cer": 0.0,
+    "sim_to_others": 0.392,
+    "dur_s": 4.56
+   },
+   {
+    "seed": 101,
+    "cer": 0.0,
+    "sim_to_others": 0.509,
+    "dur_s": 4.88
+   },
+   {
+    "seed": 102,
+    "cer": 0.0,
+    "sim_to_others": 0.539,
+    "dur_s": 5.68
+   },
+   {
+    "seed": 103,
+    "cer": 0.0,
+    "sim_to_others": 0.366,
+    "dur_s": 5.12
+   },
+   {
+    "seed": 104,
+    "cer": 0.0,
+    "sim_to_others": 0.533,
+    "dur_s": 4.72
+   }
+  ]
+ }
+}

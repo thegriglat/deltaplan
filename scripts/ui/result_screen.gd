@@ -98,6 +98,8 @@ static func lines_for(kind: String, info: Dictionary) -> PackedStringArray:
 	if kind == "takeoff_failed":
 		out.append(String(info.get("text", info.get("reason", ""))))
 		return out
+	if bool(info.get("air_start", false)):
+		out.append(_t("result_air_start_note"))
 	var vs := float(info.get("vertical_speed_ms", 0.0))
 	var hs := float(info.get("horizontal_speed_ms", 0.0))
 	out.append(_t("result_touchdown_speed") % [vs, hs])

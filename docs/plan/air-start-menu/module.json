@@ -1,0 +1,11 @@
+{
+  "module": "air-start-menu",
+  "plan": "docs/plan/air-start-menu.md",
+  "contracts": "docs/contracts/air-start-menu.md",
+  "branch": "feature/air-start-menu",
+  "copy": "~/worktrees/deltaplan/air-start-menu",
+  "created": "2026-11-05T05:53:22",
+  "code": "ASM",
+  "area": "game",
+  "base": "main"
+}
