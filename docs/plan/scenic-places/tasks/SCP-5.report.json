@@ -1,0 +1,79 @@
+{
+  "status": "done",
+  "summary": "Сборщик каталога build_scenic_places.py + тест; data/places/scenic_places.json (236 мест, 29 стран); docs/research/scenic-places.md и вынесенная таблица scenic-places-table.md (64 КБ, generated: true); INDEX/registry обновлены.",
+  "commits": [
+    "c1a3dc378 scenic-places SCP-5: каталог красивых мест (236 мест, 29 стран), сборка, документ и таблица"
+  ],
+  "checks": [
+    {
+      "name": "contract",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "unit",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "determinism",
+      "value": "git diff чист",
+      "pass": true
+    },
+    {
+      "name": "relief",
+      "value": "checked 236, failed 0",
+      "pass": true
+    },
+    {
+      "name": "count",
+      "value": "236 >= 230",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "7 файлов в границах",
+      "pass": true
+    },
+    {
+      "name": "scenic_places",
+      "value": "13 тестов, 0 упало (прогон вручную под lock cpu; в accept --dry истёк лимит 900 с из-за очереди замка)",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SCP-5",
+  "uncertain": [
+    {
+      "where": "accept --dry: scenic_places",
+      "why": "FAIL 900 с — лимит проверки включает ожидание в очереди lock cpu (очередь ~30 мин)",
+      "checked": "тот же фильтр прогнан под lock cpu: 13 тестов, 0 упало"
+    },
+    {
+      "where": "docs/research/scenic-places-table.md",
+      "why": "таблица 64 КБ > 40 КБ; добавлен generated: true (docs check пропускает размер), area=world (areas не содержат places)",
+      "checked": "docs check: ошибок 0"
+    },
+    {
+      "where": "docs/research/scenic-places.md, раздел «Чего проверка не знает»",
+      "why": "по итоговому прогону запас < 10 м у 13 мест (8 из отчёта SCP-2 + cl/general-carrera-lake, cl/osorno-volcano, cl/torres-del-paine, mx/nevado-de-toluca, us/mount-hood); перечислены все 13",
+      "checked": "числа из вывода check_scenic_places.py"
+    }
+  ],
+  "dp_feedback": "Лимит 900 с на проверку accept считает ожидание в очереди lock cpu — при длинной очереди проверка падает, не начав работу; нужен отсчёт от захвата замка. docs init не создаёт заголовок отдельного файла — писал frontmatter вручную.",
+  "extra": {
+    "min_запас_м": 0,
+    "min_перепад_м": 101,
+    "мест": 236,
+    "стран": 29
+  },
+  "t": "2026-11-05T08:52:23",
+  "by": "executor"
+}
