@@ -1,0 +1,45 @@
+{
+  "id": "WMN-2",
+  "module": "wingman",
+  "type": "dp-engineer",
+  "title": "Пункт настроек «Напарники» (0–2)",
+  "goal": "В настройках (вкладка игры, под «Другие пилоты в небе») — выбор числа напарников 0–2; сохраняется в user-конфиг bots.json → wingman.count, читается при открытии.",
+  "plan_ref": "§4 Задачи",
+  "contracts": [
+    {
+      "name": "wingman",
+      "version": "1",
+      "ref": "docs/contracts/wingman.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/wingman-WMN-2",
+  "branch": "wingman/WMN-2",
+  "base": "feature/wingman",
+  "scope": [
+    "scripts/ui/settings_panel.gd",
+    "locale/ui.csv",
+    "tests/ui/test_settings_wingman.gd",
+    "tests/ui/test_settings_wingman.gd.uid"
+  ],
+  "dont_touch": [
+    "scripts/game",
+    "configs",
+    "scripts/net",
+    "docs",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "test_settings",
+      "tests": "test_settings"
+    },
+    {
+      "name": "gd",
+      "cmd": "python3 tools/check_gd.py --changed",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-05T06:04:41"
+}
