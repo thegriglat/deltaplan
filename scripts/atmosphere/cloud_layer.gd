@@ -1436,6 +1436,18 @@ func _rec_density(r: PackedFloat32Array, p: Vector3) -> float:
 	var decay := r[13]
 	var growth := r[12]
 	var shape := _towers_shape(seed_off, kind, uv / spread_k, h)
+	if shape < -0.7 and anvil <= 0.0:
+		return 0.0  # как ранний выход шейдера (quality 1)
+	if not _nz_slices.is_empty():
+		# Крупное искажение quality 1 (cloud_density_raw): w1, w2 из шума, мип 0, без ветра.
+		var ns_t := clampf(height / 2500.0, 1.0, 3.5) if kind == 3 else 1.0
+		var wp := p / (float(cfg.top_period_m) * ns_t) + seed_off
+		var w1 := _nz(0, wp)
+		var w2 := _nz(0, Vector3(wp.z, wp.x, wp.y) + Vector3(0.37, 0.11, 0.73))
+		var uvd := uv + Vector2(w1 - 0.5, w2 - 0.5) * 0.3
+		var hh := maxf(h + (w1 - 0.5) * 0.12 * smoothstep(0.1, 0.35, h), 0.0)
+		var sk := 1.0 + spread * smoothstep(0.55, 1.0, hh)
+		shape = _towers_shape(seed_off, kind, uvd / sk, hh)  # у шейдера анвил-добавка здесь не повторяется
 	shape -= decay * 0.15 + (1.0 - vis) * 0.35
 	shape = clampf(shape / lerpf(0.55, 0.8, decay), 0.0, 1.0)
 	var anvil_m := 0.0
