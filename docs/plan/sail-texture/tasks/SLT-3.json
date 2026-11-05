@@ -13,7 +13,7 @@
     },
     {
       "name": "SLT-К2",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/sail-texture.md"
     }
   ],
@@ -63,5 +63,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-11-05T06:05:11"
+  "created": "2026-11-05T06:05:11",
+  "edited": "2026-11-05T07:59:58"
 }
