@@ -41,8 +41,97 @@ static func apply(sail: MeshInstance3D, model: String) -> ShaderMaterial:
 	sail.cast_shadow = (GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 			if bool(params.get("cast_shadows", true))
 			else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
+	var asp := _skin_aspects(sail.mesh)
+	mat.set_shader_parameter("custom_aspect_top", asp.x)
+	mat.set_shader_parameter("custom_aspect_bottom", asp.y)
 	sail.material_override = mat
 	return mat
+
+
+## Своя картинка паруса (SLT-К2): tex == null — родная текстура; mat == null — ничего.
+## Вызывать только для паруса игрока (боты и чужие — родная).
+static func set_custom(mat: ShaderMaterial, tex: Texture2D) -> void:
+	if mat == null:
+		return
+	if tex == null or tex.get_width() <= 0 or tex.get_height() <= 0:
+		mat.set_shader_parameter("custom_on", 0.0)
+		return
+	mat.set_shader_parameter("custom_tex", tex)
+	mat.set_shader_parameter("custom_img_aspect", float(tex.get_width()) / float(tex.get_height()))
+	mat.set_shader_parameter("custom_on", 1.0)
+
+
+## Индексы вершин обшивки меша Sail: top — верх (UV.y > 0,5), иначе низ (UV.y < 0,5). Обшивку определяют
+## треугольники: вершины на шве v = 0,5 (задняя кромка верха, передняя кромка низа) принадлежат своей обшивке.
+## Карман киля (|нормаль.x| > 0,7) не входит.
+static func skin_indices(mesh: Mesh, top: bool) -> PackedInt32Array:
+	var out := PackedInt32Array()
+	if mesh == null or mesh.get_surface_count() == 0:
+		return out
+	var arr := mesh.surface_get_arrays(0)
+	var verts: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+	var uvs: PackedVector2Array = arr[Mesh.ARRAY_TEX_UV]
+	var nrm: PackedVector3Array = arr[Mesh.ARRAY_NORMAL] if arr[Mesh.ARRAY_NORMAL] != null else PackedVector3Array()
+	if verts.is_empty() or uvs.size() != verts.size():
+		return out
+	var idx: PackedInt32Array = arr[Mesh.ARRAY_INDEX] if arr[Mesh.ARRAY_INDEX] != null else PackedInt32Array()
+	if idx.is_empty():
+		idx.resize(verts.size())
+		for i in verts.size():
+			idx[i] = i
+	var mark := PackedByteArray()
+	mark.resize(verts.size())
+	for t in range(0, idx.size() - 2, 3):
+		var vmin := minf(uvs[idx[t]].y, minf(uvs[idx[t + 1]].y, uvs[idx[t + 2]].y))
+		var vmax := maxf(uvs[idx[t]].y, maxf(uvs[idx[t + 1]].y, uvs[idx[t + 2]].y))
+		var is_top := vmin >= 0.5 - 1e-4 and vmax > 0.5 + 1e-4
+		var is_bottom := vmax <= 0.5 + 1e-4 and vmin < 0.5 - 1e-4
+		if (top and is_top) or (not top and is_bottom):
+			for k in 3:
+				mark[idx[t + k]] = 1
+	for i in verts.size():
+		if mark[i] == 1 and not (nrm.size() == verts.size() and absf(nrm[i].x) > 0.7):
+			out.append(i)
+	return out
+
+
+## Аспекты обшивок (размах / корневая хорда, м/м) по вершинам меша Sail: Vector2(верх, низ).
+## Хорда — наибольший по размаху диапазон z вершин в полосе по x шириной 3 % полуразмаха (К2 v3). Нет данных — 4 (типичное значение).
+static func _skin_aspects(mesh: Mesh) -> Vector2:
+	var out := Vector2(4.0, 4.0)
+	if mesh == null or mesh.get_surface_count() == 0:
+		return out
+	var verts: PackedVector3Array = mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+	for skin in 2:
+		var ids := skin_indices(mesh, skin == 0)
+		var xmin := INF
+		var xmax := -INF
+		for i in ids:
+			xmin = minf(xmin, verts[i].x)
+			xmax = maxf(xmax, verts[i].x)
+		if xmax <= xmin:
+			continue
+		# хорда — диапазон z вершин в полосе по x шириной 3 % полуразмаха; берём наибольшую (SLT-К2 v3)
+		var half := 0.5 * (xmax - xmin)
+		var w := 0.03 * half
+		var nb := int(ceil((xmax - xmin) / w)) + 1
+		var zlo := PackedFloat32Array()
+		var zhi := PackedFloat32Array()
+		zlo.resize(nb)
+		zhi.resize(nb)
+		zlo.fill(INF)
+		zhi.fill(-INF)
+		for i in ids:
+			var k := int((verts[i].x - xmin) / w)
+			zlo[k] = minf(zlo[k], verts[i].z)
+			zhi[k] = maxf(zhi[k], verts[i].z)
+		var chord := 0.0
+		for k in nb:
+			if zhi[k] > zlo[k]:
+				chord = maxf(chord, zhi[k] - zlo[k])
+		if chord > 0.0:
+			out[skin] = (xmax - xmin) / chord
+	return out
 
 
 ## Параметры полёта: воздушная скорость, м/с; сваливание 0..1; турбулентность 0..1.

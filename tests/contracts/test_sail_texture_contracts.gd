@@ -92,3 +92,24 @@ func test_import_clear() -> void:
 	check(SailTexture.load_texture() == null, "после clear — null")
 	SailTexture.clear()
 	_end()
+
+
+## SLT-К2: SailMaterial.set_custom и uniform'ы шейдера паруса.
+func test_k2_sail_material() -> void:
+	var sm: Script = load("res://assets/shaders/sail/sail_material.gd")
+	var has_set_custom := false
+	for m: Dictionary in sm.get_script_method_list():
+		if m["name"] == "set_custom":
+			has_set_custom = true
+			check(m["args"].size() == 2, "set_custom(mat, tex)")
+	check(has_set_custom, "SailMaterial.set_custom")
+	var uniforms := {}
+	for u: Dictionary in (load("res://assets/shaders/sail/sail.gdshader") as Shader).get_shader_uniform_list():
+		uniforms[u["name"]] = u
+	for n in ["custom_tex", "custom_on", "custom_img_aspect", "custom_aspect_top", "custom_aspect_bottom"]:
+		check(uniforms.has(n), "uniform " + n)
+	if uniforms.has("custom_tex"):
+		check(uniforms["custom_tex"]["type"] == TYPE_OBJECT, "custom_tex — текстура")
+	for n in ["custom_on", "custom_img_aspect", "custom_aspect_top", "custom_aspect_bottom"]:
+		if uniforms.has(n):
+			check(uniforms[n]["type"] == TYPE_FLOAT, n + " — float")
