@@ -46,3 +46,6 @@
 {"t": "2026-11-05T09:43:03", "by": "coordinator", "task": "WMN-3", "ev": "accepted", "note": "1/1 docs=ok:ошибок 0"}
 {"t": "2026-11-05T09:43:14", "by": "coordinator", "task": "WMN-3", "ev": "merged"}
 {"t": "2026-11-05T09:43:21", "by": "coordinator", "task": "WMN-3", "ev": "accepted", "commits": ["802f2c440"], "note": "1/1 docs=ok:ошибок 0"}
+{"t": "2026-11-05T10:56:08", "by": "coordinator", "task": "WMN-1", "ev": "checked", "commits": ["ad7a85adf"], "note": "1/6 wingman=FAIL:таймаут; test_bots=FAIL:таймаут; test_bot_names=FAIL:таймаут; test_net=FAIL:таймаут; test_tow_session=FAIL:таймаут; gd=ok:exit 0"}
+{"t": "2026-11-05T10:56:21", "by": "coordinator", "task": "WMN-1", "ev": "merged"}
+{"t": "2026-11-05T10:56:21", "by": "coordinator", "task": "WMN-1", "ev": "note", "note": "accept --here в копии модуля: все Godot-проверки — таймаут (900 с, очередь cpu и нагрузка), не падения; итоговый прогон ветки модуля — после WMN-4"}
