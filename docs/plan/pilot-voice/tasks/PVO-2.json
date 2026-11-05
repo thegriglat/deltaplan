@@ -62,15 +62,18 @@
   "accept": [
     {
       "name": "pilot_voice",
-      "tests": "pilot_voice"
+      "tests": "pilot_voice",
+      "timeout": 5400
     },
     {
       "name": "audio",
-      "tests": "audio"
+      "tests": "audio",
+      "timeout": 5400
     },
     {
       "name": "settings",
-      "tests": "settings"
+      "tests": "settings",
+      "timeout": 5400
     },
     {
       "name": "gd_check",
@@ -80,7 +83,8 @@
     {
       "name": "easter_base",
       "cmd": ".dpcli/dpcli lock cpu PVO-2 -- env XDG_DATA_HOME=/tmp/claude-1000/-home-greg-deltaplan/5bd656e4-218c-470a-8783-b19ee7f043b0/scratchpad/xdg-PVO-2-easter godot --headless --path . res://tests/run_tests.tscn -- --filter=easter",
-      "expect": "num:(\\d+) упало <=1"
+      "expect": "num:(\\d+) упало <=1",
+      "timeout": 5400
     }
   ],
   "report_extra": [],

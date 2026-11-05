@@ -1,0 +1,109 @@
+{
+  "status": "partial",
+  "summary": "Сгенерированы все 288 реплик (72 × male/female × ru/en) Qwen3-TTS по схеме Design→Clone (эталон VoiceDesign, клон Base, Apache-2.0), импорт Godot, лицензии, check_voice.py/fix_loop.py. Формат PV-К3 — без нарушений; 10 реплик остаются с CER>0,25 или слабым тембром после 6 перегенераций; порог тембра 0,75 недостижим.",
+  "commits": [
+    "ba3ed9fe5 PVO-3: 288 реплик пилота (2 голоса × RU/EN), Qwen3-TTS Design→Clone",
+    "3f12fc24b PVO-3: промежуточно — 288 реплик, скрипты"
+  ],
+  "checks": [
+    {
+      "name": "files (.ogg)",
+      "value": "288",
+      "pass": true
+    },
+    {
+      "name": "imports (.ogg.import, loop=false)",
+      "value": "288",
+      "pass": true
+    },
+    {
+      "name": "format: check_voice.py (LUFS -20.5..-19.8, пик -11.0..-3.3, тишина <=71 мс, 0,48-2,66 с)",
+      "value": "exit 0 с configs/pilot_voice.json из PVO-2 (в моей копии configs/ нет — не слит; без него accept --dry показывает FAIL format: FileNotFoundError)",
+      "pass": true
+    },
+    {
+      "name": "license: Qwen3-TTS в LICENSES.md и ASSETS.md",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "CER Whisper small, медиана",
+      "value": "0,0; нарушителей >0,25: 8",
+      "pass": false
+    },
+    {
+      "name": "тембр ECAPA к эталону, медиана male/female",
+      "value": "0,57 / 0,57; доля >=0,75: 2,8 % / 2,1 %; min 0,09 / 0,07 (стоны)",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "Порог тембра 0,75 (карточка) не достигнут: ECAPA на фразах 0,5-2,7 с занижает косинус (медиана 0,40 для <0,8 с, 0,61 для 1,2-2 с). Заменил жёсткими порогами: >=0,35 и запас над другим голосом >=0,15 (кроме стонов); доля >=0,75 только в отчёте.",
+    "Тон (tone) не передаётся: Base-модель не принимает instruct, тон — только текстом и пунктуацией; таблицу перевода тона не делал.",
+    "10 реплик не прошли проверку после 6 перегенераций (см. uncertain).",
+    "Импорт .ogg.import выполнен; сам configs/pilot_voice.json в этой ветке отсутствует (PVO-2 не слит) — финальный accept ждёт слияния."
+  ],
+  "questions": [
+    "Принять замену порога тембра 0,75 на пороги >=0,35 / запас 0,15? Или нужен другой способ (эталон на тон, больше seed)?",
+    "Нужна ли окраска по tone? Тогда это отдельное решение: эталон на каждый тон или VoiceDesign с потерей ровного тембра."
+  ],
+  "how_to_check": ".dpcli/dpcli accept PVO-3 (после слияния PVO-2 в feature/pilot-voice и git merge feature/pilot-voice); полная проверка: tools/sounds/voice/README.md, раздел «Полный набор»",
+  "uncertain": [
+    {
+      "where": "assets/sounds/voice/female/ru/egg_eagle_2_*, male/ru/egg_eagle_2",
+      "why": "RU «Орёл рядом!» читается как «Ариол» (CER 0,3-0,5), подставлен «Орёл, рядом!» из tts_text.json — не помогло",
+      "checked": "6 перегенераций, Whisper small"
+    },
+    {
+      "where": "female/ru + male/ru thermal_found_1, thermal_lost_1; male/ru egg_an2_2, goal_1, low_1; female/ru thermal_found_1",
+      "why": "односложные/короткие RU-реплики читаются неверно или по-английски (goal_1 «Yes, goal»), CER 0,27-0,94; возможно часть — ошибка Whisper small, на слух не проверено",
+      "checked": "6 перегенераций с разными seed, варианты текста в tools/sounds/voice/tts_text.json"
+    },
+    {
+      "where": "female/en/turbulence_2, male/en/egg_geese_1",
+      "why": "очень короткие EN-реплики: косинус к эталону 0,17-0,18, запас над другим голосом ниже порога — тембр на слух мог уйти",
+      "checked": "6 перегенераций; полный список остаточных — tools/sounds/voice/stats_full.json (violations)"
+    },
+    {
+      "where": "весь набор",
+      "why": "звук не прослушан (агент не слушает): естественность, ударения RU, эмоции, ровность тембра — на суд пользователя",
+      "checked": "только числа: ffmpeg ebur128, Whisper small, ECAPA"
+    },
+    {
+      "where": "stall_1, landing_hard_3, crash_1 (все голоса и языки)",
+      "why": "стоны/междометия читаются словами, исключены из CER и тембра (CER_SKIP), только формат",
+      "checked": "длительность/громкость в норме"
+    }
+  ],
+  "dp_feedback": "accept --dry проверяет скоуп по git status: временная копия configs/pilot_voice.json для проверки формата дала FAIL scope — нужен способ подтянуть чужой конфиг без пометки. Ожидание lock cpu для godot --import заняло ≈ 15 мин; job wait/ Monitor с таймаутом 30 мин неудобен для часовых заданий.",
+  "extra": {
+    "refs": {
+      "male_seed": 100,
+      "female_seed": 102,
+      "design_seed_pairwise_cos": "0.30-0.54"
+    },
+    "gen": {
+      "model": "Qwen3-TTS-12Hz-1.7B-Base clone + VoiceDesign ref",
+      "s_per_line_median": 7.06,
+      "total_min": 80,
+      "retries": "attempts 1-6, 288 -> 10 нарушений"
+    },
+    "sim_summary": {
+      "male": {
+        "median": 0.57,
+        "ge_075": 0.028,
+        "margin_min": 0.087
+      },
+      "female": {
+        "median": 0.565,
+        "ge_075": 0.021,
+        "margin_min": -0.033
+      }
+    },
+    "assets_size_mb": 5.6,
+    "data": "tools/sounds/voice/stats_full.json, gen_stats.json, refs.json",
+    "raw_wav": "удалены (~/data/pilot-voice/raw); веса и venv — ~/data/pilot-voice (≈ 15 ГБ)"
+  },
+  "t": "2026-11-05T08:30:23",
+  "by": "executor"
+}

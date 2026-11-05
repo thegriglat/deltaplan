@@ -21,6 +21,7 @@ var _yaw: PackedFloat32Array = PackedFloat32Array()
 var _basket_m := 1.5
 var _ramp_max := 1.0
 var _settled := false
+var _age := 0.0  ## возраст на последнем update (для voice_anchor)
 var _env: MultiMeshInstance3D
 var _bask: MultiMeshInstance3D
 var _mats: Array[ShaderMaterial] = []
@@ -323,6 +324,7 @@ func update(ctx: EggContext) -> bool:
 		return true
 	# снос: весь набор сдвигается по ветру; подъём — отдельно по шарам, пока не набрали высоту
 	position = _origin + _dir * _speed * age
+	_age = age
 	if not _settled:
 		_place_instances(age)
 		_settled = age >= _ramp_max
@@ -342,3 +344,18 @@ func balloon_pos(i: int, age: float) -> Vector3:
 
 func envelopes() -> MultiMeshInstance3D:
 	return _env
+
+
+## Ближайший к from шар, мир (PV-К4: реплики пилота); высота — рабочая, со снесом узла.
+func voice_anchor(from: Vector3) -> Vector3:
+	var best := super.voice_anchor(from)
+	var bd := INF
+	var xf := global_transform if is_inside_tree() else transform
+	for i in _base.size():
+		var b := _base[i] - _origin
+		var w := xf * Vector3(b.x, b.y + _basket_m + (_alt[i] if _settled else _rise(i, _age)), b.z)
+		var d := w.distance_squared_to(from)
+		if d < bd:
+			bd = d
+			best = w
+	return best

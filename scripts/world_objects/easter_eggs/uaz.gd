@@ -519,3 +519,19 @@ static func _cylinder(
 				idx.append_array([b2, b2 + 2, b2 + 1])
 			else:
 				idx.append_array([b2, b2 + 1, b2 + 2])
+
+
+## Ближайшая к from машина, мир (PV-К4: реплики пилота).
+func voice_anchor(from: Vector3) -> Vector3:
+	var best := super.voice_anchor(from)
+	var bd := INF
+	for car in _cars:
+		var body: Variant = car.get("body")
+		if body == null or not (body as Node3D).is_inside_tree():
+			continue
+		var w: Vector3 = (body as Node3D).global_position
+		var d := w.distance_squared_to(from)
+		if d < bd:
+			bd = d
+			best = w
+	return best

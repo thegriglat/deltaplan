@@ -1,0 +1,39 @@
+{
+  "verdict": "accept",
+  "summary": "Конфиг совпадает с таблицами PV-К1/PV-К2 v3 (30 ситуаций, приоритеты, паузы, chance, params, rules); логика соблюдает правила v3 (ситуации по данным при блокировке ничего не тратят, в очередь только события, max_wait_s 8, chance разыгрывается при выдаче). Подключение в Game, шина Voice и настройка сделаны по карточке. Скоуп чистый, project.godot не тронут. Два мелких замечания.",
+  "issues": [
+    {
+      "file": "tests/audio/test_pilot_voice_logic.gd",
+      "line": 1,
+      "severity": "minor",
+      "what": "Новые tests/audio/test_pilot_voice_logic.gd и test_pilot_voice_node.gd закоммичены без .uid. Карточка требует коммитить новые .gd вместе с .uid, а у соседних тестов в tests/audio/ .uid есть.",
+      "fix": "Сгенерировать .uid (godot --import) и закоммитить оба вместе с тестами."
+    },
+    {
+      "file": "scripts/audio/pilot_voice_logic.gd",
+      "line": 97,
+      "severity": "minor",
+      "what": "event(\"took_off\") каждый раз сбрасывает _landed_said и снова ставит takeoff в очередь. Если glider.took_off придёт повторно без restart (подскок или касание с повторным отрывом), прозвучат вторая реплика takeoff и вторая реплика посадки, а PV-К1 требует для них «раз за полёт». Вопрос: может ли took_off у дельтаплана прийти дважды за полёт?",
+      "fix": "Если может — сбрасывать флаги «раз за полёт» только в reset() (restart/новый полёт), а не на took_off; иначе оставить как есть и записать допущение в комментарий."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "pilot_voice (accept --only pilot_voice --dry)",
+      "value": "40/40",
+      "pass": true
+    },
+    {
+      "name": "gd_check (tools/check_gd.py 4 файла)",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "20 файлов в границах",
+      "pass": true
+    }
+  ],
+  "t": "2026-11-05T11:20:43",
+  "by": "reviewer"
+}

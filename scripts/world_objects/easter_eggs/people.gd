@@ -584,3 +584,17 @@ func _set_part(
 
 func _is_hidden(i: int) -> bool:
 	return i < _hidden.size() and _hidden[i]
+
+
+## Ближайший к from человек, мир (PV-К4: реплики пилота); высота — лагеря, плюс рост.
+func voice_anchor(from: Vector3) -> Vector3:
+	var best := super.voice_anchor(from)
+	var bd := INF
+	for p in _people:
+		var q: Vector2 = p.pos
+		var w := Vector3(q.x, _center.y + 1.0, q.y)
+		var d := w.distance_squared_to(from)
+		if d < bd:
+			bd = d
+			best = w
+	return best
