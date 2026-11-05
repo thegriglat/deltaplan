@@ -1,0 +1,77 @@
+{
+  "id": "SCP-6",
+  "module": "scenic-places",
+  "type": "dp-engineer",
+  "title": "Старт в воздухе над видом при выборе красивого места",
+  "goal": "Выбор красивого места ставит старт в воздухе на agl_m над точкой с курсом места через ASM-К1/К2 (SCP-К3 v3); выбор другого места возвращает прежний старт; полёт из красивого места начинается в воздухе над видом.",
+  "plan_ref": "§4 старт в воздухе",
+  "contracts": [
+    {
+      "name": "SCP-К1",
+      "version": "3",
+      "ref": "docs/contracts/scenic-places.md"
+    },
+    {
+      "name": "SCP-К3",
+      "version": "3",
+      "ref": "docs/contracts/scenic-places.md"
+    },
+    {
+      "name": "ASM-К1",
+      "version": "2",
+      "ref": "docs/contracts/scenic-places.md"
+    },
+    {
+      "name": "ASM-К2",
+      "version": "2",
+      "ref": "docs/contracts/scenic-places.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/scenic-places-SCP-6",
+  "branch": "scenic-places/SCP-6",
+  "base": "feature/scenic-places",
+  "scope": [
+    "scripts/ui/place_pick_row.gd",
+    "tests/ui/test_scenic_places.gd",
+    "tests/contracts/test_scenic_places_contracts.gd",
+    "tests/game/test_scenic_air_start.gd",
+    "tests/game/test_scenic_air_start.gd.uid"
+  ],
+  "dont_touch": [
+    "scripts/game/",
+    "scripts/ui/start_choice_dialog.gd",
+    "scripts/ui/start_menu.gd",
+    "scripts/ui/net_screen.gd",
+    "data/places/",
+    "tools/places/",
+    "docs/contracts/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "scenic_places",
+      "tests": "scenic_places"
+    },
+    {
+      "name": "air_start_menu",
+      "tests": "air_start_menu"
+    },
+    {
+      "name": "popular_places",
+      "tests": "popular_places"
+    },
+    {
+      "name": "contract",
+      "cmd": "python3 tools/places/test_scenic_places_contract.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "gd",
+      "cmd": "python3 tools/check_gd.py scripts/ui/place_pick_row.gd tests/ui/test_scenic_places.gd tests/game/test_scenic_air_start.gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-05T16:33:21"
+}

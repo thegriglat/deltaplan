@@ -1,0 +1,62 @@
+{
+  "id": "SCP-7",
+  "module": "scenic-places",
+  "type": "dp-writer",
+  "title": "Guide и CHANGELOG: красивые места",
+  "goal": "Описание «Красивых мест» в guide (окно, каталог, проверка мест, старт в воздухе над видом, чего не умеет) и строка CHANGELOG в «В работе»; строка вывода в registry/findings.md.",
+  "plan_ref": "§4 guide, CHANGELOG",
+  "contracts": [
+    {
+      "name": "SCP-К1",
+      "version": "3",
+      "ref": "docs/contracts/scenic-places.md"
+    },
+    {
+      "name": "SCP-К2",
+      "version": "1",
+      "ref": "docs/contracts/scenic-places.md"
+    },
+    {
+      "name": "SCP-К3",
+      "version": "3",
+      "ref": "docs/contracts/scenic-places.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/scenic-places-SCP-7",
+  "branch": "scenic-places/SCP-7",
+  "base": "feature/scenic-places",
+  "scope": [
+    "docs/guide/game/menus-settings.md",
+    "CHANGELOG.md",
+    "docs/registry/findings.md",
+    "docs/INDEX.md"
+  ],
+  "dont_touch": [
+    "docs/contracts/",
+    "docs/plan/",
+    "docs/research/",
+    "scripts/",
+    "data/",
+    "site/"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    },
+    {
+      "name": "changelog",
+      "cmd": "awk '/^## В работе/{f=1;next} /^## /{f=0} f' CHANGELOG.md",
+      "expect": "re:Красивые места"
+    },
+    {
+      "name": "guide",
+      "cmd": "grep -c 'Красивые места' docs/guide/game/menus-settings.md",
+      "expect": "num:(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-05T16:34:31"
+}
