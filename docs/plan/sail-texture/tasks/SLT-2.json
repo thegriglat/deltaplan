@@ -1,0 +1,57 @@
+{
+  "id": "SLT-2",
+  "module": "sail-texture",
+  "type": "dp-engineer",
+  "title": "Своя картинка паруса: загрузка, хранение, выбор в экране «Полёт…»",
+  "goal": "SailTexture по SLT-К1 (проверка PNG/JPEG, уменьшение, атомарная копия в user://, загрузка, сброс) и выбор картинки с предпросмотром и сбросом на вкладке «Аппарат» экрана «Полёт…»; контрактный и юнит-тесты.",
+  "plan_ref": "§4 Задачи",
+  "contracts": [
+    {
+      "name": "SLT-К1",
+      "version": "1",
+      "ref": "docs/contracts/sail-texture.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sail-texture-SLT-2",
+  "branch": "sail-texture/SLT-2",
+  "base": "feature/sail-texture",
+  "scope": [
+    "scripts/game/sail_texture.gd",
+    "scripts/game/sail_texture.gd.uid",
+    "scripts/ui/flight_setup_screen.gd",
+    "locale/ui.csv",
+    "tests/contracts/test_sail_texture_contracts.gd",
+    "tests/contracts/test_sail_texture_contracts.gd.uid",
+    "tests/game/test_sail_texture.gd",
+    "tests/game/test_sail_texture.gd.uid",
+    "tests/fixtures/sail_texture/"
+  ],
+  "dont_touch": [
+    "assets/shaders/sail/",
+    "scripts/flight/",
+    "scripts/game/bot_glider.gd",
+    "scripts/game/remote_pilots.gd",
+    "scripts/net/",
+    "steam/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "sail_texture",
+      "tests": "sail_texture"
+    },
+    {
+      "name": "gd",
+      "cmd": "python3 tools/check_gd.py scripts/game/sail_texture.gd scripts/ui/flight_setup_screen.gd tests/contracts/test_sail_texture_contracts.gd tests/game/test_sail_texture.gd",
+      "expect": "exit=0"
+    },
+    {
+      "name": "setup",
+      "tests": "setup"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-05T05:51:27",
+  "edited": "2026-11-05T05:51:52"
+}

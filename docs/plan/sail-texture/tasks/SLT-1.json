@@ -1,0 +1,42 @@
+{
+  "id": "SLT-1",
+  "module": "sail-texture",
+  "type": "dp-researcher",
+  "title": "Развёртка UV паруса у моделей крыльев",
+  "goal": "Измерить по готовым glb раскладку UV1 меша Sail у всех 49 моделей configs/wings (верх/низ, карман киля, ориентация, зеркальность, размах/хорда) и предложить формулу наложения своей картинки без пересборки моделей.",
+  "plan_ref": "§4 Задачи",
+  "contracts": [
+    {
+      "name": "SLT-К2",
+      "version": "0",
+      "ref": "docs/contracts/sail-texture.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sail-texture-SLT-1",
+  "branch": "sail-texture/SLT-1",
+  "base": "feature/sail-texture",
+  "scope": [
+    "tools/research/sail-texture/"
+  ],
+  "dont_touch": [
+    "assets/",
+    "tools/blender/",
+    "scripts/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "models",
+      "cmd": "python3 -c \"import json;print('models', len(json.load(open('tools/research/sail-texture/uv_table.json'))['models']))\"",
+      "expect": "num:models (\\d+) >=49"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-05T05:51:04"
+}
