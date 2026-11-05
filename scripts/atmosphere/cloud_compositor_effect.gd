@@ -25,6 +25,7 @@ const VEC_PARAMS := [
 	["fog_color", "fog_density"],
 	["sun_tref", "sun_tab_on"],
 	["sun_dir_t", "sun_dir_t_pad"],
+	["veil_color", "veil_v"],
 ]
 const FLOAT_PARAMS := [
 	"shape_period_m", "detail_period_m", "hf_period_m", "top_period_m",

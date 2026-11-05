@@ -389,6 +389,8 @@ void main() {
 	float cos_t = dot(rd, sun_dir);
 	vec3 fc = fog_color * (1.0 + fog_sun_scatter * pow(max(cos_t, 0.0), 8.0));
 	col = col * (1.0 - fog) + fc * alpha * fog;
+	// Вуаль «белой мглы» (CVW-К2 v2): доля veil_v, не зависит от расстояния.
+	col = col * (1.0 - veil_v) + veil_color * alpha * veil_v;
 	imageStore(out_cloud, qx, vec4(col, alpha));
 	// r — расстояние до сцены (вес соседей в cloud_temporal_cs), g — средняя глубина облака
 	// (перепроекция истории).

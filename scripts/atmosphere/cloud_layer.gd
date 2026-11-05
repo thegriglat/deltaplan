@@ -51,6 +51,9 @@ var model: CloudModel
 var history_free := false
 
 var _material: ShaderMaterial
+var _fc_k := Vector3.ONE  ## множитель света дымки (tint × sky_k) с последнего _update_light
+var _veil_color := Vector3.ZERO  ## вуаль мглы: линейный цвет и доля (0 — нет вуали)
+var _veil_v := 0.0
 var _box: BoxMesh
 var _shadow_map: CloudShadowMap
 ## Слоты облаков над термиками: объект в слоте (null — свободен), id -> слот, свободные слоты.
@@ -342,6 +345,7 @@ func _process(delta: float) -> void:
 	var w := Vector2(bw[0], bw[1]) * float(cfg.noise_wind_factor)
 	_material.set_shader_parameter("wind_offset", -Vector3(w.x, 0.0, w.y) * t)
 	_material.set_shader_parameter("boil", t * float(cfg.boil_speed))
+	_update_veil()
 	_light_acc += delta
 	if _light_acc > 1.0:
 		_light_acc = 0.0
@@ -431,6 +435,8 @@ func _push_to_effect(recs: Array[PackedFloat32Array]) -> void:
 	var data := PackedFloat32Array()
 	for g in recs:
 		data.append_array(g)
+	_effect.params["veil_color"] = _veil_color
+	_effect.params["veil_v"] = _veil_v
 	_effect.clouds_data = data
 	_effect.cloud_count = recs.size()
 	for k: String in field_params:
@@ -482,6 +488,20 @@ func _exit_tree() -> void:
 		_attach_effect(null)
 
 
+## Вуаль «белой мглы» (CVW-К2 v2): доля v и цвет — из метаданных окружения, каждый кадр.
+## Цвет — в линейном виде, с тем же множителем света, что у дымки (_fc_k).
+func _update_veil() -> void:
+	var env: Environment = (
+		get_world_3d().environment if is_inside_tree() and get_world_3d() != null else null
+	)
+	_veil_v = 0.0
+	if env != null and env.has_meta("whiteout_veil"):
+		var wv: Dictionary = env.get_meta("whiteout_veil")
+		var lc := (wv.color as Color).srgb_to_linear() * env.fog_light_energy
+		_veil_color = Vector3(lc.r, lc.g, lc.b) * _fc_k
+		_veil_v = clampf(float(wv.v), 0.0, 1.0)
+
+
 ## Солнце и дымка — из сцены (DirectionalLight3D, WorldEnvironment), иначе из конфига.
 ## Перистая пелена ослабляет прямой свет на облаках.
 func _update_light() -> void:
@@ -528,10 +548,24 @@ func _update_light() -> void:
 		get_world_3d().environment if is_inside_tree() and get_world_3d() != null else null
 	)
 	var fc_k := Vector3(tint.r, tint.g, tint.b) * sky_k
-	if env != null and env.fog_enabled:
-		var fc := env.fog_light_color.srgb_to_linear() * env.fog_light_energy
+	_fc_k = fc_k
+	# Дымка облаков — из тумана окружения до «белой мглы» (метаданные fog_base, CVW-К2 v2):
+	# мгла красит облака вуалью по amount (_update_veil), а не густой дымкой по расстоянию.
+	var fog_on := env != null and env.fog_enabled
+	var fog_density := 0.0
+	var fog_color := Color.WHITE
+	if env != null and env.has_meta("fog_base"):
+		var fb: Dictionary = env.get_meta("fog_base")
+		fog_on = bool(fb.enabled)
+		fog_density = float(fb.density)
+		fog_color = fb.color
+	elif env != null:
+		fog_density = env.fog_density
+		fog_color = env.fog_light_color
+	if fog_on:
+		var fc := fog_color.srgb_to_linear() * env.fog_light_energy
 		_material.set_shader_parameter("fog_color", Vector3(fc.r, fc.g, fc.b) * fc_k)
-		_material.set_shader_parameter("fog_density", env.fog_density)
+		_material.set_shader_parameter("fog_density", fog_density)
 	else:
 		var fc2 := _color(cfg.fog_color_fallback).srgb_to_linear()
 		_material.set_shader_parameter("fog_color", Vector3(fc2.r, fc2.g, fc2.b) * fc_k)
