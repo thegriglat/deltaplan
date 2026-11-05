@@ -67,3 +67,5 @@
 {"t": "2026-11-05T13:57:39", "by": "coordinator", "task": "CVW-3", "ev": "checked", "note": "8/8 test_game_logic=ok:16/16; cloud_whiteout_view=ok:6/6; sky_step=ok:0.00406; clouds_step=ok:0.002; terrain_step=ok:0.01234; incloud_terrain=ok:1; measured_on_final=ok:exit 0; gd_check=ok:exit 0"}
 {"t": "2026-11-05T14:00:30", "by": "reviewer", "task": "CVW-3", "ev": "reviewed", "note": "К2 v3 сделан: рельеф — туман глубины F(d)=v·smoothstep(0,L,d)^p ≤ v, L из visibility_m с _doc (Кошмидер), p выведен МНК к Беру–Ламберту, a^8 и a·50 убраны; amo…", "verdict": "accept", "issues": {"minor": 4}, "review": "docs/plan/cloud-view/tasks/CVW-3.review.json"}
 {"t": "2026-11-05T14:00:44", "by": "coordinator", "task": "CVW-3", "ev": "accepted", "note": "по ревью (2-е, 4 minor: границы — в К2)"}
+{"t": "2026-11-05T14:00:45", "by": "coordinator", "task": "CVW-3", "ev": "checked", "commits": ["6e0d67bb8"], "note": "1/8 gd_check=ok:exit 0"}
+{"t": "2026-11-05T14:00:45", "by": "coordinator", "task": "CVW-3", "ev": "merged"}
