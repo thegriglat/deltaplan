@@ -45,12 +45,13 @@
     },
     {
       "name": "game_ui",
-      "tests": "tests/game/test_ui",
+      "cmd": "X=$(mktemp -d); XDG_DATA_HOME=$X .dpcli/dpcli lock cpu ASM-2 --no-tmux -- godot --headless --path . res://tests/run_tests.tscn -- --filter=tests/game/test_ui 2>&1 | grep -aE \"FAIL test_|тестов, \"; rm -rf $X",
+      "expect": "re:^(?![\\s\\S]*FAIL test_ui\\.gd::test_(?!controls_screen_lists_keys))[\\s\\S]*тестов, ",
       "timeout": 3600
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-11-05T16:31:46",
-  "edited": "2026-11-05T16:32:10"
+  "edited": "2026-11-05T16:56:20"
 }

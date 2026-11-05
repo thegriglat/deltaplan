@@ -1,0 +1,46 @@
+{
+  "status": "partial",
+  "summary": "В окне «Старт» добавлены отметка «В воздухе» (AirCheck) и ползунок «Высота над стартом» (AirHeight) по ASM-К3; выбор пишется через settings.set_air_start в StartMenu и в «Лететь отсюда» (main.gd), сохраняется через to_dict. Две проверки из трёх зелёные; game_ui падает на test_controls_screen_lists_keys, который падает и без моих правок.",
+  "commits": [
+    "882c6e558 air-start-menu: ASM-2 — пункт «В воздухе» и высота в окне «Старт» (ASM-К3)"
+  ],
+  "checks": [
+    {
+      "name": "start_choice_air",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "trike_anywhere_k1",
+      "value": "9/9",
+      "pass": true
+    },
+    {
+      "name": "game_ui",
+      "value": "14/15, FAIL test_controls_screen_lists_keys (падает и на базе без правок)",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "game_ui: test_controls_screen_lists_keys («клавиши из controls.json») красный до моих правок (проверено git stash на базе); controls_screen вне скоупа ASM-2"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept ASM-2 --dry",
+  "uncertain": [
+    {
+      "where": "scripts/ui/start_choice_dialog.gd:open",
+      "why": "строка ползунка скрывается через air_height.get_parent().get_parent() (структура UiKit.slider_row/row)",
+      "checked": "тест проверяет видимость; при смене UiKit.row сломается"
+    },
+    {
+      "where": "scripts/ui/start_menu.gd:_on_start_chosen",
+      "why": "сигнал chosen по контракту не менялся, поэтому диалог передан через bind и читается d.air_start_agl_m",
+      "checked": "тест test_chosen_air_and_save"
+    }
+  ],
+  "dp_feedback": "accept --dry с выводом через pipe/tail долго ничего не показывает; нужен прогресс. Падение чужого теста на базе хорошо бы отличать автоматически (baseline).",
+  "extra": {},
+  "t": "2026-11-05T16:55:35",
+  "by": "executor"
+}
