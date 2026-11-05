@@ -470,3 +470,18 @@ func _update_herd(h: Dictionary, ctx: EggContext, cam: Vector3) -> void:
 		mm.set_instance_transform(
 			i, Transform3D(b, Vector3(np.x - cen.x, gy - base_y + bob, np.y - cen.y))
 		)
+
+
+## Ближайшее к from животное, мир (PV-К4: реплики пилота); высота — якоря стайки.
+func voice_anchor(from: Vector3) -> Vector3:
+	var best := super.voice_anchor(from)
+	var bd := INF
+	for h in _herds:
+		var y: float = h.anchor.y + 0.5
+		for q: Vector2 in h.pos:
+			var w := Vector3(q.x, y, q.y)
+			var d := w.distance_squared_to(from)
+			if d < bd:
+				bd = d
+				best = w
+	return best

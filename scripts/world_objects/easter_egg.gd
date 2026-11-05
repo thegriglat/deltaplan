@@ -28,3 +28,9 @@ func begin(_ctx: EggContext, _cfg: Dictionary, _rng: RandomNumberGenerator, _t0:
 ## Поставить себя в момент ctx.t; false — кончилась (планировщик уберёт).
 func update(_ctx: EggContext) -> bool:
 	return true
+
+
+## Видимая точка пасхалки, ближайшая к from (мир): для реплик пилота (PV-К4). Только чтение.
+## По умолчанию — начало узла; пасхалки, у которых начало не на объекте, переопределяют.
+func voice_anchor(_from: Vector3) -> Vector3:
+	return global_position if is_inside_tree() else position
