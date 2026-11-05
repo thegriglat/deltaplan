@@ -4,7 +4,7 @@ status: active
 module: pilot-voice
 area: game
 updated: 2026-11-05
-summary: "Реплики пилота: ситуации и тексты, вид и пасхалки (PV-К1), configs/pilot_voice.json (PV-К2), файлы голосов (PV-К3), логика и подключение (PV-К4)."
+summary: "Реплики пилота: ситуации, вид, пасхалки (PV-К1), configs/pilot_voice.json (PV-К2), файлы голосов (PV-К3), логика и подключение (PV-К4)."
 related: ["docs/plan/pilot-voice.md", "docs/guide/instruments.md", "docs/guide/game/menus-settings.md"]
 contracts: [{"id": "PV-К1", "version": 2}, {"id": "PV-К2", "version": 2}, {"id": "PV-К3", "version": 1}, {"id": "PV-К4", "version": 2}]
 ---
