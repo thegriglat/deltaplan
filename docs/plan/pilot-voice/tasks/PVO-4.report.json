@@ -1,0 +1,43 @@
+{
+  "status": "done",
+  "summary": "Написан docs/guide/pilot-voice.md (принцип, ситуации, очередь, пасхалки, где молчит, файлы и генерация, шина, настройка, тесты, границы); строки в menus-settings, instruments, CHANGELOG «В работе»; INDEX и реестры обновлены docs index.",
+  "commits": [
+    "4b29cb742 pilot-voice PVO-4: guide голоса пилота, настройка, шина Voice, CHANGELOG"
+  ],
+  "checks": [
+    {
+      "name": "guide",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "docs_check",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "changelog",
+      "value": "1",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept PVO-4",
+  "uncertain": [
+    {
+      "where": "docs/guide/pilot-voice.md (Где молчит)",
+      "why": "пауза игры указана по контракту PV-К1, в game.gd set_suppressed её явно не вижу",
+      "checked": "сверял с PV-К1 и game.gd:_voice_update"
+    },
+    {
+      "where": "docs/guide/pilot-voice.md (Файлы голосов)",
+      "why": "assets/sounds/voice в ветке ещё нет (PVO-3), описано по PV-К3",
+      "checked": "ls assets/sounds/voice"
+    }
+  ],
+  "dp_feedback": "docs check ругается на summary >140 только при проверке, docs init не подсказывает лимит.",
+  "t": "2026-11-05T11:23:54",
+  "by": "executor"
+}
