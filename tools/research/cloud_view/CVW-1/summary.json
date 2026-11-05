@@ -1,0 +1,1699 @@
+{
+ "n_frames": 112,
+ "series": {
+  "main_h13_p3": [
+   {
+    "agl": 300.0,
+    "msl": 1168.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.235659,
+    "luma_std": 0.118096,
+    "sky_rgb": [
+     0.140095,
+     0.28835,
+     0.540003
+    ]
+   },
+   {
+    "agl": 555.0,
+    "msl": 1423.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.228148,
+    "luma_std": 0.118299,
+    "sky_rgb": [
+     0.1214,
+     0.272819,
+     0.534551
+    ]
+   },
+   {
+    "agl": 905.0,
+    "msl": 1773.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.226614,
+    "luma_std": 0.118027,
+    "sky_rgb": [
+     0.103366,
+     0.256778,
+     0.528823
+    ]
+   },
+   {
+    "agl": 1005.0,
+    "msl": 1873.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.227813,
+    "luma_std": 0.117051,
+    "sky_rgb": [
+     0.09935,
+     0.253109,
+     0.527693
+    ]
+   },
+   {
+    "agl": 1105.0,
+    "msl": 1973.375,
+    "density": 0.032091,
+    "whiteout": 0.048137,
+    "fog_density": 0.002888,
+    "fog_sky_affect": 0.143323,
+    "luma": 0.31038,
+    "luma_std": 0.05622,
+    "sky_rgb": [
+     0.131697,
+     0.276866,
+     0.533046
+    ]
+   },
+   {
+    "agl": 1510.0,
+    "msl": 2378.375,
+    "density": 0.096851,
+    "whiteout": 0.145276,
+    "fog_density": 0.008717,
+    "fog_sky_affect": 0.230748,
+    "luma": 0.323277,
+    "luma_std": 0.056081,
+    "sky_rgb": [
+     0.154568,
+     0.292822,
+     0.536271
+    ]
+   },
+   {
+    "agl": 1964.0,
+    "msl": 2832.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.250141,
+    "luma_std": 0.127236,
+    "sky_rgb": [
+     0.093453,
+     0.24774,
+     0.526409
+    ]
+   },
+   {
+    "agl": 2418.0,
+    "msl": 3286.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.265181,
+    "luma_std": 0.127325,
+    "sky_rgb": [
+     0.092846,
+     0.247341,
+     0.526331
+    ]
+   },
+   {
+    "agl": 2822.0,
+    "msl": 3690.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.276756,
+    "luma_std": 0.126326,
+    "sky_rgb": [
+     0.092717,
+     0.247262,
+     0.526325
+    ]
+   },
+   {
+    "agl": 2922.0,
+    "msl": 3790.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.279667,
+    "luma_std": 0.125494,
+    "sky_rgb": [
+     0.092717,
+     0.247261,
+     0.526325
+    ]
+   },
+   {
+    "agl": 3000.0,
+    "msl": 3868.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.281646,
+    "luma_std": 0.124643,
+    "sky_rgb": [
+     0.092716,
+     0.247261,
+     0.526325
+    ]
+   },
+   {
+    "agl": 3172.0,
+    "msl": 4040.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.286088,
+    "luma_std": 0.123943,
+    "sky_rgb": [
+     0.092715,
+     0.247261,
+     0.526325
+    ]
+   },
+   {
+    "agl": 3500.0,
+    "msl": 4368.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.292791,
+    "luma_std": 0.12173,
+    "sky_rgb": [
+     0.092715,
+     0.24726,
+     0.526325
+    ]
+   },
+   {
+    "agl": 3672.0,
+    "msl": 4540.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.295533,
+    "luma_std": 0.119947,
+    "sky_rgb": [
+     0.092715,
+     0.247261,
+     0.526325
+    ]
+   },
+   {
+    "agl": 4000.0,
+    "msl": 4868.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.303011,
+    "luma_std": 0.116685,
+    "sky_rgb": [
+     0.092714,
+     0.24726,
+     0.526325
+    ]
+   },
+   {
+    "agl": 4372.0,
+    "msl": 5240.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.311516,
+    "luma_std": 0.113167,
+    "sky_rgb": [
+     0.092714,
+     0.24726,
+     0.526325
+    ]
+   }
+  ],
+  "main_h13_p30": [
+   {
+    "agl": 300.0,
+    "msl": 1168.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.191317,
+    "luma_std": 0.104372,
+    "sky_rgb": [
+     0.190884,
+     0.271103,
+     0.377682
+    ]
+   },
+   {
+    "agl": 555.0,
+    "msl": 1423.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.190414,
+    "luma_std": 0.11635,
+    "sky_rgb": [
+     0.240203,
+     0.328404,
+     0.447538
+    ]
+   },
+   {
+    "agl": 905.0,
+    "msl": 1773.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.190593,
+    "luma_std": 0.127374,
+    "sky_rgb": [
+     0.285122,
+     0.38084,
+     0.507648
+    ]
+   },
+   {
+    "agl": 1005.0,
+    "msl": 1873.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.191498,
+    "luma_std": 0.128943,
+    "sky_rgb": [
+     0.290549,
+     0.390038,
+     0.521019
+    ]
+   },
+   {
+    "agl": 1105.0,
+    "msl": 1973.375,
+    "density": 0.032091,
+    "whiteout": 0.048137,
+    "fog_density": 0.002888,
+    "fog_sky_affect": 0.143323,
+    "luma": 0.311647,
+    "luma_std": 0.060706,
+    "sky_rgb": [
+     0.296134,
+     0.420669,
+     0.582887
+    ]
+   },
+   {
+    "agl": 1510.0,
+    "msl": 2378.375,
+    "density": 0.096851,
+    "whiteout": 0.145276,
+    "fog_density": 0.008717,
+    "fog_sky_affect": 0.230748,
+    "luma": 0.324752,
+    "luma_std": 0.062287,
+    "sky_rgb": [
+     0.313898,
+     0.436849,
+     0.593143
+    ]
+   },
+   {
+    "agl": 1964.0,
+    "msl": 2832.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.209815,
+    "luma_std": 0.154039,
+    "sky_rgb": [
+     0.354417,
+     0.455991,
+     0.582988
+    ]
+   },
+   {
+    "agl": 2418.0,
+    "msl": 3286.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.230929,
+    "luma_std": 0.159716,
+    "sky_rgb": [
+     0.3489,
+     0.457262,
+     0.590006
+    ]
+   },
+   {
+    "agl": 2822.0,
+    "msl": 3690.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.241908,
+    "luma_std": 0.157494,
+    "sky_rgb": [
+     0.342127,
+     0.45528,
+     0.59212
+    ]
+   },
+   {
+    "agl": 2922.0,
+    "msl": 3790.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.244469,
+    "luma_std": 0.157158,
+    "sky_rgb": [
+     0.341512,
+     0.455411,
+     0.592812
+    ]
+   },
+   {
+    "agl": 3000.0,
+    "msl": 3868.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.246713,
+    "luma_std": 0.156796,
+    "sky_rgb": [
+     0.341866,
+     0.456097,
+     0.593602
+    ]
+   },
+   {
+    "agl": 3172.0,
+    "msl": 4040.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.25138,
+    "luma_std": 0.156256,
+    "sky_rgb": [
+     0.342714,
+     0.457671,
+     0.595503
+    ]
+   },
+   {
+    "agl": 3500.0,
+    "msl": 4368.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.259714,
+    "luma_std": 0.154216,
+    "sky_rgb": [
+     0.345489,
+     0.461169,
+     0.598916
+    ]
+   },
+   {
+    "agl": 3672.0,
+    "msl": 4540.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.263771,
+    "luma_std": 0.152989,
+    "sky_rgb": [
+     0.347006,
+     0.462776,
+     0.60037
+    ]
+   },
+   {
+    "agl": 4000.0,
+    "msl": 4868.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.271496,
+    "luma_std": 0.150317,
+    "sky_rgb": [
+     0.350123,
+     0.465764,
+     0.602617
+    ]
+   },
+   {
+    "agl": 4372.0,
+    "msl": 5240.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.280484,
+    "luma_std": 0.14761,
+    "sky_rgb": [
+     0.353374,
+     0.468736,
+     0.604566
+    ]
+   }
+  ],
+  "main_h18_p3": [
+   {
+    "agl": 300.0,
+    "msl": 1168.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.223374,
+    "luma_std": 0.152244,
+    "sky_rgb": [
+     0.182027,
+     0.312454,
+     0.537608
+    ]
+   },
+   {
+    "agl": 555.0,
+    "msl": 1423.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.227385,
+    "luma_std": 0.151819,
+    "sky_rgb": [
+     0.151014,
+     0.290469,
+     0.534481
+    ]
+   },
+   {
+    "agl": 905.0,
+    "msl": 1773.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.236325,
+    "luma_std": 0.145879,
+    "sky_rgb": [
+     0.12427,
+     0.268508,
+     0.527838
+    ]
+   },
+   {
+    "agl": 1005.0,
+    "msl": 1873.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.235965,
+    "luma_std": 0.141744,
+    "sky_rgb": [
+     0.119526,
+     0.264379,
+     0.526859
+    ]
+   },
+   {
+    "agl": 1105.0,
+    "msl": 1973.375,
+    "density": 0.032091,
+    "whiteout": 0.048137,
+    "fog_density": 0.002888,
+    "fog_sky_affect": 0.143323,
+    "luma": 0.34394,
+    "luma_std": 0.068172,
+    "sky_rgb": [
+     0.20077,
+     0.321792,
+     0.543503
+    ]
+   },
+   {
+    "agl": 1510.0,
+    "msl": 2378.375,
+    "density": 0.096851,
+    "whiteout": 0.145276,
+    "fog_density": 0.008717,
+    "fog_sky_affect": 0.230748,
+    "luma": 0.360771,
+    "luma_std": 0.065801,
+    "sky_rgb": [
+     0.247272,
+     0.355028,
+     0.554586
+    ]
+   },
+   {
+    "agl": 1964.0,
+    "msl": 2832.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.259801,
+    "luma_std": 0.145775,
+    "sky_rgb": [
+     0.112101,
+     0.257859,
+     0.525451
+    ]
+   },
+   {
+    "agl": 2418.0,
+    "msl": 3286.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.276272,
+    "luma_std": 0.14608,
+    "sky_rgb": [
+     0.111779,
+     0.257635,
+     0.525421
+    ]
+   },
+   {
+    "agl": 2822.0,
+    "msl": 3690.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.289173,
+    "luma_std": 0.142723,
+    "sky_rgb": [
+     0.110774,
+     0.256952,
+     0.525259
+    ]
+   },
+   {
+    "agl": 2922.0,
+    "msl": 3790.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.291603,
+    "luma_std": 0.141307,
+    "sky_rgb": [
+     0.110287,
+     0.256609,
+     0.525161
+    ]
+   },
+   {
+    "agl": 3000.0,
+    "msl": 3868.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.293207,
+    "luma_std": 0.140234,
+    "sky_rgb": [
+     0.109878,
+     0.256329,
+     0.525082
+    ]
+   },
+   {
+    "agl": 3172.0,
+    "msl": 4040.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.296753,
+    "luma_std": 0.137779,
+    "sky_rgb": [
+     0.109058,
+     0.255752,
+     0.524893
+    ]
+   },
+   {
+    "agl": 3500.0,
+    "msl": 4368.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.303683,
+    "luma_std": 0.131917,
+    "sky_rgb": [
+     0.108173,
+     0.255147,
+     0.524741
+    ]
+   },
+   {
+    "agl": 3672.0,
+    "msl": 4540.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.307564,
+    "luma_std": 0.129633,
+    "sky_rgb": [
+     0.108167,
+     0.255148,
+     0.524743
+    ]
+   },
+   {
+    "agl": 4000.0,
+    "msl": 4868.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.311923,
+    "luma_std": 0.127213,
+    "sky_rgb": [
+     0.108161,
+     0.25515,
+     0.524754
+    ]
+   },
+   {
+    "agl": 4372.0,
+    "msl": 5240.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.315044,
+    "luma_std": 0.124036,
+    "sky_rgb": [
+     0.10818,
+     0.25517,
+     0.524774
+    ]
+   }
+  ],
+  "nowo_h13_p3": [
+   {
+    "agl": 300.0,
+    "msl": 1168.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.238173,
+    "luma_std": 0.118585,
+    "sky_rgb": [
+     0.142266,
+     0.291435,
+     0.543971
+    ]
+   },
+   {
+    "agl": 555.0,
+    "msl": 1423.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.228606,
+    "luma_std": 0.118432,
+    "sky_rgb": [
+     0.121764,
+     0.273357,
+     0.535102
+    ]
+   },
+   {
+    "agl": 905.0,
+    "msl": 1773.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.226667,
+    "luma_std": 0.117962,
+    "sky_rgb": [
+     0.103424,
+     0.256872,
+     0.528969
+    ]
+   },
+   {
+    "agl": 1005.0,
+    "msl": 1873.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.227866,
+    "luma_std": 0.117105,
+    "sky_rgb": [
+     0.099365,
+     0.253126,
+     0.527719
+    ]
+   },
+   {
+    "agl": 1105.0,
+    "msl": 1973.375,
+    "density": 0.032091,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.22926,
+    "luma_std": 0.117161,
+    "sky_rgb": [
+     0.096509,
+     0.250495,
+     0.527021
+    ]
+   },
+   {
+    "agl": 1510.0,
+    "msl": 2378.375,
+    "density": 0.096851,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.236441,
+    "luma_std": 0.120332,
+    "sky_rgb": [
+     0.093791,
+     0.24798,
+     0.526455
+    ]
+   },
+   {
+    "agl": 1964.0,
+    "msl": 2832.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.250105,
+    "luma_std": 0.127162,
+    "sky_rgb": [
+     0.093467,
+     0.247772,
+     0.526438
+    ]
+   },
+   {
+    "agl": 2418.0,
+    "msl": 3286.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.265213,
+    "luma_std": 0.127337,
+    "sky_rgb": [
+     0.092861,
+     0.247376,
+     0.52636
+    ]
+   },
+   {
+    "agl": 2822.0,
+    "msl": 3690.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.276774,
+    "luma_std": 0.126325,
+    "sky_rgb": [
+     0.092731,
+     0.247296,
+     0.526354
+    ]
+   },
+   {
+    "agl": 2922.0,
+    "msl": 3790.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.279638,
+    "luma_std": 0.125434,
+    "sky_rgb": [
+     0.092731,
+     0.247295,
+     0.526354
+    ]
+   },
+   {
+    "agl": 3000.0,
+    "msl": 3868.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.281724,
+    "luma_std": 0.124742,
+    "sky_rgb": [
+     0.09273,
+     0.247295,
+     0.526354
+    ]
+   },
+   {
+    "agl": 3172.0,
+    "msl": 4040.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.28612,
+    "luma_std": 0.123964,
+    "sky_rgb": [
+     0.092729,
+     0.247294,
+     0.526354
+    ]
+   },
+   {
+    "agl": 3500.0,
+    "msl": 4368.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.292832,
+    "luma_std": 0.121755,
+    "sky_rgb": [
+     0.092728,
+     0.247293,
+     0.526354
+    ]
+   },
+   {
+    "agl": 3672.0,
+    "msl": 4540.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.295615,
+    "luma_std": 0.119948,
+    "sky_rgb": [
+     0.092728,
+     0.247293,
+     0.526354
+    ]
+   },
+   {
+    "agl": 4000.0,
+    "msl": 4868.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.30294,
+    "luma_std": 0.116631,
+    "sky_rgb": [
+     0.092728,
+     0.247293,
+     0.526354
+    ]
+   },
+   {
+    "agl": 4372.0,
+    "msl": 5240.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.311579,
+    "luma_std": 0.113244,
+    "sky_rgb": [
+     0.092728,
+     0.247293,
+     0.526354
+    ]
+   }
+  ],
+  "nohaze_h13_p3": [
+   {
+    "agl": 300.0,
+    "msl": 1168.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.205853,
+    "luma_std": 0.118179,
+    "sky_rgb": [
+     0.098997,
+     0.251483,
+     0.527328
+    ]
+   },
+   {
+    "agl": 555.0,
+    "msl": 1423.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.193195,
+    "luma_std": 0.121432,
+    "sky_rgb": [
+     0.094637,
+     0.248538,
+     0.526577
+    ]
+   },
+   {
+    "agl": 905.0,
+    "msl": 1773.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.186371,
+    "luma_std": 0.126415,
+    "sky_rgb": [
+     0.093884,
+     0.248018,
+     0.526436
+    ]
+   },
+   {
+    "agl": 1005.0,
+    "msl": 1873.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.186775,
+    "luma_std": 0.127317,
+    "sky_rgb": [
+     0.09388,
+     0.248017,
+     0.526444
+    ]
+   },
+   {
+    "agl": 1105.0,
+    "msl": 1973.375,
+    "density": 0.032091,
+    "whiteout": 0.048137,
+    "fog_density": 0.002888,
+    "fog_sky_affect": 0.143323,
+    "luma": 0.302349,
+    "luma_std": 0.047571,
+    "sky_rgb": [
+     0.129658,
+     0.274922,
+     0.532567
+    ]
+   },
+   {
+    "agl": 1510.0,
+    "msl": 2378.375,
+    "density": 0.096851,
+    "whiteout": 0.145276,
+    "fog_density": 0.008717,
+    "fog_sky_affect": 0.230748,
+    "luma": 0.31892,
+    "luma_std": 0.052867,
+    "sky_rgb": [
+     0.154568,
+     0.292822,
+     0.536271
+    ]
+   },
+   {
+    "agl": 1964.0,
+    "msl": 2832.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.22424,
+    "luma_std": 0.141823,
+    "sky_rgb": [
+     0.093453,
+     0.24774,
+     0.526409
+    ]
+   },
+   {
+    "agl": 2418.0,
+    "msl": 3286.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.243242,
+    "luma_std": 0.139569,
+    "sky_rgb": [
+     0.092846,
+     0.247341,
+     0.526331
+    ]
+   },
+   {
+    "agl": 2822.0,
+    "msl": 3690.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.25736,
+    "luma_std": 0.137069,
+    "sky_rgb": [
+     0.092717,
+     0.247262,
+     0.526325
+    ]
+   },
+   {
+    "agl": 2922.0,
+    "msl": 3790.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.260882,
+    "luma_std": 0.135961,
+    "sky_rgb": [
+     0.092717,
+     0.247261,
+     0.526325
+    ]
+   },
+   {
+    "agl": 3000.0,
+    "msl": 3868.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.263289,
+    "luma_std": 0.134863,
+    "sky_rgb": [
+     0.092716,
+     0.247261,
+     0.526325
+    ]
+   },
+   {
+    "agl": 3172.0,
+    "msl": 4040.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.268619,
+    "luma_std": 0.1336,
+    "sky_rgb": [
+     0.092715,
+     0.247261,
+     0.526325
+    ]
+   },
+   {
+    "agl": 3500.0,
+    "msl": 4368.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.276878,
+    "luma_std": 0.130369,
+    "sky_rgb": [
+     0.092715,
+     0.24726,
+     0.526325
+    ]
+   },
+   {
+    "agl": 3672.0,
+    "msl": 4540.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.280334,
+    "luma_std": 0.128149,
+    "sky_rgb": [
+     0.092715,
+     0.247261,
+     0.526325
+    ]
+   },
+   {
+    "agl": 4000.0,
+    "msl": 4868.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.289149,
+    "luma_std": 0.123803,
+    "sky_rgb": [
+     0.092714,
+     0.24726,
+     0.526325
+    ]
+   },
+   {
+    "agl": 4372.0,
+    "msl": 5240.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.29895,
+    "luma_std": 0.119173,
+    "sky_rgb": [
+     0.092714,
+     0.24726,
+     0.526325
+    ]
+   }
+  ],
+  "noclouds_h13_p3": [
+   {
+    "agl": 300.0,
+    "msl": 1168.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.231557,
+    "luma_std": 0.109386,
+    "sky_rgb": [
+     0.135989,
+     0.285572,
+     0.539143
+    ]
+   },
+   {
+    "agl": 555.0,
+    "msl": 1423.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.225508,
+    "luma_std": 0.111928,
+    "sky_rgb": [
+     0.12107,
+     0.272585,
+     0.534458
+    ]
+   },
+   {
+    "agl": 905.0,
+    "msl": 1773.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.225771,
+    "luma_std": 0.115063,
+    "sky_rgb": [
+     0.103364,
+     0.256775,
+     0.528823
+    ]
+   },
+   {
+    "agl": 1005.0,
+    "msl": 1873.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.227202,
+    "luma_std": 0.11456,
+    "sky_rgb": [
+     0.099349,
+     0.253109,
+     0.527693
+    ]
+   },
+   {
+    "agl": 1105.0,
+    "msl": 1973.375,
+    "density": 0.032091,
+    "whiteout": 0.048137,
+    "fog_density": 0.002888,
+    "fog_sky_affect": 0.143323,
+    "luma": 0.312298,
+    "luma_std": 0.06097,
+    "sky_rgb": [
+     0.131697,
+     0.276866,
+     0.533046
+    ]
+   },
+   {
+    "agl": 1510.0,
+    "msl": 2378.375,
+    "density": 0.096851,
+    "whiteout": 0.145276,
+    "fog_density": 0.008717,
+    "fog_sky_affect": 0.230748,
+    "luma": 0.323523,
+    "luma_std": 0.057914,
+    "sky_rgb": [
+     0.154568,
+     0.292822,
+     0.536271
+    ]
+   },
+   {
+    "agl": 1964.0,
+    "msl": 2832.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.237945,
+    "luma_std": 0.114438,
+    "sky_rgb": [
+     0.093453,
+     0.24774,
+     0.526409
+    ]
+   },
+   {
+    "agl": 2418.0,
+    "msl": 3286.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.246412,
+    "luma_std": 0.113087,
+    "sky_rgb": [
+     0.092846,
+     0.247341,
+     0.526331
+    ]
+   },
+   {
+    "agl": 2822.0,
+    "msl": 3690.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.253258,
+    "luma_std": 0.112619,
+    "sky_rgb": [
+     0.092717,
+     0.247262,
+     0.526325
+    ]
+   },
+   {
+    "agl": 2922.0,
+    "msl": 3790.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.255096,
+    "luma_std": 0.112193,
+    "sky_rgb": [
+     0.092717,
+     0.247261,
+     0.526325
+    ]
+   },
+   {
+    "agl": 3000.0,
+    "msl": 3868.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.256534,
+    "luma_std": 0.11183,
+    "sky_rgb": [
+     0.092716,
+     0.247261,
+     0.526325
+    ]
+   },
+   {
+    "agl": 3172.0,
+    "msl": 4040.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.25932,
+    "luma_std": 0.11168,
+    "sky_rgb": [
+     0.092715,
+     0.247261,
+     0.526325
+    ]
+   },
+   {
+    "agl": 3500.0,
+    "msl": 4368.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.264625,
+    "luma_std": 0.110949,
+    "sky_rgb": [
+     0.092715,
+     0.24726,
+     0.526325
+    ]
+   },
+   {
+    "agl": 3672.0,
+    "msl": 4540.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.267527,
+    "luma_std": 0.11044,
+    "sky_rgb": [
+     0.092715,
+     0.247261,
+     0.526325
+    ]
+   },
+   {
+    "agl": 4000.0,
+    "msl": 4868.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.273353,
+    "luma_std": 0.108707,
+    "sky_rgb": [
+     0.092714,
+     0.24726,
+     0.526325
+    ]
+   },
+   {
+    "agl": 4372.0,
+    "msl": 5240.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.280011,
+    "luma_std": 0.106558,
+    "sky_rgb": [
+     0.092714,
+     0.24726,
+     0.526325
+    ]
+   }
+  ],
+  "bare_h13_p3": [
+   {
+    "agl": 300.0,
+    "msl": 1168.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.1989,
+    "luma_std": 0.104848,
+    "sky_rgb": [
+     0.094701,
+     0.24857,
+     0.526552
+    ]
+   },
+   {
+    "agl": 555.0,
+    "msl": 1423.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.189062,
+    "luma_std": 0.112548,
+    "sky_rgb": [
+     0.094328,
+     0.248321,
+     0.526501
+    ]
+   },
+   {
+    "agl": 905.0,
+    "msl": 1773.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.185406,
+    "luma_std": 0.123731,
+    "sky_rgb": [
+     0.093883,
+     0.248017,
+     0.526437
+    ]
+   },
+   {
+    "agl": 1005.0,
+    "msl": 1873.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.186239,
+    "luma_std": 0.125602,
+    "sky_rgb": [
+     0.09388,
+     0.248016,
+     0.526444
+    ]
+   },
+   {
+    "agl": 1105.0,
+    "msl": 1973.375,
+    "density": 0.032091,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.187455,
+    "luma_std": 0.127105,
+    "sky_rgb": [
+     0.093862,
+     0.248008,
+     0.526443
+    ]
+   },
+   {
+    "agl": 1510.0,
+    "msl": 2378.375,
+    "density": 0.096851,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.197172,
+    "luma_std": 0.129173,
+    "sky_rgb": [
+     0.093776,
+     0.247946,
+     0.526425
+    ]
+   },
+   {
+    "agl": 1964.0,
+    "msl": 2832.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.208487,
+    "luma_std": 0.128751,
+    "sky_rgb": [
+     0.093453,
+     0.24774,
+     0.526409
+    ]
+   },
+   {
+    "agl": 2418.0,
+    "msl": 3286.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.221123,
+    "luma_std": 0.126242,
+    "sky_rgb": [
+     0.092846,
+     0.247341,
+     0.526331
+    ]
+   },
+   {
+    "agl": 2822.0,
+    "msl": 3690.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.230897,
+    "luma_std": 0.124701,
+    "sky_rgb": [
+     0.092717,
+     0.247262,
+     0.526325
+    ]
+   },
+   {
+    "agl": 2922.0,
+    "msl": 3790.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.233388,
+    "luma_std": 0.124023,
+    "sky_rgb": [
+     0.092717,
+     0.247261,
+     0.526325
+    ]
+   },
+   {
+    "agl": 3000.0,
+    "msl": 3868.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.235335,
+    "luma_std": 0.12348,
+    "sky_rgb": [
+     0.092716,
+     0.247261,
+     0.526325
+    ]
+   },
+   {
+    "agl": 3172.0,
+    "msl": 4040.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.239121,
+    "luma_std": 0.12285,
+    "sky_rgb": [
+     0.092715,
+     0.247261,
+     0.526325
+    ]
+   },
+   {
+    "agl": 3500.0,
+    "msl": 4368.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.246202,
+    "luma_std": 0.121308,
+    "sky_rgb": [
+     0.092715,
+     0.24726,
+     0.526325
+    ]
+   },
+   {
+    "agl": 3672.0,
+    "msl": 4540.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.249997,
+    "luma_std": 0.120358,
+    "sky_rgb": [
+     0.092715,
+     0.247261,
+     0.526325
+    ]
+   },
+   {
+    "agl": 4000.0,
+    "msl": 4868.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.257386,
+    "luma_std": 0.117833,
+    "sky_rgb": [
+     0.092714,
+     0.24726,
+     0.526325
+    ]
+   },
+   {
+    "agl": 4372.0,
+    "msl": 5240.375,
+    "density": 0.0,
+    "whiteout": 0.0,
+    "fog_density": 0.0,
+    "fog_sky_affect": 0.1,
+    "luma": 0.265617,
+    "luma_std": 0.114795,
+    "sky_rgb": [
+     0.092714,
+     0.24726,
+     0.526325
+    ]
+   }
+  ]
+ }
+}
