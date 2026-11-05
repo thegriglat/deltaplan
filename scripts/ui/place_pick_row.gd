@@ -52,8 +52,15 @@ func build(overlay: Control, path: String = "", scenic: bool = false, scenic_pat
 	pick_label = UiKit.label(info, "", "HintLabel")
 	pick_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	pick_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	exact_label = UiKit.label(info, "", "HintLabel")
-	exact_reset_btn = UiKit.button(info, tr("setup_exact_reset"), _on_exact_reset)
+	# «Старт уточнён…» и «Сбросить» — своей строкой: метка с переносом без EXPAND сжимается до нуля (буквы в столбик).
+	var exact := HBoxContainer.new()
+	exact.add_theme_constant_override("separation", 12)
+	add_child(exact)
+	exact_label = UiKit.label(exact, "", "HintLabel")
+	exact_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	exact_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	exact_reset_btn = UiKit.button(exact, tr("setup_exact_reset"), _on_exact_reset)
+	exact_reset_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_refresh_exact()
 
 
@@ -77,6 +84,7 @@ func _refresh_exact() -> void:
 	if exact_label == null:
 		return  # build() не вызывали
 	var has := settings != null and settings.has_exact_start()
+	exact_label.get_parent().visible = has
 	exact_label.visible = has
 	exact_reset_btn.visible = has
 	if has:
