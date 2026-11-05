@@ -50,7 +50,7 @@ contracts: [{"id": "ASM-К1", "version": 1}, {"id": "ASM-К2", "version": 1}, {"
   - `var air_start_agl_m: float` — итог выбора: `air_height.value` при «Дельтаплан» с отмеченным `air_check`, иначе `-1.0` («Дельталёт», без отметки); ставится до `chosen.emit`;
   - `open(settings, site)`: `air_check` отмечен ⇔ `settings.has_air_start()`; `air_height.value` = `settings.air_start_agl_m` при `has_air_start()`, иначе `agl_default_m`;
   - сигнал `chosen(vehicle: String, tow_kind: String)` — как в TA-К1 (не меняется); при старте в воздухе `chosen("glider", "")`; `tow_ids()` и пункты `tow_opt` — как в TA-К1.
-- Потребители после `chosen`: `settings.vehicle = vehicle`, `settings.tow_kind = tow_kind`, затем `settings.set_air_start(d.air_start_agl_m)` (ASM-К1 сам сбросит буксировку/дельталёт). В сети («Лететь» без окна) — `set_air_start(-1)`.
+- Потребители после `chosen`: `settings.vehicle = vehicle`, `settings.tow_kind = tow_kind`, затем `settings.set_air_start(d.air_start_agl_m)` (ASM-К1 сам сбросит буксировку/дельталёт). Ветку сети в `_on_fly` не трогать (решение 2026-11-05: сетевую игру не трогаем; в сети настройку воздуха игнорирует Game, ASM-К2).
 - Выбор сохраняется в «последний полёт» и избранное через `to_dict` (ASM-К1); окно при следующем открытии показывает прошлый выбор.
 - Переводы — `locale/ui.csv`, обе колонки.
 
