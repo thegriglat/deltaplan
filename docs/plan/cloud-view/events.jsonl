@@ -23,3 +23,5 @@
 {"t": "2026-11-05T11:15:06", "by": "coordinator", "task": "CVW-2", "ev": "note", "note": "Проверка тестами в карточке исправлена: фильтр test_game_logic (--filter — подстрока имени файла, cloud_whiteout давал 0 тестов).", "addendum": true}
 {"t": "2026-11-05T11:18:45", "by": "coordinator", "task": "CVW-1", "ev": "checked", "note": "5/5 csv_header=ok:frame,loc,hour,cam_x,cam_z,ca…; frames=ok:112; readme=ok:exit 0; gd_check=ok:exit 0; test_game_logic=ok:16/16"}
 {"t": "2026-11-05T11:18:59", "by": "coordinator", "task": "CVW-1", "ev": "accepted", "note": "по отчёту: причина — CloudWhiteout от грубой плотности поля (cover×профиль) в просвете, не физична; проверки 5/5"}
+{"t": "2026-11-05T11:19:09", "by": "coordinator", "task": "CVW-1", "ev": "checked", "commits": ["eec339c3c"], "note": "1/5 csv_header=ok:frame,loc,hour,cam_x,cam_z,ca…"}
+{"t": "2026-11-05T11:19:09", "by": "coordinator", "task": "CVW-1", "ev": "merged"}
