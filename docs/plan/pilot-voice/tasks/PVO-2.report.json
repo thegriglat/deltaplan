@@ -1,0 +1,77 @@
+{
+  "status": "done",
+  "summary": "Реплики пилота по контракту v2: configs/pilot_voice.json (30 ситуаций: 17 + 13 egg_*), PilotVoiceLogic (триггеры, паузы, приоритеты, ожидание, антиповтор, chance, раз за полёт), узел PilotVoice на шине Voice (watch_eggs, egg_in_view), voice_anchor у пасхалок, подключение в Game, настройка «Голос пилота» (Мужской/Женский/Выкл), тесты логики/узла/контрактов.",
+  "commits": [
+    "968bfda8d pilot-voice PVO-2: конфиг реплик, логика, узел PilotVoice, шина Voice, подключение в Game, настройка голоса",
+    "0083c3833 pilot-voice PVO-2: контракт v2 — view, реплики на пасхалки, нет реплик в сети, тесты логики и узла"
+  ],
+  "checks": [
+    {
+      "name": "pilot_voice",
+      "value": "PASS (38 тестов, 0 упало)",
+      "pass": true
+    },
+    {
+      "name": "audio",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "settings",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "gd_check",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "easter",
+      "value": "4/6: падают test_physics_bitwise_same, test_menu_no_dice",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "easter: два теста падают из-за goal_estimator.gd:29 (нет ключа sunset_h): в копии нет GDExtension dp_air (libdp_air_tune.so не найден, «Weather: нет расширения DpWeather»); мои правки в easter_eggs — только добавление voice_anchor, физику и картинку не трогают. Нужно перепроверить в копии со сборкой dp_air.",
+    "Игровой прогон Game с настоящими файлами голосов не делался (файлов ещё нет, PVO-3): проверены логика и узел без файлов."
+  ],
+  "questions": [
+    "max_wait_s 3 с против gap_s 2 класса (5 с) и 1 класса (20 с): реплика, ставшая в очередь в паузе дольше 3 с, отбрасывается — фоновые, сработавшие в течение 20 с после чужой реплики, почти всегда теряются (пауза ситуации при этом потрачена). Прочитал контракт буквально; если нужно «ждать gap_s без отброса» — скажите, поправлю."
+  ],
+  "how_to_check": ".dpcli/dpcli accept PVO-2",
+  "uncertain": [
+    {
+      "where": "scripts/audio/pilot_voice_logic.gd (low, view, thermal_lost)",
+      "why": "Контракт не уточняет начальные состояния: low взводится первым набором rearm_agl (не сразу после отрыва со склона), thermal_lost взводится средним v >= v_in_ms за окно in_s и остаётся до срабатывания; view — спокойствие calm_s и тишина calm_s (с конца последней реплики или отрыва) считаются независимо.",
+      "checked": "тесты на порог и не-срабатывание у порога для каждой ситуации"
+    },
+    {
+      "where": "scripts/world_objects/easter_eggs/*.gd (voice_anchor)",
+      "why": "Переопределены geese, balloon (оба id), uaz, people, herds, crop_circles, hay_bales (ближайшая видимая точка); an2, airliner, gloria, group, eagle оставлены по умолчанию (начало узла на объекте; у group — центр моделей). Для hay_bales перебор экземпляров MultiMesh при вызове (≤ 4 Гц).",
+      "checked": "только чтение, easter-тесты физики запускались (падения — окружение, см. not_done); визуально в игре не проверялось"
+    },
+    {
+      "where": "scripts/game/game.gd (_voice_update)",
+      "why": "Подавление: net != null, дельталёт, осмотр, скорость времени sky.clock.speed != 1, буксир (ветка tow). Пауза — через паузу дерева (плеер по умолчанию). Реальный звук в сборке не слушал.",
+      "checked": "gd_check, тесты узла без файлов"
+    },
+    {
+      "where": "scripts/audio/pilot_voice.gd (watch_eggs)",
+      "why": "Закрытие рельефом — 16 точек отрезка выше Terrain.height_at; height_fn подключён из Game (terrain.height_at).",
+      "checked": "юнит-тест: холм закрывает, конус и max_dist_m работают"
+    }
+  ],
+  "dp_feedback": "task show обрезает дополнения на 200 символов — полный текст только через --full; accept --dry идёт ~40 мин из-за очереди на cpu-замок, хотелось бы видеть позицию в очереди.",
+  "extra": {
+    "situations": 30,
+    "tests_pilot_voice": 38
+  },
+  "t": "2026-11-05T07:00:09",
+  "by": "executor"
+}

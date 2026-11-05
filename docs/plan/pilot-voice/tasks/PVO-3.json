@@ -8,12 +8,12 @@
   "contracts": [
     {
       "name": "PV-К1",
-      "version": "2",
+      "version": "3",
       "ref": "docs/contracts/pilot-voice.md"
     },
     {
       "name": "PV-К2",
-      "version": "2",
+      "version": "3",
       "ref": "docs/contracts/pilot-voice.md"
     },
     {
@@ -62,5 +62,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-11-05T06:34:23"
+  "created": "2026-11-05T06:34:23",
+  "edited": "2026-11-05T07:04:52"
 }
