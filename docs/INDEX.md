@@ -235,6 +235,10 @@ generated: true
   - [tools/research/snow_plume/SNW-9/README.md](../tools/research/snow_plume/SNW-9/README.md) — SNW-9: кадры струек v3 (Эверест, Шымбулак; ветер 16 и 2 м/с; вблизи гребня). Струйки редкие и бледные, издалека не видны.
 - **cloud-base** — Основания кучевых по кромке инверсии с разбросом 50–150 м между облаками вместо одной плоскости. [closed 2026-10-24] — [план](plan/cloud-base.md) · [решения](plan/cloud-base/decisions.md) · [сводка](plan/cloud-base/summary.md) · полный журнал: `archive/cloud-base`
 - **cloud-view** — Вид у облаков и над ними: белёсый экран выше некой высоты в ясном воздухе; на границе облака другие облака будто инвертируются по цвету. [active 2026-11-05] — [план](plan/cloud-view.md) · [контракты](contracts/cloud-view.md)
+  - [tools/research/cloud_view/CVW-1/README.md](../tools/research/cloud_view/CVW-1/README.md) — CVW-1: белёсая пелена в слое облаков — CloudWhiteout по грубой плотности поля (cover × профиль) без шума; над слоем пелены нет
+  - [tools/research/cloud_view/CVW-2/README.md](../tools/research/cloud_view/CVW-2/README.md) — CVW-2 — смена цвета облаков и неба на кромке слоя; причина — туман окружения мглы CloudWhiteout и дымка облаков
+  - [tools/research/cloud_view/CVW-1/summary.md](../tools/research/cloud_view/CVW-1/summary.md) — CVW-1: белёсая пелена в слое облаков — CloudWhiteout по грубой плотности поля (cover × профиль) без шума; над слоем пелены нет
+  - [tools/research/cloud_view/CVW-2/summary.md](../tools/research/cloud_view/CVW-2/summary.md) — CVW-2 вывод — мгла CloudWhiteout включает туман окружения: скачок неба и переключение дымки облаков в cloud_layer
 
 ## game
 

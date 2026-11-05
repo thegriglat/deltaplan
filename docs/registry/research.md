@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-11-04"
+updated: "2026-11-05"
 summary: "Исследования: вывод, данные, где применено."
 related: []
 generated: true
@@ -241,6 +241,8 @@ generated: true
 - [tools/research/cliff_look/README.md](../../tools/research/cliff_look/README.md) — Полосы на крутых склонах — уступы ledge в нормали по фазе слоёв 7/25,9 м (без них −62…−88 % полос); рябь < 2 м — sl_rock (−19…−34 %), нормаль ±1 узел 25 м, Rock030 ×2 растяжения; блоки CL-2 отменены … (data: diag_before.json, diag_before.md, diag_cl2.json, diag_cl2.md (CL-2), diag_after…; applied_in: ['scripts/terrain/terrain_main.gdshaderinc', 'configs/world.json'])
 - [tools/research/cloud_field/README.md](../../tools/research/cloud_field/README.md) — Карты — build/screenshots/cloud-field/CLF-1/, CLF-9/, CLF-10/; числа — out/summary.json, out/zi_tops.json, out/subsidence.json; вывод — docs/research/cloud_field.md (data: tools/research/cloud_field/; applied_in: scripts/atmosphere/cloud_field.gd)
 - [tools/research/cloud_look/shape/README.md](../../tools/research/cloud_look/shape/README.md) — Ступени и зерно на боках облаков — шаг луча (≈ 94 м) длиннее пробега в облаке (≈ 11 м): поверхность вставала на узел решётки шагов; деление отрезка при входе убирает их (шум между кадрами 0,30 / 0,30… (data: tools/research/cloud_look/shape/result.json; applied_in: scripts/atmosphere/cloud_common.gdshaderinc)
+- [tools/research/cloud_view/CVW-1/README.md](../../tools/research/cloud_view/CVW-1/README.md) — В ясном (cover 0,097) столбце между основанием и верхом облаков game.gd подаёт в CloudWhiteout density_at = cover×6ζ(1−ζ) ≤ 0,1; amount до 0,145, fog_density 0 → 0,0087 1/м (видимость ≈ 450 м), яркос… (data: tools/research/cloud_view/CVW-1/)
+- [tools/research/cloud_view/CVW-2/README.md](../../tools/research/cloud_view/CVW-2/README.md) — CVW-2 — смена цвета облаков и неба на кромке слоя; причина — туман окружения мглы CloudWhiteout и дымка облаков
 - [tools/research/crash-reports/cr-1/README.md](../../tools/research/crash-reports/cr-1/README.md) — см. docs/research/crash-reports/cr-1.md (data: summary.json; applied_in: не применено)
 - [tools/research/crash-reports/cr-11/README.md](../../tools/research/crash-reports/cr-11/README.md) — см. docs/research/crash-reports/cr-11.md (data: tools/research/crash-reports/cr-11/results.json; applied_in: не применено)
 - [tools/research/crash-reports/cr-3/README.md](../../tools/research/crash-reports/cr-3/README.md) — см. docs/research/crash-reports/cr-3.md
@@ -326,6 +328,8 @@ generated: true
 - [tools/research/air_synth/hg_sites/summary.md](../../tools/research/air_synth/hg_sites/summary.md) — Каталог мест дельтаплана из OSM — сводка — Выгрузка Overpass: 2026-10-04. © OpenStreetMap contributors, ODbL. (data: tools/research/air_synth/hg_sites/)
 - [tools/research/air_weak_wind/AWW-1/summary.md](../../tools/research/air_weak_wind/AWW-1/summary.md) — Вывод AWW-1: диагноз 1 верен (правка θ′·h TW-3: «Термики» 0,44 → 1,27 м/с), диагноз 2 не подтверждён, порывы в полосе теории.
 - [tools/research/air_weak_wind/AWW-1/tw/summary.md](../../tools/research/air_weak_wind/AWW-1/tw/summary.md) — Баланс θ′ фаз переносит охлаждение моря на слой суши без сохранения тепла; перенос θ′·h — 0,44 → 1,27 м/с. (data: tools/research/takeoff_wind/TW-2/)
+- [tools/research/cloud_view/CVW-1/summary.md](../../tools/research/cloud_view/CVW-1/summary.md) — В ясном (cover 0,097) столбце между основанием и верхом облаков game.gd подаёт в CloudWhiteout density_at = cover×6ζ(1−ζ) ≤ 0,1; amount до 0,145, fog_density 0 → 0,0087 1/м (видимость ≈ 450 м), яркос… (data: tools/research/cloud_view/CVW-1/)
+- [tools/research/cloud_view/CVW-2/summary.md](../../tools/research/cloud_view/CVW-2/summary.md) — CVW-2 вывод — мгла CloudWhiteout включает туман окружения: скачок неба и переключение дымки облаков в cloud_layer
 - [tools/research/data/perdigao/menke2019/summary.md](../../tools/research/data/perdigao/menke2019/summary.md) — Menke et al. 2019 (ACP 19, 2713) — данные для калибровки зоны рециркуляции — Источник: doi:10.5194/acp-19-2713-2019, CC BY 4.0. (data: tools/research/data/perdigao/menke2019/)
 - [tools/research/haze_humidity/era5_source/summary.md](../../tools/research/haze_humidity/era5_source/summary.md) — ARCO-ERA5 1° — источник для остатка (data: tools/research/haze_humidity/era5_source/result.json; applied_in: [])
 - [tools/research/heat_ca/exp1_3_6_kernels/summary.md](../../tools/research/heat_ca/exp1_3_6_kernels/summary.md) — Опыты 1, 3, 6: линейность, ядра, «ядро струи» — Команды для каждой картинки — README.md. Выходы — в out/, сырые поля — в out/cache/*.npz. (data: tools/research/heat_ca/exp1_3_6_kernels/)
