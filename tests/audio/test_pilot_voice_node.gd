@@ -42,7 +42,10 @@ func test_language_by_locale() -> void:
 
 
 func test_missing_files_are_silent() -> void:
-	var v := _node()
+	var cfg: Dictionary = Config.get_config("pilot_voice").duplicate(true)
+	cfg["dir"] = "res://tests/_no_such_voice_dir"  # подставной каталог: файлов нет, как бы ни лежали assets
+	var v := PilotVoice.new()
+	v.setup(cfg, 3)
 	var t := Telemetry.new()
 	t.phase = "flying"
 	t.altitude_agl = 100.0
