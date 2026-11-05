@@ -1,0 +1,11 @@
+{
+  "module": "scenic-places",
+  "plan": "docs/plan/scenic-places.md",
+  "contracts": "docs/contracts/scenic-places.md",
+  "branch": "feature/scenic-places",
+  "copy": "~/worktrees/deltaplan/scenic-places",
+  "created": "2026-11-05T05:52:25",
+  "code": "SCP",
+  "area": "game",
+  "base": "main"
+}
