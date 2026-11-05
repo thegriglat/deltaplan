@@ -6,7 +6,7 @@ area: "game"
 updated: "2026-11-05"
 summary: "Красивые места: формат списка и каталога мест (SCP-К1), проверка места по рельефу (SCP-К2), окно и выбор в «Полёт…» (SCP-К3)."
 related: ["docs/plan/scenic-places.md", "docs/contracts/popular-places.md"]
-contracts: [{"id": "SCP-К1", "version": 1}, {"id": "SCP-К2", "version": 1}, {"id": "SCP-К3", "version": 1}]
+contracts: [{"id": "SCP-К1", "version": 1}, {"id": "SCP-К2", "version": 1}, {"id": "SCP-К3", "version": 2}]
 ---
 # Контракты модуля scenic-places
 
@@ -56,7 +56,7 @@ contracts: [{"id": "SCP-К1", "version": 1}, {"id": "SCP-К2", "version": 1}, {"
 - `--table` — таблица Markdown для пользователя: страна, название RU, тип, чем красиво (RU), координаты старта,
   курс, высота, ссылка на карту (`https://www.openstreetmap.org/?mlat=<lat>&mlon=<lon>#map=12/<lat>/<lon>`).
 
-## SCP-К3. Окно «Красивые места» и выбор (v1)
+## SCP-К3. Окно «Красивые места» и выбор (v2)
 Владелец: SCP-4. Потребители: `scripts/ui/place_pick_row.gd`, тесты `tests/ui/test_scenic_places.gd`,
 контрактный тест `tests/contracts/test_scenic_places_contracts.gd` (фильтр `scenic_places`).
 - `ScenicPlaces` (`scripts/ui/scenic_places.gd`, `class_name ScenicPlaces`, `RefCounted`, только static):
@@ -68,7 +68,8 @@ contracts: [{"id": "SCP-К1", "version": 1}, {"id": "SCP-К2", "version": 1}, {"
   (словарь места SCP-К1, окно закрывается) и `closed`. Уровни: страны («<страна> — <n>») → места страны (название,
   тип, чем красиво); «Назад», «Отмена»; списки в `ScrollContainer`; окно целиком в экране при 1280×720,
   1920×1080, 2560×1440, 640×800 (как PP-К2).
-- `PlacePickRow`: кнопка `tr("setup_scenic_places")` сразу после «Популярные места»; каталог пуст или файла нет —
+- `PlacePickRow`: кнопка `tr("setup_scenic_places")` сразу после «Популярные места» — только в «Настройках полёта»
+  (одиночная игра, решение 2026-11-05); на экране сети (`net_screen.gd`) кнопки нет; каталог пуст или файла нет —
   кнопка скрыта. Выбор места: `settings.pick_lat/pick_lon = lat/lon`, `settings.set_exact_start(lat, lon, heading_deg)`,
   `picked_place_name = name` на языке интерфейса (идёт в «Недавние места»); выбор другим способом (карта,
   «Популярные», «Недавние») — снимает выбор красивого места.
@@ -78,3 +79,4 @@ contracts: [{"id": "SCP-К1", "version": 1}, {"id": "SCP-К2", "version": 1}, {"
 
 ## История
 - v1 (2026-11-05) — первая версия.
+- v2 (2026-11-05) — SCP-К3: кнопка только в одиночной игре, на экране сети её нет.
