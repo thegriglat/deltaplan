@@ -107,7 +107,7 @@ static func normalize_air_start(v: float) -> float:
 		return -1.0
 	return clampf(
 		v,
-		float(Config.value("game", "air_start.agl_min_m", 50.0)),
+		float(Config.value("game", "air_start.agl_min_m", 60.0)),
 		float(Config.value("game", "air_start.agl_max_m", 1000.0))
 	)
 

@@ -125,3 +125,46 @@ func test_air_start_flag_wins_and_training() -> void:
 	await game.start(_air_settings(0.0))
 	check(game.air_start_m < 0.0, "осмотр карты — с земли")
 	await _finish(main)
+
+
+## Точный старт над водой/обрывом (ASM-К2): в воздухе принимается без вырубки поляны, с земли — отклоняется.
+func test_exact_start_water_steep_in_air() -> void:
+	var r := await _boot()
+	var main: Node = r[0]
+	var game: Game = r[1]
+	game.process_mode = Node.PROCESS_MODE_DISABLED
+	var terrain: Terrain = game.terrain
+	var b := terrain.detail_bounds().grow(-250.0)
+	var found := {}
+	var x := b.position.x
+	while x < b.end.x and found.size() < 2:
+		var z := b.position.y
+		while z < b.end.y and found.size() < 2:
+			var chk := StartSpot.check(terrain, x, z)
+			if chk.reason in ["water", "steep"] and not found.has(chk.reason):
+				found[chk.reason] = Vector2(x, z)
+			z += 40.0
+		x += 40.0
+	check(not found.is_empty(), "на карте есть вода или обрыв")
+	for reason: String in found:
+		var q: Vector2 = found[reason]
+		var ll := terrain.local_to_latlon(q.x, q.y)
+		var s := FlightSettings.defaults()
+		s.set_exact_start(ll.x, ll.y, 90.0)
+		s.set_air_start(AGL)
+		var n0: int = terrain._start_clearings.size()
+		# Выбор старта без запуска полёта (game.start пересчитал бы поле ветра минутами)
+		game.settings = s
+		game._choose_air_start()
+		game._choose_start()
+		var st: Vector3 = game._start_pos
+		check(game.air_start_m == 0.0 and game._exact_start, "%s: старт в воздухе принят" % reason)
+		check(Vector2(st.x - q.x, st.z - q.y).length() < 1.0, "%s: точка та, что задана" % reason)
+		check(terrain._start_clearings.size() == n0, "%s: поляна не вырублена" % reason)
+		var g := FlightSettings.defaults()
+		g.set_exact_start(ll.x, ll.y, 90.0)
+		game.settings = g
+		game._choose_air_start()
+		game._choose_start()
+		check(not game._exact_start, "%s: с земли точка отклонена" % reason)
+	await _finish(main)
