@@ -1,0 +1,61 @@
+{
+  "id": "ASM-3",
+  "module": "air-start-menu",
+  "type": "dp-engineer",
+  "title": "Цели, рекорды и достижения при старте в воздухе",
+  "goal": "При старте в воздухе цели считаются от точки постановки, рекорды и достижения не засчитываются, в итоге полёта — пометка (ASM-К4).",
+  "plan_ref": "4. Задачи",
+  "contracts": [
+    {
+      "name": "air-start-menu",
+      "version": "3",
+      "ref": "docs/contracts/air-start-menu.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/air-start-menu-ASM-3",
+  "branch": "air-start-menu/ASM-3",
+  "base": "feature/air-start-menu",
+  "scope": [
+    "scripts/game/game.gd",
+    "scripts/ui/result_screen.gd",
+    "locale/ui.csv",
+    "tests/game/test_air_start_goals.gd",
+    "tests/game/test_air_start_goals.gd.uid"
+  ],
+  "dont_touch": [
+    "scripts/ui/start_choice_dialog.gd",
+    "scripts/ui/start_menu.gd",
+    "scripts/goals/",
+    "scripts/tasks/flight_records.gd",
+    "scripts/steam/",
+    "scripts/game/flight_settings.gd",
+    "docs/",
+    "CHANGELOG.md"
+  ],
+  "accept": [
+    {
+      "name": "air_start_goals",
+      "tests": "air_start_goals",
+      "timeout": 3600
+    },
+    {
+      "name": "goals_game",
+      "tests": "test_goals_game",
+      "timeout": 3600
+    },
+    {
+      "name": "achievement_feed",
+      "tests": "test_achievement_feed",
+      "timeout": 2400
+    },
+    {
+      "name": "air_start_menu",
+      "tests": "air_start_menu",
+      "timeout": 3600
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-05T16:32:28",
+  "edited": "2026-11-05T16:32:32"
+}

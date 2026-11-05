@@ -1,0 +1,56 @@
+{
+  "id": "ASM-2",
+  "module": "air-start-menu",
+  "type": "dp-engineer",
+  "title": "Пункт «В воздухе» в окне «Старт»",
+  "goal": "В окне «Старт» по «Лететь» — отметка «В воздухе» под буксировкой и ползунок высоты над стартом; выбор пишется в FlightSettings и сохраняется в последнем полёте и избранном (ASM-К3).",
+  "plan_ref": "4. Задачи",
+  "contracts": [
+    {
+      "name": "air-start-menu",
+      "version": "3",
+      "ref": "docs/contracts/air-start-menu.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/air-start-menu-ASM-2",
+  "branch": "air-start-menu/ASM-2",
+  "base": "feature/air-start-menu",
+  "scope": [
+    "scripts/ui/start_choice_dialog.gd",
+    "scripts/ui/start_menu.gd",
+    "scenes/main.gd",
+    "locale/ui.csv",
+    "tests/ui/test_start_choice_air.gd",
+    "tests/ui/test_start_choice_air.gd.uid"
+  ],
+  "dont_touch": [
+    "scripts/game/",
+    "scripts/goals/",
+    "scripts/net/",
+    "configs/",
+    "docs/",
+    "CHANGELOG.md",
+    "scripts/ui/flight_setup_screen.gd"
+  ],
+  "accept": [
+    {
+      "name": "start_choice_air",
+      "tests": "start_choice_air",
+      "timeout": 2400
+    },
+    {
+      "name": "trike_anywhere_k1",
+      "tests": "test_trike_anywhere_k1",
+      "timeout": 2400
+    },
+    {
+      "name": "game_ui",
+      "tests": "tests/game/test_ui",
+      "timeout": 3600
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-05T16:31:46",
+  "edited": "2026-11-05T16:32:10"
+}
