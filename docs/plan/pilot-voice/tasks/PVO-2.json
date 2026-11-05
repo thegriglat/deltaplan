@@ -1,0 +1,89 @@
+{
+  "id": "PVO-2",
+  "module": "pilot-voice",
+  "type": "dp-engineer",
+  "title": "Система реплик пилота в игре",
+  "goal": "Пилот игрока говорит реплики PV-К1 по данным полёта: конфиг configs/pilot_voice.json, логика PilotVoiceLogic (триггеры, паузы, приоритеты, антиповтор), узел PilotVoice на шине Voice, подключение в Game, настройка «Голос пилота» (муж./жен./выкл), тесты и контрактный тест.",
+  "plan_ref": "§4 Задачи (система реплик, тесты триггеров)",
+  "contracts": [
+    {
+      "name": "PV-К1",
+      "version": "2",
+      "ref": "docs/contracts/pilot-voice.md"
+    },
+    {
+      "name": "PV-К2",
+      "version": "2",
+      "ref": "docs/contracts/pilot-voice.md"
+    },
+    {
+      "name": "PV-К3",
+      "version": "1",
+      "ref": "docs/contracts/pilot-voice.md"
+    },
+    {
+      "name": "PV-К4",
+      "version": "2",
+      "ref": "docs/contracts/pilot-voice.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/pilot-voice-PVO-2",
+  "branch": "pilot-voice/PVO-2",
+  "base": "feature/pilot-voice",
+  "scope": [
+    "configs/pilot_voice.json",
+    "scripts/audio/pilot_voice.gd",
+    "scripts/audio/pilot_voice.gd.uid",
+    "scripts/audio/pilot_voice_logic.gd",
+    "scripts/audio/pilot_voice_logic.gd.uid",
+    "scripts/audio/audio_buses.gd",
+    "scenes/audio/bus_layout.tres",
+    "scripts/game/game.gd",
+    "scripts/goals/goal_tracker.gd",
+    "scripts/ui/settings_panel.gd",
+    "scripts/game/user_settings.gd",
+    "locale/",
+    "tests/audio/",
+    "tests/ui/",
+    "tests/contracts/test_pilot_voice_contracts.gd",
+    "tests/contracts/test_pilot_voice_contracts.gd.uid",
+    "scripts/world_objects/easter_egg.gd",
+    "scripts/world_objects/easter_eggs/",
+    "tests/world_objects/"
+  ],
+  "dont_touch": [
+    "assets/sounds/",
+    "docs/contracts/",
+    "scripts/audio/flight_audio.gd",
+    "scripts/audio/flight_sound_mix.gd",
+    "project.godot",
+    "scripts/net/"
+  ],
+  "accept": [
+    {
+      "name": "pilot_voice",
+      "tests": "pilot_voice"
+    },
+    {
+      "name": "audio",
+      "tests": "audio"
+    },
+    {
+      "name": "settings",
+      "tests": "settings"
+    },
+    {
+      "name": "gd_check",
+      "cmd": "python3 tools/check_gd.py scripts/audio/pilot_voice.gd scripts/audio/pilot_voice_logic.gd scripts/game/game.gd scripts/ui/settings_panel.gd",
+      "expect": "exit=0"
+    },
+    {
+      "name": "easter",
+      "tests": "easter"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-05T05:55:01",
+  "edited": "2026-11-05T06:02:04"
+}
