@@ -582,6 +582,8 @@ start_choice_title,Старт,Start
 start_choice_tow,Буксировка (дельтаплан),Tow (hang glider)
 start_choice_glider,Дельтаплан,Hang glider
 start_choice_trike,Дельталёт,Trike
+start_choice_air,В воздухе,In the air
+start_choice_air_height,Высота над стартом,Height above launch
 setup_tow_none,Нет,None
 setup_tow_winch,Лебёдка,Winch
 setup_tow_aerotow,Аэробуксировка (дельталёт),Aerotow (trike)

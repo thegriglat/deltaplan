@@ -434,6 +434,7 @@ func _on_pick_fly() -> void:
 		func(vehicle: String, tow_kind: String) -> void:
 			flight.vehicle = vehicle
 			flight.tow_kind = tow_kind
+			flight.set_air_start(d.air_start_agl_m)  # ASM-К3
 			d.queue_free()
 			_fly_from_pick()
 	)
