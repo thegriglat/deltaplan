@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-11-04"
+updated: "2026-11-05"
 summary: "Точка входа: модули docs/ по подпроектам, прочие документы по типам."
 related: []
 generated: true
@@ -244,6 +244,7 @@ generated: true
   - [docs/research/bar-mouse-raw-input.md](research/bar-mouse-raw-input.md) — Захват мыши в Godot 4.7.2: Windows и X11 — сырые отсчёты, Wayland и macOS — с ускорением ОС; брать screen_relative
 - **menu-shots-pose** — Кадры фона меню (tools/shots/menu_art.py): планер на всех кадрах — в установившемся полёте, без крутого крена и «кивка». [closed 2026-10-23] — [план](plan/menu-shots-pose.md) · [контракты](contracts/menu-shots-pose.md) · [решения](plan/menu-shots-pose/decisions.md) · [сводка](plan/menu-shots-pose/summary.md) · полный журнал: `archive/menu-shots-pose`
 - **grass-near** — Ошибка: ближние травинки видны только в пятне тени/проекции дельтаплана; найти причину и рисовать их вокруг пилота по всей дальности. [closed 2026-10-29] — [план](plan/grass-near.md) · [контракты](contracts/grass-near.md) · [решения](plan/grass-near/decisions.md) · [сводка](plan/grass-near/summary.md) · полный журнал: `archive/grass-near`
+- **scenic-places** — Красивые места: наборы по 5–10 природных пейзажей на страну (~20–30 стран), кнопка рядом с «Популярными местами», старт в воздухе над видом. [active 2026-11-05] — [план](plan/scenic-places.md) · [контракты](contracts/scenic-places.md)
 
 ## perf
 
