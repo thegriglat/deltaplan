@@ -53,3 +53,5 @@
 {"t": "2026-11-05T16:56:21", "by": "coordinator", "task": "ASM-2", "ev": "note", "note": "game_ui: test_controls_screen_lists_keys падает на базе (проверка исполнителя, git stash) — проверка game_ui исключает только его"}
 {"t": "2026-11-05T17:09:55", "by": "coordinator", "task": "ASM-2", "ev": "checked", "note": "3/3 start_choice_air=ok:3/3; trike_anywhere_k1=ok:9/9; game_ui=ok:FAIL test_ui.gd::test_control…"}
 {"t": "2026-11-05T17:10:13", "by": "coordinator", "task": "ASM-2", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-11-05T17:14:01", "by": "coordinator", "task": "ASM-2", "ev": "accepted", "commits": ["a9aac02c7"], "note": "3/3 start_choice_air=ok:3/3; trike_anywhere_k1=ok:9/9; game_ui=ok:FAIL test_ui.gd::test_control…"}
+{"t": "2026-11-05T17:14:01", "by": "coordinator", "task": "ASM-2", "ev": "merged"}
