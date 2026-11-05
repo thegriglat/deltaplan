@@ -1,0 +1,11 @@
+{
+  "module": "sail-texture",
+  "plan": "docs/plan/sail-texture.md",
+  "contracts": "docs/contracts/sail-texture.md",
+  "branch": "feature/sail-texture",
+  "copy": "~/worktrees/deltaplan/sail-texture",
+  "created": "2026-11-05T05:47:47",
+  "code": "SLT",
+  "area": "game",
+  "base": "main"
+}
