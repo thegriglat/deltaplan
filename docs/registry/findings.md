@@ -195,3 +195,7 @@ related: ["docs/archive/README.md"]
 ## trike-fix
 
 - [trike-fix.md](/docs/registry/findings/trike-fix.md).
+
+## sail-texture
+
+- **Развёртка паруса и UV2**: 49 моделей — одна схема UV1 (верх v 0,5…1, низ 0…0,5, карман киля у 8 моделей), размах/средняя хорда 4,5…8,5 (медиана 7); найден переворот V в UV2 при импорте glTF (нижняя обшивка колыхалась как верхняя, вес по хорде перевёрнут; исправлено SLT-5) — [README](/tools/research/sail-texture/README.md#slt-1--развёртка-uv-паруса-у-моделей-крыльев)
