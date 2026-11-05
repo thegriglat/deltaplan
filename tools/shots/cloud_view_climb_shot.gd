@@ -50,7 +50,8 @@ var _lines: PackedStringArray = []
 var _wo := CloudWhiteout.new()
 var _wo_c := CloudWhiteout.new()
 var _after := ""
-var _res := {"clear_amount_max": 0.0, "clear_amount_coarse_max": 0.0, "in_cloud_amount_max": 0.0, "in_cloud_amount_coarse_max": 0.0}
+var _edge_rows: Array = []
+var _res := {"rec_frames": 0, "rec_in_cloud_amount_max": 0.0, "rec_clear_amount_max": 0.0, "rec_clear_frames": 0, "rec_kind": -1, "rec_time_s": 0.0, "clear_amount_max": 0.0, "clear_amount_coarse_max": 0.0, "in_cloud_amount_max": 0.0, "in_cloud_amount_coarse_max": 0.0}
 
 
 func _ready() -> void:
@@ -214,6 +215,8 @@ func _run() -> void:
 			break
 	if col.is_empty():
 		col = _find_clear(raster, sp, game)
+	if col.is_empty() and _variants == PackedStringArray(["recs"]):
+		col = {"x": sp.x, "z": sp.z, "top": float(raster.get("base_msl", 2000.0)) + 1000.0, "cmax": 0.0}
 	if col.is_empty():
 		_fail("нет ясного столбца у облаков")
 		return
@@ -345,6 +348,8 @@ func _run() -> void:
 					_flush()
 	if "pass" in _variants:
 		n += await _pass_series(game, air, layer, env, cam, haze_mat, haze_ext, cx, cz, gh, base, top_ref, raster)
+	if "recs" in _variants:
+		n += await _recs_series(game, air, layer, env, cam, haze_mat, haze_ext, cx, cz, gh, raster)
 	_flush()
 	if _after != "":
 		var af := FileAccess.open(_after, FileAccess.WRITE)
@@ -384,9 +389,10 @@ func _find_visible_cloud(layer: CloudLayer, cx: float, cz: float, base: float, t
 ## CVW-4: проход камеры вдоль оси x через центр рисуемого облака: от −1000 до +1000 м, шаг 100 м.
 func _pass_series(
 	game: Game, air: Node, layer: CloudLayer, env: Environment, cam: Camera3D, haze_mat: ShaderMaterial,
-	haze_ext: Variant, cx: float, cz: float, gh: float, base: float, top: float, raster: Dictionary
+	haze_ext: Variant, cx: float, cz: float, gh: float, base: float, top: float, raster: Dictionary,
+	center := Vector3.ZERO, tag := "pass", offs: Array = [], look_dir := Vector3.ZERO
 ) -> int:
-	var c := _find_visible_cloud(layer, cx, cz, base, top)
+	var c := center if center != Vector3.ZERO else _find_visible_cloud(layer, cx, cz, base, top)
 	if c == Vector3.ZERO:
 		print("cloud_view_climb_shot: pass - рисуемое облако с плотностью >= 0,9 рядом не найдено")
 		return 0
@@ -404,43 +410,181 @@ func _pass_series(
 	var syaw := rad_to_deg(atan2(sun_h.x, -sun_h.z))
 	var pitch := _pitches[0]
 	var look := TerrainGeo.heading_vector(syaw) * cos(deg_to_rad(pitch)) + Vector3.UP * sin(deg_to_rad(pitch))
+	if look_dir != Vector3.ZERO:
+		look = look_dir
+	var is_edge := tag.begins_with("recsedge")
 	var n := 0
-	for off in range(-1000, 1001, 100):
+	if offs.is_empty():
+		offs = range(-1000, 1001, 100)
+	for off: int in offs:
 		var p := Vector3(c.x + off, c.y, c.z)
 		_wo.amount = 0.0
 		_wo.apply(env)
 		_place(cam, p, look)
+		if tag.begins_with("recs"):
+			layer.field_params["cf_on"] = 0.0  # только записи: слой поля облачности не рисуется и не считается
 		for i in _settle:
 			await RenderingServer.frame_post_draw
 			_place(cam, p, look)
+			if tag.begins_with("recs"):
+				layer.field_params["cf_on"] = 0.0
 		var d_coarse := float(air.call("cloud_density_at", p))
 		var d_vis := layer.visible_density_at(p)
 		var d := d_vis if d_vis >= 0.0 else d_coarse
 		_wo_c.amount = 0.0
 		for k in 40:
 			_wo_c.update(d_coarse, 0.1)
-		for k in 40:
-			_wo.update(d, 0.1)
+		if not is_edge:
+			for k in 40:
+				_wo.update(d, 0.1)
 		_wo.apply(env)
 		for i in 8:
 			await RenderingServer.frame_post_draw
-		var name := "pass_%03d.png" % (off / 100 + 10)
+		var name := "%s_%05d.png" % [tag, off + 10000]
 		var path := "%s/%s" % [_out, name]
 		await _shoot(path)
 		var st := _stats(path)
 		var sm := field_sample(raster, p.x, p.z)
 		var row: Array = [
-			"pass_" + name, _location, hour, p.x, p.z, p.y, off, syaw, pitch, sm.y, sm.z, sm.x, d_coarse,
+			tag + "_" + name, _location, hour, p.x, p.z, p.y, off, syaw, pitch, sm.y, sm.z, sm.x, d_coarse,
 			_wo.amount, env.fog_density, env.fog_light_color.r, env.fog_light_color.g,
 			env.fog_light_color.b, env.fog_sky_affect, st.r, st.g, st.b, st.luma, st.std,
 			path, game.sky.get_haze_top_msl(), int(env.fog_enabled), gh, 0.0, layer.records().size(),
-			st.sr, st.sg, st.sb, "pass", d_vis, _wo_c.amount
+			st.sr, st.sg, st.sb, tag, d_vis, _wo_c.amount
 		]
 		_lines.append(",".join(PackedStringArray(row.map(_fmt))))
-		_res.in_cloud_amount_max = maxf(_res.in_cloud_amount_max, _wo.amount)
-		_res.in_cloud_amount_coarse_max = maxf(_res.in_cloud_amount_coarse_max, _wo_c.amount)
+		if is_edge:
+			_edge_rows.append([float(off), d_vis, st.luma])
+		if tag == "pass":
+			_res.in_cloud_amount_max = maxf(_res.in_cloud_amount_max, _wo.amount)
+			_res.in_cloud_amount_coarse_max = maxf(_res.in_cloud_amount_coarse_max, _wo_c.amount)
+		elif tag == "recs" or tag == "recsgap":
+			var nrec := layer.records().filter(func(r: PackedFloat32Array) -> bool: return r.size() >= 21 and r[20] > 0.0).size()
+			if nrec > 0 and d_vis > 0.0:
+				_res.rec_frames += 1
+			if d_vis > 0.5:
+				_res.rec_in_cloud_amount_max = maxf(_res.rec_in_cloud_amount_max, _wo.amount)
+			elif d_vis == 0.0:
+				_res.rec_clear_frames += 1
+				_res.rec_clear_amount_max = maxf(_res.rec_clear_amount_max, _wo.amount)
 		n += 1
 		_flush()
+	return n
+
+
+## CVW-5: облака-записи (кучевые, Cb, линзы). Перебирает времена атмосферы (--air_s), пока слой не рисует
+## запись с видимостью > 0 и плотностью >= 0,5 в её центре; проход камеры вдоль x через центр.
+## Просвет: кадры прохода, где visible_density_at == 0 (камера вне всех рисуемых облаков).
+func _recs_series(
+	game: Game, air: Node, layer: CloudLayer, env: Environment, cam: Camera3D, haze_mat: ShaderMaterial,
+	haze_ext: Variant, cx: float, cz: float, gh: float, raster: Dictionary
+) -> int:
+	var c := Vector3.ZERO
+	for t_air in _air_list:
+		game.set_world_time(t_air)
+		# облака считаются фоном: ждать, пока атмосфера отдаст объекты на этот момент
+		for k in 240:
+			if (air.call("cloud_objects", Vector3.ZERO, -1.0, t_air) as PackedFloat32Array).size() > 0:
+				break
+			await get_tree().create_timer(0.5, true, false, true).timeout
+		layer.set("_instant", true)
+		for i in 240:
+			_place(cam, Vector3(cx, gh + 1500.0, cz), Vector3.FORWARD)  # глаз выбора облаков - у столбца
+			layer.set("_acc", 1.0e9)
+			await get_tree().process_frame
+		# записи рисуются в пределах дальности от глаза: глаз - к ближайшей записи (3 км от центра)
+		var near := Vector3.ZERO
+		var nd := 1.0e30
+		for r in layer.records():
+			var dd0 := Vector2(r[0] - cx, r[2] - cz).length()
+			if dd0 < nd:
+				nd = dd0
+				near = Vector3(r[0] - 3000.0, gh + 1500.0, r[2])
+		if near != Vector3.ZERO:
+			for i in 240:
+				_place(cam, near, Vector3.FORWARD)
+				layer.set("_acc", 1.0e9)
+				await get_tree().process_frame
+		var best := 1.0e30
+		var objs: PackedFloat32Array = air.call("cloud_objects", Vector3.ZERO, -1.0, t_air)
+		print("cloud_view_climb_shot: recs - объектов-облаков в атмосфере %d" % objs.size())
+		for r in layer.records():
+			print("cloud_view_climb_shot: recs - запись kind %d vis %.2f центр (%.0f, %.0f, %.0f) основание %.0f высота %.0f ось (%.0f, %.0f) бокс %.0f %.0f d=%.0f" % [int(r[19] + 0.5), r[20], r[0], r[1], r[2], r[8], r[9], r[10], r[11], r[6], r[7], Vector2(r[0] - cx, r[2] - cz).length()])
+			for fr: float in [0.3, 0.4, 0.5, 0.6]:
+				var q := Vector3(r[0], r[8] + fr * maxf(r[9], 10.0), r[2])
+				var dd := Vector2(q.x - cx, q.z - cz).length()
+				if dd < best and r[20] > 0.5 and layer._rec_density(r, q) >= 0.5:  # именно запись, не слой поля
+					best = dd
+					c = q
+					_res.rec_kind = int(r[19] + 0.5)
+		print("cloud_view_climb_shot: recs - время %.0f, записей %d, центр %s" % [t_air, layer.records().size(), c])
+		if c != Vector3.ZERO:
+			_res.rec_time_s = t_air
+			break
+	if c == Vector3.ZERO:
+		return 0
+	# обзор записи снаружи: кадр для сверки, что она рисуется (12 км до центра, взгляд на центр)
+	for dist: float in [12000.0, 5000.0]:
+		var vp := Vector3(c.x - dist, c.y + 800.0, c.z)
+		layer.field_params["cf_on"] = 0.0
+		for i in 40:
+			_place(cam, vp, (c - vp).normalized())
+			layer.field_params["cf_on"] = 0.0
+			await RenderingServer.frame_post_draw
+		await _shoot("%s/recs_view_%d.png" % [_out, int(dist)])
+		print("cloud_view_climb_shot: recs - обзор %d м: записей %d, плотность в центре %.2f" % [int(dist), layer.records().size(), layer.visible_density_at(c)])
+	var n: int = await _pass_series(game, air, layer, env, cam, haze_mat, haze_ext, cx, cz, gh, 0.0, 0.0, raster, c, "recs")
+	# Просвет: от центра вдоль +x до первой точки вне всех рисуемых облаков (шаг 250 м), там 6 кадров
+	var g := c
+	while layer.visible_density_at(g) != 0.0 and g.x - c.x < 40000.0:
+		g.x += 250.0
+	print("cloud_view_climb_shot: recs - просвет в %.0f м от центра записи" % (g.x - c.x))
+	if layer.visible_density_at(g) == 0.0:
+		n += await _pass_series(game, air, layer, env, cam, haze_mat, haze_ext, cx, cz, gh, 0.0, 0.0, raster, g, "recsgap", [0, 100, 200, 300, 400, 500])
+	for sgn in [1, -1]:
+		n += await _edge_scan(game, air, layer, env, cam, haze_mat, haze_ext, cx, cz, gh, raster, c, sgn)
+	if _res.has("edge_in_m") and _res.has("edge_out_m"):
+		_res["edge_offset_measured_m"] = maxf(absf(_res.edge_in_m), absf(_res.edge_out_m))
+	return n
+
+
+## Граница записи вдоль x: CPU-кромка (visible_density = 0,5) и видимая (середина скачка яркости кадра
+## при выходе/входе камеры; обзор от облака, мгла выключена), шаг 10 м, ±150 м. sgn +1 - выход, -1 - вход.
+func _edge_scan(
+	game: Game, air: Node, layer: CloudLayer, env: Environment, cam: Camera3D, haze_mat: ShaderMaterial,
+	haze_ext: Variant, cx: float, cz: float, gh: float, raster: Dictionary, c: Vector3, sgn: int
+) -> int:
+	var e := c
+	while layer.visible_density_at(e) >= 0.5 and absf(e.x - c.x) < 40000.0:
+		e.x += 25.0 * sgn
+	var key := "out" if sgn > 0 else "in"
+	var offs: Array = []
+	for o in range(-150, 151, 10):
+		offs.append(int(e.x - c.x) + o)
+	_edge_rows.clear()
+	var n: int = await _pass_series(game, air, layer, env, cam, haze_mat, haze_ext, cx, cz, gh, 0.0, 0.0, raster, c, "recsedge_" + key, offs, Vector3(sgn, 0, 0))
+	# crossing(d=0.5) по CPU и середина скачка яркости по кадрам
+	var lo := 1.0e9
+	var hi := -1.0e9
+	for r: Array in _edge_rows:
+		lo = minf(lo, r[2])
+		hi = maxf(hi, r[2])
+	var mid := 0.5 * (lo + hi)
+	var cpu_x := NAN
+	var vis_x := NAN
+	for i in range(1, _edge_rows.size()):
+		var a: Array = _edge_rows[i - 1]
+		var b: Array = _edge_rows[i]
+		if is_nan(cpu_x) and (a[1] - 0.5) * (b[1] - 0.5) <= 0.0 and a[1] != b[1]:
+			cpu_x = lerpf(a[0], b[0], (0.5 - a[1]) / (b[1] - a[1]))
+		if is_nan(vis_x) and (a[2] - mid) * (b[2] - mid) <= 0.0 and a[2] != b[2]:
+			vis_x = lerpf(a[0], b[0], (mid - a[2]) / (b[2] - a[2]))
+	print("cloud_view_climb_shot: recs - кромка %s: CPU %.1f м, видимая %.1f м, яркость %.3f...%.3f" % [key, cpu_x, vis_x, lo, hi])
+	_res["edge_%s_rows" % key] = _edge_rows.duplicate()
+	if is_nan(cpu_x) or is_nan(vis_x) or hi - lo < 0.02:
+		_res["edge_%s_unreliable" % key] = true
+	else:
+		_res["edge_%s_m" % key] = vis_x - cpu_x
 	return n
 
 

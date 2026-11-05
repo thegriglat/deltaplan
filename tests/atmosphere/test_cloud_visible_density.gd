@@ -61,6 +61,23 @@ func test_center_and_outside() -> void:
 	check(l.visible_density_at(Vector3(0, BASE + 360.0, 0)) <= 1.0, "не больше 1")
 
 
+func test_cb_record_and_no_alloc_shape() -> void:
+	# Cb (kind 3): центр рисуемой записи плотный, вне бокса 0; форма башен считается без массива
+	var l := _layer()
+	_add(l, CloudLayer.make_record(
+		Vector2(0, 0), Vector3.RIGHT, BASE, 6000.0, 3000.0, 3000.0,
+		Vector4(3.0, 0.0, 0.0, 7.0), Vector4(0.0, 0.0, 0.0, 0.0), 0.0, 10.0, 1.0
+	))
+	var best := 0.0
+	for f in [0.2, 0.35, 0.5]:
+		best = maxf(best, l.visible_density_at(Vector3(0, BASE + 6000.0 * f, 0)))
+	check(best >= 0.5, "Cb: внутри плотность ≥ 0,5: %.3f" % best)
+	approx(l.visible_density_at(Vector3(40000, BASE + 2000.0, 0)), 0.0, 1e-6, "Cb: вне бокса 0")
+	var a := CloudLayer._towers_shape(Vector3(1, 2, 3), 0, Vector2(0.1, 0.05), 0.3)
+	approx(a, CloudLayer._towers_shape(Vector3(1, 2, 3), 0, Vector2(0.1, 0.05), 0.3), 1e-9, "детерминирована")
+	check(CloudLayer._towers_shape(Vector3(1, 2, 3), 0, Vector2.ZERO, 0.3) > CloudLayer._towers_shape(Vector3(1, 2, 3), 0, Vector2(5, 5), 0.3), "ближе к башне — больше")
+
+
 func test_field_gaps() -> void:
 	var l := _layer()
 	# поле 4 × 4 ячейки по 1 км: покрытие 0,25 всюду (грубая плотность > 0 везде), мощность полная
