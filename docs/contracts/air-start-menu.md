@@ -4,9 +4,9 @@ status: active
 module: air-start-menu
 area: game
 updated: 2026-11-05
-summary: "Старт в воздухе: поле FlightSettings.air_start_agl_m и пределы (ASM-К1), постановка старта в Game для игрока и scenic-places (ASM-К2)."
-related: ["docs/plan/air-start-menu.md", "docs/contracts/start-pick.md", "docs/guide/game/launch.md"]
-contracts: [{"id": "ASM-К1", "version": 1}, {"id": "ASM-К2", "version": 1}]
+summary: "Старт в воздухе: настройка и пределы (К1), постановка в Game (К2), пункт в окне «Старт» (К3), цели и рекорды (К4)."
+related: ["docs/plan/air-start-menu.md", "docs/contracts/start-pick.md", "docs/guide/game/launch.md", "docs/contracts/trike-anywhere.md", "docs/contracts/goals.md"]
+contracts: [{"id": "ASM-К1", "version": 1}, {"id": "ASM-К2", "version": 1}, {"id": "ASM-К3", "version": 1}, {"id": "ASM-К4", "version": 1}]
 ---
 # Контракты air-start-menu
 
@@ -38,3 +38,27 @@ contracts: [{"id": "ASM-К1", "version": 1}, {"id": "ASM-К2", "version": 1}]
 - Точный старт при старте в воздухе: из причин `StartSpot.check` (SP-К2) отказ только `"outside"`; `"water"`, `"built"`, `"steep"` — допустимы (над озером, кратером, обрывом). Поляна `add_start_clearing` при старте в воздухе не вырубается (ни для точного старта, ни для точки с карты, ни для площадки).
 - Буксировка и дельталёт при старте в воздухе не выбираются (`_choose_tow_start` → `false`, как сейчас при `air_start_m >= 0`).
 - Инварианты (проверяет тест ASM-1, спокойный однородный воздух без поля и при однородном ветре 6 м/с, крыло по умолчанию): сразу после постановки XZ — в 1 м от `get_start().position` (при `air_start_m = 0`), `|altitude_agl − h| < 1 м`, воздушная скорость — трим ±1 м/с; за 20 с без управления: воздушная скорость в пределах ±5 % трима, тангаж в пределах ±3° от значения в момент постановки, |крен| < 2°, перегрузка n в [0,9; 1,1] (нет рывка), угол атаки ниже срыва крыла, фаза всё время `flying`.
+
+## ASM-К3 v1
+Выбор старта в воздухе в окне «Старт» по «Лететь» (Q1: пункт рядом с буксировкой + высота).
+
+- Владелец: ASM-2. Потребители: `StartMenu._on_fly`/`_on_start_chosen` (`scripts/ui/start_menu.gd`), «Лететь отсюда» в осмотре (`scenes/main.gd`, лямбда на `chosen`), тесты TA-К1 (`tests/contracts/test_trike_anywhere_k1.gd`) — не ломать.
+- `StartChoiceDialog` (`scripts/ui/start_choice_dialog.gd`):
+  - `var air_check: CheckBox` (имя узла `AirCheck`), подпись `start_choice_air` — «В воздухе» / «In the air»; строка сразу под строкой буксировки;
+  - `var air_height: HSlider` (имя `AirHeight`, через `UiKit.slider_row`, подпись `start_choice_air_height` — «Высота над стартом» / «Height above launch», формат «%.0f м» / `unit_m`), пределы и шаг — `configs/game.json → air_start` (ASM-К1); виден/доступен только при отмеченном `air_check`;
+  - при отмеченном `air_check` `tow_opt` недоступен (`disabled`), выбор буксировки не теряется;
+  - `var air_start_agl_m: float` — итог выбора: `air_height.value` при «Дельтаплан» с отмеченным `air_check`, иначе `-1.0` («Дельталёт», без отметки); ставится до `chosen.emit`;
+  - `open(settings, site)`: `air_check` отмечен ⇔ `settings.has_air_start()`; `air_height.value` = `settings.air_start_agl_m` при `has_air_start()`, иначе `agl_default_m`;
+  - сигнал `chosen(vehicle: String, tow_kind: String)` — как в TA-К1 (не меняется); при старте в воздухе `chosen("glider", "")`; `tow_ids()` и пункты `tow_opt` — как в TA-К1.
+- Потребители после `chosen`: `settings.vehicle = vehicle`, `settings.tow_kind = tow_kind`, затем `settings.set_air_start(d.air_start_agl_m)` (ASM-К1 сам сбросит буксировку/дельталёт). В сети («Лететь» без окна) — `set_air_start(-1)`.
+- Выбор сохраняется в «последний полёт» и избранное через `to_dict` (ASM-К1); окно при следующем открытии показывает прошлый выбор.
+- Переводы — `locale/ui.csv`, обе колонки.
+
+## ASM-К4 v1
+Цели, рекорды и достижения полёта со стартом в воздухе (Q2).
+
+- Владелец: ASM-3. Потребители: `GoalTracker` (GL-К3, `scripts/goals/goal_tracker.gd`), `FlightRecords` (`scripts/tasks/flight_records.gd`), итог полёта (`info.new_records`).
+- `Game.is_air_start() -> bool` — у текущего полёта старт в воздухе (`air_start_m >= 0`: флаг или настройки, ASM-К2).
+- Цели: контекст `Game._goals_ctx()` при старте в воздухе — `start_pos = air_start_position()` (точка постановки, `y` — её высота MSL); набор высоты — от высоты постановки, дальность — от её проекции, время — с постановки. При наземном старте — как сейчас.
+- Рекорды: при `is_air_start()` `FlightRecords.add_flight` не вызывается; `info.new_records = {}` (итог — как у полёта без новых рекордов). Файл рекордов не меняется.
+- Достижения — по ответу на Q3 (до карточки ASM-3 здесь будет правило; версия не меняется, пока ASM-3 не начата).
