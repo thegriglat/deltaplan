@@ -1,0 +1,16 @@
+Deltaplan 1.7.4 — the pilot voice sounds human now
+
+A small patch for the pilot voice. Russian lines no longer sound like a foreigner reading an audiobook, and the pilot talks the way a real pilot does: short casual remarks, a joke now and then, and a swear word when things go wrong.
+
+Pilot voice:
+- Re-recorded both voices: each voice has its own reference in each language, made of short casual remarks
+- New lines, written separately for English and Russian instead of translated
+- Some humour and a bit of swearing: "Holy shit!" in a stall, "Crap, crap, crap." in sink, "Back off, buddy!" to an eagle
+- Swearing is said with annoyance instead of a flat voice
+
+Fixes:
+- Place selection: "Launch set on terrain..." and "Reset" are on their own row, the label no longer shrinks into a column of letters
+
+Known issues:
+- Annoyed lines sound noticeably different in timbre from the other lines of the same voice
+- No macOS build: the Rust wind library does not build for macOS yet, Mac stays on 1.6.1
