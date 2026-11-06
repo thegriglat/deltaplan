@@ -1,0 +1,17 @@
+{
+ "_doc": "Реплики, которые синтезируются VoiceDesign с тоном (не клоном): ругань ровным голосом звучит комично. Seed-кандидаты, выбор — ближайший по тембру (ECAPA) к ref_<voice>_<lang>.wav. tone_en — инструкция модели. gen_full.py tone.",
+ "seeds": 12,
+ "lines": {
+  "stall_1": {"ru": "annoyed and scared at once, sudden swearing in alarm", "en": "annoyed and scared at once, sudden swearing in alarm"},
+  "stall_3": {"ru": "annoyed and tense, through clenched teeth, struggling", "en": "annoyed and tense, through clenched teeth, struggling"},
+  "sink_1": {"ru": "annoyed and frustrated, grumbling", "en": "annoyed and frustrated, grumbling"},
+  "sink_2": {"ru": "annoyed and frustrated, grumbling", "en": "annoyed and frustrated, grumbling"},
+  "sink_3": {"ru": "annoyed and frustrated, grumbling", "en": "annoyed and frustrated, grumbling"},
+  "turbulence_3": {"ru": "annoyed and strained, grumbling", "en": "annoyed and strained, grumbling"},
+  "cloud_1": {"ru": "annoyed, frustrated", "en": "annoyed, frustrated"},
+  "cloud_2": {"ru": "annoyed and frustrated, grumbling", "en": "annoyed and frustrated, grumbling"},
+  "low_3": {"ru": "annoyed, a bit worried", "en": "annoyed, a bit worried"},
+  "landing_hard_3": {"ru": "annoyed, wincing in pain", "en": "annoyed, wincing in pain"},
+  "crash_2": {"ru": "annoyed and disappointed, sighing", "en": "annoyed and disappointed, sighing"}
+ }
+}

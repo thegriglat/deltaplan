@@ -8,7 +8,7 @@
     {"id": "landing_hard_1", "ru": "Ох… ноги.", "en": "Ouch… my legs.", "tone": "боль, кряхтение", "tone_en": "in pain, groaning"}
   ],
   "voices": {
-    "male": "A man in his thirties, warm medium-low voice, natural, relaxed, a little breathy like someone speaking in a flight harness outdoors. Close microphone, dry, no echo, no music.",
+    "male": "A man in his forties, warm medium-low voice, natural, relaxed, a little breathy like someone speaking in a flight harness outdoors. Close microphone, dry, no echo, no music.",
     "female": "A woman in her thirties, warm medium voice, natural, relaxed, a little breathy like someone speaking in a flight harness outdoors. Close microphone, dry, no echo, no music."
   }
 }

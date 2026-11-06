@@ -32,13 +32,13 @@
 					"tone": "азарт, выдох"
 				},
 				{
-					"ru": "Летим!",
-					"en": "Airborne!",
+					"ru": "Ну, с богом.",
+					"en": "Okay, don't screw this up.",
 					"tone": "азарт, выдох"
 				},
 				{
-					"ru": "Ну, поехали.",
-					"en": "Okay, flying.",
+					"ru": "Поехали, родной.",
+					"en": "Off we go, baby.",
 					"tone": "азарт, выдох"
 				}
 			]
@@ -55,18 +55,18 @@
 			},
 			"lines": [
 				{
-					"ru": "Вроде нашёл.",
-					"en": "I think I've got something.",
+					"ru": "О, есть.",
+					"en": "Ooh, something here.",
 					"tone": "неуверенная радость, вполголоса"
 				},
 				{
-					"ru": "О, тянет…",
-					"en": "Ooh, it's pulling…",
+					"ru": "Тянет, тянет…",
+					"en": "Come on, come on…",
 					"tone": "неуверенная радость, вполголоса"
 				},
 				{
-					"ru": "Есть, пошло вверх.",
-					"en": "There we go, going up.",
+					"ru": "Ага, попался!",
+					"en": "Gotcha!",
 					"tone": "неуверенная радость, вполголоса"
 				}
 			]
@@ -81,18 +81,18 @@
 			},
 			"lines": [
 				{
-					"ru": "Ух, как несёт!",
-					"en": "Wow, it's really pulling!",
+					"ru": "Ух, как прёт!",
+					"en": "Whoa, it's ripping!",
 					"tone": "восторг"
 				},
 				{
-					"ru": "Вот это термик!",
-					"en": "Now that's a thermal!",
+					"ru": "Вот это лифт!",
+					"en": "Now that's a climb!",
 					"tone": "восторг"
 				},
 				{
-					"ru": "Хорошо пошло!",
-					"en": "Going up nicely!",
+					"ru": "Ха, лифт на небо!",
+					"en": "Elevator going up!",
 					"tone": "восторг"
 				}
 			]
@@ -109,18 +109,18 @@
 			},
 			"lines": [
 				{
-					"ru": "Потерял…",
-					"en": "Lost it…",
+					"ru": "Потерял.",
+					"en": "Lost it.",
 					"tone": "разочарование"
 				},
 				{
-					"ru": "Куда делся?",
+					"ru": "Ну и где он?",
 					"en": "Where'd it go?",
 					"tone": "разочарование"
 				},
 				{
 					"ru": "Всё, кончился.",
-					"en": "That's it, it's gone.",
+					"en": "Aaand it's gone.",
 					"tone": "разочарование"
 				}
 			]
@@ -137,17 +137,17 @@
 			"lines": [
 				{
 					"ru": "Вот чёрт…",
-					"en": "Oh, damn…",
+					"en": "Oh, come on…",
 					"tone": "досада"
 				},
 				{
-					"ru": "Сыплемся…",
-					"en": "We're dropping…",
+					"ru": "Сыплемся, блин.",
+					"en": "Sinking like a brick.",
 					"tone": "досада"
 				},
 				{
-					"ru": "Ну и провал.",
-					"en": "What a sink.",
+					"ru": "Ну и дыра, ёлки.",
+					"en": "Crap, crap, crap.",
 					"tone": "досада"
 				}
 			]
@@ -169,13 +169,13 @@
 					"tone": "напряжение"
 				},
 				{
-					"ru": "Тише, тише…",
-					"en": "Easy, easy…",
+					"ru": "Тише, тише, родной…",
+					"en": "Easy, easy, baby…",
 					"tone": "напряжение"
 				},
 				{
 					"ru": "Ну и трясёт.",
-					"en": "Rough air.",
+					"en": "Jeez, rough one.",
 					"tone": "напряжение"
 				}
 			]
@@ -190,18 +190,18 @@
 			},
 			"lines": [
 				{
-					"ru": "Ой-ой!",
-					"en": "Whoa!",
+					"ru": "Твою ж мать!",
+					"en": "Holy shit!",
 					"tone": "испуг, резко"
 				},
 				{
-					"ru": "Скорость!",
-					"en": "Speed!",
+					"ru": "Скорость, скорость!",
+					"en": "Speed, speed!",
 					"tone": "испуг, резко"
 				},
 				{
-					"ru": "Держу, держу…",
-					"en": "Hold it, hold it…",
+					"ru": "Держу, держу, блин…",
+					"en": "Hang on, hang on…",
 					"tone": "испуг, резко"
 				}
 			]
@@ -217,12 +217,12 @@
 			"lines": [
 				{
 					"ru": "Ух, свистит!",
-					"en": "The wind's howling!",
+					"en": "Whoa, fast!",
 					"tone": "азарт"
 				},
 				{
-					"ru": "Быстро идём.",
-					"en": "We're flying fast.",
+					"ru": "Ну, понеслась!",
+					"en": "Yeehaw!",
 					"tone": "азарт"
 				}
 			]
@@ -243,13 +243,13 @@
 					"tone": "озабоченно"
 				},
 				{
-					"ru": "Пора садиться.",
-					"en": "Time to land.",
+					"ru": "Так, пора садиться.",
+					"en": "Okay, time to land.",
 					"tone": "озабоченно"
 				},
 				{
-					"ru": "Где тут сесть?",
-					"en": "Where do I put down?",
+					"ru": "Так, куда тут сесть-то?",
+					"en": "Where the hell do I land?",
 					"tone": "озабоченно"
 				}
 			]
@@ -264,17 +264,17 @@
 			"lines": [
 				{
 					"ru": "Хорошо забрался.",
-					"en": "Good height.",
+					"en": "Nice height.",
 					"tone": "спокойная радость"
 				},
 				{
-					"ru": "Вот это высота.",
-					"en": "Now that's high.",
+					"ru": "Ого, высоко.",
+					"en": "Whoa, way up.",
 					"tone": "спокойная радость"
 				},
 				{
-					"ru": "Ещё бы повыше.",
-					"en": "A bit higher would be nice.",
+					"ru": "Ещё бы чуть-чуть…",
+					"en": "Bit more, come on…",
 					"tone": "спокойная радость"
 				}
 			]
@@ -295,13 +295,13 @@
 					"tone": "тихо, любуясь"
 				},
 				{
-					"ru": "Красиво тут.",
-					"en": "Beautiful up here.",
+					"ru": "Ради этого и летаем.",
+					"en": "This is why we fly.",
 					"tone": "тихо, любуясь"
 				},
 				{
-					"ru": "Хорошо летим…",
-					"en": "This is nice…",
+					"ru": "Эх, хорошо…",
+					"en": "Ahh, this is it.",
 					"tone": "тихо, любуясь"
 				}
 			]
@@ -317,12 +317,12 @@
 			"lines": [
 				{
 					"ru": "Ничего не видно!",
-					"en": "Can't see a thing!",
+					"en": "Can't see a damn thing!",
 					"tone": "тревога"
 				},
 				{
-					"ru": "Влез в облако…",
-					"en": "I'm in the cloud…",
+					"ru": "Блин, в облако влез.",
+					"en": "Crap, I'm in the cloud.",
 					"tone": "тревога"
 				}
 			]
@@ -335,7 +335,7 @@
 			"lines": [
 				{
 					"ru": "Есть точка!",
-					"en": "Got the turnpoint!",
+					"en": "Got the turnpoint.",
 					"tone": "довольно"
 				},
 				{
@@ -352,13 +352,13 @@
 			"params": {},
 			"lines": [
 				{
-					"ru": "Есть гол! Долетел!",
-					"en": "Goal! Made it!",
+					"ru": "Долетел!",
+					"en": "Made it!",
 					"tone": "ликование"
 				},
 				{
-					"ru": "Да! Долетел.",
-					"en": "Yes! Made it.",
+					"ru": "Да! Да! Есть!",
+					"en": "Yes! Yes! Yes!",
 					"tone": "ликование"
 				}
 			]
@@ -377,13 +377,13 @@
 					"tone": "облегчение"
 				},
 				{
-					"ru": "Ну вот и всё.",
-					"en": "And that's it.",
+					"ru": "Как по маслу.",
+					"en": "Like butter.",
 					"tone": "облегчение"
 				},
 				{
 					"ru": "Красота.",
-					"en": "Lovely.",
+					"en": "Sweet.",
 					"tone": "облегчение"
 				}
 			]
@@ -398,16 +398,16 @@
 			"lines": [
 				{
 					"ru": "Ох… ноги.",
-					"en": "Ouch… my legs.",
+					"en": "Ow… my legs.",
 					"tone": "боль, кряхтение"
 				},
 				{
-					"ru": "Жёстко вышло.",
-					"en": "That was hard.",
+					"ru": "Ну, жёстко.",
+					"en": "Well, that hurt.",
 					"tone": "боль, кряхтение"
 				},
 				{
-					"ru": "Ай.",
+					"ru": "Ай, блин.",
 					"en": "Oof.",
 					"tone": "боль, кряхтение"
 				}
@@ -427,8 +427,8 @@
 					"tone": "стон"
 				},
 				{
-					"ru": "Ну вот…",
-					"en": "Oh no…",
+					"ru": "Ну приехали…",
+					"en": "Well, shit…",
 					"tone": "стон"
 				}
 			]
@@ -444,13 +444,13 @@
 			},
 			"lines": [
 				{
-					"ru": "О, кукурузник!",
-					"en": "Oh, a biplane!",
+					"ru": "О, Ан-2!",
+					"en": "Oh, a plane!",
 					"tone": "удивление"
 				},
 				{
-					"ru": "Ан-2 летит.",
-					"en": "There goes an An-2.",
+					"ru": "Кукурузник шпарит.",
+					"en": "Hey, a biplane.",
 					"tone": "удивление"
 				}
 			]
@@ -466,13 +466,13 @@
 			},
 			"lines": [
 				{
-					"ru": "Лайнер высоко…",
-					"en": "An airliner up high…",
+					"ru": "Лайнер.",
+					"en": "Airliner.",
 					"tone": "спокойно"
 				},
 				{
-					"ru": "Кто-то в отпуск полетел.",
-					"en": "Someone's off on holiday.",
+					"ru": "Кто-то в отпуск полетел…",
+					"en": "Someone's off on holiday…",
 					"tone": "спокойно"
 				}
 			]
@@ -488,13 +488,13 @@
 			},
 			"lines": [
 				{
-					"ru": "Глория!",
-					"en": "A glory!",
+					"ru": "О, глория!",
+					"en": "Oh, a glory!",
 					"tone": "восхищение"
 				},
 				{
-					"ru": "Ух ты, кольца вокруг тени!",
-					"en": "Wow, rings around my shadow!",
+					"ru": "Ух ты, я святой!",
+					"en": "Whoa, I've got a halo!",
 					"tone": "восхищение"
 				}
 			]
@@ -515,8 +515,8 @@
 					"tone": "радость"
 				},
 				{
-					"ru": "Воздушный шар летит.",
-					"en": "There's a hot-air balloon.",
+					"ru": "Ну, этим торопиться некуда.",
+					"en": "No rush for those guys.",
 					"tone": "радость"
 				}
 			]
@@ -533,12 +533,12 @@
 			"lines": [
 				{
 					"ru": "Сколько шаров!",
-					"en": "So many balloons!",
+					"en": "Look at all those balloons!",
 					"tone": "восторг"
 				},
 				{
-					"ru": "Ого, фестиваль!",
-					"en": "Wow, a balloon festival!",
+					"ru": "Ого, тут целый праздник!",
+					"en": "Whoa, it's a party!",
 					"tone": "восторг"
 				}
 			]
@@ -554,13 +554,13 @@
 			},
 			"lines": [
 				{
-					"ru": "О, машина!",
-					"en": "Oh, a car!",
+					"ru": "О, буханка!",
+					"en": "Oh, a car.",
 					"tone": "удивление"
 				},
 				{
-					"ru": "Буханка пылит.",
-					"en": "Look at that van kicking up dust.",
+					"ru": "За мной едут, что ли?",
+					"en": "Is that my ride?",
 					"tone": "удивление"
 				}
 			]
@@ -581,8 +581,8 @@
 					"tone": "весело"
 				},
 				{
-					"ru": "Привет, наши!",
-					"en": "Hi, everyone!",
+					"ru": "Привет, земляне!",
+					"en": "Hello, earthlings!",
 					"tone": "весело"
 				}
 			]
@@ -598,13 +598,13 @@
 			},
 			"lines": [
 				{
-					"ru": "Стадо внизу.",
-					"en": "A herd down there.",
+					"ru": "Живность внизу.",
+					"en": "Animals down there.",
 					"tone": "спокойно"
 				},
 				{
-					"ru": "Пасутся…",
-					"en": "Grazing away…",
+					"ru": "Пасутся себе…",
+					"en": "Just grazing…",
 					"tone": "спокойно"
 				}
 			]
@@ -621,12 +621,12 @@
 			"lines": [
 				{
 					"ru": "Там тоже летают.",
-					"en": "Others are flying over there.",
+					"en": "Others over there.",
 					"tone": "интерес"
 				},
 				{
-					"ru": "О, ещё группа!",
-					"en": "Oh, another group!",
+					"ru": "О, наши!",
+					"en": "Oh, my people!",
 					"tone": "интерес"
 				}
 			]
@@ -647,8 +647,8 @@
 					"tone": "восторг, вполголоса"
 				},
 				{
-					"ru": "Орёл рядом!",
-					"en": "An eagle right beside me!",
+					"ru": "Орёл! Отвали!",
+					"en": "Back off, buddy!",
 					"tone": "восторг, вполголоса"
 				}
 			]
@@ -664,13 +664,13 @@
 			},
 			"lines": [
 				{
-					"ru": "Это что, круги на поле?",
-					"en": "Are those crop circles?",
+					"ru": "Это что, круги?",
+					"en": "Are those… crop circles?",
 					"tone": "недоумение"
 				},
 				{
-					"ru": "Ну и узор…",
-					"en": "What a pattern…",
+					"ru": "Инопланетяне, не иначе.",
+					"en": "Aliens. Definitely aliens.",
 					"tone": "недоумение"
 				}
 			]
@@ -686,13 +686,13 @@
 			},
 			"lines": [
 				{
-					"ru": "Сено уже скатали.",
-					"en": "They've baled the hay.",
+					"ru": "О, рулоны.",
+					"en": "Hay bales.",
 					"tone": "спокойно"
 				},
 				{
-					"ru": "Рулоны на поле.",
-					"en": "Hay bales in the field.",
+					"ru": "Это уже осень, что ли?",
+					"en": "Is it autumn already?",
 					"tone": "спокойно"
 				}
 			]
@@ -708,13 +708,13 @@
 			},
 			"lines": [
 				{
-					"ru": "Гуси летят!",
+					"ru": "Гуси!",
 					"en": "Geese!",
 					"tone": "радость"
 				},
 				{
-					"ru": "Клин…",
-					"en": "Look at that V…",
+					"ru": "Ребята, подвиньтесь.",
+					"en": "Hey guys, move over.",
 					"tone": "радость"
 				}
 			]

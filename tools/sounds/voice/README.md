@@ -35,13 +35,15 @@ export HF_HOME=~/data/pilot-voice/hf
 
 ```bash
 export HF_HOME=~/data/pilot-voice/hf; PY=~/data/pilot-voice/venv/bin/python
-$PY tools/sounds/voice/gen_full.py ref --out tools/sounds/voice --seeds 5      # эталоны ref_male.wav / ref_female.wav, refs.json
+$PY tools/sounds/voice/gen_full.py ref --out tools/sounds/voice --seeds 5      # эталоны ref_<voice>_<lang>.wav, refs.json
 $PY tools/sounds/voice/gen_full.py lines --config configs/pilot_voice.json --out assets/sounds/voice --stats tools/sounds/voice/gen_stats.json
+$PY tools/sounds/voice/gen_full.py tone --config configs/pilot_voice.json --out assets/sounds/voice --stats tools/sounds/voice/tone_stats.json
 $PY tools/sounds/voice/fix_loop.py --config configs/pilot_voice.json --dir assets/sounds/voice --stats tools/sounds/voice/stats_full.json  # проверка + перегенерация нарушителей
 python3 tools/sounds/voice/check_voice.py --config configs/pilot_voice.json --dir assets/sounds/voice   # быстрая проверка формата (приёмка)
 ```
-- Эталон: VoiceDesign по описанию из `samples.json`, 5 seed, выбран медоид по ECAPA среди кандидатов с CER = 0 (`refs.json`); все реплики — Base-клон одного эталона (`ref_audio` + `ref_text`), для RU и EN. Base-модель не принимает `instruct`, поэтому **тон реплики задаётся только её текстом и пунктуацией** (поле `tone` не используется; таблица перевода тона не нужна).
+- Эталон — **на каждую пару голос × язык**: `ref_<voice>_<lang>.wav`, VoiceDesign на языке реплик, текст — короткие разговорные реплики (`REF_TEXT` в `gen_full.py`), 5 seed, медоид по ECAPA среди кандидатов с CER = 0 (`refs.json`). Реплики — Base-клон эталона своего языка. Почему (2026-11-06, на слух пользователя): клон с английского эталона давал в русском иностранный акцент, длинный ровный эталон — дикторское чтение «как аудиокнига».
+- Base-модель не принимает `instruct`, поэтому у клона тон — только текстом и манерой эталона; ругань ровным голосом звучит комично. Реплики из `tone_lines.json` (ругань, досада) синтезируются **VoiceDesign с тоном** (`gen_full.py tone`): 12 seed, берётся ближайший по тембру (ECAPA) к эталону; тембр у них к эталону дальше, чем у клона (см. `tone_stats.json`).
 - Seed реплики = 1000·попытка + индекс; нарушители check (CER, тембр, формат) перегенерируются с другой попыткой до 3 раз (+3 — отдельным запуском).
 - `tts_text.json` — реплики, чей дословный текст модель стабильно читает неверно: для синтеза подставляется близкая запись (субтитров в игре нет).
 - `check_voice.py` — формат PV-К3 (ffmpeg), CER (Whisper small), тембр (ECAPA); `stats_full.json` — числа по каждому файлу. Сырьё (wav) — `~/data/pilot-voice/raw`, не в git.
-- Сброс репозитория: `ref_*.wav` (≈ 250 КБ) — эталоны голосов, лицензия Apache-2.0 (синтез).
+- В репозитории: `ref_<voice>_<lang>.wav` (≈ 250 КБ каждый) — эталоны голосов, лицензия Apache-2.0 (синтез).

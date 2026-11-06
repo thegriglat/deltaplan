@@ -11,6 +11,9 @@ for n in range(a.start, a.start + a.tries + 1):
     bad = sorted({m.group(1) for l in r.stdout.splitlines() if (m := re.match(r"VIOLATION (\w+/\w+/\w+):", l))})
     if not bad or n >= a.start + a.tries: break
     print(f"attempt {n}: {len(bad)} lines", flush=True)
-    subprocess.run([py, os.path.join(H, "gen_full.py"), "lines", "--config", a.config, "--out", a.dir, "--only", ",".join(bad),
-                    "--attempt", str(n), "--stats", os.path.join(H, "gen_stats.json")], check=True)
+    tone = set(json.load(open(os.path.join(H, "tone_lines.json")))["lines"])   # реплики с тоном — перегенерировать тем же способом
+    for cmd, part in (("lines", [b for b in bad if b.split("/")[2] not in tone]), ("tone", [b for b in bad if b.split("/")[2] in tone])):
+        if part:
+            subprocess.run([py, os.path.join(H, "gen_full.py"), cmd, "--config", a.config, "--out", a.dir, "--only", ",".join(part),
+                            "--attempt", str(n), "--stats", os.path.join(H, "gen_stats.json")], check=True)
 print("remaining:", json.load(open(a.stats))["violations"])

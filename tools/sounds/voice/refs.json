@@ -1,75 +1,149 @@
 {
- "male": {
-  "seed": 100,
-  "text": "The wind is steady today, and the ridge looks good for a long and quiet flight.",
-  "description": "A man in his thirties, warm medium-low voice, natural, relaxed, a little breathy like someone speaking in a flight harness outdoors. Close microphone, dry, no echo, no music.",
+ "male_ru": {
+  "seed": 103,
+  "text": "Так, пошёл. Ох, болтает! Ну, держись.",
+  "description": "A man in his forties, warm medium-low voice, natural, relaxed, a little breathy like someone speaking in a flight harness outdoors. Close microphone, dry, no echo, no music. Native Russian speaker, speaking Russian with no foreign accent. Casual short remarks to oneself in flight, lively and spontaneous, not reading, not narrating.",
   "candidates": [
    {
     "seed": 100,
-    "cer": 0.0,
-    "sim_to_others": 0.384,
-    "dur_s": 5.28
-   },
-   {
-    "seed": 101,
-    "cer": 0.0,
-    "sim_to_others": 0.304,
-    "dur_s": 5.04
-   },
-   {
-    "seed": 102,
-    "cer": 0.0,
-    "sim_to_others": 0.34,
-    "dur_s": 4.72
-   },
-   {
-    "seed": 103,
-    "cer": 0.0,
-    "sim_to_others": 0.363,
-    "dur_s": 5.28
-   },
-   {
-    "seed": 104,
-    "cer": 0.0,
-    "sim_to_others": 0.302,
-    "dur_s": 5.44
-   }
-  ]
- },
- "female": {
-  "seed": 102,
-  "text": "The wind is steady today, and the ridge looks good for a long and quiet flight.",
-  "description": "A woman in her thirties, warm medium voice, natural, relaxed, a little breathy like someone speaking in a flight harness outdoors. Close microphone, dry, no echo, no music.",
-  "candidates": [
-   {
-    "seed": 100,
-    "cer": 0.0,
-    "sim_to_others": 0.392,
+    "cer": 0.097,
+    "sim_to_others": 0.354,
     "dur_s": 4.56
    },
    {
     "seed": 101,
     "cer": 0.0,
-    "sim_to_others": 0.509,
-    "dur_s": 4.88
+    "sim_to_others": 0.321,
+    "dur_s": 5.76
    },
    {
     "seed": 102,
-    "cer": 0.0,
-    "sim_to_others": 0.539,
-    "dur_s": 5.68
+    "cer": 0.032,
+    "sim_to_others": 0.281,
+    "dur_s": 4.96
    },
    {
     "seed": 103,
     "cer": 0.0,
-    "sim_to_others": 0.366,
-    "dur_s": 5.12
+    "sim_to_others": 0.388,
+    "dur_s": 5.04
+   },
+   {
+    "seed": 104,
+    "cer": 0.032,
+    "sim_to_others": 0.325,
+    "dur_s": 4.0
+   }
+  ]
+ },
+ "male_en": {
+  "seed": 102,
+  "text": "Okay, here we go. Whoa, bumpy! Come on, hang in there.",
+  "description": "A man in his forties, warm medium-low voice, natural, relaxed, a little breathy like someone speaking in a flight harness outdoors. Close microphone, dry, no echo, no music. Native American English speaker. Casual short remarks to oneself in flight, lively and spontaneous, not reading, not narrating.",
+  "candidates": [
+   {
+    "seed": 100,
+    "cer": 0.0,
+    "sim_to_others": 0.361,
+    "dur_s": 4.48
+   },
+   {
+    "seed": 101,
+    "cer": 0.062,
+    "sim_to_others": 0.406,
+    "dur_s": 6.24
+   },
+   {
+    "seed": 102,
+    "cer": 0.0,
+    "sim_to_others": 0.445,
+    "dur_s": 4.32
+   },
+   {
+    "seed": 103,
+    "cer": 0.0,
+    "sim_to_others": 0.365,
+    "dur_s": 5.04
    },
    {
     "seed": 104,
     "cer": 0.0,
-    "sim_to_others": 0.533,
+    "sim_to_others": 0.341,
     "dur_s": 4.72
+   }
+  ]
+ },
+ "female_ru": {
+  "seed": 103,
+  "text": "Так, пошёл. Ох, болтает! Ну, держись.",
+  "description": "A woman in her thirties, warm medium voice, natural, relaxed, a little breathy like someone speaking in a flight harness outdoors. Close microphone, dry, no echo, no music. Native Russian speaker, speaking Russian with no foreign accent. Casual short remarks to oneself in flight, lively and spontaneous, not reading, not narrating.",
+  "candidates": [
+   {
+    "seed": 100,
+    "cer": 0.0,
+    "sim_to_others": 0.384,
+    "dur_s": 5.76
+   },
+   {
+    "seed": 101,
+    "cer": 0.0,
+    "sim_to_others": 0.476,
+    "dur_s": 4.64
+   },
+   {
+    "seed": 102,
+    "cer": 0.0,
+    "sim_to_others": 0.432,
+    "dur_s": 4.72
+   },
+   {
+    "seed": 103,
+    "cer": 0.0,
+    "sim_to_others": 0.527,
+    "dur_s": 5.52
+   },
+   {
+    "seed": 104,
+    "cer": 0.0,
+    "sim_to_others": 0.508,
+    "dur_s": 4.8
+   }
+  ]
+ },
+ "female_en": {
+  "seed": 104,
+  "text": "Okay, here we go. Whoa, bumpy! Come on, hang in there.",
+  "description": "A woman in her thirties, warm medium voice, natural, relaxed, a little breathy like someone speaking in a flight harness outdoors. Close microphone, dry, no echo, no music. Native American English speaker. Casual short remarks to oneself in flight, lively and spontaneous, not reading, not narrating.",
+  "candidates": [
+   {
+    "seed": 100,
+    "cer": 0.0,
+    "sim_to_others": 0.41,
+    "dur_s": 4.72
+   },
+   {
+    "seed": 101,
+    "cer": 0.0,
+    "sim_to_others": 0.457,
+    "dur_s": 4.8
+   },
+   {
+    "seed": 102,
+    "cer": 0.0,
+    "sim_to_others": 0.348,
+    "dur_s": 5.44
+   },
+   {
+    "seed": 103,
+    "cer": 0.0,
+    "sim_to_others": 0.486,
+    "dur_s": 5.04
+   },
+   {
+    "seed": 104,
+    "cer": 0.0,
+    "sim_to_others": 0.499,
+    "dur_s": 4.8
    }
   ]
  }

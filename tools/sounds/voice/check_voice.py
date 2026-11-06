@@ -5,7 +5,7 @@
   ~/data/pilot-voice/venv/bin/python check_voice.py ... --full --stats stats_full.json  # + Whisper (CER) и ECAPA (тембр)
 Быстрая проверка: все файлы <voice>/<lang>/<id>_<k>.ogg есть, лишних нет; Vorbis, моно, 44,1 кГц; -20 LUFS +-1; пик <= -3 dBFS;
 тишина по краям (ниже -45 dBFS) <= 80 мс; длительность 0,3-4,0 с. Остаточные нарушения --full (после 6 перегенераций) только печатаются.
---full: CER <= 0,25 против текста (кроме CER_SKIP); тембр — косинус ECAPA к эталону ref_<voice>.wav: жёстко >= 0,35 и запас
+--full: CER <= 0,25 против текста (кроме CER_SKIP); тембр — косинус ECAPA к эталону ref_<voice>_<lang>.wav (тот же язык): жёстко >= 0,35 и запас
 над эталоном другого голоса >= 0,15 (кроме CER_SKIP); доля >= 0,75 (порог из карточки) и min/медиана — в summary (ECAPA на фразах < 1,5 с занижает).
 exit 0 — нарушений нет; список нарушений — в stdout и в поле "violations" файла --stats.
 """
@@ -13,7 +13,7 @@ import argparse, json, os, re, subprocess, sys
 import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-CER_SKIP = {"stall_1", "landing_hard_3", "crash_1"}      # стоны/междометия: «Ой-ой!», «Ай.»/«Oof.», «Ох-х…»/«Ugh…»
+CER_SKIP = {"crash_1"}      # стон «Ох-х…»/«Ugh…» — Whisper не распознаёт; landing_hard_3 «Ай, блин.»/«Oof.» и stall_1 теперь слова — проверяются
 LUFS, LUFS_TOL, PEAK_MAX, EDGE_MAX_S, DUR_MIN, DUR_MAX, CER_MAX, SIM_MIN = -20.0, 1.0, -3.0, 0.080, 0.3, 4.0, 0.25, 0.75
 EDGE_DB = -45.0
 SIM_FLOOR, SIM_MARGIN = 0.35, 0.15   # жёсткие пороги тембра (см. README: ECAPA на коротких фразах редко даёт >= 0,75)
@@ -106,7 +106,8 @@ def main():
         refs = {}
         import soundfile as sf
         for v in voices:
-            w, sr = sf.read(os.path.join(HERE, f"ref_{v}.wav"), dtype="float32"); refs[v] = emb(w, sr)
+            for l in ("ru", "en"):
+                w, sr = sf.read(os.path.join(HERE, f"ref_{v}_{l}.wav"), dtype="float32"); refs[(v, l)] = emb(w, sr)
     only = set(a.only.split(",")) if a.only else None
     for rel in sorted(want & have):
         v, l, f = rel.split("/"); lid = f[:-4]
@@ -123,7 +124,7 @@ def main():
         if not DUR_MIN <= dur <= DUR_MAX: viol.append(f"{tag}: duration {dur:.2f}")
         if a.full:
             hyp = asr(x, 44100, l); c = cer(norm_text(spoken(lid, l, lines[lid][l])), norm_text(hyp))
-            e = emb(x, 44100); sim = float(e @ refs[v]); other = max(float(e @ refs[o]) for o in voices if o != v)
+            e = emb(x, 44100); sim = float(e @ refs[(v, l)]); other = max(float(e @ refs[(o, l)]) for o in voices if o != v)
             row.update(asr=hyp.strip(), cer=round(c, 3), sim=round(sim, 3), sim_other=round(other, 3))
             if c > CER_MAX and lid not in CER_SKIP: viol.append(f"{tag}: CER {c:.2f} '{hyp.strip()}'")
             if lid not in CER_SKIP and (sim < SIM_FLOOR or sim - other < SIM_MARGIN):

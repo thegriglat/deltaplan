@@ -3,7 +3,7 @@ type: contract
 status: "closed"
 module: pilot-voice
 area: game
-updated: "2026-11-05"
+updated: "2026-11-06"
 summary: "Реплики пилота: ситуации, вид, пасхалки (PV-К1), configs/pilot_voice.json (PV-К2), файлы голосов (PV-К3), логика и подключение (PV-К4)."
 related: ["docs/plan/pilot-voice.md", "docs/guide/instruments.md", "docs/guide/game/menus-settings.md"]
 contracts: [{"id": "PV-К1", "version": 3}, {"id": "PV-К2", "version": 3}, {"id": "PV-К3", "version": 1}, {"id": "PV-К4", "version": 3}]
@@ -18,6 +18,7 @@ contracts: [{"id": "PV-К1", "version": 3}, {"id": "PV-К2", "version": 3}, {"id
 История: v1 (2026-11-05) — 16 ситуаций; v2 (2026-11-05, Q1) — PV-К1 + `view` и реплики на пасхалки `egg_<id>`, `high` без пересечения с `view`;
 PV-К2 + `params` пасхалок; PV-К4 + `watch_eggs`, `egg_in_view`, `EasterEgg.voice_anchor`;
 v3 (2026-11-05, вопрос PVO-2) — заблокированное `gap_s` условие не тратит паузу и не ждёт в очереди; в очередь — только события, `max_wait_s` 8; `watch_eggs` повторяет `egg_seen`.
+Тексты реплик (2026-11-06, без смены версий) — разговорные, RU и EN написаны отдельно, не переводом; немного ругани и юмора.
 
 Принцип: пилот говорит то, что почувствовал бы сам, **по данным, которые есть у игрока** — отфильтрованный вариометр
 (то, что пищит и показывает прибор), воздушная скорость, перегрузка, высота над землёй, касание, облако вокруг, события задачи.
@@ -35,23 +36,23 @@ v3 (2026-11-05, вопрос PVO-2) — заблокированное `gap_s` �
 
 | id | Условие (значения по умолчанию — `params`) | Пр. | Пауза, с | chance | Реплики RU | Реплики EN | Тон (для синтеза) |
 |---|---|---|---|---|---|---|---|
-| `takeoff` | событие отрыва; сказать через `delay_s` 1,0; раз за полёт | 2 | — | 0,7 | Пошёл! · Летим! · Ну, поехали. | Here we go! · Airborne! · Okay, flying. | азарт, выдох |
-| `thermal_found` | в полёте; `v ≥ 1,0` непрерывно `hold_s` 3; перед этим `quiet_s` 20 подряд `v < 0,5` | 1 | 90 | 0,6 | Вроде нашёл. · О, тянет… · Есть, пошло вверх. | I think I've got something. · Ooh, it's pulling… · There we go, going up. | неуверенная радость, вполголоса |
-| `thermal_strong` | в полёте; `v ≥ 3,0` непрерывно `hold_s` 4 | 1 | 180 | 0,7 | Ух, как несёт! · Вот это термик! · Хорошо пошло! | Wow, it's really pulling! · Now that's a thermal! · Going up nicely! | восторг |
-| `thermal_lost` | в полёте; было `in_s` 30 со средним `v ≥ 0,8`, затем `v ≤ −1,0` непрерывно `hold_s` 5 | 1 | 120 | 0,6 | Потерял… · Куда делся? · Всё, кончился. | Lost it… · Where'd it go? · That's it, it's gone. | разочарование |
-| `sink` | в полёте; `v ≤ −3,0` непрерывно `hold_s` 3; не `stalled`; `V ≤ max_airspeed_ms` 15 (не пикирование) | 1 | 90 | 0,7 | Вот чёрт… · Сыплемся… · Ну и провал. | Oh, damn… · We're dropping… · What a sink. | досада |
-| `turbulence` | в полёте, `agl > 10`; за `window_s` 8 — не меньше `peaks` 3 выбросов `abs(n − 1/cos(bank)) ≥ 0,4` | 1 | 150 | 0,6 | Ох, болтает. · Тише, тише… · Ну и трясёт. | Bumpy… · Easy, easy… · Rough air. | напряжение |
-| `stall` | в полёте, `agl > 5`; `stalled` непрерывно `hold_s` 0,5 | 3 | 20 | 1,0 | Ой-ой! · Скорость! · Держу, держу… | Whoa! · Speed! · Hold it, hold it… | испуг, резко |
-| `fast` | в полёте; `V ≥ 22` (≈ 80 км/ч) непрерывно `hold_s` 3 | 1 | 180 | 0,6 | Ух, свистит! · Быстро идём. | The wind's howling! · We're flying fast. | азарт |
-| `low` | в полёте; `agl < 80` при `v < 0`, после того как с прошлого раза было `agl ≥ rearm_agl` 200 | 1 | 120 | 0,7 | Низковато. · Пора садиться. · Где тут сесть? | Getting low. · Time to land. · Where do I put down? | озабоченно |
-| `high` | в полёте; `gain` впервые за полёт перешёл ступень `step_m` 300 (300, 600, 900 …) | 1 | 120 | 0,5 | Хорошо забрался. · Вот это высота. · Ещё бы повыше. | Good height. · Now that's high. · A bit higher would be nice. | спокойная радость |
-| `view` | в полёте, `agl ≥ min_agl_m` 150; `abs(v) < v_calm_ms` 1,0 и ни одной реплики `calm_s` 60 подряд | 1 | 300 | 0,3 | Вот это вид… · Красиво тут. · Хорошо летим… | What a view… · Beautiful up here. · This is nice… | тихо, любуясь |
-| `cloud` | в полёте; `cloud ≥ 0,6` непрерывно `hold_s` 1 | 2 | 120 | 0,8 | Ничего не видно! · Влез в облако… | Can't see a thing! · I'm in the cloud… | тревога |
-| `turnpoint` | событие «точка маршрута взята» (`TaskTracker.turnpoint_reached`) | 2 | 10 | 1,0 | Есть точка! · Взял. | Got the turnpoint! · Got it. | довольно |
-| `goal` | событие «гол» (`TaskTracker.goal_reached`) | 2 | — | 1,0 | Есть гол! Долетел! · Да! Долетел. | Goal! Made it! · Yes! Made it. | ликование |
-| `landing_soft` | касание с `grade == "soft"`; через `delay_s` 0,6; раз за полёт | 2 | — | 0,7 | Мягко. · Ну вот и всё. · Красота. | Nice and soft. · And that's it. · Lovely. | облегчение |
-| `landing_hard` | касание с `grade == "hard"`; через `delay_s` 0,6; раз за полёт | 3 | — | 1,0 | Ох… ноги. · Жёстко вышло. · Ай. | Ouch… my legs. · That was hard. · Oof. | боль, кряхтение |
-| `crash` | касание/столкновение с `grade == "crash"`; через `delay_s` 0,8; раз за полёт | 3 | — | 1,0 | Ох-х… · Ну вот… | Ugh… · Oh no… | стон |
+| `takeoff` | событие отрыва; сказать через `delay_s` 1,0; раз за полёт | 2 | — | 0,7 | Пошёл! · Ну, с богом. · Поехали, родной. | Here we go! · Okay, don't screw this up. · Off we go, baby. | азарт, выдох |
+| `thermal_found` | в полёте; `v ≥ 1,0` непрерывно `hold_s` 3; перед этим `quiet_s` 20 подряд `v < 0,5` | 1 | 90 | 0,6 | О, есть. · Тянет, тянет… · Ага, попался! | Ooh, something here. · Come on, come on… · Gotcha! | неуверенная радость, вполголоса |
+| `thermal_strong` | в полёте; `v ≥ 3,0` непрерывно `hold_s` 4 | 1 | 180 | 0,7 | Ух, как прёт! · Вот это лифт! · Ха, лифт на небо! | Whoa, it's ripping! · Now that's a climb! · Elevator going up! | восторг |
+| `thermal_lost` | в полёте; было `in_s` 30 со средним `v ≥ 0,8`, затем `v ≤ −1,0` непрерывно `hold_s` 5 | 1 | 120 | 0,6 | Потерял. · Ну и где он? · Всё, кончился. | Lost it. · Where'd it go? · Aaand it's gone. | разочарование |
+| `sink` | в полёте; `v ≤ −3,0` непрерывно `hold_s` 3; не `stalled`; `V ≤ max_airspeed_ms` 15 (не пикирование) | 1 | 90 | 0,7 | Вот чёрт… · Сыплемся, блин. · Ну и дыра, ёлки. | Oh, come on… · Sinking like a brick. · Crap, crap, crap. | досада |
+| `turbulence` | в полёте, `agl > 10`; за `window_s` 8 — не меньше `peaks` 3 выбросов `abs(n − 1/cos(bank)) ≥ 0,4` | 1 | 150 | 0,6 | Ох, болтает. · Тише, тише, родной… · Ну и трясёт. | Bumpy… · Easy, easy, baby… · Jeez, rough one. | напряжение |
+| `stall` | в полёте, `agl > 5`; `stalled` непрерывно `hold_s` 0,5 | 3 | 20 | 1,0 | Твою ж мать! · Скорость, скорость! · Держу, держу, блин… | Holy shit! · Speed, speed! · Hang on, hang on… | испуг, резко |
+| `fast` | в полёте; `V ≥ 22` (≈ 80 км/ч) непрерывно `hold_s` 3 | 1 | 180 | 0,6 | Ух, свистит! · Ну, понеслась! | Whoa, fast! · Yeehaw! | азарт |
+| `low` | в полёте; `agl < 80` при `v < 0`, после того как с прошлого раза было `agl ≥ rearm_agl` 200 | 1 | 120 | 0,7 | Низковато. · Так, пора садиться. · Так, куда тут сесть-то? | Getting low. · Okay, time to land. · Where the hell do I land? | озабоченно |
+| `high` | в полёте; `gain` впервые за полёт перешёл ступень `step_m` 300 (300, 600, 900 …) | 1 | 120 | 0,5 | Хорошо забрался. · Ого, высоко. · Ещё бы чуть-чуть… | Nice height. · Whoa, way up. · Bit more, come on… | спокойная радость |
+| `view` | в полёте, `agl ≥ min_agl_m` 150; `abs(v) < v_calm_ms` 1,0 и ни одной реплики `calm_s` 60 подряд | 1 | 300 | 0,3 | Вот это вид… · Ради этого и летаем. · Эх, хорошо… | What a view… · This is why we fly. · Ahh, this is it. | тихо, любуясь |
+| `cloud` | в полёте; `cloud ≥ 0,6` непрерывно `hold_s` 1 | 2 | 120 | 0,8 | Ничего не видно! · Блин, в облако влез. | Can't see a damn thing! · Crap, I'm in the cloud. | тревога |
+| `turnpoint` | событие «точка маршрута взята» (`TaskTracker.turnpoint_reached`) | 2 | 10 | 1,0 | Есть точка! · Взял. | Got the turnpoint. · Got it. | довольно |
+| `goal` | событие «гол» (`TaskTracker.goal_reached`) | 2 | — | 1,0 | Долетел! · Да! Да! Есть! | Made it! · Yes! Yes! Yes! | ликование |
+| `landing_soft` | касание с `grade == "soft"`; через `delay_s` 0,6; раз за полёт | 2 | — | 0,7 | Мягко. · Как по маслу. · Красота. | Nice and soft. · Like butter. · Sweet. | облегчение |
+| `landing_hard` | касание с `grade == "hard"`; через `delay_s` 0,6; раз за полёт | 3 | — | 1,0 | Ох… ноги. · Ну, жёстко. · Ай, блин. | Ow… my legs. · Well, that hurt. · Oof. | боль, кряхтение |
+| `crash` | касание/столкновение с `grade == "crash"`; через `delay_s` 0,8; раз за полёт | 3 | — | 1,0 | Ох-х… · Ну приехали… | Ugh… · Well, shit… | стон |
 
 **Пасхалки** (Q1, 2026-11-05): нейтральная реплика, когда пилот заметил пасхалку — событие `egg_seen {id}` (PV-К4): точка
 `voice_anchor` пасхалки в конусе взгляда камеры `cone_deg` 30° (полуугол), не дальше `max_dist_m`, не закрыта рельефом, непрерывно `hold_s` 1,5.
@@ -60,19 +61,19 @@ v3 (2026-11-05, вопрос PVO-2) — заблокированное `gap_s` �
 
 | id | Пасхалка | `max_dist_m` | chance | Реплики RU | Реплики EN | Тон |
 |---|---|---|---|---|---|---|
-| `egg_an2` | Ан-2 | 1500 | 0,8 | О, кукурузник! · Ан-2 летит. | Oh, a biplane! · There goes an An-2. | удивление |
-| `egg_airliner` | лайнер со следом | 15000 | 0,4 | Лайнер высоко… · Кто-то в отпуск полетел. | An airliner up high… · Someone's off on holiday. | спокойно |
-| `egg_gloria` | глория | 3000 | 0,9 | Глория! · Ух ты, кольца вокруг тени! | A glory! · Wow, rings around my shadow! | восхищение |
-| `egg_balloon` | воздушный шар | 2000 | 0,8 | О, шар! · Воздушный шар летит. | Oh, a balloon! · There's a hot-air balloon. | радость |
-| `egg_balloon_festival` | фестиваль шаров | 4000 | 0,9 | Сколько шаров! · Ого, фестиваль! | So many balloons! · Wow, a balloon festival! | восторг |
-| `egg_uaz` | УАЗик | 800 | 0,8 | О, машина! · Буханка пылит. | Oh, a car! · Look at that van kicking up dust. | удивление |
-| `egg_people` | люди у лагеря | 150 | 0,7 | Машут! · Привет, наши! | They're waving! · Hi, everyone! | весело |
-| `egg_herds` | стадо, отара | 400 | 0,6 | Стадо внизу. · Пасутся… | A herd down there. · Grazing away… | спокойно |
-| `egg_group` | чужая группа на дальнем склоне | 4000 | 0,7 | Там тоже летают. · О, ещё группа! | Others are flying over there. · Oh, another group! | интерес |
-| `egg_eagle` | орёл | 150 | 1,0 | Ух ты, орёл! · Орёл рядом! | Whoa, an eagle! · An eagle right beside me! | восторг, вполголоса |
-| `egg_crop_circles` | круги на поле | 1500 | 0,8 | Это что, круги на поле? · Ну и узор… | Are those crop circles? · What a pattern… | недоумение |
-| `egg_hay_bales` | рулоны сена | 500 | 0,3 | Сено уже скатали. · Рулоны на поле. | They've baled the hay. · Hay bales in the field. | спокойно |
-| `egg_geese` | клин гусей | 600 | 0,9 | Гуси летят! · Клин… | Geese! · Look at that V… | радость |
+| `egg_an2` | Ан-2 | 1500 | 0,8 | О, Ан-2! · Кукурузник шпарит. | Oh, a plane! · Hey, a biplane. | удивление |
+| `egg_airliner` | лайнер со следом | 15000 | 0,4 | Лайнер. · Кто-то в отпуск полетел… | Airliner. · Someone's off on holiday… | спокойно |
+| `egg_gloria` | глория | 3000 | 0,9 | О, глория! · Ух ты, я святой! | Oh, a glory! · Whoa, I've got a halo! | восхищение |
+| `egg_balloon` | воздушный шар | 2000 | 0,8 | О, шар! · Ну, этим торопиться некуда. | Oh, a balloon! · No rush for those guys. | радость |
+| `egg_balloon_festival` | фестиваль шаров | 4000 | 0,9 | Сколько шаров! · Ого, тут целый праздник! | Look at all those balloons! · Whoa, it's a party! | восторг |
+| `egg_uaz` | УАЗик | 800 | 0,8 | О, буханка! · За мной едут, что ли? | Oh, a car. · Is that my ride? | удивление |
+| `egg_people` | люди у лагеря | 150 | 0,7 | Машут! · Привет, земляне! | They're waving! · Hello, earthlings! | весело |
+| `egg_herds` | стадо, отара | 400 | 0,6 | Живность внизу. · Пасутся себе… | Animals down there. · Just grazing… | спокойно |
+| `egg_group` | чужая группа на дальнем склоне | 4000 | 0,7 | Там тоже летают. · О, наши! | Others over there. · Oh, my people! | интерес |
+| `egg_eagle` | орёл | 150 | 1,0 | Ух ты, орёл! · Орёл! Отвали! | Whoa, an eagle! · Back off, buddy! | восторг, вполголоса |
+| `egg_crop_circles` | круги на поле | 1500 | 0,8 | Это что, круги? · Инопланетяне, не иначе. | Are those… crop circles? · Aliens. Definitely aliens. | недоумение |
+| `egg_hay_bales` | рулоны сена | 500 | 0,3 | О, рулоны. · Это уже осень, что ли? | Hay bales. · Is it autumn already? | спокойно |
+| `egg_geese` | клин гусей | 600 | 0,9 | Гуси! · Ребята, подвиньтесь. | Geese! · Hey guys, move over. | радость |
 
 Общие правила (PV-К2 `rules`):
 - одна реплика за раз; после конца реплики следующая — не раньше `gap_s` по приоритету новой: 1 → 20 с, 2 → 5 с, 3 → 2 с;
@@ -106,7 +107,7 @@ v3 (2026-11-05, вопрос PVO-2) — заблокированное `gap_s` �
       "priority": 1, "cooldown_s": 90.0, "chance": 0.7,
       "params": {"v_ms": -3.0, "hold_s": 3.0, "max_airspeed_ms": 15.0},
       "lines": [
-        {"ru": "Вот чёрт…", "en": "Oh, damn…", "tone": "досада"}
+        {"ru": "Вот чёрт…", "en": "Oh, come on…", "tone": "досада"}
       ]
     }
   }
