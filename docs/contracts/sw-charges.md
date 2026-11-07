@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-11-08"
 summary: "Стыки sw-charges: случай, поле, прогон слоя Рипа (SW1–SW3); режимы по F0, M (SW4); слой против Пикара на разрезах (SW5)."
 related: ["docs/plan/sw-charges.md", "docs/contracts/cascade-2d.md", "tools/research/sw_charges/README.md"]
-contracts: [{"id": "SW1", "version": 1}, {"id": "SW2", "version": 1}, {"id": "SW3", "version": 1}, {"id": "SW4", "version": 1}, {"id": "SW5", "version": 1}]
+contracts: [{"id": "SW1", "version": 1}, {"id": "SW2", "version": 1}, {"id": "SW3", "version": 1}, {"id": "SW4", "version": 1}, {"id": "SW5", "version": 2}]
 ---
 # Контракты модуля sw-charges
 
@@ -106,15 +106,20 @@ a = H·√2·e^(−½)/s; step_up — z = H·(1 + tanh(x/a))/2, step_down — H�
   R4j: F0 > 1, стоячий прыжок, без бора; R2: F0 > 1, без бора и прыжка, Fr_crest > 1,15; иначе `"unclassified"`.
   Подветренный прыжок — скачок h > 0,05·h0 при x > 0 (`x_jump` — его положение).
 
-## SW5 v1 — слой против Пикара на разрезах
+## SW5 v2 — слой против Пикара на разрезах
 Владелец — задача опыта (а) разрезов; потребители — сводка этапа 1, шлюз (условие «грубее аналитики»).
-Эталон — поля F1 cascade-2d (`docs/contracts/cascade-2d.md` F1, `$CASCADE2D_DATA/fields/<C>/picard_none_d<dx>.json`).
-- Ветер слоя Пикара в колонне i: ū_P(x) = среднее u клеток воздуха (среднее двух x-граней клетки) при z_b < z ≤ z_b + h_SW(x)
-  (толщина слоя — из поля SW того же случая; h_SW < dz — одна нижняя клетка). Слой — ū_SW = hu/h (среднее SW2, если есть).
-- Нормировка: ū_up — ū_P при x = −4800 м (как U_ref cascade-2d M1). x_c, L — из F0 cascade-2d (C4 — `case_params`).
-- Метрики по |x − x_c| ≤ 6L: `E` = СКО(ū_SW − ū_P)/ū_up; `E0` = СКО(ū_P(−4800) − ū_P)/ū_up (базовая линия «ровный ветер»);
-  `S_sw`, `S_p` — разгон на гребне ū(x_c)/ū_up; `D_sw`, `D_p` — тень: min ū по x ∈ [x_c, x_c + 6L] / ū_up;
-  `x_D_sw`, `x_D_p` — где этот минимум, м.
-- Путь — `tools/research/sw_charges/out/sections/sections.json` + `.csv`; JSON (`format: "sw-sections"`, `version: 1`):
-  `git`, `created`, `rows` — {`case` (C0…C4), `dx` (Пикара), `sw_case` (имя SW1), `sw_run` (SW3), `rule_b0`, `h0`, `b0`, `U0`,
-  `F0`, `M`, `E`, `E0`, `S_sw`, `S_p`, `D_sw`, `D_p`, `x_D_sw`, `x_D_p`, `status`, `wall_s`}; неприменимое — `null`.
+v2 (2026-11-08, решение пользователя о масштабах методов): мелкая вода — только масштабы ≫ толщины слоя, днём сетка
+слоя dx_sw ≥ 400 м (200 м — чувствительность); рельеф слоя — блочное среднее земли разреза по клетке слоя.
+Эталон — поля F1 cascade-2d (`docs/contracts/cascade-2d.md` F1, `$CASCADE2D_DATA/fields/<C>/picard_none_d<dx>.json`),
+основной — dx 50, контроль — dx 400.
+- Ветер слоя Пикара в колонне клетки слоя: ū_P = среднее u клеток воздуха Пикара (среднее двух x-граней клетки) при
+  z_b < z ≤ z_b + h_SW по всем колоннам Пикара внутри клетки слоя (z_b, h_SW — земля и толщина слоя этой клетки SW;
+  h_SW < dz — одна нижняя клетка). Слой — ū_SW = hu/h (среднее SW2, если есть).
+- Нормировка: ū_up — ū_P в клетке слоя, содержащей x = −4800 м. x_c, L — из F0 cascade-2d (C4 — `case_params`).
+- Метрики по клеткам слоя с |x − x_c| ≤ max(6L, 3000 м): `E` = СКО(ū_SW − ū_P)/ū_up; `E0` = СКО(ū_up − ū_P)/ū_up
+  (базовая линия «ровный ветер»); `S_sw`, `S_p` — разгон: ū в клетке гребня / ū_up; `D_sw`, `D_p` — тень: min ū по
+  x ∈ [x_c, x_c + max(6L, 3000 м)] / ū_up; `x_D_sw`, `x_D_p` — где этот минимум, м.
+- Путь — `tools/research/sw_charges/out/sections/sections.json` + `.csv`; JSON (`format: "sw-sections"`, `version: 2`):
+  `git`, `created`, `rows` — {`case` (C0…C4), `dx` (Пикара), `dx_sw` (сетка слоя), `sw_case` (имя SW1), `sw_run` (SW3),
+  `rule_b0`, `h0`, `b0`, `U0`, `F0`, `M`, `E`, `E0`, `S_sw`, `S_p`, `D_sw`, `D_p`, `x_D_sw`, `x_D_p`, `status`, `wall_s`};
+  неприменимое — `null`.

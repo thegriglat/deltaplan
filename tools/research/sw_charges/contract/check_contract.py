@@ -12,7 +12,7 @@ import struct
 import sys
 import tempfile
 
-FORMATS = {"sw-case": 1, "sw-field": 1, "sw-run": 1, "sw-regimes": 1, "sw-sections": 1}
+FORMATS = {"sw-case": 1, "sw-field": 1, "sw-run": 1, "sw-regimes": 1, "sw-sections": 2}
 REGIMES = {"R1", "R2", "R3", "R4j", "R5", "R6", "unclassified"}
 THEORY = {"R1", "R2", "R3", "R2|R4j", "R5", "R6"}
 BC = {"farfield", "transmissive", "wall", "periodic"}
@@ -189,7 +189,7 @@ def check_run(path, d):
 REG_KEYS = ("case", "run", "shape", "s", "H", "h0", "b0", "U0", "F0", "M", "Fr_game", "N", "z_i", "rule_b0",
             "regime_sw", "regime_theory", "match", "Fr_crest", "h_up", "bore_speed", "lee_jump", "x_jump", "q_ratio",
             "dry_cells", "status", "wall_s")
-SEC_KEYS = ("case", "dx", "sw_case", "sw_run", "rule_b0", "h0", "b0", "U0", "F0", "M", "E", "E0", "S_sw", "S_p",
+SEC_KEYS = ("case", "dx", "dx_sw", "sw_case", "sw_run", "rule_b0", "h0", "b0", "U0", "F0", "M", "E", "E0", "S_sw", "S_p",
             "D_sw", "D_p", "x_D_sw", "x_D_p", "status", "wall_s")
 
 
@@ -231,7 +231,7 @@ def check_sections(path, d):
             raise ContractError(f"rows[{i}].case: {r['case']!r}")
         if r["rule_b0"] not in ("N2h0", "N2delta", None):
             raise ContractError(f"rows[{i}].rule_b0: {r['rule_b0']!r}")
-        for k in ("dx", "h0", "b0", "U0", "F0", "M"):
+        for k in ("dx", "dx_sw", "h0", "b0", "U0", "F0", "M"):
             num(r[k], f"rows[{i}].{k}")
         for k in ("E", "E0", "S_sw", "S_p", "D_sw", "D_p", "x_D_sw", "x_D_p"):
             num(r[k], f"rows[{i}].{k}", allow_null=True)
@@ -337,8 +337,8 @@ def _synth(t):
     with open(regp, "w") as f:
         json.dump(reg, f)
     open(regp[:-5] + ".csv", "w").close()
-    sec = {"format": "sw-sections", "version": 1, "git": "x", "created": "2026-11-08T00:00:00",
-           "rows": [{"case": "C1", "dx": 50.0, "sw_case": "c1", "sw_run": runp, "rule_b0": "N2h0", "h0": 500.0,
+    sec = {"format": "sw-sections", "version": 2, "git": "x", "created": "2026-11-08T00:00:00",
+           "rows": [{"case": "C1", "dx": 50.0, "dx_sw": 400.0, "sw_case": "c1", "sw_run": runp, "rule_b0": "N2h0", "h0": 500.0,
                      "b0": 0.1, "U0": 5.0, "F0": 0.7, "M": 0.4, "E": 0.1, "E0": 0.2, "S_sw": 1.2, "S_p": 1.3,
                      "D_sw": 0.8, "D_p": 0.7, "x_D_sw": 600.0, "x_D_p": 700.0, "status": "steady", "wall_s": 1.0}]}
     secp = os.path.join(t, "sections.json")
@@ -369,6 +369,7 @@ def selftest():
             (regp, lambda d: d["rows"][0].update(regime_theory="R4")),
             (secp, lambda d: d["rows"][0].pop("E0")),
             (secp, lambda d: d["rows"][0].update(case="C9")),
+            (secp, lambda d: d.update(version=1)),
         ]
         for path, spoil in cases:
             with open(path) as f:
