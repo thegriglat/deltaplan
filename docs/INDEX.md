@@ -118,6 +118,8 @@ generated: true
 - **sw-charges** — Исследование без Пикара: слой мелкой воды (блокирование, стоки, склоны), затем заряды на поверхности рельефа и вихревые нити — 3D-поле. [active 2026-11-08] — [план](plan/sw-charges.md) · [контракты](contracts/sw-charges.md)
   - [docs/research/sw_charges/literature.md](research/sw_charges/literature.md) — Литература SWC-1: мелкая вода Рипа над рельефом, режимы по Fr (критическая высота), стоки, вовлечение, схемы; правило U10,N,z_i → h0,b0,U0.
   - [docs/research/sw_charges/unified-scales.md](research/sw_charges/unified-scales.md) — Три варианта единого описания ветра трёх масштабов (вихревые частицы, слой + поток массы, диполи и пары), литература, два 2D-прототипа.
+  - [docs/research/sw_charges/proto-c.md](research/sw_charges/proto-c.md) — Прототип C (SWC-7): диполи ЛЧ и пары болтанки в 2D без рельефа; обратные потоки есть, σ_w пар завышена, вердикт «частично».
+  - [tools/research/sw_charges/proto_c/README.md](../tools/research/sw_charges/proto_c/README.md) — Прототип C: код NumPy, команды воспроизведения, данные out/.
   - [tools/research/sw_charges/README.md](../tools/research/sw_charges/README.md) — sw-charges: опыты слоя мелкой воды (Рипа, reduced gravity) и зарядов на поверхности рельефа на Rust — данные, команды, таблицы.
 
 ## flight
