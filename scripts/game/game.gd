@@ -584,8 +584,9 @@ func _air_place() -> AirPlaceData:
 	return place_fb
 
 
-## Условия воздуха (W5): прогноз пилота, часы старта (sky.clock) и ветер у старта. Ветер «встречный» —
-## румб по курсу площадки (поверх прогноза), выше старта ветер сильнее (прирост по климату считает крейт).
+## Условия воздуха (W5): прогноз пилота, часы старта (sky.clock) и ветер прогноза — набегающий поток
+## (10 м над открытой местностью, WF-К1). Ветер «встречный» — румб по курсу площадки (поверх прогноза),
+## выше старта ветер сильнее (прирост по климату считает крейт).
 func _air_conditions() -> Dictionary:
 	var cond := {
 		"forecast": settings.forecast(),
@@ -594,7 +595,6 @@ func _air_conditions() -> Dictionary:
 		# шаг пересчёта погоды по часу (крейт требует)
 		"quantum_h": Weather.quantum_h(),
 		"wind_ref": {"ref_msl": _start_pos.y},  # прирост ветра с высотой (gain_per_km) берёт крейт из климата
-		"inflow_mode": StartWeather.wind_ref_of(settings),
 	}
 	if settings.wind_into_launch:
 		cond["overrides"] = {"wind_from_deg": _site_heading}

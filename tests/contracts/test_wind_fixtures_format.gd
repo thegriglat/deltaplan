@@ -17,7 +17,8 @@ func _json(path: String) -> Variant:
 func _cases() -> PackedStringArray:
 	var out := PackedStringArray()
 	for f in DirAccess.get_files_at(ROOT.path_join("cases")):
-		if f.ends_with(".json") and not f.ends_with(".desc.json"):
+		# .desc.json — описания, .weather.json — погода и климат (RW-12d): это не случаи
+		if f.ends_with(".json") and not f.ends_with(".desc.json") and not f.ends_with(".weather.json"):
 			out.append(f.get_basename())
 	out.sort()
 	return out
@@ -152,7 +153,7 @@ func _check_day(n: String, c: Dictionary) -> void:
 	check(sh >= 10.0 and sh <= 12.0, "%s: start_hour 10…12" % n)
 	check(float(cond.get("speed", 0.0)) == 1.0, "%s: speed 1" % n)
 	check(float(cond.get("quantum_h", 0.0)) > 0.0, "%s: quantum_h" % n)
-	check(["start", "inflow"].has(String(cond.get("inflow_mode", ""))), "%s: inflow_mode" % n)
+	check(not cond.has("inflow" + "_mode"), "%s: режима притока нет (WF-К1)" % n)
 	check((cond.get("overrides", {}) as Dictionary).has("thermal_spacing_m"), "%s: overrides.thermal_spacing_m" % n)
 	var wr: Dictionary = cond.get("wind_ref", {})
 	check(wr.has("ref_msl") and wr.has("gain_per_km"), "%s: wind_ref" % n)
@@ -182,11 +183,9 @@ func _check_day(n: String, c: Dictionary) -> void:
 	check(labels.has("L50"), "%s: есть точки внутри окна 50 м" % n)
 
 
-## Набор 2: дневных случаев не меньше трёх, есть inflow и start, есть ветер ≥ 25 км/ч и ≤ 15 км/ч.
+## Набор 2: дневных случаев не меньше трёх, есть ветер ≥ 25 км/ч и ≤ 15 км/ч.
 func test_day_cases_set() -> void:
 	var days := 0
-	var inflow := 0
-	var start := 0
 	var strong := 0
 	var weak := 0
 	for n in _cases():
@@ -194,14 +193,10 @@ func test_day_cases_set() -> void:
 			continue
 		days += 1
 		var c: Dictionary = _json(ROOT.path_join("cases/%s.json" % n))
-		var mode := String((c.conditions as Dictionary).get("inflow_mode", ""))
-		inflow += 1 if mode == "inflow" else 0
-		start += 1 if mode == "start" else 0
 		var w := float((c.conditions.forecast as Dictionary).get("wind_speed_kmh", 0.0))
 		strong += 1 if w >= 25.0 else 0
 		weak += 1 if w >= 10.0 and w <= 15.0 else 0
 	check(days >= 3, "дневных случаев не меньше трёх: %d" % days)
-	check(inflow >= 1 and start >= 1, "есть inflow (%d) и start (%d)" % [inflow, start])
 	check(strong >= 1 and weak >= 1, "есть ветер ≥ 25 км/ч (%d) и 10…15 км/ч (%d)" % [strong, weak])
 
 

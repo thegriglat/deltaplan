@@ -99,7 +99,6 @@ func _air() -> Atmosphere:
 		"start_hour": 13.0,
 		"speed": 1.0,
 		"quantum_h": 0.5,
-		"inflow_mode": "start",
 	}
 	_a.set_conditions(cond)
 	_a.set_static_thermals(PackedFloat32Array([0.0, 0.0, 4.0, 130.0]), 0)

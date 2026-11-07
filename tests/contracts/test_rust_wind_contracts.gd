@@ -398,21 +398,18 @@ func test_conditions_validation() -> void:
 			a.set_conditions({"preset": _preset(), "bogus": 1}) == 1,
 			"%s: посторонний ключ — BAD_INPUT" % impl
 		)
+		# WF-К1: режима притока нет, ключ посторонний при любом значении
+		for mode: Variant in ["start", "inflow", "x"]:
+			check(
+				a.set_conditions({"preset": _preset(), "inflow" + "_mode": mode, "start_hour": 12.0, "speed": 1.0}) == 1,
+				"%s: ключ режима притока %s — посторонний, BAD_INPUT" % [impl, mode]
+			)
 		if impl == "gd":
-			check(
-				a.set_conditions({"preset": _preset(), "inflow_mode": "x"}) == 1,
-				"inflow_mode вне списка — BAD_INPUT"
-			)
-			check(
-				a.set_conditions({"preset": _preset(), "inflow_mode": "inflow", "start_hour": 12.0, "speed": 1.0}) == 0,
-				"inflow_mode inflow — OK"
-			)
 			check(
 				(
 					a.set_conditions(
 						{
 							"preset": _preset(),
-							"inflow_mode": "start",
 							"speed": 1.0,
 							"start_hour": 12.0,
 							"blend_s": null,

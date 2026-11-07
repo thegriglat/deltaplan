@@ -22,7 +22,6 @@ func _forecast(wind_from: float = 270.0) -> Dictionary:
 		"speed": 1.0,
 		"quantum_h": 1.0,
 		"wind_ref": {"ref_msl": 1000.0, "gain_per_km": 1.0},
-		"inflow_mode": "start",
 	}
 
 
