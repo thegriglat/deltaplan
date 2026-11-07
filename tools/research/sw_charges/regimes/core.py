@@ -75,6 +75,9 @@ def analyse(meta, st, field, snaps, rec):
     a = meta["source"]["a"]; h0 = meta["ref"]["h0"]; b0 = meta["ref"]["b0"]
     h = field["h"][0]; hu = field["hu"][0]; hb = field["hb"][0]
     ic = nx // 2
+    if meta["source"]["shape"] == "step_up":   # SW4 (уточнение): Fr_crest у step_up — в начале плато (zb >= 0,99 H)
+        ip = int(np.argmax(field["zb"][0] >= 0.99 * meta["source"]["H"]))
+        ic = ip + 1
     hc = 0.5 * (h[ic - 1] + h[ic]); huc = 0.5 * (hu[ic - 1] + hu[ic]); hbc = 0.5 * (hb[ic - 1] + hb[ic])
     fr_crest = abs(huc / hc) / math.sqrt(hbc / hc * hc) if hc > 1e-9 and hbc > 0 else None
     q_ratio = huc / (h0 * meta["ref"]["U0"]) if meta["ref"]["U0"] else None

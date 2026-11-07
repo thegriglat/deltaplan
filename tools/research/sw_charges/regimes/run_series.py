@@ -22,8 +22,10 @@ def jobs_a1(part):
             add("ridge", 6, F, M); add("step_up", 3, F, M)
     for (F, M) in [(0.5, 0.3), (1.5, 0.3), (2, 0.4)]:
         add("ridge", 3, F, M, dxdiv=40)
+    if part == "a1su":
+        return [j for j in J if j[0] == "step_up"]
     n = {"a1a": 0, "a1b": 1, "a1c": 2, "a1d": 3}[part]
-    return [j for i, j in enumerate(J) if i % 4 == n]
+    return [j for i, j in enumerate(J) if i % 4 == n and j[0] != "step_up"]
 
 
 def name_a1(shape, ah, F, M, dxdiv, js=False):
