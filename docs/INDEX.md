@@ -117,6 +117,7 @@ generated: true
   - [tools/research/cascade_2d/metrics/README.md](../tools/research/cascade_2d/metrics/README.md) — Метрики M1 (E_u, E_w, dS, r_w, L_rec, баланс, термик, σ), базовые линии B_k и картинки поле-против-эталона для cascade-2d.
 - **sw-charges** — Исследование без Пикара: слой мелкой воды (блокирование, стоки, склоны), затем заряды на поверхности рельефа и вихревые нити — 3D-поле. [active 2026-11-08] — [план](plan/sw-charges.md) · [контракты](contracts/sw-charges.md)
   - [docs/research/sw_charges/literature.md](research/sw_charges/literature.md) — Литература SWC-1: мелкая вода Рипа над рельефом, режимы по Fr (критическая высота), стоки, вовлечение, схемы; правило U10,N,z_i → h0,b0,U0.
+  - [docs/research/sw_charges/proto-a-terrain.md](research/sw_charges/proto-a-terrain.md) — Прототип A над рельефом (SWC-13): термик у склона и ротор за гребнем, земля — панели; подтекание есть, ротор — только со сходом вихрей.
   - [docs/research/sw_charges/proto-a.md](research/sw_charges/proto-a.md) — Прототип A (SWC-6): вихревые частицы с плавучестью, 2D; кольцо, ∫w dx=0 и a=b/2 получаются, КГ-слой частично; N² на CuPy 43 мс при 10⁴.
   - [docs/research/sw_charges/proto-c.md](research/sw_charges/proto-c.md) — Прототип C (SWC-7): диполи Лэмба — Чаплыгина и пары болтанки, 2D без рельефа; поток тепла из замыкания сходится, σ_w и ядро — нет.
   - [docs/research/sw_charges/stage1-regimes.md](research/sw_charges/stage1-regimes.md) — Слой Рипа даёт режимы теории §2 (94 % ridge, бор ±0,001); в условиях air-phase при h/z_i ≥ 1 всегда R6, Fr_game,c ≈ 1,2–1,3.
