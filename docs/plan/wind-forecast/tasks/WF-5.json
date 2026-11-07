@@ -1,0 +1,54 @@
+{
+  "id": "WF-5",
+  "module": "wind-forecast",
+  "type": "dp-engineer",
+  "title": "Хвосты ревью WF-2: проверки тестов ветра",
+  "goal": "Закрыть замечания ревью WF-2: выяснить на базе до WF-2, приходит ли weather_updated при смене часа/скорости, и вернуть проверку или зафиксировать находку по W2; вернуть проверку роста iters, assert непустоты в case_prepare.rs, покрытие загрузки снимка поля (бывший test_rw7_field_from_crate.gd), точный комментарий в air_model_hash.gd.",
+  "plan_ref": "§Задачи: Убрать подгонку (ревью WF-2)",
+  "contracts": [
+    {
+      "name": "WF-К1",
+      "version": "3",
+      "ref": "docs/contracts/wind-forecast.md"
+    },
+    {
+      "name": "W2",
+      "version": "6",
+      "ref": "docs/contracts/wind-forecast.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/wind-forecast-WF-5",
+  "branch": "wind-forecast/WF-5",
+  "base": "feature/wind-forecast",
+  "scope": [
+    "tests/contracts/test_rust_wind_consumers.gd",
+    "rust/dp-air/tests/case_prepare.rs",
+    "tests/atmosphere/",
+    "scripts/atmosphere/air_model_hash.gd"
+  ],
+  "dont_touch": [
+    "rust/dp-air/src/",
+    "scripts/game/",
+    "scripts/atmosphere/atmosphere.gd",
+    "docs/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "rust_wind_consumers",
+      "tests": "rust_wind_consumers"
+    },
+    {
+      "name": "field_import",
+      "tests": "field_import"
+    },
+    {
+      "name": "case_prepare",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --release -p dp-air --test case_prepare",
+      "expect": "re:test result: ok\\. [1-9]"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-08T02:28:56"
+}

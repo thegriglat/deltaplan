@@ -1,0 +1,85 @@
+{
+  "id": "WF-4",
+  "module": "wind-forecast",
+  "type": "dp-engineer",
+  "title": "Опорная высота прогноза — отметка открытой местности",
+  "goal": "Скорость прогноза в аналитике (фон вне окон, подветренная опасность, болтанка) отнесена к 10 м над открытой местностью на отметке valley_msl_m места, а не к отметке старта; рост ветра с высотой от неё сохраняется; игра wind_ref в условия не кладёт; поле Пикара не меняется.",
+  "plan_ref": "§Условия остановки (шлюз): Q1 = B",
+  "contracts": [
+    {
+      "name": "WF-К1",
+      "version": "3",
+      "ref": "docs/contracts/wind-forecast.md"
+    },
+    {
+      "name": "W5",
+      "version": "13",
+      "ref": "docs/contracts/wind-forecast.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/wind-forecast-WF-4",
+  "branch": "wind-forecast/WF-4",
+  "base": "feature/wind-forecast",
+  "scope": [
+    "rust/dp-air/src/formula.rs",
+    "rust/dp-air/src/terms/weather_link.rs",
+    "rust/dp-air/src/conditions.rs",
+    "rust/dp-air/tests/",
+    "scripts/game/game.gd",
+    "configs/atmosphere.json",
+    "tests/game/test_forecast_game.gd",
+    "tests/atmosphere/test_weather_day.gd",
+    "tests/contracts/test_wind_forecast_k1.gd",
+    "tools/research/wind_forecast/"
+  ],
+  "dont_touch": [
+    "rust/dp-air/src/field/",
+    "rust/dp-air/src/terms/frame.rs",
+    "scenes/",
+    "scripts/ui/",
+    "docs/",
+    "CHANGELOG.md",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "wind_forecast",
+      "tests": "wind_forecast"
+    },
+    {
+      "name": "forecast_game",
+      "tests": "forecast_game"
+    },
+    {
+      "name": "weather_day",
+      "tests": "weather_day"
+    },
+    {
+      "name": "rust_wind",
+      "tests": "rust_wind"
+    },
+    {
+      "name": "cargo",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace --release",
+      "expect": "exit=0"
+    },
+    {
+      "name": "ref_valley_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --release -p dp-air wf4_ref_msl",
+      "expect": "re:test result: ok\\. [1-9]"
+    },
+    {
+      "name": "game_no_ref",
+      "cmd": "! grep -n 'ref_msl' scripts/game/game.gd",
+      "expect": "exit=0"
+    },
+    {
+      "name": "field_same",
+      "cmd": "python3 -I tools/research/wind_forecast/compare_after.py",
+      "expect": "num:max_rel=([0-9.eE+-]+) <=0.005"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-08T02:28:16"
+}
