@@ -101,10 +101,17 @@ func test_status_stage_field_iters() -> void:
 	check(a.load_place(place) == 0, "load_place")
 	check(a.start_at(0.0) in [0, 3], "start_at")
 	var t0 := Time.get_ticks_msec()
+	var last_run := -1
+	var last_iters := 0
 	while Time.get_ticks_msec() - t0 < 900000 and not a.is_ready():
 		a.pump(8000)
 		var st: Dictionary = a.status()
 		check(typeof(st.iters) == TYPE_INT, "iters — int")
+		# W2 v6: iters считается заново в каждом прогоне — внутри одного (run тот же) не убывает
+		if int(st.run) == last_run:
+			check(int(st.iters) >= last_iters, "iters не убывает в прогоне %d: %d → %d" % [last_run, last_iters, int(st.iters)])
+		last_run = int(st.run)
+		last_iters = int(st.iters)
 		OS.delay_msec(2)
 	check(a.is_ready(), "READY на синтетическом месте: %s" % str(a.status().get("reason", "")))
 	var done: Dictionary = a.status()
@@ -196,6 +203,14 @@ func test_place_from_terrain_and_field_in_facade() -> void:
 	c2["speed"] = 2.0
 	check(a.set_conditions(c2) == 0, "set_conditions: другой час и скорость")
 	var w_after: Dictionary = a.weather()
+	# сигнал мягкой смены приходит из опроса версий (pump) — прокрутить его после смены часа и скорости
+	a.pump(8000)
+	a.pump(8000)
+	# находка WF-5: сигнал при смене часа и скорости приходит и на базе до WF-2 (выведенная погода
+	# ходит по часу дня; trait.md: мягкая версия растёт при смене величин больше 1e-3 отн.).
+	# Проверяем согласие сигнала с погодой: сигнал — только если погода и правда изменилась.
+	check(updated[0] <= 1, "weather_updated не чаще раза на смену условий: %d" % updated[0])
+	check(updated[0] == 0 or w_after != w_before, "сигнал без изменения погоды")
 	# прогноз пилота (температура, ветер, небо) тот же; производные величины ходят по часу дня
 	for k in ["temperature_c", "wind_speed_kmh", "wind_from_deg", "sky"]:
 		check(w_before.get(k) == w_after.get(k), "прогноз не менялся: %s" % k)

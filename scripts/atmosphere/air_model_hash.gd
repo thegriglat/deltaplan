@@ -12,15 +12,18 @@ const CODE_HASH_FILE := "res://data/air_model_hash.txt"
 static var _code_hash_cache := ""
 
 
-## Хеш кода модели по исходникам: *.gd и *.glsl каталога модели. "" — исходники
-## не читаются (экспорт).
+## Хеш кода модели по исходникам: *.gd и *.glsl каталога модели, кроме air_field_import.gd (разбор
+## снимка поля, на модель не влияет; как прежде исключался загрузчик запечённых полей).
+## "" — исходники не читаются (экспорт).
 static func code_hash_of_sources() -> String:
 	var dir := "res://scripts/atmosphere/air_model"
 	var names := Array(DirAccess.get_files_at(dir))
 	names.sort()
 	var lines := PackedStringArray()
 	for n: String in names:
-		if (n.ends_with(".gd") or n.ends_with(".glsl")):
+		if n == "air_field_import.gd":
+			continue
+		if n.ends_with(".gd") or n.ends_with(".glsl"):
 			lines.append("%s:%s" % [n, FileAccess.get_sha256(dir.path_join(n))])
 	if lines.is_empty():
 		return ""
