@@ -50,7 +50,7 @@ def induced(x, z, R, U, L, use_images=True):
 
 
 def run(alpha=0.15, beta=0.5, zcap=100.0, L=5000.0, R0=None, gam_ml=0.5e-3, gam_up=5e-3, induced_on=False, T=3 * 3600.0, dt=1.0, seed=3,
-        win=(3600.0, 3 * 3600.0), dth0=DTH0, forcing=False, verbose=False):
+        win=(3600.0, 3 * 3600.0), dth0=DTH0, verbose=False):
     rng = np.random.default_rng(seed)
     if R0 is None:
         R0 = float(allen_r2(0.1))
@@ -157,8 +157,7 @@ def run(alpha=0.15, beta=0.5, zcap=100.0, L=5000.0, R0=None, gam_ml=0.5e-3, gam_
     zi_end = log[-1]["zi"]
     layer0 = float(np.mean(u0_profile[ZC < ZI]))
     res = {
-        "params": {"alpha": alpha, "beta_detrain": beta, "zcap": zcap, "L": L, "R0": R0, "gam_ml": gam_ml, "induced": induced_on, "T": T, "dt": dt, "nu_births_per_s": nu,
-                   "forcing": forcing},
+        "params": {"alpha": alpha, "beta_detrain": beta, "zcap": zcap, "L": L, "R0": R0, "gam_ml": gam_ml, "induced": induced_on, "T": T, "dt": dt, "nu_births_per_s": nu},
         "n_alive_mean": nalive_sum / nsteps, "us_per_step": tstep / nsteps * 1e6,
         "levels": levels, "H_profile": Fh_m.tolist(), "uw_profile": Fu_m.tolist(), "z_centres": ZC.tolist(),
         "zi_start": log[0]["zi"], "zi_end": zi_end, "zi_enc_end": log[-1]["zi_enc"], "log": log,
@@ -189,7 +188,7 @@ def main():
     out = {"base": base, "scan": {}}
     cfgs = {"beta_0": dict(beta=0.0), "beta_1": dict(beta=1.0), "ucap_300": dict(zcap=300.0), "alpha_0.10": dict(alpha=0.10), "alpha_0.20": dict(alpha=0.20), "induced_on": dict(induced_on=True),
             "R0_50": dict(R0=50.0), "R0_100": dict(R0=100.0), "L_2500": dict(L=2500.0), "L_10000": dict(L=10000.0),
-            "gam_ml_0.1": dict(gam_ml=0.1e-3), "gam_ml_1.0": dict(gam_ml=1.0e-3), "with_forcing": dict(forcing=True)}
+            "gam_ml_0.1": dict(gam_ml=0.1e-3), "gam_ml_1.0": dict(gam_ml=1.0e-3)}
     for n, kw in cfgs.items():
         r = run(**kw)
         out["scan"][n] = {k: v for k, v in r.items() if k not in ("H_profile", "uw_profile", "z_centres", "theta_end", "u_end", "log")}

@@ -27,10 +27,20 @@ step1 = {"checks": c1, "base": b, "profile": p, "scan_ceiling": {k: [v["z_max"],
 
 # --- шаг 2
 c2 = []
+# полная σ_w игры при входе прототипа (H=250, u*=0,4): σ_w = 1,25 u*(1+3|z/L|)^(1/3), L = -u*^3 T/(κ g H_kin); эталон выше — нейтральный
+LMO = -(0.4 ** 3) * 300.0 / (0.4 * 9.81 * (250.0 / (1.2 * 1005.0)))
+for z, v in s2["base"].items():
+    if z != "_meta":
+        v["sigma_w_game_full"] = 1.25 * 0.4 * (1 + 3 * abs(float(z) / LMO)) ** (1 / 3)
+        v["sigma_ratio_full"] = v["sigma_w"] / v["sigma_w_game_full"]
 for z, v in s2["base"].items():
     if z == "_meta":
         continue
-    c2.append(chk(f"σ_w / σ_w игры, z={z} м", v["sigma_ratio"], 0.7, 1.3, f"σ_w={v['sigma_w']:.2f}, игра {v['sigma_w_game']:.2f}"))
+    c2.append(chk(f"σ_w / σ_w игры нейтральная, z={z} м", v["sigma_ratio"], 0.7, 1.3, f"σ_w={v['sigma_w']:.2f}, игра {v['sigma_w_game']:.2f}"))
+for z, v in s2["base"].items():
+    if z == "_meta":
+        continue
+    c2.append(chk(f"σ_w(механика пар) / σ_w игры полная с (1+3|z/L|)^⅓, z={z} м", v["sigma_ratio_full"], 0.7, 1.3, f"L_MO={LMO:.1f} м; игра {v['sigma_w_game_full']:.2f}; в пары конвекция не заложена"))
 for z, v in s2["base"].items():
     if z == "_meta":
         continue
@@ -64,7 +74,7 @@ c3.append(chk("поток импульса термиков есть и вниз
 c3.append(chk("рост z_i(t) по H=0, м/ч", slope, 0.5 * enc, 2.0 * enc, f"срезание по начальному профилю {enc:.0f} м/ч"))
 c3.append(chk("торможение слоя 100..z_i за 3 ч / (u*²T/z_i)", bs["layer_100_zi_wind_change"] / (-0.4 ** 2 / 1500 * bs["params"]["T"]), 0.3, 3.0, f"Δ={bs['layer_100_zi_wind_change']:.2f} м/с"))
 c3.append(chk("поток тепла у кромки min H/H_kin", min(x["H_min_over_Hkin"] for x in zb), -0.4, -0.1, "вовлечение у кромки −0,2 H"))
-c3.append(chk("баланс тепла Σ(θ-θ0)dz/(H t)", bs["heat_budget_ratio"], 0.95, 1.05, "сохранение"))
+c3.append(chk("консервативность схемы: Σ(θ-θ0)dz/(H t) (проверка численной схемы, не модели)", bs["heat_budget_ratio"], 0.95, 1.05, "сохранение"))
 c3.append(chk("∫w dx / ∫|w|dx по линии в ансамбле", max(abs(v["int_w_dx_over_int_abs"]) for v in bs["flux_check"].values()), 0, 0.02, "в 2D, периодика ±1, изображения"))
 scan3 = {k: {"H_0.5": v["levels"]["0.5"]["H_over_Hkin"], "uw_0.1_over_u*2": v["levels"]["0.1"]["uw_over_ustar2"], "layer_wind_change": v["layer_100_zi_wind_change"],
              "zi_H0_end": (v["zi_blocks"][-1]["zi_H0"]), "Hmin": min(x["H_min_over_Hkin"] for x in v["zi_blocks"] if x["t"] > 1800), "alive": v["n_alive_mean"], "us_per_step": v["us_per_step"]} for k, v in s3["scan"].items()}
@@ -74,7 +84,8 @@ step3 = {"checks": c3, "zi_blocks": bs["zi_blocks"], "zi_slope_m_per_h": slope, 
 allc = c1 + c2 + c3
 crit = {"rule": "pass: значение в [lo,hi]; σ_w ±30 % — критерий прототипа C", "n_pass": sum(c["pass"] for c in allc), "n_total": len(allc),
         "per_step": {"step1": [sum(c["pass"] for c in c1), len(c1)], "step2": [sum(c["pass"] for c in c2), len(c2)], "step3": [sum(c["pass"] for c in c3), len(c3)]},
-        "sigma_w_pass_all_heights": all(c["pass"] for c in c2 if c["name"].startswith("σ_w")),
+        "sigma_w_pass_all_heights": all(c["pass"] for c in c2 if c["name"].startswith("σ_w / σ_w игры нейтральная")),
+        "sigma_w_pass_full_reference": [c["pass"] for c in c2 if "полная" in c["name"]],
         "backflows_present": bool(lv["0.1"]["uw_over_ustar2"] < -0.3 or lv["0.1"]["uw_over_ustar2"] < 0),
         "verdict": "частично"}
 m2 = s2["base"]["_meta"]
