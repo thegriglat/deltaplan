@@ -155,3 +155,5 @@
 {"t": "2026-11-08T04:03:34", "by": "coordinator", "task": "SWC-12", "ev": "checked", "note": "3/3 contract=ok:FAIL 0; docs=ok:exit 0; verdict=ok:1"}
 {"t": "2026-11-08T04:05:05", "by": "reviewer", "task": "SWC-12", "ev": "reviewed", "note": "Скоуп чист (32 файла в границах, panels2d/contracts не тронуты), SW7 соблюдён (format/version/tol, 162 строки, FAIL 0), числа отчёта и stage2-2d.md совпадают с…", "verdict": "accept", "issues": {"minor": 3}, "review": "docs/plan/sw-charges/tasks/SWC-12.review.json"}
 {"t": "2026-11-08T04:05:25", "by": "coordinator", "task": "SWC-12", "ev": "accepted", "note": "по ревью (accept, 3 minor: погрешность Пикара у 10 м не оценена; допущения трубы без вариации; порог отрыва 0,27 даёт ложный ротор на C4 — вопрос к шлюзу)"}
+{"t": "2026-11-08T04:05:26", "by": "coordinator", "task": "SWC-12", "ev": "accepted", "commits": ["11aafeee8"], "note": "3/3 contract=ok:FAIL 0; docs=ok:exit 0; verdict=ok:1"}
+{"t": "2026-11-08T04:05:27", "by": "coordinator", "task": "SWC-12", "ev": "merged", "commits": ["11aafeee8"]}
