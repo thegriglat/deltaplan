@@ -17,3 +17,5 @@
 {"t": "2026-11-08T00:59:47", "by": "coordinator", "task": "WF-1", "ev": "checked", "note": "4/4 readme=ok:exit 0; places=ok:8; load_time=ok:8; docs=ok:exit 0"}
 {"t": "2026-11-08T01:00:07", "by": "executor", "task": "WF-1", "ev": "reported", "commits": ["0b97e7132"], "note": "done: Аудит: список мест с файл:строка (Rust, GD, данные, тесты, документы), замер на Rust (dp-air без Godot) U над стартом и…", "dp_feedback": "Замок CPU урезает до 1 ядра (CPUQuota=100%), а карточка не говорит об этом; для замеров времени загрузки это важно знать заранее. dpcli job wait ограничен 120 с на вызов — приходится поллить."}
 {"t": "2026-11-08T01:00:27", "by": "coordinator", "task": "WF-1", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-11-08T01:00:34", "by": "coordinator", "task": "WF-1", "ev": "accepted", "commits": ["56a3a2515"], "note": "4/4 readme=ok:exit 0; places=ok:8; load_time=ok:8; docs=ok:exit 0"}
+{"t": "2026-11-08T01:00:35", "by": "coordinator", "task": "WF-1", "ev": "merged"}

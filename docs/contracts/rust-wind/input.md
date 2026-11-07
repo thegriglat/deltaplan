@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-10-30"
 summary: "W5 rust-wind: вход реализации — AirPlaceData (место, растры, климат, запечённые поля, хеши), конфиги, условия"
 related: ["docs/contracts/rust-wind.md", "docs/plan/rust-wind.md"]
-contracts: [{"id": "W5", "version": 11}]
+contracts: [{"id": "W5", "version": 12}]
 ---
 Часть `docs/contracts/rust-wind.md` (версия — там, заголовок W5). Менять — только координатор.
 # W5. Вход: место, конфиги, условия (v11)
@@ -47,3 +47,4 @@ contracts: [{"id": "W5", "version": 11}]
 - **v9 (2026-10-29, решение пользователя «bake_air удалить»; итог RW-P11):** `AirPlaceData.baked` удалено вместе с файлами `data/locations/*/air` (все отвергались по `model_hash`, перепекать нечем). `header.model_hash` остаётся только для ключа кеша полей (`set_cache_dir`); пусто — кеш не используется. Выбор по `start_sites[].id/weather` (v6) нужен только кешу — если кеш его не использует, поля `id/weather` стартов удаляются той же задачей.
 - **v10 (2026-10-30, погода в крейт, W12 v1):** из `header.loc` удалены `climate`, `climate_lag`, `climate_cell`, `climate_cell_lag` (и `AirPlaceData.fill_climate`/`_climate_cell` в GD) — крейт берёт ячейку сам: `Weather::climate_at(center_lat, center_lon, …)` на дату места и на дату − `round(lag_days)`; нет `Weather` (не вызван `attach_weather`/`set_weather`) — `climate.fallback`. `wind_ref.gain_per_km` — необязательный: нет — из `Weather::climate_place(ctx + start_msl_m)`. `weather_model.limits.temperature_c: [min, max]` — физический диапазон модели (те же числа, что `ui.temperature_c`); крейт не читает `ui.*`. Долина: если эталон E6 (RW-14b) покажет сдвиг `terrain.height_at` против растра 25 м > 5 м — добавляется `header.loc.valley_msl_m` (правка W5 координатором), иначе крейт считает по растру.
 - **v11 (2026-10-30, чистота dp-air, решение координатора по RW-16a):** конфиги приходят **ключами секций данных**: `atmosphere`, `weather_model`, `surface_heat`, `world`, `air_phase`, `weather/<пресет>` — без суффикса `.json`, без путей; крейт не знает имён файлов и не снимает `.json` (одно место чтения — `Configs::get(секция)`); сопоставление файл игры → секция делает фасад/`dp-gd`. Неизвестная секция — игнорируется; нет нужной — умолчания крейта, как раньше при отсутствии файла. Потребители: RW-16b (крейт, `dp-gd`, `atmosphere.gd` `configure`, `DpWeather.configure`, обёртка RW-14e).
+- **v12 (2026-11-08, wind-forecast WF-К1 v2):** ключ условий `inflow_mode` удалён — теперь посторонний ключ → BAD_INPUT; ветер условий — всегда приток k = 1 (10 м над ровной открытой местностью), один проход. `wind_ref {ref_msl, gain_per_km}` прогноза — без изменений до шлюза wind-forecast Q1.

@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-10-30"
 summary: "Граница ветра в Rust: фасад Atmosphere, DpAir (gdext), трейт dp-air, место, описания, разложение, допуски, сборка, чистота."
 related: ["docs/plan/rust-wind.md", "docs/contracts/picard-rs.md", "docs/plan/rust-air-integration.md", "docs/plan/rust-ext.md", "docs/plan/air-cascade.md", "tools/research/rust_ext/gdext_probe/README.md", "docs/contracts/rust-wind/fixtures-tolerances.md", "docs/contracts/rust-wind/descriptions.md", "docs/contracts/rust-wind/solver.md", "docs/contracts/rust-wind/trait.md", "docs/contracts/rust-wind/dpair.md", "docs/contracts/rust-wind/facade.md"]
-contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 6}, {"id": "W3", "version": 9}, {"id": "W4", "version": 10}, {"id": "W5", "version": 11}, {"id": "W6", "version": 4}, {"id": "W7", "version": 1}, {"id": "W8", "version": 3}, {"id": "W9", "version": 2}, {"id": "W10", "version": 2}, {"id": "W11", "version": 11}, {"id": "W12", "version": 3}]
+contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 6}, {"id": "W3", "version": 9}, {"id": "W4", "version": 10}, {"id": "W5", "version": 12}, {"id": "W6", "version": 4}, {"id": "W7", "version": 1}, {"id": "W8", "version": 3}, {"id": "W9", "version": 2}, {"id": "W10", "version": 2}, {"id": "W11", "version": 11}, {"id": "W12", "version": 3}]
 ---
 
 # Контракты модуля rust-wind
@@ -45,7 +45,7 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 6}, {"id": "W3",
 ## W4. Трейт `AirModel` (крейт `dp-air`, без Godot) (v10)
 Владелец — RW-4 (трейт, `Calm`), RW-6…12 (`Formula`), живой воздух (`Live`). Потребители — `dp-gd`, стенд RW-5, `cargo test`, `cargo bench`. Трейт, типы, порядок команд, структуры описаний — `docs/contracts/rust-wind/trait.md`.
 
-## W5. Вход: место, конфиги, условия (v11)
+## W5. Вход: место, конфиги, условия (v12)
 Владелец — RW-2 (сборка `AirPlaceData`), RW-4 (разбор в крейте). Потребители — W2–W4, фикстуры W8. `AirPlaceData`, конфиги, условия и история версий v2–v8 — `docs/contracts/rust-wind/input.md`.
 
 ## W6. Описания — найденное, а не заданное (v4)
