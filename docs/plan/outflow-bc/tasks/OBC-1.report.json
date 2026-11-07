@@ -1,0 +1,93 @@
+{
+  "status": "done",
+  "summary": "picard_rs: Outflow::{Hard,Soft} за SolveOpts.outflow и --outflow (src/outflow.rs, хуки в apply_bc_all/init_background/outer_step); Hard побитно прежний (хеши на 4 фикстурах, 1 и 4 потока), Soft сходится, flux_net_max_rel ~3e-8. Контрольные: u6_heat Hard 131 итер / Soft 151 итер; u3_heat 191 / 231.",
+  "commits": [
+    "bbb577d18 picard_rs: мягкий выход Outflow::Soft за флагом (OB1), флаг --outflow, тест outflow_v1, check_soft.py"
+  ],
+  "checks": [
+    {
+      "name": "outflow_v1",
+      "value": "5 тестов ok",
+      "pass": true
+    },
+    {
+      "name": "picard_all",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "dp_air_builds",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "u6_soft_status",
+      "value": "OBC1: status=ok flux_rel=2.624e-08 iters=151 backflow=117",
+      "pass": true
+    },
+    {
+      "name": "u6_soft_flux",
+      "value": "2.624e-08 <= 1e-6",
+      "pass": true
+    },
+    {
+      "name": "fixtures soft: flux_net_max_rel",
+      "value": "flat_wind 2.7e-8 (20 итер), agnesi 3.5e-8 (680 итер, backflow 102), saddle/heated_slope ok; heated_slope штиль: faces_out=0, как Hard",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "u3_mech Soft на Онгудае не прогнан (информативно): lock cpu отдавал 1 слот, Hard u3_mech = 231 итерация."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept OBC-1",
+  "uncertain": [
+    {
+      "where": "rust/picard_rs/src/outflow.rs (кольцо ореола)",
+      "why": "Касательные в ореоле за выходом: цели только грани типа 3 (v, u) и w типа 3; грунт (тип 0) и крышка (тип 2) не трогаются, иначе обнулённые стенки получили бы значение соседа. Контракт говорит «не-свободные грани w» — я сузил до типа 3. Угловой столбец — среднее источников двух сторон выхода.",
+      "checked": "4 фикстуры + 3 случая Онгудая сходятся; ломки проекции/сходимости нет, w ореола оставлять как Hard не пришлось."
+    },
+    {
+      "where": "rust/picard_rs/src/outflow.rs:apply (сумма S)",
+      "why": "S считаю последовательно в f64 по списку граней, а не util::det_sum: проще и детерминированно при любом числе потоков (тест 1 vs 4 потока побитно).",
+      "checked": "soft_is_bitwise_equal_at_1_and_4_threads."
+    },
+    {
+      "where": "rust/picard_rs/tests/outflow_v1.rs (HARD_HASH)",
+      "why": "Хеши Hard сняты на этой машине (ветка AVX2+FMA); на CPU без FMA будут другими.",
+      "checked": "одинаковы при 1 и 4 потоках; сняты на коммите до правок решателя."
+    },
+    {
+      "where": "backflow_faces",
+      "why": "Считается по выданному полю: грань выхода = значение соседа до финальной проекции + поправка, поэтому обратное течение на выходе реально встречается (u6_heat 117, u3_heat 693, agnesi 102 граней): это диагностика, не ошибка. Итерации Soft больше Hard (+15..20%) на Онгудае; u_rel к эталону Hard у Soft большой (0.59/2.7) - поле другое, это ожидаемо, эталон Hard.",
+      "checked": "R2 в build/obc/OBC-1_*.json (вне git)."
+    }
+  ],
+  "dp_feedback": "job --lock cpu start ждёт слот молча (в логе только «1 сл.»), таймаут job считается с ожидания замка; хотелось бы видеть очередь и не жечь таймаут на ожидание. Подсказка про cat > /dev/null без heredoc — моя ошибка, висит.",
+  "extra": {
+    "iters_hard_soft": {
+      "u6_heat": [
+        131,
+        151
+      ],
+      "u3_heat": [
+        191,
+        231
+      ],
+      "u3_mech": [
+        231,
+        null
+      ]
+    },
+    "backflow_faces_soft": {
+      "u6_heat": 117,
+      "u3_heat": 693
+    },
+    "flux_net_max_rel_soft": {
+      "u6_heat": 2.6e-08,
+      "u3_heat": 3.4e-08
+    }
+  },
+  "t": "2026-11-08T01:10:24",
+  "by": "executor"
+}
