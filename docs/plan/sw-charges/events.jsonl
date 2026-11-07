@@ -113,3 +113,5 @@
 {"t": "2026-11-08T02:47:06", "by": "coordinator", "task": "SWC-10", "ev": "started"}
 {"t": "2026-11-08T02:49:30", "by": "executor", "task": "SWC-10", "ev": "reported", "commits": ["см."], "note": "done: docs/research/sw_charges.md (7 разделов, 27 КБ): решения/Q1, таблица задач SWC-1,3–9, A1/A2/разрезы с колонкой эксперим…", "dp_feedback": "docs index переписывает registry/contracts.md вне скоупа задачи — пришлось откатывать git checkout; хорошо бы accept подсказывал или index не трогал чужое."}
 {"t": "2026-11-08T02:49:39", "by": "coordinator", "task": "SWC-10", "ev": "accepted", "note": "3/3 docs=ok:exit 0; findings=ok:5; verdict=ok:1"}
+{"t": "2026-11-08T02:49:50", "by": "coordinator", "task": "SWC-10", "ev": "accepted", "commits": ["52767c3ae"], "note": "3/3 docs=ok:exit 0; findings=ok:5; verdict=ok:1"}
+{"t": "2026-11-08T02:49:50", "by": "coordinator", "task": "SWC-10", "ev": "merged", "commits": ["52767c3ae"]}
