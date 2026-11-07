@@ -162,3 +162,5 @@
 {"t": "2026-11-08T04:06:00", "by": "coordinator", "task": "SWC-14", "ev": "started"}
 {"t": "2026-11-08T04:09:29", "by": "executor", "task": "SWC-14", "ev": "reported", "commits": ["sw-charges"], "note": "done: В docs/research/sw_charges.md добавлены разделы 5 (этап 2 на 2D: паритет с Пикаром по случаям и высотам, труба Lubitz–W…", "dp_feedback": "Лимит 40 КБ считается в байтах (кириллица 2 байта) - заметил после трёх итераций; стоит писать в сообщении docs check счётчик байт и лимит."}
 {"t": "2026-11-08T04:09:49", "by": "coordinator", "task": "SWC-14", "ev": "accepted", "note": "3/3 docs=ok:exit 0; findings=ok:8; stage2=ok:1"}
+{"t": "2026-11-08T04:09:50", "by": "coordinator", "task": "SWC-14", "ev": "accepted", "commits": ["30c9ce9c4"], "note": "3/3 docs=ok:exit 0; findings=ok:8; stage2=ok:1"}
+{"t": "2026-11-08T04:09:50", "by": "coordinator", "task": "SWC-14", "ev": "merged", "commits": ["30c9ce9c4"]}
