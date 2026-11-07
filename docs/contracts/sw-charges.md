@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-11-08"
 summary: "Стыки sw-charges: слой Рипа (SW1–SW3), режимы (SW4), слой против Пикара (SW5), панели 2D (SW6), их сравнение с эталонами (SW7)."
 related: ["docs/plan/sw-charges.md", "docs/contracts/cascade-2d.md", "tools/research/sw_charges/README.md"]
-contracts: [{"id": "SW1", "version": 1}, {"id": "SW2", "version": 1}, {"id": "SW3", "version": 1}, {"id": "SW4", "version": 1}, {"id": "SW5", "version": 2}, {"id": "SW6", "version": 3}, {"id": "SW7", "version": 1}]
+contracts: [{"id": "SW1", "version": 1}, {"id": "SW2", "version": 1}, {"id": "SW3", "version": 1}, {"id": "SW4", "version": 1}, {"id": "SW5", "version": 2}, {"id": "SW6", "version": 3}, {"id": "SW7", "version": 2}]
 ---
 # Контракты модуля sw-charges
 
@@ -184,14 +184,16 @@ v2 (2026-11-08, ревью SWC-11): `bg_profile` — сглаживание па
   θ ∈ [30°, 150°]; у основания (угол 90° открытой линии источников) ошибка первого порядка по ds — граница модели,
   числа по θ и ds — в README; без особенностей у точек коллокации.
 
-## SW7 v1 — панели против эталонов на разрезах
-Владелец — SWC-12; потребители — итог этапа 2 (2D), шлюз.
+## SW7 v2 — панели против эталонов на разрезах
+Владелец — SWC-12 (v1), SWC-17 (v2); потребители — итог этапа 2 (2D), шлюз.
+v2 (2026-11-08, Q3): `variant` ещё "potential_bl" | "vortex_bl" (`velocity_bl`, отрыв Хеда, `shed="auto"`); в строке
+`ref_err` — оценка погрешности эталона (доля, `null` — нет) и `within_tol_ref` (bool | null: |err| ≤ max(tol, ref_err)·|u_ref|).
 - Путь — `tools/research/sw_charges/out/panels2d/points.json` + `.csv`; JSON (`format: "sw-panels2d"`, `version: 1`):
   `git`, `created`, `tol_picard` (0,15), `rows` — {`case` ("C1" | "C2" | "C4" | "PERD_NE" | "PERD_SW" | "LW_<модель>"),
-  `variant` ("potential" | "vortex"), `point` ("upstream" | "windward" | "crest" | "lee" | "valley" | "foot"),
+  `variant` ("potential" | "vortex" | "potential_bl" | "vortex_bl"), `point` ("upstream" | "windward" | "crest" | "lee" | "valley" | "foot"),
   `x` м, `z_agl` м, `ref_kind` ("picard" | "mast" | "lidar" | "tunnel"), `ref_source` (строка: путь/статья),
   `ref_reliability` ("измерение" | "труба" | "модель ±15 %"), `u_ref`, `w_ref` (м/с или безразм. ΔS — см. `units`),
   `u_pan`, `w_pan`, `units` ("m/s" | "dS"), `err` (u_pan − u_ref, в `units`), `within_tol` (bool: для picard —
-  |err| ≤ 0,15·|u_ref|, иначе `null`), `ds_min` м, `t_solve_ms`, `t_query_us`}; неприменимое — `null`.
+  |err| ≤ 0,15·|u_ref|, иначе `null`), `ref_err`, `within_tol_ref`, `ds_min` м, `t_solve_ms`, `t_query_us`}; неприменимое — `null`.
 - `rotor` — список {`case`, `variant`, `rotor_pan` (bool: обратное u у земли за гребнем), `L_pan` м (длина зоны
   обратного течения у земли), `rotor_ref` (bool | null), `L_ref` м | null, `ref_source`}.

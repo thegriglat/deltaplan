@@ -12,7 +12,7 @@ import struct
 import sys
 import tempfile
 
-FORMATS = {"sw-case": 1, "sw-field": 1, "sw-run": 1, "sw-regimes": 1, "sw-sections": 2, "sw-panels2d": 1}
+FORMATS = {"sw-case": 1, "sw-field": 1, "sw-run": 1, "sw-regimes": 1, "sw-sections": 2, "sw-panels2d": 2}
 REGIMES = {"R1", "R2", "R3", "R4j", "R5", "R6", "unclassified"}
 THEORY = {"R1", "R2", "R3", "R2|R4j", "R5", "R6"}
 BC = {"farfield", "transmissive", "wall", "periodic"}
@@ -242,7 +242,8 @@ def check_sections(path, d):
 
 
 PAN_KEYS = ("case", "variant", "point", "x", "z_agl", "ref_kind", "ref_source", "ref_reliability", "u_ref", "w_ref",
-            "u_pan", "w_pan", "units", "err", "within_tol", "ds_min", "t_solve_ms", "t_query_us")
+            "u_pan", "w_pan", "units", "err", "within_tol", "ref_err", "within_tol_ref", "ds_min", "t_solve_ms",
+            "t_query_us")
 PAN_POINTS = {"upstream", "windward", "crest", "lee", "valley", "foot"}
 
 
@@ -255,7 +256,7 @@ def check_panels(path, d):
         cs = r["case"]
         if not (cs in ("C1", "C2", "C4", "PERD_NE", "PERD_SW") or (isinstance(cs, str) and cs.startswith("LW_"))):
             raise ContractError(f"rows[{i}].case: {cs!r}")
-        if r["variant"] not in ("potential", "vortex"):
+        if r["variant"] not in ("potential", "vortex", "potential_bl", "vortex_bl"):
             raise ContractError(f"rows[{i}].variant: {r['variant']!r}")
         if r["point"] not in PAN_POINTS:
             raise ContractError(f"rows[{i}].point: {r['point']!r}")
@@ -277,6 +278,9 @@ def check_panels(path, d):
                 raise ContractError(f"rows[{i}].within_tol не согласован с err")
         elif wt is not None:
             raise ContractError(f"rows[{i}].within_tol: null не для picard")
+        num(r["ref_err"], f"rows[{i}].ref_err", allow_null=True)
+        if r["within_tol_ref"] is not None and not isinstance(r["within_tol_ref"], bool):
+            raise ContractError(f"rows[{i}].within_tol_ref: bool | null")
     if not isinstance(d["rotor"], list):
         raise ContractError("rotor: список")
     for i, r in enumerate(d["rotor"]):
@@ -391,10 +395,11 @@ def _synth(t):
     with open(secp, "w") as f:
         json.dump(sec, f)
     open(secp[:-5] + ".csv", "w").close()
-    pan = {"format": "sw-panels2d", "version": 1, "git": "x", "created": "2026-11-08T00:00:00", "tol_picard": 0.15,
+    pan = {"format": "sw-panels2d", "version": 2, "git": "x", "created": "2026-11-08T00:00:00", "tol_picard": 0.15,
            "rows": [{"case": "C1", "variant": "potential", "point": "crest", "x": 0.0, "z_agl": 50.0,
                      "ref_kind": "picard", "ref_source": "P50", "ref_reliability": "модель ±15 %", "u_ref": 8.0,
                      "w_ref": 0.0, "u_pan": 8.8, "w_pan": 0.0, "units": "m/s", "err": 0.8, "within_tol": True,
+                     "ref_err": 0.05, "within_tol_ref": True,
                      "ds_min": 25.0, "t_solve_ms": 10.0, "t_query_us": 5.0}],
            "rotor": [{"case": "PERD_NE", "variant": "vortex", "rotor_pan": True, "L_pan": 300.0, "rotor_ref": True,
                       "L_ref": 350.0, "ref_source": "Menke 2019"}]}
