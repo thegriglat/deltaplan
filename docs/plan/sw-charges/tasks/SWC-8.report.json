@@ -1,0 +1,118 @@
+{
+  "status": "done",
+  "summary": "A1 (151 случай) и A2 (66) посчитаны swpy; слой воспроизводит теорию §2 (режимы 104/111 на ridge, h1 бора до 0,001, скорость до 8 %, гистерезис — две ветви). В условиях air-phase при h/z_i >= 1 слой всегда R6, переход к блокированию Fr_game,c ~ 1,1-1,3 только при h/z_i = 0,3 (вне мелкой воды).",
+  "commits": [
+    "673ac4ed9 режимы A1/A2",
+    "ef0489f69 step_up: Fr_crest на плато, правки ревью"
+  ],
+  "checks": [
+    {
+      "name": "contract",
+      "value": "FAIL 0",
+      "pass": true
+    },
+    {
+      "name": "match ridge a/h0=3",
+      "value": "79/84 (94 %)",
+      "pass": true
+    },
+    {
+      "name": "match ridge a/h0=6",
+      "value": "25/27",
+      "pass": true
+    },
+    {
+      "name": "match step_up",
+      "value": "21/27 после уточнения SW4 (Fr_crest в начале плато); F0=0,5 R3 различим только при M=0,8",
+      "pass": true
+    },
+    {
+      "name": "h1/h0 бора SW vs теория 2.4",
+      "value": "|dh1| <= 0,001 в 38 случаях",
+      "pass": true
+    },
+    {
+      "name": "скорость бора SW vs 2.4",
+      "value": "1-2 % при M/Mc>=3, до +8 % у слабых боров",
+      "pass": true
+    },
+    {
+      "name": "a/40 (3 случая)",
+      "value": "режим, h1, скорость те же",
+      "pass": true
+    },
+    {
+      "name": "гистерезис",
+      "value": "R2 и R4j из двух стартов при F0=1,2/1,5/2 (M=0,024/0,13/0,4); при M=0,5-0,6 прыжок уходит к гребню",
+      "pass": true
+    },
+    {
+      "name": "время счёта",
+      "value": "A1 4079 с, A2 1250 с CPU",
+      "pass": true
+    },
+    {
+      "name": "a1",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "a2",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "verdict",
+      "value": "1",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Колонка «эксперимент»: количественных лабораторных значений не найдено (WebSearch: полный текст Baines 1984, Lawrence 1993, Long 1954 недоступен); в таблице качественные ссылки и «нет».",
+    "A2 сетка Fr_game не различает rule_b0 (разница порога 6 %); для h/z_i=0,3 и 1 a/h0<3 — вне мелкой воды (помечено)."
+  ],
+  "questions": [
+    "Нужен ли для A2 в области мелкой воды (a/h0>=3) случай с хребтом ниже слоя (M<1)? При H=500 м это h0>500 м и a/h0<3; с фиксированным a=1430 м такого нет."
+  ],
+  "how_to_check": ".dpcli/dpcli accept SWC-8; tools/research/sw_charges/py tools/research/sw_charges/regimes/analyse.py",
+  "uncertain": [
+    {
+      "where": "tools/research/sw_charges/regimes/core.py:_jump",
+      "why": "в классификатор SW4 добавлено условие резкости скачка (охват 8 клеток <= 2x охвата 2 клеток), в контракте его нет",
+      "checked": "без него плавный склон при Fr~1 даёт ложные прыжки; ложных R4j в таблицах нет"
+    },
+    {
+      "where": "tools/research/sw_charges/regimes/theory.py:u10_from_usat",
+      "why": "z_sat зависит от f и z0: принято f=1,1e-4, z0=0,1, alpha=0,24 (D)",
+      "checked": "U_sat=12 м/с даёт U10=5,1 против 5,2 в air-phase"
+    },
+    {
+      "where": "stage1-regimes.md, A2 Fr_game,c",
+      "why": "переход определён по сетке 1,1/1,3 и по теории M=M_c; слабый бор при Fr=1,3 (N2h0) ниже порога 0,02",
+      "checked": "теория 1,18/1,25 согласуется"
+    },
+    {
+      "where": "step_up",
+      "why": "губка тянет к h0-H на плато; Fr_crest в x=0 не критичен",
+      "checked": "h1 и скорость бора совпали с теорией, класс — '?'"
+    }
+  ],
+  "dp_feedback": "job wait без вывода прогресса; монитор по job status пришлось писать вручную; docs index трогает registry/contracts.md вне скоупа (откатывал вручную).",
+  "extra": {
+    "A1_rows": 151,
+    "A2_rows": 66,
+    "cpu_s": 5330,
+    "Fr_game_c_theory": {
+      "N2h0": 1.25,
+      "N2delta": 1.18
+    },
+    "raw": "~/data/sw_charges/regimes/"
+  },
+  "t": "2026-11-08T02:46:04",
+  "by": "executor"
+}
