@@ -1,0 +1,55 @@
+{
+  "status": "done",
+  "summary": "Документы, конфиг-пояснения, REQUIREMENTS FR-16, сайт (weather, training ru/en), CHANGELOG «В работе», findings «wind-forecast» и frontmatter README приведены к коду: ветер меню — прогноз, k = 1, один проход, запечённых полей нет, ключ кеша без режима.",
+  "commits": [
+    "6dc8fc51e WF-6: документы, CHANGELOG и сайт"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "no_stale",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "changelog",
+      "value": "1",
+      "pass": true
+    },
+    {
+      "name": "findings",
+      "value": "2",
+      "pass": true
+    },
+    {
+      "name": "json",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "hugo --minify",
+      "value": "без ошибок",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [
+    "docs/guide/air-model/runtime.md и fast-load.md по-прежнему местами описывают GD AirRuntime/AirFieldCache (air_runtime.gd в scripts уже нет, поле считает крейт) — устаревшее вне задачи WF, не переписывал."
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept WF-6",
+  "uncertain": [
+    {
+      "where": "docs/guide/air-model/runtime.md:89",
+      "why": "числа U над стартом и ускорения 1,9–2,4 взяты из текста задания/README WF-1, отчёт WF-2 не перечитывал",
+      "checked": "сверено с таблицей README «U над стартом»"
+    }
+  ],
+  "dp_feedback": "docs index переписывает чужие строки registry/contracts.md и research.md вне скоупа — пришлось откатывать вручную; no_stale ловит собственные упоминания удалённых имён в тексте об удалении.",
+  "t": "2026-11-08T04:56:41",
+  "by": "executor"
+}
