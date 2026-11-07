@@ -148,3 +148,10 @@
 {"t": "2026-11-08T03:46:35", "by": "coordinator", "task": "SWC-13", "ev": "accepted", "note": "по ревью (accept; 2 minor исправлены: detach_ok против плоского контроля — 1 из 8, оговорка точки схода Perdigão)"}
 {"t": "2026-11-08T03:46:37", "by": "coordinator", "task": "SWC-13", "ev": "accepted", "commits": ["2e05ab06a"], "note": "3/3 results=ok:exit 0; docs=ok:exit 0; verdict=ok:1"}
 {"t": "2026-11-08T03:46:37", "by": "coordinator", "task": "SWC-13", "ev": "merged", "commits": ["2e05ab06a"]}
+{"t": "2026-11-08T03:49:35", "by": "main", "task": null, "ev": "plan", "note": "план Условия остановки (шлюз): дописано 4 стр."}
+{"t": "2026-11-08T03:54:40", "by": "main", "task": null, "ev": "plan", "note": "план Идеи на будущее (обсуждение 2026-11-08; не задачи…: дописано 4 стр."}
+{"t": "2026-11-08T04:01:42", "by": "main", "task": null, "ev": "plan", "note": "план Идеи на будущее (обсуждение 2026-11-08; не задачи…: дописано 2 стр."}
+{"t": "2026-11-08T04:03:18", "by": "executor", "task": "SWC-12", "ev": "reported", "commits": ["24e437e54"], "note": "done: Панели panels2d (потенциал и вихри с гребня) посчитаны на C1, C2, C4, Perdigão NE/SW и 6 хребтах Lubitz-White; паритета…", "dp_feedback": "task show --full нужен был, чтобы увидеть дополнение координатора; в обычном show оно не видно, а job wait обрывается переводом в фон на 180 с (удобнее job status с ожиданием)."}
+{"t": "2026-11-08T04:03:34", "by": "coordinator", "task": "SWC-12", "ev": "checked", "note": "3/3 contract=ok:FAIL 0; docs=ok:exit 0; verdict=ok:1"}
+{"t": "2026-11-08T04:05:05", "by": "reviewer", "task": "SWC-12", "ev": "reviewed", "note": "Скоуп чист (32 файла в границах, panels2d/contracts не тронуты), SW7 соблюдён (format/version/tol, 162 строки, FAIL 0), числа отчёта и stage2-2d.md совпадают с…", "verdict": "accept", "issues": {"minor": 3}, "review": "docs/plan/sw-charges/tasks/SWC-12.review.json"}
+{"t": "2026-11-08T04:05:25", "by": "coordinator", "task": "SWC-12", "ev": "accepted", "note": "по ревью (accept, 3 minor: погрешность Пикара у 10 м не оценена; допущения трубы без вариации; порог отрыва 0,27 даёт ложный ротор на C4 — вопрос к шлюзу)"}
