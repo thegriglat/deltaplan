@@ -1,0 +1,78 @@
+{
+  "status": "done",
+  "summary": "Аудит: список мест с файл:строка (Rust, GD, данные, тесты, документы), замер на Rust (dp-air без Godot) U над стартом и k в start/inflow на 8 стартах, время загрузки, кеш полей, шлюз по wind_ref. Запечённых полей нет, перепечка не нужна.",
+  "commits": [
+    "0b97e7132 WF-1: аудит привязки ветра к старту"
+  ],
+  "checks": [
+    {
+      "name": "readme",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "places",
+      "value": "n=8",
+      "pass": true
+    },
+    {
+      "name": "load_time",
+      "value": "n=8",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "U10 inflow/start (k<1)",
+      "value": "ridge_west x1.29, ongudai x1.25, ongudai_back x1.16, east_cliffs x1.01; k=1 на 4 местах — поле то же",
+      "pass": true
+    },
+    {
+      "name": "загрузка start/inflow, 1 ядро",
+      "value": "ridge_west 210/77 с, ongudai 210/83",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Askarovo (biyagoda_west/east) не измерен: места нет среди фикстур стенда, обход через Godot запрещён карточкой; взяты второй румб Онгудая и 2 старта volcano_island",
+    "Побитное совпадение start и inflow при k=1 не проверялось (совпали U и максимум по сетке до округления)",
+    "Повторов времени загрузки нет (шум по парам k=1 около 3 %)"
+  ],
+  "questions": [
+    "Шлюз wind_ref {ref_msl, gain_per_km}: A оставить (ref_msl = старт), B ref_msl = отметка открытой местности (долина), C убрать (теряется рост ветра с высотой). Рекомендую B. Решение нужно до правок п. 2; задача «Убрать подгонку» от шлюза не зависит."
+  ],
+  "how_to_check": ".dpcli/dpcli accept WF-1; README: tools/research/wind_forecast/README.md",
+  "uncertain": [
+    {
+      "where": "tools/research/wind_forecast/README.md (раздел «Места», строки air_case.gd, wind_field.gd)",
+      "why": "не проверил, живы ли GD-наследия air_case.gd inflow_k и wind_model.gd после rust-wind",
+      "checked": "wind_model.gd запрещён тестом чистоты, прямых пользователей не найдено"
+    },
+    {
+      "where": "rust/dp-air/src/field/runtime.rs:1617-1700",
+      "why": "номера строк по состоянию ветки feature/wind-forecast на 2026-11-08",
+      "checked": "читал код, сборка и прогон на нём"
+    },
+    {
+      "where": "замок CPU",
+      "why": "замок режет процесс до 1 ядра, абсолютные секунды выше игровых",
+      "checked": "сравнение только по отношению start/inflow"
+    }
+  ],
+  "dp_feedback": "Замок CPU урезает до 1 ядра (CPUQuota=100%), а карточка не говорит об этом; для замеров времени загрузки это важно знать заранее. dpcli job wait ограничен 120 с на вызов — приходится поллить.",
+  "extra": {
+    "places": 8,
+    "load_pairs": 8,
+    "k_start": {
+      "ridge_west": 0.756,
+      "ongudai": 0.707,
+      "ongudai_back": 0.816,
+      "volc_east_cliffs": 0.98
+    }
+  },
+  "t": "2026-11-08T01:00:07",
+  "by": "executor"
+}
