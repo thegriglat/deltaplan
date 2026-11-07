@@ -1,0 +1,64 @@
+{
+  "id": "OBC-1",
+  "module": "outflow-bc",
+  "type": "dp-engineer",
+  "title": "Мягкий выход в picard_rs за флагом (OB1)",
+  "goal": "В крейте picard_rs — режим Outflow::Soft (нулевой градиент на гранях выхода + поправка Σ потока = 0) за флагом SolveOpts.outflow и CLI --outflow; по умолчанию Hard побитно как до правки. Контрактный тест outflow_v1.",
+  "plan_ref": "Корпус и условия",
+  "contracts": [
+    {
+      "name": "OB1",
+      "version": "1",
+      "ref": "docs/contracts/outflow-bc.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/outflow-bc-OBC-1",
+  "branch": "outflow-bc/OBC-1",
+  "base": "feature/outflow-bc",
+  "scope": [
+    "rust/picard_rs/src",
+    "rust/picard_rs/tests",
+    "rust/picard_rs/README.md",
+    "tools/research/outflow_bc/check_soft.py"
+  ],
+  "dont_touch": [
+    "rust/dp-air",
+    "rust/dp-gd",
+    "rust/dp-stand",
+    "rust/Cargo.toml",
+    "docs/contracts",
+    "tests/atmosphere/fixtures",
+    "scripts",
+    "configs"
+  ],
+  "accept": [
+    {
+      "name": "outflow_v1",
+      "cmd": "cargo test --release --manifest-path rust/Cargo.toml -p picard_rs --test outflow_v1",
+      "expect": "exit=0"
+    },
+    {
+      "name": "picard_all",
+      "cmd": "cargo test --release --manifest-path rust/Cargo.toml -p picard_rs",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dp_air_builds",
+      "cmd": "cargo check --manifest-path rust/Cargo.toml -p dp-air -p dp-stand --tests",
+      "expect": "exit=0"
+    },
+    {
+      "name": "u6_soft_status",
+      "cmd": "cargo build --release --manifest-path rust/Cargo.toml -p picard_rs --bin picard && mkdir -p build/obc && rust/target/release/picard solve /home/greg/data/air_cascade/ongudai/ongudai_d400_u6_heat.json --threads 8 --outflow soft --out build/obc/OBC-1_u6_soft.json && python3 tools/research/outflow_bc/check_soft.py build/obc/OBC-1_u6_soft.json",
+      "expect": "re:OBC1: status=ok "
+    },
+    {
+      "name": "u6_soft_flux",
+      "cmd": "python3 tools/research/outflow_bc/check_soft.py build/obc/OBC-1_u6_soft.json",
+      "expect": "num:flux_rel=([0-9.eE+-]+) <=1e-6"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-08T00:24:43"
+}

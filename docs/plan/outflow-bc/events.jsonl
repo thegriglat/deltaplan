@@ -1,1 +1,2 @@
 {"t": "2026-11-08T00:18:04", "by": "main", "task": null, "ev": "note", "note": "модуль заведён от main"}
+{"t": "2026-11-08T00:24:43", "by": "coordinator", "task": "OBC-1", "ev": "created", "note": "Мягкий выход в picard_rs за флагом (OB1)"}
