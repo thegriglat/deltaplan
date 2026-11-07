@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-11-05"
+updated: "2026-11-08"
 summary: "Исследования: вывод, данные, где применено."
 related: []
 generated: true
@@ -316,6 +316,7 @@ generated: true
 - [tools/research/steam_license/README.md](../../tools/research/steam_license/README.md) — Команды воспроизведения аудита лицензий сборки SA-1: настоящий экспорт, разбор PCK, сверка с эмуляцией, сводки. (data: tools/research/steam_license/)
 - [tools/research/surface_heat/README.md](../../tools/research/surface_heat/README.md) — SH-3: инструмент замера до/после (контракт SH5) — H поля, источники термиков, потолок, подъём на склоне, вода; прогон «до» (data: tools/research/surface_heat/out/)
 - [tools/research/surface_heat/moisture/README.md](../../tools/research/surface_heat/moisture/README.md) — Поле центрировано около 0,47 (медиана по 4 местам 0,475), p10 = 0,26, p90 = 0,68; предложено m_dry = 0,25, m_norm = 0,47, m_wet = 0,70. (data: moisture_percentiles.csv, moisture_percentiles.json; applied_in: docs/research/surface_params.md)
+- [tools/research/sw_charges/README.md](../../tools/research/sw_charges/README.md) — sw-charges: опыты слоя мелкой воды (Рипа, reduced gravity) и зарядов на поверхности рельефа на Rust — данные, команды, таблицы. (data: tools/research/sw_charges/out/)
 - [tools/research/tow/README.md](../../tools/research/tow/README.md) — Статика и PendulumModel (трос лебёдки вперёд-вниз) сходятся по ходу пилота ±0,04 м; упор Q3 даёт рост скорости при удержании тангажа, а не момент троса. (data: ['tools/research/tow/out/statics_table.csv', 'tools/research/tow/out/compare.cs…; applied_in: [])
 - [tools/research/tow-trike/README.md](../../tools/research/tow-trike/README.md) — Скрипты и воспроизведение расчёта параметров буксировщика-дельталёта (TT-1)
 - [tools/research/trike-fix/README.md](../../tools/research/trike-fix/README.md) — Инструмент TKF-1 и TKF-2 (control_*): замер углов тележки к крылу дельталёта игрока (TKF-К1 v1), кадры «до»; воспроизведение (data: ['tools/research/trike-fix/out/control_summary.json'])

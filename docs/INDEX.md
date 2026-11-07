@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-11-05"
+updated: "2026-11-08"
 summary: "Точка входа: модули docs/ по подпроектам, прочие документы по типам."
 related: []
 generated: true
@@ -115,6 +115,8 @@ generated: true
   - [tools/research/cascade_2d/cascade_rs/README.md](../tools/research/cascade_2d/cascade_rs/README.md) — cascade_rs: каскад 400 → 25 м делением граней, V0–V3 и V3h, баланс массы точный; всё поле и опрос точки совпадают побитно
   - [tools/research/cascade_2d/cases/README.md](../tools/research/cascade_2d/cases/README.md) — cascade-2d CSD-1: квази-2D случаи R1 C0–C4 (400…25 м), решения picard_rs, F1/F2, сходимость эталона по сетке.
   - [tools/research/cascade_2d/metrics/README.md](../tools/research/cascade_2d/metrics/README.md) — Метрики M1 (E_u, E_w, dS, r_w, L_rec, баланс, термик, σ), базовые линии B_k и картинки поле-против-эталона для cascade-2d.
+- **sw-charges** — Исследование без Пикара: слой мелкой воды (блокирование, стоки, склоны), затем заряды на поверхности рельефа и вихревые нити — 3D-поле. [active 2026-11-08] — [план](plan/sw-charges.md) · [контракты](contracts/sw-charges.md)
+  - [tools/research/sw_charges/README.md](../tools/research/sw_charges/README.md) — sw-charges: опыты слоя мелкой воды (Рипа, reduced gravity) и зарядов на поверхности рельефа на Rust — данные, команды, таблицы.
 
 ## flight
 
