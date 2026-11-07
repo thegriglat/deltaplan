@@ -184,3 +184,7 @@
 {"t": "2026-11-08T04:47:20", "by": "coordinator", "task": "SWC-16", "ev": "accepted", "note": "по ревью (accept, 2 minor исправлены; σ = 1000 м — подгонка, в схему не брать)"}
 {"t": "2026-11-08T04:47:22", "by": "coordinator", "task": "SWC-16", "ev": "checked", "commits": ["b10347d23"], "note": "2/3 contract=FAIL:нет совпадения; docs=ok:exit 0; verdict=ok:1"}
 {"t": "2026-11-08T04:47:22", "by": "coordinator", "task": "SWC-16", "ev": "merged", "commits": ["b10347d23"]}
+{"t": "2026-11-08T04:47:44", "by": "coordinator", "task": null, "ev": "note", "note": "после слияния SWC-16 out/panels2d/points.json — SW7 v1 (контрольный тест v2 его не пропускает); SWC-17 перепишет в v2"}
+{"t": "2026-11-08T04:47:44", "by": "coordinator", "task": "SWC-17", "ev": "created", "note": "Круг 2 на 2D: панели с пограничным слоем и отрывом Хеда против измерений и Пикара (SW7 v2)"}
+{"t": "2026-11-08T04:47:49", "by": "coordinator", "task": "SWC-17", "ev": "edited", "note": "notes", "diff": {"notes": ["\"\"", "\"Решение пользователя Q3: ещё круг на 2D — физический критерий отрыва, пограничный слой, причины недобора ΔS, эталон 10 м по центрам клеток; 3D — только при паритете у земли. Библиотека panels2d — SW6 v3 (docs/contracts/sw-charges.md; README tools/research/sw_charges/README.md «Панели panels2d», ра…"]}}
+{"t": "2026-11-08T04:48:01", "by": "coordinator", "task": "SWC-17", "ev": "started"}
