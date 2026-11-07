@@ -78,3 +78,5 @@
 {"t": "2026-11-08T01:53:00", "by": "coordinator", "task": null, "ev": "note", "note": "сверка с решением о масштабах (2026-11-08): SWC-4 (решатель) — без изменений, dx — параметр; SWC-6/7 (вихри 2D без рельефа) — не затронуты; SW5 → v2 (слой dx ≥ 400 м днём, Пикар блочным средним); опыт A1 — формы a/h0 ≥ 3 (длинные волны), A2 — случаи air-phase с a/h0 < 3 помечать вне применимости"}
 {"t": "2026-11-08T01:54:26", "by": "coordinator", "task": "SWC-4", "ev": "checked", "note": "4/4 pytest=ok:exit 0; pytest-pass=ok:23; smoke=ok:проверено 3, FAIL 0; contract-selftest=ok:selftest OK"}
 {"t": "2026-11-08T01:54:42", "by": "coordinator", "task": "SWC-4", "ev": "accepted", "note": "по ревью (accept; 2 major исправлены в aaa76b0d8: diverged по SW3, steady_tol 5e-4)"}
+{"t": "2026-11-08T01:57:48", "by": "coordinator", "task": "SWC-4", "ev": "accepted", "commits": ["51060db0d"], "note": "4/4 pytest=ok:exit 0; pytest-pass=ok:23; smoke=ok:проверено 3, FAIL 0; contract-selftest=ok:selftest OK"}
+{"t": "2026-11-08T01:57:48", "by": "coordinator", "task": "SWC-4", "ev": "merged", "commits": ["51060db0d"]}
