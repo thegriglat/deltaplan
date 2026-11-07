@@ -41,3 +41,4 @@
 {"t": "2026-11-08T01:40:46", "by": "coordinator", "task": "OBC-3", "ev": "started"}
 {"t": "2026-11-08T01:47:30", "by": "coordinator", "task": "OBC-2", "ev": "accepted", "commits": ["c81de48"], "note": "3/3 unit=ok:exit 0; pilot=ok:OBC2: records=12 invalid=0; est=ok:10.5"}
 {"t": "2026-11-08T01:47:31", "by": "coordinator", "task": "OBC-2", "ev": "merged"}
+{"t": "2026-11-08T01:47:59", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: состояние — OBC-1, OBC-2 accepted+merged; OBC-3 (dp-mechanic) идёт: шарды OBC-3-s0/s1 (job status), оценка 4,5–5 ч на шард; дальше OBC-4 (dp-researcher: таблица OB2 summary.csv, ответы Q1–Q5, документ docs/research/, строка README про обратное течение); этап 2 — после итогов этапа 1, к нему OB1 v2 (приращения по проверкам) и OB2 v2 (режимы старта). Обратная связь dpcli: accept считает неотслеживаемый r-<ID>.json вне scope; повтор accept пропускает пилот при готовом jsonl; job wait уходит в фон через ~180 с"}
