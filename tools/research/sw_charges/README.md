@@ -73,8 +73,9 @@ HLL размазывает контактный разрыв (v, b перено�
 - `sections/` — слой против Пикара на разрезах cascade-2d C0–C4 и Perdigão (SWC-9), README с командами.
 - `proto_a/` — прототип A, вихревые частицы с плавучестью, 2D (SWC-6).
 - `panels2d/` — библиотека панелей и вихрей, 2D (SWC-11).
+- `panels_exp/` — опыты этапа 2 на 2D: панели и вихри против Пикара, труб Lubitz–White, мачт Perdigão (SWC-12), README с командами.
 - `proto_c/` — прототип C, диполи ЛЧ и пары болтанки, 2D (SWC-7).
 - `contract/` — проверка файлов контракта (`check_contract.py`).
 - `out/` — сводные таблицы и данные опытов (эталоны Пикара `cascade2d_refs.md`, `regimes/`, `sections/`); сырьё — вне git.
 
-Итог этапа 1 и этапа 3 без рельефа — `docs/research/sw_charges.md`.
+Итог этапов 1, 2 на 2D и шага 3 прототипа A — `docs/research/sw_charges.md`.
