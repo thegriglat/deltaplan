@@ -11,6 +11,7 @@ pub mod case;
 pub mod kernels;
 pub mod lines;
 pub mod mg;
+pub mod outflow;
 pub mod report;
 pub mod solver;
 pub mod state;
