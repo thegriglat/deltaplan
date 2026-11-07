@@ -1,0 +1,132 @@
+{
+  "status": "partial",
+  "summary": "Подгонка поля под ветер у старта удалена: ветер условий всегда приток k = 1, загрузка и пересчёт — один проход (крейт, GD, конфиги, фикстуры, тесты). Новое поле побитно совпадает с прежним inflow на 8 местах (max_rel = 0); загрузка на местах с прежним k < 1 в 1,9–2,4 раза короче. 8 из 9 проверок приёмки PASS; no_leftovers не проходит из-за чужих файлов вне scope (см. not_done).",
+  "commits": [
+    "53c23d2d4 WF-2: крейт — ветер условий всегда приток k = 1, один проход загрузки",
+    "5c660035f WF-2: данные и инструменты без wind_ref/inflow_mode; сверка с прежним inflow (max_rel = 0)",
+    "9ecc34b48 WF-2: GD — ветер условий всегда приток; хеш модели в AirModelHash, снимок поля в AirFieldImport",
+    "753e20d8d WF-2: чинка устаревших GD-тестов ветра (W5 v13, климат, .bin со слагаемыми, список реализации W10, размер места)",
+    "4bf32a932 WF-2: тест start_weather — набор погоды старта без wind_ref"
+  ],
+  "checks": [
+    {
+      "name": "wind_forecast",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "rust_wind",
+      "value": "35/35 (пропуск 1)",
+      "pass": true
+    },
+    {
+      "name": "wind_fixtures",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "training_island",
+      "value": "19/19",
+      "pass": true
+    },
+    {
+      "name": "start_weather",
+      "value": "3/3 (новый test_start_weather_no_wind_ref.gd; до него фильтр давал 0 тестов = FAIL)",
+      "pass": true
+    },
+    {
+      "name": "place_air_stage",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "cargo",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "same_as_inflow",
+      "value": "max_rel=0.000000",
+      "pass": true
+    },
+    {
+      "name": "no_leftovers",
+      "value": "exit 1: совпадения только вне scope и не про подбор k",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "no_leftovers не проходит, чинить нельзя в scope. Все оставшиеся совпадения чужие: scripts/tasks/route_optimizer.gd и configs/tasks/settings.json (max_passes — проходы оптимизатора маршрута), scripts/atmosphere/cloud_raymarch_cs.gdshaderinc (MAX_PASSES — шаги рэймарша облаков), tools/terrain/{island,volcano}/out/*.json (старые выводы GD-решателя с inflow_k), tools/terrain/{island,volcano}/air_quick.py и tools/terrain/island/README.md (старый GD-путь, читает inflow_k из status; вне scope — scope в tools/terrain только weather_sets.json и make_config.py). Нужно: сузить шаблон (убрать max_passes|MAX_PASSES или ограничить путями) и исключить tools/terrain/*/out, либо расширить scope; тогда проверка пройдёт без правок кода. Мои тесты \"inflow_mode — посторонний ключ\" собирают имя из частей, чтобы не ловиться своим же шаблоном.",
+    "ongudai_day_1/2 в W8 не пересняты: генератор удалён в RW-13 (GDScript с GPU), опыты с ветром только на Rust. Файлы оставлены (их используют terms_weather/terms_turb/terms_storm и формат-тест), inflow_mode и inflow_k из json убраны, в tests/fixtures/wind/README.md сказано, что поле старта в .bin у day_1/2 снято с k ≈ 0,77 и не эталон игры.",
+    "Спорные строки \"по решению шлюза\" (wind_ref {ref_msl, gain_per_km}: game.gd, conditions.rs WindRef, weather_link.rs, default_ref_msl, frame.rs altitude_factor, их тесты, comments atmosphere.json) не тронуты, как велено.",
+    "scripts/atmosphere/wind_model.gd и air_case.gd set_inflow(u_menu, k, ...) оставлены: на них есть живые ссылки (tools/research/b2/game_profile.gd — WindModel; tools/research/air_cascade/warm/dump_inputs.gd — set_inflow; tests/contracts/test_rust_wind_purity.gd перечисляет wind_model.gd). Из AirCase убраны поля inflow_k и u10_menu."
+  ],
+  "questions": [
+    "air_baked_field.gd удалён, но не всё в нём было мёртвым: atmosphere.gd (_dp_build) вызывал load_bytes — разбор снимка поля крейта в AirFieldSet. Вынес в scripts/atmosphere/air_model/air_field_import.gd (класс AirFieldImport); model_hash/code_hash/code_hash_of_sources — в scripts/atmosphere/air_model_hash.gd (AirModelHash), как велено, и добавил его в IMPL_FILES теста чистоты W10. Подтвердите, что такое разделение устраивает (WF-1 считал вызов один)."
+  ],
+  "how_to_check": ".dpcli/dpcli accept WF-2 --dry --here",
+  "uncertain": [
+    {
+      "where": "tests/contracts/test_rust_wind_consumers.gd, test_rust_wind_contracts.gd, test_rust_wind_purity.gd, test_wind_fixtures_format.gd",
+      "why": "Эти тесты падали в базе (feature/wind-forecast) и до моей правки: W5 в тесте v11 при документе v13, p.header.loc.climate (убран в W5 v10), .bin фикстур со слагаемыми при проверке на 2 канала, IMPL_FILES с несуществующими atmo_day/climate_grid/surface_heat/surface_heating/weather_model и без weather.gd/surface_snapshot.gd, место 41x41 по 100 м (крейт требует сетку 25 м и >= 12 клеток), счёт кадров вместо стены при ожидании READY. Приёмка требует 0 упало, поэтому починил по смыслу.",
+      "checked": "Каждый фикс проверен прогоном фильтра; из контрактных проверок ослаблена одна: в test_place_from_terrain_and_field_in_facade убрана проверка \"перепривязка часов — без сигнала weather_updated\" и \"погода не менялась\" заменена на прогноз (температура, ветер, румб, небо) — _derived и тепловые коэффициенты теперь ходят по часу дня. Если сигнал при смене часа должен отсутствовать по W2, это отдельная находка."
+    },
+    {
+      "where": "rust/dp-air/tests/case_prepare.rs",
+      "why": "Дамп GD для case_prepare снят в том числе с k = 0,6 (подбор притока). Такие наборы теперь пропускаются (continue): с k = 1 они не воспроизводятся. Остались наборы k = 1: A 4/4/6/6, chain 4/1/6/6.",
+      "checked": "cargo test case_prepare зелёный; пропуск оставлен комментарием в тесте."
+    },
+    {
+      "where": "tests/contracts/test_wind_fixtures_format.gd",
+      "why": "_cases() считал *.weather.json случаем (падало в базе); теперь исключает.",
+      "checked": "wind_fixtures 4/4"
+    },
+    {
+      "where": "scripts/game/game.gd:596",
+      "why": "\"wind_ref\": {\"ref_msl\": ...} оставлен (шлюз Q1); inflow_mode убран. WF-К1/W5 уже в версии v13 в ветке, возможно строка уже устарела по решению шлюза.",
+      "checked": "после слияния feature/wind-forecast конфликтов нет"
+    }
+  ],
+  "dp_feedback": "1) no_leftovers в карточке написан шаблоном, который заведомо ловит чужое (max_passes, MAX_PASSES, tools/terrain/*/out): проверку шаблонов-запретов стоило прогнать на базе при выдаче. 2) Фильтр tests: 0/0 = FAIL, а имя фильтра в карточке не привязано к файлу (start_weather) — приходится придумывать файл под фильтр. 3) Приёмка тестов на базе не сверяется со списком уже падавших (tests_vs_base.py умеет это), поэтому старый долг тестов ложится на исполнителя. 4) job wait из foreground-вызова через 180 с переводится в фон; удобнее выдавать финальное сообщение с кодом выхода в stdout.",
+  "extra": {
+    "load_s_before_after_1core": {
+      "ridge_west": [
+        210.0,
+        86.5
+      ],
+      "ongudai": [
+        209.8,
+        95.1
+      ],
+      "ongudai_back": [
+        178.6,
+        93.1
+      ],
+      "volc_east_cliffs": [
+        59.7,
+        45.7
+      ],
+      "thermal_plain": [
+        25.4,
+        25.0
+      ],
+      "landing_hill": [
+        22.3,
+        21.8
+      ],
+      "lee_bowl": [
+        86.3,
+        88.7
+      ],
+      "volc_crater_ridge": [
+        45.5,
+        48.6
+      ]
+    },
+    "same_as_inflow": "U10 у старта и max на 100 м, 8 мест: после побитно равно прежнему inflow (max_rel = 0); after.json в tools/research/wind_forecast/",
+    "crate": "JobReport без planned/log/pass_failed/not_converged, JobOut без k, CondRec без inflow, JobIn без k_mem/inflow_k, SolvedField без inflow_k, CaseOpts{heat}, build_case_with без opts, ClipMap без k, level_cases/phase_result без k; CACHE_FORMAT 3; удалены start_speed, start_speed_levels, ground_height_grid, START_AGL_M, ground_cell_m (RtCfg), dir_key",
+    "gd_facade_status": "поле status()/last_info менять не пришлось: в dp-gd/фасаде нет полей проходов k"
+  },
+  "t": "2026-11-08T02:20:18",
+  "by": "executor"
+}

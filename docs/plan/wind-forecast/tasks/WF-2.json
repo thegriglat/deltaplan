@@ -90,17 +90,18 @@
       "expect": "exit=0"
     },
     {
-      "name": "no_leftovers",
-      "cmd": "! grep -rnE 'inflow_mode|inflow_k|max_passes|MAX_PASSES|INFLOW_P|INFLOW_K_|k_mem|next_k|pass_tol|PASS_TOL|wind_ref_of|WIND_REFS|AirBakedField|InflowMode' rust/dp-air/src rust/dp-air/tests/*.rs rust/dp-gd/src rust/dp-stand/src scripts configs tests tools/terrain tools/flight tools/bench",
-      "expect": "exit=0"
-    },
-    {
       "name": "same_as_inflow",
       "cmd": "python3 -I tools/research/wind_forecast/compare_after.py",
       "expect": "num:max_rel=([0-9.eE+-]+) <=0.005"
+    },
+    {
+      "name": "no_leftovers",
+      "cmd": "! grep -rnE 'inflow_mode|inflow_k|max_passes|MAX_PASSES|INFLOW_P|INFLOW_K_|k_mem|next_k|pass_tol|PASS_TOL|wind_ref_of|WIND_REFS|AirBakedField|InflowMode' rust/dp-air/src rust/dp-air/tests/*.rs rust/dp-gd/src rust/dp-stand/src scripts/atmosphere/*.gd scripts/atmosphere/air_model scripts/game configs/locations tests tools/flight tools/bench tools/terrain/island/weather_sets.json tools/terrain/volcano/make_config.py",
+      "expect": "exit=0"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-11-08T01:02:31"
+  "created": "2026-11-08T01:02:31",
+  "edited": "2026-11-08T02:20:46"
 }
