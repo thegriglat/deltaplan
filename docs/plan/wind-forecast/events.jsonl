@@ -57,3 +57,5 @@
 {"t": "2026-11-08T02:29:00", "by": "coordinator", "task": "WF-5", "ev": "note", "note": "Сборка/тесты: для GD-тестов — tools/build_rust.sh tune linux под .dpcli/dpcli lock cpu wf5-build -- …; cargo — под замком CPU; Godot — профиль XDG_DATA_HOME=~/.cache/dp-xdg/$(basename $PWD), первый запуск — godot --headless --path . --import (под замком CPU), после — git checkout -- project.godot. Новый .gd — с .uid в одном коммите. r.json отчёта — в scratchpad, не в копии (иначе scope).", "addendum": true}
 {"t": "2026-11-08T02:29:18", "by": "coordinator", "task": "WF-4", "ev": "started"}
 {"t": "2026-11-08T02:29:18", "by": "coordinator", "task": "WF-5", "ev": "started"}
+{"t": "2026-11-08T02:47:16", "by": "coordinator", "task": "WF-2", "ev": "accepted", "commits": ["16dd3db71"], "note": "9/9 wind_forecast=ok:6/6; rust_wind=ok:35/35 (пропуск 1); wind_fixtures=ok:4/4; training_island=ok:19/19; start_weather=ok:3/3; place_air_stage=ok:2/2; cargo=ok:exit 0; same_as_inflow=ok:0; no_leftovers=ok:exit 0"}
+{"t": "2026-11-08T02:47:27", "by": "coordinator", "task": "WF-2", "ev": "merged"}
