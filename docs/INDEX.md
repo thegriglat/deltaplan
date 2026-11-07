@@ -118,11 +118,13 @@ generated: true
 - **sw-charges** — Исследование без Пикара: слой мелкой воды (блокирование, стоки, склоны), затем заряды на поверхности рельефа и вихревые нити — 3D-поле. [active 2026-11-08] — [план](plan/sw-charges.md) · [контракты](contracts/sw-charges.md)
   - [docs/research/sw_charges/literature.md](research/sw_charges/literature.md) — Литература SWC-1: мелкая вода Рипа над рельефом, режимы по Fr (критическая высота), стоки, вовлечение, схемы; правило U10,N,z_i → h0,b0,U0.
   - [docs/research/sw_charges/proto-a.md](research/sw_charges/proto-a.md) — Прототип A (SWC-6): вихревые частицы с плавучестью, 2D; кольцо, ∫w dx=0 и a=b/2 получаются, КГ-слой частично; N² на CuPy 43 мс при 10⁴.
+  - [docs/research/sw_charges/proto-c.md](research/sw_charges/proto-c.md) — Прототип C (SWC-7): диполи Лэмба — Чаплыгина и пары болтанки, 2D без рельефа; поток тепла из замыкания сходится, σ_w и ядро — нет.
+  - [docs/research/sw_charges/stage1-sections.md](research/sw_charges/stage1-sections.md) — SWC-9: слой Рипа на сетке 400/200 м против Пикара на разрезах C0–C4 и Perdigão; на масштабе 400 м слой не лучше ровного ветра.
   - [docs/research/sw_charges/unified-scales.md](research/sw_charges/unified-scales.md) — Три варианта единого описания ветра трёх масштабов (вихревые частицы, слой + поток массы, диполи и пары), литература, два 2D-прототипа.
-  - [docs/research/sw_charges/proto-c.md](research/sw_charges/proto-c.md) — Прототип C (SWC-7): диполи ЛЧ и пары болтанки в 2D без рельефа; обратные потоки есть, σ_w пар завышена, вердикт «частично».
-  - [tools/research/sw_charges/proto_c/README.md](../tools/research/sw_charges/proto_c/README.md) — Прототип C: код NumPy, команды воспроизведения, данные out/.
   - [tools/research/sw_charges/README.md](../tools/research/sw_charges/README.md) — sw-charges: опыты слоя мелкой воды (Рипа, reduced gravity) и зарядов на поверхности рельефа на Rust — данные, команды, таблицы.
   - [tools/research/sw_charges/proto_a/README.md](../tools/research/sw_charges/proto_a/README.md) — Прототип A (SWC-6): вихревые частицы с плавучестью, 2D, прямая сумма на CuPy — термик-пятно и сдвиговой слой; код, команды, таблицы.
+  - [tools/research/sw_charges/proto_c/README.md](../tools/research/sw_charges/proto_c/README.md) — Прототип C (SWC-7): пуассоновы диполи ЛЧ и пары болтанки в 2D без рельефа на NumPy — код, команды, таблицы.
+  - [tools/research/sw_charges/sections/README.md](../tools/research/sw_charges/sections/README.md) — SWC-9: слой Рипа (swpy) против Пикара на разрезах cascade-2d C0–C4 и разрезе Perdigão: код, команды, время, где данные.
 
 ## flight
 
