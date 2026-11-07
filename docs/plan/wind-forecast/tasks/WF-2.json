@@ -1,0 +1,106 @@
+{
+  "id": "WF-2",
+  "module": "wind-forecast",
+  "type": "dp-engineer",
+  "title": "Убрать подгонку поля под ветер у старта",
+  "goal": "Ветер условий — всегда приток k = 1, загрузка поля — один проход: удалены режим start/inflow_mode, подбор k (проходы, INFLOW_P, k_mem), inflow_k, wind_ref наборов стартов, inflow в ключе кеша (формат 3), запечённое поле GD (model_hash/code_hash — в air_model_hash.gd). Поле совпадает с прежним режимом inflow.",
+  "plan_ref": "§Задачи: Убрать подгонку",
+  "contracts": [
+    {
+      "name": "WF-К1",
+      "version": "2",
+      "ref": "docs/contracts/wind-forecast.md"
+    },
+    {
+      "name": "W5",
+      "version": "12",
+      "ref": "docs/contracts/wind-forecast.md"
+    },
+    {
+      "name": "TI-К2",
+      "version": "3",
+      "ref": "docs/contracts/wind-forecast.md"
+    },
+    {
+      "name": "TI-К3",
+      "version": "4",
+      "ref": "docs/contracts/wind-forecast.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/wind-forecast-WF-2",
+  "branch": "wind-forecast/WF-2",
+  "base": "feature/wind-forecast",
+  "scope": [
+    "rust/dp-air/",
+    "rust/dp-gd/",
+    "rust/dp-stand/",
+    "scripts/game/start_weather.gd",
+    "scripts/game/game.gd",
+    "scripts/game/calm_air.gd",
+    "scripts/atmosphere/",
+    "configs/locations/",
+    "tools/terrain/island/weather_sets.json",
+    "tools/terrain/volcano/make_config.py",
+    "tools/flight/wind_penetration_run.gd",
+    "tools/bench/air_velocity_bench_main.gd",
+    "tools/research/rust_wind_t1_ref/",
+    "tools/research/wind_forecast/",
+    "tests/"
+  ],
+  "dont_touch": [
+    "scenes/main.gd",
+    "scripts/ui/",
+    "locale/",
+    "scripts/game/achievement_feed.gd",
+    "rust/dp-air/src/terms/",
+    "rust/dp-air/src/analytic/",
+    "rust/dp-air/src/weather/",
+    "docs/",
+    "CHANGELOG.md",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "wind_forecast",
+      "tests": "wind_forecast"
+    },
+    {
+      "name": "rust_wind",
+      "tests": "rust_wind"
+    },
+    {
+      "name": "wind_fixtures",
+      "tests": "wind_fixtures"
+    },
+    {
+      "name": "training_island",
+      "tests": "training_island"
+    },
+    {
+      "name": "start_weather",
+      "tests": "start_weather"
+    },
+    {
+      "name": "place_air_stage",
+      "tests": "place_air_stage"
+    },
+    {
+      "name": "cargo",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace --release",
+      "expect": "exit=0"
+    },
+    {
+      "name": "no_leftovers",
+      "cmd": "! grep -rnE 'inflow_mode|inflow_k|max_passes|MAX_PASSES|INFLOW_P|INFLOW_K_|k_mem|next_k|pass_tol|PASS_TOL|wind_ref_of|WIND_REFS|AirBakedField|InflowMode' rust/dp-air/src rust/dp-air/tests/*.rs rust/dp-gd/src rust/dp-stand/src scripts configs tests tools/terrain tools/flight tools/bench",
+      "expect": "exit=0"
+    },
+    {
+      "name": "same_as_inflow",
+      "cmd": "python3 -I tools/research/wind_forecast/compare_after.py",
+      "expect": "num:max_rel=([0-9.eE+-]+) <=0.005"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-08T01:02:31"
+}

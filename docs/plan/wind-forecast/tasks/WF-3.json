@@ -1,0 +1,48 @@
+{
+  "id": "WF-3",
+  "module": "wind-forecast",
+  "type": "dp-engineer",
+  "title": "«На старте X м/с» в подсказке при запуске полёта",
+  "goal": "В подсказке старта (там, где справка по управлению) показывается ветер на 10 м над точкой старта из готового поля — скорость м/с и откуда дует; поля нет — честное «ветер у старта считается» или без строки; из текста ясно, что меню — прогноз, а у старта — результат расчёта.",
+  "plan_ref": "§Задачи: «На старте X м/с»",
+  "contracts": [
+    {
+      "name": "WF-К2",
+      "version": "2",
+      "ref": "docs/contracts/wind-forecast.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/wind-forecast-WF-3",
+  "branch": "wind-forecast/WF-3",
+  "base": "feature/wind-forecast",
+  "scope": [
+    "scenes/main.gd",
+    "scripts/ui/controls_screen.gd",
+    "locale/ui.csv",
+    "tests/contracts/test_wind_forecast_k2.gd",
+    "tests/contracts/test_wind_forecast_k2.gd.uid",
+    "tests/game/test_start_qol.gd"
+  ],
+  "dont_touch": [
+    "rust/",
+    "scripts/atmosphere/",
+    "scripts/game/",
+    "configs/",
+    "docs/",
+    "CHANGELOG.md",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "wind_forecast_k2",
+      "tests": "wind_forecast_k2"
+    },
+    {
+      "name": "start_qol",
+      "tests": "start_qol"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-08T01:03:28"
+}
