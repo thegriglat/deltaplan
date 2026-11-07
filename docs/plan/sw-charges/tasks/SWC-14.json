@@ -1,0 +1,45 @@
+{
+  "id": "SWC-14",
+  "module": "sw-charges",
+  "type": "dp-writer",
+  "title": "Итог этапа 2 на 2D и шага 3 прототипа A для шлюза",
+  "goal": "Дописать в docs/research/sw_charges.md раздел об этапе 2 на 2D (панели и вихри против трубы, Perdigão, Пикара — паритет по решению пользователя) и о прототипе A над рельефом; обновить «Итог», варианты продолжения и строки registry/findings.md.",
+  "plan_ref": "Приёмка",
+  "contracts": [],
+  "copy": "~/worktrees/deltaplan/sw-charges-SWC-14",
+  "branch": "sw-charges/SWC-14",
+  "base": "feature/sw-charges",
+  "scope": [
+    "docs/research/sw_charges.md",
+    "docs/registry/findings.md",
+    "tools/research/sw_charges/README.md",
+    "docs/INDEX.md",
+    "docs/registry/research.md"
+  ],
+  "dont_touch": [
+    "docs/research/sw_charges/",
+    "docs/contracts/",
+    "docs/plan/sw-charges.md"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": "bash -c '.dpcli/dpcli docs check 2>&1 | grep -E \"ОШИБКА.*sw.charges\"; test ${PIPESTATUS[1]} -eq 1'",
+      "expect": "exit=0"
+    },
+    {
+      "name": "findings",
+      "cmd": "bash -c 'sed -n \"/^## sw-charges/,/^## /p\" docs/registry/findings.md | grep -c \"^- \"'",
+      "expect": "num:(\\d+) >=7"
+    },
+    {
+      "name": "stage2",
+      "cmd": "grep -cE '^## .*[Ээ]тап 2' docs/research/sw_charges.md",
+      "expect": "num:(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "Только факты из документов модуля, числа со ссылками путь#раздел: docs/research/sw_charges/stage2-2d.md (SWC-12; таблицы — tools/research/sw_charges/out/panels2d/), proto-a-terrain.md (SWC-13); библиотека — tools/research/sw_charges/README.md «Панели panels2d» (SWC-11); отчёты и ревью — .dpcli/dpcli report <ID> --show, .dpcli/dpcli review <ID> --show (SWC-11, 12, 13). Решения пользователя — .dpcli/dpcli inbox sw-charges --peek: Q2 (этап 2 на 2D), эталон — измерения, Пикар ±10–15 %, порог успеха этапа 2 — паритет с Пикаром (в т. ч. Perdigão), ценность — единая аналогия трёх масштабов. В docs/research/sw_charges.md: новый раздел «Этап 2 на 2D-разрезе» (паритет по случаям и высотам таблицей: Пикар within_tol, труба Lubitz–White ΔS, мачты Perdigão против модели игры, ротор L против Пикара/Menke; время solve/запроса/шага) и «Прототип A над рельефом» (подтекание, отрыв, ротор, P, время); открытые вопросы из отчётов и ревью (порог отрыва 0,27 даёт ложный ротор на C4 — нужен ли физический критерий; недобор ΔS трубы — причины не разделены: α, сглаживание фона, формы; погрешность Пикара у 10 м не оценена; потеря импульса A без перегруппировки); обновить «**Итог:** …» (этапы 1, 2 на 2D, 3) — честно, без продающего тона; обновить раздел «Варианты продолжения» по документам (без своих рекомендаций, если их нет в документах), conclusion во frontmatter. Таблицу задач дополнить SWC-11–13. registry/findings.md, раздел «## sw-charges» — добавить ≥ 2 строки (итого ≥ 7). tools/research/sw_charges/README.md — оглавление: добавить panels2d, panels_exp. ≤ 40 КБ. r.json — вне копии (scratchpad, имя с SWC-14).",
+  "created": "2026-11-08T04:05:41",
+  "edited": "2026-11-08T04:05:45"
+}

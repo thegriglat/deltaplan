@@ -157,3 +157,6 @@
 {"t": "2026-11-08T04:05:25", "by": "coordinator", "task": "SWC-12", "ev": "accepted", "note": "по ревью (accept, 3 minor: погрешность Пикара у 10 м не оценена; допущения трубы без вариации; порог отрыва 0,27 даёт ложный ротор на C4 — вопрос к шлюзу)"}
 {"t": "2026-11-08T04:05:26", "by": "coordinator", "task": "SWC-12", "ev": "accepted", "commits": ["11aafeee8"], "note": "3/3 contract=ok:FAIL 0; docs=ok:exit 0; verdict=ok:1"}
 {"t": "2026-11-08T04:05:27", "by": "coordinator", "task": "SWC-12", "ev": "merged", "commits": ["11aafeee8"]}
+{"t": "2026-11-08T04:05:41", "by": "coordinator", "task": "SWC-14", "ev": "created", "note": "Итог этапа 2 на 2D и шага 3 прототипа A для шлюза"}
+{"t": "2026-11-08T04:05:45", "by": "coordinator", "task": "SWC-14", "ev": "edited", "note": "notes", "diff": {"notes": ["\"\"", "\"Только факты из документов модуля, числа со ссылками путь#раздел: docs/research/sw_charges/stage2-2d.md (SWC-12; таблицы — tools/research/sw_charges/out/panels2d/), proto-a-terrain.md (SWC-13); библиотека — tools/research/sw_charges/README.md «Панели panels2d» (SWC-11); отчёты и ревью — .dpcli/dpc…"]}}
+{"t": "2026-11-08T04:06:00", "by": "coordinator", "task": "SWC-14", "ev": "started"}
