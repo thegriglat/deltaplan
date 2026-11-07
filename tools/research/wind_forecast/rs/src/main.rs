@@ -53,7 +53,7 @@ fn run(root: &PathBuf, s: &Spec, cfg: &dp_air::Configs) -> Result<Value, String>
     let cond = json!({
         "forecast": {"sky": s.sky, "temperature_c": s.temp, "wind_from_deg": s.from, "wind_speed_kmh": s.wind_ms * 3.6},
         "start_hour": s.hour, "speed": 1.0, "quantum_h": 0.0166666666666667, "blend_s": null, "rebuild": false,
-        "overrides": {}, "wind_ref": {"ref_msl": sh, "gain_per_km": 0.6}
+        "overrides": {}
     });
     let c = Conditions::from_json(&cond.to_string()).map_err(|e| e.to_string())?;
     let mut m = Formula::new().with_deterministic(true);

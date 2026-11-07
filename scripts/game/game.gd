@@ -594,7 +594,6 @@ func _air_conditions() -> Dictionary:
 		"speed": sky.clock.speed,
 		# шаг пересчёта погоды по часу (крейт требует)
 		"quantum_h": Weather.quantum_h(),
-		"wind_ref": {"ref_msl": _start_pos.y},  # прирост ветра с высотой (gain_per_km) берёт крейт из климата
 	}
 	if settings.wind_into_launch:
 		cond["overrides"] = {"wind_from_deg": _site_heading}

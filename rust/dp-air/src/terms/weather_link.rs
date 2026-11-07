@@ -180,18 +180,25 @@ impl Terms {
         let wv = WeatherView::new(r.weather);
         self.wind.set_from_weather(&wv);
         match &c.source {
-            Source::Forecast {
-                wind_ref: Some(w), ..
-            } => {
-                self.wind.ref_msl = w.ref_msl;
-                // нет gain_per_km - из климата места на высоте старта (W5 v10); нет места или
+            Source::Forecast { wind_ref, .. } => {
+                // опора: явный `wind_ref` (тесты, фикстуры) или отметка открытой местности места
+                // (`valley_msl_m`, WF-К1 v3: скорость прогноза - на 10 м над ней); нет места - без опоры
+                let valley = self
+                    .link
+                    .place
+                    .as_ref()
+                    .map(|p| p.ctx.valley_msl_m)
+                    .filter(|v| v.is_finite());
+                let ref_msl = wind_ref.as_ref().map(|w| w.ref_msl).or(valley);
+                self.wind.ref_msl = ref_msl.unwrap_or(f64::NAN);
+                // нет gain_per_km - из климата места на опорной высоте (W5 v10); нет места или
                 // `Weather` - запасной климат (`climate.fallback`: рост ветра конфига). Прежний
                 // рост от прошлых условий не остаётся.
-                let gain = w.gain_per_km.or_else(|| {
+                let gain = wind_ref.as_ref().and_then(|w| w.gain_per_km).or_else(|| {
                     let wm = self.link.wm.as_ref()?;
                     let base = self.link.place.as_ref().map_or(NO_PLACE, |p| p.ctx);
                     let ctx = PlaceCtx {
-                        start_msl_m: w.ref_msl,
+                        start_msl_m: ref_msl.unwrap_or(f64::NAN),
                         ..base
                     };
                     Some(self.place_climate(&ctx, wm).gain_per_km)
