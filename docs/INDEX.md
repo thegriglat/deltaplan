@@ -122,9 +122,10 @@ generated: true
   - [docs/research/sw_charges/proto-c.md](research/sw_charges/proto-c.md) — Прототип C (SWC-7): диполи Лэмба — Чаплыгина и пары болтанки, 2D без рельефа; поток тепла из замыкания сходится, σ_w и ядро — нет.
   - [docs/research/sw_charges/stage1-regimes.md](research/sw_charges/stage1-regimes.md) — Слой Рипа даёт режимы теории §2 (94 % ridge, бор ±0,001); в условиях air-phase при h/z_i ≥ 1 всегда R6, Fr_game,c ≈ 1,2–1,3.
   - [docs/research/sw_charges/stage1-sections.md](research/sw_charges/stage1-sections.md) — SWC-9: слой Рипа на сетке 400/200 м против Пикара на разрезах C0–C4 и Perdigão; на масштабе 400 м слой не лучше ровного ветра.
+  - [docs/research/sw_charges/stage2-2d-tunnel.md](research/sw_charges/stage2-2d-tunnel.md) — SWC-16: недобор dS панелей против труб Lubitz–White — от сглаживания фона и высоты сравнения, не формы; эталон Пикара у земли ±6–30 %.
   - [docs/research/sw_charges/stage2-2d.md](research/sw_charges/stage2-2d.md) — SWC-12: панели и вихри на 2D-разрезах: паритета у земли с Пикаром, трубой и мачтами нет, ротор с вихрями есть.
   - [docs/research/sw_charges/unified-scales.md](research/sw_charges/unified-scales.md) — Три варианта единого описания ветра трёх масштабов (вихревые частицы, слой + поток массы, диполи и пары), литература, два 2D-прототипа.
-  - [docs/research/sw_charges.md](research/sw_charges.md) — Итог этапа 1 sw-charges (слой мелкой воды на 2D) и этапа 3 без рельефа: что проверено, вердикты с числами, чего не умеет, что не сделано.
+  - [docs/research/sw_charges.md](research/sw_charges.md) — Итог sw-charges: слой Рипа (этап 1), панели и вихри на 2D (этап 2), прототип A над рельефом — вердикты с числами.
   - [tools/research/sw_charges/README.md](../tools/research/sw_charges/README.md) — sw-charges: опыты слоя мелкой воды (Рипа, reduced gravity) и зарядов на поверхности рельефа на Rust — данные, команды, таблицы.
   - [tools/research/sw_charges/panels_exp/README.md](../tools/research/sw_charges/panels_exp/README.md) — SWC-12: панели и вихри panels2d против труб Lubitz–White, мачт Perdigão и Пикара (C1, C2, C4) на 2D-разрезах: код, команды, время, данные.
   - [tools/research/sw_charges/proto_a/README.md](../tools/research/sw_charges/proto_a/README.md) — Прототип A (SWC-6): вихревые частицы с плавучестью, 2D, прямая сумма на CuPy — термик-пятно и сдвиговой слой; код, команды, таблицы.
