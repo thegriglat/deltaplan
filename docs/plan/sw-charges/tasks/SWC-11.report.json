@@ -1,33 +1,33 @@
 {
   "status": "done",
-  "summary": "Пакет panels2d по SW6: панели, bg_uniform/bg_profile, Vortices, solve/velocity/step; 9 тестов проходят, замеры в README.",
+  "summary": "Доработка по SW6 v2: Panels.ds_min и core=ds_min/2, сетка без обрезков, bg_profile smooth_m, тест полуцилиндра R/20 по v2, таблица ошибок в README.",
   "commits": [
-    "2f2a48b41 panels2d: панели источников и дискретные вихри"
+    "e71f9a93c panels2d: SW6 v2"
   ],
   "checks": [
     {
       "name": "pytest",
-      "value": "9 passed",
+      "value": "10 passed",
       "pass": true
     },
     {
       "name": "pytest-pass",
-      "value": "9",
+      "value": "10",
+      "pass": true
+    },
+    {
+      "name": "min ds/ds_min на Agnesi (12.5, 25, 7.3, None)",
+      "value": ">=0.5",
+      "pass": true
+    },
+    {
+      "name": "core рождённых при ds_min 12.5",
+      "value": "6.25",
       "pass": true
     },
     {
       "name": "solve N=500/2000 (мс)",
-      "value": "53 / 804 (машина под нагрузкой)",
-      "pass": true
-    },
-    {
-      "name": "velocity мкс/точку (N=500, 1e4 точек)",
-      "value": "69",
-      "pass": true
-    },
-    {
-      "name": "step 1000 вихрей, N=500 (мс)",
-      "value": "322",
+      "value": "60 / 850",
       "pass": true
     }
   ],
@@ -36,30 +36,12 @@
   "how_to_check": ".dpcli/dpcli accept SWC-11",
   "uncertain": [
     {
-      "where": "panels2d/tests/test_panels2d.py:test_semicylinder",
-      "why": "Порог карточки не достигается при ds_min=R/20: на 1 м над поверхностью у θ=20° ошибка 6-15% (ближнее поле постоянных панелей, косой угол); вершина -1,24% при R/20 с фокусом. Тест использует ds_min=R/160, x_focus=None и сравнивает с точным цилиндром в r=R+1 (±2%) и с 2U sinθ (±2,5%; 0,5% — сама поправка 1 м над землёй).",
-      "checked": "сетка ds 20..1,25 и growth 1,0001..1,15; сходимость монотонна"
-    },
-    {
       "where": "core.py:build_panels",
-      "why": "Зона ds_min только ±10·ds_min вокруг x_focus, дальше рост 1,15 — по контракту; на полукруге это грубее, чем кажется (панели растут уже при |x|>100 м при R/20). Потребителям брать x_focus=None или большую ds-зону для крупных препятствий.",
-      "checked": "таблица ошибок выше"
-    },
-    {
-      "where": "core.py:bg_profile",
-      "why": "Сигнатура расширена необязательным ds_min=25 (σ сглаживания 10·ds_min), т.к. в контракте ds_min в bg_profile не передаётся.",
-      "checked": "тест bg_profile"
-    },
-    {
-      "where": "core.py:step",
-      "why": "Добавил учёт state['born'], state['lost'] для проверки сохранения Γ; рождение в конце шага по скорости в точке shed (с вихрями).",
-      "checked": "тест 100 шагов, баланс до 1e-12"
+      "why": "Остаток зоны роста присоединяется к последней панели (она может быть до 1,5·h, т.е. >ds_max в дальней зоне).",
+      "checked": "min ds >= 0,5 ds_min на 4 конфигурациях"
     }
   ],
-  "dp_feedback": "BLAS многопоточный на загруженной машине тормозит на малых матрицах в десятки раз (pytest 3 мин вместо 2 с) — полезно в py-обёртке задать OPENBLAS_NUM_THREADS=1.",
-  "extra": {
-    "semicyl_errors": "ds R/20 фокус: top -1,24%; R/160: top -0,6%, поверхность <=2,3% до исправления сетки"
-  },
-  "t": "2026-11-08T03:06:01",
+  "dp_feedback": "",
+  "t": "2026-11-08T03:10:38",
   "by": "executor"
 }
