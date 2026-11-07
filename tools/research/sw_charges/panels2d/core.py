@@ -252,9 +252,20 @@ def step(state, dt):
         keep = ~gone
         vt = Vortices(nx_[keep], nz_[keep], vt.gamma[keep], vt.core[keep])
     # рождение: Γ = −½ u_s² dt по скорости над кромкой (с учётом вихрей)
-    shed = state.get("shed") or []
-    if shed:
+    shed = state.get("shed")
+    shed = [] if shed is None else shed
+    if len(shed):
         sg = solve(p, bg, vt)
+        if isinstance(shed, str) and shed == "auto":
+            from .bl import surface_flow, boundary_layer, separation
+            fl = surface_flow(p, sg, bg, vt)
+            sp = separation(p, fl, boundary_layer(p, fl, state.get("z0", 0.1)), "head")
+            shed = []
+            for q in sp:
+                i = int(np.clip(np.searchsorted(p.x1, q["x_sep"], side="right") - 1, 0, p.n - 1))
+                shed.append(dict(x_s=q["x_sep"] + p.nx[i] * 0.5 * p.ds_min, z_s=q["z_sep"] + p.nz[i] * 0.5 * p.ds_min,
+                                 rule="head"))
+    if shed:
         xs = np.array([s["x_s"] for s in shed], float)
         zs = np.array([s["z_s"] for s in shed], float)
         us, ws = velocity(p, sg, bg, xs, zs, vt)
