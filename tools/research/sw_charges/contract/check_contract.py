@@ -12,7 +12,7 @@ import struct
 import sys
 import tempfile
 
-FORMATS = {"sw-case": 1, "sw-field": 1, "sw-run": 1, "sw-regimes": 1, "sw-sections": 2}
+FORMATS = {"sw-case": 1, "sw-field": 1, "sw-run": 1, "sw-regimes": 1, "sw-sections": 2, "sw-panels2d": 1}
 REGIMES = {"R1", "R2", "R3", "R4j", "R5", "R6", "unclassified"}
 THEORY = {"R1", "R2", "R3", "R2|R4j", "R5", "R6"}
 BC = {"farfield", "transmissive", "wall", "periodic"}
@@ -241,6 +241,52 @@ def check_sections(path, d):
         raise ContractError("нет парного .csv")
 
 
+PAN_KEYS = ("case", "variant", "point", "x", "z_agl", "ref_kind", "ref_source", "ref_reliability", "u_ref", "w_ref",
+            "u_pan", "w_pan", "units", "err", "within_tol", "ds_min", "t_solve_ms", "t_query_us")
+PAN_POINTS = {"upstream", "windward", "crest", "lee", "valley", "foot"}
+
+
+def check_panels(path, d):
+    need(d, ("git", "created", "tol_picard", "rows", "rotor"), "sw-panels2d")
+    if not isinstance(d["rows"], list) or not d["rows"]:
+        raise ContractError("rows: непустой список")
+    for i, r in enumerate(d["rows"]):
+        need(r, PAN_KEYS, f"rows[{i}]")
+        cs = r["case"]
+        if not (cs in ("C1", "C2", "C4", "PERD_NE", "PERD_SW") or (isinstance(cs, str) and cs.startswith("LW_"))):
+            raise ContractError(f"rows[{i}].case: {cs!r}")
+        if r["variant"] not in ("potential", "vortex"):
+            raise ContractError(f"rows[{i}].variant: {r['variant']!r}")
+        if r["point"] not in PAN_POINTS:
+            raise ContractError(f"rows[{i}].point: {r['point']!r}")
+        if r["ref_kind"] not in ("picard", "mast", "lidar", "tunnel"):
+            raise ContractError(f"rows[{i}].ref_kind: {r['ref_kind']!r}")
+        if r["ref_reliability"] not in ("измерение", "труба", "модель ±15 %"):
+            raise ContractError(f"rows[{i}].ref_reliability: {r['ref_reliability']!r}")
+        if r["units"] not in ("m/s", "dS"):
+            raise ContractError(f"rows[{i}].units: {r['units']!r}")
+        for k in ("x", "z_agl", "ds_min"):
+            num(r[k], f"rows[{i}].{k}")
+        for k in ("u_ref", "w_ref", "u_pan", "w_pan", "err", "t_solve_ms", "t_query_us"):
+            num(r[k], f"rows[{i}].{k}", allow_null=True)
+        wt = r["within_tol"]
+        if r["ref_kind"] == "picard":
+            if not isinstance(wt, bool):
+                raise ContractError(f"rows[{i}].within_tol: bool для picard")
+            if r["u_ref"] is not None and r["err"] is not None and wt != (abs(r["err"]) <= d["tol_picard"] * abs(r["u_ref"])):
+                raise ContractError(f"rows[{i}].within_tol не согласован с err")
+        elif wt is not None:
+            raise ContractError(f"rows[{i}].within_tol: null не для picard")
+    if not isinstance(d["rotor"], list):
+        raise ContractError("rotor: список")
+    for i, r in enumerate(d["rotor"]):
+        need(r, ("case", "variant", "rotor_pan", "L_pan", "rotor_ref", "L_ref", "ref_source"), f"rotor[{i}]")
+        if not isinstance(r["rotor_pan"], bool):
+            raise ContractError(f"rotor[{i}].rotor_pan: bool")
+    if not os.path.exists(path[: -len(".json")] + ".csv"):
+        raise ContractError("нет парного .csv")
+
+
 def check_file(path, strict=True):
     try:
         with open(path) as f:
@@ -255,7 +301,7 @@ def check_file(path, strict=True):
     if d.get("version") != FORMATS[fmt]:
         raise ContractError(f"{fmt}: version {d.get('version')!r} ≠ {FORMATS[fmt]}")
     {"sw-case": check_case, "sw-field": check_field, "sw-run": check_run, "sw-regimes": check_regimes,
-     "sw-sections": check_sections}[fmt](path, d)
+     "sw-sections": check_sections, "sw-panels2d": check_panels}[fmt](path, d)
     return fmt
 
 
@@ -345,12 +391,23 @@ def _synth(t):
     with open(secp, "w") as f:
         json.dump(sec, f)
     open(secp[:-5] + ".csv", "w").close()
-    return cp, fp, runp, regp, secp
+    pan = {"format": "sw-panels2d", "version": 1, "git": "x", "created": "2026-11-08T00:00:00", "tol_picard": 0.15,
+           "rows": [{"case": "C1", "variant": "potential", "point": "crest", "x": 0.0, "z_agl": 50.0,
+                     "ref_kind": "picard", "ref_source": "P50", "ref_reliability": "модель ±15 %", "u_ref": 8.0,
+                     "w_ref": 0.0, "u_pan": 8.8, "w_pan": 0.0, "units": "m/s", "err": 0.8, "within_tol": True,
+                     "ds_min": 25.0, "t_solve_ms": 10.0, "t_query_us": 5.0}],
+           "rotor": [{"case": "PERD_NE", "variant": "vortex", "rotor_pan": True, "L_pan": 300.0, "rotor_ref": True,
+                      "L_ref": 350.0, "ref_source": "Menke 2019"}]}
+    panp = os.path.join(t, "points.json")
+    with open(panp, "w") as f:
+        json.dump(pan, f)
+    open(panp[:-5] + ".csv", "w").close()
+    return cp, fp, runp, regp, secp, panp
 
 
 def selftest():
     with tempfile.TemporaryDirectory() as t:
-        cp, fp, runp, regp, secp = _synth(t)
+        cp, fp, runp, regp, secp, panp = _synth(t)
         if run([t]) != 0:
             print("selftest: синтетика не прошла")
             return 1
@@ -370,6 +427,9 @@ def selftest():
             (secp, lambda d: d["rows"][0].pop("E0")),
             (secp, lambda d: d["rows"][0].update(case="C9")),
             (secp, lambda d: d.update(version=1)),
+            (panp, lambda d: d["rows"][0].update(within_tol=False)),
+            (panp, lambda d: d["rows"][0].update(point="top")),
+            (panp, lambda d: d.pop("rotor")),
         ]
         for path, spoil in cases:
             with open(path) as f:

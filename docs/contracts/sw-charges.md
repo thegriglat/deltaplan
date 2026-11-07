@@ -4,15 +4,15 @@ status: "active"
 module: "sw-charges"
 area: "air"
 updated: "2026-11-08"
-summary: "Стыки sw-charges: случай, поле, прогон слоя Рипа (SW1–SW3); режимы по F0, M (SW4); слой против Пикара на разрезах (SW5)."
+summary: "Стыки sw-charges: слой Рипа (SW1–SW3), режимы (SW4), слой против Пикара (SW5), панели 2D (SW6), их сравнение с эталонами (SW7)."
 related: ["docs/plan/sw-charges.md", "docs/contracts/cascade-2d.md", "tools/research/sw_charges/README.md"]
-contracts: [{"id": "SW1", "version": 1}, {"id": "SW2", "version": 1}, {"id": "SW3", "version": 1}, {"id": "SW4", "version": 1}, {"id": "SW5", "version": 2}]
+contracts: [{"id": "SW1", "version": 1}, {"id": "SW2", "version": 1}, {"id": "SW3", "version": 1}, {"id": "SW4", "version": 1}, {"id": "SW5", "version": 2}, {"id": "SW6", "version": 1}, {"id": "SW7", "version": 1}]
 ---
 # Контракты модуля sw-charges
 
 Владелец всех стыков — координатор модуля; меняет только он (версия +1, потребителям — `task note`).
 Контрактный тест: `python3 tools/research/sw_charges/contract/check_contract.py --selftest` (только stdlib) и
-`check_contract.py <файлы|каталоги>` — проверка реальных файлов SW1–SW5 по полю `format`.
+`check_contract.py <файлы|каталоги>` — проверка реальных файлов SW1–SW5, SW7 по полю `format`; SW6 — тесты пакета.
 
 Общее для SW1–SW3:
 - Пара `<имя>.json` + `<имя>.bin`; `.bin` — float32 little-endian подряд; в JSON `arrays` = {имя: [смещение, длина]}
@@ -126,3 +126,43 @@ v2 (2026-11-08, решение пользователя о масштабах м
   `git`, `created`, `rows` — {`case` (C0…C4), `dx` (Пикара), `dx_sw` (сетка слоя), `sw_case` (имя SW1), `sw_run` (SW3),
   `rule_b0`, `h0`, `b0`, `U0`, `F0`, `M`, `E`, `E0`, `S_sw`, `S_p`, `D_sw`, `D_p`, `x_D_sw`, `x_D_p`, `status`, `wall_s`};
   неприменимое — `null`.
+
+## SW6 v1 — панели и вихри на 2D-разрезе (библиотека `panels2d`)
+Владелец — SWC-11 (пакет `tools/research/sw_charges/panels2d/`, Python/NumPy); потребители — опыты этапа 2 на разрезе
+(SWC-12), прототип A над рельефом (SWC-13). Решение пользователя (Q2): этап 2 сначала на 2D-разрезе x–z; панели
+25–30 м у точки интереса, крупнее вдали; вихри — с кромок от ~60–90 м; кроны и крыши DSM — сгладить.
+Оси: x — по ветру (м), z — вверх (м); скорость (u, w) м/с; циркуляция Γ > 0 — против часовой стрелки (x вправо, z вверх).
+- `Terrain(x, z, smooth_m=0.0)` — линия земли, x строго возрастает, z — высота (м); `smooth_m` > 0 — гауссово сглаживание
+  с этим σ (для DSM). Вне [x_min, x_max] земля продолжена горизонтально до ±`far_m` (по умолчанию 20 км), там панели
+  крупные (≤ `ds_max`).
+- `build_panels(terrain, x_focus=None, ds_min=25.0, ds_max=400.0, growth=1.15)` → `Panels` с массивами длины N:
+  `x1, z1, x2, z2` (концы, по возрастанию x), `xc, zc` (середины — точки коллокации), `nx, nz` (единичная нормаль
+  **в воздух**), `ds` (длина). Размер панели: `ds_min` в |x − x_focus| ≤ 10·ds_min, дальше растёт в `growth` раз
+  на панель до `ds_max`; `x_focus=None` — `ds_min` по всей [x_min, x_max]. Узлы — на линии земли (после сглаживания).
+- Фон — функция `bg(x, z) -> (u, w)` (массивы); готовые: `bg_uniform(U)`, `bg_profile(U10, alpha, z_sat, terrain)` —
+  горизонтальный U(z_agl) = U10·(z_agl/10)^alpha до z_sat, выше постоянный, z_agl — над сглаженной землёй
+  (σ = 10·ds_min), w = 0; z_agl < z0 = 0,1 м — как при z0.
+- `Vortices(x, z, gamma, core)` — точечные вихри Лэмба — Озеена (core — радиус ядра σ, м); пустой набор допустим.
+- `solve(panels, bg, vortices=None)` → `sigma` (N, плотность источников, м/с, постоянная на панели): нормальная
+  скорость (фон + вихри + панели) в точках коллокации = 0, невязка max|u·n| ≤ 1e-8·max|bg| (прямое решение N×N).
+- `velocity(panels, sigma, bg, x, z, vortices=None)` → `(u, w)` той же формы, что x, z; точки под землёй
+  (z < z земли в этом x) — NaN; точки ближе ds/4 к панели — по формуле панели (без особенности, конечное значение).
+- `step(state, dt)` — шаг метода дискретных вихрей: `state` = {`panels`, `bg`, `vortices`, `t`, `shed`}; решить
+  `solve`, сдвинуть вихри по скорости в их центрах (RK2, без самоиндукции), удалить ушедшие под землю/за область,
+  добавить новые в точках отрыва `shed` = список {`x_s`, `z_s` (над землёй на ds_min/2), `rule`}; сила нового
+  вихря Γ = −½·u_s²·dt (u_s — скорость над кромкой; знак — вращение срывающегося слоя), core = ds_min/2.
+  Сумма Γ всех вихрей сохраняется вне рождения/выхода (проверка теста).
+- Инварианты (тесты пакета): ровная земля + `bg_uniform` → σ ≈ 0 и u = U; полуцилиндр радиуса R на стенке —
+  u = 2U на вершине (±1 % при ds_min ≤ R/20), u на земле — 2U·sin θ; без особенностей у точек коллокации.
+
+## SW7 v1 — панели против эталонов на разрезах
+Владелец — SWC-12; потребители — итог этапа 2 (2D), шлюз.
+- Путь — `tools/research/sw_charges/out/panels2d/points.json` + `.csv`; JSON (`format: "sw-panels2d"`, `version: 1`):
+  `git`, `created`, `tol_picard` (0,15), `rows` — {`case` ("C1" | "C2" | "C4" | "PERD_NE" | "PERD_SW" | "LW_<модель>"),
+  `variant` ("potential" | "vortex"), `point` ("upstream" | "windward" | "crest" | "lee" | "valley" | "foot"),
+  `x` м, `z_agl` м, `ref_kind` ("picard" | "mast" | "lidar" | "tunnel"), `ref_source` (строка: путь/статья),
+  `ref_reliability` ("измерение" | "труба" | "модель ±15 %"), `u_ref`, `w_ref` (м/с или безразм. ΔS — см. `units`),
+  `u_pan`, `w_pan`, `units` ("m/s" | "dS"), `err` (u_pan − u_ref, в `units`), `within_tol` (bool: для picard —
+  |err| ≤ 0,15·|u_ref|, иначе `null`), `ds_min` м, `t_solve_ms`, `t_query_us`}; неприменимое — `null`.
+- `rotor` — список {`case`, `variant`, `rotor_pan` (bool: обратное u у земли за гребнем), `L_pan` м (длина зоны
+  обратного течения у земли), `rotor_ref` (bool | null), `L_ref` м | null, `ref_source`}.
