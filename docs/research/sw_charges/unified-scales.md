@@ -17,7 +17,7 @@ applied_in: ""
 
 ## Что есть сейчас и где швы
 
-Воздух пилота — сумма трёх независимых моделей (`docs/guide/air-model.md`, «Суть»): масштаб 1 даёт u, v, w_mech, w_conv, θ′ на сетке; масштаб 2 (`AirThermals`, `thermal_field.gd`) — пузыри с ядром Гедеона и кольцом опускания, число и силу ядер берёт из w*, толщины слоя и потока тепла; масштаб 3 — стационарный гауссов шум с σ и масштабами из u*, сдвига, N², w* и спектром фон Кармана (`turbulence.md`). Каждый строится из предыдущего, обратной связи нет. Швы, которые единая постановка должна закрыть:
+Воздух пилота — сумма трёх моделей, каждая строится из предыдущей (`docs/guide/air-model.md`, «Суть»): 1 — среднее поле, 2 — термики (`AirThermals`), 3 — стационарный шум по σ из поля. Швы, которые закрывает единая постановка:
 
 | Шов | Как сейчас (источник) | Чего нет |
 |---|---|---|
@@ -64,7 +64,7 @@ Dω/Dt = ∂b/∂x + (диссипация), Db/Dt = (перемешивание
 
 **Крыло.** Порыв — поле пары/пятна: размер d ~ 1,6R пятна против размаха ~10 м; перепад w по размаху берётся из поля частиц (∂w/∂x·10 м), пока d ≳ 10 м; мельче — пятна меньше σ_core сглажены. Частота рождения — из сдвига и плавучести самого поля частиц (бароклинный член), заданных λ нет.
 
-**Литература и надёжность.** Вихревые методы — книга [9] и обзор [8]; для сверки вовлечения есть прямые расчёты разрешённых сухих термиков [16]. Метод изящнее прочих, но самый дорогой: O(N²) пар (БПФ-ускорение/мультиполи нужны), а турбулентность как множество частиц требует тысяч пятен на разрез.
+**Литература.** Вихревые методы — [8][9]; вовлечение — прямые расчёты сухих термиков [16]. Самый дорогой вариант: O(N²) пар, тысячи пятен на разрез.
 
 **Сверка с нынешними масштабами 2–3.** Ядро + кольцо Гедеона = профиль скорости диполя сглаженного размера (проверяется по w(x) на высоте полёта: ядро > 0, кольцо < 0, интеграл по x → 0). Болтанка у гребня: пары, отрывающиеся от сдвига; σ_w(z) за гребнем против `turbulence.md`, «Числа».
 
@@ -110,13 +110,10 @@ Dω/Dt = ∂b/∂x + (диссипация), Db/Dt = (перемешивание
 
 | Критерий | A: вихревые частицы | B: слой + EDMF + PV | C: диполи и пары |
 |---|---|---|---|
-| Согласие с «электрической» аналогией | прямое (ω — заряд) | через PV и потоки | прямое, дискретно |
 | Общие сохраняющиеся | Γ, P, B | h, импульс, PV | Γ, P, B (по объектам) |
 | Обратное влияние на 1 | из ансамбля (поток) и прямая сумма | через E, D и ⟨hu′v′⟩ | вычитание из H, импульса |
 | Разрез x–z | да | только 1D (без пар) | да |
 | Цена | O(N²) без ускорения | дёшево (этап 1) | дёшево, O(N·M) |
-| Риск | 2D-турбулентность не 3D; число частиц | вертикаль термика грубая | подбор λ, Γ без данных |
-| Новизна | известный метод, новое применение | известные части | новая комбинация |
 
 Оговорка по ссылкам: эффективность A и C в 2D не следует из литературы; она проверяется. Присутствие элементов игры (критерий приёмки пользователя: все элементы есть; «есть» — по построению варианта, «проверить» — ожидается, но не показано; оценка до прототипов):
 
@@ -138,34 +135,34 @@ Dω/Dt = ∂b/∂x + (диссипация), Db/Dt = (перемешивание
 - [3] Kelvin (W. Thomson), 1869, On vortex motion, Trans. R. Soc. Edinburgh 25, 217–260 — надёжность: рецензир., классика — не сверено; опираемся только на общеизвестную формулировку теоремы
 - [4] Pope S.B., 2000, Turbulent Flows, Cambridge Univ. Press (уравнение завихренности) — надёжность: книга — не сверено
 - [5] Saffman P.G., 1992, Vortex Dynamics, Cambridge Univ. Press — надёжность: книга — не сверено; числа из неё не берутся
-- [6] Scorer R.S., 1957, Experiments on convection of isolated masses of buoyant fluid, J. Fluid Mech. 2, 583–594, DOI 10.1017/S0022112057000397 — надёжность: рецензир. — сверено поиском (по аннотации: w и R подобны, C ≈ 1,2, n ≈ 4; сравнение с вихревыми кольцами)
-- [7] Turner J.S., 1957, Buoyant vortex rings, Proc. R. Soc. Lond. A 239, 61–75 — надёжность: рецензир. — сверено поиском (по цитирующим работам; в одной цитате ошибочно том 234)
+- [6] Scorer R.S., 1957, Experiments on convection of isolated masses of buoyant fluid, J. Fluid Mech. 2, 583–594, DOI 10.1017/S0022112057000397 — надёжность: рецензир. — сверено поиском
+- [7] Turner J.S., 1957, Buoyant vortex rings, Proc. R. Soc. Lond. A 239, 61–75 — надёжность: рецензир. — сверено поиском
 - [8] Leonard A., 1980, Vortex methods for flow simulation, J. Comput. Phys. 37, 289–335, DOI 10.1016/0021-9991(80)90040-6 — надёжность: рецензир., обзор — сверено поиском
 - [9] Cottet G.-H., Koumoutsakos P.D., 2000, Vortex Methods: Theory and Practice, Cambridge Univ. Press — надёжность: книга — не сверено
 - [10] Krasny R., 1986, Desingularization of periodic vortex sheet roll-up, J. Comput. Phys. 65, 292–313, DOI 10.1016/0021-9991(86)90210-X — надёжность: рецензир. — сверено поиском
 - [11] Chorin A.J., 1973, Numerical study of slightly viscous flow, J. Fluid Mech. 57, 785–796, DOI 10.1017/S0022112073002016 — надёжность: рецензир. — сверено поиском
-- [12] Morton B.R., Taylor G.I., Turner J.S., 1956, Turbulent gravitational convection from maintained and instantaneous sources, Proc. R. Soc. Lond. A 234, 1–23, DOI 10.1098/rspa.1956.0011 — надёжность: рецензир. — сверено поиском (гипотеза вовлечения: приток ∝ средней скорости подъёма)
+- [12] Morton B.R., Taylor G.I., Turner J.S., 1956, Turbulent gravitational convection from maintained and instantaneous sources, Proc. R. Soc. Lond. A 234, 1–23, DOI 10.1098/rspa.1956.0011 — надёжность: рецензир. — сверено поиском
 - [13] Escudier M.P., Maxworthy T., 1973, On the motion of turbulent thermals, J. Fluid Mech. 61, 541–552, DOI 10.1017/S0022112073000856 — надёжность: рецензир. — сверено поиском
-- [14] Tennekes H., 1973, A model for the dynamics of the inversion above a convective boundary layer, J. Atmos. Sci. 30, 558–567 — надёжность: рецензир. — сверено поиском (выходные данные по списку литературы другой статьи; аннотация не найдена)
+- [14] Tennekes H., 1973, A model for the dynamics of the inversion above a convective boundary layer, J. Atmos. Sci. 30, 558–567 — надёжность: рецензир. — сверено поиском
 - [15] Stull R.B., 1988, An Introduction to Boundary Layer Meteorology, Kluwer — надёжность: книга — не сверено; число A ≈ 0,2 из неё в расчёты не берётся, дано как порядок
-- [16] Lecoanet D., Jeevanjee N., 2019, Entrainment in resolved, dry thermals, J. Atmos. Sci. 76, 3785–3801, DOI 10.1175/JAS-D-18-0320.1 — надёжность: рецензир. — сверено поиском (DNS сухих термиков, вовлечение ε ∼ 1/r)
-- [17] Kraichnan R.H., 1967, Inertial ranges in two-dimensional turbulence, Phys. Fluids 10, 1417, DOI 10.1063/1.1762301 — надёжность: рецензир. — сверено поиском (прямой каскад энстрофии k⁻³, обратный каскад энергии)
+- [16] Lecoanet D., Jeevanjee N., 2019, Entrainment in resolved, dry thermals, J. Atmos. Sci. 76, 3785–3801, DOI 10.1175/JAS-D-18-0320.1 — надёжность: рецензир. — сверено поиском
+- [17] Kraichnan R.H., 1967, Inertial ranges in two-dimensional turbulence, Phys. Fluids 10, 1417, DOI 10.1063/1.1762301 — надёжность: рецензир. — сверено поиском
 - [18] Siebesma A.P., Soares P.M.M., Teixeira J., 2007, A combined eddy-diffusivity mass-flux approach for the convective boundary layer, J. Atmos. Sci. 64, 1230–1248, DOI 10.1175/JAS3888.1 — надёжность: рецензир. — сверено поиском
-- [19] Soares P.M.M., Miranda P.M.A., Siebesma A.P., Teixeira J., 2004, An eddy-diffusivity/mass-flux parametrization for dry and shallow cumulus convection, Q. J. R. Meteorol. Soc. 130, 3365–3383, DOI 10.1256/qj.03.223 — надёжность: рецензир. — сверено поиском (конечная страница в источниках 3383/3384)
+- [19] Soares P.M.M., Miranda P.M.A., Siebesma A.P., Teixeira J., 2004, An eddy-diffusivity/mass-flux parametrization for dry and shallow cumulus convection, Q. J. R. Meteorol. Soc. 130, 3365–3383, DOI 10.1256/qj.03.223 — надёжность: рецензир. — сверено поиском
 - [20] Pedlosky J., 1987, Geophysical Fluid Dynamics, 2nd ed., Springer — надёжность: книга — не сверено
-- [21] Lenschow D.H., Stephens P.L., 1980, The role of thermals in the convective boundary layer, Bound.-Layer Meteorol. 19, 509–532, DOI 10.1007/BF00122351 — надёжность: рецензир. — сверено поиском (выходные данные; содержание не читалось)
-- [22] Schär C., Smith R.B., 1993, Shallow-water flow past isolated topography. Part I: Vorticity production and wake formation, J. Atmos. Sci. 50, 1373–1400 — надёжность: рецензир. — сверено поиском (выходные данные по списку литературы; аннотация не найдена; часть II — там же, 1401–1412)
-- [23] Smolarkiewicz P.K., Rotunno R., 1989, Low Froude number flow past three-dimensional obstacles. Part I: Baroclinically generated lee vortices, J. Atmos. Sci. 46, 1154–1164 — надёжность: рецензир. — сверено поиском (вихри в следе из бароклинной горизонтальной завихренности, наклон)
-- [24] Smith R.B., 1979, The influence of mountains on the atmosphere, Adv. Geophys. 21, 87–230 — надёжность: рецензир., обзор — сверено поиском (выходные данные; содержание не читалось)
-- [25] Brown A.R., Grant A.L.M., 1997, Non-local mixing of momentum in the convective boundary layer, Bound.-Layer Meteorol. 84, 1–22, DOI 10.1023/A:1000388830859 — надёжность: рецензир. — сверено поиском (член нелокального напряжения)
-- [26] Romps D.M., Charn A.B., 2015, Sticky thermals: evidence for a dominant balance between buoyancy and drag in cloud updrafts, J. Atmos. Sci. 72, 2890–2901, DOI 10.1175/JAS-D-15-0042.1 — надёжность: рецензир. — сверено поиском (по аннотации: сопротивление уравновешивает плавучесть, Cd ≈ 0,6; для влажных облачных термиков)
-- [27] Sherwood S.C., Hernández-Deckers D., Colin M., Robinson F., 2013, Slippery thermals and the cumulus entrainment paradox, J. Atmos. Sci. 70, 2426–2442 — надёжность: рецензир. — сверено поиском (по аннотации: трение определено через вовлечение импульса)
-- [28] Perry A.E., Chong M.S., 1982, On the mechanism of wall turbulence, J. Fluid Mech. 119, 173–217 — надёжность: рецензир. — сверено поиском (ансамбль подковообразных вихрей)
+- [21] Lenschow D.H., Stephens P.L., 1980, The role of thermals in the convective boundary layer, Bound.-Layer Meteorol. 19, 509–532, DOI 10.1007/BF00122351 — надёжность: рецензир. — сверено поиском
+- [22] Schär C., Smith R.B., 1993, Shallow-water flow past isolated topography. Part I: Vorticity production and wake formation, J. Atmos. Sci. 50, 1373–1400 — надёжность: рецензир. — сверено поиском
+- [23] Smolarkiewicz P.K., Rotunno R., 1989, Low Froude number flow past three-dimensional obstacles. Part I: Baroclinically generated lee vortices, J. Atmos. Sci. 46, 1154–1164 — надёжность: рецензир. — сверено поиском
+- [24] Smith R.B., 1979, The influence of mountains on the atmosphere, Adv. Geophys. 21, 87–230 — надёжность: рецензир., обзор — сверено поиском
+- [25] Brown A.R., Grant A.L.M., 1997, Non-local mixing of momentum in the convective boundary layer, Bound.-Layer Meteorol. 84, 1–22, DOI 10.1023/A:1000388830859 — надёжность: рецензир. — сверено поиском
+- [26] Romps D.M., Charn A.B., 2015, Sticky thermals: evidence for a dominant balance between buoyancy and drag in cloud updrafts, J. Atmos. Sci. 72, 2890–2901, DOI 10.1175/JAS-D-15-0042.1 — надёжность: рецензир. — сверено поиском
+- [27] Sherwood S.C., Hernández-Deckers D., Colin M., Robinson F., 2013, Slippery thermals and the cumulus entrainment paradox, J. Atmos. Sci. 70, 2426–2442 — надёжность: рецензир. — сверено поиском
+- [28] Perry A.E., Chong M.S., 1982, On the mechanism of wall turbulence, J. Fluid Mech. 119, 173–217 — надёжность: рецензир. — сверено поиском
 - [29] Townsend A.A., 1976, The Structure of Turbulent Shear Flow, 2nd ed., Cambridge Univ. Press — надёжность: книга — не сверено
-- [30] Meleshko V.V., van Heijst G.J.F., 1994, On Chaplygin's investigations of two-dimensional vortex structures in an inviscid fluid, J. Fluid Mech. 272, 157–182, DOI 10.1017/S0022112094004428 — надёжность: рецензир. — сверено поиском (диполь Чаплыгина — Лэмба)
-- [31] Kraichnan R.H., 1970, Diffusion by a random velocity field, Phys. Fluids 13, 22, DOI 10.1063/1.1692799 — надёжность: рецензир. — сверено поиском (случайные несжимаемые поля скорости)
+- [30] Meleshko V.V., van Heijst G.J.F., 1994, On Chaplygin's investigations of two-dimensional vortex structures in an inviscid fluid, J. Fluid Mech. 272, 157–182, DOI 10.1017/S0022112094004428 — надёжность: рецензир. — сверено поиском
+- [31] Kraichnan R.H., 1970, Diffusion by a random velocity field, Phys. Fluids 13, 22, DOI 10.1063/1.1692799 — надёжность: рецензир. — сверено поиском
 - [32] Fung J.C.H., Hunt J.C.R., Malik N.A., Perkins R.J., 1992, Kinematic simulation of homogeneous turbulence by unsteady random Fourier modes, J. Fluid Mech. 236, 281–318, DOI 10.1017/S0022112092001423 — надёжность: рецензир. — сверено поиском
-- [33] Jarrin N., Benhamadouche S., Laurence D., Prosser R., 2006, A synthetic-eddy-method for generating inflow conditions for large-eddy simulations, Int. J. Heat Fluid Flow 27, 585–593, DOI 10.1016/j.ijheatfluidflow.2006.02.006 — надёжность: рецензир. — сверено поиском (турбулентность как суперпозиция когерентных структур)
+- [33] Jarrin N., Benhamadouche S., Laurence D., Prosser R., 2006, A synthetic-eddy-method for generating inflow conditions for large-eddy simulations, Int. J. Heat Fluid Flow 27, 585–593, DOI 10.1016/j.ijheatfluidflow.2006.02.006 — надёжность: рецензир. — сверено поиском
 
 ## Прототипы 2D
 
@@ -195,6 +192,4 @@ Dω/Dt = ∂b/∂x + (диссипация), Db/Dt = (перемешивание
 
 ## Что дальше и что не проверено
 
-- Порядок: A (основа) параллельно C; B уже идёт этапом 1 на 1D-срезах. Прототипы A и C стартуют на фоне без рельефа (не ждут этапа 1); шаг 2 — когда на 2D есть решение масштаба 1.
 - Не проверено: все числа порядка (a = b/2, Γ, d = πR/2, нулевой интеграл ∫w dx) — выведены в разделе «Общая основа» из уравнений, сверены только внутренне; журнальные ссылки сверены поиском по аннотациям и выходным данным, книги не сверены; поведение в 3D (растяжение вихрей, кольцо вместо диполя) оценено только качественно.
-- Для статьи: «термик как вихревое кольцо» — известная картина ([6][7][13]); новое — единый реестр объектов с общими Γ, P, B и обратными потоками на сетку среднего поля.
