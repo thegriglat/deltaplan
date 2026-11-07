@@ -1,0 +1,65 @@
+{
+  "id": "OBC-2",
+  "module": "outflow-bc",
+  "type": "dp-engineer",
+  "title": "Стенд корпуса outflow-bc: пример dp-air outflow_corpus (OB2, OB3) + пилот и оценка времени",
+  "goal": "Пример dp-air outflow_corpus: по спецификации корпуса строит случаи области 400 м (места игры и идеальные формы), решает варианты hard/soft/soft_ns и пишет записи OB2 (cases.jsonl) и резы OB3; пилот на 4 случаях × 3 варианта и оценка времени полного корпуса.",
+  "plan_ref": "Корпус и условия",
+  "contracts": [
+    {
+      "name": "OB1",
+      "version": "1",
+      "ref": "docs/contracts/outflow-bc.md"
+    },
+    {
+      "name": "OB2",
+      "version": "1",
+      "ref": "docs/contracts/outflow-bc.md"
+    },
+    {
+      "name": "OB3",
+      "version": "1",
+      "ref": "docs/contracts/outflow-bc.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/outflow-bc-OBC-2",
+  "branch": "outflow-bc/OBC-2",
+  "base": "feature/outflow-bc",
+  "scope": [
+    "rust/dp-air/examples/outflow_corpus.rs",
+    "rust/dp-air/examples/outflow_corpus",
+    "tools/research/outflow_bc"
+  ],
+  "dont_touch": [
+    "rust/dp-air/src",
+    "rust/picard_rs",
+    "rust/dp-gd",
+    "rust/dp-stand",
+    "rust/Cargo.toml",
+    "rust/dp-air/Cargo.toml",
+    "docs/contracts",
+    "tests",
+    "configs",
+    "scripts"
+  ],
+  "accept": [
+    {
+      "name": "unit",
+      "cmd": "cargo test --release --manifest-path rust/Cargo.toml -p dp-air --example outflow_corpus",
+      "expect": "exit=0"
+    },
+    {
+      "name": "pilot",
+      "cmd": "mkdir -p build/obc && cargo run --release --manifest-path rust/Cargo.toml -p dp-air --example outflow_corpus -- --spec tools/research/outflow_bc/corpus_pilot.json --variants hard,soft,soft_ns --out build/obc/OBC-2_pilot.jsonl --save-slices --raw build/obc/OBC-2_raw && python3 tools/research/outflow_bc/check_records.py build/obc/OBC-2_pilot.jsonl --spec tools/research/outflow_bc/corpus.json --slices build/obc/OBC-2_raw/slices",
+      "expect": "re:OBC2: records=12 invalid=0 "
+    },
+    {
+      "name": "est",
+      "cmd": "python3 tools/research/outflow_bc/check_records.py build/obc/OBC-2_pilot.jsonl --spec tools/research/outflow_bc/corpus.json --slices build/obc/OBC-2_raw/slices",
+      "expect": "num:est_full_h=([0-9.]+) <=30"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-08T01:16:18"
+}
