@@ -108,3 +108,6 @@
 {"t": "2026-11-08T02:46:24", "by": "coordinator", "task": "SWC-8", "ev": "accepted", "note": "по ревью (accept; major — step_up по плато, 21/27, и 2 minor исправлены в ef0489f69)"}
 {"t": "2026-11-08T02:46:27", "by": "coordinator", "task": "SWC-8", "ev": "accepted", "commits": ["038df5e20"], "note": "5/5 contract=ok:FAIL 0; a1=ok:exit 0; a2=ok:exit 0; docs=ok:exit 0; verdict=ok:1"}
 {"t": "2026-11-08T02:46:27", "by": "coordinator", "task": "SWC-8", "ev": "merged", "commits": ["038df5e20"]}
+{"t": "2026-11-08T02:46:46", "by": "coordinator", "task": "SWC-10", "ev": "created", "note": "Итог этапа 1 (и 3а/3б без рельефа) для шлюза пользователю"}
+{"t": "2026-11-08T02:46:50", "by": "coordinator", "task": "SWC-10", "ev": "edited", "note": "notes", "diff": {"notes": ["\"\"", "\"Писать только по фактам из документов модуля (не выдумывать, числа — оттуда, со ссылками путь#раздел): docs/research/sw_charges/literature.md (SWC-1), unified-scales.md (SWC-5), proto-a.md (SWC-6), proto-c.md (SWC-7), stage1-regimes.md (SWC-8), stage1-sections.md (SWC-9); решатель — tools/research…"]}}
+{"t": "2026-11-08T02:47:06", "by": "coordinator", "task": "SWC-10", "ev": "started"}
