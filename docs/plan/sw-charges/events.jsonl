@@ -116,3 +116,6 @@
 {"t": "2026-11-08T02:49:50", "by": "coordinator", "task": "SWC-10", "ev": "accepted", "commits": ["52767c3ae"], "note": "3/3 docs=ok:exit 0; findings=ok:5; verdict=ok:1"}
 {"t": "2026-11-08T02:49:50", "by": "coordinator", "task": "SWC-10", "ev": "merged", "commits": ["52767c3ae"]}
 {"t": "2026-11-08T02:50:24", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: task show без --full обрезает дополнения (заметки в поле notes видны целиком — их и использовать); docs index переписывает registry/contracts.md вне скоупа задач; job wait без прогресса; лимит 40 КБ и длина summary видны только в accept"}
+{"t": "2026-11-08T02:55:39", "by": "coordinator", "task": "SWC-11", "ev": "created", "note": "Этап 2 (2D): библиотека panels2d — панели источников по линии рельефа и дискретные вихри"}
+{"t": "2026-11-08T02:55:43", "by": "coordinator", "task": "SWC-11", "ev": "edited", "note": "notes", "diff": {"notes": ["\"\"", "\"Интерфейс — строго SW6 (docs/contracts/sw-charges.md, раздел SW6; .dpcli/dpcli plan sw-charges --contracts SW6 или docs section). Пакет tools/research/sw_charges/panels2d/ (__init__.py с публичными Terrain, build_panels, bg_uniform, bg_profile, Vortices, solve, velocity, step; tests/test_*.py — py…"]}}
+{"t": "2026-11-08T02:55:57", "by": "coordinator", "task": "SWC-11", "ev": "started"}
