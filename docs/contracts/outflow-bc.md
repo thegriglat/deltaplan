@@ -79,6 +79,8 @@ flux_net_max_rel, backflow_faces}` пишется **только** при soft (
   рельефом (линейно по высоте центров клеток) RMS по снимкам |Δ(u,v)| от среднего снимков, 90-й процентиль по клеткам
   области без `edge_cells` у края (как `airlite_gen.late_spread60_p90`); при `ok` — 0;
 - `faces_out, flux_in, flux_net_max_rel, backflow_faces` — из `OutflowDiag` (null у hard);
+- `res_hist` — история невязок `Solved.history`: список `[it, mom_rms, mom_max, th_rms, thd_rms, div_rms]` на каждую
+  проверку (раз в 10 итераций; `it` — как в `Check.it`), для п. 9 (г) этапа 2;
 - сравнение с `hard` того же случая (у hard — null): `both_ok` (оба `ok`); для h ∈ {10, 50, 300} м над рельефом, по |Δ(u,v)|
   центров клеток (м/с): `d_start_h_max` (по точкам стартов места; у ideal — вершина, середина наветренного и подветренного
   склона), `d_int_h_rms`, `d_int_h_p99`, `d_int_h_max` (область без 5 клеток у края), `d_band_h_max` (полоса 5 клеток у края);
