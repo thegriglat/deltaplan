@@ -50,6 +50,7 @@ class Panels:
     nz: np.ndarray
     ds: np.ndarray
     far_m: float = 20000.0
+    ds_min: float = 0.0
 
     @property
     def n(self):
@@ -61,43 +62,49 @@ class Panels:
 
 
 def build_panels(terrain, x_focus=None, ds_min=25.0, ds_max=400.0, growth=1.15):
+    """Узлы по длине дуги линии земли (продолженной до ±far_m). В зоне ds_min — целое число равных панелей;
+    в зонах роста остаток короче 0,5·h присоединяется к последней панели, т.е. обрезков нет (каждая ≥ 0,5·ds_min)."""
     far = terrain.far_m
-    x0, x1_ = terrain.x[0], terrain.x[-1]
+    m = (terrain.x > -far) & (terrain.x < far)
+    xe = np.concatenate([[-far], terrain.x[m], [far]])
+    ze = terrain.height(xe)
+    se = np.concatenate([[0.0], np.cumsum(np.hypot(np.diff(xe), np.diff(ze)))])
+    s_of_x = lambda x: np.interp(x, xe, se)
     if x_focus is None:
-        a, b = x0, x1_
+        lo, hi = max(terrain.x[0], -far), min(terrain.x[-1], far)
     else:
-        a, b = x_focus - 10 * ds_min, x_focus + 10 * ds_min
-    # узлы по x: шаг по длине дуги h → dx = h / sqrt(1+s²) (наклон в начале шага)
-    slope = lambda x: float(np.interp(x, 0.5 * (terrain.x[1:] + terrain.x[:-1]),
-                                      np.diff(terrain.z) / np.diff(terrain.x)))
+        lo, hi = max(x_focus - 10 * ds_min, -far), min(x_focus + 10 * ds_min, far)
+    s_lo, s_hi = float(s_of_x(lo)), float(s_of_x(hi))
 
-    def march(xs, direction, xend, h0, grow):
-        out, h, x = [], h0, xs
-        while True:
-            s = slope(x)
-            dx = min(h, ds_max) / np.sqrt(1 + s * s)
-            x = x + direction * dx
-            if direction * (x - xend) >= 0:
-                break
-            out.append(x)
-            if grow:
-                h = min(h * growth, ds_max)
+    def grow(length):  # длины панелей зоны роста суммарно = length
+        out, tot, h = [], 0.0, ds_min * growth
+        while length - tot > 0.5 * min(h, ds_max):
+            h = min(h, ds_max)
+            if length - tot < 1.5 * h:  # остаток без обрезка
+                out.append(length - tot)
+                return out
+            out.append(h)
+            tot += h
+            h *= growth
+        if out:
+            out[-1] += length - tot
+        elif length > 0:
+            out.append(length)
         return out
 
-    # центральная часть (равномерная ds_min) от a до b, иначе до x1_ при focus=None
-    lo, hi = (x0, x1_) if x_focus is None else (a, b)
-    mid = [lo] + march(lo, +1, hi, ds_min, False) + [hi]
-    # левая и правая зоны роста
-    left = march(lo, -1, -far, ds_min * growth, True)
-    rgt = march(hi, +1, far, ds_min * growth, True)
-    xn = np.array(left[::-1] + mid + rgt)
-    xn = np.concatenate([[-far], xn[(xn > -far) & (xn < far)], [far]])
-    xn = np.unique(xn)
+    n = max(1, int(round((s_hi - s_lo) / ds_min)))
+    mid = np.full(n, (s_hi - s_lo) / n)
+    left = np.array(grow(s_lo))[::-1]
+    right = np.array(grow(se[-1] - s_hi))
+    sizes = np.concatenate([left, mid, right])
+    sn = np.concatenate([[0.0], np.cumsum(sizes)])
+    sn[-1] = se[-1]
+    xn = np.interp(sn, se, xe)
     zn = terrain.height(xn)
     X1, X2, Z1, Z2 = xn[:-1], xn[1:], zn[:-1], zn[1:]
     ds = np.hypot(X2 - X1, Z2 - Z1)
     return Panels(X1, Z1, X2, Z2, 0.5 * (X1 + X2), 0.5 * (Z1 + Z2),
-                  -(Z2 - Z1) / ds, (X2 - X1) / ds, ds, far)
+                  -(Z2 - Z1) / ds, (X2 - X1) / ds, ds, far, float(ds_min))
 
 
 # ---- фон ----
@@ -108,9 +115,9 @@ def bg_uniform(U):
     return bg
 
 
-def bg_profile(U10, alpha, z_sat, terrain, ds_min=25.0, z0=0.1):
-    """U(z_agl) = U10 (z_agl/10)^alpha до z_sat, выше постоянно; z_agl над землёй, сглаженной σ = 10·ds_min."""
-    sm = terrain.smoothed(10.0 * ds_min)
+def bg_profile(U10, alpha, z_sat, terrain, smooth_m=250.0, z0=0.1):
+    """U(z_agl) = U10 (z_agl/10)^alpha до z_sat, выше постоянно; z_agl над землёй, сглаженной гауссом σ = smooth_m."""
+    sm = terrain.smoothed(smooth_m)
 
     def bg(x, z):
         x = np.asarray(x, float)
@@ -254,7 +261,7 @@ def step(state, dt):
         sp2 = us * us + ws * ws
         ok = np.isfinite(sp2)
         g = -0.5 * sp2[ok] * dt
-        core = np.full(g.size, 0.5 * float(p.ds.min()))
+        core = np.full(g.size, 0.5 * float(p.ds_min))
         state["born"] += float(g.sum())
         vt = Vortices(np.append(vt.x, xs[ok]), np.append(vt.z, zs[ok]), np.append(vt.gamma, g),
                       np.append(vt.core, core))

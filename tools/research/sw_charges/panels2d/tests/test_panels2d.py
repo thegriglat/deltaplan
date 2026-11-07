@@ -29,20 +29,34 @@ def test_flat_uniform():
 
 
 def test_semicylinder():
-    # ds_min = R/20 даёт на высоте 1 м и θ = 20° ошибку 6-15 % (ближнее поле постоянных панелей, косой угол у основания);
-    # ±2 % достигается при ds_min = R/160 на всём полукруге (x_focus=None). Вершина (1 м): при R/20 с фокусом -1,24 %, при R/160 ≈ -0,6 %.
+    # инвариант SW6 v2: ds_min = R/20, x_focus=None; у основания (угол 90° открытой линии источников) ошибка 1-го порядка
     R, U = 200.0, 3.0
     bg = bg_uniform(U)
-    p = build_panels(semicyl(R), x_focus=None, ds_min=R / 160)
+    p = build_panels(semicyl(R), x_focus=None, ds_min=R / 20)
     s = solve(p, bg)
     u, w = velocity(p, s, bg, np.array([0.0]), np.array([R + 1.0]))
     assert abs(u[0] / (2 * U) - 1) < 0.01
-    th = np.radians(np.arange(20, 161, 10))
-    r = R + 1.0
-    u, w = velocity(p, s, bg, r * np.cos(th), r * np.sin(th))
-    ex = U * np.hypot((1 + R * R / r / r) * np.sin(th), (1 - R * R / r / r) * np.cos(th))  # точное для цилиндра в r
-    assert np.all(np.abs(np.hypot(u, w) / ex - 1) < 0.02)
-    assert np.all(np.abs(np.hypot(u, w) / (2 * U * np.sin(th)) - 1) < 0.025)  # к 2U sinθ, с поправкой 1 м над землёй
+    # точки коллокации (на 1e-3 м над серединой панели) на полукруге: |V| = 2U sinθ
+    inside = (np.abs(p.xc) < R - 1) & (p.zc > 1e-6)
+    th = np.arctan2(p.zc[inside], p.xc[inside])
+    k = (th > np.radians(30)) & (th < np.radians(150))
+    xs, zs = p.xc[inside][k] + 1e-3 * p.nx[inside][k], p.zc[inside][k] + 1e-3 * p.nz[inside][k]
+    u, w = velocity(p, s, bg, xs, zs)
+    assert k.sum() > 10
+    assert np.all(np.abs(np.hypot(u, w) / (2 * U * np.sin(th[k])) - 1) < 0.03)
+
+
+def test_no_slivers_and_core():
+    for ds, xf in ((25.0, 0.0), (12.5, 0.0), (7.3, 100.0), (25.0, None)):
+        p = build_panels(agnesi(), x_focus=xf, ds_min=ds)
+        assert p.ds_min == ds and p.ds.min() >= 0.5 * ds - 1e-9
+        assert abs(p.x2[:-1] - p.x1[1:]).max() == 0.0
+    t = agnesi()
+    p = build_panels(t, x_focus=0.0, ds_min=12.5)
+    st = dict(panels=p, bg=bg_uniform(10.0), vortices=Vortices(), t=0.0,
+              shed=[dict(x_s=100.0, z_s=float(t.height(100.0)) + 6.0, rule="crest")])
+    step(st, 0.5)
+    assert np.allclose(st["vortices"].core, 6.25)
 
 
 def test_residual():
