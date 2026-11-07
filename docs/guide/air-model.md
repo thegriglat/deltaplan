@@ -39,7 +39,7 @@ related: ["docs/guide/atmosphere.md", "docs/guide/air-model-gpu.md", "docs/guide
 | Часть | Что |
 |---|---|
 | [Поле на CPU (масштаб 1 → игра)](air-model/field-cpu.md) | раскладка сетки, выборка `WindField.sample`, уровни и подмена `AirFieldSet`, клипмапы, «Стык 1 ↔ 2» с атмосферой, ключи `air_model`, запасной путь и детерминизм |
-| [Загрузка и пересчёт поля (`AirRuntime`)](air-model/runtime.md) | конвейер фазы → Пикар → проекция, старт Пикара, два прохода под ветер меню (C9 v3), загрузка, полёт, числа, ограничения |
+| [Загрузка и пересчёт поля (`AirRuntime`)](air-model/runtime.md) | конвейер фазы → Пикар → проекция, старт Пикара, один проход k = 1 (WF-К1 v3), загрузка, полёт, числа, ограничения |
 | [Фазы (P10, `AirPhase`)](air-model/phases.md) | классификатор A/B/C/D/F/G/H, механизмы, код и вызов, числа CPU-тестов |
 | [Вход решателя: поток тепла `SurfaceHeat`](air-model/surface-heat.md) | Солнце → Rn → H по классу покрова, вода и лёд, z0 по клетке, замер до и после, чего не умеет |
 | [Масштаб 2: термики из поля (AM-07)](air-model/thermals.md) | входы, законы, выбор источников, числа против литературы, сеть, чего не умеет |
@@ -55,7 +55,6 @@ related: ["docs/guide/atmosphere.md", "docs/guide/air-model-gpu.md", "docs/guide
 |---|---|---|
 | `air_model/wind_field.gd` | `WindField` | один уровень поля на CPU: выборка, край, ограничители, чтение файла |
 | `air_model/air_field_set.gd` | `AirFieldSet` | набор уровней и плавная подмена |
-| `air_model/air_runtime.gd` | `AirRuntime` | загрузка и пересчёт поля, два прохода, окна; узел-ребёнок `Game` |
 | `air_model/air_place.gd`, `air_case.gd` | `AirPlace`, `AirCase` | вход решателя из места игры; подготовка по столбцам |
 | `air_model/air_phase*.gd`, `air_phase.glsl` | `AirPhase`, `AirPhaseJob`, `AirPhaseCpu` | фазы |
 | `air_model/air_picard_job.gd`, `air_picard.glsl` | `AirPicardJob` | Пикар на GPU |
