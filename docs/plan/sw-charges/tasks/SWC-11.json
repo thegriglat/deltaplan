@@ -1,0 +1,45 @@
+{
+  "id": "SWC-11",
+  "module": "sw-charges",
+  "type": "dp-engineer",
+  "title": "Этап 2 (2D): библиотека panels2d — панели источников по линии рельефа и дискретные вихри",
+  "goal": "Пакет panels2d по контракту SW6: адаптивные панели постоянных источников по линии земли (25–30 м у точки интереса), условие непротекания для фона и вихрей, скорость в любой точке, шаг метода дискретных вихрей со сходом с кромки; проверен аналитикой (ровно, полуцилиндр) и сохранением циркуляции; замер времени.",
+  "plan_ref": "Этапы и задачи (уточняет координатор)",
+  "contracts": [
+    {
+      "name": "SW6",
+      "version": "1",
+      "ref": "docs/contracts/sw-charges.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sw-charges-SWC-11",
+  "branch": "sw-charges/SWC-11",
+  "base": "feature/sw-charges",
+  "scope": [
+    "tools/research/sw_charges/panels2d/",
+    "tools/research/sw_charges/README.md"
+  ],
+  "dont_touch": [
+    "tools/research/sw_charges/swpy/",
+    "docs/contracts/",
+    "tools/research/sw_charges/contract/",
+    "tools/research/sw_charges/proto_a/",
+    "rust/"
+  ],
+  "accept": [
+    {
+      "name": "pytest",
+      "cmd": "tools/research/sw_charges/py -m pytest -q tools/research/sw_charges/panels2d/tests",
+      "expect": "!re:(failed|error)"
+    },
+    {
+      "name": "pytest-pass",
+      "cmd": "tools/research/sw_charges/py -m pytest -q tools/research/sw_charges/panels2d/tests",
+      "expect": "num:(\\d+) passed >=8"
+    }
+  ],
+  "report_extra": [],
+  "notes": "Интерфейс — строго SW6 (docs/contracts/sw-charges.md, раздел SW6; .dpcli/dpcli plan sw-charges --contracts SW6 или docs section). Пакет tools/research/sw_charges/panels2d/ (__init__.py с публичными Terrain, build_panels, bg_uniform, bg_profile, Vortices, solve, velocity, step; tests/test_*.py — pytest). Интерпретатор — tools/research/sw_charges/py (venv numpy, pytest; если нужен scipy — добавить нельзя, requirements.txt вне скоупа: обойтись numpy). Только NumPy, векторизовать (без питоновских циклов по панелям при сборке матрицы и запросе); тяжёлый CPU — .dpcli/dpcli lock cpu swc11 -- <cmd>. swpy и proto_a — не трогать (proto_a — пример вихревых частиц Лэмба — Озеена: tools/research/sw_charges/proto_a/pa_core.py — можно читать).\nСхема: 2D-панели постоянной плотности источника (Hess & Smith 1967; Katz & Plotkin «Low-Speed Aerodynamics», гл. 11 — формулы скорости от отрезка-источника в локальной системе панели: u = σ/(2π)·ln(r1/r2), w = σ/(2π)·(θ2 − θ1)); собственный вклад в нормаль = σ/2. Линия земли открыта — продолжить горизонтально до ±far_m (SW6), там панели до ds_max. Вихри Лэмба — Озеена: u_θ = Γ/(2πr)·(1 − exp(−r²/σ²)). Нормальная скорость от вихрей входит в правую часть solve. velocity — сумма фона, панелей, вихрей; под землёй NaN (z земли в точке — по линии панелей).\nstep — по SW6: RK2 для вихрей, удаление ушедших под землю или за |x| > far_m, рождение в точках shed с Γ = −½·u_s²·dt, core = ds_min/2.\nТесты (≥ 8, пороги): (1) ровная земля + bg_uniform(5): max|σ| < 1e-10, u = 5 ± 1e-10 на высотах 1–1000 м; (2) полуцилиндр радиуса R = 200 м на ровной земле, ds_min = R/20 у центра: u на вершине (z = R + 1 м) = 2U ± 1 %, u вдоль поверхности (на 1 м над ней) = 2U·sin θ ± 2 % для θ ∈ [20°, 160°]; (3) невязка solve ≤ 1e-8·U; (4) сходимость по ds_min: ds_min 50 → 25 → 12,5 на Agnesi-хребте (H 200, L 500), u на гребне на 10 м меняется < 1 % между 25 и 12,5; (5) точки под землёй — NaN, у панели (ближе ds/4) — конечные; (6) один вихрь над ровной землёй движется со скоростью изображения Γ/(4πh) вдоль x (± 2 %); (7) пара вихрей ±Γ в свободном поле (далеко от земли, h ≫ d) летит со скоростью Γ/(2πd) (± 2 %); (8) step на Agnesi-хребте с shed за гребнем 100 шагов: сумма Γ = сумме рождённых минус ушедших (до 1e-12), ни одного NaN; (9) bg_profile: U(z_agl) по формуле, w = 0. Замер в отчёт: solve при N = 500 / 2000 (мс), velocity — мкс на точку при 10⁴ точек, step с 1000 вихрей (мс). README tools/research/sw_charges/README.md — раздел «Панели panels2d»: API в 5–10 строк, команды тестов, замеры. Не шлифовать. r.json — вне копии (scratchpad, имя с SWC-11).",
+  "created": "2026-11-08T02:55:39",
+  "edited": "2026-11-08T02:55:43"
+}
