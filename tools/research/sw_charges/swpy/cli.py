@@ -38,7 +38,7 @@ def main(argv=None):
     ci.add_argument("--sponge-tau", type=float, default=600.0)
     ci.add_argument("--t-end", type=float, default=7200.0)
     ci.add_argument("--cfl", type=float, default=0.45)
-    ci.add_argument("--steady-tol", type=float, default=1e-4)
+    ci.add_argument("--steady-tol", type=float, default=5e-4)
     ci.add_argument("--avg-from", type=float)
     ci.add_argument("--out-every", type=float)
     ci.add_argument("--q-heat", type=float, help="поток тепла, Вт/м² (+ нагрев слоя), однородно")

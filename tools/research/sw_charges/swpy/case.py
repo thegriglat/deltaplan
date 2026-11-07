@@ -38,7 +38,7 @@ def make_case(name, shape="ridge", dim=1, H=50.0, s=0.2, nx=400, ny=1, dx=50.0, 
               h0=500.0, b0=0.1, U0=None, V0=0.0, fr=None, cd=0.003, f_cor=0.0,
               theta0=290.0, rho_cp=1206.0, g=9.81, h_min=None, b_min=1e-4, forcing=None,
               bc=("farfield", "farfield", "farfield", "farfield"), sponge=(5000.0, 600.0),
-              t_end=7200.0, cfl=0.45, steady_tol=1e-4, avg_from=None, out_every=None,
+              t_end=7200.0, cfl=0.45, steady_tol=5e-4, avg_from=None, out_every=None,
               q_heat=None, mapping=None):
     """Собирает (meta, arrays) SW1. fr задаёт U0 = fr·√(b0·h0). q_heat — число Вт/м² (всюду) или None."""
     if shape not in SHAPES:

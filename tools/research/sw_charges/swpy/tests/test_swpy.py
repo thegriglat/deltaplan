@@ -277,3 +277,35 @@ def test_cli_exit_and_contract(tmp_path):
     chk = subprocess.run(["python3", os.path.join(ROOT, "contract", "check_contract.py"), out],
                          capture_output=True, text=True)
     assert chk.returncode == 0 and "проверено 3, FAIL 0" in chk.stdout, chk.stdout
+
+
+def test_diverged_last_finite_and_rounding(tmp_path):
+    """diverged: NaN или h < −h_min -> запись последнего конечного состояния; мелкие отрицательные h (> −h_min) обрезаются."""
+    meta, arr = make("dv", shape="flat", nx=20, dx=100.0, h0=H0, b0=B0, U0=0.0, bc=("wall", "wall", None, None),
+                     sponge=None, t_end=100.0, steady_tol=-1.0)
+    for bad in (np.nan, -1.0):
+        S = solver.Solver(meta, {k: np.asarray(v, float) for k, v in arr.items()})
+        S.Q[0, 1, 5] = bad
+        S.post()
+        assert not S.finite_ok()
+    S = solver.Solver(meta, {k: np.asarray(v, float) for k, v in arr.items()})
+    S.Q[0, 1, 5] = -1e-6
+    S.post()
+    assert S.finite_ok() and S.Q[0, 1, 5] == 0.0
+    # сквозной путь: порча внутри шага (поле скорости -> NaN) даёт diverged и конечное поле
+    orig = solver.Solver.step
+    calls = {"n": 0}
+
+    def broken(self, dt):
+        orig(self, dt)
+        calls["n"] += 1
+        if calls["n"] == 3:
+            self.Q[1, 1, 5] = np.inf
+
+    solver.Solver.step = broken
+    try:
+        f, rec = run(tmp_path, (meta, arr))
+    finally:
+        solver.Solver.step = orig
+    assert rec["status"] == "diverged" and rec["steps"] == 2
+    assert all(np.isfinite(v).all() for v in f.values())

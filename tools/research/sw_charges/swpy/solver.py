@@ -352,14 +352,20 @@ class Solver:
         self.t += dt
         self.steps += 1
 
+    bad = False
+
     def finite_ok(self):
-        Qi = self.Q[:, 1:-1, 1:-1]
-        return bool(np.isfinite(Qi).all()) and float(Qi[H_].min()) > -1e-9 * self.ref["h0"]
+        """False, если с последнего сброса post() видел NaN/Inf или h < −h_min до обрезки (SW3: diverged)."""
+        return not self.bad
 
     def post(self):
         """Обрезка мелких отрицательных h, нижний предел b, сухие клетки."""
         Q = self.Q
         h = Q[H_]
+        inner = (slice(None), slice(1, -1), slice(1, -1))
+        if not np.isfinite(Q[inner]).all() or float(h[1:-1, 1:-1].min()) < -self.h_min:
+            self.bad = True
+            return
         h[h < 0] = 0.0
         self._dry_fix()
         wet = h >= self.h_min
@@ -453,9 +459,11 @@ def run_case(case_path, out_dir, t_end=None, log=None):
                 sm[k] += S.Q[k][inner] * dt
             sm[4] += dt
             mean["n"] += 1
+        good = (S.Q.copy(), S.t, S.steps, S.net_in)
         S.step(dt)
         S.post()
         if not S.finite_ok():
+            S.Q, S.t, S.steps, S.net_in = good
             status = "diverged"
             break
         if out_every and next_out is not None and S.t >= next_out - 1e-9:
@@ -480,7 +488,7 @@ def run_case(case_path, out_dir, t_end=None, log=None):
     if status is None:
         status = "averaged" if mean is not None else "max_time"
     if status == "diverged":
-        notes.append("расчёт разошёлся (NaN/Inf или h<0); поле — состояние в момент обнаружения, может быть нефизичным")
+        notes.append("расчёт разошёлся (NaN/Inf или h<0); поле — последнее конечное состояние перед шагом, где найдены NaN/Inf или h < −h_min")
     if status == "steady" and avg_from is not None and mean is None:
         notes.append("steady достигнут раньше avg_from — среднего нет")
     if S.sp_w is not None:
