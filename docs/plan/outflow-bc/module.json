@@ -1,0 +1,11 @@
+{
+  "module": "outflow-bc",
+  "plan": "docs/plan/outflow-bc.md",
+  "contracts": "docs/contracts/outflow-bc.md",
+  "branch": "feature/outflow-bc",
+  "copy": "~/worktrees/deltaplan/outflow-bc",
+  "created": "2026-11-08T00:18:04",
+  "code": "OBC",
+  "area": "air",
+  "base": "main"
+}
