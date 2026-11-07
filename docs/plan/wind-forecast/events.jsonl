@@ -37,3 +37,6 @@
 {"t": "2026-11-08T01:13:24", "by": "coordinator", "task": "WF-3", "ev": "checked", "note": "2/2 wind_forecast_k2=ok:1/1; start_qol=ok:4/4; scope=FAIL:вне scope: r-WF-3.json"}
 {"t": "2026-11-08T01:13:57", "by": "coordinator", "task": "WF-3", "ev": "checked", "note": "2/2 wind_forecast_k2=ok:1/1; start_qol=ok:4/4"}
 {"t": "2026-11-08T01:14:03", "by": "coordinator", "task": "WF-3", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-11-08T01:44:04", "by": "coordinator", "task": "WF-3", "ev": "checked", "commits": ["349c5b977"], "note": "0/2 wind_forecast_k2=FAIL:таймаут; start_qol=FAIL:таймаут"}
+{"t": "2026-11-08T01:44:04", "by": "coordinator", "task": "WF-3", "ev": "merged"}
+{"t": "2026-11-08T01:50:57", "by": "coordinator", "task": "WF-3", "ev": "accepted", "commits": ["349c5b977"], "note": "2/2 wind_forecast_k2=ok:1/1; start_qol=ok:4/4"}
