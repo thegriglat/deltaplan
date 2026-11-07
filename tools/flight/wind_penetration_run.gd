@@ -1,7 +1,7 @@
 extends Node
 ## WPC-3: пачка полётов против ветра и в динамике (docs/archive/plan/wing-physics-check.md, контракт К6 —
 ## docs/contracts/wing-physics-check.md). Мир — как в игре: рельеф места (Terrain), Atmosphere с
-## ветром «в старт» (set_conditions: ветер пресета, inflow_mode start — как game.gd), турбулентность
+## ветром «в старт» (set_conditions: ветер пресета — набегающий поток, как game.gd), турбулентность
 ## включена (сид конфига, часы атмосферы с нуля на каждый полёт), термики выключены (static,
 ## пусто), FlightModel, масса пилота 85 кг (configs/pilot.json, в диапазоне крыла), плотность по
 ## высоте. Серии:
@@ -137,8 +137,8 @@ static func _load_site(site_key: String) -> Array:
 	return []
 
 
-## Атмосфера как в игре (W2 v4): погода medium без случайных термиков, ветер «в старт» (inflow_mode
-## start), режим поля по --mode (field → "on", analytic → "off"), готовность ждём.
+## Атмосфера как в игре (W2 v4): погода medium без случайных термиков, ветер «в старт» (набегающий
+## поток), режим поля по --mode (field → "on", analytic → "off"), готовность ждём.
 func _make_atmo(terrain: Terrain, site: Dictionary, wind_ms: float) -> Atmosphere:
 	var w: Dictionary = Config.get_config("weather/medium").duplicate(true)
 	w.wind_speed_kmh = Units.to_kmh(wind_ms)
@@ -155,7 +155,7 @@ func _make_atmo(terrain: Terrain, site: Dictionary, wind_ms: float) -> Atmospher
 		return a
 	a.set_air_mode("on" if _mode == "field" else "off")
 	a.set_static_thermals(PackedFloat32Array(), 1)
-	a.set_conditions({"preset": w, "start_hour": fs.start_hour, "inflow_mode": "start"})
+	a.set_conditions({"preset": w, "start_hour": fs.start_hour})
 	a.load_place(place)
 	a.set_focuses(PackedVector3Array([site.position]), PackedFloat32Array([1.0]))
 	await _restart(a)

@@ -117,7 +117,6 @@ func _kayancha() -> void:
 			"start_hour": 12.0,
 			"speed": 1.0,
 			"quantum_h": 1.0,
-			"inflow_mode": "start",
 		}
 	)
 	a.load_place(place)

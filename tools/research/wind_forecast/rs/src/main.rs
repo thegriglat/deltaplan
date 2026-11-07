@@ -1,4 +1,5 @@
-//! WF-1: поле у старта в режимах start (до двух проходов k) и inflow (один проход, k = 1), только Rust (dp-air без Godot).
+//! WF-1/WF-2: поле у старта (один проход, приток k = 1), только Rust (dp-air без Godot). До WF-2 крейт считал и режим start
+//! (подбор k) — его числа в summary.json; WF-2 сверяет новый код с прежним inflow (compare_after.py).
 //! wf1-scan <корень репозитория> <out.json> [имя…]; фикстуры мест — tests/fixtures/wind/places, конфиги — configs/.
 use dp_air::fixtures::read_place;
 use dp_air::{AirModel, Conditions, Focus, Formula, SampleMode, State};
@@ -40,7 +41,7 @@ fn ground(p: &dp_air::Place, x: f64, z: f64) -> f64 {
     (at(i, j) * (1.0 - tx) + at(i + 1, j) * tx) * (1.0 - tz) + (at(i, j + 1) * (1.0 - tx) + at(i + 1, j + 1) * tx) * tz
 }
 
-fn run(root: &PathBuf, s: &Spec, mode: &str, cfg: &dp_air::Configs) -> Result<Value, String> {
+fn run(root: &PathBuf, s: &Spec, cfg: &dp_air::Configs) -> Result<Value, String> {
     let pj = root.join(format!("tests/fixtures/wind/places/{}.json", s.place));
     let place = read_place(&pj).map_err(|e| e.to_string())?;
     let site = place.header().start_sites.iter().find(|_| true);
@@ -52,7 +53,7 @@ fn run(root: &PathBuf, s: &Spec, mode: &str, cfg: &dp_air::Configs) -> Result<Va
     let cond = json!({
         "forecast": {"sky": s.sky, "temperature_c": s.temp, "wind_from_deg": s.from, "wind_speed_kmh": s.wind_ms * 3.6},
         "start_hour": s.hour, "speed": 1.0, "quantum_h": 0.0166666666666667, "blend_s": null, "rebuild": false,
-        "inflow_mode": mode, "overrides": {}, "wind_ref": {"ref_msl": sh, "gain_per_km": 0.6}
+        "overrides": {}, "wind_ref": {"ref_msl": sh, "gain_per_km": 0.6}
     });
     let c = Conditions::from_json(&cond.to_string()).map_err(|e| e.to_string())?;
     let mut m = Formula::new().with_deterministic(true);
@@ -99,12 +100,10 @@ fn run(root: &PathBuf, s: &Spec, mode: &str, cfg: &dp_air::Configs) -> Result<Va
         }
     }
     Ok(json!({
-        "name": s.name, "place": s.place, "site": s.site, "mode": mode, "wind_ms": s.wind_ms, "from": s.from, "hour": s.hour,
+        "name": s.name, "place": s.place, "site": s.site, "wind_ms": s.wind_ms, "from": s.from, "hour": s.hour,
         "start": {"x": sx, "z": sz, "ground_m": gs, "h_msl": sh},
         "u_start10": hs(u10), "w_start10": u10[1],
-        "k_log": rep.log.iter().map(|l| json!({"k": l.k, "u": l.u})).collect::<Vec<_>>(),
-        "k_final": rep.log.last().map(|l| l.k),
-        "planned": rep.planned, "passes_run": rep.log.len(), "pass_failed": rep.pass_failed, "not_converged": rep.not_converged,
+        "passes_run": rep.passes.len(),
         "wall_s_report": rep.wall_s, "ready_s": ready_s, "runs_max": runs_max,
         "umax_30": mx[0], "umax_100": mx[1], "umax_200": mx[2],
         "source": format!("{:?}", rep.source), "windows": rep.windows.len(), "windows_error": rep.windows_error,
@@ -119,18 +118,16 @@ fn main() {
     let cfg = dp_stand::setup::load_configs(&root.join("configs")).expect("configs");
     let mut rows = Vec::new();
     for s in SPECS.iter().filter(|s| names.is_empty() || names.iter().any(|n| *n == s.name)) {
-        for mode in ["start", "inflow"] {
-            match run(&root, s, mode, &cfg) {
-                Ok(v) => {
-                    eprintln!("{} {} k={} u={:.2} passes={} ready={:.1}s", s.name, mode, v["k_final"], v["u_start10"].as_f64().unwrap(), v["passes_run"], v["ready_s"].as_f64().unwrap());
-                    rows.push(v)
-                }
-                Err(e) => {
-                    eprintln!("{} {} ERROR {e}", s.name, mode);
-                    rows.push(json!({"name": s.name, "mode": mode, "error": e}))
-                }
+        match run(&root, s, &cfg) {
+            Ok(v) => {
+                eprintln!("{} u={:.2} passes={} ready={:.1}s", s.name, v["u_start10"].as_f64().unwrap(), v["passes_run"], v["ready_s"].as_f64().unwrap());
+                rows.push(v)
             }
-            std::fs::write(&out, serde_json::to_string_pretty(&json!({"rows": rows})).unwrap()).unwrap();
+            Err(e) => {
+                eprintln!("{} ERROR {e}", s.name);
+                rows.push(json!({"name": s.name, "error": e}))
+            }
         }
+        std::fs::write(&out, serde_json::to_string_pretty(&json!({"rows": rows})).unwrap()).unwrap();
     }
 }
