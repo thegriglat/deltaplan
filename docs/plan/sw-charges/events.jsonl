@@ -164,3 +164,9 @@
 {"t": "2026-11-08T04:09:49", "by": "coordinator", "task": "SWC-14", "ev": "accepted", "note": "3/3 docs=ok:exit 0; findings=ok:8; stage2=ok:1"}
 {"t": "2026-11-08T04:09:50", "by": "coordinator", "task": "SWC-14", "ev": "accepted", "commits": ["30c9ce9c4"], "note": "3/3 docs=ok:exit 0; findings=ok:8; stage2=ok:1"}
 {"t": "2026-11-08T04:09:50", "by": "coordinator", "task": "SWC-14", "ev": "merged", "commits": ["30c9ce9c4"]}
+{"t": "2026-11-08T04:12:42", "by": "coordinator", "task": "SWC-15", "ev": "created", "note": "panels2d v3: пограничный слой Хеда, отрыв по градиенту давления, скорость у стенки"}
+{"t": "2026-11-08T04:12:46", "by": "coordinator", "task": "SWC-15", "ev": "edited", "note": "notes", "diff": {"notes": ["\"\"", "\"Интерфейс — строго SW6 v3 (docs/contracts/sw-charges.md, раздел SW6: пункты «v3» и «Инварианты v3»); всё из v2 не менять по поведению (10 прежних тестов должны проходить). Пакет tools/research/sw_charges/panels2d/ (core.py и др.), тесты — tests/ (pytest, OPENBLAS_NUM_THREADS=1 в conftest уже есть …"]}}
+{"t": "2026-11-08T04:13:12", "by": "coordinator", "task": "SWC-16", "ev": "created", "note": "Круг 2 на 2D: причины недобора ΔS трубы и эталон Пикара у 10 м по центрам клеток"}
+{"t": "2026-11-08T04:13:16", "by": "coordinator", "task": "SWC-16", "ev": "edited", "note": "notes", "diff": {"notes": ["\"\"", "\"Решение пользователя Q3 (2026-11-08): ещё круг на 2D; эта задача — две части без пограничного слоя (его делает SWC-15 параллельно; panels2d не трогать). Исходное — SWC-12: код tools/research/sw_charges/panels_exp/ (common.py, run_case.py), таблица out/panels2d/points.{json,csv} (SW7), вывод docs/r…"]}}
+{"t": "2026-11-08T04:13:33", "by": "coordinator", "task": "SWC-15", "ev": "started"}
+{"t": "2026-11-08T04:13:33", "by": "coordinator", "task": "SWC-16", "ev": "started"}

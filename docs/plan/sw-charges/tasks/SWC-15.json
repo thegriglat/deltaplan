@@ -1,0 +1,45 @@
+{
+  "id": "SWC-15",
+  "module": "sw-charges",
+  "type": "dp-engineer",
+  "title": "panels2d v3: пограничный слой Хеда, отрыв по градиенту давления, скорость у стенки",
+  "goal": "Дополнить panels2d по SW6 v3: касательная скорость и cp на поверхности, интегральный турбулентный пограничный слой (Хед) с шероховатой стенкой, точки отрыва (Хед, Стратфорд), скорость с log-законом у стенки, step с автоматическим сходом; тесты инвариантов v3, всё v2 — без изменений.",
+  "plan_ref": "Этапы и задачи (уточняет координатор)",
+  "contracts": [
+    {
+      "name": "SW6",
+      "version": "3",
+      "ref": "docs/contracts/sw-charges.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sw-charges-SWC-15",
+  "branch": "sw-charges/SWC-15",
+  "base": "feature/sw-charges",
+  "scope": [
+    "tools/research/sw_charges/panels2d/",
+    "tools/research/sw_charges/README.md"
+  ],
+  "dont_touch": [
+    "tools/research/sw_charges/panels_exp/",
+    "tools/research/sw_charges/swpy/",
+    "docs/contracts/",
+    "tools/research/sw_charges/contract/",
+    "tools/research/sw_charges/proto_a/"
+  ],
+  "accept": [
+    {
+      "name": "pytest",
+      "cmd": "tools/research/sw_charges/py -m pytest -q tools/research/sw_charges/panels2d/tests",
+      "expect": "!re:(failed|error)"
+    },
+    {
+      "name": "pytest-pass",
+      "cmd": "tools/research/sw_charges/py -m pytest -q tools/research/sw_charges/panels2d/tests",
+      "expect": "num:(\\d+) passed >=15"
+    }
+  ],
+  "report_extra": [],
+  "notes": "Интерфейс — строго SW6 v3 (docs/contracts/sw-charges.md, раздел SW6: пункты «v3» и «Инварианты v3»); всё из v2 не менять по поведению (10 прежних тестов должны проходить). Пакет tools/research/sw_charges/panels2d/ (core.py и др.), тесты — tests/ (pytest, OPENBLAS_NUM_THREADS=1 в conftest уже есть или добавить), интерпретатор tools/research/sw_charges/py, только NumPy; тяжёлый CPU — .dpcli/dpcli lock cpu swc15 -- <cmd>.\nМетод Хеда (Head 1958, ARC R&M 3152; изложение — White «Viscous Fluid Flow», гл. 6, или Cebeci & Bradshaw): уравнение импульса Кармана dθ/ds = cf/2 − (H + 2)(θ/u_s)du_s/ds; вовлечение (1/u_s)d(u_s θ H1)/ds = F(H1), F = 0,0306(H1 − 3)^−0,6169; H1(H) = 0,8234(H − 1,1)^−1,287 + 3,3 при H ≤ 1,6, иначе 1,5501(H − 0,6778)^−3,064 + 3,3 (сверить константы по источнику, ссылку — в README); трение — шероховатая стенка cf/2 = (κ/ln(δ/z0))², δ = θ·(H1 + H) (принять так, записать); старт на наветренном краю — равновесный слой ровной земли: θ0, H0 ≈ 1,3–1,4 так, чтобы на ровной земле решение было стационарным (подобрать из уравнений, не из эталона; показать в README). Интегрирование по s — RK2 по точкам коллокации, du_s/ds — центральные разности со сглаживанием на 3 панели (записать). Отрыв Хеда — H ≥ 2,4 или cf ≤ 0 на участке du_s/ds < 0. Стратфорд (1959, J. Fluid Mech. 5:1–16): турбулентный критерий C_p (x dC_p/dx)^½ (10⁻⁶ Re)^−0,1 = 0,39 (с от точки минимума давления; Re по длине разгона и ν = 1,5e-5) — сверить формулу по источнику, применять как есть, записать.\nvelocity_bl — как в SW6 v3: log-закон ниже δ, сшивка непрерывно на δ (касательная составляющая; нормальная — потенциальная), над панелью под точкой (ближайшая по x).\nТесты (≥ 5 новых; итого ≥ 15): инварианты v3 из контракта (ровно: velocity_bl = bg_profile ± 3 % на 10–300 м, θ монотонно, отрыва нет; Agnesi H/L = 0,1 — без отрыва; H/L ≥ 0,5 — отрыв на подветренном склоне обоими методами; step shed='auto' — Γ сохраняется), плюс surface_flow на полуцилиндре: u_s = 2U sin θ ± 3 % (θ 30–150°) и cp. В README tools/research/sw_charges/README.md, раздел «Панели panels2d» — дописать v3: методы, константы со ссылками, точки отрыва на Agnesi H/L 0,1/0,3/0,5/0,7 (оба метода) таблицей, время. Не шлифовать. r.json — вне копии (scratchpad, имя с SWC-15).",
+  "created": "2026-11-08T04:12:42",
+  "edited": "2026-11-08T04:12:46"
+}
