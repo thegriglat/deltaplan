@@ -4,7 +4,7 @@ status: "active"
 module: "sw-charges"
 area: "air"
 updated: "2026-11-08"
-summary: "Стыки sw-charges: случай (SW1), поле (SW2), прогон (SW3) слоя Рипа; таблица режимов по F0, M (SW4); сравнение слоя с Пикаром на разрезах (SW5)."
+summary: "Стыки sw-charges: случай, поле, прогон слоя Рипа (SW1–SW3); режимы по F0, M (SW4); слой против Пикара на разрезах (SW5)."
 related: ["docs/plan/sw-charges.md", "docs/contracts/cascade-2d.md", "tools/research/sw_charges/README.md"]
 contracts: [{"id": "SW1", "version": 1}, {"id": "SW2", "version": 1}, {"id": "SW3", "version": 1}, {"id": "SW4", "version": 1}, {"id": "SW5", "version": 1}]
 ---
