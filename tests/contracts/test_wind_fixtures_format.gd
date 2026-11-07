@@ -110,12 +110,14 @@ func test_cases_format() -> void:
 			seen[t] = true
 		for f: Array in c.focuses:
 			check(f.size() == 4 and float(f[3]) > 0.0, "%s: фокус [x, y, z, w>0]" % n)
-		check(c.terms == null, "%s: слагаемых нет (первый набор)" % n)
+		var nterms := (c.terms as Array).size() if c.terms is Array else 0
+		check(c.terms == null or c.terms is Array, "%s: terms — null или список слагаемых" % n)
 		if is_day:
 			_check_day(n, c)
 		# данные
 		var bin := FileAccess.get_file_as_bytes(ROOT.path_join("cases/%s.bin" % n))
-		var need: int = (c.times_s as Array).size() * np * 2 * 4 * 4
+		# k = 0 FULL, k = 1 MEAN, дальше слагаемые (README: набор 2 по W7)
+		var need: int = (c.times_s as Array).size() * np * (2 + nterms) * 4 * 4
 		check(bin.size() == need, "%s: .bin %d байт, нужно %d" % [n, bin.size(), need])
 		if bin.size() == need:
 			var vals := bin.to_float32_array()
@@ -208,6 +210,7 @@ func test_core_updraft_in_samples() -> void:
 		var d: Dictionary = _json(ROOT.path_join("cases/%s.desc.json" % n))
 		var vals := FileAccess.get_file_as_bytes(ROOT.path_join("cases/%s.bin" % n)).to_float32_array()
 		var np := (c.points as Array).size()
+		var nk := 2 + ((c.terms as Array).size() if c.terms is Array else 0)
 		for k in (d.frames as Array).size():
 			var cores: Array = d.frames[k].cores
 			# в кадре с Cb рядом возможен нисходящий поток ливня над любым ядром — граница модели
@@ -232,7 +235,7 @@ func test_core_updraft_in_samples() -> void:
 					var ax := float(r[2]) + float(r[8]) * (float(p[1]) - float(r[4]))
 					var az := float(r[3]) + float(r[9]) * (float(p[1]) - float(r[4]))
 					if Vector2(float(p[0]) - ax, float(p[2]) - az).length() < 0.5 * float(r[7]):
-						sum += vals[((k * np + i) * 2 + 1) * 4 + 1]
+						sum += vals[((k * np + i) * nk + 1) * 4 + 1]
 						cnt += 1
 				if cnt > 0:
 					checked += 1

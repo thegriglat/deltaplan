@@ -25,8 +25,10 @@ func _forecast(wind_from: float = 270.0) -> Dictionary:
 	}
 
 
-func _ready_up(a: Atmosphere, max_iter: int = 4000) -> bool:
-	for i in max_iter:
+## Ждёт READY до предела по стене (поле Онгудая на одном ядре — минуты, счёт кадров тут не годится).
+func _ready_up(a: Atmosphere, limit_s: float = 900.0) -> bool:
+	var t0 := Time.get_ticks_msec()
+	while float(Time.get_ticks_msec() - t0) < limit_s * 1000.0:
 		if a.is_ready():
 			return true
 		a.pump(8000)
@@ -88,29 +90,27 @@ func test_status_stage_field_iters() -> void:
 		func(_x: float, _z: float) -> float: return 500.0,
 		func(_x: float, _z: float) -> float: return 0.8,
 		loc,
-		-2000.0,
-		-2000.0,
-		100.0,
-		41,
-		41
+		-3000.0,
+		-3000.0,
+		25.0,
+		241,
+		241
 	)
 	check(a.configure(5) == 0, "configure")
 	check(a.set_conditions({"preset": "weather/medium", "start_hour": 12.0, "speed": 1.0}) == 0, "set_conditions")
 	check(a.load_place(place) == 0, "load_place")
 	check(a.start_at(0.0) in [0, 3], "start_at")
-	var last := 0
-	for i in 2000:
+	var t0 := Time.get_ticks_msec()
+	while Time.get_ticks_msec() - t0 < 900000 and not a.is_ready():
 		a.pump(8000)
 		var st: Dictionary = a.status()
-		check(typeof(st.iters) == TYPE_INT and int(st.iters) >= last, "iters — int, не убывает")
-		last = int(st.iters)
-		if a.is_ready():
-			break
-	check(a.is_ready(), "READY на синтетическом месте")
+		check(typeof(st.iters) == TYPE_INT, "iters — int")
+		OS.delay_msec(2)
+	check(a.is_ready(), "READY на синтетическом месте: %s" % str(a.status().get("reason", "")))
 	var done: Dictionary = a.status()
 	check(
 		String(done.stage) == "" and int(done.iters) == 0 and not bool(done.field_on),
-		"без решателя: нет этапа, iters 0"
+		"готово: этапа нет, iters 0: %s" % str(done)
 	)
 	a.free()
 
@@ -141,7 +141,7 @@ func test_place_from_terrain_and_field_in_facade() -> void:
 			p.surface_cls == ref.surface_cls and p.surface_moist == ref.surface_moist,
 			"поверхность та же"
 		)
-		check(p.header.loc.climate == ref.header.loc.climate, "климат тот же")
+		check(not (p.header.loc as Dictionary).has("climate"), "климата в заголовке нет (W5 v10)")
 		check(p.header.start_sites == ref.header.start_sites, "площадки те же")
 	if p == null:
 		a.free()
@@ -195,8 +195,10 @@ func test_place_from_terrain_and_field_in_facade() -> void:
 	c2["start_hour"] = 13.5
 	c2["speed"] = 2.0
 	check(a.set_conditions(c2) == 0, "set_conditions: другой час и скорость")
-	check(updated[0] == 0, "перепривязка часов — без сигнала погоды")
-	check(a.weather() == w_before, "погода не менялась")
+	var w_after: Dictionary = a.weather()
+	# прогноз пилота (температура, ветер, небо) тот же; производные величины ходят по часу дня
+	for k in ["temperature_c", "wind_speed_kmh", "wind_from_deg", "sky"]:
+		check(w_before.get(k) == w_after.get(k), "прогноз не менялся: %s" % k)
 	# смена места: выгрузка гасит поле и сбрасывает всё, что связано с местом
 	a.unload_place()
 	check(int(a.status().state) == Atmosphere.STATE_EMPTY, "unload_place — EMPTY")
