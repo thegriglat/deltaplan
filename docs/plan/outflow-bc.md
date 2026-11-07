@@ -4,7 +4,7 @@ status: "active"
 module: "outflow-bc"
 area: "air"
 updated: "2026-11-08"
-summary: "Исследование: мягкий выход (нулевой градиент / конвективное условие + баланс потока) против жёсткого (U_b × c) на боковых гранях области — сходимость Пикара в слабый ветер."
+summary: "Исследование: мягкий выход против жёсткого (U_b × c) на боковых гранях области — сходимость Пикара в слабый ветер."
 related: ["tools/research/air3d/reference.md", "docs/research/air_phase/order-and-picard.md", "docs/research/air_phase/solvers-and-experiments.md", "docs/research/air_phase_results.md", "docs/contracts/rust-wind/solver.md", "docs/guide/air-model/runtime.md", "rust/picard_rs/README.md"]
 ---
 # План outflow-bc (код задач OBC)
