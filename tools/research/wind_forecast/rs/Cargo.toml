@@ -1,0 +1,19 @@
+[package]
+name = "wf1-scan"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+dp-air = { path = "../../../../rust/dp-air", features = ["fixtures"] }
+dp-stand = { path = "../../../../rust/dp-stand" }
+serde_json = "1"
+
+[workspace]
+
+[profile.release]
+opt-level = 3
+debug = false
+
+[profile.release.package.picard_rs]
+opt-level = 3
