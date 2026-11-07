@@ -182,3 +182,5 @@
 {"t": "2026-11-08T04:47:02", "by": "executor", "task": "SWC-16", "ev": "reported", "commits": ["df532c11b"], "note": "done: Недобор dS панелей против труб Lubitz-White определяют не форма и не сетка (<=0,06 и <=0,01), а сглаживание фона sigma …", "dp_feedback": "dpcli docs index переписывает docs/registry/contracts.md вне скоупа - пришлось откатывать вручную; ожидание job wait с таймаутом 120 с неудобно для 25-минутных пересчётов."}
 {"t": "2026-11-08T04:47:20", "by": "coordinator", "task": "SWC-16", "ev": "checked", "note": "3/3 contract=ok:FAIL 0; docs=ok:exit 0; verdict=ok:1"}
 {"t": "2026-11-08T04:47:20", "by": "coordinator", "task": "SWC-16", "ev": "accepted", "note": "по ревью (accept, 2 minor исправлены; σ = 1000 м — подгонка, в схему не брать)"}
+{"t": "2026-11-08T04:47:22", "by": "coordinator", "task": "SWC-16", "ev": "checked", "commits": ["b10347d23"], "note": "2/3 contract=FAIL:нет совпадения; docs=ok:exit 0; verdict=ok:1"}
+{"t": "2026-11-08T04:47:22", "by": "coordinator", "task": "SWC-16", "ev": "merged", "commits": ["b10347d23"]}
