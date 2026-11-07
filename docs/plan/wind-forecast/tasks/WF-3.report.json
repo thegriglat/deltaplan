@@ -1,0 +1,42 @@
+{
+  "status": "done",
+  "summary": "В подсказке старта третья строка: «На старте X м/с, ветер с <румб> (расчёт поля; в меню — прогноз Y м/с над открытой местностью)» из air.mean_wind_at на 10 м над стартом при is_air_field_on; поле не готово — «Ветер у старта считается…» (обновляется, когда поле включилось); воздух без поля (CalmAir) — без строки.",
+  "commits": [
+    "3e09a541c WF-3: строка ветра в подсказке старта",
+    "afad02420 start_qol: устаревшая проверка ↑ (walk_forward только W)"
+  ],
+  "checks": [
+    {
+      "name": "wind_forecast_k2",
+      "value": "1/1",
+      "pass": true
+    },
+    {
+      "name": "start_qol",
+      "value": "4/4",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept WF-3",
+  "uncertain": [
+    {
+      "where": "scenes/main.gd:_update_start_hint_wind",
+      "why": "позиция старта = glider.global_position в момент показа; визуал (перенос строки в левой панели шириной 420) не смотрел",
+      "checked": "только тест со стабом воздуха"
+    },
+    {
+      "where": "tests/game/test_start_qol.gd",
+      "why": "тест уже падал до задачи: ждал ↑ в walk_forward, а в controls.json только W; убрал проверку ↑ (в скоупе)",
+      "checked": "после правки 4/4"
+    }
+  ],
+  "dp_feedback": "В копии нет addons/dp_air/bin (gitignore): тесты падали на sunset_h (Weather из Rust). Сделал symlink на libdp_air_tune.so из основной копии; хорошо бы dpcli task/accept это делало или писало в карточке.",
+  "extra": {
+    "keys": "start_hint_wind, start_hint_wind_calm, start_hint_wind_pending"
+  },
+  "t": "2026-11-08T01:12:55",
+  "by": "executor"
+}
