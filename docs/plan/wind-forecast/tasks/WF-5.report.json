@@ -1,0 +1,56 @@
+{
+  "status": "done",
+  "summary": "Находка по W2: weather_updated при смене только часа и скорости приходит и на базе 61b3c1b10 (до WF-2), т.е. не регресс WF-2; по trait.md:76 это допустимо (выведенная погода ходит по часу дня), проверка 'без сигнала' заменена на согласие сигнала с погодой. Возвращены: iters не убывает при том же run, assert k=1 наборов в case_prepare.rs, тест AirFieldImport на снимке крейта, хеш модели без air_field_import.gd.",
+  "commits": [
+    "59a3d9d09 WF-5: хвосты ревью WF-2"
+  ],
+  "checks": [
+    {
+      "name": "rust_wind_consumers",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "field_import",
+      "value": "1/1",
+      "pass": true
+    },
+    {
+      "name": "case_prepare",
+      "value": "test result: ok. 5",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "в границах",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [
+    "W2/trait.md: нужно ли контрактом запретить мягкий сигнал при смене только start_hour/speed? Сейчас он есть (и на базе тоже), тест это допускает."
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept WF-5",
+  "uncertain": [
+    {
+      "where": "tests/contracts/test_rust_wind_consumers.gd:~205",
+      "why": "Старая проверка 'сигнал == 0' без pump была тривиальной: сигнал идёт только из опроса (pump). С pump он приходит (1).",
+      "checked": "Базовая копия 61b3c1b10 (крейт+GD собраны, правка climate убрана): BASE_SIGNALS=1, погода изменилась. Новая проверка: сигналов <=1 и сигнал только при изменившейся погоде."
+    },
+    {
+      "where": "scripts/atmosphere/air_model_hash.gd:23",
+      "why": "air_field_import.gd исключён из хеша кода модели (как раньше air_baked_field.gd) — хеш всё равно сменился из-за состава каталога, кеши полей пересоберутся.",
+      "checked": "Тесты ветра проходят."
+    },
+    {
+      "where": "tests/atmosphere/test_air_field_import.gd",
+      "why": "Прежний test_rw7_field_from_crate.gd удалён в WF-2 вместе с запечённым полем (не был назван в отчёте WF-2). Новый тест — без запечённого файла: плоское место, снимок крейта -> load_bytes, сверка со слагаемым field крейта (1e-4 м/с, 30 точек).",
+      "checked": "1/1 за ~7 с."
+    }
+  ],
+  "dp_feedback": "job start из фоновой команды не запустил задачу ('не запускался'); long-running foreground-команды переходят в фон после 180 с без вывода — неудобно ждать результата.",
+  "extra": {},
+  "t": "2026-11-08T03:15:42",
+  "by": "executor"
+}
