@@ -1,0 +1,34 @@
+---
+type: "research"
+status: "active"
+module: "sw-charges"
+area: "air"
+updated: "2026-11-08"
+summary: "SWC-12: панели и вихри panels2d против труб Lubitz–White, мачт Perdigão и Пикара (C1, C2, C4) на 2D-разрезах: код, команды, время, данные."
+related: ["docs/research/sw_charges/stage2-2d.md", "docs/contracts/sw-charges.md", "tools/research/sw_charges/README.md"]
+conclusion: "docs/research/sw_charges/stage2-2d.md"
+data: "tools/research/sw_charges/out/panels2d/"
+applied_in: ""
+---
+# panels_exp: панели и вихри против эталонов (SWC-12)
+
+Вывод и таблицы — `docs/research/sw_charges/stage2-2d.md`. Здесь — код и воспроизведение. Библиотека `panels2d` (SW6 v2) не менялась.
+
+## Файлы
+- `common.py` — чтение Пикара F1 (центры клеток, степенной закон у стенки), гребни, точки отрыва (уклон ≥ 0,27), цикл МДВ с осреднением, ротор.
+- `run_case.py <case>` — один случай → `out/panels2d/cases/<case>[tag].json` (строки SW7, rotor, служебное). Случаи: C1 C2 C4 PERD_NE PERD_SW LW_H3 LW_MD LW_UCD LW_H5 LW_GI LW_H8. Опции: `--ds`, `--smooth` (σ сглаживания DSM Perdigão), `--tag`, `--no-vortex`.
+- `run_all.sh` — все случаи + чувствительность (3 процесса параллельно, BLAS в 1 поток).
+- `merge.py` — `out/panels2d/points.{json,csv}` (SW7), `info.json`, `tables.md`, `scatter.png`, `rotor_lines.png`.
+
+## Воспроизведение
+```
+.dpcli/dpcli lock cpu swc12 -- bash tools/research/sw_charges/panels_exp/run_all.sh        # ≈ 1 ч CPU-времени суммарно
+OPENBLAS_NUM_THREADS=1 tools/research/cascade_2d/py tools/research/sw_charges/panels_exp/merge.py
+python3 tools/research/sw_charges/contract/check_contract.py tools/research/sw_charges/out/panels2d
+```
+Интерпретатор — venv cascade_2d (numpy, scipy, matplotlib). Данные: Пикар `~/data/cascade_2d/fields/<C>/picard_none_d50.json` (описание `out/cascade2d_refs.md`), Perdigão — `tools/research/cases/perdigao.py` и `tools/research/data/perdigao/` (ISFS NCAR/EOL; Menke 2019, CC BY 4.0). Трубные числа Lubitz & White 2007 — из `docs/research/calibration_data/slope-flow.md` §2.2; данные из внешних источников не скачивались, новых файлов данных нет, лицензий не добавлено.
+
+## Постановка (как в карточке)
+- Потенциал: `build_panels(ds_min=25, x_focus=гребень)`, `bg_profile(U10, α, z_sat, smooth_m = 250)`; вихри: `step` с точкой рождения за каждым гребнем (заметность ≥ 60 м) в первой точке вниз по потоку, где подветренный уклон (база 40 м) ≥ 0,27 (Finnigan 1988); ниже порога — вариант vortex = potential (`shed = false`). dt = 0,5·ds_min/max|V| (потенциальное решение на ds_min/2 над землёй); разгон 3 пролёта (пролёт = длина области от первого гребня до границы / U(50 м)), осреднение u, w по следующим 2 пролётам каждого шага. Вихри за границей области (x_end), выше гребня + 1500 м или на 1000 м вверх по потоку от первого гребня — удаляются (учёт `lost`).
+- Столбец `err` — u_pan − u_ref; `t_solve_ms` — прямое решение N×N; `t_query_us` — мкс на точку; для vortex также `t_step_ms`, `n_vortices`, `drift_u` (макс. разность осреднённого u по двум половинам окна осреднения, м/с).
+- Ротор: u < −0,5 м/с на z_agl = 15 м (порог и слепая зона Menke 2019), длина самого длинного участка > 50 м между главным гребнем и следующим (или границей). У Пикара — то же по полю F1.
