@@ -12,3 +12,12 @@
 {"t": "2026-11-08T00:49:53", "by": "coordinator", "task": "SWC-1", "ev": "started"}
 {"t": "2026-11-08T00:49:54", "by": "coordinator", "task": "SWC-2", "ev": "started"}
 {"t": "2026-11-08T00:49:54", "by": "coordinator", "task": "SWC-3", "ev": "started"}
+{"t": "2026-11-08T00:52:38", "by": "main", "task": null, "ev": "plan", "note": "план Этапы и задачи (уточняет координатор): дописано 19 стр."}
+{"t": "2026-11-08T00:52:48", "by": "main", "task": null, "ev": "plan", "note": "план Условия: замена «- Только Rust (крейты/ст…»"}
+{"t": "2026-11-08T00:52:49", "by": "main", "task": null, "ev": "plan", "note": "план Этапы и задачи (уточняет координатор): замена «- Прототип (engineer/res…»"}
+{"t": "2026-11-08T00:52:49", "by": "main", "task": null, "ev": "plan", "note": "план Этапы и задачи (уточняет координатор): замена «- Прототип BEM на Rust:»"}
+{"t": "2026-11-08T00:52:49", "by": "main", "task": null, "ev": "plan", "note": "план Этапы и задачи (уточняет координатор): замена «(б) 1–2 прототипа **разн…»"}
+{"t": "2026-11-08T00:53:14", "by": "main", "task": null, "ev": "plan", "note": "план Условия: замена «или Rust, на выбор по уд…»"}
+{"t": "2026-11-08T00:53:34", "by": "executor", "task": "SWC-1", "ev": "reported", "commits": ["2131d07dd"], "note": "done: docs/research/sw_charges/literature.md: 9 разделов, 23 ссылки; режимы по Fr (критическая высота η_c(Fr0)), стоки, трени…", "dp_feedback": "docs index переписал INDEX.md и registry целиком (ожидаемо); замечаний нет."}
+{"t": "2026-11-08T00:53:43", "by": "coordinator", "task": "SWC-1", "ev": "checked", "note": "3/3 docs=ok:exit 0; sections=ok:9; refs=ok:23; scope=FAIL:вне scope: r-SWC-1.json"}
+{"t": "2026-11-08T00:56:01", "by": "coordinator", "task": "SWC-2", "ev": "cancelled", "note": "решение пользователя 2026-11-08: прототипы на Python; заменена SWC-4"}

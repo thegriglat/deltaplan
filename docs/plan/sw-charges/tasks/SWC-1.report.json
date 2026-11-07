@@ -1,0 +1,80 @@
+{
+  "status": "done",
+  "summary": "docs/research/sw_charges/literature.md: 9 разделов, 23 ссылки; режимы по Fr (критическая высота η_c(Fr0)), стоки, трение/вовлечение, схемы, правило R1 перевода U10,N,z_i,Δθ,нагрев в h0,b0,U0,c_d.",
+  "commits": [
+    "2131d07dd SWC-1: литература по мелкой воде над рельефом, стокам и правилу перевода условий игры"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "sections",
+      "value": "9",
+      "pass": true
+    },
+    {
+      "name": "refs",
+      "value": "23",
+      "pass": true
+    },
+    {
+      "name": "accept --dry",
+      "value": "PASS docs, sections 9, refs 23, scope",
+      "pass": true
+    },
+    {
+      "name": "η_c(Fr0)=1+Fr0²/2-1.5 Fr0^(2/3) численно",
+      "value": "Fr0 0.5 -> 0.180; 0.3 -> 0.373; 1 -> 0",
+      "pass": true
+    },
+    {
+      "name": "порог блокирования при g'=N² z_i: Fr_game,c = Fr0/η",
+      "value": "η 0.2 -> 2.37; 0.3 -> 1.22; 0.5 -> 0.41; 0.7 -> 0.13 (порядок 1 при η≈0.3, как 0.8-1.1 в air_phase_results)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Режимы срыва вихрей 3D (Schär-Smith II) не выписаны; полный текст статей не читан, только сверка заголовков/страниц"
+  ],
+  "questions": [
+    "Анабатика (тёплый слой, b<0) не укладывается в SW1 (b>=b_min>0): моделировать как инвертированный слой или принять 'нагрев только ослабляет b'? Нужно решение до SWC-2."
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SWC-1",
+  "uncertain": [
+    {
+      "where": "docs/research/sw_charges/literature.md §7 R1",
+      "why": "выбор b0: из N·δ (конечная инверсия) или b0=N²·h0 (верхняя оценка c); эквивалентность слой<->N условна",
+      "checked": "оценки c=N·h0 vs N·h0/π; решать по сравнению порога блокирования с air_phase_results (SWC-3)"
+    },
+    {
+      "where": "docs/research/sw_charges/literature.md §9",
+      "why": "большинство ссылок по памяти (метка пам.), 4 сверены поиском: Schär-Smith I/II, Vosper 2004, Winters-Armi 2012, Touma-Klingenberg 2015",
+      "checked": "поиск заголовков/страниц; DOI только у Touma-Klingenberg"
+    },
+    {
+      "where": "§5 E=0.075/(1+5Ri), c_d=(κ/ln(0.37h/z0))²",
+      "why": "числа по памяти/выведены, не сверены по первоисточнику",
+      "checked": "порядки величин"
+    }
+  ],
+  "dp_feedback": "docs index переписал INDEX.md и registry целиком (ожидаемо); замечаний нет.",
+  "extra": {
+    "eta_c_table": {
+      "0.1": 0.682,
+      "0.3": 0.373,
+      "0.5": 0.18,
+      "0.7": 0.062,
+      "0.9": 0.0067,
+      "1.2": 0.026,
+      "1.5": 0.159,
+      "2": 0.619,
+      "3": 2.38
+    }
+  },
+  "t": "2026-11-08T00:53:34",
+  "by": "executor"
+}
