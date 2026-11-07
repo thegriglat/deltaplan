@@ -1,0 +1,84 @@
+{
+  "status": "done",
+  "summary": "Опорная высота ветра прогноза без wind_ref — valley_msl_m контекста места (weather_link.rs для прогноза, formula.rs default_ref_msl для пресетов); gain_per_km — из климата на этой высоте; игра wind_ref не кладёт; явный wind_ref и WindRef остались. Поле Пикара не изменилось (field_same max_rel=0).",
+  "commits": [
+    "4954fa7bd WF-4: опорная высота ветра прогноза — отметка открытой местности (valley_msl_m), игра wind_ref не кладёт"
+  ],
+  "checks": [
+    {
+      "name": "wind_forecast",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "forecast_game",
+      "value": "1/1",
+      "pass": true
+    },
+    {
+      "name": "weather_day",
+      "value": "1/1",
+      "pass": true
+    },
+    {
+      "name": "rust_wind",
+      "value": "35/35 (пропуск 1)",
+      "pass": true
+    },
+    {
+      "name": "cargo",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "ref_valley_test",
+      "value": "ok, 2 passed",
+      "pass": true
+    },
+    {
+      "name": "game_no_ref",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "field_same",
+      "value": "max_rel=0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept WF-4",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/src/terms/weather_link.rs:184-214",
+      "why": "На Онгудае ветер на отметке старта (979 м над долиной) вырос вдвое: климатический gain_per_km там 1.09/км, множитель 1+1.09*0.98 зажат altitude_max_factor=2.0. Это следствие Q1=B, а не ошибка; но 12 м/с на старте при прогнозе 6 м/с у земли долины — решение для координатора/пользователя (дальше влияет только аналитика: фон вне окон, лежащая подветренная опасность, болтанка).",
+      "checked": "wf4_ref_msl печатает: ongudai gain(+1км)=1.000 (зажим), v_valley=6.000, v_start=12.000; volcano_island valley=0 start=140.9 v_start=6.013."
+    },
+    {
+      "where": "tests/atmosphere/test_weather_day.gd:test_wind_grows_above_launch",
+      "why": "Тест падал и до правки (на feature/wind-forecast): mean_wind_at в сумме берёт поле Пикара, оно считается по U10 прогноза и опорной высоты не знает (5.41 и одинаково при любой ref). Переписан на background_wind (аналитика Terms): рост сверх профиля над землёй k=1.6 (профиль без роста измерен rig'ом с gain 0), 'ниже опоры слабее', без явной опоры — от долины с ростом по климату.",
+      "checked": "до правки на базе: те же 5.41 при ref 1000/1600/0/null; после: тест проходит."
+    },
+    {
+      "where": "tests/game/test_forecast_game.gd:49",
+      "why": "Ожидание 'на высоте старта ветер по румбу' осталось по сути (ветер на старте не слабее долинного, направление по румбу); добавлена проверка, что _air_conditions() без wind_ref. Условие 'не слабеет с высотой' теперь про рост от долины.",
+      "checked": "forecast_game 1/1 PASS. Тест тяжёлый: на 1 CPU-квоте solve_heat Онгудая 7-10 мин, в первом dry-запуске упал по таймауту 900 с (под нагрузкой), отдельно и повторно прошёл."
+    }
+  ],
+  "dp_feedback": "accept для тестов с solve_heat на Онгудае упирается в таймаут 900 с при квоте CPU 100% и параллельных заданиях — нужен таймаут на проверку в карточке или предупреждение. Вывод accept --dry через | tail буферизуется до конца — удобно иметь прогресс в файл.",
+  "extra": {
+    "ref_msl_before_after": {
+      "ongudai": "до: 1868.8 (отметка старта kayancha_south), после: 889.5 (valley_msl_m)",
+      "volcano_island": "до: 140.9 (старт), после: 0.0 (valley)"
+    },
+    "analytic_wind_at_start_10m_agl_at_6ms": {
+      "ongudai": "до 6.0 м/с, после 12.0 м/с (зажим altitude_max_factor 2.0)",
+      "volcano_island": "до 6.0, после 6.013 (gain 0.015/км)"
+    },
+    "removed_or_changed_expectations": "test_weather_day: mean_wind_at->background_wind (поле не знает опоры, падал и ранее); test_forecast_game: комментарий + проверка отсутствия wind_ref; k1: добавлен тест отсутствия wind_ref/ref_msl в Game._air_conditions. rust-тесты terms_frame/terms_analytic/weather_ported менять не потребовалось (явный wind_ref или terms без места)."
+  },
+  "t": "2026-11-08T04:02:24",
+  "by": "executor"
+}
