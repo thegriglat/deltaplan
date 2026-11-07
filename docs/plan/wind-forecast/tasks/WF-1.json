@@ -1,0 +1,61 @@
+{
+  "id": "WF-1",
+  "module": "wind-forecast",
+  "type": "dp-researcher",
+  "title": "Аудит привязки ветра к старту",
+  "goal": "Полный список мест, где ветер условий привязан к старту (п. 1–3 плана), с файл:строка и правкой для каждой; замер U на 10 м над стартом и k в режимах start и inflow на 4 стартах учебного острова и 2–3 горных местах; время загрузки обоих режимов на 2 местах; ответ, что значит wind_ref {ref_msl, gain_per_km} прогноза и нужна ли перепечка запечённых полей.",
+  "plan_ref": "§Задачи: Аудит",
+  "contracts": [
+    {
+      "name": "WF-К1",
+      "version": "1",
+      "ref": "docs/contracts/wind-forecast.md"
+    },
+    {
+      "name": "WF-К2",
+      "version": "1",
+      "ref": "docs/contracts/wind-forecast.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/wind-forecast-WF-1",
+  "branch": "wind-forecast/WF-1",
+  "base": "feature/wind-forecast",
+  "scope": [
+    "tools/research/wind_forecast/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "rust/",
+    "configs/",
+    "project.godot",
+    "docs/contracts/",
+    "docs/guide/",
+    "tools/research/lee_cal/"
+  ],
+  "accept": [
+    {
+      "name": "readme",
+      "cmd": "test -f tools/research/wind_forecast/README.md && grep -q '^## Список правок' tools/research/wind_forecast/README.md && grep -q '^## Шлюзы' tools/research/wind_forecast/README.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "places",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/wind_forecast/summary.json'));print('n=%d'%sum(1 for r in d['places'] if {'place','u_start10_start','k_start','passes_start','u_start10_inflow'}<=r.keys()))\"",
+      "expect": "num:n=(\\d+) >=6"
+    },
+    {
+      "name": "load_time",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/wind_forecast/summary.json'));print('n=%d'%sum(1 for r in d['load'] if {'place','load_s_start','load_s_inflow'}<=r.keys()))\"",
+      "expect": "num:n=(\\d+) >=2"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check tools/research/wind_forecast/",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-08T00:22:49",
+  "edited": "2026-11-08T00:23:33"
+}
