@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Обёртка Python для sw_charges: venv в ${SWC_VENV:-$HOME/.cache/sw_charges/venv} (numpy, pytest).
+set -euo pipefail
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+venv="${SWC_VENV:-$HOME/.cache/sw_charges/venv}"
+if [ ! -x "$venv/bin/python" ]; then
+  export PATH="$HOME/.local/bin:$PATH"
+  mkdir -p "$(dirname "$venv")"
+  uv venv "$venv" >&2
+  VIRTUAL_ENV="$venv" uv pip install -r "$here/requirements.txt" >&2
+fi
+export PYTHONPATH="$here${PYTHONPATH:+:$PYTHONPATH}"
+exec "$venv/bin/python" "$@"
