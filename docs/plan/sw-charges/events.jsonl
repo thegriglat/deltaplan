@@ -70,3 +70,5 @@
 {"t": "2026-11-08T01:46:15", "by": "coordinator", "task": "SWC-7", "ev": "accepted", "commits": ["c14618491"], "note": "3/3 results=ok:exit 0; docs=ok:exit 0; verdict=ok:1"}
 {"t": "2026-11-08T01:46:16", "by": "coordinator", "task": "SWC-7", "ev": "merged", "commits": ["c14618491"]}
 {"t": "2026-11-08T01:46:32", "by": "coordinator", "task": "SWC-6", "ev": "accepted", "note": "по ревью (4 minor; к шагу 3: окно скорости t≤60 с, ∫w dx в 2D тривиален — критерии w<0 при |x|>R, a=b/2, P=B·t, d=πR/2; ring_sink_factor — scripts/atmosphere/atmo_thermal.gd)"}
+{"t": "2026-11-08T01:46:34", "by": "coordinator", "task": "SWC-6", "ev": "accepted", "commits": ["d52be8fd9"], "note": "3/3 results=ok:exit 0; docs=ok:exit 0; verdict=ok:1"}
+{"t": "2026-11-08T01:46:34", "by": "coordinator", "task": "SWC-6", "ev": "merged", "commits": ["d52be8fd9"]}
