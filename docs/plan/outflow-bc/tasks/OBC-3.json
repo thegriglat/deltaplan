@@ -1,0 +1,43 @@
+{
+  "id": "OBC-3",
+  "module": "outflow-bc",
+  "type": "dp-mechanic",
+  "title": "Прогон полного корпуса outflow-bc (2 шарда) и упаковка записей",
+  "goal": "Прогнать стенд outflow_corpus на полном корпусе corpus.json (240 случаев × hard/soft/soft_ns) двумя шардами под замком cpu; сырьё в ~/data/outflow_bc; объединённые записи OB2 — сжатым файлом в tools/research/outflow_bc/out/.",
+  "plan_ref": "Корпус и условия",
+  "contracts": [
+    {
+      "name": "OB2",
+      "version": "1",
+      "ref": "docs/contracts/outflow-bc.md"
+    },
+    {
+      "name": "OB3",
+      "version": "1",
+      "ref": "docs/contracts/outflow-bc.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/outflow-bc-OBC-3",
+  "branch": "outflow-bc/OBC-3",
+  "base": "feature/outflow-bc",
+  "scope": [
+    "tools/research/outflow_bc/out"
+  ],
+  "dont_touch": [
+    "rust",
+    "tools/research/outflow_bc/corpus.json",
+    "tools/research/outflow_bc/check_records.py",
+    "docs"
+  ],
+  "accept": [
+    {
+      "name": "records",
+      "cmd": "mkdir -p build/obc && gzip -dc tools/research/outflow_bc/out/cases.jsonl.gz > build/obc/OBC-3_cases.jsonl && python3 tools/research/outflow_bc/check_records.py build/obc/OBC-3_cases.jsonl --spec tools/research/outflow_bc/corpus.json --slices /home/greg/data/outflow_bc/slices",
+      "expect": "re:OBC2: records=720 invalid=0 "
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-08T01:40:17",
+  "edited": "2026-11-08T01:40:44"
+}
