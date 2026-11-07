@@ -1,5 +1,5 @@
 extends TestCase
-## WF-К1 v2 (docs/contracts/wind-forecast.md): ветер условий — всегда набегающий поток (приток k = 1).
+## WF-К1 v3 (docs/contracts/wind-forecast.md): ветер условий — всегда набегающий поток (приток k = 1).
 ## Режима поля у старта нет: ключ условий «режим притока» (снят в WF-2) — посторонний (BAD_INPUT
 ## через фасад Atmosphere), у StartWeather нет разбора опоры ветра, набор без wind_ref разбирается,
 ## запечённого поля нет, а хеш модели воздуха живёт в AirModelHash.
@@ -73,3 +73,15 @@ func test_model_hash_moved_to_air_model_hash() -> void:
 	check(h1 == h2, "хеш модели стабилен")
 	var code := AirModelHash.code_hash()
 	check(code != "" and code == AirModelHash.code_hash_of_sources(), "хеш кода — по исходникам каталога модели")
+
+
+## WF-К1 v3: условия, которые строит игра, не содержат wind_ref (опорная высота — отметка долины места,
+## её берёт крейт). Проверка по тексту Game._air_conditions (сцена не нужна).
+func test_game_conditions_have_no_wind_ref() -> void:
+	var src := FileAccess.get_file_as_string("res://scripts/game/game.gd")
+	var a := src.find("func _air_conditions()")
+	check(a >= 0, "Game._air_conditions найдена")
+	var b := src.find("\nfunc ", a + 10)
+	var body := src.substr(a, b - a)
+	check(not body.contains("wind_" + "ref"), "в условиях игры нет wind_ref")
+	check(not body.contains("ref_" + "msl"), "в условиях игры нет ref_msl")

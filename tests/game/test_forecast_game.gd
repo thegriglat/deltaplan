@@ -1,6 +1,6 @@
 extends Node
 ## Погода из прогноза в игре (docs/archive/plan/weather-by-temperature.md, карточка 3): Game выводит день
-## из прогноза и рельефа, ветер — встречный или с румба, опора ветра — высота старта.
+## из прогноза и рельефа, ветер — встречный или с румба, опорная высота ветра — отметка открытой местности места (WF-К1 v3).
 
 const MAIN_SCENE := preload("res://scenes/main.tscn")
 
@@ -46,8 +46,10 @@ func test_game_uses_forecast() -> void:
 	var turn_max := float(Config.get_config("game").start_wind_align.max_turn_deg)
 	var turn := rad_to_deg(absf(angle_difference(deg_to_rad(site), deg_to_rad(float(start.heading_deg)))))
 	check(turn <= turn_max + 0.01, "курс старта %.0f° не дальше %.0f° от курса площадки (%.0f°)" % [start.heading_deg, turn_max, site])
-	# Опора ветра — старт (W5 Conditions.wind_ref): на высоте старта фоновый ветер идёт по румбу
-	# прогноза (на «встречный» — против курса), не слабеет с высотой и не нулевой.
+	# Опора ветра — отметка долины места (WF-К1 v3, игра wind_ref не кладёт): ветер прогноза — на 10 м над
+	# открытой местностью, на старте (выше долины) он не слабее и идёт по румбу прогноза (на «встречный» —
+	# против курса), не нулевой.
+	check(not (game._air_conditions() as Dictionary).has("wind_ref"), "игра не кладёт wind_ref в условия")
 	var y0 := (start.position as Vector3).y
 	var bw := air.background_wind(PackedFloat32Array([y0, y0 + 1000.0]))
 	var v0 := Vector2(bw[0], bw[1])

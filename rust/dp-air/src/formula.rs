@@ -785,16 +785,17 @@ impl Formula {
         self.sh.set_time(t);
     }
 
-    /// Опорная высота ветра без `wind_ref` (пресет, прогноз без `wind_ref`): высота первого старта
-    /// места, как `Atmosphere._f_weather_ctx` в GD.
+    /// Опорная высота ветра без `wind_ref` (пресет, прогноз без `wind_ref`): отметка открытой
+    /// местности места (`valley_msl_m` контекста - та же опорная, что у климата), WF-К1 v3.
     fn default_ref_msl(&mut self) {
         if self.terms.wind.ref_msl.is_nan()
-            && let Some(s) = self
+            && let Some(v) = self
                 .place
                 .as_ref()
-                .and_then(|p| p.header().start_sites.first().map(|s| s.h_msl))
+                .map(|p| crate::field::weather_core::context(p).valley_msl_m)
+                .filter(|v| v.is_finite())
         {
-            self.terms.wind.ref_msl = s;
+            self.terms.wind.ref_msl = v;
         }
     }
 
