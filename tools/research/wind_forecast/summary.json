@@ -1,0 +1,231 @@
+{
+ "places": [
+  {
+   "place": "ridge_west",
+   "start": "training_island/ridge_west",
+   "wind_from_deg": 270.0,
+   "u10_menu": 6.0,
+   "u_start10_start": 5.691,
+   "k_start": 0.7564,
+   "passes_start": 2,
+   "u_start10_inflow": 7.364,
+   "umax_100m_start": 10.32,
+   "umax_100m_inflow": 13.42,
+   "k_log_start": [
+    {
+     "k": 1.0,
+     "u": 7.397906234793246
+    },
+    {
+     "k": 0.756350741755793,
+     "u": 5.717397752136141
+    }
+   ],
+   "start_msl": 455.1
+  },
+  {
+   "place": "thermal_plain",
+   "start": "training_island/thermal_plain",
+   "wind_from_deg": 180.0,
+   "u10_menu": 2.0,
+   "u_start10_start": 1.23,
+   "k_start": 1.0,
+   "passes_start": 1,
+   "u_start10_inflow": 1.23,
+   "umax_100m_start": 2.8,
+   "umax_100m_inflow": 2.8,
+   "k_log_start": [
+    {
+     "k": 1.0,
+     "u": 1.2317417502834165
+    }
+   ],
+   "start_msl": 187.7
+  },
+  {
+   "place": "landing_hill",
+   "start": "training_island/landing_hill",
+   "wind_from_deg": 270.0,
+   "u10_menu": 1.0,
+   "u_start10_start": 0.905,
+   "k_start": 1.0,
+   "passes_start": 1,
+   "u_start10_inflow": 0.905,
+   "umax_100m_start": 1.73,
+   "umax_100m_inflow": 1.73,
+   "k_log_start": [
+    {
+     "k": 1.0,
+     "u": 0.9048626286964243
+    }
+   ],
+   "start_msl": 126.6
+  },
+  {
+   "place": "lee_bowl",
+   "start": "training_island/lee_bowl",
+   "wind_from_deg": 270.0,
+   "u10_menu": 8.5,
+   "u_start10_start": 1.193,
+   "k_start": 1.0,
+   "passes_start": 1,
+   "u_start10_inflow": 1.193,
+   "umax_100m_start": 18.36,
+   "umax_100m_inflow": 18.36,
+   "k_log_start": [
+    {
+     "k": 1.0,
+     "u": 1.193020632154764
+    }
+   ],
+   "start_msl": 146.9
+  },
+  {
+   "place": "ongudai",
+   "start": "ongudai/kayancha_south",
+   "wind_from_deg": 151.0,
+   "u10_menu": 6.0,
+   "u_start10_start": 6.163,
+   "k_start": 0.7073,
+   "passes_start": 2,
+   "u_start10_inflow": 7.676,
+   "umax_100m_start": 9.48,
+   "umax_100m_inflow": 12.06,
+   "k_log_start": [
+    {
+     "k": 1.0,
+     "u": 7.779827013233425
+    },
+    {
+     "k": 0.7072534586384283,
+     "u": 6.246602830424086
+    }
+   ],
+   "start_msl": 1868.8
+  },
+  {
+   "place": "ongudai_back",
+   "start": "ongudai/kayancha_south",
+   "wind_from_deg": 331.0,
+   "u10_menu": 6.0,
+   "u_start10_start": 5.95,
+   "k_start": 0.816,
+   "passes_start": 2,
+   "u_start10_inflow": 6.874,
+   "umax_100m_start": 10.28,
+   "umax_100m_inflow": 12.17,
+   "k_log_start": [
+    {
+     "k": 1.0,
+     "u": 6.988719903763828
+    },
+    {
+     "k": 0.8159649184937865,
+     "u": 6.047627633150598
+    }
+   ],
+   "start_msl": 1868.8
+  },
+  {
+   "place": "volc_east_cliffs",
+   "start": "volcano_island/east_cliffs",
+   "wind_from_deg": 110.0,
+   "u10_menu": 6.0,
+   "u_start10_start": 5.922,
+   "k_start": 0.9797,
+   "passes_start": 2,
+   "u_start10_inflow": 6.0,
+   "umax_100m_start": 9.35,
+   "umax_100m_inflow": 9.53,
+   "k_log_start": [
+    {
+     "k": 1.0,
+     "u": 6.093012556066148
+    },
+    {
+     "k": 0.979698033680324,
+     "u": 6.013936571475895
+    }
+   ],
+   "start_msl": 140.9
+  },
+  {
+   "place": "volc_crater_ridge",
+   "start": "volcano_island/crater_ridge",
+   "wind_from_deg": 110.0,
+   "u10_menu": 6.0,
+   "u_start10_start": 4.615,
+   "k_start": 1.0,
+   "passes_start": 1,
+   "u_start10_inflow": 4.615,
+   "umax_100m_start": 10.12,
+   "umax_100m_inflow": 10.12,
+   "k_log_start": [
+    {
+     "k": 1.0,
+     "u": 4.603774712258523
+    }
+   ],
+   "start_msl": 225.7
+  }
+ ],
+ "load": [
+  {
+   "place": "ridge_west",
+   "load_s_start": 210.0,
+   "load_s_inflow": 77.0,
+   "passes_start": 2,
+   "passes_inflow": 1
+  },
+  {
+   "place": "thermal_plain",
+   "load_s_start": 25.4,
+   "load_s_inflow": 25.6,
+   "passes_start": 1,
+   "passes_inflow": 1
+  },
+  {
+   "place": "landing_hill",
+   "load_s_start": 22.3,
+   "load_s_inflow": 22.0,
+   "passes_start": 1,
+   "passes_inflow": 1
+  },
+  {
+   "place": "lee_bowl",
+   "load_s_start": 86.3,
+   "load_s_inflow": 86.9,
+   "passes_start": 1,
+   "passes_inflow": 1
+  },
+  {
+   "place": "ongudai",
+   "load_s_start": 209.8,
+   "load_s_inflow": 83.0,
+   "passes_start": 2,
+   "passes_inflow": 1
+  },
+  {
+   "place": "ongudai_back",
+   "load_s_start": 178.6,
+   "load_s_inflow": 84.3,
+   "passes_start": 2,
+   "passes_inflow": 1
+  },
+  {
+   "place": "volc_east_cliffs",
+   "load_s_start": 59.7,
+   "load_s_inflow": 43.7,
+   "passes_start": 2,
+   "passes_inflow": 1
+  },
+  {
+   "place": "volc_crater_ridge",
+   "load_s_start": 45.5,
+   "load_s_inflow": 46.9,
+   "passes_start": 1,
+   "passes_inflow": 1
+  }
+ ],
+ "note": "Rust dp-air (Formula, детерминированный режим), замок CPU = 1 ядро; U — mean на 10 м над землёй старта"
+}
