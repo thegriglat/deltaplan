@@ -1,0 +1,44 @@
+{
+  "verdict": "accept",
+  "summary": "Скоуп и контракт SW6 v2 соблюдены (panels2d и pa_core не тронуты, формулы панелей совпадают с panels2d._pair, правило схода Γ = −½u_s²dt как в SW6). Отчёт честный: провалы (отрыв неотличим от плоской земли, P-дрейф, ротор 2–4× Menke на Perdigão) названы как провалы, затухание τ подано как чувствительность, а не как результат. Подгонки под критерии нет. Замечания — только уточняющие.",
+  "issues": [
+    {
+      "file": "tools/research/sw_charges/proto_a/step3_collect.py",
+      "line": 86,
+      "severity": "minor",
+      "what": "results.json → criterion.thermal.*.detach_ok = true (правило d_n(60) − d_n(0) > 0 выполняется тривиально — пятно подвешено над землёй), тогда как в отчёте и в proto-a-terrain.md тот же критерий честно признан FAIL (как над плоской землёй). Машиночитаемый критерий расходится с текстом.",
+      "fix": "При следующем касании кода: либо добавить в criterion сравнение с плоским контролем (|Δd_n − Δd_n_flat| > порог), либо пометить detach_ok как 'тривиально' в definitions. Не сейчас."
+    },
+    {
+      "file": "tools/research/sw_charges/proto_a/step3_rotor.py",
+      "line": 115,
+      "severity": "minor",
+      "what": "Точка схода на Perdigão — x мачты tse13 (−706 м, z = 354 м); локальный максимум рельефа разреза — в 30 м выше по потоку (x = −735, z = 363 м). Для «бровки» разница малая и в границах ds_min = 25 м, но в документе названа «бровка» без оговорки.",
+      "fix": "Одна фраза в proto-a-terrain.md «Постановка»: сход в точке мачты tse13, в 30 м ниже по потоку от максимума линии. Не блокирует."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "accept SWC-13 --dry (results, docs, verdict, scope)",
+      "value": "3/3 PASS, scope 54 файла в границах",
+      "pass": true
+    },
+    {
+      "name": "diff --stat feature/sw-charges...sw-charges/SWC-13 против scope/dont_touch",
+      "value": "54 файла, все в proto_a/, docs/research/sw_charges/proto-a-terrain.md, INDEX, registry; pa_core.py, panels2d/, contracts, cases — не тронуты",
+      "pass": true
+    },
+    {
+      "name": "criterion в results.json: inflow_ok 8/8, ratio_ok, ring_ok, P_ok, rotor ok_umax",
+      "value": "inflow 8/8 true; ring_ok false на 6/8 (0,89–0,93), P_ok false везде; ротор ok_umax: Agnesi true (0,29–0,32), Perdigão false (0,89–0,96) — совпадает с отчётом",
+      "pass": true
+    },
+    {
+      "name": "Perdigão: направление потока и положение бровки (step3_terrain)",
+      "value": "tse13 x=−706 → tse04 x=+706 (поток +x, NE-случай верен); max рельефа у tse13 — x=−735, z=363",
+      "pass": true
+    }
+  ],
+  "t": "2026-11-08T03:45:29",
+  "by": "reviewer"
+}
