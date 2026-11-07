@@ -12,7 +12,9 @@ import struct
 import sys
 import tempfile
 
-FORMATS = {"sw-case": 1, "sw-field": 1, "sw-run": 1}
+FORMATS = {"sw-case": 1, "sw-field": 1, "sw-run": 1, "sw-regimes": 1, "sw-sections": 1}
+REGIMES = {"R1", "R2", "R3", "R4j", "R5", "R6", "unclassified"}
+THEORY = {"R1", "R2", "R3", "R2|R4j", "R5", "R6"}
 BC = {"farfield", "transmissive", "wall", "periodic"}
 SHAPES = {"flat", "hill", "ridge", "step_up", "step_down", None}
 STATUS = {"steady", "averaged", "max_time", "diverged"}
@@ -184,6 +186,61 @@ def check_run(path, d):
             raise ContractError(f"{k}: целое ≥ 0")
 
 
+REG_KEYS = ("case", "run", "shape", "s", "H", "h0", "b0", "U0", "F0", "M", "Fr_game", "N", "z_i", "rule_b0",
+            "regime_sw", "regime_theory", "match", "Fr_crest", "h_up", "bore_speed", "lee_jump", "x_jump", "q_ratio",
+            "dry_cells", "status", "wall_s")
+SEC_KEYS = ("case", "dx", "sw_case", "sw_run", "rule_b0", "h0", "b0", "U0", "F0", "M", "E", "E0", "S_sw", "S_p",
+            "D_sw", "D_p", "x_D_sw", "x_D_p", "status", "wall_s")
+
+
+def check_regimes(path, d):
+    need(d, ("series", "theory", "thresholds", "git", "created", "rows"), "sw-regimes")
+    if d["series"] not in ("A1", "A2"):
+        raise ContractError(f"series: {d['series']!r}")
+    if not isinstance(d["rows"], list) or not d["rows"]:
+        raise ContractError("rows: непустой список")
+    for i, r in enumerate(d["rows"]):
+        need(r, REG_KEYS, f"rows[{i}]")
+        if r["regime_sw"] not in REGIMES:
+            raise ContractError(f"rows[{i}].regime_sw: {r['regime_sw']!r}")
+        if r["regime_theory"] not in THEORY:
+            raise ContractError(f"rows[{i}].regime_theory: {r['regime_theory']!r}")
+        if not isinstance(r["match"], bool) or not isinstance(r["lee_jump"], bool):
+            raise ContractError(f"rows[{i}]: match/lee_jump — bool")
+        if r["match"] != (r["regime_sw"] in r["regime_theory"].split("|")):
+            raise ContractError(f"rows[{i}].match не согласован с режимами")
+        if r["rule_b0"] not in ("N2h0", "N2delta", None):
+            raise ContractError(f"rows[{i}].rule_b0: {r['rule_b0']!r}")
+        for k in ("F0", "M", "h0", "b0", "U0"):
+            num(r[k], f"rows[{i}].{k}")
+        for k in ("Fr_game", "N", "z_i", "Fr_crest", "h_up", "bore_speed", "x_jump", "q_ratio", "s", "H"):
+            num(r[k], f"rows[{i}].{k}", allow_null=True)
+        if r["status"] not in STATUS:
+            raise ContractError(f"rows[{i}].status: {r['status']!r}")
+    if not os.path.exists(path[: -len(".json")] + ".csv"):
+        raise ContractError("нет парного .csv")
+
+
+def check_sections(path, d):
+    need(d, ("git", "created", "rows"), "sw-sections")
+    if not isinstance(d["rows"], list) or not d["rows"]:
+        raise ContractError("rows: непустой список")
+    for i, r in enumerate(d["rows"]):
+        need(r, SEC_KEYS, f"rows[{i}]")
+        if r["case"] not in ("C0", "C1", "C2", "C3", "C4"):
+            raise ContractError(f"rows[{i}].case: {r['case']!r}")
+        if r["rule_b0"] not in ("N2h0", "N2delta", None):
+            raise ContractError(f"rows[{i}].rule_b0: {r['rule_b0']!r}")
+        for k in ("dx", "h0", "b0", "U0", "F0", "M"):
+            num(r[k], f"rows[{i}].{k}")
+        for k in ("E", "E0", "S_sw", "S_p", "D_sw", "D_p", "x_D_sw", "x_D_p"):
+            num(r[k], f"rows[{i}].{k}", allow_null=True)
+        if r["status"] not in STATUS:
+            raise ContractError(f"rows[{i}].status: {r['status']!r}")
+    if not os.path.exists(path[: -len(".json")] + ".csv"):
+        raise ContractError("нет парного .csv")
+
+
 def check_file(path, strict=True):
     try:
         with open(path) as f:
@@ -197,7 +254,8 @@ def check_file(path, strict=True):
         return None
     if d.get("version") != FORMATS[fmt]:
         raise ContractError(f"{fmt}: version {d.get('version')!r} ≠ {FORMATS[fmt]}")
-    {"sw-case": check_case, "sw-field": check_field, "sw-run": check_run}[fmt](path, d)
+    {"sw-case": check_case, "sw-field": check_field, "sw-run": check_run, "sw-regimes": check_regimes,
+     "sw-sections": check_sections}[fmt](path, d)
     return fmt
 
 
@@ -268,12 +326,31 @@ def _synth(t):
                    "t": 3600.0, "steps": 100, "wall_s": 0.1, "threads": 1, "dt_min": 1.0, "dt_mean": 2.0, "cfl": 0.5,
                    "mass_rel_err": 1e-12, "steady_residual": 5e-5, "dry_cells": 0, "b_clipped": 0, "notes": "",
                    "git": "x", "created": "2026-11-08T00:00:00"}, f)
-    return cp, fp, runp
+    reg = {"format": "sw-regimes", "version": 1, "series": "A1", "theory": "literature.md §2", "thresholds": {},
+           "git": "x", "created": "2026-11-08T00:00:00",
+           "rows": [{"case": "ridge_s0.30", "run": runp, "shape": "ridge", "s": 0.3, "H": 200.0, "h0": 500.0, "b0": 0.1,
+                     "U0": 5.0, "F0": 0.707, "M": 0.4, "Fr_game": None, "N": None, "z_i": None, "rule_b0": None,
+                     "regime_sw": "R3", "regime_theory": "R3", "match": True, "Fr_crest": 1.0, "h_up": 1.1,
+                     "bore_speed": 2.0, "lee_jump": True, "x_jump": 900.0, "q_ratio": 0.9, "dry_cells": 0,
+                     "status": "max_time", "wall_s": 1.0}]}
+    regp = os.path.join(t, "A1.json")
+    with open(regp, "w") as f:
+        json.dump(reg, f)
+    open(regp[:-5] + ".csv", "w").close()
+    sec = {"format": "sw-sections", "version": 1, "git": "x", "created": "2026-11-08T00:00:00",
+           "rows": [{"case": "C1", "dx": 50.0, "sw_case": "c1", "sw_run": runp, "rule_b0": "N2h0", "h0": 500.0,
+                     "b0": 0.1, "U0": 5.0, "F0": 0.7, "M": 0.4, "E": 0.1, "E0": 0.2, "S_sw": 1.2, "S_p": 1.3,
+                     "D_sw": 0.8, "D_p": 0.7, "x_D_sw": 600.0, "x_D_p": 700.0, "status": "steady", "wall_s": 1.0}]}
+    secp = os.path.join(t, "sections.json")
+    with open(secp, "w") as f:
+        json.dump(sec, f)
+    open(secp[:-5] + ".csv", "w").close()
+    return cp, fp, runp, regp, secp
 
 
 def selftest():
     with tempfile.TemporaryDirectory() as t:
-        cp, fp, runp = _synth(t)
+        cp, fp, runp, regp, secp = _synth(t)
         if run([t]) != 0:
             print("selftest: синтетика не прошла")
             return 1
@@ -288,6 +365,10 @@ def selftest():
             (fp, lambda d: d["arrays"].update(h=[0, 7])),
             (runp, lambda d: d.update(status="ok")),
             (runp, lambda d: d.pop("b_clipped")),
+            (regp, lambda d: d["rows"][0].update(match=False)),
+            (regp, lambda d: d["rows"][0].update(regime_theory="R4")),
+            (secp, lambda d: d["rows"][0].pop("E0")),
+            (secp, lambda d: d["rows"][0].update(case="C9")),
         ]
         for path, spoil in cases:
             with open(path) as f:
