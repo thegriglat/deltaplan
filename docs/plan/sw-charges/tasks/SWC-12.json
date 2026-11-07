@@ -1,0 +1,65 @@
+{
+  "id": "SWC-12",
+  "module": "sw-charges",
+  "type": "dp-researcher",
+  "title": "Этап 2 (2D): панели и вихри против измерений и Пикара на разрезах (SW7)",
+  "goal": "Библиотекой panels2d (SW6 v2) на 2D-разрезах — Lubitz–White (2D-хребты в трубе), Perdigão NE/SW (мачты, Menke 2019), cascade-2d C1, C2, C4 (Пикар P50 ±15 %) — посчитать варианты «потенциальный» и «с вихрями с гребня» и сравнить по точкам и ротору (SW7); вывод: что панели дают у земли на 25–30 м и чего не умеют; время.",
+  "plan_ref": "Этапы и задачи (уточняет координатор)",
+  "contracts": [
+    {
+      "name": "SW6",
+      "version": "2",
+      "ref": "docs/contracts/sw-charges.md"
+    },
+    {
+      "name": "SW7",
+      "version": "1",
+      "ref": "docs/contracts/sw-charges.md"
+    },
+    {
+      "name": "cascade-2d.F1",
+      "version": "1",
+      "ref": "docs/contracts/cascade-2d.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sw-charges-SWC-12",
+  "branch": "sw-charges/SWC-12",
+  "base": "feature/sw-charges",
+  "scope": [
+    "tools/research/sw_charges/panels_exp/",
+    "tools/research/sw_charges/out/panels2d/",
+    "docs/research/sw_charges/stage2-2d.md",
+    "docs/INDEX.md",
+    "docs/registry/research.md"
+  ],
+  "dont_touch": [
+    "tools/research/sw_charges/panels2d/",
+    "tools/research/sw_charges/swpy/",
+    "tools/research/cases/",
+    "tools/research/data/",
+    "tools/research/cascade_2d/",
+    "docs/contracts/",
+    "tools/research/sw_charges/contract/"
+  ],
+  "accept": [
+    {
+      "name": "contract",
+      "cmd": "python3 tools/research/sw_charges/contract/check_contract.py tools/research/sw_charges/out/panels2d",
+      "expect": "re:FAIL 0"
+    },
+    {
+      "name": "docs",
+      "cmd": "bash -c '.dpcli/dpcli docs check 2>&1 | grep -E \"ОШИБКА.*sw_charges\"; test ${PIPESTATUS[1]} -eq 1'",
+      "expect": "exit=0"
+    },
+    {
+      "name": "verdict",
+      "cmd": "grep -cE '^\\*\\*Вердикт' docs/research/sw_charges/stage2-2d.md",
+      "expect": "num:(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "Библиотека — tools/research/sw_charges/panels2d (API — SW6 v2 в docs/contracts/sw-charges.md; README tools/research/sw_charges/README.md «Панели panels2d»: замеры, граница у угла), интерпретатор tools/research/sw_charges/py (в тестах/скриптах OPENBLAS_NUM_THREADS=1); panels2d НЕ менять (ошибка — blocked). Вывод таблицы — строго SW7 (проверка check_contract.py). Код — tools/research/sw_charges/panels_exp/ (README с frontmatter type research: команды, время), таблица out/panels2d/points.{json,csv}, рисунки PNG (смотреть не нужно), вывод — docs/research/sw_charges/stage2-2d.md (frontmatter type research, status active, module sw-charges, summary ≤ 140, ≤ 40 КБ; conclusion/data/applied_in). Тяжёлый CPU — .dpcli/dpcli lock cpu swc12 -- <cmd>.\nЭталоны (решение пользователя: эталон — измерения; Пикар ±15 %, не подгонять; Bolund — не использовать). Каталог — docs/research/experimental_data.md (разделы A–J; читать docs section).\n(1) Lubitz & White 2007 — docs/research/calibration_data/slope-flow.md §2.2 (таблица 2D-хребтов H3, Miller & Davenport, UC Davis, H5, Gong & Ibbetson, H8: H/L, ΔS_max, высота максимума; середина склона и подножие) и §2.1 (Jackson–Hunt / Taylor–Lee: ΔS ≈ B·H/L). Формы хребтов взять из литературы (сверить WebSearch; если формы нет — 2D-хребет Agnesi/cos² с тем же H/L, записать); ΔS = u(z)/u_up(z) − 1 у вершины на высоте максимума; units = dS, ref_kind = tunnel. Ожидание: потенциальный поток без пограничного слоя завышает ΔS (в таблице «Предсказ.» уже 1,06–1,33 против 0,61–1,08) — показать числом.\n(2) Perdigão — модуль tools/research/cases/perdigao.py (только импорт: menke_geometry() — D 1407 м, H 174 м; masts(), CASES ne/sw, PROFILE_MASTS, PROFILE_LEVELS 30/60/100 м, MAST_OBS = u_∥/S_ref, zone_metrics() — зона рециркуляции как у Menke; terrain(dx)); данные tools/research/data/perdigao/ (README: средние мачт cases/*_windowmean.csv; Menke 2019 — рециркуляция у ~50 % периодов, L/D ≈ 0,5 по README cases). Разрез — линия вдоль ветра случая через мачты так, чтобы размах рельефа был как у Menke (≈ 174 м; в SWC-9 линия по вершинам давала 330–360 м — это была ошибка постановки, см. docs/research/sw_charges/stage1-sections.md и ревью SWC-9). Мачты — точки SW7 (ref_kind mast, ref_reliability измерение; units m/s или u_∥/S_ref — нормировать как в perdigao.py), ротор — rotor_ref из Menke 2019. Кроны DSM (лес 15–25 м) — сгладить (Terrain smooth_m ≈ 30–60 м), записать σ.\n(3) cascade-2d C1, C2, C4 — Пикар P50 (~/data/cascade_2d/fields/<C>/picard_none_d50.json, F1, читатель tools/research/cascade_2d/contract/cascade2d_io.py — только импорт; параметры — docs/contracts/cascade-2d.md F0): точки upstream (x = −4800), windward (середина наветренного склона), crest, lee (середина подветренного), foot (подветренное подножие) на z_agl 10, 50, 300 м; within_tol по SW7 (0,15).\nВарианты: potential — solve + velocity с bg_profile (U10 и alpha как у эталона; smooth_m ≈ 10·ds_min); vortex — step с shed за гребнем, где подветренный уклон ≥ 0,27 (порог отрыва Finnigan, slope-flow.md §2.4; ниже — без вихрей, вариант совпадает с potential), dt ≤ 0,5·ds_min/U, разгон ≥ 3 пролётов области, затем среднее u, w по времени ≥ 2 пролёта; ds_min 25 м у точки интереса (x_focus — гребень), чувствительность 12,5/50 м на одном случае. Ротор — rotor_pan (обратное среднее u у земли за гребнем), L_pan.\nИтог в stage2-2d.md: таблица по случаям (доля within_tol у Пикара, ΔS против трубы, мачты Perdigão, ротор есть/нет и L против Menke), время solve/запроса/шага, какие законы учтены (потенциальный поток + дискретные вихри, без вязкости и пограничного слоя), чего не умеет, «**Вердикт:** …». r.json — вне копии (scratchpad, имя с SWC-12). Время работы — до ~3–4 ч; счёт > ~4 ч CPU — урезать и записать.",
+  "created": "2026-11-08T03:14:15",
+  "edited": "2026-11-08T03:14:20"
+}
