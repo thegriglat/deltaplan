@@ -444,6 +444,7 @@ fn check(place_name: &str, dx: u32) {
             }
         }
     }
+    assert!(a_sets >= 1, "{name}: после фильтра k = 1 не осталось наборов дампа");
     println!("{name}: A {a_sets} sets, chain {b_sets} sets{report}");
 }
 
