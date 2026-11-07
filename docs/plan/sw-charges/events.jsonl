@@ -80,3 +80,9 @@
 {"t": "2026-11-08T01:54:42", "by": "coordinator", "task": "SWC-4", "ev": "accepted", "note": "по ревью (accept; 2 major исправлены в aaa76b0d8: diverged по SW3, steady_tol 5e-4)"}
 {"t": "2026-11-08T01:57:48", "by": "coordinator", "task": "SWC-4", "ev": "accepted", "commits": ["51060db0d"], "note": "4/4 pytest=ok:exit 0; pytest-pass=ok:23; smoke=ok:проверено 3, FAIL 0; contract-selftest=ok:selftest OK"}
 {"t": "2026-11-08T01:57:48", "by": "coordinator", "task": "SWC-4", "ev": "merged", "commits": ["51060db0d"]}
+{"t": "2026-11-08T01:57:57", "by": "coordinator", "task": "SWC-8", "ev": "created", "note": "Этап 1 (а): режимы слоя по F0, M против теории и air-phase (SW4: A1, A2)"}
+{"t": "2026-11-08T01:58:27", "by": "coordinator", "task": "SWC-8", "ev": "edited", "note": "notes", "diff": {"notes": ["\"\"", "\"Решатель — пакет tools/research/sw_charges/swpy (библиотека run(case, out) → (поле, запись); генератор swpy case ideal; README tools/research/sw_charges/README.md «Решатель swpy»), интерпретатор tools/research/sw_charges/py; swpy НЕ менять (нашёл ошибку — blocked с описанием). Теория — docs/resear…"]}}
+{"t": "2026-11-08T01:58:50", "by": "coordinator", "task": "SWC-9", "ev": "created", "note": "Этап 1 (а): слой против Пикара на разрезах cascade-2d C0–C4 (SW5 v2)"}
+{"t": "2026-11-08T01:58:53", "by": "coordinator", "task": "SWC-9", "ev": "edited", "note": "notes", "diff": {"notes": ["\"\"", "\"Решатель — пакет tools/research/sw_charges/swpy (библиотека run(case, out); README tools/research/sw_charges/README.md «Решатель swpy»), интерпретатор tools/research/sw_charges/py; swpy НЕ менять (ошибка — blocked). Эталон Пикара: $CASCADE2D_DATA = ~/data/cascade_2d (восстановлен SWC-3, описание t…"]}}
+{"t": "2026-11-08T01:59:07", "by": "coordinator", "task": "SWC-8", "ev": "started"}
+{"t": "2026-11-08T01:59:08", "by": "coordinator", "task": "SWC-9", "ev": "started"}
