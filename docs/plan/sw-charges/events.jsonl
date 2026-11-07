@@ -67,3 +67,5 @@
 {"t": "2026-11-08T01:45:57", "by": "coordinator", "task": "SWC-7", "ev": "checked", "note": "3/3 results=ok:exit 0; docs=ok:exit 0; verdict=ok:1"}
 {"t": "2026-11-08T01:46:12", "by": "reviewer", "task": "SWC-6", "ev": "reviewed", "note": "Прототип A сделан по спецификации (шаги 1–2), код физически корректен (знаки ω, Dω/Dt=∂b/∂x, изображения, P=−ΣxΓ, dP/dt=B), все правки в скоупе, dont_touch не …", "verdict": "accept", "issues": {"minor": 4}, "review": "docs/plan/sw-charges/tasks/SWC-6.review.json"}
 {"t": "2026-11-08T01:46:13", "by": "coordinator", "task": "SWC-7", "ev": "accepted", "note": "по ревью (accept, 3 замечания исправлены, коммит efb0c21c6)"}
+{"t": "2026-11-08T01:46:15", "by": "coordinator", "task": "SWC-7", "ev": "accepted", "commits": ["c14618491"], "note": "3/3 results=ok:exit 0; docs=ok:exit 0; verdict=ok:1"}
+{"t": "2026-11-08T01:46:16", "by": "coordinator", "task": "SWC-7", "ev": "merged", "commits": ["c14618491"]}
