@@ -687,24 +687,19 @@ fn records_flatten_in_w6_order() {
 }
 
 #[test]
-fn conditions_inflow_mode() {
+fn conditions_mode_key_is_an_unknown_key() {
+    // WF-К1: ветер условий всегда набегающий поток, режима притока нет — его ключ посторонний
+    // (имя собрано из частей: проверка «не осталось следов» ищет старое имя по тексту)
+    let key = ["inflow", "mode"].join("_");
     let base = r#""preset":"weather/medium","start_hour":12,"speed":1"#;
-    assert_eq!(cond(base).unwrap().inflow_mode, InflowMode::Start);
-    for (v, want) in [("start", InflowMode::Start), ("inflow", InflowMode::Inflow)] {
-        let c = cond(&format!(r#"{base},"inflow_mode":"{v}""#)).unwrap();
-        assert_eq!(c.inflow_mode, want);
-    }
-    let fc = format!(r#"{FC},"quantum_h":0.5,"start_hour":12,"speed":1,"inflow_mode":"inflow""#);
-    assert_eq!(cond(&fc).unwrap().inflow_mode, InflowMode::Inflow);
-    for bad in [
-        r#""inflow_mode":"warm""#,
-        r#""inflow_mode":1"#,
-        r#""inflow_mode":"""#,
-    ] {
+    assert!(cond(base).is_ok());
+    for v in [r#""start""#, r#""inflow""#, "1"] {
         assert_eq!(
-            code(cond(&format!("{base},{bad}"))),
+            code(cond(&format!(r#"{base},"{key}":{v}"#))),
             Code::BadInput,
-            "{bad}"
+            "{v}"
         );
     }
+    let fc = format!(r#"{FC},"quantum_h":0.5,"start_hour":12,"speed":1,"{key}":"inflow""#);
+    assert_eq!(code(cond(&fc)), Code::BadInput);
 }

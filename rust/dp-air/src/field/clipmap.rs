@@ -29,12 +29,11 @@
 //! ## Границы модели
 //! - Входы окон (рельеф, погода, поток тепла, `z_i` от области) готовятся параллельно на пуле;
 //!   решения идут по очереди сверху вниз (родитель нужен готовый).
-//! - Условия окон — те же, что у области этого поля (`ClipMap.cond/rec/k`), и при сдвиге; час —
+//! - Условия окон — те же, что у области этого поля (`ClipMap.cond/rec`), и при сдвиге; час —
 //!   начало срока поля.
 //! - Окна не гасят нагрев у края (`taper = false`), решения окон — без запасных правил `ω` и
 //!   фаз (как в эталоне: `AirWindowJob` их не получает).
 //! - Фокус — первый; несколько фокусов клипмап не ведёт (один фокус).
-use super::case_prepare::CaseOpts;
 use super::field_set::FieldSet;
 use super::runtime::{
     CondRec, JobErr, JobIn, JobOut, JobReport, Pair, Source, Spec, build_field, check_cancel,
@@ -168,7 +167,6 @@ pub struct ClipMap {
     /// Условия, по которым посчитаны область и окна (сдвиг считает окна по ним же).
     pub cond: Conditions,
     pub rec: CondRec,
-    pub k: f64,
 }
 
 /// Угол окна `dx` с центром `center` (кратен 25 м; `AirClipmap._corner`).
@@ -211,7 +209,6 @@ impl ClipMap {
         area_field: Arc<Field>,
         cond: Conditions,
         rec: CondRec,
-        k: f64,
     ) -> ClipMap {
         ClipMap {
             dxs: dxs.to_vec(),
@@ -221,7 +218,6 @@ impl ClipMap {
             area_field,
             cond,
             rec,
-            k,
         }
     }
 
@@ -389,7 +385,6 @@ fn window_case(
     area: &ParentArea,
     dx: f64,
     corner: [f64; 2],
-    k: f64,
 ) -> Result<AirWindowCase, JobErr> {
     check_cancel(job)?;
     let cfg = &job.cfg;
@@ -405,18 +400,12 @@ fn window_case(
     let pz = area.zi.parent();
     let inp = build_window_input(&job.place, &cfg.wc.sh, &cfg.zi, &dom, &fw.day, Some(&pz))?;
     check_cancel(job)?;
-    let opts = CaseOpts {
-        k,
-        inflow_mode: job.rec.inflow,
-        heat: true,
-    };
     Ok(AirWindowCase::from_input(
         &inp,
         &fw.wind,
         fw.inputs.u10,
         fw.inputs.wdir,
         Some(&fw.heat),
-        &opts,
     )?)
 }
 
@@ -434,7 +423,6 @@ pub fn solve_windows(
     job: &JobIn,
     area: &Arc<ParentArea>,
     area_field: &Arc<Field>,
-    k: f64,
     plan: Plan,
     progress: &dyn Fn(f32),
 ) -> Result<Windows, JobErr> {
@@ -455,7 +443,7 @@ pub fn solve_windows(
     let t_prep = Instant::now();
     let cases: Vec<Result<AirWindowCase, JobErr>> = (from..n)
         .into_par_iter()
-        .map(|q| window_case(job, area, cfg.window_dx[q], plan.corners[q], k))
+        .map(|q| window_case(job, area, cfg.window_dx[q], plan.corners[q]))
         .collect();
     let mut wcases = Vec::with_capacity(cases.len());
     for c in cases {
@@ -540,7 +528,6 @@ pub fn solve_windows(
             area_field: area_field.clone(),
             cond: job.cond.clone(),
             rec: job.rec.clone(),
-            k,
         }),
         reports,
     })
@@ -556,19 +543,14 @@ pub fn run_shift(job: JobIn, q: usize, focus: [f64; 2]) -> Result<JobOut, JobErr
     };
     let plan = clip.plan_shift(q, focus);
     let none = |_: f32| {};
-    let w = solve_windows(&job, &clip.area, &clip.area_field, clip.k, plan, &none)?;
+    let w = solve_windows(&job, &clip.area, &clip.area_field, plan, &none)?;
     Ok(JobOut {
         levels: w.clip.levels(),
-        k: clip.k,
         rec: clip.rec.clone(),
         pair: None,
         clip: Some(w.clip),
         report: JobReport {
             passes: Vec::new(),
-            planned: 0,
-            log: Vec::new(),
-            pass_failed: None,
-            not_converged: false,
             wall_s: t0.elapsed().as_secs_f64(),
             source: Source::Computed,
             notes: Vec::new(),

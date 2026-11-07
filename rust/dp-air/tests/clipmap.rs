@@ -3,7 +3,7 @@
 //! детерминизм по потокам, отмена.
 //!
 //! Тесты без `--ignored` идут в профиле `dev` (picard_rs с opt-level 2) на малой области синтетики
-//! (`domain_l_m` 12 км, грубый критерий `tol_scale` 5, режим притока `inflow`: один проход) и
+//! (`domain_l_m` 12 км, грубый критерий `tol_scale` 5, один проход) и
 //! укладываются в ~2 мин: геометрия окон, загрузка с окнами, откат на область, выгрузка посреди
 //! окна, поведение RW-6t без окон. Сдвиги, подача, детерминизм, Онгудай, стык уровней и сверка с
 //! GPU-дампом окон (`tests/data/window`) — `#[ignore]` (тяжёлое, release):
@@ -18,7 +18,7 @@ use dp_air::field::window::{
     AirWindowCase, N_WINDOW, ParentPair, PrevPair, window_level, window_pair_inputs,
 };
 use dp_air::fixtures::read_place;
-use dp_air::{AirModel, Conditions, Configs, Focus, Formula, InflowMode, Place, State};
+use dp_air::{AirModel, Conditions, Configs, Focus, Formula, Place, State};
 use dp_air::{NestSrc, ShiftSrc};
 use serde_json::{Value, json};
 use std::path::{Path, PathBuf};
@@ -74,14 +74,6 @@ fn cheap(v: &mut Value) {
 
 fn place(name: &str) -> Place {
     read_place(&repo().join(format!("tests/fixtures/wind/places/{name}.json"))).unwrap()
-}
-
-/// Условия без подстройки `k`: один проход загрузки.
-fn cond_inflow(preset: &str) -> Conditions {
-    Conditions::from_json(&format!(
-        r#"{{"preset":"{preset}","start_hour":12,"speed":1,"blend_s":null,"rebuild":false,"inflow_mode":"inflow"}}"#
-    ))
-    .unwrap()
 }
 
 fn cond(preset: &str) -> Conditions {
@@ -233,7 +225,7 @@ fn load_with_windows_gives_three_levels_and_finite_field() {
     let f = focus_at(&pl, 0.0, 0.0);
     let pts = probes(&pl, 0.0, 0.0);
     let t0 = Instant::now();
-    let mut m = formula(&cfg, pl, &cond_inflow("medium"), Some(f));
+    let mut m = formula(&cfg, pl, &cond("medium"), Some(f));
     wait_ready(&mut m, 600.0);
     let r = m.report().unwrap();
     eprintln!(
@@ -272,7 +264,7 @@ fn load_with_windows_gives_three_levels_and_finite_field() {
     let mut m0 = formula(
         &cfg0,
         pl0.clone(),
-        &cond_inflow("medium"),
+        &cond("medium"),
         Some(focus_at(&pl0, 0.0, 0.0)),
     );
     wait_ready(&mut m0, 600.0);
@@ -309,7 +301,7 @@ fn shift_follows_a_walking_focus_with_periods_80_and_160_s() {
     let mut m = formula(
         &cfg,
         pl.clone(),
-        &cond_inflow("medium"),
+        &cond("medium"),
         Some(focus_at(&pl, X0, 0.0)),
     );
     wait_ready(&mut m, 600.0);
@@ -370,7 +362,7 @@ fn circling_focus_never_shifts() {
     let mut m = formula(
         &cfg,
         pl.clone(),
-        &cond_inflow("medium"),
+        &cond("medium"),
         Some(focus_at(&pl, 150.0, 0.0)),
     );
     wait_ready(&mut m, 600.0);
@@ -394,12 +386,12 @@ fn circling_focus_never_shifts() {
 fn shift_waits_for_the_recompute_and_uses_its_conditions() {
     let cfg = configs_with(cheap);
     let pl = place("synthetic");
-    let c0 = cond_inflow("medium");
+    let c0 = cond("medium");
     let mut m = formula(&cfg, pl.clone(), &c0, Some(focus_at(&pl, X0, 0.0)));
     wait_ready(&mut m, 600.0);
     let u0 = m.current().unwrap().u10;
     // смена ветра и уход фокуса за порог в один момент: сначала пересчёт поля, потом сдвиг
-    let c1 = cond_inflow("strong");
+    let c1 = cond("strong");
     m.set_conditions(&c1).unwrap();
     m.set_focuses(&[focus_at(&pl, X0 + 900.0, 0.0)]).unwrap();
     m.advance_to(10.0).unwrap();
@@ -433,11 +425,11 @@ fn recompute_delivers_a_new_set_with_a_monotone_blend() {
     });
     let pl = place("synthetic");
     let f = focus_at(&pl, 0.0, 0.0);
-    let mut m = formula(&cfg, pl.clone(), &cond_inflow("medium"), Some(f));
+    let mut m = formula(&cfg, pl.clone(), &cond("medium"), Some(f));
     wait_ready(&mut m, 600.0);
     let probe = [[0.0f32, ground_height(&pl, 0.0, 0.0) + 40.0, 0.0]];
     let before = sample(&m, &probe)[0];
-    m.set_conditions(&cond_inflow("strong")).unwrap();
+    m.set_conditions(&cond("strong")).unwrap();
     m.advance_to(1.0).unwrap(); // запуск
     assert!(
         m.wait_job(Duration::from_secs(600)),
@@ -474,7 +466,7 @@ fn recompute_delivers_a_new_set_with_a_monotone_blend() {
     // ещё две подачи: тик подачи замеряется трижды (при занятых ядрах один замер может уйти в
     // планировщик ОС); требование — лучший из трёх ≤ 0,5 мс на release
     for preset in ["medium", "strong"] {
-        m.set_conditions(&cond_inflow(preset)).unwrap();
+        m.set_conditions(&cond(preset)).unwrap();
         t += 1.0;
         m.advance_to(t).unwrap();
         assert!(
@@ -502,7 +494,7 @@ fn window_failure_falls_back_to_the_area_and_a_later_shift_retries() {
     let pl = place("synthetic");
     let mut m = Formula::new();
     m.configure(&cfg, 1).unwrap();
-    m.set_conditions(&cond_inflow("medium")).unwrap();
+    m.set_conditions(&cond("medium")).unwrap();
     m.set_focuses(&[focus_at(&pl, X0, 0.0)]).unwrap();
     m.inject_window_failures(1);
     m.load_place(pl.clone()).unwrap();
@@ -539,7 +531,7 @@ fn failed_shift_keeps_the_old_levels_and_waits_before_retrying() {
     let mut m = formula(
         &cfg,
         pl.clone(),
-        &cond_inflow("medium"),
+        &cond("medium"),
         Some(focus_at(&pl, X0, 0.0)),
     );
     wait_ready(&mut m, 600.0);
@@ -579,7 +571,7 @@ fn empty_window_levels_means_no_windows_and_the_area_only_path() {
     let r = m.report().unwrap();
     assert!(m.clip().is_none());
     assert!(r.windows.is_empty() && r.windows_error.is_none());
-    assert_eq!(r.planned, 1, "without windows: one pass");
+    assert_eq!(r.passes.len(), 1, "without windows: one pass");
     assert_eq!(n_levels(&m), 1);
     // фокус уходит далеко — сдвигов нет
     m.set_focuses(&[focus_at(&pl, 3000.0, 0.0)]).unwrap();
@@ -622,7 +614,7 @@ fn deterministic_mode_is_bitwise_equal_on_2_and_4_threads() {
         let mut m = formula(
             &cfg,
             pl.clone(),
-            &cond_inflow("medium"),
+            &cond("medium"),
             Some(focus_at(&pl, X0, 0.0)),
         );
         wait_ready(&mut m, 600.0);
@@ -654,7 +646,7 @@ fn unload_in_the_middle_of_a_window_returns_within_a_second() {
     let mut m = formula(
         &cfg,
         pl.clone(),
-        &cond_inflow("medium"),
+        &cond("medium"),
         Some(focus_at(&pl, 0.0, 0.0)),
     );
     // ждём стадию окон (progress ≥ 0.9)
@@ -677,7 +669,7 @@ fn unload_in_the_middle_of_a_window_returns_within_a_second() {
     let m2 = formula(
         &cfg,
         pl.clone(),
-        &cond_inflow("medium"),
+        &cond("medium"),
         Some(focus_at(&pl, 0.0, 0.0)),
     );
     let t0 = Instant::now();
@@ -754,7 +746,6 @@ fn num(v: &Value, k: &str) -> f64 {
 
 /// Окно (с нагревом) из входа дампа.
 fn window_heat(inp: &Dump, w: &Value) -> AirWindowCase {
-    use dp_air::field::case_prepare::CaseOpts;
     use dp_air::field::place_input::DomainInput;
     use dp_air::field::weather_core::Domain;
     let tag = w["tag"].as_str().unwrap();
@@ -788,19 +779,7 @@ fn window_heat(inp: &Dump, w: &Value) -> AirWindowCase {
         max_profile: num(w, "max_profile"),
     };
     let heat = inp.f64s(&format!("{tag}_heat"));
-    AirWindowCase::from_input(
-        &di,
-        &wind,
-        num(w, "u10_menu"),
-        num(w, "wdir"),
-        Some(&heat),
-        &CaseOpts {
-            k: 1.0,
-            inflow_mode: InflowMode::Start,
-            heat: true,
-        },
-    )
-    .unwrap()
+    AirWindowCase::from_input(&di, &wind, num(w, "u10_menu"), num(w, "wdir"), Some(&heat)).unwrap()
 }
 
 struct ParentDump {
