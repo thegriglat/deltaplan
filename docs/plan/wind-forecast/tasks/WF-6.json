@@ -1,0 +1,77 @@
+{
+  "id": "WF-6",
+  "module": "wind-forecast",
+  "type": "dp-writer",
+  "title": "Документы и CHANGELOG: ветер меню — прогноз",
+  "goal": "Документы, конфиг-пояснения, требования и сайт описывают то, что теперь в коде: ветер меню — прогноз (10 м над открытой местностью, опора — отметка долины места), поле у старта — результат расчёта, один проход k = 1, запечённых полей нет, ключ кеша без режима, подсказка «на старте X м/с»; CHANGELOG «В работе»; итог аудита — в findings.",
+  "plan_ref": "§Задачи: Документы",
+  "contracts": [
+    {
+      "name": "WF-К1",
+      "version": "3",
+      "ref": "docs/contracts/wind-forecast.md"
+    },
+    {
+      "name": "WF-К2",
+      "version": "2",
+      "ref": "docs/contracts/wind-forecast.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/wind-forecast-WF-6",
+  "branch": "wind-forecast/WF-6",
+  "base": "feature/wind-forecast",
+  "scope": [
+    "docs/guide/",
+    "docs/registry/findings.md",
+    "docs/INDEX.md",
+    "CHANGELOG.md",
+    "REQUIREMENTS.md",
+    "configs/game.json",
+    "configs/atmosphere.json",
+    "site/content/mechanics/",
+    "site/content/docs/",
+    "tools/research/wind_forecast/README.md",
+    "tools/terrain/island/README.md"
+  ],
+  "dont_touch": [
+    "docs/contracts/",
+    "docs/plan/",
+    "scripts/",
+    "rust/",
+    "locale/",
+    "site/content/wings/",
+    "site/content/approaches.ru.md",
+    "site/content/approaches.en.md",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check docs/guide docs/registry tools/research/wind_forecast",
+      "expect": "exit=0"
+    },
+    {
+      "name": "no_stale",
+      "cmd": "! grep -rnE 'INFLOW_P|два прохода|inflow_mode|max_passes|inflow_k|wind_ref_of' docs/guide",
+      "expect": "exit=0"
+    },
+    {
+      "name": "changelog",
+      "cmd": "awk '/^## /{n++} n==1' CHANGELOG.md | grep -ciE 'прогноз'",
+      "expect": "num:(\\d+) >=1"
+    },
+    {
+      "name": "findings",
+      "cmd": "grep -c 'wind-forecast\\|wind_forecast' docs/registry/findings.md",
+      "expect": "num:(\\d+) >=1"
+    },
+    {
+      "name": "json",
+      "cmd": "python3 -c 'import json;json.load(open(\"configs/game.json\"));json.load(open(\"configs/atmosphere.json\"));print(\"ok\")'",
+      "expect": "re:ok"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-08T04:53:38"
+}
