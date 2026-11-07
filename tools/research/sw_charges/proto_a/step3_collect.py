@@ -67,7 +67,7 @@ for n in ('ag_foot_U0p0', 'ag_foot_U2p5', 'ag_mid_U0p0', 'ag_mid_U2p5', 'pd_foot
     if n in th['main']:
         a = th['main'][n]
         c[n] = dict(inflow_t30=a['t30']['inflow_mean'], inflow_t60=a['t60']['inflow_mean'], inflow_ok=bool(a['t30']['inflow_mean'] > 0.1 and a['t60']['inflow_mean'] > 0.1),
-                    detach_dd_n_t60=a['t60']['dd_n'], detach_ok=bool(a['t60']['dd_n'] > 0), ratio_t60=a['t60']['ratio'], ratio_ok=bool(0.7 <= a['t60']['ratio'] <= 1.3),
+                    detach_dd_n_t60=a['t60']['dd_n'], detach_vs_flat=a['t60']['dd_n'] - th['main']['flat_U0']['t60']['dd_n'], detach_ok=bool(a['t60']['dd_n'] - th['main']['flat_U0']['t60']['dd_n'] > 5.0), ratio_t60=a['t60']['ratio'], ratio_ok=bool(0.7 <= a['t60']['ratio'] <= 1.3),
                     ring_frac_far_neg=a['t60']['frac_far_neg'], ring_ok=bool(a['t60']['frac_far_neg'] >= 0.95), G_half_ratio=a['t60']['G_half_ratio'],
                     P_over_Bt=a['t60']['P_over_Bt'], P_ok=bool(abs(a['t60']['P_over_Bt'] - 1) <= 0.01), d_pair_over_pred=a['t60']['d_pair_over_pred'])
 crit = dict(thermal=c, rotor={})
@@ -77,7 +77,7 @@ for n, v in rot.items():
     crit['rotor'][n] = dict(zone_exists=bool(v['zone']['L'] and v['zone']['L'] > 50), L=v['zone']['L'], umin_over_U100=v['zone']['umin_over_U100'],
                             ok_umax=bool(abs(abs(v['zone']['umin_over_U100']) - 0.22) <= 0.16), lee_slope_max50=v['lee_slope_max50'])
 crit['definitions'] = dict(inflow='горизонтальное возмущение u на 5 м над землёй к центру термика, среднее по 0,5R<|x−xc|<3R, > 0,1 м/с при t=30 и 60 с',
-                           detach='d_n(60) − d_n(0) > 0, d_n — нормальное расстояние барицентра b от линии земли', ratio='v пятна/(0,5·b·t) ∈ [0,7; 1,3]',
+                           detach='Δd_n(60) за вычетом Δd_n плоского контроля (+23,6 м) > 5 м (отрыв сильнее, чем просто подъём пятна); d_n — нормальное расстояние барицентра b от линии земли', ratio='v пятна/(0,5·b·t) ∈ [0,7; 1,3]',
                            ring='доля точек w<0 на линии через центр при |x−xc| > 1,3R ≥ 0,95 (возмущение: поле с частицами минус без них)',
                            P='|P/(B·t) − 1| ≤ 1 % (у стенки P не сохраняется — стенка забирает импульс; для справки)',
                            rotor='зона u<−0,5 м/с на agl ≥ 15 м, время-среднее; L > 50 м; |u_min|/U100 = 0,22 ± 0,16 (2σ Menke)')
