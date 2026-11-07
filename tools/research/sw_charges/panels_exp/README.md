@@ -32,3 +32,18 @@ python3 tools/research/sw_charges/contract/check_contract.py tools/research/sw_c
 - Потенциал: `build_panels(ds_min=25, x_focus=гребень)`, `bg_profile(U10, α, z_sat, smooth_m = 250)`; вихри: `step` с точкой рождения за каждым гребнем (заметность ≥ 60 м) в первой точке вниз по потоку, где подветренный уклон (база 40 м) ≥ 0,27 (Finnigan 1988); ниже порога — вариант vortex = potential (`shed = false`). dt = 0,5·ds_min/max|V| (потенциальное решение на ds_min/2 над землёй); разгон 3 пролёта (пролёт = длина области от первого гребня до границы / U(50 м)), осреднение u, w по следующим 2 пролётам каждого шага. Вихри за границей области (x_end), выше гребня + 1500 м или на 1000 м вверх по потоку от первого гребня — удаляются (учёт `lost`).
 - Столбец `err` — u_pan − u_ref; `t_solve_ms` — прямое решение N×N; `t_query_us` — мкс на точку; для vortex также `t_step_ms`, `n_vortices`, `drift_u` (макс. разность осреднённого u по двум половинам окна осреднения, м/с).
 - Ротор: u < −0,5 м/с на z_agl = 15 м (порог и слепая зона Menke 2019), длина самого длинного участка > 50 м между главным гребнем и следующим (или границей). У Пикара — то же по полю F1.
+
+## SWC-16 (круг 2): скан труб и эталон Пикара по центрам клеток
+Вывод — `docs/research/sw_charges/stage2-2d-tunnel.md`. SW7 `out/panels2d/points.{json,csv}` пересобран `merge2.py`; прежний (SWC-12) — `out/panels2d/prev_swc12/` (points, info, tables, рисунки).
+- `scan_lw.py`, `scan_lw_extra.py` — скан факторов ΔS (профиль, σ сглаживания, форма, высота, определение ΔS, ds_min) → `out/panels2d/tunnel/scan_lw{,_extra}.json` (секунды).
+- `run_cc.py <C1|C2|C4|LW_x>` — C1/C2/C4 с эталоном по центрам клеток F1 (`cases/<C>_cc.json`), LW с однородным фоном (`cases/LW_x_uni.json`); `run_cc_all.sh` — все (≈ 25 мин, 3 процесса).
+- `ref_err.py` — погрешность P50 (P100↔P50 и P200↔P100 через осреднение 2×2) → `tunnel/picard_err.json`.
+- `merge2.py` — сборка SW7 и `tables.md`. Рисунки SWC-12 `scatter.png`, `rotor_lines.png` перенесены в `prev_swc12/` (с новым набором не пересчитывались).
+```
+OPENBLAS_NUM_THREADS=1 tools/research/cascade_2d/py -I tools/research/sw_charges/panels_exp/scan_lw.py && ... scan_lw_extra.py
+.dpcli/dpcli lock cpu swc16 -- bash tools/research/sw_charges/panels_exp/run_cc_all.sh
+tools/research/cascade_2d/py -I tools/research/sw_charges/panels_exp/ref_err.py
+tools/research/cascade_2d/py -I tools/research/sw_charges/panels_exp/merge2.py
+python3 tools/research/sw_charges/contract/check_contract.py tools/research/sw_charges/out/panels2d
+```
+Данные: Пикар `~/data/cascade_2d/fields/` (как выше); труба — PDF Lubitz & White 2007 (UC Davis, открытый доступ, только прочитан: геометрия, определение ΔS, α, табл. 2; файлов данных не добавлено, лицензий нет).
