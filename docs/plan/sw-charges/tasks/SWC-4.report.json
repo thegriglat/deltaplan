@@ -1,8 +1,9 @@
 {
   "status": "done",
-  "summary": "Пакет swpy: swc case ideal / swc run, решатель Рипа (MUSCL minmod + SSP-RK2, HLL, well-balanced реконструкция Одюсса 2-го порядка, сухие клетки, farfield по инвариантам Римана, губка, трение/сила/Кориолис/нагрев), библиотека run(case, out) -> (поле, запись), smoke.sh, тесты T1–T11 (22 pytest), README. SW1–SW3 проходят check_contract.",
+  "summary": "Пакет swpy: swc case ideal / swc run, решатель Рипа (MUSCL minmod + SSP-RK2, HLL, well-balanced реконструкция Одюсса 2-го порядка, сухие клетки, farfield по инвариантам Римана, губка, трение/сила/Кориолис/нагрев), библиотека run(case, out) -> (поле, запись), smoke.sh, тесты T1–T11 (22 pytest), README. SW1–SW3 проходят check_contract. Ревью: diverged пишет последнее конечное состояние (NaN/Inf или h<-h_min до обрезки), steady_tol по умолчанию 5e-4.",
   "commits": [
-    "4b8276f32 sw-charges SWC-4: решатель слоя мелкой воды Рипа (swpy, swc case/run), тесты T1–T11"
+    "4b8276f32 sw-charges SWC-4: решатель слоя мелкой воды Рипа (swpy, swc case/run), тесты T1–T11",
+    "aaa76b0d8 sw-charges SWC-4: diverged по SW3 (последнее конечное состояние), steady_tol по умолчанию 5e-4, тест diverged"
   ],
   "checks": [
     {
@@ -12,7 +13,7 @@
     },
     {
       "name": "pytest-pass",
-      "value": "22 passed",
+      "value": "23 passed",
       "pass": true
     },
     {
@@ -79,6 +80,11 @@
       "where": "solver.py: dt",
       "why": "dt по максимуму по каждой оси (cfl/max(λx,λy)) со страховкой по сумме осей 0,9 — иначе 1D≠2D при разных dt (T8); отличается от сумм λ в тексте карточки.",
       "checked": "T8 1e-10, T7 устойчиво на 1000 шагов."
+    },
+    {
+      "where": "test_swpy.py T6 hi / solver.py dt",
+      "why": "minor ревью не правил: статус steady в T6 для M>M_c не проверяется; множитель суммы осей 0,9 в 2D не вынесен в параметр",
+      "checked": "T8, T7 проходят"
     }
   ],
   "dp_feedback": "dpcli lock/job пишет вывод только в лог после завершения, ждать приходится без прогресса; хорошо бы stdout lock-команды в терминал. В task show --full текст дополнения пришлось запрашивать отдельно (в обычном показе обрезан на 'обёртк…').",
@@ -90,6 +96,6 @@
       "T4": 0.00047
     }
   },
-  "t": "2026-11-08T01:39:12",
+  "t": "2026-11-08T01:51:06",
   "by": "executor"
 }
