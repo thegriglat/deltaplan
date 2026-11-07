@@ -106,3 +106,5 @@
 {"t": "2026-11-08T02:46:04", "by": "executor", "task": "SWC-8", "ev": "reported", "commits": ["673ac4ed9", "ef0489f69"], "note": "done: A1 (151 случай) и A2 (66) посчитаны swpy; слой воспроизводит теорию §2 (режимы 104/111 на ridge, h1 бора до 0,001, скор…", "dp_feedback": "job wait без вывода прогресса; монитор по job status пришлось писать вручную; docs index трогает registry/contracts.md вне скоупа (откатывал вручную)."}
 {"t": "2026-11-08T02:46:24", "by": "coordinator", "task": "SWC-8", "ev": "checked", "note": "5/5 contract=ok:FAIL 0; a1=ok:exit 0; a2=ok:exit 0; docs=ok:exit 0; verdict=ok:1"}
 {"t": "2026-11-08T02:46:24", "by": "coordinator", "task": "SWC-8", "ev": "accepted", "note": "по ревью (accept; major — step_up по плато, 21/27, и 2 minor исправлены в ef0489f69)"}
+{"t": "2026-11-08T02:46:27", "by": "coordinator", "task": "SWC-8", "ev": "accepted", "commits": ["038df5e20"], "note": "5/5 contract=ok:FAIL 0; a1=ok:exit 0; a2=ok:exit 0; docs=ok:exit 0; verdict=ok:1"}
+{"t": "2026-11-08T02:46:27", "by": "coordinator", "task": "SWC-8", "ev": "merged", "commits": ["038df5e20"]}
