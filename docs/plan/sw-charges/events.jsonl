@@ -98,3 +98,5 @@
 {"t": "2026-11-08T02:08:33", "by": "coordinator", "task": "SWC-9", "ev": "checked", "note": "3/3 contract=ok:FAIL 0; docs=ok:exit 0; verdict=ok:1"}
 {"t": "2026-11-08T02:11:23", "by": "reviewer", "task": "SWC-9", "ev": "reviewed", "note": "Постановка по SW5 v2 и R1 воспроизведена в коде верно (сетки Пикара x0/nx совпадают, U0/c_d/b0 по §7, солнце как heated_slope, n_layer_m 1500); числа в stage1-…", "verdict": "accept", "issues": {"minor": 3}, "review": "docs/plan/sw-charges/tasks/SWC-9.review.json"}
 {"t": "2026-11-08T02:11:51", "by": "coordinator", "task": "SWC-9", "ev": "accepted", "note": "по ревью (accept, 3 minor: лишние поля SW5 допустимы контрактом; ограничения постановки C3/PERD — учесть в сводке; ū_up на границе клеток — к SW5 v3)"}
+{"t": "2026-11-08T02:11:53", "by": "coordinator", "task": "SWC-9", "ev": "accepted", "commits": ["ec99aed0a"], "note": "3/3 contract=ok:FAIL 0; docs=ok:exit 0; verdict=ok:1"}
+{"t": "2026-11-08T02:11:53", "by": "coordinator", "task": "SWC-9", "ev": "merged", "commits": ["ec99aed0a"]}
