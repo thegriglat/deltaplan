@@ -350,6 +350,8 @@ pub struct Picard {
     pub prep_cut: bool,
     /// Fallback rules (W11 v3); `None` = the plain iteration.
     pub fb: Option<FbCtx>,
+    /// OB1: soft outflow; `None` = the hard condition (bit-identical to before).
+    pub soft: Option<crate::outflow::SoftOutflow>,
 }
 
 /// Interior (no halo) copy of a halo array, layout `(nz, ny, nx)`.
@@ -417,6 +419,7 @@ impl Picard {
             prep_cancel: false,
             prep_cut: false,
             fb: None,
+            soft: None,
             k,
         }
     }
@@ -928,6 +931,7 @@ impl Picard {
         self.build_all_mom();
         self.fix_mom_rows();
         self.mom_step();
+        self.apply_soft();
         let t_m = t.elapsed().as_secs_f64();
         let t = Instant::now();
         self.project_impl(self.k.vcycles, true, self.freeze.is_some());
@@ -1085,6 +1089,21 @@ impl Picard {
         }
         apply_bc(&self.k, &mut self.f.u, &mut self.f.v);
         self.apply_bc_nest();
+        self.apply_soft();
+    }
+
+    /// OB1: soft outflow on top of the hard boundary condition (no-op for the hard one).
+    fn apply_soft(&mut self) {
+        if let Some(sf) = self.soft.as_mut() {
+            let f = &mut self.f;
+            sf.apply(&self.k, &mut f.u, &mut f.v, &mut f.w);
+        }
+    }
+
+    /// OB1: switch to the soft outflow; call before the start (`init_background`, `init_warm`).
+    pub fn enable_soft_outflow(&mut self) -> Result<()> {
+        self.soft = Some(crate::outflow::SoftOutflow::new(&self.k)?);
+        Ok(())
     }
 
     /// Far boundary of a warm start (`K_BC` of the game sets every face that is not free): the
@@ -1154,6 +1173,7 @@ impl Picard {
         }
         apply_bc(k, &mut f.u, &mut f.v);
         self.apply_bc_nest();
+        self.apply_soft();
         self.project(30, true);
         self.f.p.fill(0.0);
     }
