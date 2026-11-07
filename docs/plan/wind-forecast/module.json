@@ -1,0 +1,11 @@
+{
+  "module": "wind-forecast",
+  "plan": "docs/plan/wind-forecast.md",
+  "contracts": "docs/contracts/wind-forecast.md",
+  "branch": "feature/wind-forecast",
+  "copy": "~/worktrees/deltaplan/wind-forecast",
+  "created": "2026-11-08T00:20:35",
+  "code": "WF",
+  "area": "air",
+  "base": "main"
+}
