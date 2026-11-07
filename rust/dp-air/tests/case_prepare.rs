@@ -15,7 +15,7 @@ use dp_air::field::weather_core::{
 };
 use dp_air::field::wind_profile::CaseProfile;
 use dp_air::fixtures::read_place;
-use dp_air::{Conditions, Configs, InflowMode, Place};
+use dp_air::{Conditions, Configs, Place};
 use serde_json::Value;
 use std::path::PathBuf;
 
@@ -349,8 +349,6 @@ fn domain_of(dump: &Dump) -> Domain {
 
 fn mode_opts(s: &Value) -> CaseOpts {
     CaseOpts {
-        k: s["k"].as_f64().unwrap(),
-        inflow_mode: InflowMode::Start,
         heat: s["mode"] == "heat",
     }
 }
@@ -406,18 +404,17 @@ fn check(place_name: &str, dx: u32) {
         let fw = field_weather(&cond, &place, &wc, &configs, &clim, hour, &dom).unwrap();
         let inp_b = build_domain_input(&place, &wc.sh, &zi, &dom, &fw.day).unwrap();
         for s in sc["sets"].as_array().unwrap() {
+            // дамп снят и с приточным множителем k < 1 (подбор по ветру у старта, снят в WF-2):
+            // такие наборы не проверяются — ветер условий теперь всегда набегающий поток (k = 1)
+            if s["k"].as_f64().unwrap() != 1.0 {
+                continue;
+            }
             let opts = mode_opts(s);
-            let tag = format!("{name} {stag} {} k{}", s["mode"].as_str().unwrap(), opts.k);
+            let tag = format!("{name} {stag} {}", s["mode"].as_str().unwrap());
             // A
-            let case = build_case_with(
-                &inp,
-                &wind,
-                u10,
-                wdir,
-                opts.heat.then_some(heat.as_slice()),
-                &opts,
-            )
-            .unwrap();
+            let case =
+                build_case_with(&inp, &wind, u10, wdir, opts.heat.then_some(heat.as_slice()))
+                    .unwrap();
             let pp = case.prepare().unwrap();
             check_scalars(&tag, &pp, s, 1e-12);
             check_properties(&tag, &pp);
@@ -468,21 +465,6 @@ fn ongudai_1200() {
 }
 
 #[test]
-fn inflow_mode_forces_k_one() {
-    let o = CaseOpts {
-        k: 0.6,
-        inflow_mode: InflowMode::Inflow,
-        heat: false,
-    };
-    assert_eq!(o.effective_k(), 1.0);
-    let o = CaseOpts {
-        inflow_mode: InflowMode::Start,
-        ..o
-    };
-    assert_eq!(o.effective_k(), 0.6);
-}
-
-#[test]
 fn bad_sizes_are_bad_input() {
     let dump = Dump::load("synthetic_1200");
     let dom = domain_of(&dump);
@@ -509,11 +491,6 @@ fn bad_sizes_are_bad_input() {
         z_sat: 0.0,
         max_profile: 1.0,
     };
-    let o = CaseOpts {
-        k: 1.0,
-        inflow_mode: InflowMode::Start,
-        heat: false,
-    };
-    let e = build_case_with(&inp, &wind, 3.0, 150.0, None, &o).unwrap_err();
+    let e = build_case_with(&inp, &wind, 3.0, 150.0, None).unwrap_err();
     assert_eq!(e.code, dp_air::Code::BadInput);
 }

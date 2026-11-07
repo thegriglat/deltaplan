@@ -21,7 +21,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, SystemTime};
 
 /// Номер формата записи (`cache` в заголовке).
-pub const CACHE_FORMAT: i64 = 2;
+pub const CACHE_FORMAT: i64 = 3;
 /// Предел суммы записей по умолчанию (секция `atmosphere → air_cache.max_mb`), байт.
 pub const DEFAULT_MAX_BYTES: u64 = 200 << 20;
 const MAGIC: &[u8; 8] = b"DPAC1\0\0\0";
@@ -97,7 +97,7 @@ impl FieldCache {
     }
 
     /// Положить поле под ключ (без потерь). `extra` — поля заголовка сверх обязательных
-    /// (`status`, `inflow_k`, …). Затем вытеснение сверх `max_bytes`.
+    /// (`status`, …). Затем вытеснение сверх `max_bytes`.
     pub fn put(
         &self,
         key: &Value,

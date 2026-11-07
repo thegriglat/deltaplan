@@ -10,9 +10,7 @@ mod common;
 use dp_air::field::runtime::*;
 use dp_air::field::weather_core::{WeatherInputs, hour_at};
 use dp_air::fixtures::read_place;
-use dp_air::{
-    AirModel, Code, Conditions, Configs, Focus, Formula, InflowMode, Place, SampleMode, State,
-};
+use dp_air::{AirModel, Code, Conditions, Configs, Focus, Formula, Place, SampleMode, State};
 use picard_rs::api::StopReason as Stop;
 use serde_json::{Value, json};
 use std::path::{Path, PathBuf};
@@ -183,7 +181,7 @@ fn job_in(
     cfg.faults = NO_WIN;
     mutate(&mut cfg);
     let inputs = WeatherInputs::from_conditions(c, cfgs).unwrap();
-    let rec = CondRec::new(&inputs, c, hour_at(c, 0.0));
+    let rec = CondRec::new(&inputs, hour_at(c, 0.0));
     JobIn {
         weather: Some(common::real_weather()),
         cfg: Arc::new(cfg),
@@ -192,8 +190,6 @@ fn job_in(
         cond: c.clone(),
         rec,
         loading,
-        k_mem: None,
-        inflow_k: 1.0,
         focus: focus.map(|f| [f.pos[0], f.pos[2]]),
         warm,
         cancel: Arc::new(AtomicBool::new(false)),
@@ -354,15 +350,13 @@ fn ongudai_loads_ready_release() {
         wait_ready(&m, 900.0);
         let r = m.report().unwrap();
         eprintln!(
-            "ongudai load (focus {with_focus}) {:.1} s, log {:?}",
-            t0.elapsed().as_secs_f64(),
-            r.log
+            "ongudai load (focus {with_focus}) {:.1} s",
+            t0.elapsed().as_secs_f64()
         );
         for (i, p) in r.passes.iter().enumerate() {
             eprintln!(
-                "  pass {}: k {:.3} coarse {:?} iters {:?} start {:?} secs {:?}",
+                "  pass {}: coarse {:?} iters {:?} start {:?} secs {:?}",
                 i + 1,
-                p.k,
                 p.coarse_iters,
                 p.iters,
                 p.start,
@@ -539,94 +533,17 @@ fn t4a_iterations_ongudai_release() {
     }
 }
 
-// ---------------------------------------------------------------- (3) проходы k
-
-/// Формула `_next_k` по таблице `p` GD (таблица сверена с текстом GD ниже).
-fn gd_next_k(k: f64, u: f64, u10: f64, table: &[[f64; 2]]) -> f64 {
-    let p = if u10 <= table[0][0] {
-        table[0][1]
-    } else {
-        let mut p = table[table.len() - 1][1];
-        for i in 1..table.len() {
-            if u10 <= table[i][0] {
-                let f = (u10 - table[i - 1][0]) / (table[i][0] - table[i - 1][0]);
-                p = table[i - 1][1] + (table[i][1] - table[i - 1][1]) * f;
-                break;
-            }
-        }
-        p
-    };
-    (k * (u10 / u).powf(1.0 / p)).clamp(0.3, 1.0)
-}
+// ---------------------------------------------------------------- (3) один проход
 
 #[test]
-fn k_pass_follows_next_k_formula_and_stops_by_pass_tol() {
+fn one_pass_always() {
+    // WF-К1: ветер условий — набегающий поток; подбора по ветру у старта нет, проход один —
+    // с точкой старта и без неё
     let cfg = configs_with(cheap);
     let pl = place("synthetic");
     let focus = hilltop(&pl, 0.0);
-    let c = cond("strong");
-    let u10 = WeatherInputs::from_conditions(&c, &cfg).unwrap().u10;
-    let table = [[3.0, 0.57], [6.0, 0.75], [10.0, 0.90]];
-    let o = job(&cfg, |_| {}, pl, &c, true, Some(focus), None).unwrap();
-    let r = &o.report;
-    eprintln!("u10 {u10:.3}, log {:?}", r.log);
-    assert_eq!(r.planned, 2);
-    assert_eq!(r.log[0].k, 1.0);
-    assert!(
-        r.log.len() >= 2,
-        "the hill top is faster than the menu wind: pass 2 expected"
-    );
-    let want = gd_next_k(r.log[0].k, r.log[0].u, u10, &table);
-    assert!(
-        (r.log[1].k - want).abs() < 1e-12,
-        "k₁ {} != k₀·(u10/U)^(1/p) {want}",
-        r.log[1].k
-    );
-    assert!(r.log[1].k < 1.0);
-    assert_eq!(o.k, r.log[1].k);
-    assert_eq!(r.passes[1].start, Start::Warm, "pass 2 starts from pass 1");
-    assert!(r.passes[1].coarse_iters.is_none());
-    // проходы сверх второго — только пока |U/u10 − 1| > pass_tol
-    let o3 = job(
-        &cfg,
-        |c| c.max_passes = 4,
-        place("synthetic"),
-        &c,
-        true,
-        Some(hilltop(&place("synthetic"), 0.0)),
-        None,
-    )
-    .unwrap();
-    let l = &o3.report.log;
-    eprintln!("max_passes 4: {l:?}");
-    assert!(l.len() >= 2 && l.len() <= 4);
-    for q in 2..l.len() {
-        assert!(
-            (l[q - 1].u / u10 - 1.0).abs() > PASS_TOL,
-            "pass {} ran although the residual {} <= pass_tol",
-            q + 1,
-            (l[q - 1].u / u10 - 1.0).abs()
-        );
-    }
-    let last = l[l.len() - 1];
-    let by_tol = (last.u / u10 - 1.0).abs() <= PASS_TOL;
-    let by_limit = l.len() == 4;
-    let pinned = (next_k(l, u10) - last.k).abs() < 1e-6;
-    assert!(by_tol || by_limit || pinned, "stopped for no reason: {l:?}");
-}
-
-#[test]
-fn inflow_mode_is_a_single_pass_with_k_one() {
-    let cfg = configs_with(cheap);
-    let pl = place("synthetic");
-    let focus = hilltop(&pl, 0.0);
-    let c = cond_json("strong", r#","inflow_mode":"inflow""#);
-    assert_eq!(c.inflow_mode, InflowMode::Inflow);
-    let o = job(&cfg, |_| {}, pl, &c, true, Some(focus), None).unwrap();
-    assert_eq!(o.report.planned, 1);
+    let o = job(&cfg, |_| {}, pl, &cond("strong"), true, Some(focus), None).unwrap();
     assert_eq!(o.report.passes.len(), 1);
-    assert_eq!(o.k, 1.0);
-    // нет точки старта — тоже один проход
     let o = job(
         &cfg,
         |_| {},
@@ -637,75 +554,29 @@ fn inflow_mode_is_a_single_pass_with_k_one() {
         None,
     )
     .unwrap();
-    assert_eq!((o.report.planned, o.k), (1, 1.0));
-}
-
-#[test]
-fn failed_second_pass_serves_the_first_pass_field() {
-    let cfg = configs_with(cheap);
-    let pl = place("synthetic");
-    let focus = hilltop(&pl, 0.0);
-    let o = job(
-        &cfg,
-        |c| c.faults.fail_pass = Some(2),
-        pl,
-        &cond("strong"),
-        true,
-        Some(focus),
-        None,
-    )
-    .unwrap();
     assert_eq!(o.report.passes.len(), 1);
-    assert!(o.report.pass_failed.as_ref().unwrap().contains("pass 2"));
-    assert_eq!(o.k, 1.0);
-    // пересчёт в полёте с отказом — ошибка (прежнее поле остаётся у Formula)
-    let e = job(
-        &cfg,
-        |c| c.faults.fail_pass = Some(1),
-        place("synthetic"),
-        &cond("strong"),
-        false,
-        None,
-        None,
-    );
-    assert!(matches!(e, Err(JobErr::Failed(_))));
 }
 
 #[test]
-fn next_k_inflow_p_and_recompute_rules() {
-    let t = [[3.0, 0.57], [6.0, 0.75], [10.0, 0.90]];
-    for u10 in [1.0, 3.0, 4.5, 6.0, 8.0, 10.0, 14.0] {
-        let p = inflow_p(u10);
-        let want = if u10 <= 3.0 {
-            0.57
-        } else if u10 <= 6.0 {
-            0.57 + (0.75 - 0.57) * (u10 - 3.0) / 3.0
-        } else if u10 <= 10.0 {
-            0.75 + (0.90 - 0.75) * (u10 - 6.0) / 4.0
-        } else {
-            0.90
-        };
-        assert!((p - want).abs() < 1e-12, "p({u10})");
-        let log = [PassLog { k: 0.8, u: 5.0 }];
-        assert!((next_k(&log, u10) - gd_next_k(0.8, 5.0, u10, &t)).abs() < 1e-12);
+fn failed_pass_is_an_error() {
+    let cfg = configs_with(cheap);
+    // проход не удался — ошибка и при загрузке, и при пересчёте в полёте (прежнее поле остаётся у Formula)
+    for loading in [true, false] {
+        let e = job(
+            &cfg,
+            |c| c.faults.fail_pass = Some(1),
+            place("synthetic"),
+            &cond("strong"),
+            loading,
+            None,
+            None,
+        );
+        assert!(matches!(e, Err(JobErr::Failed(_))));
     }
-    assert_eq!(
-        next_k(
-            &[PassLog {
-                k: 0.8,
-                u: f64::NAN
-            }],
-            5.0
-        ),
-        1.0
-    );
-    assert_eq!(next_k(&[PassLog { k: 0.8, u: 0.0 }], 5.0), 1.0);
-    // секущая по двум проходам, зажим [0,3; 1]
-    let two = [PassLog { k: 1.0, u: 6.0 }, PassLog { k: 0.8, u: 5.0 }];
-    let k = next_k(&two, 4.0);
-    let sec = 0.8 + (4.0 - 5.0) * (0.8 - 1.0) / (5.0 - 6.0);
-    assert!((0.3..=1.0).contains(&k));
-    assert!((k - sec).abs() < 1e-12, "secant {k} vs {sec}");
+}
+
+#[test]
+fn recompute_rules_and_slots() {
     // срок и допуски
     let rec = |hour: f64, u10: f64, wdir: f64| CondRec {
         hour,
@@ -713,7 +584,6 @@ fn next_k_inflow_p_and_recompute_rules() {
         wdir,
         t_max: Some(25.0),
         sky: "clear".into(),
-        inflow: InflowMode::Start,
     };
     let have = rec(12.0, 5.0, 270.0);
     assert_eq!(needs_recompute(None, &have, 15.0), Some("нет поля"));
@@ -737,8 +607,6 @@ fn next_k_inflow_p_and_recompute_rules() {
     // угол через 0°/360°
     let a = rec(12.0, 5.0, 359.5);
     assert_eq!(needs_recompute(Some(&a), &rec(12.0, 5.0, 0.4), 15.0), None);
-    assert_eq!(dir_key(359.6), 0);
-    assert_eq!(dir_key(-0.4), 0);
 }
 
 // ---------------------------------------------------------------- (4) T2: срок и подмена
@@ -1235,7 +1103,7 @@ fn ongudai_cases() -> [picard_rs::case::Case; 2] {
         None,
         None,
     );
-    level_cases(&j, 1.0).unwrap()
+    level_cases(&j).unwrap()
 }
 
 /// Предел отмены в подготовке `picard_rs::api::solve`: 100 мс на release (W11 v6); профиль dev
@@ -1362,8 +1230,8 @@ fn calm_is_frozen_whole_and_ready_without_iterations() {
     // проекции (`finalize`), как в игре (механизм не бездивергентен)
     let c = cond_u10(0.3, 12.0);
     let j = job_in(&cfg, |_| {}, place("synthetic"), &c, true, None, None);
-    let ph = phase_result(&j, 1.0).unwrap();
-    let cases = level_cases(&j, 1.0).unwrap();
+    let ph = phase_result(&j).unwrap();
+    let cases = level_cases(&j).unwrap();
     let r = run_job(j).unwrap();
     let pair = r.pair.unwrap();
     for (name, st, fr, case) in [
@@ -1570,7 +1438,6 @@ fn cache_stores_after_the_field_and_serves_the_second_load() {
         bits(&want),
         "cache = the computed field"
     );
-    assert!((m2.inflow_k() - m1.inflow_k()).abs() < 1e-12);
 
     // другие условия, другое место, другая модель, кеш выключен — промах
     let (_, r3) = load_with_cache(&cfg, &dir, pl.clone(), &cond("strong"));

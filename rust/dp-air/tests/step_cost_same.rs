@@ -76,9 +76,7 @@ fn snapshot() -> Vec<f32> {
     p["wind_speed_kmh"] = json!(0.0);
     p["thermal_mode"] = json!("static");
     p["static_thermals"] = json!([]);
-    let c = format!(
-        r#"{{"preset":{p},"start_hour":12,"speed":1,"blend_s":null,"rebuild":false,"inflow_mode":"inflow"}}"#
-    );
+    let c = format!(r#"{{"preset":{p},"start_hour":12,"speed":1,"blend_s":null,"rebuild":false}}"#);
     m.set_conditions(&Conditions::from_json(&c).unwrap())
         .unwrap();
     m.set_static_thermals(

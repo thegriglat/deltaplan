@@ -31,17 +31,16 @@ LANDINGS = {
 #   нормы 1991–2020 (январь: средний максимум 26,9 °C, рекорд 32,0 °C, 271,7 солнечных часов) — https://en.wikipedia.org/wiki/Easter_Island#Climate
 #   ветер по METAR (E 44 %, SE 21 %, средний 8,8 уз) — https://metarcentral.com/es/airport/SCIP
 #   средний ветер по месяцам — https://www.timeanddate.com/weather/chile/easter-island/climate
-SLOPE_WX = {"wind_from_deg": 110.0, "wind_speed_ms": 6.0, "wind_ref": "start", "start_hour": 12.0, "month": 1, "day": 15,
+SLOPE_WX = {"wind_from_deg": 110.0, "wind_speed_ms": 6.0, "start_hour": 12.0, "month": 1, "day": 15,
             "sky": "partly", "temperature_c": 27.0}
 WEATHER = {
     "east_cliffs": SLOPE_WX,
-    # у гребня кратера подгонка притока упирается в k = 1 (ветер у старта 4,6 м/с при 6 м/с набора) — честнее задать
-    # пассат как набегающий поток (wind_ref inflow, k = 1, то же поле)
-    "crater_ridge": dict(SLOPE_WX, wind_ref="inflow"),
+    # пассат — набегающий поток (WF-К1: ветер набора всегда приток, подбора по ветру у старта нет)
+    "crater_ridge": dict(SLOPE_WX),
     # набор, на котором VI-5 получил термики (air_check.py, случай thermals_15h_28C: ясно, 28 °C, 15 ч, пассат 110° 3 м/с)
-    "thermal_slope": {"wind_from_deg": 110.0, "wind_speed_ms": 3.0, "wind_ref": "start", "start_hour": 15.0, "month": 1,
+    "thermal_slope": {"wind_from_deg": 110.0, "wind_speed_ms": 3.0, "start_hour": 15.0, "month": 1,
                       "day": 15, "sky": "clear", "temperature_c": 28.0},
-    "plateau_landing": {"wind_from_deg": 110.0, "wind_speed_ms": 2.0, "wind_ref": "start", "start_hour": 9.0, "month": 1,
+    "plateau_landing": {"wind_from_deg": 110.0, "wind_speed_ms": 2.0, "start_hour": 9.0, "month": 1,
                         "day": 15, "sky": "clear", "temperature_c": 27.0},
 }
 

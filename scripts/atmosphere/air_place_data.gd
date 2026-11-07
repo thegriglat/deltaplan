@@ -237,7 +237,7 @@ func validate() -> String:
 ## только ключу кеша полей; пусто — кеша нет). Уже заданное не перезаписывается.
 func fill_crate_inputs() -> void:
 	if not header.has("model_hash"):
-		header["model_hash"] = AirBakedField.model_hash()
+		header["model_hash"] = AirModelHash.model_hash()
 
 
 ## Заголовок для load_place крейта (W5, json): utc_offset_h = NAN (солнечное время часов) крейту

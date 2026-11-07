@@ -7,7 +7,7 @@
 //! ```text
 //! let inp  = place_input::build_domain_input(place, &sh, &zi, &dom, &fw.day)?; // RW-6b
 //! let fw   = weather_core::field_weather(cond, place, &wc, configs, climate, hour, &dom)?; // RW-6c
-//! let heat = build_case(&inp, &fw, &CaseOpts { k, inflow_mode, heat: true })?;  // AirCaseRs
+//! let heat = build_case(&inp, &fw, &CaseOpts { heat: true })?;  // AirCaseRs
 //! let mech = heat.without_heat();                                               // w_mech
 //! let planes: PreparedPlanes = heat.prepare()?;
 //! ```
@@ -25,14 +25,14 @@
 //! в горячем пути (по столбцам — только записываемые плоскости). Сумма баланса потоков
 //! `fixed_scale` — последовательная (порядок слагаемых как в эталоне: побитно).
 //!
-//! Границы модели: случай — область одной сетки (окна клипмапа — RW-6n); `inflow_mode` задаёт
-//! только `k` (`Inflow` → `k = 1`), подбор `k` — RW-6j; нагрев — `FieldWeather::heat` (RW-6c)
+//! Границы модели: случай — область одной сетки (окна клипмапа — RW-6n); ветер условий — всегда
+//! набегающий поток (приток `k = 1`, WF-К1); нагрев — `FieldWeather::heat` (RW-6c)
 //! или внешний массив; профиль притока степенной с насыщением (`max_profile`), фон — ветер у
 //! границ `fixed_scale`-балансом площадей, без поправки на устойчивость по высоте.
 use super::place_input::DomainInput;
 use super::weather_core::{Domain, FieldWeather, log_mean};
 use super::wind_profile::{self, CaseProfile, F_COR, KAPPA, NEUTRAL_BL_K, WindProfileCfg};
-use crate::{Error, InflowMode};
+use crate::Error;
 use rayon::prelude::*;
 use std::f64::consts::PI;
 
@@ -127,31 +127,17 @@ pub struct AirCaseRs {
     /// Поток тепла, Вт/м² (пусто — 0).
     pub heat: Vec<f64>,
     pub p: CaseParams,
-    /// Приток на 10 м: `k·u10_menu`.
+    /// Ветер условий на 10 м над открытой местностью — набегающий поток.
     pub u10: f64,
-    pub u10_menu: f64,
-    pub inflow_k: f64,
     pub wdir: f64,
     /// Гасить нагрев у края области.
     pub taper: bool,
 }
 
-/// Что собирать: множитель притока, режим (`Inflow` → `k = 1`), с нагревом или без.
+/// Что собирать: с нагревом или без.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct CaseOpts {
-    pub k: f64,
-    pub inflow_mode: InflowMode,
     pub heat: bool,
-}
-
-impl CaseOpts {
-    /// `k` случая: при `inflow_mode = Inflow` ветер условий — набегающий поток, `k = 1`.
-    pub fn effective_k(&self) -> f64 {
-        match self.inflow_mode {
-            InflowMode::Inflow => 1.0,
-            InflowMode::Start => self.k,
-        }
-    }
 }
 
 /// Сборка случая (`AirPlace.domain_case`) из входа области и погоды поля.
@@ -166,7 +152,6 @@ pub fn build_case(
         fw.inputs.u10,
         fw.inputs.wdir,
         opts.heat.then_some(fw.heat.as_slice()),
-        opts,
     )
 }
 
@@ -178,7 +163,6 @@ pub fn build_case_with(
     u10_menu: f64,
     wdir: f64,
     heat: Option<&[f64]>,
-    opts: &CaseOpts,
 ) -> Result<AirCaseRs, Error> {
     let n = inp.dom.nx * inp.dom.ny;
     let bad = |m: &str| Error::bad_input(format!("case: {m}"));
@@ -191,7 +175,6 @@ pub fn build_case_with(
     if !inp.z0_map.is_empty() && inp.z0_map.len() != n {
         return Err(bad("z0 map size"));
     }
-    let k = opts.effective_k();
     let mut p = CaseParams::default();
     if !inp.z0_map.is_empty() {
         p.z0 = log_mean(&inp.z0_map);
@@ -210,9 +193,7 @@ pub fn build_case_with(
         z0_map: inp.z0_map.clone(),
         heat: heat.map(<[f64]>::to_vec).unwrap_or_default(),
         p,
-        u10: k * u10_menu,
-        u10_menu,
-        inflow_k: k,
+        u10: u10_menu,
         wdir,
         taper: true,
     })

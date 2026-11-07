@@ -15,7 +15,7 @@
 //! Допуски: числа входа и nest/flux/corr — 1e-5 от масштаба массива (порядок f32-арифметики
 //! GPU и Rust различается: fma, редукция); типы — точно; поток после поправки — 1e-6 от потока
 //! через грань.
-use dp_air::field::case_prepare::{CaseOpts, PreparedPlanes};
+use dp_air::field::case_prepare::PreparedPlanes;
 use dp_air::field::place_input::ZiCfg;
 use dp_air::field::weather_core::{
     Cells, Climate, ClimateCell, Domain, WeatherConfigs, field_weather, hour_at,
@@ -23,7 +23,7 @@ use dp_air::field::weather_core::{
 use dp_air::field::wind_profile::CaseProfile;
 use dp_air::field::window::*;
 use dp_air::fixtures::read_place;
-use dp_air::{Conditions, Configs, InflowMode, Place};
+use dp_air::{Conditions, Configs, Place};
 use serde_json::Value;
 use std::path::PathBuf;
 
@@ -170,14 +170,6 @@ fn domain_of(w: &Value) -> Domain {
     }
 }
 
-fn opts_of(mode: &str) -> CaseOpts {
-    CaseOpts {
-        k: 1.0,
-        inflow_mode: InflowMode::Start,
-        heat: mode == "heat",
-    }
-}
-
 /// Окно (heat, mech) из входа дампа — режим A.
 fn window_a(inp: &Dump, w: &Value) -> (AirWindowCase, AirWindowCase) {
     let tag = w["tag"].as_str().unwrap();
@@ -205,15 +197,8 @@ fn window_a(inp: &Dump, w: &Value) -> (AirWindowCase, AirWindowCase) {
         max_profile: num(w, "max_profile"),
     };
     let heat = inp.f64s(&format!("{tag}_heat"));
-    let c = AirWindowCase::from_input(
-        &di,
-        &wind,
-        num(w, "u10_menu"),
-        num(w, "wdir"),
-        Some(&heat),
-        &opts_of("heat"),
-    )
-    .unwrap();
+    let c = AirWindowCase::from_input(&di, &wind, num(w, "u10_menu"), num(w, "wdir"), Some(&heat))
+        .unwrap();
     let m = c.without_heat();
     (c, m)
 }
@@ -395,15 +380,9 @@ fn b_chain_matches_game() {
         assert!(e_z0 < 1e-6, "{tag}: z0 {e_z0}");
         assert!(e_heat < 1e-5, "{tag}: heat {e_heat}");
         // случай целиком
-        let c = AirWindowCase::from_input(
-            &di,
-            &fw.wind,
-            fw.inputs.u10,
-            fw.inputs.wdir,
-            Some(&fw.heat),
-            &opts_of("heat"),
-        )
-        .unwrap();
+        let c =
+            AirWindowCase::from_input(&di, &fw.wind, fw.inputs.u10, fw.inputs.wdir, Some(&fw.heat))
+                .unwrap();
         let pp = c.prepare().unwrap();
         let want = inp.f32s(&format!("col_{}", w["sets"][0]["key"].as_str().unwrap()));
         let e_col = assert_close(&format!("{tag} col"), &pp.col, &want, 1e-3, 1e-6);

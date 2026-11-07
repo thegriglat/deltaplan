@@ -1,7 +1,7 @@
 //! `Formula` — формульная модель воздуха (W4): среднее поле Пикара, которое ведёт сам крейт.
 //!
 //! Что делает: `load_place` → фон (`field::runtime::run_job`: вход области, грубый старт, пара
-//! mech/heat, проходы `k`) → набор уровней `FieldSet` → опросы; на сроке `recompute_game_min` и
+//! mech/heat, проход) → набор уровней `FieldSet` → опросы; на сроке `recompute_game_min` и
 //! при смене условий — пересчёт с тёплого старта и подмена за `blend_s`.
 //!
 //! ## Потоки
@@ -36,8 +36,7 @@
 //! - `Failed`: опросы по запасному пути — нули (аналитики пока нет).
 //! - Загрузка без условий — `Ready` без поля; поле считается с первым `advance_to` после
 //!   `set_conditions` (режим «нет поля»: `Loading`).
-//! - Проходы `k` — без окон 100/50 м (см. `field::runtime`).
-//!
+//! //!
 //! ## Кеш полей (W3 v2/W4 v3)
 //! `set_cache_dir` — до `load_place` (или до первой загрузки): каталог читает и пишет задача
 //! загрузки (`field::runtime`); пусто — без кеша. Нужен `header.model_hash` места.
@@ -45,7 +44,7 @@ use crate::field::clipmap::{ClipMap, WinReport, run_shift};
 use crate::field::field_cache::FieldCache;
 use crate::field::field_set::FieldSet;
 use crate::field::runtime::{
-    CondRec, Faults, JobErr, JobIn, JobOut, JobReport, Pair, RtCfg, Source, StageCounter, dir_key,
+    CondRec, Faults, JobErr, JobIn, JobOut, JobReport, Pair, RtCfg, Source, StageCounter,
     needs_recompute, run_job, slot, slot_hour,
 };
 use crate::field::solved::{SolvedField, encode_solved};
@@ -59,7 +58,6 @@ use crate::{
 };
 use rayon::prelude::*;
 use serde_json::{Map, Value};
-use std::collections::HashMap;
 use std::panic::AssertUnwindSafe;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, AtomicU8, AtomicU32, AtomicU64, AtomicUsize, Ordering};
@@ -95,24 +93,21 @@ struct ExpState {
     blend_t0: f64,
     location: String,
     model_hash: String,
-    k: f64,
 }
 
-/// Что подаче знать о месте и множителе притока для заголовка снимка.
+/// Что подаче знать о месте для заголовка снимка.
 #[derive(Clone, Default)]
 struct ExpMeta {
     location: String,
     model_hash: String,
-    k: f64,
 }
 
 impl ExpMeta {
-    fn of(place: &Place, k: f64) -> Self {
+    fn of(place: &Place) -> Self {
         let h = place.header();
         ExpMeta {
             location: h.loc.id.clone(),
             model_hash: h.model_hash.clone(),
-            k,
         }
     }
 }
@@ -234,7 +229,6 @@ impl Shared {
         if !levels.is_empty() {
             e.location = meta.location;
             e.model_hash = meta.model_hash;
-            e.k = meta.k;
         }
     }
 
@@ -249,7 +243,6 @@ impl Shared {
                 blend_t0: g.blend_t0,
                 location: g.location.clone(),
                 model_hash: g.model_hash.clone(),
-                k: g.k,
             }
         };
         if e.levels.is_empty() {
@@ -258,8 +251,6 @@ impl Shared {
                 ..FieldExport::default()
             };
         }
-        let mut meta = serde_json::Map::new();
-        meta.insert("inflow_k".into(), serde_json::json!(e.k));
         let b = SolvedField {
             location: e.location.clone(),
             site: String::new(),
@@ -267,8 +258,7 @@ impl Shared {
             key: serde_json::Value::Null,
             levels: e.levels.iter().map(|l| (**l).clone()).collect(),
             names: Vec::new(),
-            level_meta: vec![meta],
-            inflow_k: e.k,
+            level_meta: vec![serde_json::Map::new()],
         };
         let mut extra = serde_json::Map::new();
         extra.insert("field_version".into(), serde_json::json!(e.version));
@@ -295,7 +285,7 @@ impl Shared {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Kind {
-    /// Первое поле места: час как есть, проходы `k`, подаёт сама задача.
+    /// Первое поле места: час как есть, подаёт сама задача.
     Load,
     /// Прыжок `start_at`: пересчёт с тёплого старта, подаёт сама задача.
     Start,
@@ -475,7 +465,7 @@ fn job_main(
     slot: Arc<Slot>,
 ) {
     let cfg = job.cfg.clone();
-    let place_meta = ExpMeta::of(&job.place, 1.0);
+    let place_meta = ExpMeta::of(&job.place);
     let res = std::panic::catch_unwind(AssertUnwindSafe(|| match shift {
         Some((q, focus)) => run_shift(job, q, focus),
         None => run_job(job),
@@ -490,15 +480,7 @@ fn job_main(
                 let why = out.report.windows_error.clone().unwrap_or_default();
                 sh.modify_epoch(epoch, |p| {
                     apply_limits(p, &cfg);
-                    sh.note_feed(
-                        &levels,
-                        0.0,
-                        sh.time(),
-                        ExpMeta {
-                            k: out.k,
-                            ..place_meta
-                        },
-                    );
+                    sh.note_feed(&levels, 0.0, sh.time(), place_meta);
                     p.fs.set_levels(levels, 0.0);
                     *lock(&sh.report) = Some(out.report.clone());
                     sh.set_state(State::Ready, 1.0, &why);
@@ -552,8 +534,6 @@ pub struct Formula {
     /// Условия поля в атмосфере (`None` — поля нет).
     cur: Option<CondRec>,
     warm: Option<Arc<Pair>>,
-    inflow_k: f64,
-    k_mem: HashMap<i32, f64>,
     job: Option<Job>,
     /// Игровое время последней смены условий.
     cond_t: f64,
@@ -652,8 +632,6 @@ impl Formula {
             time_s: 0.0,
             cur: None,
             warm: None,
-            inflow_k: 1.0,
-            k_mem: HashMap::new(),
             job: None,
             cond_t: 0.0,
             force_recompute: false,
@@ -744,14 +722,9 @@ impl Formula {
             .and_then(|p| p.phase_main.clone())
     }
 
-    /// Журнал последней принятой задачи (итерации, проходы `k`, заметки).
+    /// Журнал последней принятой задачи (итерации, заметки).
     pub fn report(&self) -> Option<JobReport> {
         lock(&self.sh.report).clone()
-    }
-
-    /// Множитель притока поля в атмосфере.
-    pub fn inflow_k(&self) -> f64 {
-        self.inflow_k
     }
 
     /// Условия поля в атмосфере.
@@ -911,7 +884,6 @@ impl Formula {
                 c.wdir = rec.wdir;
                 c.t_max = rec.t_max;
                 c.sky = rec.sky;
-                c.inflow = rec.inflow;
             }
             *lock(&self.sh.reason) = msg;
         }
@@ -933,12 +905,7 @@ impl Formula {
             };
             let (cfg, blend) = (self.cfg_ok().ok(), job.blend_s);
             let levels = out.levels;
-            let k = if job.kind == Kind::Shift {
-                self.inflow_k
-            } else {
-                out.k
-            };
-            let meta = self.place.as_ref().map(|pl| ExpMeta::of(pl, k));
+            let meta = self.place.as_ref().map(|pl| ExpMeta::of(pl));
             self.sh.modify(|p| {
                 if let Some(c) = &cfg {
                     apply_limits(p, c);
@@ -968,14 +935,9 @@ impl Formula {
                 }
                 return;
             }
-        } else if job.kind == Kind::Load
-            && (out.report.planned > 1 || out.report.source != Source::Computed)
-        {
-            self.k_mem.insert(dir_key(out.rec.wdir), out.k);
         }
         self.cur = Some(out.rec);
         self.warm = out.pair;
-        self.inflow_k = out.k;
         // окна: новый набор (или область с местами для новой попытки); поле из файла окон не знает
         match (&out.report.windows_error, out.clip.as_ref()) {
             (Some(_), _) => {
@@ -1043,8 +1005,6 @@ impl Formula {
             cond,
             rec: rec.clone(),
             loading,
-            k_mem: self.k_mem.get(&dir_key(rec.wdir)).copied(),
-            inflow_k: self.inflow_k,
             focus: self.focuses.first().map(|f| [f.pos[0], f.pos[2]]),
             warm: if loading || shift.is_some() {
                 None
@@ -1112,7 +1072,7 @@ impl Formula {
         let cfg = self.cfg_ok()?;
         let inputs = inputs.as_ref().map_err(Clone::clone)?;
         if self.cur.is_none() {
-            let rec = CondRec::new(inputs, cond, hour_at(cond, cursor));
+            let rec = CondRec::new(inputs, hour_at(cond, cursor));
             return Ok(Some((Kind::Load, rec, cursor)));
         }
         let hour = hour_at(cond, t);
@@ -1122,7 +1082,6 @@ impl Formula {
                 && c.wdir == inputs.wdir
                 && c.t_max == inputs.t_max
                 && c.sky == inputs.sky
-                && c.inflow == cond.inflow_mode
         });
         // дёшево: те же условия и тот же срок — пересчёта нет (в покое — сдвиг окон)
         if same
@@ -1131,7 +1090,7 @@ impl Formula {
         {
             return Ok(self.plan_windows(&cfg, t, cursor));
         }
-        let want = CondRec::new(inputs, cond, hour);
+        let want = CondRec::new(inputs, hour);
         let reason = needs_recompute(cur, &want, cfg.step_min)
             .or_else(|| self.force_recompute.then_some("перестройка"));
         if reason.is_none() {
@@ -1169,7 +1128,7 @@ impl Formula {
             let hour = hour_at(cond, t);
             let rec = CondRec {
                 hour: slot_hour(hour, cfg.step_min),
-                ..CondRec::new(inputs, cond, hour)
+                ..CondRec::new(inputs, hour)
             };
             return Some((Kind::Flight, rec, t.max(cursor)));
         }
@@ -1322,8 +1281,6 @@ impl AirModel for Formula {
         self.sh.set_time(0.0);
         self.cur = None;
         self.warm = None;
-        self.inflow_k = 1.0;
-        self.k_mem.clear();
         self.failed = false;
         self.reset_clip();
         self.place_hash = Arc::new(OnceLock::new());
@@ -1344,7 +1301,7 @@ impl AirModel for Formula {
         if let (Some(cond), Some(inputs)) = (self.cond.clone(), self.inputs.clone()) {
             match inputs {
                 Ok(i) => {
-                    let rec = CondRec::new(&i, &cond, hour_at(&cond, 0.0));
+                    let rec = CondRec::new(&i, hour_at(&cond, 0.0));
                     self.launch(Kind::Load, rec, 0.0);
                 }
                 Err(m) => {
@@ -1365,8 +1322,6 @@ impl AirModel for Formula {
         self.sh.set_time(0.0);
         self.cur = None;
         self.warm = None;
-        self.inflow_k = 1.0;
-        self.k_mem.clear();
         self.failed = false;
         self.reset_clip();
         self.place_hash = Arc::new(OnceLock::new());
@@ -1502,7 +1457,7 @@ impl AirModel for Formula {
         else {
             return Ok(());
         };
-        let want = CondRec::new(&inputs, &cond, hour_at(&cond, t));
+        let want = CondRec::new(&inputs, hour_at(&cond, t));
         if self.cur.is_none() || was_load {
             self.launch(Kind::Load, want, t);
         } else if needs_recompute(self.cur.as_ref(), &want, cfg.step_min).is_some() {

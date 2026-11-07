@@ -83,7 +83,6 @@ func set_conditions(cond: Dictionary) -> int:
 		"speed",
 		"blend_s",
 		"rebuild",
-		"inflow_mode",
 		"forecast",
 		"quantum_h",
 		"wind_ref",

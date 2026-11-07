@@ -62,7 +62,7 @@ fn place(name: &str) -> Place {
 
 fn preset(name: &str) -> Conditions {
     Conditions::from_json(&format!(
-        r#"{{"preset":"{name}","start_hour":12,"speed":1,"blend_s":null,"rebuild":false,"inflow_mode":"inflow"}}"#
+        r#"{{"preset":"{name}","start_hour":12,"speed":1,"blend_s":null,"rebuild":false}}"#
     ))
     .unwrap()
 }
