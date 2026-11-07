@@ -174,3 +174,5 @@
 {"t": "2026-11-08T04:23:33", "by": "coordinator", "task": "SWC-15", "ev": "checked", "note": "2/2 pytest=ok:exit 0; pytest-pass=ok:18"}
 {"t": "2026-11-08T04:25:30", "by": "reviewer", "task": "SWC-15", "ev": "reviewed", "note": "SW6 v3 реализован по контракту (surface_flow, boundary_layer Хеда с шероховатой стенкой, separation Хед/Стратфорд, velocity_bl, step shed='auto'); уравнения Хе…", "verdict": "accept", "issues": {"minor": 4}, "review": "docs/plan/sw-charges/tasks/SWC-15.review.json"}
 {"t": "2026-11-08T04:25:54", "by": "coordinator", "task": "SWC-15", "ev": "accepted", "note": "по ревью (accept, 4 minor — уточнения SW6 v3 внесены координатором)"}
+{"t": "2026-11-08T04:26:04", "by": "coordinator", "task": "SWC-15", "ev": "accepted", "commits": ["fc249385f"], "note": "2/2 pytest=ok:exit 0; pytest-pass=ok:18"}
+{"t": "2026-11-08T04:26:04", "by": "coordinator", "task": "SWC-15", "ev": "merged", "commits": ["fc249385f"]}
