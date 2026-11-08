@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Числа для проверок приёмки sw-ground (карточки SWG-*): печатает строки `<имя> <число>`.
 
-  py accept_metrics.py ground <ground.json>   decomp_lv_perd, decomp_terms, scan_params, base_variants, summary_lv
+  py accept_metrics.py ground <ground.json>   decomp_lv_perd, decomp_terms, scan_params, base_variants, new_variants, masts_new, summary_lv
   py accept_metrics.py rotor <rotor.json>     rows_menke, rows_cases, ridges
   py accept_metrics.py timing <timing.json>   rows, windows, stages
 Отсутствующий файл — `missing 1`, выход 1.
@@ -25,6 +25,8 @@ def ground(d):
     print("decomp_terms", len({r["term"] for r in d["decomp"]}))
     print("scan_params", len({s["param"] for s in d["scan"]}))
     print("base_variants", len({"potential", "potential_jh"} & set(d["variants"])))
+    print("new_variants", len(set(d["variants"]) - {"potential", "potential_jh"}))
+    print("masts_new", sum(1 for m in d["masts"] if m["variant"] not in ("potential", "potential_jh")))
     print("summary_lv", sum(1 for s in d["summary"] if s["type"] in ("lee", "valley") and s["n"] > 0
                             and s["ref_kind"] == "picard_nom"))
 
