@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-11-08"
 summary: "Стыки sw-charges-3d: эталоны, панели, нити, связка, сравнение, вихревой слой, нить ротора, прототипы, цепочка «сток + вихрь» (SWD1–SWD9)."
 related: ["docs/plan/sw-charges-3d.md", "docs/contracts/sw-charges-3d/panels3d.md", "docs/contracts/sw-charges-3d/filaments3d.md", "docs/contracts/sw-charges-3d/sheet3d.md", "docs/contracts/sw-charges.md", "tools/research/sw_charges_3d/README.md"]
-contracts: [{"id": "SWD1", "version": 2}, {"id": "SWD2", "version": 5}, {"id": "SWD3", "version": 4}, {"id": "SWD4", "version": 4}, {"id": "SWD5", "version": 6}, {"id": "SWD6", "version": 6}, {"id": "SWD7", "version": 2}, {"id": "SWD8", "version": 1}, {"id": "SWD9", "version": 4}]
+contracts: [{"id": "SWD1", "version": 2}, {"id": "SWD2", "version": 5}, {"id": "SWD3", "version": 4}, {"id": "SWD4", "version": 4}, {"id": "SWD5", "version": 7}, {"id": "SWD6", "version": 6}, {"id": "SWD7", "version": 2}, {"id": "SWD8", "version": 1}, {"id": "SWD9", "version": 5}]
 ---
 # Контракты модуля sw-charges-3d
 
@@ -97,7 +97,10 @@ v3 (2026-11-08, отчёт SWD-4): изображение — замкнутое
   двойной хребет (два Agnesi H/L 0,5 через 3L) — с `restart` отрыв за обоими гребнями, без — только за первым;
   время шага на N ≈ 5000 панелей и 2000 узлов — в отчёте.
 
-## SWD5 v6 — сравнение 3D с эталонами
+## SWD5 v7 — сравнение 3D с эталонами
+v7 (2026-11-08, ответ на Q4): `variant` — ещё "chain_jh" (SWD9 v5 `velocity_chain`); `rotor` — ещё `state`
+("есть" | "дышит" | "нет" | null — для вариантов без состояния) и `S` (число закрутки SWD9 v4 | null); `version` 7
+(старые строки — дописать `state`/`S` = null). Контрактный тест — `check_contract.py files` по версии 7.
 v6 (2026-11-08, решение о варианте B): `variant` — ещё "rotor_jh" (SWD7 `velocity_rotor`).
 v5 (2026-11-08, решение о нити Фёппля): `variant` — ещё "foppl_jh" (SWD6 v2 `velocity_foppl`).
 v4 (2026-11-08, решение о вихревом слое): `variant` — ещё "sheet_jh" (SWD6: установившийся вихревой слой + `velocity_jh(couple=True)`).
@@ -105,8 +108,8 @@ v3 (2026-11-08, отчёт SWD-5b): `scan.param` — ещё "tau_s" (затух�
 Владелец — SWD-5 (potential, potential_jh, сканы), SWD-5b (vortex_jh, ротор); потребители — итог модуля, шлюз.
 v2 (2026-11-08, итог 2D №4, №7, №8): `smooth_m`, `ref_use`, `scan`, `diag`; `problems2d.kind` — ещё "эталон", "не выяснено".
 - Путь — `tools/research/sw_charges_3d/out/compare/points.json` + `.csv`; JSON (`format` = "sw3d-compare",
-  `version` = 6): `git`, `created`, `tol_picard` (0,15), `rows` — {`case`, `variant` ("potential" | "potential_jh" |
-  "vortex_jh" | "sheet_jh" | "foppl_jh" | "rotor_jh"), `point`, `name`, `x`, `y`, `z_agl`, `ref_kind` (как SWD1), `ref_source`, `ref_reliability`, `ref_err`,
+  `version` = 7): `git`, `created`, `tol_picard` (0,15), `rows` — {`case`, `variant` ("potential" | "potential_jh" |
+  "vortex_jh" | "sheet_jh" | "foppl_jh" | "rotor_jh" | "chain_jh"), `point`, `name`, `x`, `y`, `z_agl`, `ref_kind` (как SWD1), `ref_source`, `ref_reliability`, `ref_err`,
   `ref_use` ("эталон" | "справочно": строки Пикара ниже 50 м — справочно, 2D №7), `s_ref`, `s_pan` (s_norm: скорость /
   скорость в опорной точке `norm` того же источника), `dS_ref`, `dS_pan` (Askervein, иначе null), `u_par_ref`,
   `u_par_pan` (u∥, м/с, отнесённые к U опорной точки данных), `err` (= s_pan − s_ref), `within_tol` (picard:
@@ -169,7 +172,17 @@ v2 (2026-11-08, ответ Q3, вариант A): одно условие — `p
   `t_run_s`, `backend`}; `problems2d` — {`problem` (№6 или №10 из docs/research/sw_charges.md §7), `status`
   ("ушла" | "осталась" | "новая в 3D" | "не проверено"), `evidence`}.
 
-## SWD9 v4 — ротор как цепочка «сток + вихрь» (пакет `chain3d`)
+## SWD9 v5 — ротор как цепочка «сток + вихрь» (пакет `chain3d`)
+v5 (2026-11-08, ответ пользователя на Q4: 1 + 3): положение звена — по геометрии, без условия равновесия:
+s = (x_r − x_c)/2 от гребня вдоль ветра (по нормали к оси в плане), n = r_c по нормали к склону; звено держит его
+отражение (провод + зеркало). `params["position"]="geometry"` (по умолчанию); `"equilibrium"` — v4 (для сравнения).
+В `info` по звеньям `converged` = True, `residual` = скорость поперёк оси в середине звена (диагностика, не условие).
+state — по S (v4) честно; E и Γ не подгонять; при "нет" поле ротора не добавляется. `info["rotors"]` дополнить
+`u_min_over_U` (u∥ на 10 м между x_c и x_r с полем ротора, даже если state "нет" — для отчёта). Расхождение state
+с наблюдаемым ротором (Perdigão) — находка, не повод менять параметры. Инварианты v5: s, n звена = формулам ± 1 м;
+n_solves ≤ 2 сверх фона; Agnesi, C2, C4 — state и S числами.
+
+### v4
 v4 (2026-11-08, по SWD-16 — `tools/research/sw_charges_3d/breakdown/README.md`): число закрутки звена
 S = v_θ,max / W, v_θ,max = |Γ_k|/(2π r_c), W = |q_k|·l_link/(π r_c²) (осевая скорость оттока в ядре); порог распада
 S_c ∈ [0,9; 1,2] (Spall, Gatski & Grosch 1987, NASA ICASE 87-3: Squire k ≥ 1,0…1,2, Ro_c ≈ 0,64–0,65); state ротора —

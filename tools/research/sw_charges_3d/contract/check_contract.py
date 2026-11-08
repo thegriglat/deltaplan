@@ -274,8 +274,10 @@ def check_compare(path, d):
         elif r["within_tol"] is not None:
             raise ContractError(f"{w}.within_tol: null для измерений")
     for i, r in enumerate(d["rotor"]):
-        need(r, ("case", "transect", "variant", "present", "L_m", "depth_m", "L_ref", "ref_source"), f"rotor[{i}]")
+        need(r, ("case", "transect", "variant", "present", "L_m", "depth_m", "L_ref", "ref_source", "state", "S"),
+             f"rotor[{i}]")
         one_of(r["variant"], VARIANTS, f"rotor[{i}].variant")
+        one_of(r["state"], {"есть", "дышит", "нет", None}, f"rotor[{i}].state")
     for i, r in enumerate(d["timing"]):
         need(r, ("case", "variant", "N", "t_assemble_s", "t_solve_s", "t_query_us", "t_run_s", "backend"), f"timing[{i}]")
     for i, r in enumerate(d["problems2d"]):
@@ -310,7 +312,7 @@ def check_proto(path, d):
         one_of(r["status"], {"ушла", "осталась", "новая в 3D", "не проверено"}, f"problems2d[{i}].status")
 
 
-JSON_FORMATS = {"sw3d-proto": (1, check_proto), "sw3d-points": (1, check_points), "sw3d-compare": (6, check_compare)}
+JSON_FORMATS = {"sw3d-proto": (1, check_proto), "sw3d-points": (1, check_points), "sw3d-compare": (7, check_compare)}
 
 
 def check_file(path):
@@ -417,9 +419,9 @@ def _good_compare():
            "s_ref": 1.0, "s_pan": 1.1, "dS_ref": None, "dS_pan": None, "u_par_ref": 5.0, "u_par_pan": 5.5, "err": 0.1,
            "within_tol": True, "within_tol_ref": True, "ds_min": 25.0, "N": 10000, "ref_use": "справочно",
            "smooth_m": 40.0}
-    return {"format": "sw3d-compare", "version": 6, "git": "x", "created": "t", "tol_picard": 0.15, "rows": [row],
+    return {"format": "sw3d-compare", "version": 7, "git": "x", "created": "t", "tol_picard": 0.15, "rows": [row],
             "rotor": [{"case": "PERD_NE", "transect": "T1", "variant": "vortex_jh", "present": True, "L_m": 500.0,
-                       "depth_m": 100.0, "L_ref": 530.0, "ref_source": "menke2019"}],
+                       "depth_m": 100.0, "L_ref": 530.0, "ref_source": "menke2019", "state": None, "S": None}],
             "timing": [{"case": "PERD_NE", "variant": "potential", "N": 10000, "t_assemble_s": 1.0, "t_solve_s": 1.0,
                         "t_query_us": 10.0, "t_run_s": None, "backend": "cupy"}],
             "scan": [{"case": "PERD_NE", "variant": "potential", "param": "smooth_m", "value": 40.0,
