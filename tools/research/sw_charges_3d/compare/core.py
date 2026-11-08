@@ -93,7 +93,7 @@ def eval_set(case, refs):
 class Run:
     """Одно решение панелей (case, ds_min, smooth_m): сетка, LU, поле в точках для potential и potential_jh."""
 
-    def __init__(self, case, ds_min=DS_MAIN, smooth_m=SMOOTH_MAIN, focus_r_mul=10.0, refs=None, bg_kind="power"):
+    def __init__(self, case, ds_min=DS_MAIN, smooth_m=SMOOTH_MAIN, focus_r_mul=10.0, refs=None, bg_kind="log"):
         self.case, self.ds_min, self.smooth_m = case, ds_min, smooth_m
         refs = refs or load_refs()
         self.refs = refs

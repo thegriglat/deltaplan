@@ -200,15 +200,15 @@ def run_main(case, refs):
 
 
 def run_bglog(case, refs):
-    """Контроль несогласованности профилей: фон — логарифмический (как u0 слоя JH) вместо степенного α = 0,235."""
-    run = C.Run(case, refs=refs, bg_kind="log")
+    """Контроль: фон степенной α = 0,235 (как в 2D) вместо логарифмического основного набора."""
+    run = C.Run(case, refs=refs, bg_kind="power")
     out = []
     for var in VARIANTS:
         f, _ = run.field(var)
         for k, v in metrics(make_rows(run, var, f, refs)).items():
             if k in ("rmse_s_mast", "frac_tol_picard_ge50", "rmse_s_picard_ge50", "dS_HT_10", "dS_HT_10_err", "err_crest_50_vs_picard_nom"):
-                out.append(dict(case=case, item=f"bglog_{var}_{k}", value=fnum(v),
-                                note="фон — логарифмический профиль (z0 случая) вместо степенного α = 0,235; остальное как в основном наборе"))
+                out.append(dict(case=case, item=f"bgpower_{var}_{k}", value=fnum(v),
+                                note="фон степенной α = 0,235 (как в 2D) вместо логарифмического основного набора; остальное как в основном наборе"))
     run.free()
     return out
 
@@ -236,6 +236,12 @@ def run_scan(case, refs, main_rows):
                 add(var, "ds_min", ds, k, v)
             add(var, "ds_min", ds, "N", run.N)
         run.free()
+    runp = C.Run(case, refs=refs, bg_kind="power")      # степенной фон (α = 0,235) при основных σ, ds_min — в scan (решение координатора)
+    for var in VARIANTS:
+        f, _ = runp.field(var)
+        for k, v in metrics(make_rows(runp, var, f, refs)).items():
+            add(var, "smooth_m", C.SMOOTH_MAIN, "bgpower_" + k, v)
+    runp.free()
     for var in VARIANTS:
         rows = [r for r in main_rows if r["variant"] == var]
         for name, zh, val in zH_metrics(rows, case):
@@ -274,14 +280,14 @@ def problems(main, scan, gauss):
     cr = {(c, v): next((r for r in R if r["case"] == c and r["variant"] == v and r["name"] == "P_crest_0" and r["ref_kind"] == "picard_nom"
                         and abs(r["z_agl"] - 50) < 1e-6), None) for c in C.CASES for v in VARIANTS}
     over = abs(ht["potential_jh"]["dS_pan"] - ht["potential_jh"]["dS_ref"]) > 0.15 * ht["potential_jh"]["dS_ref"]
-    bl = {(d["case"], d["item"]): d["value"] for d in main["diag"] if d["item"].startswith("bglog_")}
+    bl = {(d["case"], d["item"]): d["value"] for d in main["diag"] if d["item"].startswith("bgpower_")}
     P.append(dict(problem="3. внутренний слой у земли: недобор ΔS трубы, затем перелёт", kind="схема",
                   status="осталась" if over else "ушла",
                   evidence=f"Askervein HT 10 м: dS данных {ht['potential']['dS_ref']:.3f} (FSR опубл.), potential {ht['potential']['dS_pan']:.3f}, "
                            f"potential_jh {ht['potential_jh']['dS_pan']:.3f}; гребень P_crest_0, 50 м, s_pan − s_nom: " +
                            "; ".join(f"{c} {v}: {cr[(c, v)]['err']:+.2f}" for c in C.CASES for v in VARIANTS) +
-                           f". Порог: |dS_pan − dS_ref| ≤ 0,15·dS_ref у potential_jh на HT 10 м. С логарифмическим фоном (контроль) HT 10 м dS потенциал {bl[('ASK_TU03B','bglog_potential_dS_HT_10')]:.3f}, "
-                           f"jh {bl[('ASK_TU03B','bglog_potential_jh_dS_HT_10')]:.3f}. " + ("Перелёта нет, есть недобор (ΔS берётся на высоте l > 10 м по контракту SWD2)." if ht["potential_jh"]["dS_pan"] < ht["potential_jh"]["dS_ref"] else "Перелёт ΔS.") + f" Труб Lubitz–White в 3D не считали"))
+                           f". Порог: |dS_pan − dS_ref| ≤ 0,15·dS_ref у potential_jh на HT 10 м. Со степенным фоном α = 0,235 (контроль, diag bgpower_*) HT 10 м dS потенциал {bl[('ASK_TU03B','bgpower_potential_dS_HT_10')]:.3f}, "
+                           f"jh {bl[('ASK_TU03B','bgpower_potential_jh_dS_HT_10')]:.3f}. " + ("Перелёта нет, есть недобор (ΔS берётся на высоте l > 10 м по контракту SWD2)." if ht["potential_jh"]["dS_pan"] < ht["potential_jh"]["dS_ref"] else "Перелёт ΔS.") + f" Труб Lubitz–White в 3D не считали"))
     # 4
     sp = {}
     for s in scan:
