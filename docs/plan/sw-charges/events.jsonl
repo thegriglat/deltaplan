@@ -217,3 +217,6 @@
 {"t": "2026-11-08T05:49:08", "by": "coordinator", "task": "SWC-19", "ev": "accepted", "note": "по отчёту (быстрая проверка правок v4; сомнения — в список проблем для 3D)"}
 {"t": "2026-11-08T05:49:10", "by": "coordinator", "task": "SWC-19", "ev": "accepted", "commits": ["806e94cde"], "note": "3/3 contract=ok:FAIL 0; docs=ok:exit 0; problems=ok:9"}
 {"t": "2026-11-08T05:49:10", "by": "coordinator", "task": "SWC-19", "ev": "merged", "commits": ["806e94cde"]}
+{"t": "2026-11-08T05:49:31", "by": "coordinator", "task": "SWC-20", "ev": "created", "note": "Итог модуля: список проблем 2D для 3D с пометками «схема / 2D-артефакт»"}
+{"t": "2026-11-08T05:49:34", "by": "coordinator", "task": "SWC-20", "ev": "edited", "note": "notes", "diff": {"notes": ["\"\"", "\"Только факты из документов модуля, числа со ссылками путь#раздел. Источники: docs/research/sw_charges/stage2-2d-tunnel.md (SWC-16), stage2-2d-bl.md (SWC-17), stage2-2d-jh.md (SWC-19, таблица P1–P9), README tools/research/sw_charges/README.md «Панели panels2d» v3/v4 (SWC-15, SWC-18); отчёты и ревью…"]}}
+{"t": "2026-11-08T05:49:46", "by": "coordinator", "task": "SWC-20", "ev": "started"}

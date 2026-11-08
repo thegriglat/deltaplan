@@ -1,0 +1,45 @@
+{
+  "id": "SWC-20",
+  "module": "sw-charges",
+  "type": "dp-writer",
+  "title": "Итог модуля: список проблем 2D для 3D с пометками «схема / 2D-артефакт»",
+  "goal": "Обновить docs/research/sw_charges.md: круги 2 и 3 на 2D (SWC-15–19) и итог 2D как список проблем, каждая с пометкой «схема» или «2D-артефакт» и «проверить в 3D»; без паритета/провала по числам 2D; обновить «Итог», варианты продолжения убрать (3D — модуль sw-charges-3d), строки выводов в registry/findings.md.",
+  "plan_ref": "Приёмка",
+  "contracts": [],
+  "copy": "~/worktrees/deltaplan/sw-charges-SWC-20",
+  "branch": "sw-charges/SWC-20",
+  "base": "feature/sw-charges",
+  "scope": [
+    "docs/research/sw_charges.md",
+    "docs/registry/findings.md",
+    "tools/research/sw_charges/README.md",
+    "docs/INDEX.md",
+    "docs/registry/research.md"
+  ],
+  "dont_touch": [
+    "docs/research/sw_charges/",
+    "docs/contracts/",
+    "docs/plan/sw-charges.md"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": "bash -c '.dpcli/dpcli docs check 2>&1 | grep -E \"ОШИБКА.*sw.charges\"; test ${PIPESTATUS[1]} -eq 1'",
+      "expect": "exit=0"
+    },
+    {
+      "name": "problems",
+      "cmd": "grep -cE '^\\| *[0-9]+ *\\|.*(схема|2D-артефакт)' docs/research/sw_charges.md",
+      "expect": "num:(\\d+) >=8"
+    },
+    {
+      "name": "findings",
+      "cmd": "bash -c 'sed -n \"/^## sw-charges/,/^## /p\" docs/registry/findings.md | grep -c \"^- \"'",
+      "expect": "num:(\\d+) >=9"
+    }
+  ],
+  "report_extra": [],
+  "notes": "Только факты из документов модуля, числа со ссылками путь#раздел. Источники: docs/research/sw_charges/stage2-2d-tunnel.md (SWC-16), stage2-2d-bl.md (SWC-17), stage2-2d-jh.md (SWC-19, таблица P1–P9), README tools/research/sw_charges/README.md «Панели panels2d» v3/v4 (SWC-15, SWC-18); отчёты и ревью — .dpcli/dpcli report <ID> --show, .dpcli/dpcli review <ID> --show (SWC-15…19; в ревью SWC-18 — minor: bl меняется на месте, L_FLAT, сшивка на [h_m, 2h_m] с bg_uniform; в ревью SWC-17 — δ/H трубы не сверено, ref_err до 63 %); прежние разделы docs/research/sw_charges.md (этапы 1, 2 на 2D круг 1, 3) — сохранить, сократить при нужде (≤ 40 КБ). Решения пользователя (inbox sw-charges --peek, 2026-11-08): Q3, Q4 (последний круг 2D), «3D в любом случае», «2D — не эталон, итог — список проблем; числа 2D паритетом/провалом не считать», «пометки схема (останется в 3D: критерий отрыва по уклону, отрыв на наветренном склоне, нет внутреннего слоя, зависимость от сглаживания фона и высоты сравнения) / 2D-артефакт (может уйти в 3D: сила и незатухание ротора, завышение σ_w); артефакты в 2D не чинить», 3D — отдельный модуль sw-charges-3d.\nНовый раздел «Итог 2D: проблемы для 3D» — таблица строками '| <n> | проблема | схема или 2D-артефакт | что сделано в 2D (SWC-ID, было → стало, число) | проверить в 3D: как |' (≥ 8 строк): минимум — порог отрыва по уклону (ложный ротор C4), отрыв на наветренном склоне (Хед без lee_only), нет внутреннего слоя у земли (недобор ΔS трубы; Jackson–Hunt v4 и перелёт до +49 % при масштабировании), зависимость от сглаживания фона и высоты сравнения (σ, z/H), реальные роторы не воспроизведены / сила и незатухание ротора (прототип A ~4×), завышение σ_w (прототип C, A), погрешность эталона Пикара у земли 7–33 %, мачты Perdigão (отрыв исчез при lee_only — причина не выяснена), вихри не влияют на velocity_jh (аддитивно, SWC-19), отрыв термика от склона (A: 1 из 8). Отдельно — что работает (паритет выше ~50 м и на 300 м; гидравлика слоя; диполь, кольцо, поток тепла из одного уравнения). «**Итог:** …» — переписать честно: слой — гидравлика Fr; панели — разгон выше ~50 м; у земли и роторы — открыто, проверять в 3D (модуль sw-charges-3d). Раздел «Варианты продолжения» убрать или свести к одной строке «3D — модуль sw-charges-3d». frontmatter conclusion — одна строка с числами. registry/findings.md «## sw-charges» — добавить ≥ 2 строки (итого ≥ 9). tools/research/sw_charges/README.md — оглавление обновить (если нужно). r.json — вне копии (scratchpad, имя с SWC-20).",
+  "created": "2026-11-08T05:49:31",
+  "edited": "2026-11-08T05:49:34"
+}
