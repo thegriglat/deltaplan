@@ -158,3 +158,4 @@
 {"t": "2026-11-08T18:37:44", "by": "reviewer", "task": "SWD-10", "ev": "reviewed", "note": "Повторное ревью: оба major закрыты. Подъём линии тока без слоя отделён от слоя контрастом bg_profile (58 м) / bg_uniform (13 м) на той же области, не зависит о…", "verdict": "accept", "issues": {"minor": 2}, "review": "docs/plan/sw-charges-3d/tasks/SWD-10.review.json"}
 {"t": "2026-11-08T18:37:58", "by": "coordinator", "task": "SWD-10", "ev": "accepted", "note": "по ревью: partial — слой без давления в зоне не присоединяется (однородный фон: подъём слоя, нет обратного u∥); вопрос о замыкании давлением — в Q3 (вариант B)"}
 {"t": "2026-11-08T18:37:59", "by": "coordinator", "task": "SWD-10", "ev": "merged"}
+{"t": "2026-11-08T18:42:45", "by": "coordinator", "task": "SWD-10", "ev": "accepted", "commits": ["68ae7dd27"], "note": "3/3 pytest=ok:exit 0; api=ok:exit 0; pytest-pass=ok:15"}
