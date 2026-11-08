@@ -103,3 +103,5 @@
 {"t": "2026-11-09T00:45:46", "by": "coordinator", "task": "SWG-7", "ev": "checked", "note": "5/5 contract=ok:exit 0; base=ok:2; sheet_rows=ok:20932; masts=ok:60; pytest=ok:passed"}
 {"t": "2026-11-09T00:47:45", "by": "reviewer", "task": "SWG-7", "ev": "reviewed", "note": "Исследовательская задача выполнена честно: схема по карточке (WakeGrid SWG-4 импортом, петли с возвратом, σ_ex теми же LU, velocity_jh couple, итерации γ с кри…", "verdict": "accept", "issues": {"minor": 3}, "review": "docs/plan/sw-ground/tasks/SWG-7.review.json"}
 {"t": "2026-11-09T00:48:25", "by": "coordinator", "task": "SWG-7", "ev": "accepted", "note": "по ревью (fable): знак верный, цель лее не достигнута; 3 minor — опечатка варианта в README, обрезка γ ≥ 0 не описана, zone_speed требует обоснования"}
+{"t": "2026-11-09T00:48:49", "by": "coordinator", "task": "SWG-7", "ev": "accepted", "commits": ["2aee8fdc7"], "note": "5/5 contract=ok:exit 0; base=ok:2; sheet_rows=ok:20932; masts=ok:60; pytest=ok:passed"}
+{"t": "2026-11-09T00:48:49", "by": "coordinator", "task": "SWG-7", "ev": "merged"}
