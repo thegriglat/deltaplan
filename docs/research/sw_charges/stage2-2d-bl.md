@@ -4,7 +4,7 @@ status: "active"
 module: "sw-charges"
 area: "air"
 updated: "2026-11-08"
-summary: "SWC-17: панели с пограничным слоем и отрывом Хеда против Пикара, трубы и Perdigão — паритета у земли нет (у земли 6/15 против 2/15), ложный ротор C4 исчез."
+summary: "SWC-17: слой и отрыв Хеда на 2D: паритета с Пикаром у земли нет (6/15 против 2/15), ложный ротор C4 исчез, реальные тоже."
 related: ["docs/research/sw_charges/stage2-2d.md", "docs/research/sw_charges/stage2-2d-tunnel.md", "docs/contracts/sw-charges.md", "tools/research/sw_charges/panels_exp/README.md"]
 conclusion: "Пограничный слой Хеда + отрыв Хеда (SW6 v3) приземного паритета с Пикаром не дают: within_tol_ref у земли 6/15 (было 2/15), 2/3 не достигнуто ни на одной высоте ниже 300 м; на 300 м vortex_bl ухудшился (10/15 против 14/15); Perdigão RMSE в 2–3,5 раза хуже модели игры; ложный ротор C4 пропал, но вместе с ним и реальные роторы C2 и Perdigão; ΔS трубы слой не приближает."
 data: "tools/research/sw_charges/out/panels2d/"
