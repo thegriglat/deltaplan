@@ -1,0 +1,111 @@
+{
+  "status": "done",
+  "summary": "rotor3d v2 (штатные параметры, один набор) прогнан на Perdigão NE/SW и Askervein: 18 разрезов, 20 хребтов, rotor.json (SWG3). L на NE совпадает с Menke (среднее 500 против 493 м), на SW занижена (513 против 617 м); ложные роторы ЕСТЬ: Askervein 1 из 1 хребта, Perdigão 8 из 19. Вывод по задаче: «нет ложных роторов» не выполнено.",
+  "commits": [
+    "1d7cc7bc8 SWG-2: нить ротора rotor3d v2 на Perdigão NE/SW и Askervein"
+  ],
+  "checks": [
+    {
+      "name": "contract",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "menke",
+      "value": "6",
+      "pass": true
+    },
+    {
+      "name": "cases",
+      "value": "3",
+      "pass": true
+    },
+    {
+      "name": "ridges",
+      "value": "20",
+      "pass": true
+    },
+    {
+      "name": "pytest",
+      "value": "passed",
+      "pass": true
+    },
+    {
+      "name": "L NE T1-T3 нить / Menke",
+      "value": "610,480,410 / 570,490,420 м",
+      "pass": true
+    },
+    {
+      "name": "L SW T1-T3 нить / Menke",
+      "value": "440,550,550 / 680,670,500 м",
+      "pass": true
+    },
+    {
+      "name": "u_min/U на 15 м",
+      "value": "NE -0.64..-0.68; SW -0.66..-0.67; ASK -0.46..-0.49",
+      "pass": true
+    },
+    {
+      "name": "ложные роторы",
+      "value": "ASK 1/1, NE 6/11, SW 2/8 хребтов",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "Мачты как критерий ложного ротора не использованы (обратного тока на мачтах нет в данных)."
+  ],
+  "questions": [
+    "Порог уклона 0,27 не отделяет Askervein (0,274) и пологие хребты Perdigão от роторных: менять критерий отрыва (SWD7) или принять?"
+  ],
+  "how_to_check": ".dpcli/dpcli accept SWG-2; README: tools/research/sw_ground/rotor/README.md",
+  "uncertain": [
+    {
+      "where": "tools/research/sw_ground/rotor/run_rotor.py: false_rotor",
+      "why": "Пикар nom занижает ротор (на SW его нет, Menke видел), окно хребта и полоса ±200 м выбраны мной, Menke учтён только как окно ±250 м у разрезов",
+      "checked": "reverse_field_15m и picard_reverse записаны отдельно; окна в window_m"
+    },
+    {
+      "where": "out/swg-2/rotor.json ridges[PERD_SW 0]",
+      "why": "хребет у края области (x_c около -3100 м), вне поля Пикара ±3 км — picard_reverse ненадёжен",
+      "checked": "не исключён из таблицы"
+    },
+    {
+      "where": "rows depth_m",
+      "why": "глубина нити 210-315 м против 157±30 м у Menke — завышена в 2 раза",
+      "checked": "числа в README"
+    }
+  ],
+  "dp_feedback": "lock cpu даёт 1 ядро (CPUQuota=100%): ASK на CPU 40 мин против 20 с на GPU; job start не пишет прогресс. GPU делят агенты, OOM без очереди.",
+  "extra": {
+    "timing_s": {
+      "ASK_TU03B": 21.5,
+      "PERD_NE": 16.4,
+      "PERD_SW": 20.4
+    },
+    "n_solves": {
+      "ASK_TU03B": 2,
+      "PERD_NE": 11,
+      "PERD_SW": 9
+    },
+    "ridges": {
+      "ASK_TU03B": {
+        "n": 1,
+        "gate": 1,
+        "false": 1,
+        "slope": 0.274
+      },
+      "PERD_NE": {
+        "n": 11,
+        "gate": 9,
+        "false": 6
+      },
+      "PERD_SW": {
+        "n": 8,
+        "gate": 7,
+        "false": 2
+      }
+    }
+  },
+  "t": "2026-11-08T22:17:17",
+  "by": "executor"
+}

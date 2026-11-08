@@ -22,3 +22,4 @@
 {"t": "2026-11-08T20:44:51", "by": "coordinator", "task": "SWG-1", "ev": "started"}
 {"t": "2026-11-08T20:44:51", "by": "coordinator", "task": "SWG-2", "ev": "started"}
 {"t": "2026-11-08T20:44:51", "by": "coordinator", "task": "SWG-3", "ev": "started"}
+{"t": "2026-11-08T22:17:17", "by": "executor", "task": "SWG-2", "ev": "reported", "commits": ["1d7cc7bc8"], "note": "done: rotor3d v2 (штатные параметры, один набор) прогнан на Perdigão NE/SW и Askervein: 18 разрезов, 20 хребтов, rotor.json (…", "dp_feedback": "lock cpu даёт 1 ядро (CPUQuota=100%): ASK на CPU 40 мин против 20 с на GPU; job start не пишет прогресс. GPU делят агенты, OOM без очереди."}
