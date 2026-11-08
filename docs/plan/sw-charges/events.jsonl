@@ -194,3 +194,8 @@
 {"t": "2026-11-08T05:15:39", "by": "coordinator", "task": "SWC-17", "ev": "accepted", "note": "по ревью (accept, 3 minor: δ/H трубы не сверено; ref_err до 63 % при REF_K 1,5; семантика shed у _bl)"}
 {"t": "2026-11-08T05:15:41", "by": "coordinator", "task": "SWC-17", "ev": "accepted", "commits": ["96999935e"], "note": "3/3 contract=ok:FAIL 0; docs=ok:exit 0; verdict=ok:1"}
 {"t": "2026-11-08T05:15:42", "by": "coordinator", "task": "SWC-17", "ev": "merged", "commits": ["96999935e"]}
+{"t": "2026-11-08T05:17:48", "by": "main", "task": null, "ev": "plan", "note": "план Этапы и задачи (уточняет координатор): дописано 2 стр."}
+{"t": "2026-11-08T05:18:32", "by": "coordinator", "task": "SWC-18", "ev": "created", "note": "panels2d v4: внутренний слой Jackson–Hunt и отрыв только с подветренной стороны"}
+{"t": "2026-11-08T05:18:36", "by": "coordinator", "task": "SWC-18", "ev": "edited", "note": "notes", "diff": {"notes": ["\"\"", "\"Решение пользователя Q4: последний круг правок 2D — внутренний слой Jackson–Hunt вместо log-множителя, отрыв только на подветренной стороне. Интерфейс — строго SW6 v4 (docs/contracts/sw-charges.md: пункты «v4» и «Инварианты v4»); v1–v3 по поведению не менять, кроме separation (lee_only=True по умо…"]}}
+{"t": "2026-11-08T05:18:44", "by": "main", "task": null, "ev": "plan", "note": "план Этапы и задачи (уточняет координатор): дописано 2 стр."}
+{"t": "2026-11-08T05:18:48", "by": "coordinator", "task": "SWC-18", "ev": "started"}
