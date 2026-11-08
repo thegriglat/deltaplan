@@ -209,3 +209,125 @@ def test_agnesi_ridge_report():
     assert all(np.array_equal(u, v) for u, v in zip(a_, b_))
     print(f"\nAgnesi N={p.N}: ridge H={r['H']:.0f} м, p_sep=({r['p_sep'][0]:.0f},{r['p_sep'][1]:.0f}), "
           f"невязок {info['nfev']}, стартов {r['starts']}, {info['t_s']:.0f} с")
+
+
+# ---------- установившийся вихревой слой (SWD6 v4/v5) ----------
+def test_sheet_flat_and_gauss_no_sheet_field_equals_jh_bitwise():
+    x, y, z = raster(lambda X, Y: np.zeros_like(X), 1000, 1000, 50.0)
+    tf = P.Terrain3D(x, y, z, far_m=3000)
+    pf = P.build_panels(tf, focus=[(0, 0)], ds_min=100.0, focus_r=400)
+    bgf = P.bg_profile(10.0, 0.2, 200.0, tf)
+    sh, sig, info = sheet3d.build_sheet(pf, bgf, 0.1)
+    assert len(sh.filaments.seg) == 0 and sh.rows == [] and info["n_lines"] == 0 and F.imbalance(sh.filaments) == 0.0
+    pts = (np.array([0.0, 100.0]), np.array([0.0, 50.0]), np.array([10.0, 40.0]))
+    a = sheet3d.velocity_sheet(pf, sig, bgf, sh, *pts, 0.1)
+    b = P.velocity_jh(pf, sig, bgf, *pts, 0.1)
+    assert all(np.array_equal(u, v) for u, v in zip(a, b))
+    sg_, H = 300.0, 0.1 * 1.177 * 300.0
+    x, y, z = raster(lambda X, Y: H * np.exp(-(X ** 2 + Y ** 2) / (2 * sg_ ** 2)), 700, 500, 16.0)
+    tg = P.Terrain3D(x, y, z, far_m=3000)
+    foc = [(a_, b_) for a_ in np.arange(-300, 301, 100.0) for b_ in np.arange(-300, 301, 100.0)]
+    pg = P.build_panels(tg, focus=foc, ds_min=16.0, focus_r=60, ds_max=500, growth=1.5)
+    bgg = P.bg_profile(10.0, 0.2, 200.0, tg)
+    sh, sig, info = sheet3d.build_sheet(pg, bgg, 0.1)
+    assert len(sh.filaments.seg) == 0 and info["n_lines"] == 0
+    pts = (np.array([0.0, 150.0]), np.array([0.0, 20.0]), np.array([H + 10.0, H + 40.0]))
+    a = sheet3d.velocity_sheet(pg, sig, bgg, sh, *pts, 0.1)
+    b = P.velocity_jh(pg, sig, bgg, *pts, 0.1)
+    assert all(np.array_equal(u, v) for u, v in zip(a, b))
+
+
+def agnesi_case(x_c=(0.0,), xmax=1500.0, foc_x=((-100.0, 700.0),)):
+    a, H, ds = 250.0, 125.0, 25.0
+    x = np.arange(-1500.0, xmax + 0.1, ds)
+    y = np.arange(-750.0, 750.1, ds)
+    X, Y = np.meshgrid(x, y)
+    z = sum(H / (1 + ((X - c) / a) ** 2) for c in x_c)
+    t = P.Terrain3D(x, y, z, far_m=4000)
+    foc = [(xx, yy) for lo, hi in foc_x for xx in np.arange(lo, hi, 50.0) for yy in np.arange(-750, 751, 75.0)]
+    p = P.build_panels(t, focus=foc, ds_min=ds, focus_r=70, ds_max=500, growth=1.5)
+    bg = P.bg_profile(10.0, 0.2, 200.0, t)
+    t0 = time.time()
+    infl = P.assemble(p)
+    sg, _ = P.solve(p, bg, None, infl)
+    return dict(p=p, bg=bg, infl=infl, sg=sg, t_cold=time.time() - t0, H=H, ds=ds)
+
+
+@pytest.fixture(scope="module")
+def agn():
+    c = agnesi_case()
+    c["dec"] = sheet3d.build_sheet(c["p"], c["bg"], 0.1, c["infl"], dict(gamma_decay=250.0))
+    c["const"] = sheet3d.build_sheet(c["p"], c["bg"], 0.1, c["infl"])
+    return c
+
+
+@gpu
+def test_sheet_agnesi_closed_rows_and_gamma(agn):
+    sh, sig, info = agn["dec"]
+    fil = sh.filaments
+    assert info["n_lines"] == 1 and len(sh.rows) > 5 and len(fil.seg) > 0
+    assert F.imbalance(fil) <= 1e-12
+    n_loops = len(np.unique(fil.fid))
+    assert n_loops == len(sh.rows) and int(fil.anchored.sum()) == 2 * n_loops      # каждый ряд — замкнутая петля с 2 якорями
+    ln = sh.lines[0]
+    dsh = sh.params["ds_sheet"]
+    # Γ ряда = γ0·exp(−s/decay)·Δs, γ0 = среднее |u_s| в точке отрыва; Γ > 0 (вдоль оси ẑ × ŵ)
+    for r in sh.rows:
+        assert abs(r["Gamma"] - ln["gamma0"] * np.exp(-r["s"] / 250.0) * dsh) < 1e-9 * ln["gamma0"] * dsh
+    assert 0.5 < ln["gamma0"] < 30.0
+    # ось ряда у точки отрыва — вдоль +y (ẑ × ŵ при ветре на +x); отрыв за гребнем
+    assert np.all(fil.gamma > 0) and np.all(ln["X0"][:, 0] > 100.0)
+
+
+@gpu
+def test_sheet_agnesi_field_and_report(agn):
+    sh, sig, info = agn["dec"]
+    p, bg, infl = agn["p"], agn["bg"], agn["infl"]
+    xs = np.array([300.0, 400.0, 500.0, 700.0])
+    zz = p.height(xs, np.zeros(4)) + 10.0
+    u1 = sheet3d.velocity_sheet(p, sig, bg, sh, xs, np.zeros(4), zz, 0.1, infl=infl)[0]
+    u0 = P.velocity_jh(p, agn["sg"], bg, xs, np.zeros(4), zz, 0.1, infl=infl)[0]
+    assert np.all(np.isfinite(u1)) and np.all(u1 < u0)       # слой тормозит течение у земли за гребнем
+    ln = sh.lines[0]
+    print(f"\nAgnesi gamma_decay=250: iters={info['iters']} residual={info['residual']:.2f} м (tol {sh.stats['tol']:.1f}), "
+          f"присоединений {ln['n_reattached']}/{ln['n_cols']}, u∥(10 м) со слоем {np.round(u1, 2)}, без {np.round(u0, 2)}")
+
+
+@gpu
+def test_sheet_agnesi_iterations_converge_with_decay(agn):
+    sh, sig, info = agn["dec"]
+    assert info["iters"] <= 10 and info["residual"] < 0.05 * sh.params["ds_sheet"]
+
+
+@gpu
+def test_sheet_agnesi_constant_gamma_not_converged_negative_result(agn):
+    """γ постоянна вдоль слоя (контракт v4 по умолчанию): слой без давления не замыкается — поднимается и не присоединяется,
+    итерации за n_iter не сходятся (число — в README); результат, а не дефект."""
+    sh, sig, info = agn["const"]
+    ln = sh.lines[0]
+    assert info["iters"] == 10 and info["residual"] > 0.05 * sh.params["ds_sheet"]
+    assert ln["n_reattached"] == 0 and np.isnan(ln["L_b"])
+    assert sh.reattach == [None]
+    print(f"\nAgnesi γ=const: residual={info['residual']:.1f} м, присоединения нет, H_слоя/H хребта на 1200 м = "
+          f"{(ln['nodes'][-1, 14, 2] - agn['p'].height(ln['nodes'][-1, 14, 0], 0.0)) / agn['H']:.2f}")
+
+
+@gpu
+def test_sheet_cost_vs_cold_panel_solves(agn):
+    """Цена build_sheet (infl готов) ≤ 10 холодных решений панелей того же N."""
+    for key in ("dec", "const"):
+        t_s = agn[key][2]["t_s"]
+        print(f"\n{key}: N={agn['p'].N} слой {t_s:.1f} с, холодное решение {agn['t_cold']:.1f} с, отношение {t_s / agn['t_cold']:.1f}")
+        assert t_s / agn["t_cold"] <= 10.0
+
+
+@gpu
+def test_sheet_double_ridge_two_sheets():
+    """Два хребта Agnesi через 1500 м (6a): слой за первым и за вторым гребнем."""
+    c = agnesi_case(x_c=(0.0, 1500.0), xmax=3000.0, foc_x=((-100.0, 700.0), (1400.0, 2200.0)))
+    sh, sig, info = sheet3d.build_sheet(c["p"], c["bg"], 0.1, c["infl"], dict(gamma_decay=250.0))
+    xs = sorted(float(ln["X0"][:, 0].mean()) for ln in sh.lines)
+    assert info["n_lines"] >= 2
+    assert any(100 < v < 700 for v in xs) and any(1600 < v < 2200 for v in xs)
+    assert F.imbalance(sh.filaments) <= 1e-12
+    print(f"\nдвойной хребет: N={c['p'].N}, линии отрыва x = {np.round(xs)}, iters={info['iters']}, residual={info['residual']:.2f}")
