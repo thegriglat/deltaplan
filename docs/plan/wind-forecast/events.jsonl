@@ -80,3 +80,7 @@
 {"t": "2026-11-08T04:56:41", "by": "executor", "task": "WF-6", "ev": "reported", "commits": ["6dc8fc51e"], "note": "done: Документы, конфиг-пояснения, REQUIREMENTS FR-16, сайт (weather, training ru/en), CHANGELOG «В работе», findings «wind-f…", "dp_feedback": "docs index переписывает чужие строки registry/contracts.md и research.md вне скоупа — пришлось откатывать вручную; no_stale ловит собственные упоминания удалённых имён в тексте об удалении."}
 {"t": "2026-11-08T04:56:50", "by": "coordinator", "task": "WF-6", "ev": "accepted", "note": "5/5 docs=ok:exit 0; no_stale=ok:exit 0; changelog=ok:1; findings=ok:2; json=ok:ok"}
 {"t": "2026-11-08T04:56:56", "by": "coordinator", "task": "WF-6", "ev": "accepted", "note": "по отчёту; устаревшие описания GD AirRuntime/AirFieldCache в runtime.md/fast-load.md вне WF — не переписаны (наследие rust-wind)"}
+{"t": "2026-11-08T04:56:58", "by": "coordinator", "task": "WF-6", "ev": "accepted", "commits": ["01705afea"], "note": "5/5 docs=ok:exit 0; no_stale=ok:exit 0; changelog=ok:1; findings=ok:2; json=ok:ok"}
+{"t": "2026-11-08T04:56:59", "by": "coordinator", "task": "WF-6", "ev": "merged"}
+{"t": "2026-11-08T05:17:48", "by": "coordinator", "task": "WF-4", "ev": "accepted", "commits": ["8199f185b"], "note": "8/8 wind_forecast=ok:7/7; forecast_game=ok:1/1; weather_day=ok:1/1; rust_wind=ok:35/35 (пропуск 1); cargo=ok:exit 0; ref_valley_test=ok:test result: ok. 2; game_no_ref=ok:exit 0; field_same=ok:0"}
+{"t": "2026-11-08T05:18:04", "by": "coordinator", "task": "WF-4", "ev": "merged"}
