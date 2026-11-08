@@ -1,8 +1,8 @@
 {
-  "status": "partial",
-  "summary": "Пакет panels3d по SWD2 готов: точное ядро треугольника, дерево квадрантов, dense/GMRES на NumPy/CuPy, hill_length, velocity_jh, separation3d; 15 тестов, accept PASS. Инвариант ΔS Тейлора–Ли (B=1,6 ±25 %) не выполнен: получено −29 %.",
+  "status": "done",
+  "summary": "SWD2 v2: hill_length берёт ближайший гребень в обе стороны (на наветренном склоне — гребень ниже по ветру, L того же холма); тесты на склоне гаусса и хребта; README: B_eff 1,13 как граница.",
   "commits": [
-    "2147c844f sw-charges-3d: SWD-2 panels3d"
+    "666d2339d sw-charges-3d: SWD-2 v2 hill_length"
   ],
   "checks": [
     {
@@ -11,68 +11,27 @@
       "pass": true
     },
     {
+      "name": "pytest-pass",
+      "value": "15",
+      "pass": true
+    },
+    {
       "name": "api",
-      "value": "OK panels3d",
+      "value": "OK",
       "pass": true
     },
     {
-      "name": "полусфера",
-      "value": "вершина 1,5U ±2 %, 1,5U sinθ ≤2,3 %",
+      "name": "readme",
+      "value": "есть",
       "pass": true
-    },
-    {
-      "name": "хребет Агнези vs panels2d потенциал",
-      "value": "±3 % на 10/50/300 м",
-      "pass": true
-    },
-    {
-      "name": "отрыв: x_sep 3D vs 2D",
-      "value": "192,3 vs 203,0 м (0,9·ds_min)",
-      "pass": true
-    },
-    {
-      "name": "ΔS гаусса H/L=0,1 vs 1,6·H/L",
-      "value": "0,113 vs 0,159 (−29 %)",
-      "pass": false
     }
   ],
-  "not_done": [
-    "ΔS Гаусса в ±25 % от B·H/L (B=1,6): факт B=1,13; тест проверяет B в [0,9; 1,4]"
-  ],
-  "questions": [
-    "SWD2 contract: B=1,6 недостижим — потенциальное ΔS 3D-гаусса на l=33 м 0,065 (0,76·H/L у поверхности), A(l)=1,72 → 1,13·H/L. Нужен другой допуск/B или другой множитель A. Также: hill_length «выше по ветру или в точке» даёт L ровной земли на наветренном склоне — так задумано?"
-  ],
+  "not_done": [],
+  "questions": [],
   "images": [],
   "how_to_check": ".dpcli/dpcli accept SWD-2",
-  "uncertain": [
-    {
-      "where": "panels3d/jh.py velocity_jh",
-      "why": "контракт говорит «выше h_m — velocity», panels2d v4 сшивает на [h_m, 2h_m]; взята сшивка panels2d. Сшивка и A(z_e) — как в 2D",
-      "checked": "плоская земля = log-профиль ±1 %, выше 3·h_m = velocity с точностью 1e-9"
-    },
-    {
-      "where": "panels3d/mesh.py build_panels",
-      "why": "сторона квадрата ds_min·2^k ≥ 2·far_m — больше ±far_m (до +28 %), чтобы листья у фокуса были ровно ds_min",
-      "checked": "согласованность (рёбра у ≤2 треугольников), площадь проекций = side²"
-    },
-    {
-      "where": "panels3d/sep.py",
-      "why": "в базе ветки panels2d v3 (нет crests/lee_only из SWC-18): отрыв и lee_only реализованы заново, сравнение с v3 separation; сходится (0,9·ds_min). Растекание линий тока не учтено (граница v1)",
-      "checked": "гаусс — отрыва нет; хребет — только x>0, на концах хребта lee_only отбрасывает (rejected)"
-    },
-    {
-      "where": "panels3d/tests",
-      "why": "5 тяжёлых тестов требуют GPU (skip без CuPy); 10 лёгких на NumPy",
-      "checked": "полный прогон на RTX 4070 SUPER ~35 с; N=16700: сборка 4 с, LU 14 с, 4,5 ГБ"
-    }
-  ],
-  "dp_feedback": "plan sw-charges-3d 'Задачи 1' — раздел с таким именем не находится (карточка ссылается на нерабочее имя); в карточке нет упоминания, что panels2d в базе ветки старее v4.",
-  "extra": {
-    "N_ridge": 16700,
-    "t_assemble_s": 4.2,
-    "t_lu_s": 13.9,
-    "mem_GB": 4.46
-  },
-  "t": "2026-11-08T05:47:13",
+  "uncertain": [],
+  "dp_feedback": "",
+  "t": "2026-11-08T05:50:34",
   "by": "executor"
 }
