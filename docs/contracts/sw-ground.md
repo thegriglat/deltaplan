@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-11-08"
 summary: "Стыки sw-ground: приземные точки SWG1, таблица у земли SWG2, ротор на рельефе SWG3, время поля на окнах игры SWG4."
 related: ["docs/plan/sw-ground.md", "docs/contracts/sw-charges-3d.md", "docs/research/sw_charges_3d.md"]
-contracts: [{"id": "SWG1", "version": 1}, {"id": "SWG2", "version": 1}, {"id": "SWG3", "version": 1}, {"id": "SWG4", "version": 1}]
+contracts: [{"id": "SWG1", "version": 1}, {"id": "SWG2", "version": 1}, {"id": "SWG3", "version": 1}, {"id": "SWG4", "version": 2}]
 ---
 # Контракты модуля sw-ground
 
@@ -76,7 +76,12 @@ contracts: [{"id": "SWG1", "version": 1}, {"id": "SWG2", "version": 1}, {"id": "
 - Инварианты: `params` одинаковы для всех случаев (без подгонки по месту); строки `rows` — по каждому разрезу SWD1
   с `source` Menke или вдоль ветра для всех трёх случаев.
 
-## SWG4 v1 — время поля на сетках окон игры
+## SWG4 v2 — время поля на сетках окон игры
+v2 (2026-11-08, решение о SWG-6): `version` 2; в `rows` — ещё `variant` (строка: "fp64" — опрос как SWG-3; иначе имя
+рычага, напр. "fp32", "above_ground", "far_cluster", сочетания через "+") и `err` ({`ref` (строка: с чем сравнивали),
+`n`, `rms_rel`, `max_rel`, `max_abs_ms`} по горизонтальной скорости надземных точек | null — эталон или Пикар);
+для `variant` ≠ "fp64" у панелей `err` обязателен; `n_points` — фактически опрошенные (у "above_ground" < nx·ny·nz,
+равенство nx·ny·nz требуется только у "fp64"). Файлы v1 (SWG-3) остаются валидными как v1.
 Владелец — SWG-3; потребители — итог.
 - Путь — `tools/research/sw_ground/out/<task>/timing.json`; `format` = "swg-timing", `version` = 1, `task`;
   - `machine` — {`cpu`, `gpu`, `threads` (доступно)};

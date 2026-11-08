@@ -181,7 +181,8 @@ def check_rotor(doc):
 
 # ------------------------------------------------------------------ SWG4
 def check_timing(doc):
-    head(doc, "swg-timing", 1)
+    ver = doc.get("version")
+    head(doc, "swg-timing", 2 if ver == 2 else 1)
     need(doc, ["task", "machine", "rows"], "файл")
     need(doc["machine"], ["cpu", "gpu", "threads"], "machine")
     have = set()
@@ -198,7 +199,17 @@ def check_timing(doc):
         num(r["t_total_s"], f"{w}.t_total_s")
         if r["t_total_s"] <= 0:
             raise Bad(f"{w}: t_total_s ≤ 0")
-        if r["method"] != "picard" and r["n_points"] != r["nx"] * r["ny"] * r["nz"]:
+        var = "fp64"
+        if ver == 2:
+            need(r, ["variant", "err"], w)
+            var = r["variant"]
+            if r["method"] != "picard" and var != "fp64":
+                if not isinstance(r["err"], dict):
+                    raise Bad(f"{w}: variant {var}: нет err")
+                need(r["err"], ["ref", "n", "rms_rel", "max_rel", "max_abs_ms"], f"{w}.err")
+                for k in ("rms_rel", "max_rel", "max_abs_ms"):
+                    num(r["err"][k], f"{w}.err.{k}")
+        if r["method"] != "picard" and var == "fp64" and r["n_points"] != r["nx"] * r["ny"] * r["nz"]:
             raise Bad(f"{w}: n_points != nx·ny·nz")
         have.add((r["method"], r["window_dx"], r["stage"]))
     for dx in (100, 50):
@@ -286,6 +297,17 @@ def selftest():
     broken.append(("timing picard", lambda: check_timing(t)))
     t2 = copy.deepcopy(tim); t2["rows"][0]["n_points"] = 5
     broken.append(("timing n_points", lambda: check_timing(t2)))
+    t3 = copy.deepcopy(tim); t3["version"] = 2
+    for x in t3["rows"]:
+        x["variant"], x["err"] = "fp64", None
+    ok.append("v2 " + check_timing(t3))
+    t3["rows"].append(dict(t3["rows"][0], variant="fp32", n_points=7,
+                           err={"ref": "fp64", "n": 7, "rms_rel": 1e-5, "max_rel": 1e-4, "max_abs_ms": 1e-3}))
+    ok.append("v2 fp32 " + check_timing(t3))
+    t4 = copy.deepcopy(t3); t4["rows"][-1]["err"] = None
+    broken.append(("timing v2 err", lambda: check_timing(t4)))
+    t5 = copy.deepcopy(tim); t5["version"] = 2
+    broken.append(("timing v2 no variant", lambda: check_timing(t5)))
     bad = 0
     for name, fn in broken:
         try:
