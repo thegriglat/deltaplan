@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-11-08"
 summary: "Стыки sw-charges-3d: эталоны 3D (SWD1), панели 3D (SWD2), вихревые нити (SWD3), связка (SWD4), сравнение (SWD5)."
 related: ["docs/plan/sw-charges-3d.md", "docs/contracts/sw-charges.md", "tools/research/sw_charges_3d/README.md"]
-contracts: [{"id": "SWD1", "version": 2}, {"id": "SWD2", "version": 2}, {"id": "SWD3", "version": 2}, {"id": "SWD4", "version": 1}, {"id": "SWD5", "version": 1}]
+contracts: [{"id": "SWD1", "version": 2}, {"id": "SWD2", "version": 3}, {"id": "SWD3", "version": 2}, {"id": "SWD4", "version": 2}, {"id": "SWD5", "version": 1}]
 ---
 # Контракты модуля sw-charges-3d
 
@@ -61,7 +61,19 @@ v2 (2026-11-08, ревью SWD-1): атрибут `first_cell_levels` групп
   - `rotor` — {`case`, `transect`, `source` ("menke2019" | "picard_nom" | "picard_adv1" | "masts"), `present`
     (bool | null), `L_m`, `depth_m`, `criterion` (строка), `ref_source`}; критерий для полей — как SWD5.
 
-## SWD2 v2 — панели 3D (пакет `panels3d`)
+## SWD2 v3 — панели 3D (пакет `panels3d`)
+v3 (2026-11-08, итог 2D №9 и №11): `velocity_jh(..., couple=False)` и `separation3d(..., restart=True,
+streamlines_from="bg")` — ниже; остальное v2 без изменений.
+- v3. `velocity_jh(..., couple=True)`: ΔS берётся из полной внешней скорости u∥ = (потенциал для `bg_uniform(U_ref)` +
+  extra·U_ref/|bg(100 м)| + панели от σ_extra в том же масштабе) на max(z_agl, l), ΔS = u∥/U_ref − 1 (может быть < −1:
+  обратный поток у земли); extra и σ_extra ниже h_m отдельно не прибавляются (без двойного счёта), выше h_m — как
+  `velocity`; `couple=False` — поведение v2.
+- v3. `separation3d(..., restart=True, streamlines_from="bg")`: линии тока трассируются по `ut` решения для одного bg
+  (геометрия не зависит от вихрей), u_s(s) вдоль них — полная касательная скорость (с extra) по направлению линии;
+  после отрыва слой не считается до присоединения — первой точки ниже по линии, где u_s > 0 снова на ≥ 2·ds_min;
+  там слой стартует заново как равновесный ровной земли при местной u_s, и дальше возможен следующий отрыв
+  (`lee_only` — по своему гребню); на линии может быть несколько точек (`points[*].k` — номер отрыва на линии);
+  `points[*].reattach` — {x, y, z} присоединения или null. `restart=False` — v2.
 v2 (2026-11-08, отчёт SWD-2): `hill_length` — ближайший гребень по профилю в обе стороны (как L у ближайшего гребня в
 SW6 v4), не только выше по ветру; квадрат дерева — сторона ds_min·2^k ≥ 2·far_m (до +28 %); сшивка выше h_m — как
 `panels2d.velocity_jh` v4 (линейно по ln z на [h_m, 2h_m]); инвариант гаусса — B_eff ∈ [0,9; 1,4] (замер 1,13 против
@@ -157,20 +169,28 @@ v2 (2026-11-08, отчёт SWD-3): скорость кольца Розенхе�
   перезамыкание двух встречных колец — две петли превращаются в одну (или наоборот), замкнутость сохранена;
   прямая бесконечная (длинная) нить у плоской стенки с изображением через `flow` — скорость Γ/(4πh) ± 2 %.
 
-## SWD4 v1 — связка панелей и нитей (пакет `sim3d`)
-Владелец — SWD-4; потребители — SWD-5, SWD-6.
+## SWD4 v2 — связка панелей и нитей (пакет `sim3d`)
+Владелец — SWD-4; потребители — SWD-5, SWD-6. v2 (2026-11-08, итог 2D №9, №11; ревью SWD-3 — устойчивость по dt).
 Пакет `tools/research/sw_charges_3d/sim3d/`.
-- `Setup(terrain, panels, bg, z0, params)`; `run(setup, t_end, dt, t_avg=None, probes=None, sep_every=1,
-  record_every=None)` → {`t`, `filaments` (последнее состояние), `stats` (по шагам: N нитей, узлов, Σ|Γ|, время шага,
-  невязка), `probes_mean` / `probes_std` — средние и СКО (u, v, w) в точках `probes` (P, 3) за t ≥ `t_avg`}.
-- Шаг: `solve` (SWD2, `infl` кеш, extra = `filaments3d.induced`) → `separation3d` каждые `sep_every` шагов → `shed`
-  по `lines` (u_s — из точек отрыва) → `filaments3d.step` с flow = bg + панели (σ этого шага) и ground =
-  `panels.height` → следующее.
-- `velocity_mean(...)`, `velocity_jh_mean(...)` — среднее поле в точках по сохранённым состояниям (или накопленное
-  при `probes`).
-- Инварианты (тесты): ровная земля без отрыва — нитей нет, поле = фон; нить у ровной земли — скорость изображения
-  Γ/(4πh) ± 3 % через панели; хребет Agnesi H/L 0,5 — нити рождаются только за гребнем, `imbalance` ≤ 1e-12,
-  нет NaN 200 шагов; время шага на N ≈ 5000 панелей и 2000 узлов — в отчёте.
+- `Setup(terrain, panels, bg, z0, params)` — `params`: `fil` (dict для `filaments3d.step`), `core` (ядро новых нитей,
+  по умолчанию `panels.ds_min`/2), `cfl` (0,25), `couple` (True — `velocity_jh(couple=True)`), `restart` (True),
+  `U_ref`; `infl` собирается один раз в `Setup`.
+- `run(setup, t_end, dt, t_avg=None, probes=None, sep_every=1, record_every=None)` → {`t`, `filaments` (последнее
+  состояние), `stats` (по шагам: t, N нитей, узлов, отрезков, Σ|Γ|, imbalance, max|u| в узлах, подшагов, время шага,
+  невязка solve, число точек отрыва и присоединений, счётчики `f.stats`), `probes_mean` / `probes_std` — средние и СКО
+  (u, v, w) в `probes` (P, 3) за t ≥ `t_avg` для вариантов "potential" (без нитей), "potential_jh", "vortex_jh"
+  (`velocity_jh` с `couple`), `snapshots` (каждые `record_every` шагов — нити)}.
+- Шаг: `solve` (extra = `filaments3d.induced`, `infl`) → `separation3d` (restart, streamlines_from="bg") каждые
+  `sep_every` шагов → `shed` по `lines` (u_s — вектор `ut` полной скорости в точках линии) → `filaments3d.step` с
+  flow = bg + панели (σ этого шага), ground = `panels.height`; подшаги нитей: dt_f ≤ `cfl`·min(core)/max|u в узлах|
+  (число подшагов — в `stats`); σ на подшагах — от начала шага.
+- `velocity_mean(result, x, y, z, variant)` → (u, v, w) — среднее за t ≥ t_avg по `snapshots` (или из `probes_mean`).
+- Инварианты (тесты): ровная земля без отрыва — нитей нет, поле = фон; длинная нить у ровной земли (концы-ножки) —
+  скорость изображения Γ/(4πh) ± 3 % через панели; хребет Agnesi H/L 0,5 — нити рождаются только за гребнем,
+  `imbalance` ≤ 1e-12, нет NaN 200 шагов, число отрезков ограничено (рост < ×10 за последние 100 шагов);
+  `couple=True` — ротор меняет ΔS у земли за гребнем (u∥ на 10 м за гребнем отличается от `couple=False` > 10 %);
+  двойной хребет (два Agnesi H/L 0,5 через 3L) — с `restart` отрыв за обоими гребнями, без — только за первым;
+  время шага на N ≈ 5000 панелей и 2000 узлов — в отчёте.
 
 ## SWD5 v1 — сравнение 3D с эталонами
 Владелец — SWD-5; потребители — итог модуля, шлюз.

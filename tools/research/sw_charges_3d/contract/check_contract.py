@@ -35,8 +35,9 @@ API = {
         "velocity": ["panels", "sigma", "bg", "x", "y", "z", "extra", "backend"],
         "surface_flow": ["panels", "sigma", "bg", "extra"],
         "hill_length": ["terrain", "x", "y", "wind_to", "smooth_m", "ds_min"],
-        "velocity_jh": ["panels", "sigma", "bg", "x", "y", "z", "z0", "U_ref", "extra", "infl"],
-        "separation3d": ["panels", "sigma", "bg", "z0", "extra", "method", "lee_only", "seed_dy"],
+        "velocity_jh": ["panels", "sigma", "bg", "x", "y", "z", "z0", "U_ref", "extra", "infl", "couple"],
+        "separation3d": ["panels", "sigma", "bg", "z0", "extra", "method", "lee_only", "seed_dy", "restart",
+                         "streamlines_from"],
     },
     "filaments3d": {
         "Filaments": ["x", "seg", "gamma", "core", "anchored", "fid"],
@@ -51,8 +52,7 @@ API = {
     "sim3d": {
         "Setup": ["terrain", "panels", "bg", "z0", "params"],
         "run": ["setup", "t_end", "dt", "t_avg", "probes", "sep_every", "record_every"],
-        "velocity_mean": [],
-        "velocity_jh_mean": [],
+        "velocity_mean": ["result", "x", "y", "z", "variant"],
     },
 }
 
