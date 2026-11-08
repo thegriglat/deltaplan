@@ -1,0 +1,132 @@
+{
+  "status": "done",
+  "summary": "Таблицы SWD5 v2 (1092 строки: potential и potential_jh × ASK_TU03B, PERD_NE, PERD_SW × мачты, Пикар nom, adv1), сканы σ / z/H / ds_min, ротор, время, диагностика отрыва, статусы 12 проблем 2D. Основной набор σ = 40 м, ds_min = 25 м выбран заранее, не по данным. Ключевое: потенциал не лучше JH по мачтам (RMSE s 0,14–0,20), JH на Askervein HT 10 м недобирает dS (0,62 против 0,88), результат сильно зависит от σ.",
+  "commits": [
+    "7c20da240 sw-charges-3d: SWD-5 — сравнение panels3d (potential, potential_jh) с мачтами и Пикаром, сканы"
+  ],
+  "checks": [
+    {
+      "name": "accept SWD-5 --dry",
+      "value": "5/5 PASS",
+      "pass": true
+    },
+    {
+      "name": "contract-files",
+      "value": "OK",
+      "pass": true
+    },
+    {
+      "name": "readme",
+      "value": "README.md, tables.md есть",
+      "pass": true
+    },
+    {
+      "name": "case-variants",
+      "value": "6",
+      "pass": true
+    },
+    {
+      "name": "problems12",
+      "value": "12",
+      "pass": true
+    },
+    {
+      "name": "scans",
+      "value": "3",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "vortex_jh и ротор с нитями — SWD-5b (проблемы 5, 6, 9, 10, 11 — «не проверено»)",
+    "поправка эталона 2D №7 (±15 % + 1,5·|P100r−P50|) не введена: в SWD1 нет второго уровня Пикара того же положения; строки Пикара ниже 50 м помечены «справочно»",
+    "Gaussian H/L = 0,1 как контроль проблемы 1 — прокси, не C4"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SWD-5; чтение: tools/research/sw_charges_3d/out/compare/tables.md",
+  "uncertain": [
+    {
+      "where": "tools/research/sw_charges_3d/compare/run_compare.py:problems",
+      "why": "статусы 12 проблем выставлены по порогам, выбранным мной (размах >0,05 для №4; доля >=0,8 для №12; |dS err|<=0,15 для №3); пороги в evidence, но не согласованы с координатором",
+      "checked": "числа в tables.md и points.json совпадают с evidence"
+    },
+    {
+      "where": "out/compare/points.json rows[*].s_pan (potential_jh, Askervein)",
+      "why": "JH занижает s на гребне на 50–300 м на ~0,5 против Пикара (frac в ±15 % = 0,12); это поведение velocity_jh по контракту (ΔS на высоте max(z,l), сшивка до 2h_m), а не ошибка расчёта — не разбирался глубже",
+      "checked": "логарифмический фон вместо степенного даёт те же 0,624 на HT 10 м, т.е. не несогласованность профилей; ds_min 25→35 не меняет"
+    },
+    {
+      "where": "diag H_max_along_lines = 11,67 (PERD)",
+      "why": "насыщение формулы H(H1), не физическое значение",
+      "checked": "число точек отрыва 60/36 и 126/120 отброшенных lee_only согласованы"
+    }
+  ],
+  "dp_feedback": "Запуск py без -I обязателен (PYTHONPATH), -I из README refs ломает импорт panels3d — стоит отметить в README модуля. dpcli job wait работает, но блокирующий until-цикл в Bash переводится в фон.",
+  "extra": {
+    "rmse_s_mast_potential_jh": {
+      "ASK": 0.211,
+      "PERD_NE": 0.201,
+      "PERD_SW": 0.118
+    },
+    "rmse_s_mast_potential": {
+      "ASK": 0.199,
+      "PERD_NE": 0.179,
+      "PERD_SW": 0.143
+    },
+    "frac_tol_picard_ge50_potential_jh": {
+      "ASK": 0.12,
+      "PERD_NE": 0.64,
+      "PERD_SW": 0.62
+    },
+    "frac_tol_picard_ge50_potential": {
+      "ASK": 0.96,
+      "PERD_NE": 0.55,
+      "PERD_SW": 0.41
+    },
+    "dS_HT_10": {
+      "data": 0.884,
+      "potential": 0.893,
+      "potential_jh": 0.624
+    },
+    "dS_HT_10_sigma_scan_0_to_160_potential": [
+      0.983,
+      0.953,
+      0.893,
+      0.77,
+      0.471
+    ],
+    "timing_s_assemble_plus_LU": "4,5–10 (N 12,7–17,9 тыс.)",
+    "query_us_per_point": {
+      "potential": "97–191",
+      "potential_jh": "751–1474"
+    },
+    "rotor_without_vortices": "0 из 36 разрезов",
+    "separation_points_lee_only": {
+      "ASK": 4,
+      "PERD_NE": 60,
+      "PERD_SW": 36
+    },
+    "problems2d_status": {
+      "ушла": [
+        1,
+        8
+      ],
+      "осталась": [
+        2,
+        3,
+        4,
+        7,
+        12
+      ],
+      "не проверено": [
+        5,
+        6,
+        9,
+        10,
+        11
+      ]
+    }
+  },
+  "t": "2026-11-08T06:16:10",
+  "by": "executor"
+}
