@@ -140,3 +140,4 @@
 {"t": "2026-11-08T17:46:19", "by": "coordinator", "task": "SWD-11", "ev": "started"}
 {"t": "2026-11-08T17:56:34", "by": "executor", "task": "SWD-10", "ev": "reported", "commits": ["57aaf76f7"], "note": "partial: build_sheet/velocity_sheet по SWD6 v5 сделаны (ряды замкнутыми петлями, Γ=γ·Δs, γ=|u_s| Хеда, форма по линиям тока, ите…", "dp_feedback": "accept --dry идёт дольше 2 мин (pytest ~140 с) и уходит в фон; полезен прогресс-вывод."}
 {"t": "2026-11-08T18:01:23", "by": "coordinator", "task": "SWD-10", "ev": "checked", "note": "3/3 pytest=ok:exit 0; api=ok:exit 0; pytest-pass=ok:14"}
+{"t": "2026-11-08T18:05:50", "by": "coordinator", "task": "SWD-5c", "ev": "cancelled", "note": "решение пользователя 2026-11-08: нестационарные нити отвергнуты (дороги); в итог — первый круг SWD-5b (120 с, без ротора, рост узлов O(n²)); счёт swd5c2 остановлен"}
