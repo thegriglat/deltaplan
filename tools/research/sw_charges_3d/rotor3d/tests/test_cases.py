@@ -82,7 +82,7 @@ def test_c2_contract_rule_and_shifted(c2):
     """C2 (у Пикара ротор L ≈ 800 м): по правилу контракта корня нет; со сдвигом x_m (диагностика) — числа."""
     p, bg = c2["p"], c2["bg"]
     t0 = time.time()
-    f0, s0, i0 = rotor3d.rotor_vortex(p, bg, 0.1, c2["infl"], dict(gate="slope"))
+    f0, s0, i0 = rotor3d.rotor_vortex(p, bg, 0.1, c2["infl"], dict(closure="two_point", gate="slope"))
     r0 = i0["ridges"][0]
     print(f"\nC2 N={p.N}: x_c={r0['x_c']:.0f} x_r={r0['x_r']:.0f} ({r0['rule_r']}) a={np.round(r0['ut_bg'], 2)} "
           f"g={[(round(a, 2), round(float(b), 2)) for a, b in r0['grid']]} {time.time() - t0:.0f} с")
@@ -90,10 +90,21 @@ def test_c2_contract_rule_and_shifted(c2):
     assert not r0["converged"] and len(f0.seg) == 0
     L0, _ = reverse_zone(c2, f0, s0, r0["x_c"])
     assert L0 == 0.0
-    f1, s1, i1 = rotor3d.rotor_vortex(p, bg, 0.1, c2["infl"], dict(gate="slope", m_frac=0.3))
+    f1, s1, i1 = rotor3d.rotor_vortex(p, bg, 0.1, c2["infl"], dict(closure="two_point", gate="slope", m_frac=0.3))
     r1 = i1["ridges"][0]
     print(f"C2 x_m=0,3: converged={r1['converged']} R={r1['R']:.1f} Γ={r1['Gamma']:.0f} nsolve={i1['nsolve']}")
     if r1["converged"]:
         L1, u = reverse_zone(c2, f1, s1, r1["x_c"])
         print(f"C2 x_m=0,3: L(u∥<−0,5 на 15 м) = {L1:.0f} м (Пикар ≈ 800), min u∥ {np.nanmin(u):.1f}")
         assert F.imbalance(f1) <= 1e-12
+
+
+def test_v2_c2_has_filament_c4_none(c2, c4):
+    f, s, i = rotor3d.rotor_vortex(c2["p"], c2["bg"], 0.1, c2["infl"], {})
+    r = i["ridges"][0]
+    L, u = reverse_zone(c2, f, s, r["x_c"]) if r["converged"] else (0.0, np.zeros(1))
+    print(f"\nC2 v2: converged={r['converged']} R={r['R']:.1f} Γ={r['Gamma']:.0f} x_r={r['x_r']:.0f} "
+          f"L(u∥<−0,5 на 15 м)={L:.0f} м (Пикар ≈ 800), min u∥ {np.nanmin(u):.1f}, nsolve {i['nsolve']}")
+    assert r["converged"] and len(f.seg) > 0 and F.imbalance(f) <= 1e-12 and i["nsolve"] <= 5
+    f4, s4, i4 = rotor3d.rotor_vortex(c4["p"], c4["bg"], 0.1, c4["infl"], {})
+    assert len(f4.seg) == 0 and i4["ridges"] == []
