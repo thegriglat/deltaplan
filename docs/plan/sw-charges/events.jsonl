@@ -192,3 +192,5 @@
 {"t": "2026-11-08T05:12:18", "by": "coordinator", "task": "SWC-17", "ev": "checked", "note": "3/3 contract=ok:FAIL 0; docs=ok:exit 0; verdict=ok:1"}
 {"t": "2026-11-08T05:15:04", "by": "reviewer", "task": "SWC-17", "ev": "reviewed", "note": "SW7 v2 собран по контракту (version 2, 4 варианта по 96 строк, ref_err/within_tol_ref по формуле контракта, rotor 32), все 37 файлов в скоупе, библиотека panel…", "verdict": "accept", "issues": {"minor": 3}, "review": "docs/plan/sw-charges/tasks/SWC-17.review.json"}
 {"t": "2026-11-08T05:15:39", "by": "coordinator", "task": "SWC-17", "ev": "accepted", "note": "по ревью (accept, 3 minor: δ/H трубы не сверено; ref_err до 63 % при REF_K 1,5; семантика shed у _bl)"}
+{"t": "2026-11-08T05:15:41", "by": "coordinator", "task": "SWC-17", "ev": "accepted", "commits": ["96999935e"], "note": "3/3 contract=ok:FAIL 0; docs=ok:exit 0; verdict=ok:1"}
+{"t": "2026-11-08T05:15:42", "by": "coordinator", "task": "SWC-17", "ev": "merged", "commits": ["96999935e"]}
