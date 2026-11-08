@@ -1,0 +1,78 @@
+{
+  "id": "SWD-4",
+  "module": "sw-charges-3d",
+  "type": "dp-engineer",
+  "title": "sim3d: связка панелей и замкнутых нитей; JH с вихрями и повторный старт слоя (SWD2 v3)",
+  "goal": "Пакет sim3d по SWD4 v2 — шаг «solve с нитями → отрыв → сход → шаг нитей» с подшагами по устойчивости и средними в точках; в panels3d — SWD2 v3 (velocity_jh couple, separation3d restart) и долги ревью SWD-2; инварианты — тестами.",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "SWD2",
+      "version": "3",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    },
+    {
+      "name": "SWD3",
+      "version": "2",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    },
+    {
+      "name": "SWD4",
+      "version": "2",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sw-charges-3d-SWD-4",
+  "branch": "sw-charges-3d/SWD-4",
+  "base": "feature/sw-charges-3d",
+  "scope": [
+    "tools/research/sw_charges_3d/sim3d/",
+    "tools/research/sw_charges_3d/panels3d/"
+  ],
+  "dont_touch": [
+    "tools/research/sw_charges_3d/filaments3d/",
+    "tools/research/sw_charges_3d/refs/",
+    "tools/research/sw_charges_3d/out/",
+    "tools/research/sw_charges/",
+    "docs/contracts/",
+    "tools/research/sw_charges_3d/contract/",
+    "tools/research/sw_charges_3d/py",
+    "tools/research/sw_charges_3d/requirements.txt",
+    "rust/"
+  ],
+  "accept": [
+    {
+      "name": "pytest-sim",
+      "cmd": "tools/research/sw_charges_3d/py -m pytest -q tools/research/sw_charges_3d/sim3d/tests",
+      "expect": "!re:(failed|error)"
+    },
+    {
+      "name": "pytest-sim-pass",
+      "cmd": "tools/research/sw_charges_3d/py -m pytest -q tools/research/sw_charges_3d/sim3d/tests",
+      "expect": "num:(\\d+) passed >=7"
+    },
+    {
+      "name": "pytest-panels",
+      "cmd": "tools/research/sw_charges_3d/py -m pytest -q tools/research/sw_charges_3d/panels3d/tests",
+      "expect": "!re:(failed|error)"
+    },
+    {
+      "name": "pytest-panels-pass",
+      "cmd": "tools/research/sw_charges_3d/py -m pytest -q tools/research/sw_charges_3d/panels3d/tests",
+      "expect": "num:(\\d+) passed >=18"
+    },
+    {
+      "name": "api",
+      "cmd": "tools/research/sw_charges_3d/py tools/research/sw_charges_3d/contract/check_contract.py api panels3d sim3d filaments3d",
+      "expect": "exit=0"
+    },
+    {
+      "name": "readme",
+      "cmd": "ls tools/research/sw_charges_3d/sim3d/README.md",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-08T05:55:58"
+}
