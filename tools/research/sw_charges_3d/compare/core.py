@@ -121,6 +121,9 @@ class Run:
     def query(self, x, y, z, variant):
         if variant == "potential":
             return velocity(self.panels, self.sigma, self.bg, x, y, z)
+        if variant == "chain_jh":      # SWD-17: self.chain, self.sigma_chain задаёт compare/chain_cmp.py (chain_rotor)
+            import chain3d
+            return chain3d.velocity_chain(self.panels, self.sigma_chain, self.bg, self.chain, x, y, z, self.z0, infl=self.infl)
         return velocity_jh(self.panels, self.sigma, self.bg, x, y, z, self.z0, infl=self.infl)
 
     def field(self, variant):

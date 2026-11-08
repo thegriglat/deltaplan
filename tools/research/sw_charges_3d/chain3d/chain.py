@@ -25,7 +25,10 @@ from sheet3d.sheet import _loop
 # n_corr: число поправок «равновесие с панелями» (решений панелей n_corr + 1 сверх фона; контракт: ≤ 4)
 DEFAULTS = dict(core=None, R_rule=0.25, slope_min=0.27, l_link=None, E=0.05, S_c=(0.9, 1.2), mass="reattach",
                 apply_state=True, patch=1.5, tol=2e-3, maxfev=80, tail_frac=0.10, slope_smooth=1.0, s_max=6.0,
-                n_max=3.0, n_corr=2, keep_unconverged=False)
+                n_max=3.0, n_corr=2, keep_unconverged=False, position="geometry", z_probe=10.0, n_probe=24)
+# position: "geometry" (v5, по умолчанию) — s = (x_r − x_c)/2, n = r_c, без равновесия, 1 решение панелей с цепочкой
+#   (+ 1, если часть роторов в state "нет" и поле остальных нужно без них); "equilibrium" — v4 (для сравнения)
+# z_probe, n_probe: u_min_over_U — u∥ на z_probe м над землёй в n_probe точках между x_c и x_r (v5)
 
 
 # ---------- линейные источники/стоки ----------
@@ -244,6 +247,9 @@ def _build(panels, links, pos, mass, images=False):
             ga = np.asarray(panels.height(np.array([qa[0][0], qa[1][0]]), np.array([qa[0][1], qa[1][1]])), float)
             zr = float(ga.max() + core)
             src = dict(a=np.array([qa[0][0], qa[0][1], zr]), b=np.array([qa[1][0], qa[1][1], zr]), q=-L.q, core=core)
+            # длина стока по рельефу (z вдоль оси меняется) и источника (горизонтальный отрезок) различна: расход сохраняется
+            # пересчётом q источника (на ровной оси множитель 1; v5 — реальный рельеф, mass_balance = 0 до 1e-9)
+            src["q"] = -L.q * float(np.linalg.norm(sinks[-1]["b"] - sinks[-1]["a"])) / float(np.linalg.norm(src["b"] - src["a"]))
             sources.append(src)
         if images:
             g, nv = _plane(L, s)
@@ -302,7 +308,7 @@ def chain_rotor(panels, bg, z0, infl=None, params=None):
     wind = _fp._wind(bg, terrain)
     ridges = _fp.find_ridges(terrain, wind, ds)
     info = dict(links=[], rotors=[], n_ridges=len(ridges), mass_balance=0.0, t_s=0.0, n_solves=0, params=dict(pr))
-    all_links = []
+    all_links, cand, applied = [], [], set()
     for r in ridges:
         ax = _fp._axis_of(r, wind, r["dc"])
         H = max(_fp._ridge_height(terrain, r, wind), 2 * ds)
@@ -324,18 +330,64 @@ def chain_rotor(panels, bg, z0, infl=None, params=None):
                 rec["S"] = S
                 lo, hi = pr["S_c"]
                 rec["state"] = "есть" if S < lo else ("дышит" if S <= hi else "нет")
+            rec["u_min_over_U"] = None
             info["rotors"].append(rec)
+            cand += good
             if good and (rec["state"] != "нет" or not pr["apply_state"]):
                 all_links += good
+                applied.add(rid)
     chain = dict(fil=F.Filaments(), sinks=[], sources=[])
     sigma = sigma_bg
-    if all_links:
+    if pr["position"] == "geometry":
+        if cand:
+            chain, sigma, recs = _geometry_chain(panels, bg, z0, infl, cand, applied, pr, U_ref, solve, sigma_bg, info)
+            info["links"] = recs
+    elif all_links:
         chain, sigma, recs = _equilibrium(panels, bg, all_links, pr, U_ref, solve, sigma_bg)
         info["links"] = recs
     info["mass_balance"] = mass_balance(chain)
     info["n_solves"] = counter["n"]
     info["t_s"] = time.time() - t_start
     return chain, sigma, info
+
+
+def _geometry_chain(panels, bg, z0, infl, cand, applied, pr, U_ref, solve, sigma_bg, info):
+    """SWD9 v5: положение звена по геометрии, без условия равновесия: s = (x_r − x_c)/2 от гребня вдоль ветра, n = r_c по
+    нормали к склону (звено держит отражение: провод + зеркало). Одно решение панелей со всеми звеньями-кандидатами
+    (диагностика: невязка в середине звена, u_min_over_U по ротору — даже при state "нет"); если часть роторов "нет" и
+    apply_state — второе решение только с применёнными. Итого n_solves ≤ 2 сверх фона."""
+    pos = [(0.5 * L.len_x, L.core) for L in cand]
+    chain_all = _build(panels, cand, pos, pr["mass"])
+    sigma_all = solve(chain_extra(chain_all))
+    mids = np.array([_geometry(L, s, n) for L, (s, n) in zip(cand, pos)])
+    v = _mid_velocity(panels, bg, sigma_all, chain_all, mids)
+    recs = []
+    for i, L in enumerate(cand):
+        s, n = pos[i]
+        na3 = np.append(L.na, 0.0)
+        res = float(np.hypot(v[i] @ na3, v[i, 2]) / U_ref)
+        h = mids[i, 2] - float(panels.height(mids[i, 0], mids[i, 1]))
+        recs.append(dict(rotor=L.rotor, k=L.k, s=float(s), n=float(n), core=float(L.core), Gamma=L.Gamma, q=L.q, S=_swirl(L),
+                         converged=True, on_ground=False, residual=res, x_c=(float(L.xc[0]), float(L.xc[1])),
+                         x_r=(float(L.xr[0]), float(L.xr[1])), h=float(h)))
+    # u∥ на z_probe м между x_c и x_r, поле ротора есть (диагностика даже при state "нет")
+    umin = {}
+    for L in cand:
+        t = np.linspace(0.0, 1.0, int(pr["n_probe"]))
+        xy = L.P[None] + (L.rule["s_c"] + t[:, None] * L.len_x) * L.wv[None]
+        z = np.asarray(panels.height(xy[:, 0], xy[:, 1]), float) + float(pr["z_probe"])
+        u, vv, _ = velocity_chain(panels, sigma_all, bg, chain_all, xy[:, 0], xy[:, 1], z, z0, U_ref=U_ref, infl=infl)
+        up = (np.asarray(u) * L.wv[0] + np.asarray(vv) * L.wv[1]) / U_ref
+        umin[L.rotor] = min(umin.get(L.rotor, np.inf), float(np.nanmin(up)))
+    for rid, val in umin.items():
+        info["rotors"][rid]["u_min_over_U"] = val
+    keep = [i for i, L in enumerate(cand) if L.rotor in applied]
+    if len(keep) == len(cand):
+        return chain_all, sigma_all, recs
+    if not keep:
+        return dict(fil=F.Filaments(), sinks=[], sources=[]), sigma_bg, recs
+    chain = _build(panels, [cand[i] for i in keep], [pos[i] for i in keep], pr["mass"])
+    return chain, solve(chain_extra(chain)), recs
 
 
 def _equilibrium(panels, bg, links, pr, U_ref, solve, sigma_bg):
