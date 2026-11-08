@@ -49,7 +49,10 @@ def bg_log(U10_, z0, z_sat, terrain, wind_to, smooth_m=250.0):
 
 
 def z0_of(case):
-    return 0.03 if case == "ASK_TU03B" else float(P.PD.z0_nominal())
+    """z0 для JH и отрыва: медиана растра z0 случая (out/refs/<case>.h5, terrain/z0) — velocity_jh принимает только скаляр.
+    Askervein 0,03 м; Perdigão 1,80 м (лес — большинство клеток; среднее по ln z0 — z0_nominal() 0,645 м — было в первой версии)."""
+    with h5py.File(REFS / f"{case}.h5", "r") as h:
+        return float(np.median(h["terrain"]["z0"][:]))
 
 
 def H_of(case):
@@ -183,22 +186,53 @@ def rotor_scan(run, variant, tr, u_scale):
 
 
 def separation_diag(run):
-    """Диагностика отрыва по линиям тока (2D №8): число отрывов, отброшенных lee_only, max H и min cf вдоль линий."""
-    rec = {"H": [], "cf": []}
+    """Диагностика отрыва по линиям тока (2D №2, №8): число отрывов, отброшенных lee_only (с координатами), H(s) и cf(s) вдоль
+    средней линии тока (затравка через центр растра), max H и min cf по всем линиям."""
+    calls = []
     orig = _sep.march_layer
+    orig_trace = _sep._trace
+    stash = {}
 
     def spy(s, ue, du, z0, uref, sep_ok=None):
         r = orig(s, ue, du, z0, uref, sep_ok)
-        h, c = r["H"], r["cf"]
-        if np.isfinite(h).any():
-            rec["H"].append(float(np.nanmax(h)))
-            rec["cf"].append(float(np.nanmin(c)))
+        c = dict(s=np.array(s), H=r["H"].copy(), cf=r["cf"].copy(), i_sep=r["i_sep"], ue0=float(ue[0]), n=len(s))
+        if calls and calls[-1]["n"] == c["n"] and calls[-1]["ue0"] == c["ue0"] and calls[-1]["s"][-1] == c["s"][-1]:
+            calls[-1] = c         # повторный расчёт той же линии после отбраковки lee_only
+        else:
+            calls.append(c)
         return r
+
+    def trace_spy(*a, **k):
+        recs = orig_trace(*a, **k)
+        stash["recs"] = recs
+        return recs
     _sep.march_layer = spy
+    _sep._trace = trace_spy
     try:
         res = separation3d(run.panels, run.sigma, run.bg, run.z0, lee_only=True)
     finally:
         _sep.march_layer = orig
-    return dict(n_lines=len(rec["H"]), n_sep=int(len(res["points"]["x"])), n_rej=int(len(res["rejected"]["x"])),
-                H_max=max(rec["H"]) if rec["H"] else None, cf_min=min(rec["cf"]) if rec["cf"] else None,
-                sep_points=res["points"], rej_points=res["rejected"])
+        _sep._trace = orig_trace
+    recs = [r for r in stash["recs"] if r.shape[0] >= 4]
+    T = run.terrain
+    ex, ey = run.wt if hasattr(run, "wt") else (1.0, 0.0)
+    px, py = -ey, ex
+    q = [(r[0, 0] - T.cx) * px + (r[0, 1] - T.cy) * py for r in recs]
+    kc = int(np.argmin(np.abs(q))) if recs and len(recs) == len(calls) else None
+    central = None
+    if kc is not None:
+        c = calls[kc]
+        r = recs[kc]
+        n = c["s"].size
+        idx = np.unique(np.linspace(0, n - 1, 14).astype(int))
+        sx = np.interp(c["s"][idx], r[:, 3], r[:, 0])
+        sy = np.interp(c["s"][idx], r[:, 3], r[:, 1])
+        sz = np.interp(c["s"][idx], r[:, 3], r[:, 2])
+        central = dict(q=float(q[kc]), s=c["s"][idx], H=c["H"][idx], cf=c["cf"][idx], x=sx, y=sy, z=sz, i_sep=int(c["i_sep"]),
+                       s_total=float(c["s"][-1]))
+    Hs = [float(np.nanmax(c["H"])) for c in calls if np.isfinite(c["H"]).any()]
+    cs = [float(np.nanmin(c["cf"])) for c in calls if np.isfinite(c["cf"]).any()]
+    pts, rej = res["points"], res["rejected"]
+    return dict(n_lines=len(Hs), n_sep=int(len(pts["x"])), n_rej=int(len(rej["x"])),
+                H_max=max(Hs) if Hs else None, cf_min=min(cs) if cs else None,
+                H_sep=[float(v) for v in pts["value"]], rej=rej, sep=pts, central=central)

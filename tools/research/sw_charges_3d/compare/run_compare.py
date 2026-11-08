@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import core as C  # noqa: E402
 
 VARIANTS = ("potential", "potential_jh")
-SCAN_SIGMA = (0.0, 20.0, 40.0, 80.0, 160.0)
+SCAN_SIGMA = (0.0, 20.0, 25.0, 40.0, 50.0, 60.0, 80.0, 120.0, 160.0)
 SCAN_DS = (25.0, 35.0, 50.0)
 Z_LEVELS = (10.0, 20.0, 50.0, 100.0, 200.0, 300.0)
 
@@ -142,7 +142,7 @@ def gauss_diag():
     sig, _ = C.solve(pan, bg, None, infl)
 
     from types import SimpleNamespace
-    R = SimpleNamespace(panels=pan, sigma=sig, bg=bg, z0=0.03)
+    R = SimpleNamespace(panels=pan, sigma=sig, bg=bg, z0=0.03, terrain=T, wt=(1.0, 0.0))
     d = C.separation_diag(R)
     return pan.N, d
 
@@ -178,10 +178,23 @@ def run_main(case, refs):
     for item, val, note in (
             ("sep_n_lines", sd["n_lines"], "линий тока с расчётом слоя"),
             ("sep_n_points_lee_only", sd["n_sep"], "точек отрыва по Хеду, lee_only=True"),
-            ("sep_n_rejected_by_lee_only", sd["n_rej"], "точек, где Хед даёт отрыв вне подветренной зоны (отброшены lee_only)"),
-            ("H_max_along_lines", sd["H_max"], "max формпараметра H по всем линиям (порог отрыва 2,4); итог march_layer"),
+            ("sep_n_rejected_by_lee_only", sd["n_rej"], "точек отрыва, которые Хед даёт вне подветренной зоны (отброшены lee_only; координаты — windward_sep_point)"),
+            ("H_sep_median", float(np.median(sd["H_sep"])) if sd["H_sep"] else None, "медиана H в точках отрыва (интерполяция на пороге 2,4)"),
+            ("H_max_along_lines", sd["H_max"], "max H по всем линиям (насыщение формулы H(H1) ~11,7 — не физическое значение)"),
             ("cf_min_along_lines", sd["cf_min"], "min cf по всем линиям")):
         res["diag"].append(dict(case=case, item=item, value=fnum(val), note=note))
+    ce = sd["central"]
+    if ce is not None:
+        for j in range(len(ce["s"])):
+            res["diag"].append(dict(case=case, item=f"central_line_H_s{ce['s'][j]:.0f}", value=fnum(ce["H"][j]),
+                                    note=f"H вдоль средней линии тока (затравка q = {ce['q']:.0f} м), s = {ce['s'][j]:.0f} м из {ce['s_total']:.0f}; "
+                                         f"x = {ce['x'][j]:.0f}, y = {ce['y'][j]:.0f}, z = {ce['z'][j]:.0f} м; cf = {ce['cf'][j]:.5f}; "
+                                         f"отрыв на этой линии: {'да (i_sep = %d)' % ce['i_sep'] if ce['i_sep'] >= 0 else 'нет'}"))
+    rj = sd["rej"]
+    for j in range(len(rj["x"])):
+        res["diag"].append(dict(case=case, item="windward_sep_point", value=fnum(rj["s_sep"][j]),
+                                note=f"отброшенная lee_only точка отрыва: x = {rj['x'][j]:.0f}, y = {rj['y'][j]:.0f}, z = {rj['z'][j]:.0f} м, "
+                                     f"линия тока {int(rj['streamline'][j])}, s по линии (value) = {rj['s_sep'][j]:.0f} м"))
     run.free()
     return res
 
@@ -254,7 +267,7 @@ def problems(main, scan, gauss):
     P.append(dict(problem="2. отрыв на наветренном склоне (Хед без lee_only)", kind="схема",
                   status="осталась" if any(v > 0 for v in rej.values()) else "ушла",
                   evidence=f"Хед даёт отрыв вне подветренной зоны (отброшено lee_only): Askervein {rej['ASK_TU03B']}, Perdigão NE {rej['PERD_NE']}, "
-                           f"SW {rej['PERD_SW']} линий тока; без lee_only эти точки остались бы"))
+                           f"SW {rej['PERD_SW']} точек (по линиям тока); координаты — diag `windward_sep_point`; без lee_only эти точки остались бы"))
     # 3
     ht = {v: next((r for r in R if r["case"] == "ASK_TU03B" and r["variant"] == v and r["ref_kind"] == "mast" and r["name"] == "HT"
                    and abs(r["z_agl"] - 10) < 1e-6), None) for v in VARIANTS}
@@ -268,7 +281,7 @@ def problems(main, scan, gauss):
                            f"potential_jh {ht['potential_jh']['dS_pan']:.3f}; гребень P_crest_0, 50 м, s_pan − s_nom: " +
                            "; ".join(f"{c} {v}: {cr[(c, v)]['err']:+.2f}" for c in C.CASES for v in VARIANTS) +
                            f". Порог: |dS_pan − dS_ref| ≤ 0,15·dS_ref у potential_jh на HT 10 м. С логарифмическим фоном (контроль) HT 10 м dS потенциал {bl[('ASK_TU03B','bglog_potential_dS_HT_10')]:.3f}, "
-                           f"jh {bl[('ASK_TU03B','bglog_potential_jh_dS_HT_10')]:.3f}. Перелёта нет, есть недобор (ΔS берётся на высоте l > 10 м по контракту SWD2). Труб Lubitz–White в 3D не считали"))
+                           f"jh {bl[('ASK_TU03B','bglog_potential_jh_dS_HT_10')]:.3f}. " + ("Перелёта нет, есть недобор (ΔS берётся на высоте l > 10 м по контракту SWD2)." if ht["potential_jh"]["dS_pan"] < ht["potential_jh"]["dS_ref"] else "Перелёт ΔS.") + f" Труб Lubitz–White в 3D не считали"))
     # 4
     sp = {}
     for s in scan:
@@ -303,11 +316,19 @@ def problems(main, scan, gauss):
         for v in VARIANTS:
             rm, n = u_rmse(c, v)
             ev8.append(f"{c}/{v}: RMSE u∥/U {rm:.3f} (n {n}), RMSE s {rmse([r['err'] for r in sel(c, v, 'mast')]):.3f}")
-    Hm = {c: dg(c, "H_max_along_lines") for c in ("PERD_NE", "PERD_SW")}
+    def central_sep(c):
+        d = next((d for d in main["diag"] if d["case"] == c and d["item"].startswith("central_line_H_s") and "отрыв на этой линии: да" in d["note"]), None)
+        return d is not None
+    Hs = {c: dg(c, "H_sep_median") for c in ("PERD_NE", "PERD_SW")}
+    nsep = {c: dg(c, "sep_n_points_lee_only") for c in ("PERD_NE", "PERD_SW")}
+    csep = {c: central_sep(c) for c in ("PERD_NE", "PERD_SW")}
     P.append(dict(problem="8. мачты Perdigão и исчезнувший отрыв", kind="не выяснено",
-                  status="осталась" if all(h is None or h < 2.4 for h in Hm.values()) else "ушла",
-                  evidence="; ".join(ev8) + f". Отрыв в лее есть: точек отрыва (lee_only) NE {dg('PERD_NE', 'sep_n_points_lee_only'):.0f}, SW {dg('PERD_SW', 'sep_n_points_lee_only'):.0f}, H_max вдоль линий NE {Hm['PERD_NE']:.2f}, SW {Hm['PERD_SW']:.2f} (порог 2,4; ~11,7 — насыщение формулы H(H1)); ротор (обратный u∥ на 15 м) при этом не возникает ни в одном разрезе — слой Хеда не даёт обратной скорости; "
-                           "2D было RMSE u∥/S 0,27 (NE) и 0,21 (SW) для игры, 0,495 и 0,273 для SWC-19 — сравнение прямое лишь по порядку величины (другая нормировка и набор мачт)"))
+                  status="ушла" if all(nsep[c] > 0 and csep[c] for c in nsep) else "осталась",
+                  evidence="; ".join(ev8) + f". Отрыв в лее по Хеду (lee_only): точек NE {nsep['PERD_NE']:.0f}, SW {nsep['PERD_SW']:.0f}; "
+                           f"на средней линии тока отрыв NE {'есть' if csep['PERD_NE'] else 'нет'}, SW {'есть' if csep['PERD_SW'] else 'нет'}; "
+                           f"медиана H в точках отрыва NE {Hs['PERD_NE']}, SW {Hs['PERD_SW']} (порог 2,4); H(s), cf(s) средней линии — diag `central_line_H_s*`. "
+                           "Ротор (обратный u∥ на 15 м) при этом не возникает ни в одном разрезе — слой Хеда не даёт обратной скорости; число H_max вдоль линий (~11,7) — насыщение формулы, в статус не входит. "
+                           "2D: RMSE u∥/S 0,27 (NE), 0,21 (SW) у игры, 0,495 и 0,273 у SWC-19 — сравнение лишь по порядку (другая нормировка, набор мачт)"))
     P.append(dict(problem="9. вихри не влияют на velocity_jh (вклад аддитивный)", kind="схема", status="не проверено",
                   evidence="нужны нити (SWD-5b, velocity_jh(couple=True)); в SWD-5 вихрей нет"))
     P.append(dict(problem="10. отрыв термика от склона", kind="схема", status="не проверено",
@@ -366,6 +387,44 @@ def tables_md(main, scan, probs):
                       and abs(r["z_agl"] - z) < 1e-6), None) for v in VARIANTS}
         if d["potential"]:
             L.append(f"| {z} | {d['potential']['dS_ref']:.3f} | {d['potential']['dS_pan']:.3f} | {d['potential_jh']['dS_pan']:.3f} |")
+    L += ["", "## Доля в ±15 % от Пикара: случай × тип точки × z_agl (nom / adv1)", "",
+          "Ячейка: nom / adv1 (n); строки Пикара на 10 м — справочно (ниже 50 м). «—» — нет точек.", "",
+          "| случай | вариант | тип | 10 м | 50 м | 300 м |", "|---|---|---|---|---|---|"]
+    for c in C.CASES:
+        for v in VARIANTS:
+            for t in ("upstream", "windward", "crest", "lee", "valley"):
+                cells = []
+                for z in (10.0, 50.0, 300.0):
+                    parts = []
+                    for rk in ("picard_nom", "picard_adv1"):
+                        m = [r for r in R if r["case"] == c and r["variant"] == v and r["ref_kind"] == rk and r["point"] == t
+                             and abs(r["z_agl"] - z) < 1e-6]
+                        parts.append((f"{np.mean([r['within_tol'] for r in m]):.2f}", len(m)) if m else ("—", 0))
+                    cells.append(f"{parts[0][0]} / {parts[1][0]} (n {parts[0][1]})" if parts[0][1] else "—")
+                if any(x != "—" for x in cells):
+                    L.append(f"| {c} | {v} | {t} | " + " | ".join(cells) + " |")
+    L += ["", "Все высоты (nom / adv1), доля в ±15 %, только z_agl ≥ 50 м:", "", "| случай | вариант | nom | adv1 |", "|---|---|---|---|"]
+    for c in C.CASES:
+        for v in VARIANTS:
+            vals = []
+            for rk in ("picard_nom", "picard_adv1"):
+                m = [r for r in R if r["case"] == c and r["variant"] == v and r["ref_kind"] == rk and r["z_agl"] >= 50]
+                vals.append(f"{np.mean([r['within_tol'] for r in m]):.2f} (n {len(m)})")
+            L.append(f"| {c} | {v} | {vals[0]} | {vals[1]} |")
+    L += ["", "## Askervein: линии A, AA, B (мачты на 10 м) — dS данных (FSR) и панелей", "",
+          "| мачта | линия | dS данных | potential | potential_jh | ref_err |", "|---|---|---|---|---|---|"]
+    for r in R:
+        if r["case"] == "ASK_TU03B" and r["variant"] == "potential" and r["ref_kind"] == "mast" and abs(r["z_agl"] - 10) < 1e-6 \
+                and r["name"][:2] in ("AA", "AN", "AS", "BN", "BS") and r["dS_ref"] is not None:
+            j = next(q for q in R if q["variant"] == "potential_jh" and q["case"] == r["case"] and q["name"] == r["name"]
+                     and q["ref_kind"] == "mast" and abs(q["z_agl"] - 10) < 1e-6)
+            ln = "AA" if r["name"].startswith("AA") else ("A" if r["name"][0] == "A" else "B")
+            L.append(f"| {r['name']} | {ln} | {r['dS_ref']:.3f} | {r['dS_pan']:.3f} | {j['dS_pan']:.3f} | "
+                     f"{'' if r['ref_err'] is None else format(r['ref_err'], '.3f')} |")
+    L += ["", "## Perdigão: H(s), cf(s) вдоль средней линии тока", "", "| случай | s, м | H | примечание |", "|---|---|---|---|"]
+    for d in main["diag"]:
+        if d["item"].startswith("central_line_H_s"):
+            L.append(f"| {d['case']} | {d['item'][len('central_line_H_s'):]} | {d['value']} | {d['note']} |")
     L += ["", "## Время", "", "| случай | вариант | N | сборка, с | решение (LU), с | запрос, мкс/точку | backend |", "|---|---|---|---|---|---|---|"]
     for t in main["timing"]:
         L.append(f"| {t['case']} | {t['variant']} | {t['N']} | {t['t_assemble_s']:.1f} | {t['t_solve_s']:.1f} | {t['t_query_us']:.0f} | {t['backend']} |")
@@ -391,7 +450,8 @@ def tables_md(main, scan, probs):
         L.append(f"| {r['case']} | {r['transect']} | {r['variant']} | {r['present']} | {r['L_m']:.0f} | {r['L_ref']} |")
     L += ["", "## Диагностика отрыва", "", "| случай | пункт | значение | примечание |", "|---|---|---|---|"]
     for d in main["diag"]:
-        L.append(f"| {d['case']} | {d['item']} | {d['value']} | {d['note']} |")
+        if d["item"] != "windward_sep_point" and not d["item"].startswith("central_line_H_s"):
+            L.append(f"| {d['case']} | {d['item']} | {d['value']} | {d['note']} |")
     L += ["", "## 12 проблем 2D", "", "| проблема | вид | статус | основание |", "|---|---|---|---|"]
     for p in probs:
         L.append(f"| {p['problem']} | {p['kind']} | {p['status']} | {p['evidence']} |")
