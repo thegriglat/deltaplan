@@ -1,0 +1,154 @@
+{
+  "status": "done",
+  "summary": "Вихревой лист γ = U_e − u_d на оболочке мёртвой зоны SWG-4 (WakeGrid slope; петли с возвратом под землёй, отражение σ_ex, velocity_jh couple), все 4956 точек SWG1 и мачты. В лее знак верный, лучше во всех случаях (лее 10 м ASK +1,01 → +0,48, NE +1,48 → +1,12, SW +2,00 → +1,55), но мало: доля в ±15 % 0,07–0,14. Не встраивать; следующая идея есть: скорость зоны вместо JH под листом (sheet_jh_zone: NE +0,53, SW +0,98) и слой смешения конечной толщины.",
+  "commits": [
+    "e9d98e92d sw-ground SWG-7: вихревой лист слоя сдвига над мёртвой зоной (ток) + JH couple"
+  ],
+  "checks": [
+    {
+      "name": "contract",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "base",
+      "value": "2",
+      "pass": true
+    },
+    {
+      "name": "sheet_rows",
+      "value": "20932",
+      "pass": true
+    },
+    {
+      "name": "masts",
+      "value": "60",
+      "pass": true
+    },
+    {
+      "name": "pytest",
+      "value": "5 passed",
+      "pass": true
+    },
+    {
+      "name": "base_check potential_jh vs swg-1",
+      "value": "max |Δs| = 0 (все случаи)",
+      "pass": true
+    },
+    {
+      "name": "итерации γ (rest)",
+      "value": "64/64 групп сошлись за 9–11 итераций, несошедшихся узлов 0",
+      "pass": true
+    },
+    {
+      "name": "Аньези H/L 0,5, 10 м, x=300/450 м",
+      "value": "potential_jh 4,44/4,35 → sheet_jh 0,93/0,89 м/с",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Цель лее не достигнута: доля в ±15 % в лее 10 м 0,07/0,14/0,12 (ASK/NE/SW) против 0,03/0,15/0,08 до."
+  ],
+  "questions": [
+    "Следующий круг: (1) под листом — скорость зоны вместо JH (sheet_jh_zone уже посчитан как вариант), (2) γ по толщине δ_ω = 0,181·(s − x_s) (Brown & Roshko 1974) — одна задача или две?"
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SWG-7; таблицы — tools/research/sw_ground/out/swg-7/tables.md; README — tools/research/sw_ground/sheet/README.md",
+  "uncertain": [
+    {
+      "where": "tools/research/sw_ground/sheet/core.py:Sheet (closure rest)",
+      "why": "U_e берётся у реального поля (панели + лог-фон со сдвигом) на высоте листа; невязкое поле под листом = U_фон(z) − γ даёт обратный поток, а не покой (Аньези 10 м: |u| 3,5 м/с при потенциале 1,3)",
+      "checked": "в 2D на однородном фоне γ = U, под листом 0 (аналитически); на Аньези итерации сходятся"
+    },
+    {
+      "where": "tools/research/sw_ground/sheet/core.py:sheet_parts zone_speed",
+      "why": "вариант _zone — |невязкое поле|·ln(z/z0)/ln(h/z0) — моё определение «u_d + лог-профиль»; модуль обратного потока, не скорость рециркуляции из литературы",
+      "checked": "под листом Perdigão 10 м даёт s 0,09–0,13 при Пикаре 0,08–0,10"
+    },
+    {
+      "where": "tools/research/sw_ground/sheet/core.py:SheetGeom.nodes",
+      "why": "узлы у x_s/x_r подняты до core/2; дальний лист над крупными панелями — отражение грубее, отдельно не оценено",
+      "checked": "невязка Γ в узлах 0; совпадение с velocity_jh couple < 1e-9"
+    },
+    {
+      "where": "sheet_jh_cpb",
+      "why": "C_pb = −0,2 взят из sheet3d v6, по памяти литературы, страницы не сверены",
+      "checked": "вариант не основной; на 10 м хуже rest"
+    }
+  ],
+  "dp_feedback": "task show без --full обрезает дополнения координатора — нужное было только в --full; удобно бы показывать их целиком по умолчанию.",
+  "extra": {
+    "lee_10m_mean_rel": {
+      "potential_jh": {
+        "ASK": 1.01,
+        "NE": 1.48,
+        "SW": 2.0
+      },
+      "sheet_jh": {
+        "ASK": 0.48,
+        "NE": 1.12,
+        "SW": 1.55
+      },
+      "sheet_jh_cpb": {
+        "ASK": 0.61,
+        "NE": 1.48,
+        "SW": 1.84
+      },
+      "sheet_jh_zone": {
+        "ASK": 0.5,
+        "NE": 0.53,
+        "SW": 0.98
+      }
+    },
+    "lee_50m_mean_rel": {
+      "potential_jh": {
+        "NE": 1.68,
+        "SW": 1.87
+      },
+      "sheet_jh": {
+        "NE": 0.92,
+        "SW": 1.51
+      }
+    },
+    "masts_rmse_all": {
+      "potential_jh": {
+        "ASK": 0.218,
+        "NE": 0.184,
+        "SW": 0.126
+      },
+      "sheet_jh": {
+        "ASK": 0.235,
+        "NE": 0.151,
+        "SW": 0.129
+      }
+    },
+    "harm": {
+      "ASK_mast_crest_rmse": "0.252 → 0.286 (ложные зоны)",
+      "max_abs_d_mean_rel_300m": 0.017,
+      "norm_ratio_sheet_over_base": {
+        "ASK": 1.0,
+        "NE": 0.997,
+        "SW": 0.988
+      }
+    },
+    "lee_10m_cover_inside": {
+      "cover": {
+        "ASK": 0.37,
+        "NE": 0.57,
+        "SW": 0.51
+      },
+      "inside": {
+        "ASK": 0.26,
+        "NE": 0.48,
+        "SW": 0.39
+      },
+      "jh_reverse": {
+        "ASK": 0.1,
+        "NE": 0.29,
+        "SW": 0.16
+      }
+    }
+  },
+  "t": "2026-11-09T00:45:01",
+  "by": "executor"
+}
