@@ -1,4 +1,4 @@
-"""Тесты rotor3d (SWD7 v1): нить ротора с геометрическим замыканием. Результат модели — в README."""
+"""Тесты rotor3d (SWD7 v2; тесты v1 — closure="two_point"): нить ротора с геометрическим замыканием. Результат модели — в README."""
 import time
 
 import numpy as np
@@ -93,13 +93,13 @@ def agnesi():
 @pytest.fixture(scope="module")
 def ag_contract(agnesi):
     """Правило SWD7 как в контракте (x_m — середина x_c…x_r)."""
-    return rotor3d.rotor_vortex(agnesi["p"], agnesi["bg"], 0.1, agnesi["infl"], {})
+    return rotor3d.rotor_vortex(agnesi["p"], agnesi["bg"], 0.1, agnesi["infl"], dict(closure="two_point", gate="head"))
 
 
 @pytest.fixture(scope="module")
 def ag_shifted(agnesi):
     """Диагностика: x_m = x_c + 0,3·(x_r − x_c) — единственное отличие от контракта (params m_frac)."""
-    return rotor3d.rotor_vortex(agnesi["p"], agnesi["bg"], 0.1, agnesi["infl"], dict(m_frac=0.3))
+    return rotor3d.rotor_vortex(agnesi["p"], agnesi["bg"], 0.1, agnesi["infl"], dict(closure="two_point", gate="head", m_frac=0.3))
 
 
 def test_agnesi_contract_rule_has_no_root(agnesi, ag_contract):
@@ -186,3 +186,49 @@ def test_cost_in_panel_solves(agnesi, ag_shifted, ag_contract):
     t_r = ag_shifted[2]["t_s"]
     print(f"\nN={p.N}: rotor_vortex {t_r:.1f} с (решений {ag_shifted[2]['nsolve']}), одно решение с нитью {t_one:.2f} с "
           f"(≈ {t_r / t_one:.1f}), холодное {agnesi['t_cold']:.1f} с, тёплое без нити {agnesi['t_warm']:.3f} с")
+
+
+# ---------- v2: одно условие — ноль скорости в присоединении, R = (x_r − x_c)/4 ----------
+@pytest.fixture(scope="module")
+def ag_v2(agnesi):
+    return rotor3d.rotor_vortex(agnesi["p"], agnesi["bg"], 0.1, agnesi["infl"], dict(gate="head"))
+
+
+def test_v2_agnesi_default_slope_gate_rejects(agnesi):
+    """Находка: сглаженный (σ = 2·ds_min) подветренный уклон Agnesi H/L 0,5 при ds 50 м — 0,244 < 0,27, т.е. порог
+    по уклону Agnesi отрезает (и не отличает от C4: 0,249); нить на Agnesi — только при gate="head" (контракт v2
+    требует корень на Agnesi при порогах по умолчанию — противоречие, в отчёте)."""
+    fil, sig, info = rotor3d.rotor_vortex(agnesi["p"], agnesi["bg"], 0.1, agnesi["infl"], {})
+    c = info["candidates"][0]
+    print(f"\nAgnesi gate=slope: slope_lee={c['slope_lee']:.3f}, head={c['head']}")
+    assert c["head"] and not c["slope"] and c["slope_lee"] < 0.27 and len(fil.seg) == 0
+
+
+def test_v2_agnesi_root_zero_at_reattach(agnesi, ag_v2):
+    fil, sig, info = ag_v2
+    r = info["ridges"][0]
+    assert r["closure"] == "reattach" and r["gate"] == "head" and r["converged"] and r["Gamma"] > 0
+    assert abs(r["R"] - 0.25 * (r["x_r"] - r["x_c"])) < 1e-6                     # правило геометрии, без подгонки
+    assert F.imbalance(fil) <= 1e-12 and fil.anchored.sum() == 2 and info["nsolve"] <= 5
+    p, bg = agnesi["p"], agnesi["bg"]
+    extra = R._fp._induced_fn(fil)
+    sig2, _ = P.solve(p, bg, extra, agnesi["infl"])
+    assert np.allclose(sig, sig2, rtol=1e-6, atol=1e-6 * np.abs(sig2).max())
+    ridge = R._fp.find_ridges(agnesi["t"], (1.0, 0.0), DS_AG)[0]
+    from panels3d.jh import _line_profile
+    ax = R._fp._axis_of(ridge, (1.0, 0.0), ridge["dc"])
+    Pc = ax["c0"] + 0.5 * (ax["t0"] + ax["t1"]) * ax["a"]
+    s, z = _line_profile(agnesi["t"], float(Pc[0]), float(Pc[1]), 1.0, 0.0, DS_AG / 2)
+    rule = R.profile_rule(s, z, DS_AG, 0.0, 0.1, 0.5)
+    U = P.terrain.u_ref_of(bg, agnesi["t"])[0]
+    ob = R._Rotor(p, bg, ridge, (1.0, 0.0), U, 0.5 * DS_AG, 2 * DS_AG, 1.5, rule)
+    ut_r = ob.tangent(ob.st[1], sig2, extra)
+    assert abs(ut_r) <= 1e-3 * U, ut_r
+    xs = np.linspace(r["x_c"] + 20.0, r["x_r"] - 20.0, 12)
+    zg = agnesi["t"].height(xs, np.zeros_like(xs)) + 10.0
+    u = rotor3d.velocity_rotor(p, sig, bg, fil, xs, np.zeros_like(xs), zg, 0.1, infl=agnesi["infl"])[0]
+    umin = float(np.nanmin(u))
+    print(f"\nAgnesi v2: R={r['R']:.1f} м, Γ={r['Gamma']:.0f} = {r['Gamma'] / (U * r['H']):.2f}·U·H, x_r={r['x_r']:.0f}, "
+          f"u_t(x_c)={r['ut_c']:.2f} (фон {r['ut_bg'][0]:.1f}), u∥(10 м) min {umin:.1f} ({umin / U:.2f}·U), nsolve {info['nsolve']}")
+    assert umin < 0
+

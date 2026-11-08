@@ -1,4 +1,4 @@
-"""Нить ротора с геометрическим замыканием (SWD7 v1).
+"""Нить ротора с геометрическим замыканием (SWD7 v2; closure="two_point" — v1).
 
 Вихрь в потенциальном потоке сам не держится (равновесие Фёппля корня при отрыве на гребне не имеет — sheet3d),
 поэтому положение нити задаёт геометрия, одно правило на все места: линия тока над серединой хребта — гребень x_c
@@ -17,7 +17,7 @@ from panels3d import influence as _inf
 from panels3d.jh import crests_profile, _line_profile
 from sheet3d import foppl as _fp
 
-DEFAULTS = dict(core=None, gate="head", slope_min=0.27, tail_frac=0.10, seg=None, patch=1.5, tol=4e-4,
+DEFAULTS = dict(core=None, closure="reattach", R_rule=0.25, gate="slope", slope_min=0.27, tail_frac=0.10, seg=None, patch=1.5, tol=4e-4,
                 r_min=None, r_max=3.0, maxfev=6, m_frac=0.5)
 
 
@@ -131,12 +131,36 @@ class _Rotor(_fp._Ridge):
         return np.array([self.tangent(st, sig, extra, False) for st in self.st]), sig
 
 
+def _solve_reattach(ob, infl, sigma_bg, bg0, pr):
+    """v2: R — правило геометрии (R_rule·(x_r − x_c) по нормали от x_m), единственная неизвестная Γ из условия
+    u_t(x_r) = 0 (линейно по Γ: a₂ + Γ·b₂ = 0, одно решение панелей); x_c — не условие, u_t(x_c) — результат."""
+    a = np.array([ob.tangent(st, sigma_bg, None) for st in ob.st])
+    rule = ob.rule
+    R = float(pr["R_rule"]) * (rule["s_r"] - rule["s_c"])
+    rec = dict(R=R, G=np.nan, s=np.nan, h=np.nan, res=np.inf, converged=False, fil=None,
+               a=(float(a[0]), float(a[1])), nsolve=0, grid=[], ut_c=np.nan)
+    u = ob.unit(R, infl, bg0)
+    if u is not None:
+        b, sig1 = u
+        if abs(b[1]) > 1e-12 * ob.U:
+            G = -a[1] / b[1]
+            s, h = ob.geometry(R)
+            res = abs(a[1] + G * b[1]) / ob.U
+            ok = bool(np.isfinite(G) and G > 0 and res < 1e-3)
+            rec.update(G=float(G), s=s, h=h, res=float(res), converged=ok, ut_c=float(a[0] + G * b[0]))
+            if ok:
+                rec["fil"] = ob.build(s, h, G)
+                rec["sigma"] = sigma_bg + G * sig1       # линейность по Γ
+    rec["nsolve"] = ob.nsolve
+    return rec
+
+
 def _gate_slope(rule, slope_min):
     return rule["slope_lee"] > slope_min
 
 
 def rotor_vortex(panels, bg, z0, infl=None, params=None):
-    """Нить ротора по хребтам (контракт SWD7 v1). → (fil, sigma, info)."""
+    """Нить ротора по хребтам (контракт SWD7 v2). → (fil, sigma, info)."""
     t_start = time.time()
     pr = dict(DEFAULTS)
     pr.update(params or {})
@@ -152,6 +176,8 @@ def rotor_vortex(panels, bg, z0, infl=None, params=None):
     ridges = _fp.find_ridges(terrain, wind, ds)
     info = dict(ridges=[], n_ridges=len(ridges), n_rejected=0, n_unconverged=0, t_s=0.0, nsolve=0, candidates=[])
     gate = pr["gate"]
+    if pr["closure"] not in ("reattach", "two_point"):
+        raise ValueError("closure: reattach | two_point")
     if gate not in ("head", "slope", "none"):
         raise ValueError("gate: head | slope | none")
     kept_ids = {id(r) for r in ridges}
@@ -177,14 +203,18 @@ def rotor_vortex(panels, bg, z0, infl=None, params=None):
             continue
         ob = _Rotor(panels, bg, r, wind, U_ref, core, 2.0 * ds if pr["seg"] is None else float(pr["seg"]),
                     pr["patch"], rule)
-        recs.append((ob, _solve_rotor(ob, infl, bg, sigma_bg, bg0, pr)))
+        if pr["closure"] == "reattach":
+            recs.append((ob, _solve_reattach(ob, infl, sigma_bg, bg0, pr)))
+        else:
+            recs.append((ob, _solve_rotor(ob, infl, bg, sigma_bg, bg0, pr)))
     for ob, rec in recs:
         rule = ob.rule
         out = dict(x_c=float(ob.P_c[0]), y_c=float(ob.P_c[1]), x_r=float(ob.P_r[0]), y_r=float(ob.P_r[1]),
                    x_m=float(ob.P_m[0]), y_m=float(ob.P_m[1]), axis=(float(ob.a[0]), float(ob.a[1])),
                    L_axis=float(ob.Lax), H=float(ob.H), rule_r=rule["rule_r"], slope_lee=float(rule["slope_lee"]),
                    R=rec["R"], Gamma=rec["G"], s=rec["s"], h=rec["h"], gate=gate, placed=bool(rec["converged"]),
-                   converged=bool(rec["converged"]), residual=rec["res"], nsolve=rec["nsolve"], ut_bg=rec["a"], grid=rec["grid"])
+                   converged=bool(rec["converged"]), residual=rec["res"], nsolve=rec["nsolve"], ut_bg=rec["a"], grid=rec["grid"],
+                   ut_c=rec.get("ut_c", np.nan), closure=pr["closure"])
         info["ridges"].append(out)
         info["nsolve"] += rec["nsolve"]
         if rec["converged"]:
