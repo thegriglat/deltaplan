@@ -1,0 +1,44 @@
+{
+  "verdict": "accept",
+  "summary": "Сетка окна совпадает с rust/dp-air window.rs (window_domain/window_vertical, nz 62/112, угол кратен 25 м); порядок классов z0 = CLASS_NAMES крейта; Пикар — Formula крейта, время окна из WinReport.secs, смена ветра через set_conditions+advance_to (тёплый старт подтверждён в raw). timing.json по SWG4 v1, все 67 файлов в скоупе, приёмка 4/4 перезапущена. Ограничения (ds_min = dx вместо 25 м, чужая загрузка GPU, 2 повторения на 50 м, z0 константа, Пикар считает не то же поле) честно названы в note и README.",
+  "issues": [
+    {
+      "file": "tools/research/sw_ground/timing/README.md",
+      "line": 83,
+      "severity": "minor",
+      "what": "В «Границах» сказано «при 26 нитях на окне 100 м», в отчёте и строке cold — 24 (26 — после смены ветра); в таблице у panels_rotor 50 м стоит «(1–2 повт.)», фактически 2 повторения у обеих стадий.",
+      "fix": "Уточнить: 24 (холодный) / 26 (смена ветра) нитей; «2 повт.»."
+    },
+    {
+      "file": "tools/research/sw_ground/timing/panels_timing.py",
+      "line": 112,
+      "severity": "minor",
+      "what": "В stage() часть «solve» включает два решения (фон log + однородный фон для JH-кеша) — в README это описано, но в parts одной строкой; при сравнении с «LU/solve» контракта это не ошибка, только непрозрачность.",
+      "fix": "Ничего менять не обязательно; при желании разделить на solve_bg/solve_uniform в parts."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "accept --dry (contract, windows, stages, pytest, scope)",
+      "value": "4/4 PASS, 67 файлов в скоупе",
+      "pass": true
+    },
+    {
+      "name": "window_grid vs rust window.rs",
+      "value": "формулы window_domain/window_vertical идентичны; nz 62/112",
+      "pass": true
+    },
+    {
+      "name": "z0 классы: порядок ключей surface_heat.json = CLASS_NAMES",
+      "value": "none, forest, grass, crop, shrub, bare, water, built, snow — совпадает",
+      "pass": true
+    },
+    {
+      "name": "raw picard_8_5_0: warm start при смене ветра, cur u10/wdir",
+      "value": "warm=True, u10 9.0, wdir 181; окна 2.98/6.13 с cold, 3.56/13.78 с wc",
+      "pass": true
+    }
+  ],
+  "t": "2026-11-08T23:07:02",
+  "by": "reviewer"
+}
