@@ -127,3 +127,4 @@
 {"t": "2026-11-08T17:31:25", "by": "coordinator", "task": "SWD-7", "ev": "accepted", "commits": ["b23652e26"], "note": "5/5 pytest-fil=ok:exit 0; pytest-fil-pass=ok:18; pytest-sim=ok:exit 0; pytest-sim-pass=ok:10; api=ok:exit 0"}
 {"t": "2026-11-08T17:31:35", "by": "reviewer", "task": "SWD-9", "ev": "reviewed", "note": "Код и тесты соответствуют отчёту (7 passed, api/scope PASS перепроверены). Скоуп соблюдён, подгонки нет: отсутствие корня у замыкания «Фёппль + Kutta в вершине…", "verdict": "accept", "issues": {"major": 2, "minor": 3}, "review": "docs/plan/sw-charges-3d/tasks/SWD-9.review.json"}
 {"t": "2026-11-08T17:32:05", "by": "coordinator", "task": "SWD-9", "ev": "accepted", "note": "по ревью (fable): partial — корня у замыкания Фёппль + отрыв на гребне нет; шлюз Q2"}
+{"t": "2026-11-08T17:32:06", "by": "coordinator", "task": "SWD-9", "ev": "merged"}
