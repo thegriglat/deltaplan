@@ -269,12 +269,12 @@ def check_compare(path, d):
         one_of(r["status"], {"ушла", "осталась", "новая в 3D", "не проверено"}, f"problems2d[{i}].status")
     for i, r in enumerate(d["scan"]):
         need(r, ("case", "variant", "param", "value", "metric", "result"), f"scan[{i}]")
-        one_of(r["param"], {"smooth_m", "z_over_H", "ds_min"}, f"scan[{i}].param")
+        one_of(r["param"], {"smooth_m", "z_over_H", "ds_min", "tau_s"}, f"scan[{i}].param")
     for i, r in enumerate(d["diag"]):
         need(r, ("case", "item", "value", "note"), f"diag[{i}]")
 
 
-JSON_FORMATS = {"sw3d-points": (1, check_points), "sw3d-compare": (2, check_compare)}
+JSON_FORMATS = {"sw3d-points": (1, check_points), "sw3d-compare": (3, check_compare)}
 
 
 def check_file(path):
@@ -381,7 +381,7 @@ def _good_compare():
            "s_ref": 1.0, "s_pan": 1.1, "dS_ref": None, "dS_pan": None, "u_par_ref": 5.0, "u_par_pan": 5.5, "err": 0.1,
            "within_tol": True, "within_tol_ref": True, "ds_min": 25.0, "N": 10000, "ref_use": "справочно",
            "smooth_m": 40.0}
-    return {"format": "sw3d-compare", "version": 2, "git": "x", "created": "t", "tol_picard": 0.15, "rows": [row],
+    return {"format": "sw3d-compare", "version": 3, "git": "x", "created": "t", "tol_picard": 0.15, "rows": [row],
             "rotor": [{"case": "PERD_NE", "transect": "T1", "variant": "vortex_jh", "present": True, "L_m": 500.0,
                        "depth_m": 100.0, "L_ref": 530.0, "ref_source": "menke2019"}],
             "timing": [{"case": "PERD_NE", "variant": "potential", "N": 10000, "t_assemble_s": 1.0, "t_solve_s": 1.0,
