@@ -1,0 +1,56 @@
+{
+  "id": "SWD-3",
+  "module": "sw-charges-3d",
+  "type": "dp-engineer",
+  "title": "filaments3d: замкнутые вихревые нити — Био–Савар, растяжение, дробление, перезамыкание, затухание",
+  "goal": "Пакет filaments3d по SWD3: вихревые нити как граф отрезков с Γ, замкнутые (петли или концы на земле, ∇·ω = 0), Био–Савар Розенхеда–Мура на GPU, шаг RK2 с растяжением, дроблением/слиянием, перезамыканием, ростом ядра и затуханием, сход вдоль линии отрыва; инварианты SWD3 — тестами.",
+  "plan_ref": "Задачи 2 (Вихревые нити 3D)",
+  "contracts": [
+    {
+      "name": "SWD3",
+      "version": "1",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sw-charges-3d-SWD-3",
+  "branch": "sw-charges-3d/SWD-3",
+  "base": "feature/sw-charges-3d",
+  "scope": [
+    "tools/research/sw_charges_3d/filaments3d/"
+  ],
+  "dont_touch": [
+    "tools/research/sw_charges/",
+    "docs/contracts/",
+    "tools/research/sw_charges_3d/contract/",
+    "tools/research/sw_charges_3d/panels3d/",
+    "tools/research/sw_charges_3d/refs/",
+    "tools/research/sw_charges_3d/py",
+    "tools/research/sw_charges_3d/requirements.txt",
+    "rust/"
+  ],
+  "accept": [
+    {
+      "name": "pytest",
+      "cmd": "tools/research/sw_charges_3d/py -m pytest -q tools/research/sw_charges_3d/filaments3d/tests",
+      "expect": "!re:(failed|error)"
+    },
+    {
+      "name": "pytest-pass",
+      "cmd": "tools/research/sw_charges_3d/py -m pytest -q tools/research/sw_charges_3d/filaments3d/tests",
+      "expect": "num:(\\d+) passed >=9"
+    },
+    {
+      "name": "api",
+      "cmd": "tools/research/sw_charges_3d/py tools/research/sw_charges_3d/contract/check_contract.py api filaments3d",
+      "expect": "exit=0"
+    },
+    {
+      "name": "readme",
+      "cmd": "ls tools/research/sw_charges_3d/filaments3d/README.md",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-08T05:32:18"
+}
