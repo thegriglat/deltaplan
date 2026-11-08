@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from panels2d import (Terrain, build_panels, bg_uniform, bg_profile,
                                                 Vortices, solve, velocity, step, residual,
-                                                surface_flow, boundary_layer, separation, velocity_bl)
+                                                surface_flow, boundary_layer, separation, velocity_bl, crests, velocity_jh)
 
 
 def flat(zv=0.0):
@@ -265,3 +265,88 @@ def test_step_auto_shed():
     for _ in range(5):
         step(st, 0.5)
     assert st["vortices"].n == 0
+
+
+# ---- v4: гребни, внутренний слой Jackson–Hunt, отрыв только с подветренной стороны ----
+def _asym(H=300.0, Lw=100.0, Ll=2000.0):
+    x = np.linspace(-6000, 6000, 4801)
+    return Terrain(x, np.where(x < 0, H / (1 + (x / Lw) ** 2), H / (1 + (x / Ll) ** 2)))
+
+
+def test_jh_flat_equals_log_profile():
+    z0 = 0.1
+    p = build_panels(flat(), x_focus=0.0, ds_min=25.0)
+    bg = bg_profile(8.0, 0.2, 200.0, flat())
+    s = solve(p, bg)
+    z = np.array([2.0, 3, 5, 10, 20, 50, 100, 200, 300])
+    u, w = velocity_jh(p, s, bg, np.zeros(z.size), z, z0)
+    ub, _ = bg(np.zeros(1), np.array([100.0]))
+    u0 = ub[0] * np.log(z / z0) / np.log(100.0 / z0)
+    assert np.all(np.abs(u / u0 - 1) < 0.01) and np.allclose(w, 0, atol=1e-9)
+    assert np.all(np.isnan(velocity_jh(p, s, bg, np.array([0.0]), np.array([-1.0]), z0)[0]))
+
+
+def test_jh_agnesi_speedup():
+    # ΔS на z = l в ±25 % от Taylor–Lee 2·H/L (B = 2 для 2D-хребта); l·ln(l/z0) = 2κ²L; выше внутреннего слоя ΔS падает
+    z0, L = 0.1, 500.0
+    from panels2d.jh import inner_depth
+    l = float(inner_depth(L, z0))
+    assert abs(l * np.log(l / z0) / (2 * 0.4 ** 2 * L) - 1) < 1e-9
+    for hl in (0.1, 0.3):
+        t = agnesi(H=hl * L)
+        p = build_panels(t, x_focus=0.0, ds_min=10.0)
+        bg = bg_uniform(10.0)
+        s = solve(p, bg)
+        cr = crests(p)
+        assert len(cr) == 1 and abs(cr[0]["L"] / L - 1) < 0.02
+        zs = np.array([2.0, l, 100.0])
+        u, w = velocity_jh(p, s, bg, np.zeros(3), t.height(0.0) + zs, z0)
+        dS = u / (10.0 * np.log(zs / z0) / np.log(100.0 / z0)) - 1
+        if hl == 0.1:
+            assert abs(dS[1] / (2 * hl) - 1) < 0.25
+        assert abs(dS[0] - dS[1]) < 0.02 * max(dS[1], 1e-9) + 1e-6 and dS[2] < dS[1] and dS[1] > 0
+
+
+def test_separation_lee_only():
+    # Agnesi H/L = 0.5 (профиль ветра): отрыв Хеда только за гребнем
+    t = agnesi(H=250.0)
+    p = build_panels(t, x_focus=0.0, ds_min=25.0)
+    bg = bg_profile(10.0, 0.2, 200.0, t)
+    fl = surface_flow(p, solve(p, bg), bg)
+    sp = separation(p, fl, boundary_layer(p, fl, 0.1))
+    assert len(sp) == 1 and sp[0]["x_sep"] > 0 and len(sp.rejected) == 0
+    # асимметричный холм (крутой наветренный склон): отрыв на нём отбрасывается и попадает в rejected, слой считается дальше
+    t = _asym()
+    p = build_panels(t, x_focus=0.0, ds_min=12.5)
+    bg = bg_profile(10.0, 0.2, 200.0, t)
+    fl = surface_flow(p, solve(p, bg), bg)
+    bl = boundary_layer(p, fl, 0.1)
+    assert bl["i_sep"] >= 0 and p.xc[bl["i_sep"]] < 0
+    sp = separation(p, fl, bl)
+    assert [q["x_sep"] < 0 for q in sp.rejected] == [True]
+    assert len(sp) == 1 and sp[0]["x_sep"] > 0 and p.xc[bl["i_sep"]] > 0 and bl["i_sep"] >= 0
+    assert separation(p, fl, boundary_layer(p, fl, 0.1), lee_only=False)[0]["x_sep"] < 0
+
+
+def test_crests_double_ridge():
+    x = np.linspace(-8000, 8000, 3201)
+    L1, L2 = 400.0, 600.0
+    z = 100 / (1 + ((x + 2500) / L1) ** 2) + 150 / (1 + ((x - 2500) / L2) ** 2)
+    p = build_panels(Terrain(x, z), x_focus=None, ds_min=25.0)
+    cr = crests(p)
+    assert len(cr) == 2 and abs(cr[0]["x_c"] + 2500) < 30 and abs(cr[1]["x_c"] - 2500) < 30
+    assert abs(cr[0]["L"] / L1 - 1) < 0.15 and abs(cr[1]["L"] / L2 - 1) < 0.15
+    assert crests(build_panels(flat(), ds_min=25.0)) == []
+
+
+def test_step_auto_shed_lee_only():
+    t = _asym()
+    p = build_panels(t, x_focus=0.0, ds_min=12.5)
+    st = dict(panels=p, bg=bg_profile(10.0, 0.2, 200.0, t), vortices=Vortices(), t=0.0, shed="auto")
+    for _ in range(20):
+        before = st["vortices"].gamma.sum()
+        b0, l0 = st.get("born", 0.0), st.get("lost", 0.0)
+        step(st, 0.5)
+        assert abs(st["vortices"].gamma.sum() - (before + st["born"] - b0 - (st["lost"] - l0))) < 1e-12 * max(1.0, abs(before))
+    vt = st["vortices"]
+    assert vt.n > 0 and st["born"] < 0 and np.all(vt.x > 0)
