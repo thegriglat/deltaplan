@@ -4,7 +4,7 @@ status: "active"
 module: "sw-ground"
 area: "air"
 updated: "2026-11-08"
-summary: "SWG-3: время поля панелей 3D (potential_jh, с нитью ротора) на сетках окон игры 64×64 (100 и 50 м) на рельефе Онгудая против Пикара крейта на той же машине."
+summary: "Панели 3D на окнах игры 100/50 м (Онгудай) медленнее Пикара крейта в 14–40 раз (8 потоков); узкое место — опрос поля FP64."
 related: ["docs/plan/sw-ground.md", "docs/contracts/sw-ground.md", "docs/research/rust-wind-field-path.md", "docs/research/rust-wind-rw6-acceptance.md", "tools/research/sw_charges_3d/README.md"]
 conclusion: "Панели 3D на плотных матрицах медленнее Пикара крейта в 14–40 раз на 8 потоках (tol 5); узкое место — опрос поля (FP64 на GPU), не сборка и не решение."
 data: "tools/research/sw_ground/out/swg-3/"
