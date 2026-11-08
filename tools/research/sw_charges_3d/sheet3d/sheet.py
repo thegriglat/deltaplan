@@ -190,7 +190,7 @@ class _Solver:
         """Ряды по линиям: {(l, i): Filaments}; пустые — не включаются."""
         out = {}
         for l, L in enumerate(self.lines):
-            L.closure_kind = "reattach" if L.act[-1].mean() < 0.5 else (
+            L.closure_kind = "reattach" if (L.act[-1].mean() < 0.5 or (self.pr["closure"] != "roshko" and not L.act[-1].all())) else (
                 "riabouchinsky" if self.pr["closure"] == "roshko" else "open")
             for i in range(L.nr):
                 lp = _row_loops(self.panels, L.nodes[i], L.act[i], L.Gam[i], self.core)
@@ -305,7 +305,7 @@ class _Solver:
         return sigma, rows, it, resid
 
 
-def _finish_line(L, panels, wind, dsh):
+def _finish_line(L, panels, wind, dsh, is_roshko=False):
     """Присоединение и длина зоны по линии: узлы, ушедшие к земле раньше конца слоя."""
     nr, n = L.act.shape
     last = np.zeros(n, int)       # номер последнего активного ряда столбца
@@ -316,7 +316,8 @@ def _finish_line(L, panels, wind, dsh):
         last[j] = (bad[0] - 1) if bad.size else nr - 1
     hit = last < nr - 1
     L.n_reattached = int(hit.sum())
-    if hit.mean() >= 0.5:        # присоединение — когда ушла к земле большая часть столбцов
+    need = (hit.mean() >= 0.5) if is_roshko else hit.any()   # roshko: ушла к земле большая часть столбцов; free — как v5
+    if need:
         pts = np.array([L.nodes[last[j] + 1, j] for j in np.nonzero(hit)[0]])
         zg = np.asarray(panels.height(pts[:, 0], pts[:, 1]), float)
         L.reattach = dict(x=float(pts[:, 0].mean()), y=float(pts[:, 1].mean()), z=float(zg.mean()))
@@ -326,7 +327,8 @@ def _finish_line(L, panels, wind, dsh):
         L.reattach = None
         if getattr(L, "closure_kind", "") == "riabouchinsky":      # зона замкнута плоскостью изображения: L_b ≥ расстояние до неё
             along = (L.nodes[-1, :, 0] - L.sep_xy[:, 0]) * wind[0] + (L.nodes[-1, :, 1] - L.sep_xy[:, 1]) * wind[1]
-            L.L_b = float(np.mean(along))
+            L.L_edge = float(np.mean(along))      # граница L_max, не L_b
+            L.L_b = float("nan")
         else:
             L.L_b = float("nan")
     L.last = last
@@ -365,7 +367,7 @@ def build_sheet(panels, bg, z0, infl=None, params=None):
     sigma, rows, it, resid = sol.run()
     sh.filaments = _merge(list(rows.values())) if rows else F.Filaments()
     for l, L in enumerate(lines):
-        _finish_line(L, panels, wind, dsh)
+        _finish_line(L, panels, wind, dsh, pr["closure"] == "roshko")
         for i in range(L.nr):
             na = int(L.act[i].sum())
             if (l, i) in rows:
@@ -379,7 +381,7 @@ def build_sheet(panels, bg, z0, infl=None, params=None):
     info.update(t_s=time.time() - t_start, iters=it, converged=bool(resid < pr["tol_rel"] * dsh), residual=float(resid), n_nodes=int(len(sh.filaments.x)),
                 n_vel=sol.n_vel, residual_history=[round(h, 2) for h in sol.hist])
     if pr["closure"] == "roshko":
-        info.update(cpb=float(pr["cpb"]), u_b=float(lines[0].gamma0),
+        info.update(L_closure_plane=[getattr(L, "L_edge", float("nan")) for L in lines], cpb=float(pr["cpb"]), u_b=float(lines[0].gamma0),
                     L_b=[L.L_b for L in lines], L_b_over_H=[L.L_b / L.H if np.isfinite(L.L_b) else float("nan") for L in lines],
                     closure_kind=[L.closure_kind for L in lines])
     sh.stats = dict(info, ds_sheet=dsh, tol=pr["tol_rel"] * dsh)

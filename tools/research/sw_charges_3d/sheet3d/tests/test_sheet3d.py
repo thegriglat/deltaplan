@@ -400,6 +400,9 @@ def test_roshko_closure_free_is_v5_regression(agn):
     sh0, _, _ = agn["const"]
     sh1, _, info1 = sheet3d.build_sheet(agn["p"], agn["bg"], 0.1, agn["infl"], dict(closure="free"))
     assert np.array_equal(sh0.lines[0]["nodes"], sh1.lines[0]["nodes"]) and "cpb" not in info1
+    assert sh0.reattach == sh1.reattach
+    a, b = sh0.lines[0]["L_b"], sh1.lines[0]["L_b"]
+    assert (np.isnan(a) and np.isnan(b)) or a == b
 
 
 @pytest.fixture(scope="module")
@@ -436,8 +439,8 @@ def test_roshko_agnesi_reverse_flow_and_lb_report(roshko):
     assert np.all(np.isfinite(u1)) and np.any(u1 < 0.0) and np.all(u1 < u0)
     hist = info["residual_history"]
     assert hist[-1] < hist[0] and info["residual"] <= min(hist) + 1e-9
-    assert np.isfinite(info["L_b_over_H"][0]) and info["L_b_over_H"][0] > 1.0
-    print(f"\nRoshko Cpb=-0,2 u_b={info['u_b']:.2f}: {info['closure_kind'][0]}, L_b/H={info['L_b_over_H'][0]:.1f}, "
+    assert info["closure_kind"][0] != "riabouchinsky" or (np.isnan(info["L_b"][0]) and info["L_closure_plane"][0] > 0)
+    print(f"\nRoshko Cpb=-0,2 u_b={info['u_b']:.2f}: {info['closure_kind'][0]}, L_b/H={info['L_b_over_H'][0]:.1f} (nan — зона не замкнулась о землю), граница L_max/H={info['L_closure_plane'][0] / roshko['H']:.1f}, "
           f"iters={info['iters']} residual={info['residual']:.1f} м (история {hist[0]:.0f}→{hist[-1]:.0f}), converged={info['converged']}, "
           f"u∥(10 м) со слоем {np.round(u1, 2)}, без {np.round(u0, 2)}, t={info['t_s']:.0f} с")
 
