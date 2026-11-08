@@ -1,0 +1,71 @@
+{
+  "id": "SWD-12",
+  "module": "sw-charges-3d",
+  "type": "dp-researcher",
+  "title": "Прототипы A/C в 3D над рельефом: термик-кольцо (нагретый склон), пары болтанки с порогом по Ri и экранировкой",
+  "goal": "Проверить, дёшево ли и как близко к данным 3D-прототипы масштабов 2–3 на вихревых нитях: термик — плавучее кольцо над нагретым пятном/склоном (подъём, кольцо опускания, отрыв от склона), болтанка — пары, рождаемые при Ri < 1/4 с экранировкой сдвига (σ_w, L_w); сводка SWD8, статусы проблем 2D №6 и №10.",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "SWD2",
+      "version": "5",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    },
+    {
+      "name": "SWD3",
+      "version": "4",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    },
+    {
+      "name": "SWD8",
+      "version": "1",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sw-charges-3d-SWD-12",
+  "branch": "sw-charges-3d/SWD-12",
+  "base": "feature/sw-charges-3d",
+  "scope": [
+    "tools/research/sw_charges_3d/proto3d/",
+    "tools/research/sw_charges_3d/out/proto3d/"
+  ],
+  "dont_touch": [
+    "tools/research/sw_charges_3d/panels3d/",
+    "tools/research/sw_charges_3d/filaments3d/",
+    "tools/research/sw_charges_3d/sim3d/",
+    "tools/research/sw_charges_3d/sheet3d/",
+    "tools/research/sw_charges_3d/rotor3d/",
+    "tools/research/sw_charges_3d/compare/",
+    "tools/research/sw_charges_3d/out/compare/",
+    "tools/research/sw_charges_3d/refs/",
+    "tools/research/sw_charges/",
+    "docs/contracts/",
+    "tools/research/sw_charges_3d/contract/",
+    "rust/"
+  ],
+  "accept": [
+    {
+      "name": "contract-files",
+      "cmd": "tools/research/sw_charges_3d/py tools/research/sw_charges_3d/contract/check_contract.py files tools/research/sw_charges_3d/out/proto3d",
+      "expect": "exit=0"
+    },
+    {
+      "name": "protos",
+      "cmd": "tools/research/sw_charges_3d/py -c \"import json;d=json.load(open('tools/research/sw_charges_3d/out/proto3d/summary.json'));print('protos', len({r['proto'] for r in d['rows']}))\"",
+      "expect": "num:protos (\\d+) >=2"
+    },
+    {
+      "name": "problems",
+      "cmd": "tools/research/sw_charges_3d/py -c \"import json;d=json.load(open('tools/research/sw_charges_3d/out/proto3d/summary.json'));print('p', len(d['problems2d']))\"",
+      "expect": "num:p (\\d+) >=2"
+    },
+    {
+      "name": "readme",
+      "cmd": "ls tools/research/sw_charges_3d/proto3d/README.md tools/research/sw_charges_3d/out/proto3d/tables.md",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-08T18:06:30"
+}
