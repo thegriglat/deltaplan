@@ -194,14 +194,13 @@ def ag_v2(agnesi):
     return rotor3d.rotor_vortex(agnesi["p"], agnesi["bg"], 0.1, agnesi["infl"], dict(gate="head"))
 
 
-def test_v2_agnesi_default_slope_gate_rejects(agnesi):
-    """Находка: сглаженный (σ = 2·ds_min) подветренный уклон Agnesi H/L 0,5 при ds 50 м — 0,244 < 0,27, т.е. порог
-    по уклону Agnesi отрезает (и не отличает от C4: 0,249); нить на Agnesi — только при gate="head" (контракт v2
-    требует корень на Agnesi при порогах по умолчанию — противоречие, в отчёте)."""
+def test_v2_agnesi_default_slope_gate_passes(agnesi):
+    """Правило уклона SWD9 v3 п. 2 (макс. подветренный уклон при сглаживании 1·ds_min): Agnesi H/L 0,5 при ds 50 м даёт
+    0,296 > 0,27 — порог по умолчанию её пропускает (раньше при σ = 2·ds_min было 0,244)."""
     fil, sig, info = rotor3d.rotor_vortex(agnesi["p"], agnesi["bg"], 0.1, agnesi["infl"], {})
     c = info["candidates"][0]
     print(f"\nAgnesi gate=slope: slope_lee={c['slope_lee']:.3f}, head={c['head']}")
-    assert c["head"] and not c["slope"] and c["slope_lee"] < 0.27 and len(fil.seg) == 0
+    assert c["head"] and c["slope"] and abs(c["slope_lee"] - 0.2955) < 0.003 and len(fil.seg) > 0
 
 
 def test_v2_agnesi_root_zero_at_reattach(agnesi, ag_v2):
@@ -232,3 +231,26 @@ def test_v2_agnesi_root_zero_at_reattach(agnesi, ag_v2):
           f"u_t(x_c)={r['ut_c']:.2f} (фон {r['ut_bg'][0]:.1f}), u∥(10 м) min {umin:.1f} ({umin / U:.2f}·U), nsolve {info['nsolve']}")
     assert umin < 0
 
+
+
+# ---------- ревью SWD-11 minor 1: смещение нити — по нормали к оси (как build/node_xy), не вдоль ветра ----------
+def test_geometry_offset_is_along_axis_normal_for_oblique_wind():
+    class Pan:
+        @staticmethod
+        def height(x, y):
+            return 0.1 * np.asarray(x, float)       # наклонная плоскость: h зависит от точки, где нить стоит на самом деле
+
+    ob = R._Rotor.__new__(R._Rotor)
+    th = np.radians(30.0)
+    ob.a = np.array([0.0, 1.0])
+    ob.na = np.array([1.0, 0.0])
+    ob.wv = np.array([np.cos(th), np.sin(th)])       # ветер под 30° к нормали оси
+    ob.P_c = np.array([100.0, 0.0])
+    ob.panels = Pan()
+    ob.rule = dict(s_m=200.0, z_m=40.0)
+    ob.n_h, ob.n_z = 0.6, 0.8
+    s, h = ob.geometry(50.0)
+    s_w = 200.0 + 50.0 * 0.6
+    assert s == pytest.approx(s_w * np.cos(th))
+    xy = ob.P_c + s * ob.na                                   # где build поставит середину нити
+    assert h == pytest.approx(40.0 + 50.0 * 0.8 - 0.1 * xy[0])
