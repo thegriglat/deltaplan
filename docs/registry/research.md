@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-11-05"
+updated: "2026-11-08"
 summary: "Исследования: вывод, данные, где применено."
 related: []
 generated: true
@@ -325,6 +325,7 @@ generated: true
 - [tools/research/trike-pilot/tug/README.md](../../tools/research/trike-pilot/tug/README.md) — Разбор: docs/research/trike-pilot/tug-slow-climb.md. Скорость на полном газе определяется высотой линии тяги над ЦМ тележки. (data: ['tools/research/trike-pilot/tug/results.json']; applied_in: [])
 - [tools/research/tune/README.md](../../tools/research/tune/README.md) — Итог волны 1: ТКЭ Askervein после согласования масштаба 3 χ² 141 → 33; вывод «данные тянут λ/h вверх» оказался артефактом ручного α = 0,17 (см. реестр выводов). (data: tools/research/tune/out/; applied_in: параметры AirCase (λ/h = 0,25, пороги lee.field_*), configs/atmosphere.json)
 - [tools/research/wind_compare/README.md](../../tools/research/wind_compare/README.md) — Сравнение поля ветра main и feature/air-model (Онгудай) — Выгрузка из игры (Atmosphere.air_velocity_at / mean_wind_at), не из air.py. (data: tools/research/wind_compare/)
+- [tools/research/wind_forecast/README.md](../../tools/research/wind_forecast/README.md) — Ветер меню = прогноз на 10 м над открытой местностью (k = 1, один проход, подгонки нет): над наветренным стартом ветер сильнее прогноза (ridge_west 6 → 7,4 м/с, Онгудай 151° 6 → 7,7), в тени слабее (… (data: tools/research/wind_forecast/; applied_in: ['rust/dp-air/src/field/runtime.rs', 'rust/dp-air/src/terms/weather_link.rs', '…)
 - [tools/research/windninja/README.md](../../tools/research/windninja/README.md) — WindNinja подтверждает гребневой разгон и поворот потока решателя, но торможение горным массивом не воспроизводит (диагностическая модель без импульса); эталоном затенения быть не может, запасным вар… (data: tools/research/windninja/; applied_in: docs/archive/rejected/air-nn.md#7. Проверка (шлюзы Ш3, Ш4))
 - [tools/research/wing_physics_check/README.md](../../tools/research/wing_physics_check/README.md) — Аналитика: ветер меню = U на 10 м над землёй на старте — выполняется (1,01–1,05). (data: tools/research/wing_physics_check/)
 - [tools/research/air3d/summary.md](../../tools/research/air3d/summary.md) — 3D-Пикар на рельефе Онгудая: время, сходимость, размер поля — итог прикидки — Эталон AM-01 (29.09.2026) — reference.md. (data: tools/research/air3d/)

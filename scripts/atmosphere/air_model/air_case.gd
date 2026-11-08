@@ -106,12 +106,8 @@ var heat := PackedFloat64Array()
 ## (cell_z0 крейта, лог-среднее по площади). Пусто — p.z0 во всех столбцах. Задавать set_z0_map:
 ## p.z0 = лог-среднее карты (эффективный z0 области — приток, α/z_sat, фазы).
 var z0_map := PackedFloat64Array()
-## Ветер притока на 10 м, м/с (C2 v6: = inflow_k·u10_menu; амплитуда профиля притока, u* замыкания).
+## Ветер притока на 10 м, м/с (амплитуда профиля притока, u* замыкания).
 var u10 := 0.0
-## Ветер меню на 10 м над стартом, м/с (по нему α, класс устойчивости и max_profile случая).
-var u10_menu := 0.0
-## Множитель притока (крейт: U меню / U поля на 10 м над стартом; 1 — прежний случай).
-var inflow_k := 1.0
 var wdir := 270.0
 ## Гасить нагрев у края области (Air(taper=True) эталона; эталоны тестов — без).
 var taper := true
@@ -210,8 +206,6 @@ func meta() -> Dictionary:
 		z0_eff = float(p.z0),
 		label = label,
 		u10 = u10,
-		u10_menu = u10_menu,
-		inflow_k = inflow_k,
 		wdir = wdir,
 		heat = to_f32(heat_used),
 		gam = to_f32(gam.slice(1, nz + 1)),
@@ -237,8 +231,6 @@ func without_heat() -> AirCase:
 	c.z_i_col = z_i_col
 	c.zi_alpha = zi_alpha
 	c.u10 = u10
-	c.u10_menu = u10_menu
-	c.inflow_k = inflow_k
 	c.wdir = wdir
 	c.taper = taper
 	c._hs = _hs
@@ -246,12 +238,10 @@ func without_heat() -> AirCase:
 	return c
 
 
-## Ветер случая (C2 v6): α, класс устойчивости и max_profile — по ветру меню u_menu
+## Ветер случая (C2 v6): α, класс устойчивости и max_profile — по ветру u_menu
 ## (WindProfile.apply_to_case), приток u10 = k·u_menu (весь профиль притока умножен на k).
-## k = 1 — побитно прежний случай.
+## k = 1 — набегающий поток (в игре — всегда, WF-К1).
 func set_inflow(u_menu: float, k: float, ctx: Dictionary, hour: float, cover: float) -> void:
-	u10_menu = u_menu
-	inflow_k = k
 	u10 = u_menu
 	WindProfile.apply_to_case(self, ctx, hour, cover)
 	u10 = k * u_menu

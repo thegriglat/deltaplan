@@ -73,7 +73,7 @@ fn rig_place(sp: f64) -> Place {
 }
 
 const FORECAST: &str = r#"{"forecast":{"temperature_c":26,"wind_speed_kmh":10.8,"wind_from_deg":225,"sky":"clear"},
-    "start_hour":HOUR,"speed":1,"quantum_h":0.25,"inflow_mode":"inflow","rebuild":REB}"#;
+    "start_hour":HOUR,"speed":1,"quantum_h":0.25,"rebuild":REB}"#;
 
 fn cond(reb: bool, hour: u32) -> Conditions {
     Conditions::from_json(

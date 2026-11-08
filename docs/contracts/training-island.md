@@ -6,7 +6,7 @@ area: "world"
 updated: "2026-10-16"
 summary: "Учебный остров: папка встроенного синтетического места (TI-К1), фиксированная погода старта (TI-К2), запечённое поле ветра (TI-К3)."
 related: ["docs/plan/training-island.md", "docs/guide/location-data.md", "docs/research/air_field_cache.md"]
-contracts: [{"id": "TI-К1", "version": 1}, {"id": "TI-К2", "version": 2}, {"id": "TI-К3", "version": 3}]
+contracts: [{"id": "TI-К1", "version": 1}, {"id": "TI-К2", "version": 3}, {"id": "TI-К3", "version": 4}]
 ---
 # Контракты модуля training-island
 
@@ -49,7 +49,8 @@ contracts: [{"id": "TI-К1", "version": 1}, {"id": "TI-К2", "version": 2}, {"id
   (уклон < 10°, не лес и не вода); у старта «посадка» — посадка-мишень с id `landing_target`.
 - Нет папки данных или файла слоя — загрузка места падает с сообщением (как нет рельефа), не сборкой из сети.
 
-## TI-К2. Фиксированная погода старта — версия 2
+## TI-К2. Фиксированная погода старта — версия 3
+- v3 (2026-11-08, wind-forecast WF-К1 v2): поле `wind_ref` удалено; `wind_speed_ms`/`wind_from_deg` — ветер прогноза (10 м над ровной открытой местностью, приток k = 1), поле у старта — результат расчёта.
 
 - Владелец: TI-3. Потребители: меню полёта (`scripts/ui/flight_setup_screen.gd`), запуск полёта (`scripts/game/game.gd`),
   повтор полёта, сеть, TI-4 (условия запекания), TI-5 (подбор наборов), модуль goals (тренировки на острове).
@@ -74,7 +75,8 @@ contracts: [{"id": "TI-К1", "version": 1}, {"id": "TI-К2", "version": 2}, {"id
   в меню погода для такого старта не выбирается (видно, какой набор). Нет `weather` — всё как сейчас.
 - Время полёта идёт как обычно (погода «фиксирована» на старте, не останавливает часы).
 
-## TI-К3. Запечённое поле ветра — версия 3
+## TI-К3. Запечённое поле ветра — версия 4
+- v4 (2026-11-08, wind-forecast WF-К1 v2): снят — запечённых полей нет (rust-wind), `air_baked_field.gd` и `test_training_island_k3.gd` удаляются; `model_hash`/`code_hash` — `scripts/atmosphere/air_model_hash.gd`.
 
 - Владелец: TI-4. Потребители: `AirRuntime` (`scripts/atmosphere/air_model/air_runtime.gd`), инструмент запекания (`bake_air.gd`, удалён в rust-wind RW-P10, устарело), TI-5.
 - Файлы: `res://data/locations/<id>/air/<site_id>.json` (заголовок) + `<site_id>.bin` (тело). Заголовок:

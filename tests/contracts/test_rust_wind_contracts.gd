@@ -11,7 +11,7 @@ extends TestCase
 
 ## Версии разделов — те же, что в заголовках docs/contracts/rust-wind.md и rust-wind/*.md.
 const CONTRACTS := {
-	W1 = 2, W2 = 6, W3 = 9, W4 = 10, W5 = 11, W6 = 4, W7 = 1, W8 = 3, W9 = 2, W10 = 2, W11 = 11, W12 = 3
+	W1 = 2, W2 = 6, W3 = 9, W4 = 10, W5 = 13, W6 = 4, W7 = 1, W8 = 3, W9 = 2, W10 = 2, W11 = 11, W12 = 3
 }
 const DOCS: Array[String] = [
 	"res://docs/contracts/rust-wind.md",
@@ -398,21 +398,18 @@ func test_conditions_validation() -> void:
 			a.set_conditions({"preset": _preset(), "bogus": 1}) == 1,
 			"%s: посторонний ключ — BAD_INPUT" % impl
 		)
+		# WF-К1: режима притока нет, ключ посторонний при любом значении
+		for mode: Variant in ["start", "inflow", "x"]:
+			check(
+				a.set_conditions({"preset": _preset(), "inflow" + "_mode": mode, "start_hour": 12.0, "speed": 1.0}) == 1,
+				"%s: ключ режима притока %s — посторонний, BAD_INPUT" % [impl, mode]
+			)
 		if impl == "gd":
-			check(
-				a.set_conditions({"preset": _preset(), "inflow_mode": "x"}) == 1,
-				"inflow_mode вне списка — BAD_INPUT"
-			)
-			check(
-				a.set_conditions({"preset": _preset(), "inflow_mode": "inflow", "start_hour": 12.0, "speed": 1.0}) == 0,
-				"inflow_mode inflow — OK"
-			)
 			check(
 				(
 					a.set_conditions(
 						{
 							"preset": _preset(),
-							"inflow_mode": "start",
 							"speed": 1.0,
 							"start_hour": 12.0,
 							"blend_s": null,

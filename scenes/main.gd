@@ -220,6 +220,13 @@ func _process(delta: float) -> void:
 		var phase: String = game.glider.phase() if game.glider != null else ""
 		if state != State.FLYING or not phase in ["standing", "walking", "running"]:
 			_hide_start_hint()
+		elif _start_hint_wind_pending():
+			_update_start_hint_wind()  # поле включилось, пока подсказка видна
+
+
+func _start_hint_wind_pending() -> bool:
+	var air := game.air
+	return air != null and air.has_method("is_air_field_on") and air.call("is_air_field_on") and (_start_hint.get_node("Left/Text") as Label).text.ends_with(tr("start_hint_wind_pending"))
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -542,7 +549,30 @@ func _show_start_hint() -> void:
 		$UI.add_child(_start_hint)
 	(_start_hint.get_node("Left/Text") as Label).text = ControlsScreen.start_hint_keys_text()
 	(_start_hint.get_node("Right/Text") as Label).text = ControlsScreen.start_hint_mouse_text()
+	_update_start_hint_wind()
 	_start_hint.visible = true
+
+
+## Ветер на 10 м над стартом из готового поля (WF-К2 v2); поля нет — «считается» (если воздух его ждёт) или без строки.
+## Число не берётся из меню: оно — прогноз, у старта — результат расчёта.
+func _update_start_hint_wind() -> void:
+	var l := _start_hint.get_node("Left/Text") as Label
+	var base := ControlsScreen.start_hint_keys_text()
+	var air := game.air
+	if air == null or not air.has_method("is_air_field_on"):
+		l.text = base
+		return
+	var wind := Vector2(NAN, NAN)
+	if air.call("is_air_field_on") and air.has_method("mean_wind_at"):
+		var pos := game.glider.global_position
+		var w: Vector3 = air.call("mean_wind_at", Vector3(pos.x, game.terrain.height_at(pos.x, pos.z) + 10.0, pos.z))
+		var speed := snappedf(Vector2(w.x, w.z).length(), 0.1)
+		var from_deg := NAN
+		if speed >= 0.05:
+			from_deg = fposmod(rad_to_deg(atan2(w.x, -w.z)) + 180.0, 360.0)
+		wind = Vector2(speed, from_deg)
+	var fc := game.settings.wind_speed_kmh / 3.6 if game.settings != null else 0.0
+	l.text = base + "\n" + ControlsScreen.start_hint_wind_text(wind, fc)
 
 
 func _hide_start_hint() -> void:
