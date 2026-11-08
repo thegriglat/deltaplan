@@ -1,0 +1,116 @@
+{
+  "status": "done",
+  "summary": "chain3d SWD9 v5: положение звена по геометрии (s=(x_r-x_c)/2, n=r_c), u_min_over_U, n_solves<=2; chain_jh прогнан на ASK_TU03B, PERD_NE, PERD_SW, points.json v7. Главные хребты Perdigão: S=1.7-4.0 > S_c, state «нет», chain_jh = potential_jh; ротор Menke не воспроизведён (находка).",
+  "commits": [
+    "65ae40938 SWD-17: chain3d v5 (звено по геометрии, u_min_over_U, баланс масс на рельефе), chain_jh в сравнении, points.json v7"
+  ],
+  "checks": [
+    {
+      "name": "Agnesi H/L 0.5",
+      "value": "S=4.44, state нет, u_min/U(10 м)=+0.06, residual 0.93 U, 1 решение",
+      "pass": true
+    },
+    {
+      "name": "C2 / C4",
+      "value": "C2: ротор 6480 м, S=3.51, нет, u_min/U=-0.35; C4: роторов нет",
+      "pass": true
+    },
+    {
+      "name": "RMSE s мачты chain_jh = potential_jh",
+      "value": "ASK 0.218, NE 0.183, SW 0.126",
+      "pass": true
+    },
+    {
+      "name": "Menke L (T1/T2/T3) vs chain_jh основной",
+      "value": "NE 570/490/420, SW 680/670/500 м; chain_jh ротора нет (state нет)",
+      "pass": false
+    },
+    {
+      "name": "принудительное поле (диагностика) L",
+      "value": "NE 530/310/340, SW 0/310/380 м",
+      "pass": true
+    },
+    {
+      "name": "время t_run chain_jh",
+      "value": "10.4-13.7 с (GPU, холодный); chain_rotor 2.0-6.3 с; Пикар (справочно) 3.5-10.7 холодный, 0.75-1.29 тёплый фон",
+      "pass": true
+    },
+    {
+      "name": "pytest",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "pytest-pass",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "api",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "contract-files",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "chain-rotor",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "chain-timing",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Привязка разреза к ротору грубая (ближайший по оси); состояние по главному хребту, не по разрезу."
+  ],
+  "questions": [
+    "Расхождение state «нет» (S 1.7-4.0) с наблюдаемым ротором Perdigão: пересматривать S_c для лежачего вихря или E/R_rule/Γ (не менял без решения)?"
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SWD-17",
+  "uncertain": [
+    {
+      "where": "tools/research/sw_charges_3d/compare/chain_cmp.py:rotor_of_transect",
+      "why": "state разреза = ближайший ротор по оси; на Perdigão найдено 10-12 роторов, мелкие от 2 м",
+      "checked": "ближайшие для всех Menke-разрезов — главные хребты (S 1.66-3.99)"
+    },
+    {
+      "where": "tools/research/sw_charges_3d/chain3d/chain.py:_build",
+      "why": "правка расхода источника (длина по рельефу vs горизонталь): иначе mass_balance=-177 на реальном рельефе, нарушал инвариант SWD9",
+      "checked": "тест на хребте с переменной высотой: 1e-11"
+    },
+    {
+      "where": "compare/README.md, время",
+      "why": "время Пикара — с другой машины (Xeon, 8 потоков), сравнение справочное",
+      "checked": "числа из docs/plan/picard-rs.md Статус"
+    }
+  ],
+  "dp_feedback": "task show обрезает длинное дополнение координатора («…»); полный текст пришлось искать в tasks/*.json и events.jsonl.",
+  "extra": {
+    "rotors_found": {
+      "ASK_TU03B": 2,
+      "PERD_NE": 12,
+      "PERD_SW": 10
+    },
+    "applied_small_rotors": "есть/дышит только малые боковые участки (NE 654 и 750 м, SW 201/307/848 м); dv к potential_jh медиана 2e-5",
+    "rmse_forced": {
+      "ASK": 0.251,
+      "NE": 0.139,
+      "SW": 0.165
+    },
+    "E_needed_for_S_1.2": "около 0.185 (вне диапазона 0.02-0.10), не подгонялось"
+  },
+  "t": "2026-11-08T19:47:44",
+  "by": "executor"
+}
