@@ -1,0 +1,72 @@
+{
+  "id": "SWD-18",
+  "module": "sw-charges-3d",
+  "type": "dp-writer",
+  "title": "Итог модуля sw-charges-3d: docs/research/sw_charges_3d.md — варианты × ротор/время/стройность, 12 проблем 2D, законы и пределы, находка в реестр",
+  "goal": "Записать итог 3D по фактам журнала и пакетов: таблица вариантов по трём осям пользователя, отклонения от мачт и Пикара по высотам и типам точек, ротор Perdigão против Menke 2019, время, статусы 12 проблем 2D, что из масштабов 1–3 описывается зарядами/вихрями, открытые вопросы.",
+  "plan_ref": "Приёмка",
+  "contracts": [
+    {
+      "name": "SWD5",
+      "version": "7",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    },
+    {
+      "name": "SWD8",
+      "version": "1",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    },
+    {
+      "name": "SWD9",
+      "version": "5",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sw-charges-3d-SWD-18",
+  "branch": "sw-charges-3d/SWD-18",
+  "base": "feature/sw-charges-3d",
+  "scope": [
+    "docs/research/sw_charges_3d.md",
+    "docs/research/sw_charges_3d/",
+    "docs/registry/findings.md",
+    "docs/INDEX.md"
+  ],
+  "dont_touch": [
+    "tools/",
+    "docs/contracts/",
+    "rust/",
+    "docs/research/sw_charges.md",
+    "Vortex.pdf"
+  ],
+  "accept": [
+    {
+      "name": "exists",
+      "cmd": "ls docs/research/sw_charges_3d.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "!re:ОШИБКА +docs/research/sw_charges_3d"
+    },
+    {
+      "name": "tables",
+      "cmd": "grep -c '^|' docs/research/sw_charges_3d.md",
+      "expect": "num:(\\d+) >=30"
+    },
+    {
+      "name": "problems",
+      "cmd": "grep -cE '^\\| *(№ ?)?([1-9]|1[0-2]) *\\|' docs/research/sw_charges_3d.md",
+      "expect": "num:(\\d+) >=12"
+    },
+    {
+      "name": "finding",
+      "cmd": "grep -c 'sw_charges_3d' docs/registry/findings.md",
+      "expect": "num:(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-08T19:53:37",
+  "edited": "2026-11-08T19:54:11"
+}
