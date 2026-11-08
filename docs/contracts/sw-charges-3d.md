@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-11-08"
 summary: "Стыки sw-charges-3d: эталоны 3D (SWD1), панели 3D (SWD2), вихревые нити (SWD3), связка (SWD4), сравнение (SWD5)."
 related: ["docs/plan/sw-charges-3d.md", "docs/contracts/sw-charges.md", "tools/research/sw_charges_3d/README.md"]
-contracts: [{"id": "SWD1", "version": 2}, {"id": "SWD2", "version": 3}, {"id": "SWD3", "version": 2}, {"id": "SWD4", "version": 2}, {"id": "SWD5", "version": 2}]
+contracts: [{"id": "SWD1", "version": 2}, {"id": "SWD2", "version": 4}, {"id": "SWD3", "version": 2}, {"id": "SWD4", "version": 3}, {"id": "SWD5", "version": 2}]
 ---
 # Контракты модуля sw-charges-3d
 
@@ -61,7 +61,9 @@ v2 (2026-11-08, ревью SWD-1): атрибут `first_cell_levels` групп
   - `rotor` — {`case`, `transect`, `source` ("menke2019" | "picard_nom" | "picard_adv1" | "masts"), `present`
     (bool | null), `L_m`, `depth_m`, `criterion` (строка), `ref_source`}; критерий для полей — как SWD5.
 
-## SWD2 v3 — панели 3D (пакет `panels3d`)
+## SWD2 v4 — панели 3D (пакет `panels3d`)
+v4 (2026-11-08, отчёт SWD-4): присоединение после отрыва — первая точка, где u_s > 0 снова на ≥ 2·ds_min, или (отрыв
+без обращения u_s) — где u_s растёт на протяжении ≥ 2·ds_min подряд.
 v3 (2026-11-08, итог 2D №9 и №11): `velocity_jh(..., couple=False)` и `separation3d(..., restart=True,
 streamlines_from="bg")` — ниже; остальное v2 без изменений.
 - v3. `velocity_jh(..., couple=True)`: ΔS берётся из полной внешней скорости u∥ = (потенциал для `bg_uniform(U_ref)` +
@@ -169,7 +171,10 @@ v2 (2026-11-08, отчёт SWD-3): скорость кольца Розенхе�
   перезамыкание двух встречных колец — две петли превращаются в одну (или наоборот), замкнутость сохранена;
   прямая бесконечная (длинная) нить у плоской стенки с изображением через `flow` — скорость Γ/(4πh) ± 2 %.
 
-## SWD4 v2 — связка панелей и нитей (пакет `sim3d`)
+## SWD4 v3 — связка панелей и нитей (пакет `sim3d`)
+v3 (2026-11-08, отчёт SWD-4): изображение — замкнутое кольцо у земли против зеркального кольца ± 3 % (у прямой нити
+с ножками конечная длина даёт −2h/L — не инвариант); `couple` — эффект нитей на u∥ у земли за гребнем записывается
+(замер: 4,5 % на 10 м, > 10 % на 5 м — изображение гасит нить), тест — > 10 % на 5 м и > 3 % на 10 м.
 Владелец — SWD-4; потребители — SWD-5, SWD-6. v2 (2026-11-08, итог 2D №9, №11; ревью SWD-3 — устойчивость по dt).
 Пакет `tools/research/sw_charges_3d/sim3d/`.
 - `Setup(terrain, panels, bg, z0, params)` — `params`: `fil` (dict для `filaments3d.step`), `core` (ядро новых нитей,
