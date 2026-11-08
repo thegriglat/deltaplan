@@ -1,0 +1,72 @@
+{
+  "id": "SWD-12a",
+  "module": "sw-charges-3d",
+  "type": "dp-researcher",
+  "title": "Доработка proto3d по ревью SWD-12: обоснование R_r = ℓ/2 и оговорка №6, отход от одного кольца, ref_kind σ_w, summary ≤140",
+  "goal": "Закрыть замечания ревью SWD-12 (.dpcli/dpcli review SWD-12 --show): статус №6 — с условием и обоснованием R_r = ℓ/2, причины частиц вместо одного кольца в README, правильная пометка эталона σ_w в C, docs check без ошибок в файлах задачи.",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "SWD8",
+      "version": "1",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    },
+    {
+      "name": "SWD2",
+      "version": "5",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    },
+    {
+      "name": "SWD3",
+      "version": "4",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sw-charges-3d-SWD-12a",
+  "branch": "sw-charges-3d/SWD-12a",
+  "base": "feature/sw-charges-3d",
+  "scope": [
+    "tools/research/sw_charges_3d/proto3d/",
+    "tools/research/sw_charges_3d/out/proto3d/",
+    "tools/research/sw_charges_3d/compare/README.md"
+  ],
+  "dont_touch": [
+    "tools/research/sw_charges_3d/panels3d/",
+    "tools/research/sw_charges_3d/filaments3d/",
+    "tools/research/sw_charges_3d/sim3d/",
+    "tools/research/sw_charges_3d/sheet3d/",
+    "tools/research/sw_charges_3d/rotor3d/",
+    "tools/research/sw_charges_3d/chain3d/",
+    "tools/research/sw_charges_3d/out/compare/",
+    "tools/research/sw_charges_3d/refs/",
+    "tools/research/sw_charges/",
+    "docs/contracts/",
+    "tools/research/sw_charges_3d/contract/",
+    "rust/"
+  ],
+  "accept": [
+    {
+      "name": "contract-files",
+      "cmd": "tools/research/sw_charges_3d/py tools/research/sw_charges_3d/contract/check_contract.py files tools/research/sw_charges_3d/out/proto3d",
+      "expect": "exit=0"
+    },
+    {
+      "name": "pytest",
+      "cmd": "tools/research/sw_charges_3d/py -m pytest -q tools/research/sw_charges_3d/proto3d/tests",
+      "expect": "!re:(failed|error)"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "!re:ОШИБКА +tools/research/sw_charges_3d/(proto3d|out/proto3d|compare)/"
+    },
+    {
+      "name": "rr-arg",
+      "cmd": "grep -c 'R_r' tools/research/sw_charges_3d/proto3d/README.md",
+      "expect": "num:(\\d+) >=2"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-08T18:57:50"
+}
