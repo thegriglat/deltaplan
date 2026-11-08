@@ -1,0 +1,46 @@
+{
+  "id": "SWC-6",
+  "module": "sw-charges",
+  "type": "dp-researcher",
+  "title": "Этап 3 (б): прототип A — вихревые частицы с плавучестью, 2D без рельефа",
+  "goal": "Прототип варианта A (unified-scales.md, «Прототип A», шаги 1–2 без рельефа) на Python/CuPy: термик-пятно с плавучестью и сдвиговый слой; ответ по критерию — получаются ли кольцо опускания, ∫w dx = 0, скорость 0,5·b·t и пары из одного уравнения, против нынешних моделей масштабов 2–3; числа и время.",
+  "plan_ref": "Этапы и задачи (уточняет координатор)",
+  "contracts": [],
+  "copy": "~/worktrees/deltaplan/sw-charges-SWC-6",
+  "branch": "sw-charges/SWC-6",
+  "base": "feature/sw-charges",
+  "scope": [
+    "tools/research/sw_charges/proto_a/",
+    "docs/research/sw_charges/proto-a.md",
+    "docs/INDEX.md",
+    "docs/registry/research.md"
+  ],
+  "dont_touch": [
+    "docs/contracts/",
+    "docs/research/sw_charges/unified-scales.md",
+    "tools/research/cascade_2d/",
+    "tools/research/sw_charges/swpy/",
+    "rust/"
+  ],
+  "accept": [
+    {
+      "name": "results",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/sw_charges/proto_a/out/results.json'));k=['step1','step2','criterion','timing'];m=[x for x in k if x not in d];print('missing',m);exit(1 if m else 0)\"",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": "bash -c '.dpcli/dpcli docs check 2>&1 | grep -E \"ОШИБКА.*sw_charges\"; test ${PIPESTATUS[1]} -eq 1'",
+      "expect": "exit=0"
+    },
+    {
+      "name": "verdict",
+      "cmd": "grep -cE '^\\*\\*Вердикт' docs/research/sw_charges/proto-a.md",
+      "expect": "num:(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "Спецификация — docs/research/sw_charges/unified-scales.md, раздел «Прототип A» (.dpcli/dpcli docs section docs/research/sw_charges/unified-scales.md \"Прототип A\"), и «Общая основа» (выводы a = b/2, Γ = −2bRt, d = πR/2, ∫w dx = 0). Делать шаги (1) и (2); шаг (3) с рельефом — НЕ делать (позже, после этапа 1). Python: интерпретатор tools/research/cascade_2d/py (готовый venv: numpy, scipy, matplotlib, cupy) — только запускать, ничего в cascade_2d не менять. GPU — без замка; тяжёлый CPU — .dpcli/dpcli lock cpu swc6 -- <cmd>. Код и данные — tools/research/sw_charges/proto_a/ (README.md с frontmatter type research: команды воспроизведения, таблица), out/results.json с ключами step1, step2, criterion (по каждому пункту критерия: значение, порог, pass/fail), timing (мс/шаг при N, время прогона); рисунки PNG в out/ (смотреть их не нужно, проверка числами). Вывод — docs/research/sw_charges/proto-a.md (frontmatter type research, status active, module sw-charges, summary ≤ 140 симв.; документ ≤ 40 КБ): постановка, числа, сравнение с нынешними масштабами 2–3 (docs/guide/air-model/thermals.md — ядро Гедеона + кольцо; docs/guide/air-model/turbulence.md — σ_w(z), L_w, спектр), строка «**Вердикт:** годится / не годится / частично — почему». Замечания ревью к спецификации (учесть): в шаге (1) нет противоречия только если сравнивать скорость пятна с 0,5·b·t (a = b/2), а U = Γ/(2πd) точечной пары даёт ≈ 0,20·b·t — показать оба и объяснить расхождение (конечное ядро против точечной пары); прямая сумма 10⁸ пар в CuPy — блоками (или RawKernel), наивный broadcast N×N не влезет в память — замерить и записать. Не шлифовать: прототип для ответа на вопрос. r.json — вне копии (scratchpad, имя с SWC-6). Время работы — до ~3 ч.",
+  "created": "2026-11-08T01:11:18",
+  "edited": "2026-11-08T01:11:23"
+}

@@ -1,0 +1,46 @@
+{
+  "status": "done",
+  "summary": "Эталоны picard_rs cascade-2d C0–C4 на dx 400, 200, 100, 50 пересобраны в ~/data/cascade_2d: 20 прогонов status ok, контракт F1/F2 FAIL 0 (проверено 40). Таблица и сравнение с прежней — в tools/research/sw_charges/out/cascade2d_refs.md.",
+  "commits": [
+    "ed7c9f8a1 SWC-3: эталоны picard_rs cascade-2d C0–C4, dx 400–50 — таблица и сравнение"
+  ],
+  "checks": [
+    {
+      "name": "fields",
+      "value": "exit 0 (все C0–C4 × dx 400,200,100,50 есть)",
+      "pass": true
+    },
+    {
+      "name": "contract",
+      "value": "FAIL 0 (проверено 40)",
+      "pass": true
+    },
+    {
+      "name": "git-clean",
+      "value": "git status -- tools/research/cascade_2d rust пуст",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Таблица P50 vs P25 (E_u, E_w, E_u_lee, СКО) пуста: уровень dx 25 не считался по требованию задачи. U_ref в новой таблице — с dx 50, в прежней — с dx 25, поэтому напрямую не сравнивались.",
+    "run_refs table пишет convergence.{json,md} в tools/research/cascade_2d/cases/ (git); вывод взят из stdout, файлы восстановлены git checkout. Скрипт стоит поправить, чтобы он писал вне дерева."
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SWC-3 --dry",
+  "uncertain": [
+    {
+      "where": "tools/research/cascade_2d/cases/run_refs.py: table()",
+      "why": "без dx 25 diff_50_25 возвращает None, таблица P50 vs P25 пустая",
+      "checked": "ожидаемо по коду (ранний выход при отсутствии d25)"
+    }
+  ],
+  "dp_feedback": "task show SWC-3 без --full обрезает дополнения координатора; пришлось читать --full. В README cascade_2d команды без --dx включают dx 25, что легко запустить по ошибке.",
+  "extra": {
+    "итерации": "совпали с прежней таблицей во всех 20 случаях",
+    "max_rel_div_C3_d50": 0.000925,
+    "data": "~/data/cascade_2d (cases, raw, fields, runs, convergence_new.md)"
+  },
+  "t": "2026-11-08T01:06:43",
+  "by": "executor"
+}

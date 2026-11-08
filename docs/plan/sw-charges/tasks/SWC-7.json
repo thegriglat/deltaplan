@@ -1,0 +1,47 @@
+{
+  "id": "SWC-7",
+  "module": "sw-charges",
+  "type": "dp-researcher",
+  "title": "Этап 3 (б): прототип C — пуассоновы диполи и пары, 2D без рельефа",
+  "goal": "Прототип варианта C (unified-scales.md, «Прототип C», шаги 1–3 без рельефа) на Python/NumPy: термики-диполи и пары болтанки как объекты реестра с обратными потоками в среднее поле; ответ по критерию — согласие с нынешними масштабами 2–3 (σ_w ±30 %) при наличии обратных потоков; числа и время.",
+  "plan_ref": "Этапы и задачи (уточняет координатор)",
+  "contracts": [],
+  "copy": "~/worktrees/deltaplan/sw-charges-SWC-7",
+  "branch": "sw-charges/SWC-7",
+  "base": "feature/sw-charges",
+  "scope": [
+    "tools/research/sw_charges/proto_c/",
+    "docs/research/sw_charges/proto-c.md",
+    "docs/INDEX.md",
+    "docs/registry/research.md"
+  ],
+  "dont_touch": [
+    "docs/contracts/",
+    "docs/research/sw_charges/unified-scales.md",
+    "tools/research/cascade_2d/",
+    "tools/research/sw_charges/swpy/",
+    "tools/research/sw_charges/proto_a/",
+    "rust/"
+  ],
+  "accept": [
+    {
+      "name": "results",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/sw_charges/proto_c/out/results.json'));k=['step1','step2','step3','criterion','timing'];m=[x for x in k if x not in d];print('missing',m);exit(1 if m else 0)\"",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": "bash -c '.dpcli/dpcli docs check 2>&1 | grep -E \"ОШИБКА.*sw_charges\"; test ${PIPESTATUS[1]} -eq 1'",
+      "expect": "exit=0"
+    },
+    {
+      "name": "verdict",
+      "cmd": "grep -cE '^\\*\\*Вердикт' docs/research/sw_charges/proto-c.md",
+      "expect": "num:(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "Спецификация — docs/research/sw_charges/unified-scales.md, раздел «Прототип C» (.dpcli/dpcli docs section docs/research/sw_charges/unified-scales.md \"Прототип C\"), «Вариант C» и «Общая основа». Делать шаги (1)–(3) на фоне без рельефа (гладкое U(z)); шаг 2 спецификации «линия рельефа и поле этапа 1» — НЕ делать (позже). Сравнение с нынешними моделями: термик — docs/guide/air-model/thermals.md (ядро Гедеона + кольцо, AirThermals; профиль w(x), подъём до потолка), болтанка — docs/guide/air-model/turbulence.md (σ_w(z), L_w, корреляция по размаху «0,6 σ в точке»); числа калибровки — docs/research/calibration_data/thermals.md. Читать разделами (.dpcli/dpcli docs section <путь> [раздел]). Python: интерпретатор tools/research/cascade_2d/py (готовый venv: numpy, scipy, matplotlib, cupy) — только запускать, ничего в cascade_2d не менять; тяжёлый CPU — .dpcli/dpcli lock cpu swc7 -- <cmd>. Код и данные — tools/research/sw_charges/proto_c/ (README.md с frontmatter type research: команды воспроизведения, таблица), out/results.json с ключами step1, step2, step3, criterion (по каждому пункту: значение, порог, pass/fail; σ_w ±30 % против turbulence.md; ∫w dx = 0 в 2D; есть ли обратные потоки — ⟨u′w′⟩(z) против u*², рост z_i(t), торможение ветра слоя), timing (мкс/шаг, время прогона); рисунки PNG в out/ (смотреть не нужно, проверка числами). Свободные параметры (λ = c·S², k_m, α 0,1–0,2) — не подгонять под ответ: взять из спецификации/литературы, чувствительность — сканом, в документ. Вывод — docs/research/sw_charges/proto-c.md (frontmatter type research, status active, module sw-charges, summary ≤ 140 симв.; ≤ 40 КБ): постановка, числа, сравнение, строка «**Вердикт:** годится / не годится / частично — почему». Не шлифовать. r.json — вне копии (scratchpad, имя с SWC-7). Время работы — до ~3 ч.",
+  "created": "2026-11-08T01:11:45",
+  "edited": "2026-11-08T01:11:50"
+}

@@ -1,0 +1,47 @@
+{
+  "status": "done",
+  "summary": "Доработка по SW6 v2: Panels.ds_min и core=ds_min/2, сетка без обрезков, bg_profile smooth_m, тест полуцилиндра R/20 по v2, таблица ошибок в README.",
+  "commits": [
+    "e71f9a93c panels2d: SW6 v2"
+  ],
+  "checks": [
+    {
+      "name": "pytest",
+      "value": "10 passed",
+      "pass": true
+    },
+    {
+      "name": "pytest-pass",
+      "value": "10",
+      "pass": true
+    },
+    {
+      "name": "min ds/ds_min на Agnesi (12.5, 25, 7.3, None)",
+      "value": ">=0.5",
+      "pass": true
+    },
+    {
+      "name": "core рождённых при ds_min 12.5",
+      "value": "6.25",
+      "pass": true
+    },
+    {
+      "name": "solve N=500/2000 (мс)",
+      "value": "60 / 850",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept SWC-11",
+  "uncertain": [
+    {
+      "where": "core.py:build_panels",
+      "why": "Остаток зоны роста присоединяется к последней панели (она может быть до 1,5·h, т.е. >ds_max в дальней зоне).",
+      "checked": "min ds >= 0,5 ds_min на 4 конфигурациях"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-11-08T03:10:38",
+  "by": "executor"
+}

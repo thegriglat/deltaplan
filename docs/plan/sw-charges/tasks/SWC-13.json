@@ -1,0 +1,52 @@
+{
+  "id": "SWC-13",
+  "module": "sw-charges",
+  "type": "dp-researcher",
+  "title": "Этап 3 (б): прототип A над линией рельефа — панели как земля",
+  "goal": "Шаг 3 прототипа A (вихревые частицы с плавучестью) над линией рельефа с гребнем, где землю дают панели panels2d вместо изображений: термик у склона (подтекание у земли, кольцо опускания), ротор за гребнем при ветре; критерии из ревью SWC-6; против нынешних масштабов 2–3 и Perdigão; числа и время.",
+  "plan_ref": "Этапы и задачи (уточняет координатор)",
+  "contracts": [
+    {
+      "name": "SW6",
+      "version": "2",
+      "ref": "docs/contracts/sw-charges.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sw-charges-SWC-13",
+  "branch": "sw-charges/SWC-13",
+  "base": "feature/sw-charges",
+  "scope": [
+    "tools/research/sw_charges/proto_a/",
+    "docs/research/sw_charges/proto-a-terrain.md",
+    "docs/INDEX.md",
+    "docs/registry/research.md"
+  ],
+  "dont_touch": [
+    "tools/research/sw_charges/panels2d/",
+    "tools/research/sw_charges/proto_a/pa_core.py",
+    "docs/research/sw_charges/proto-a.md",
+    "docs/contracts/",
+    "tools/research/cases/"
+  ],
+  "accept": [
+    {
+      "name": "results",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/sw_charges/proto_a/out/step3/results.json'));k=['thermal_slope','rotor','criterion','timing'];m=[x for x in k if x not in d];print('missing',m);exit(1 if m else 0)\"",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": "bash -c '.dpcli/dpcli docs check 2>&1 | grep -E \"ОШИБКА.*sw_charges\"; test ${PIPESTATUS[1]} -eq 1'",
+      "expect": "exit=0"
+    },
+    {
+      "name": "verdict",
+      "cmd": "grep -cE '^\\*\\*Вердикт' docs/research/sw_charges/proto-a-terrain.md",
+      "expect": "num:(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "Исходное — прототип A: tools/research/sw_charges/proto_a/ (pa_core.py — ядро частиц, только импорт, не менять; README), итог шагов 1–2 — docs/research/sw_charges/proto-a.md; спецификация — docs/research/sw_charges/unified-scales.md «Прототип A», шаг (3). Земля — panels2d (SW6 v2, tools/research/sw_charges/panels2d, README «Панели panels2d»; не менять): вместо изображений нормальная скорость частиц на линии земли гасится solve(panels, bg, vortices=<частицы как Vortices>) на каждом шаге (или раз в k шагов — замерить разницу); частицы, ушедшие под землю, — отражать или удалять (записать как). Интерпретатор tools/research/cascade_2d/py (venv с cupy) или tools/research/sw_charges/py (numpy) — на выбор; GPU без замка, тяжёлый CPU — .dpcli/dpcli lock cpu swc13 -- <cmd>. Код — новые файлы proto_a/step3*.py, результаты proto_a/out/step3/ (results.json с ключами thermal_slope, rotor, criterion, timing), README proto_a — дописать раздел «Шаг 3». Вывод — docs/research/sw_charges/proto-a-terrain.md (frontmatter type research, status active, module sw-charges, summary ≤ 140, ≤ 40 КБ).\nОпыты: (а) термик-пятно (как шаг 1: R = 100 м, Δθ = 1 K) у подножия и на середине склона 2D-хребта (Agnesi H = 200, L = 500 и Perdigão-разрез из tools/research/cases/perdigao.py terrain/menke_geometry — только импорт), без ветра и при U = 2–3 м/с: подтекание у земли к термику (u у земли к центру, м/с), кольцо опускания, снос, отрыв от склона; (б) ветер 5–8 м/с над хребтом с острой бровкой (подветренный уклон ≥ 0,32), источник завихренности — сход с бровки как в SW6 step (или слой сдвига у земли), ротор за гребнем: есть/нет, длина L/D против Menke 2019 (L/D ≈ 0,5, tools/research/data/perdigao/README.md) и против нынешней модели подветренной зоны (docs/guide/air-model/turbulence.md).\nКритерии (ревью SWC-6, учесть): скорость пятна против 0,5·b·t — в окне t ≤ 60 с; ∫w dx = 0 в 2D тривиален — НЕ критерий; критерии: w < 0 вокруг ядра при |x| > R, a = b/2, P = B·t (дрейф ≤ 1 % за 60 с), d = πR/2; для склона — подтекание есть (u к термику у земли > 0,1 м/с) и термик отрывается от склона; для ротора — обратное u у земли за гребнем. Ссылка на ring_sink_factor — scripts/atmosphere/atmo_thermal.gd (только читать). Потеря импульса без перегруппировки частиц (proto-a.md) — если мешает, сделать простую перегруппировку и записать; не шлифовать.\nЭталоны: решение пользователя — измерения прежде Пикара; Perdigão (Menke 2019), термики — docs/research/experimental_data.md раздел H, docs/research/calibration_data/thermals.md. «**Вердикт:** …» — годится ли A над рельефом как единое описание (присутствие элементов игры: подъём, опускание вокруг, подтекание, ротор за гребнем). r.json — вне копии (scratchpad, имя с SWC-13). Время работы — до ~3 ч.",
+  "created": "2026-11-08T03:14:42",
+  "edited": "2026-11-08T03:14:53"
+}

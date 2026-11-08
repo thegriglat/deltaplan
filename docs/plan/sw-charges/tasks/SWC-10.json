@@ -1,0 +1,46 @@
+{
+  "id": "SWC-10",
+  "module": "sw-charges",
+  "type": "dp-writer",
+  "title": "Итог этапа 1 (и 3а/3б без рельефа) для шлюза пользователю",
+  "goal": "Сводный документ docs/research/sw_charges.md: что проверено на 2D (литература, решатель, режимы A1/A2, разрезы против Пикара и измерений, прототипы A и C), вердикты с числами, чего модель не умеет, что не сделано по плану; строки выводов в registry/findings.md.",
+  "plan_ref": "Приёмка",
+  "contracts": [],
+  "copy": "~/worktrees/deltaplan/sw-charges-SWC-10",
+  "branch": "sw-charges/SWC-10",
+  "base": "feature/sw-charges",
+  "scope": [
+    "docs/research/sw_charges.md",
+    "docs/registry/findings.md",
+    "tools/research/sw_charges/README.md",
+    "docs/INDEX.md",
+    "docs/registry/research.md"
+  ],
+  "dont_touch": [
+    "docs/research/sw_charges/",
+    "docs/contracts/",
+    "docs/plan/sw-charges.md",
+    "tools/research/sw_charges/swpy/"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": "bash -c '.dpcli/dpcli docs check 2>&1 | grep -E \"ОШИБКА.*sw.charges\"; test ${PIPESTATUS[1]} -eq 1'",
+      "expect": "exit=0"
+    },
+    {
+      "name": "findings",
+      "cmd": "bash -c 'sed -n \"/^## sw-charges/,/^## /p\" docs/registry/findings.md | grep -c \"^- \"'",
+      "expect": "num:(\\d+) >=4"
+    },
+    {
+      "name": "verdict",
+      "cmd": "grep -cE '^\\*\\*Итог' docs/research/sw_charges.md",
+      "expect": "num:(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "Писать только по фактам из документов модуля (не выдумывать, числа — оттуда, со ссылками путь#раздел): docs/research/sw_charges/literature.md (SWC-1), unified-scales.md (SWC-5), proto-a.md (SWC-6), proto-c.md (SWC-7), stage1-regimes.md (SWC-8), stage1-sections.md (SWC-9); решатель — tools/research/sw_charges/README.md «Решатель swpy» (SWC-4); эталоны Пикара — tools/research/sw_charges/out/cascade2d_refs.md (SWC-3). Отчёты и ревью задач — .dpcli/dpcli report <ID> --show, .dpcli/dpcli review <ID> --show (ID SWC-1, 3–9). Решения пользователя — .dpcli/dpcli inbox sw-charges --peek и план (.dpcli/dpcli plan sw-charges), шлюз Q1 и ответ. Разделы docs/research/sw_charges.md (frontmatter type research, status active, module sw-charges, summary ≤ 140 симв., conclusion — одна строка с числами, data, applied_in пусто; ≤ 40 КБ): 1) вопрос и решения пользователя (по датам/Q1, не по времени суток); 2) что сделано — таблица задач (ID, что, вердикт, главные числа, ссылка); 3) этап 1: слой против теории (A1), против air-phase (A2), против Пикара и измерений на разрезах (SW5, Perdigão) — с допуском Пикара ±10–15 % (решение пользователя); 4) этап 3 без рельефа: прототипы A и C — что получилось/нет; 5) какие законы учтены, приближения, чего модель не умеет (план «Приёмка»); 6) что по плану не сделано и почему (места игры (б), слабый ветер/вечер (в), картинки стока — по 2D-первому решению и Q1; шаг 3 прототипов с рельефом; этап 2); 7) строка «**Итог:** …» — годится ли слой мелкой воды и для чего, честно (без продающего тона). Варианты продолжения для шлюза пользователю — отдельным коротким списком в конце (этап 2 панели 25–30 м с эталонами Askervein/Perdigão/Lubitz–White из docs/research/experimental_data.md; шаг 3 прототипов A/C над линией рельефа; закрыть направление) — без рекомендаций от себя, если их нет в документах. registry/findings.md — раздел «## sw-charges» (создать, если нет; формат как у соседних разделов): ≥ 4 строки «- вывод с числами — ссылка путь#раздел». tools/research/sw_charges/README.md — дописать оглавление подкаталогов (swpy, regimes, sections, proto_a, proto_c, contract, out) по одной строке, ничего не удалять. Публичных текстов нет. r.json — вне копии (scratchpad, имя с SWC-10).",
+  "created": "2026-11-08T02:46:46",
+  "edited": "2026-11-08T02:46:50"
+}

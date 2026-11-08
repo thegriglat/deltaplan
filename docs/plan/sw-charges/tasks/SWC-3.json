@@ -1,0 +1,41 @@
+{
+  "id": "SWC-3",
+  "module": "sw-charges",
+  "type": "dp-mechanic",
+  "title": "Восстановить эталоны Пикара cascade-2d (C0–C4, dx 400–50) в ~/data/cascade_2d",
+  "goal": "Готовыми скриптами cascade-2d заново собрать случаи R1 и решения picard_rs C0–C4 на dx 400, 200, 100, 50 в $CASCADE2D_DATA (~/data/cascade_2d) и проверить их контрактом F1/F2; файлы cascade-2d в git не менять.",
+  "plan_ref": "Этапы и задачи (уточняет координатор)",
+  "contracts": [],
+  "copy": "~/worktrees/deltaplan/sw-charges-SWC-3",
+  "branch": "sw-charges/SWC-3",
+  "base": "feature/sw-charges",
+  "scope": [
+    "tools/research/sw_charges/out/cascade2d_refs.md"
+  ],
+  "dont_touch": [
+    "tools/research/cascade_2d/",
+    "rust/",
+    "docs/"
+  ],
+  "accept": [
+    {
+      "name": "fields",
+      "cmd": "bash -c 'for c in C0 C1 C2 C3 C4; do for d in 400 200 100 50; do test -f $HOME/data/cascade_2d/fields/$c/picard_none_d$d.json || exit 1; done; done'",
+      "expect": "exit=0"
+    },
+    {
+      "name": "contract",
+      "cmd": "tools/research/cascade_2d/py tools/research/cascade_2d/contract/check_contract.py $HOME/data/cascade_2d/fields",
+      "expect": "re:FAIL 0"
+    },
+    {
+      "name": "git-clean",
+      "cmd": "git status --porcelain -- tools/research/cascade_2d rust",
+      "expect": "!re:\\S"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-08T00:49:15",
+  "edited": "2026-11-08T00:49:27"
+}

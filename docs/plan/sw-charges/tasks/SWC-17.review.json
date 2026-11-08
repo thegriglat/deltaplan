@@ -1,0 +1,61 @@
+{
+  "verdict": "accept",
+  "summary": "SW7 v2 собран по контракту (version 2, 4 варианта по 96 строк, ref_err/within_tol_ref по формуле контракта, rotor 32), все 37 файлов в скоупе, библиотека panels2d не тронута. Отрицательный вердикт («паритета нет») честный: допущения (REF_K 1,5, масштаб трубы H = 21,1 м, z0 Perdigão) названы, по каждому есть чувствительность, и смещения работают в сторону успеха, а не против — подгонки нет. Приёмка перезапущена: 3/3 PASS, scope PASS.",
+  "issues": [
+    {
+      "file": "tools/research/sw_charges/panels_exp/run_bl.py",
+      "line": 10,
+      "severity": "minor",
+      "what": "Масштаб трубы H = 21,1 м выбран по z0/H, но δ0 = 500·z0 — константа библиотеки, а не трубы; подобие по δ0/H (2,4) с реальной толщиной слоя трубы Lubitz–White не сверено. Чувствительность (H = 50, 150) показана, вывод (б) от неё не меняется — поэтому minor.",
+      "fix": "В stage2-2d-bl.md «Допущения» одной фразой указать δ/H трубы по статье (если есть) или что оно неизвестно."
+    },
+    {
+      "file": "tools/research/sw_charges/panels_exp/merge3.py",
+      "line": 12,
+      "severity": "minor",
+      "what": "REF_K = 1,5 даёт ref_err до 63 % (C4 upstream, нижняя клетка) — допуск такой ширины делает within_tol_ref в этих клетках почти безусловным. На вердикт не влияет (в документе дано и 5/15 без ref_err), но число «6/15» в summary опирается на него.",
+      "fix": "Ничего менять не нужно; при следующем круге — ограничить ref_err сверху (напр. 0,5) или давать обе цифры в summary."
+    },
+    {
+      "file": "tools/research/sw_charges/panels_exp/bl_common.py",
+      "line": 96,
+      "severity": "minor",
+      "what": "Поле `shed` в строках _bl — bool(список отрывов на последнем шаге), в SWC-16 — «сход включён». Для vortex_bl C4 shed=False при 189 вихрях — читается как противоречие. Поле вне контракта SW7.",
+      "fix": "В README panels_exp одной строкой пояснить семантику `shed` для _bl (или писать True при shed='auto')."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "accept --dry: contract",
+      "value": "FAIL 0, version 2",
+      "pass": true
+    },
+    {
+      "name": "accept --dry: docs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "accept --dry: verdict",
+      "value": "1",
+      "pass": true
+    },
+    {
+      "name": "scope (accept --dry)",
+      "value": "37 файлов в границах",
+      "pass": true
+    },
+    {
+      "name": "points.json: варианты × строки",
+      "value": "potential/vortex/potential_bl/vortex_bl по 96; within_tol_ref picard: pot 26, vortex 28, pot_bl 30, vortex_bl 31 из 60 — совпадает с документом",
+      "pass": true
+    },
+    {
+      "name": "within_tol_ref формула (C4 upstream vortex_bl)",
+      "value": "|1,63| ≤ 0,628·2,63 = 1,65 → True — по контракту max(tol, ref_err)·|u_ref|",
+      "pass": true
+    }
+  ],
+  "t": "2026-11-08T05:15:04",
+  "by": "reviewer"
+}

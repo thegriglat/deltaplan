@@ -1,0 +1,49 @@
+{
+  "status": "done",
+  "summary": "docs/research/sw_charges.md (7 разделов, 27 КБ): решения/Q1, таблица задач SWC-1,3–9, A1/A2/разрезы с колонкой эксперимента, прототипы A и C, законы и границы, что не сделано, **Итог**, варианты для шлюза без рекомендаций. Раздел sw-charges в findings.md (5 строк), оглавление подкаталогов в README, INDEX/research пересобраны.",
+  "commits": [
+    "см. git log ветки sw-charges/SWC-10: SWC-10 итог этапа 1"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "findings",
+      "value": "5",
+      "pass": true
+    },
+    {
+      "name": "verdict",
+      "value": "1",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "5 файлов в границах",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SWC-10",
+  "uncertain": [
+    {
+      "where": "docs/research/sw_charges.md §6",
+      "why": "время счёта разрезов SWC-9 и результаты Bolund в документах не найдены — написано 'не указано/не использовался'",
+      "checked": "grep по stage1-sections.md и experimental_data.md"
+    },
+    {
+      "where": "docs/research/sw_charges.md §1",
+      "why": "порядок решений дан по decisions.jsonl; SWC-2 (Rust-решатель) в итог не включён, решатель swpy на NumPy",
+      "checked": "events.jsonl, README решателя"
+    }
+  ],
+  "dp_feedback": "docs index переписывает registry/contracts.md вне скоупа задачи — пришлось откатывать git checkout; хорошо бы accept подсказывал или index не трогал чужое.",
+  "extra": {},
+  "t": "2026-11-08T02:49:30",
+  "by": "executor"
+}
