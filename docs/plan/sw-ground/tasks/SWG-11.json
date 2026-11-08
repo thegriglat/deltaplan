@@ -1,0 +1,72 @@
+{
+  "id": "SWG-11",
+  "module": "sw-ground",
+  "type": "dp-researcher",
+  "title": "Слой у земли, круг 4A: VII с тонким внутренним слоем и одновременной связью (Ньютон, как XFOIL ISES)",
+  "goal": "Довести связь панелей с интегральным слоем SWG-10 до сходимости и отрыва на реальном рельефе: слой — внутренний (масштаб JH l, не весь АПС), связь одновременная (глобальный Ньютон по δ*/θ/H и U_e, как ISES), без явной поправки Carter; одно правило на все места. Таблица до/после SWG2 по точкам SWG1 и мачтам.",
+  "plan_ref": "Задачи 1",
+  "contracts": [
+    {
+      "name": "SWG1",
+      "version": "1",
+      "ref": "docs/contracts/sw-ground.md"
+    },
+    {
+      "name": "SWG2",
+      "version": "1",
+      "ref": "docs/contracts/sw-ground.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sw-ground-SWG-11",
+  "branch": "sw-ground/SWG-11",
+  "base": "feature/sw-ground",
+  "scope": [
+    "tools/research/sw_ground/vii2/",
+    "tools/research/sw_ground/out/swg-11/"
+  ],
+  "dont_touch": [
+    "tools/research/sw_charges_3d/",
+    "tools/research/sw_ground/vii/",
+    "tools/research/sw_ground/ground/",
+    "tools/research/sw_ground/wake/",
+    "tools/research/sw_ground/sheet/",
+    "tools/research/sw_ground/zone/",
+    "tools/research/sw_ground/attached/",
+    "tools/research/sw_ground/out/points/",
+    "tools/research/sw_ground/out/swg-1/",
+    "tools/research/sw_ground/contract/",
+    "tools/research/sw_ground/py",
+    "docs/",
+    "rust/"
+  ],
+  "accept": [
+    {
+      "name": "contract",
+      "cmd": "tools/research/sw_ground/py tools/research/sw_ground/contract/check_contract.py tools/research/sw_ground/out/swg-11/ground.json",
+      "expect": "exit=0"
+    },
+    {
+      "name": "base",
+      "cmd": "tools/research/sw_ground/py tools/research/sw_ground/contract/accept_metrics.py ground tools/research/sw_ground/out/swg-11/ground.json",
+      "expect": "num:base_variants (\\d+) >=1"
+    },
+    {
+      "name": "vii2_rows",
+      "cmd": "grep -o '\"vii2' tools/research/sw_ground/out/swg-11/ground.json | wc -l",
+      "expect": "num:(\\d+) >=500"
+    },
+    {
+      "name": "masts",
+      "cmd": "tools/research/sw_ground/py tools/research/sw_ground/contract/accept_metrics.py ground tools/research/sw_ground/out/swg-11/ground.json",
+      "expect": "num:masts_new (\\d+) >=3"
+    },
+    {
+      "name": "pytest",
+      "cmd": "tools/research/sw_ground/py -m pytest -q tools/research/sw_ground/vii2",
+      "expect": "re:passed"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T02:49:48"
+}
