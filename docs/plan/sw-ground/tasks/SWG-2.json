@@ -1,0 +1,59 @@
+{
+  "id": "SWG-2",
+  "module": "sw-ground",
+  "type": "dp-researcher",
+  "title": "Геометрическая нить ротора (rotor3d v2) на Perdigão NE/SW и Askervein",
+  "goal": "Прогнать нить ротора rotor3d v2 (одно правило, штатные параметры) на реальном рельефе Perdigão NE, SW и Askervein: L и |u_min| против Menke 2019 и Пикара по разрезам, ложные роторы на пологих буграх — таблица SWG3 и вывод есть/нет.",
+  "plan_ref": "Задачи 2",
+  "contracts": [
+    {
+      "name": "SWG3",
+      "version": "1",
+      "ref": "docs/contracts/sw-ground.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sw-ground-SWG-2",
+  "branch": "sw-ground/SWG-2",
+  "base": "feature/sw-ground",
+  "scope": [
+    "tools/research/sw_ground/rotor/",
+    "tools/research/sw_ground/out/swg-2/"
+  ],
+  "dont_touch": [
+    "tools/research/sw_charges_3d/",
+    "tools/research/sw_ground/contract/",
+    "tools/research/sw_ground/py",
+    "docs/",
+    "rust/"
+  ],
+  "accept": [
+    {
+      "name": "contract",
+      "cmd": "tools/research/sw_ground/py tools/research/sw_ground/contract/check_contract.py tools/research/sw_ground/out/swg-2/rotor.json",
+      "expect": "exit=0"
+    },
+    {
+      "name": "menke",
+      "cmd": "tools/research/sw_ground/py tools/research/sw_ground/contract/accept_metrics.py rotor tools/research/sw_ground/out/swg-2/rotor.json",
+      "expect": "num:rows_menke (\\d+) >=6"
+    },
+    {
+      "name": "cases",
+      "cmd": "tools/research/sw_ground/py tools/research/sw_ground/contract/accept_metrics.py rotor tools/research/sw_ground/out/swg-2/rotor.json",
+      "expect": "num:rows_cases (\\d+) >=3"
+    },
+    {
+      "name": "ridges",
+      "cmd": "tools/research/sw_ground/py tools/research/sw_ground/contract/accept_metrics.py rotor tools/research/sw_ground/out/swg-2/rotor.json",
+      "expect": "num:ridges (\\d+) >=3"
+    },
+    {
+      "name": "pytest",
+      "cmd": "tools/research/sw_ground/py -m pytest -q tools/research/sw_ground/rotor",
+      "expect": "re:passed"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-08T20:43:31"
+}

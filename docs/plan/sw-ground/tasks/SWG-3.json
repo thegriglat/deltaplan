@@ -1,0 +1,56 @@
+{
+  "id": "SWG-3",
+  "module": "sw-ground",
+  "type": "dp-researcher",
+  "title": "Время поля: панели 3D на сетках окон игры 100/50 м против Пикара крейта на той же машине",
+  "goal": "Замерить время полного поля панелей 3D (potential_jh; с нитью ротора, если она ставится) на сетках окон игры 64×64 с шагом 100 и 50 м (все уровни) на рельефе Онгудая — холодный старт и пересчёт при смене ветра — против Пикара крейта (dp-air/dp-stand, окна 100/50 м) на этой же машине; таблица SWG4.",
+  "plan_ref": "Задачи 3",
+  "contracts": [
+    {
+      "name": "SWG4",
+      "version": "1",
+      "ref": "docs/contracts/sw-ground.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sw-ground-SWG-3",
+  "branch": "sw-ground/SWG-3",
+  "base": "feature/sw-ground",
+  "scope": [
+    "tools/research/sw_ground/timing/",
+    "tools/research/sw_ground/out/swg-3/"
+  ],
+  "dont_touch": [
+    "tools/research/sw_charges_3d/",
+    "tools/research/sw_ground/contract/",
+    "tools/research/sw_ground/py",
+    "rust/",
+    "docs/",
+    "configs/",
+    "tests/fixtures/"
+  ],
+  "accept": [
+    {
+      "name": "contract",
+      "cmd": "tools/research/sw_ground/py tools/research/sw_ground/contract/check_contract.py tools/research/sw_ground/out/swg-3/timing.json",
+      "expect": "exit=0"
+    },
+    {
+      "name": "windows",
+      "cmd": "tools/research/sw_ground/py tools/research/sw_ground/contract/accept_metrics.py timing tools/research/sw_ground/out/swg-3/timing.json",
+      "expect": "num:windows (\\d+) >=2"
+    },
+    {
+      "name": "stages",
+      "cmd": "tools/research/sw_ground/py tools/research/sw_ground/contract/accept_metrics.py timing tools/research/sw_ground/out/swg-3/timing.json",
+      "expect": "num:stages (\\d+) >=2"
+    },
+    {
+      "name": "pytest",
+      "cmd": "tools/research/sw_ground/py -m pytest -q tools/research/sw_ground/timing",
+      "expect": "re:passed"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-08T20:44:24"
+}

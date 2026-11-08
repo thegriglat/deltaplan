@@ -1,0 +1,75 @@
+{
+  "id": "SWG-1",
+  "module": "sw-ground",
+  "type": "dp-researcher",
+  "title": "Слой у земли: плотные точки, таблица «до» и разложение завышения в лее и долине",
+  "goal": "Найти, что даёт завышение скорости панелей 3D у земли в лее и долине (+63…+209 % к Пикару): плотный набор точек SWG1, таблица «до» SWG2 и разложение вклада по слагаемым и параметрам (фон, z0, σ, JH, Хед). Исправление — не здесь; в отчёте — причины с числами и идеи исправления на языке зарядов/токов.",
+  "plan_ref": "Задачи 1",
+  "contracts": [
+    {
+      "name": "SWG1",
+      "version": "1",
+      "ref": "docs/contracts/sw-ground.md"
+    },
+    {
+      "name": "SWG2",
+      "version": "1",
+      "ref": "docs/contracts/sw-ground.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sw-ground-SWG-1",
+  "branch": "sw-ground/SWG-1",
+  "base": "feature/sw-ground",
+  "scope": [
+    "tools/research/sw_ground/ground/",
+    "tools/research/sw_ground/out/points/",
+    "tools/research/sw_ground/out/swg-1/"
+  ],
+  "dont_touch": [
+    "tools/research/sw_charges_3d/",
+    "tools/research/sw_ground/contract/",
+    "tools/research/sw_ground/py",
+    "docs/",
+    "rust/"
+  ],
+  "accept": [
+    {
+      "name": "contract",
+      "cmd": "tools/research/sw_ground/py tools/research/sw_ground/contract/check_contract.py tools/research/sw_ground/out/points/ground_points.json tools/research/sw_ground/out/swg-1/ground.json",
+      "expect": "exit=0"
+    },
+    {
+      "name": "selftest",
+      "cmd": "tools/research/sw_ground/py tools/research/sw_ground/contract/check_contract.py --selftest",
+      "expect": "exit=0"
+    },
+    {
+      "name": "decomp",
+      "cmd": "tools/research/sw_ground/py tools/research/sw_ground/contract/accept_metrics.py ground tools/research/sw_ground/out/swg-1/ground.json",
+      "expect": "num:decomp_lv_perd (\\d+) >=16"
+    },
+    {
+      "name": "decomp_terms",
+      "cmd": "tools/research/sw_ground/py tools/research/sw_ground/contract/accept_metrics.py ground tools/research/sw_ground/out/swg-1/ground.json",
+      "expect": "num:decomp_terms (\\d+) >=4"
+    },
+    {
+      "name": "scan",
+      "cmd": "tools/research/sw_ground/py tools/research/sw_ground/contract/accept_metrics.py ground tools/research/sw_ground/out/swg-1/ground.json",
+      "expect": "num:scan_params (\\d+) >=2"
+    },
+    {
+      "name": "base",
+      "cmd": "tools/research/sw_ground/py tools/research/sw_ground/contract/accept_metrics.py ground tools/research/sw_ground/out/swg-1/ground.json",
+      "expect": "num:base_variants (\\d+) >=2"
+    },
+    {
+      "name": "pytest",
+      "cmd": "tools/research/sw_ground/py -m pytest -q tools/research/sw_ground/ground",
+      "expect": "re:passed"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-08T20:42:35"
+}
