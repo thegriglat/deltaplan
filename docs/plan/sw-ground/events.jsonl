@@ -145,3 +145,5 @@
 {"t": "2026-11-09T02:39:34", "by": "coordinator", "task": "SWG-10", "ev": "checked", "note": "5/5 contract=ok:exit 0; base=ok:2; vii_rows=ok:10323; masts=ok:30; pytest=ok:passed"}
 {"t": "2026-11-09T02:44:04", "by": "reviewer", "task": "SWG-10", "ev": "reviewed", "note": "Partial честный: схема VII собрана по карточке (Карман/Хед/Coles/Carter, σ_d теми же LU, профиль у земли), уравнения в bl._rhs сверены с формулами docstring — …", "verdict": "accept", "issues": {"minor": 4}, "review": "docs/plan/sw-ground/tasks/SWG-10.review.json"}
 {"t": "2026-11-09T02:44:27", "by": "coordinator", "task": "SWG-10", "ev": "accepted", "note": "по ревью (fable), частично: Perdigão не сошлось (Carter), таблица — последняя итерация; 4 minor — Carter от δ* слоя, Аньези без отрыва, строка «лее вне зоны» не сделана, цитировать с пометкой «не сошлось»"}
+{"t": "2026-11-09T02:46:46", "by": "coordinator", "task": "SWG-10", "ev": "accepted", "commits": ["a086d09c3"], "note": "5/5 contract=ok:exit 0; base=ok:2; vii_rows=ok:10323; masts=ok:30; pytest=ok:passed"}
+{"t": "2026-11-09T02:46:46", "by": "coordinator", "task": "SWG-10", "ev": "merged"}
