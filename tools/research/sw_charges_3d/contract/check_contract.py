@@ -42,11 +42,12 @@ API = {
     "filaments3d": {
         "Filaments": ["x", "seg", "gamma", "core", "anchored", "fid"],
         "imbalance": ["f"],
-        "induced": ["f", "x", "y", "z", "backend"],
-        "self_velocity": ["f"],
+        "induced": ["f", "x", "y", "z", "backend", "method", "theta"],
+        "self_velocity": ["f", "method", "theta"],
+        "coarsen": ["f", "t", "params"],
         "ring": ["R", "gamma", "core", "n", "center", "normal"],
         "line": ["points", "gamma", "core", "anchored_ends"],
-        "shed": ["f", "line_pts", "u_s", "dt", "core", "normals"],
+        "shed": ["f", "line_pts", "u_s", "dt", "core", "normals", "t"],
         "step": ["f", "flow", "dt", "ground", "params"],
     },
     "sim3d": {
