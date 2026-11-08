@@ -2,7 +2,7 @@
 import numpy as np
 import pytest
 
-from filaments3d import (Filaments, imbalance, induced, line, relabel, ring, self_velocity, shed, step)
+from filaments3d import (Filaments, coarsen, imbalance, induced, line, relabel, ring, self_velocity, shed, step)
 from filaments3d.core import _gpu_available
 
 ZERO = lambda x, y, z: (np.zeros_like(x), np.zeros_like(x), np.zeros_like(x))
@@ -199,3 +199,100 @@ def test_gpu_equals_numpy():
     b = induced(f, *x, backend="cupy")
     for p, q in zip(a, b):
         assert np.allclose(p, q, rtol=1e-9, atol=1e-12)
+
+
+# ---------- SWD3 v4: t_birth, огрубление по возрасту, потолок узлов ----------
+def _shed_model(params, steps, n_pts=110, dx=25.0, U=10.0, dt=3.0, x_cut=6000.0):
+    """Модельный сход: линия n_pts точек (шаг dx) на каждом шаге, снос со скоростью U, удаление за x > x_cut;
+    скорость слоя вдоль линии меняется (рождаются ножки). → число узлов по шагам, Filaments."""
+    y = (np.arange(n_pts) - n_pts / 2) * dx
+    pts = np.stack([np.zeros(n_pts), y, np.zeros(n_pts)], 1)
+    us = np.stack([U * (1 + 0.3 * np.sin(y / 400.0)), np.zeros(n_pts), np.zeros(n_pts)], 1)
+    nrm = np.tile([0.0, 0.0, 1.0], (n_pts, 1))
+    f, n = Filaments(), []
+    for i in range(steps):
+        t = (i + 1) * dt
+        f = shed(f, pts, us, dt, 5.0, nrm, t=t)
+        f.x[:, 0] += U * dt
+        keep = (f.x[f.seg[:, 0], 0] < x_cut) | (f.x[f.seg[:, 1], 0] < x_cut)
+        f.seg, f.gamma, f.core, f.fid, f.t_birth = f.seg[keep], f.gamma[keep], f.core[keep], f.fid[keep], f.t_birth[keep]
+        f = relabel(f)
+        f = coarsen(f, t, params)
+        n.append(len(f.x))
+    return n, f
+
+
+def test_t_birth_inherited():
+    f = shed(None, [[0, 0, 0], [20, 0, 0], [40, 0, 0]], [[1, 0, 0]] * 3, 1.0, 1.0, [[0, 0, 1]] * 3, t=7.0)
+    assert np.all(f.t_birth == 7.0) and len(f.t_birth) == len(f.seg)
+    f = step(f, ZERO, 1.0, FLAT, dict(l_max=5.0))                      # дробление наследует t_birth
+    assert f.stats["split"] > 0 and np.all(f.t_birth == 7.0) and len(f.t_birth) == len(f.seg)
+    assert Filaments().t_birth.shape == (0,) and relabel(f).t_birth.shape == f.t_birth.shape
+
+
+def test_coarsen_age_ring_invariants():
+    f = ring(100.0, 50.0, 1.0, 400)                                    # отрезок 1,6 м
+    f.t_birth[:] = 0.0
+    g = coarsen(f, 1000.0, dict(l_age=0.01))                           # ½·0,01·1000 = 5 м
+    assert len(g.seg) < 0.5 * len(f.seg) and g.stats["coarsen_collapse"] > 0
+    assert imbalance(g) <= 1e-12
+    assert np.allclose(impulse(g), impulse(f), rtol=0.02)
+    P = np.array([[0.0, 0.0, 30.0], [0.0, 0.0, 120.0], [300.0, 0.0, 10.0]])
+    a, b = induced(f, *P.T), induced(g, *P.T)
+    for p, q in zip(a, b):
+        assert np.allclose(p, q, rtol=0.05, atol=1e-3 * np.abs(a[2]).max())
+    # молодые нити не трогаются
+    h = coarsen(f, 1000.0, dict(l_age=1e-6))
+    assert len(h.seg) == len(f.seg)
+
+
+def test_coarsen_off_by_default_and_pure():
+    f = ring(50.0, 5.0, 1.0, 100)
+    g = coarsen(f, 100.0, None)
+    assert len(g.seg) == len(f.seg) and g is not f and len(f.seg) == 100
+
+
+def test_coarsen_n_max_ceiling():
+    f = line(np.stack([np.linspace(0, 3000, 600), np.zeros(600), np.zeros(600)], 1), 3.0, 2.0)
+    f.t_birth = np.linspace(0, 500, len(f.seg))
+    g = coarsen(f, 600.0, dict(l_age=0.001, n_max=150))
+    assert len(g.x) <= 150 and g.stats["coarsen_rounds"] > 0 and g.stats["coarsen_nmax_unmet"] == 0
+    assert imbalance(g) <= 1e-12
+    # нельзя сжать дальше (≤ 4 отрезков на нить) — счётчик, не зависание
+    h = coarsen(f, 600.0, dict(l_age=0.001, n_max=2))
+    assert h.stats["coarsen_nmax_unmet"] == 1 and len(h.x) >= 5
+
+
+def test_shed_model_bounded():
+    prm = dict(l_age=0.2, n_max=20000)
+    n, f = _shed_model(prm, 500)
+    assert max(n) <= 3e4 and n[-1] < 1.1 * n[-101]
+    assert imbalance(f) <= 1e-12
+    n0, _ = _shed_model(None, 150)                                      # без ограничителя — рост линейный
+    assert n[149] < 0.8 * n0[-1]
+
+
+def test_step_split_follows_l_age():
+    f = line(np.stack([np.linspace(0, 100, 6), np.zeros(6), np.zeros(6)], 1), 1.0, 1.0)
+    f.t_birth[:] = 0.0
+    a = step(f, ZERO, 1.0, FLAT, dict(l_max=5.0))
+    b = step(f, ZERO, 1.0, FLAT, dict(l_max=5.0, l_age=0.5, t=100.0))   # lim = 50 м → дробится меньше
+    assert len(b.seg) < len(a.seg)
+
+
+def test_not_implemented_optional_parts():
+    f = ring(10.0, 1.0, 0.5, 20)
+    with pytest.raises(NotImplementedError):
+        coarsen(f, 1.0, dict(r_amal=1.0))
+    with pytest.raises(NotImplementedError):
+        induced(f, [0.0], [0.0], [0.0], method="tree")
+
+
+@pytest.mark.skip(reason="SWD3 v4: слияние отрезков (б) не реализовано (необязательно)")
+def test_amalgamation_kirchhoff():
+    pass
+
+
+@pytest.mark.skip(reason="SWD3 v4: дерево Барнса — Хата не реализовано (необязательно)")
+def test_tree_vs_direct():
+    pass

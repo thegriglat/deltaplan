@@ -35,6 +35,12 @@ applied_in: ""
 `velocity_mean(result, x, y, z, variant)` — из `probes_mean`, если точки совпали с `probes`, иначе по `snapshots` (в снимке — нити и σ
 до схода этого шага; нужен `record_every`).
 
+## Ограничитель роста (SWD4 v4)
+`params["coarsen"]` (dict для `filaments3d.coarsen`: `l_age`, `n_max`; None — выкл., по умолчанию) вызывается после
+подшагов каждый шаг с t; `fil["l_age"]`/`t` в `step` подставляются сами; `shed` получает t. Счётчики — в `stats`
+(`f_coarsen_collapse`, `f_coarsen_rounds`, `f_coarsen_nmax_unmet`). `params["bs_method"]`/`theta` пробрасываются в
+`induced`/`self_velocity`/`step`; `"tree"` пока `NotImplementedError` (SWD3 v4). Тест — хребет Agnesi 200 шагов с `n_max`.
+
 ## Значения `fil` по умолчанию (обоснование)
 - `r_rec` = 0 (перезамыкание выключено): иначе лавина (см. «Границы»).
 - `tau_s` = None, `gamma_min` = 0, `nu_t` = 0: обоснованной оценки нет (оборот вихря холма 2a/U ≈ 25 с — оценка порядка, не измерение), поэтому

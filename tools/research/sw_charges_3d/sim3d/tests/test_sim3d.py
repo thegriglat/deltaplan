@@ -166,3 +166,38 @@ def test_probes_mean_equals_snapshot_mean():
         m = np.stack(sim3d.velocity_mean(r2, pr[:, 0], pr[:, 1], pr[:, 2], v), 1)
         assert np.abs(m - r["probes_mean"][v]).max() < 1e-9, v
     assert np.abs(r["probes_mean"]["vortex_jh"] - r["probes_mean"]["potential_jh"]).max() > 1e-4
+
+
+# ---------- SWD4 v4: ограничитель роста ----------
+@pytest.fixture(scope="module")
+def coarse_run():
+    """Тот же хребет, что ridge_run, с огрублением по возрасту и потолком узлов."""
+    st = ridge_setup(params=dict(core=25.0, coarsen=dict(l_age=0.5, n_max=600),
+                                 fil=dict(bounds=(-2000.0, 900.0, -300.0, 300.0, 600.0), tau_s=25.0, gamma_min=1.0)))
+    return st, sim3d.run(st, 200.0, 1.0, sep_every=20)
+
+
+def test_ridge_coarsen_bounded_and_closed(ridge_run, coarse_run):
+    _, _, r0 = ridge_run
+    _, r = coarse_run
+    S, S0 = r["stats"], r0["stats"]
+    assert max(s["imbalance"] for s in S) <= 1e-12
+    assert all(np.isfinite(s["gamma_abs"]) for s in S)
+    assert S[-1]["n_seg"] > 0
+    assert max(s["n_nodes"] for s in S) <= 600 * 1.05 or S[-1]["f_coarsen_nmax_unmet"] > 0
+    assert S[-1]["n_nodes"] <= S[-101]["n_nodes"] * 1.1 + 5                    # рост за последние 100 шагов < 10 %
+    assert S[-1]["f_coarsen_collapse"] > 0 and "f_coarsen_rounds" in S[-1]
+    assert max(s["n_nodes"] for s in S) <= max(s["n_nodes"] for s in S0)       # не больше, чем без ограничителя
+    f = r["filaments"]
+    deg = np.bincount(f.seg.ravel(), minlength=len(f.x))
+    assert not np.any((deg == 1) & ~f.anchored)
+    assert len(f.t_birth) == len(f.seg) and f.t_birth.max() <= r["t"]
+
+
+def test_bs_method_tree_and_amalgamation_not_implemented():
+    st = ridge_setup(params=dict(bs_method="tree"))
+    assert st.bs_method == "tree"
+    with pytest.raises(NotImplementedError):
+        F.induced(F.ring(10.0, 1.0, 0.5, 12), [0.0], [0.0], [0.0], method=st.bs_method, theta=st.theta)
+    with pytest.raises(NotImplementedError):
+        F.coarsen(F.ring(10.0, 1.0, 0.5, 12), 1.0, dict(r_amal=2.0))
