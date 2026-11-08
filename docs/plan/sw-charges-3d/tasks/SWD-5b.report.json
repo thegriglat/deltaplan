@@ -1,0 +1,132 @@
+{
+  "status": "done",
+  "summary": "vortex_jh (sim3d: нити с гребня, couple, restart) посчитан на ASK_TU03B, PERD_NE, PERD_SW (σ 40, ds_min 25, лог. фон, как основной набор; tau_s 60 с выбран заранее, dt 3 с, t_end 120 с, окно 60 с, ядро 25 м): 546 строк на случай-вариант, 18 разрезов ротора, timing, diag, скан tau_s; в тот же points.json через compare/run_compare.py (vortex-run, vortex-merge). Ротор вихрями не получен (0 из 18, в т.ч. 0 из 6 разрезов Menke при tau_s 60 и без затухания), вихри меняют скорость у земли < 2 %; статусы 2D: №5 осталась, №8 осталась, №9 осталась, №11 ушла.",
+  "commits": [
+    "fa0ac0b41 SWD-5b: vortex_jh (sim3d, нити с гребня) против Menke/мачт/Пикара; ротор; скан tau_s; статусы проблем 2D №5, 8, 9, 11"
+  ],
+  "checks": [
+    {
+      "name": "contract-files",
+      "value": "exit 0: check_contract files out/compare OK",
+      "pass": true
+    },
+    {
+      "name": "vortex-cases",
+      "value": "3 случая vortex_jh (ASK_TU03B, PERD_NE, PERD_SW)",
+      "pass": true
+    },
+    {
+      "name": "vortex-rotor",
+      "value": "18 строк ротора vortex_jh",
+      "pass": true
+    },
+    {
+      "name": "unchecked",
+      "value": "2 не проверено (№6, №10)",
+      "pass": true
+    },
+    {
+      "name": "pytest-sim",
+      "value": "8 passed",
+      "pass": true
+    },
+    {
+      "name": "ротор Menke vortex_jh (NE/SW, T1-T3)",
+      "value": "0/6 при tau_s 60 с и 0/6 без затухания; эталон L 420-680 м; min u∥/U +0.11..+0.20 (обратного течения нет)",
+      "pass": false
+    },
+    {
+      "name": "|Δs|/s vortex_jh vs potential_jh, lee+valley z<30 м, медиана",
+      "value": "ASK 0.005, NE 0.008, SW 0.010 (макс по точкам 0.009/0.015/0.019); без затухания 0.006/0.013/0.016",
+      "pass": true
+    },
+    {
+      "name": "rmse s мачт vortex_jh (potential_jh)",
+      "value": "ASK 0.217 (0.22), NE 0.183 (0.18), SW 0.127 (0.13); dS HT 10 м ASK 0.626 (jh 0.624, данные 0.884)",
+      "pass": true
+    },
+    {
+      "name": "отрыв/присоединение в окне (проблема 11)",
+      "value": "точек отрыва на шаге схода в начале/в окне: NE 107.5/105.3, SW 77.5/76.0, ASK 2.0/3.0; точек с присоединением за всё время 4169/2915/55",
+      "pass": true
+    },
+    {
+      "name": "рост нитей/время",
+      "value": "Perdigão 24.6-27.7 тыс. узлов к 120 с (31 тыс. при tau_s inf), шаг до 76-87 с; Askervein 0.5 тыс., шаг 3-9 с; imbalance <= 3e-14",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Скан tau_s на Perdigão только 60 с и без затухания (15, 30, 120 с не считали: 20-25 мин на запуск, ASK полный скан 15/30/60/120/inf)",
+    "Счёт дольше 120 с (след нестационарный, 1.4-1.8 км пролёта воздуха); r_rec > 0, другое ядро, sep_every > 1 на Perdigão не пробовали",
+    "Скан tau_s записан в diag (item vortex_tau<tau>_<метрика>), а не в scan: scan.param контракта SWD5 не содержит tau_s",
+    "Проблемы 6 и 10 остались не проверенными (их нужен конвективный слой / нагрев склона)"
+  ],
+  "questions": [
+    "Расширить scan.param контракта SWD5 значением tau_s (сейчас скан tau_s лежит в diag)?"
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SWD-5b; tools/research/sw_charges_3d/py compare/run_compare.py vortex-merge (идемпотентно, из кеша out/compare/_cache); таблицы - out/compare/tables.md раздел SWD-5b; вывод - compare/summary.md",
+  "uncertain": [
+    {
+      "where": "compare/vortex.py:TAU_MAIN, T_END",
+      "why": "tau_s = 60 с - оценка порядка, не измерение; t_end 120 с (ограничено ценой шага до 87 с) - след не установившийся. Отсутствие ротора - результат этой постановки, не доказательство невозможности",
+      "checked": "tau_s 60 против inf на всех 3 случаях, ASK ещё 15/30/120: метрики и ротор не меняются; длиннее 120 с не считали"
+    },
+    {
+      "where": "compare/vortex.py:CORE",
+      "why": "ядро новых нитей = ds_min = 25 м вместо умолчания sim3d ds_min/2; выбор исполнителя, не из задания; влияет на сглаживание индуцированной скорости (ядро не менялось в скане)",
+      "checked": "пробный запуск PERD_NE с ядром 12,5 м дал то же число узлов (6661 на шаге 17), как при 25 м; поле с ядром 12,5 м не сравнивалось"
+    },
+    {
+      "where": "compare/run_compare.py:vortex_problems (статус №8)",
+      "why": "правило статуса №8 расширено после первого просмотра чисел: добавлено условие «обратный u∥ на мачтах» по определению проблемы в 2D (первоначальное правило только по отрыву и RMSE дало бы «ушла»)",
+      "checked": "правило и причина записаны в evidence; потенциальный и jh варианты тоже не дают u∥ < 0 (данные 11 из 28 мачт NE, 2 из 25 SW)"
+    },
+    {
+      "where": "sim3d/core.py (PROGRESS)",
+      "why": "добавлена печать шага в stderr при SIM3D_PROGRESS=1 - единственное изменение sim3d, API не менялся",
+      "checked": "pytest sim3d/tests 8 passed"
+    }
+  ],
+  "dp_feedback": "Два процесса CuPy на одном GPU (N~18 тыс. панелей) замедлились на порядки (старт > 25 мин против 1 мин) - в workflow стоит записать «GPU-счёт параллельно с другим GPU-счётом недопустим для плотных LU». Ожидание: `job wait` с большим таймаутом не помещается в 120 с foreground, приходится гонять в фоне; нужен вывод прогресса job (хвост лога) в `job status`. Часы в монитор-уведомлениях приходят пачками от старых мониторов - путает оценку времени.",
+  "extra": {
+    "taus_run": {
+      "ASK_TU03B": [
+        15,
+        30,
+        60,
+        120,
+        "inf"
+      ],
+      "PERD_NE": [
+        60,
+        "inf"
+      ],
+      "PERD_SW": [
+        60,
+        "inf"
+      ]
+    },
+    "problems2d": {
+      "5": "осталась",
+      "8": "осталась",
+      "9": "осталась",
+      "11": "ушла",
+      "unchecked": [
+        6,
+        10
+      ]
+    },
+    "files": [
+      "tools/research/sw_charges_3d/compare/vortex.py",
+      "tools/research/sw_charges_3d/compare/run_compare.py",
+      "tools/research/sw_charges_3d/out/compare/points.json",
+      "tools/research/sw_charges_3d/out/compare/tables.md",
+      "tools/research/sw_charges_3d/compare/summary.md",
+      "tools/research/sw_charges_3d/compare/README.md"
+    ]
+  },
+  "t": "2026-11-08T10:35:04",
+  "by": "executor"
+}
