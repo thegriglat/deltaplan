@@ -1,0 +1,70 @@
+{
+  "status": "partial",
+  "summary": "Слитое ядро опроса CUDA (FP32/FP64), надземные точки, дальние узлы октодерева (монополь+диполь), интерполяция по вертикали; 11 вариантов x 2 окна x 3 повтора, timing.json SWG4 v2. FP32: опрос 108->2.6 с (100 м), 179->5.1 с (50 м), ошибка 3e-5 м/с. Прервано решением пользователя.",
+  "commits": [
+    "73291dceb SWG-6: рычаги опроса панелей на окнах"
+  ],
+  "checks": [
+    {
+      "name": "accept --dry",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "fp32 vs fp64 max_abs, м/с",
+      "value": "3e-5 (100 %% в допуске игры)",
+      "pass": true
+    },
+    {
+      "name": "far_cluster theta 0.7/0.5/0.3 max_abs, м/с",
+      "value": "0.36 / 0.15 / 0.03",
+      "pass": true
+    },
+    {
+      "name": "холодный 100/50 м, лучшее сочетание, с (Пикар 3.1/6.2)",
+      "value": "13.4 / 16.5",
+      "pass": true
+    },
+    {
+      "name": "смена ветра 100/50 м, с (Пикар 3.4/13.8)",
+      "value": "3.6 / 4.6",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "vert_interp отдельно на элементном FP64-ядре и panels_rotor с лучшим сочетанием не сняты (решение пользователя)",
+    "above_ground отдельно снят под чужой загрузкой GPU (99 %), время несопоставимо с SWG-3; экономия точек 18 %"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SWG-6; tools/research/sw_ground/query/README.md",
+  "uncertain": [
+    {
+      "where": "tools/research/sw_ground/query/fastq.py:lu_inplace",
+      "why": "LU на месте через транспонирование (память GPU общая), невязка solve недостоверна",
+      "checked": "pytest: sigma совпадает с обычным решением 1e-9"
+    },
+    {
+      "where": "out/swg-6/timing.json",
+      "why": "время LU/сборки (10-25 с) шумит из-за чужой загрузки GPU",
+      "checked": "медиана 3 повторов, загрузка в note"
+    }
+  ],
+  "dp_feedback": "job wait в foreground уходит в фон через 180 с; нужен блокирующий ожидатель до N минут.",
+  "extra": {
+    "fp32_query_s_100_50": [
+      2.6,
+      5.1
+    ],
+    "vs_picard_cold": [
+      4.3,
+      2.7
+    ],
+    "vs_picard_wind_change": [
+      1.1,
+      0.33
+    ]
+  },
+  "t": "2026-11-09T00:39:37",
+  "by": "executor"
+}

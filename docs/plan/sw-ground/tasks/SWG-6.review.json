@@ -1,0 +1,51 @@
+{
+  "verdict": "accept",
+  "summary": "Частичная сдача по решению пользователя. Скоуп чист (70 файлов в границах), timing.json по SWG4 v2 (version 2, variant/err, n_points фактические, строки SWG-3 с variant fp64/err null). Ядро: формула дальнего поля (монополь+диполь) проверена разложением, eps и LOG_FLOOR совпадают с influence._influence; тесты fp64=эталон 1e-9, θ→0 = прямой счёт. Приёмка 5/5 перезапущена, pytest 6 passed на GPU. Отчёт совпадает с таблицей (13.4/16.5; 3.6/4.6; ×4.3/×2.7). Границы (чужая загрузка GPU, LU на месте) названы.",
+  "issues": [
+    {
+      "file": "tools/research/sw_ground/query/query_timing.py",
+      "line": 148,
+      "severity": "minor",
+      "what": "Эталон raw/ref_<dx>_<stage>.npz пишет сам прогон above_ground (rep 0), поэтому err у variant above_ground — сравнение с собой (0 / 1e-20), а не независимая проверка; в note/ref это не сказано.",
+      "fix": "В err.ref или note строки above_ground указать, что эталон — этот же прогон (ошибка тривиально 0); либо не выводить err для него."
+    },
+    {
+      "file": "tools/research/sw_ground/query/fastq.py",
+      "line": 305,
+      "severity": "minor",
+      "what": "lu_inplace подменяет cupyx.scipy.linalg.lu_solve на весь процесс (trans=1): любой обычный LU в том же процессе будет решён неверно. Сейчас безопасно (все solve идут через infl с LU на месте, тест sigma 1e-9), но ловушка для переиспользования.",
+      "fix": "При переносе в игру/другую задачу — LU на месте без глобальной подмены (хранить флаг trans в infl и передавать в lu_solve), или оставить как есть с предупреждением в README."
+    },
+    {
+      "file": "tools/research/sw_ground/query/query_timing.py",
+      "line": 56,
+      "severity": "minor",
+      "what": "_inf._BLOCK = 1_000_000 меняет размер блока элементного ядра против SWG-3 (3·10⁶); времена above_ground/vert_interp отличаются от SWG-3 не только чужой загрузкой GPU, но и этим параметром (в README названа только загрузка).",
+      "fix": "Упомянуть в README в разделе «Границы» рядом с загрузкой GPU (одна фраза)."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "accept --dry (contract, windows, stages, fp32, pytest, scope)",
+      "value": "5/5, scope 70 файлов в границах",
+      "pass": true
+    },
+    {
+      "name": "pytest -rs tools/research/sw_ground/query (GPU, util 89 %)",
+      "value": "6 passed, 0 skipped",
+      "pass": true
+    },
+    {
+      "name": "diff --stat feature/sw-ground...sw-ground/SWG-6 vs scope/dont_touch",
+      "value": "все 70 файлов в query/ и out/swg-6/; docs/, rust/, timing/ не тронуты",
+      "pass": true
+    },
+    {
+      "name": "отчёт vs tables.md",
+      "value": "лучшее сочетание 13.4/16.5 cold, 3.6/4.6 wind_change; fp32 max_abs 2.8e-5/3.4e-5 — совпадает",
+      "pass": true
+    }
+  ],
+  "t": "2026-11-09T00:42:24",
+  "by": "reviewer"
+}
