@@ -174,7 +174,7 @@ def check_ref_h5(path):
             for k in ("interp",):
                 if k not in g["u"].attrs and k not in g.attrs:
                     raise ContractError(f"{gname}: нет атрибута interp")
-            for k in ("params", "status", "iters", "wall_s", "dx", "U_ref", "z_ref"):
+            for k in ("params", "status", "iters", "wall_s", "dx", "U_ref", "z_ref", "first_cell_levels"):
                 if k not in g.attrs:
                     raise ContractError(f"{gname}: нет атрибута {k}")
             json.loads(g.attrs["params"])
@@ -205,6 +205,8 @@ def check_points(path, d):
             num(r[k], f"{w}.{k}", allow_null=True)
         if r["dS"] is not None and not r["case"].startswith("ASK"):
             raise ContractError(f"{w}: dS только для Askervein")
+        if r["case"].startswith("ASK") and r["ref_kind"].startswith("picard") and r["dS"] is None:
+            raise ContractError(f"{w}: dS Askervein у Пикара обязателен (v2)")
         if r["ref_kind"].startswith("picard") and r["name"].startswith("P_"):
             have.add((r["case"], r["ref_kind"], r["point"], round(r["z_agl"])))
     for c in {r["case"] for r in d["rows"]}:
@@ -402,7 +404,7 @@ def _write_h5(path, drop=None, bad_scale=False):
             ds = g.create_dataset(k, data=raw, chunks=True, compression="gzip")
             ds.attrs.update({"scale": 0.02 if bad_scale else 0.001, "offset": 0.0, "interp": "linear"})
         g.attrs.update({"params": "{}", "status": "ok", "iters": 10, "wall_s": 1.0, "dx": 25.0, "U_ref": 8.0,
-                        "z_ref": 100.0})
+                        "z_ref": 100.0, "first_cell_levels": [2.0]})
 
 
 def selftest():

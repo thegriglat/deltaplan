@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-11-08"
 summary: "Стыки sw-charges-3d: эталоны 3D (SWD1), панели 3D (SWD2), вихревые нити (SWD3), связка (SWD4), сравнение (SWD5)."
 related: ["docs/plan/sw-charges-3d.md", "docs/contracts/sw-charges.md", "tools/research/sw_charges_3d/README.md"]
-contracts: [{"id": "SWD1", "version": 1}, {"id": "SWD2", "version": 2}, {"id": "SWD3", "version": 2}, {"id": "SWD4", "version": 1}, {"id": "SWD5", "version": 1}]
+contracts: [{"id": "SWD1", "version": 2}, {"id": "SWD2", "version": 2}, {"id": "SWD3", "version": 2}, {"id": "SWD4", "version": 1}, {"id": "SWD5", "version": 1}]
 ---
 # Контракты модуля sw-charges-3d
 
@@ -27,7 +27,9 @@ contracts: [{"id": "SWD1", "version": 1}, {"id": "SWD2", "version": 2}, {"id": "
 - Типы точек: `upstream`, `windward`, `crest`, `lee`, `valley`.
 - Неприменимое — `null`. Запись файлов — во временный файл и переименование.
 
-## SWD1 v1 — эталоны 3D (Пикар и измерения)
+## SWD1 v2 — эталоны 3D (Пикар и измерения)
+v2 (2026-11-08, ревью SWD-1): атрибут `first_cell_levels` групп Пикара; `dS` Askervein — во всех строках Пикара
+(RS своего прогона на том же z_agl); у мачт `dS` — опубликованный FSR (в `ref_source` — «FSR опубл.»).
 Владелец — SWD-1; потребители — SWD-5 (сравнение), SWD-2/SWD-4 (рельеф случая).
 Пикар — решатель `tools/research/air3d` в постановке Б1 (`tools/research/cases/b1`), варианты `nom` (номинал, тот же,
 что «игра (b1 nom)» в 2D SWC-12) и `adv1` (1-й порядок переноса — схема игры); решатель и модули случаев не меняются.
@@ -40,7 +42,8 @@ contracts: [{"id": "SWD1", "version": 1}, {"id": "SWD2", "version": 2}, {"id": "
     земля Пикара; `z_agl` (nz) — уровни над землёй Пикара, обязательно 2, 5, 10, 20, 30, 50, 75, 100, 150, 200, 300 м
     (выше верха области — не писать); `u`, `v`, `w` (nz, ny, nx) — интерполяция из клеток по вертикали вдоль колонны
     (метод — атрибут `interp`); атрибуты `params` (JSON-строка параметров прогона), `status` (сходимость), `iters`,
-    `wall_s`, `dx`, `U_ref`, `z_ref` (масштаб притока прогона).
+    `wall_s`, `dx`, `U_ref`, `z_ref` (масштаб притока прогона); v2 — `first_cell_levels` (список z_agl, где значение —
+    первая клетка, а не интерполяция; пустой — нет).
   - Массивы скоростей — int16 со смещением и масштабом (значение = raw·`scale` + `offset`, атрибуты массива;
     raw −32768 — NaN), ошибка квантования ≤ 0,005 м/с; высоты — float32; чанки + gzip.
 - `points.json`: `format` = "sw3d-points", `version` = 1, `git`, `created`;
