@@ -1,0 +1,164 @@
+{
+  "status": "done",
+  "summary": "Оболочка мёртвой зоны заменена свободной линией тока Кирхгофа с гребня. Форма считается линейной теорией на профиле, одной системой без итераций, с мостом через долину. Критерий отрыва — Хед, выбран до сравнения; вариант с уклоном — для сравнения. Правило зоны SWG-8 — с поправками ревью. Зона стала глубиной долины (h 110–155 м), баланс ∫u dz = 0 под ней замыкается, на Askervein зон нет. Но по мачтам вариант хуже zone_jh (NE 0,224 против 0,159; SW 0,139 против 0,120): мачты долины NE под мостом получают покой, которого в измерениях нет.",
+  "commits": [
+    "12067dc97 sw-ground SWG-12: свободная линия тока с гребня вместо оболочки (круг 4B)"
+  ],
+  "checks": [
+    {
+      "name": "contract",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "base",
+      "value": "2 (potential_jh = out/swg-1 побитно, max|Δs| = 0)",
+      "pass": true
+    },
+    {
+      "name": "free_rows",
+      "value": "25727",
+      "pass": true
+    },
+    {
+      "name": "masts",
+      "value": "105",
+      "pass": true
+    },
+    {
+      "name": "pytest",
+      "value": "6 passed",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "17 файлов в freeline/ и out/swg-12/",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Разрез mast_line (5,4 км) в ротор-сравнении пропущен: сетка с фокусом по всей линии не помещается на общую GPU. Шесть разрезов Menke посчитаны.",
+    "free_jh_slope_thin не считался: тонкий вариант — только с основным триггером Хеда."
+  ],
+  "questions": [
+    "Итог задачи 1 по мачтам: лучший за круги 1–4B пока zone_jh (SWG-8): NE 0,159, SW 0,120, ASK 0,237. Сравнить с SWG-11 (4A) и выбрать."
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SWG-12; таблицы — tools/research/sw_ground/out/swg-12/tables.md; README — tools/research/sw_ground/freeline/README.md",
+  "uncertain": [
+    {
+      "where": "tools/research/sw_ground/freeline/core.py: free_solve",
+      "why": "Линейная (малые уклоны) теория при уклонах Perdigão 0,4–0,6: u'(гребень) 0,70–0,75, разгон завышен. Из-за разрыва u_b < u_sep линия поднимается над гребнем (медиана 9–11 м, max 55–61 м) — это артефакт логарифмической особенности.",
+      "checked": "Аньези: u'(0)/U = H/a до 2e-3; на зоне u' = u_b до 1e-9, закрытие, касательная, η ≥ z; переносов x_r — 2 отрезка из 358."
+    },
+    {
+      "where": "tools/research/sw_ground/freeline/core.py: attach_index",
+      "why": "Правило присоединения — мост до высоты гребня, иначе SWD7 v2 — геометрическое. Условие Кирхгофа u_b = u_sep дало бы короткую зону ~1·a (Аньези 250 м), его не выбрал: карточка требует перекрыть долину. Мачты долины NE против моста.",
+      "checked": "Скан x_r на профилях NE и ASK до счёта; длины в geom.json."
+    },
+    {
+      "where": "tools/research/sw_ground/freeline/run.py: GATES",
+      "why": "Хед выбран основным: на Askervein он даёт 0 отрезков (SWG-4), но в Perdigão покрывает мало (лее 10 м 0,18–0,24 против 0,54–0,61 у уклона). Источник точек Хеда — поле SWG-4 «потенциал + след» на ds 50 м.",
+      "checked": "Оба триггера посчитаны: free_jh и free_jh_slope; покрытие и мачты числом."
+    },
+    {
+      "where": "tools/research/sw_ground/freeline/core.py: C_MAX",
+      "why": "Предел |u_r| ≤ 0,3·U_e оставлен предохранителем без источника. Действует у 5–24 % точек под линией.",
+      "checked": "Медиана невязки ∫u dz — 0,00; u_r/U_e 0,13–0,19; на Аньези предел не действует."
+    }
+  ],
+  "dp_feedback": "job start: дочерний python остаётся после убийства родителя — пришлось останавливать по PID. Нет «job wait» с выходом по первой строке лога. Write в общий scratchpad блокирует summary.md в копии — пишу через heredoc.",
+  "extra": {
+    "masts_rmse_all": {
+      "ASK": {
+        "potential_jh": 0.218,
+        "zone_jh": 0.237,
+        "free_jh": 0.218,
+        "free_jh_slope": 0.319
+      },
+      "NE": {
+        "potential_jh": 0.184,
+        "zone_jh": 0.159,
+        "free_jh": 0.224,
+        "free_jh_slope": 0.205
+      },
+      "SW": {
+        "potential_jh": 0.126,
+        "zone_jh": 0.12,
+        "free_jh": 0.139,
+        "free_jh_slope": 0.17
+      }
+    },
+    "masts_NE_by_type_free_jh": {
+      "crest": 0.133,
+      "lee": 0.184,
+      "valley": 0.301,
+      "windward": 0.41,
+      "crest_slope": 0.048
+    },
+    "picard_lee10_frac_mean": {
+      "NE": {
+        "potential_jh": [
+          0.15,
+          1.48
+        ],
+        "zone_jh": [
+          0.17,
+          0.41
+        ],
+        "free_jh": [
+          0.17,
+          1.12
+        ],
+        "free_jh_slope": [
+          0.16,
+          0.09
+        ]
+      },
+      "SW": {
+        "potential_jh": [
+          0.08,
+          2.0
+        ],
+        "zone_jh": [
+          0.14,
+          0.89
+        ],
+        "free_jh": [
+          0.1,
+          1.54
+        ],
+        "free_jh_slope": [
+          0.19,
+          0.54
+        ]
+      }
+    },
+    "under_line_lee10_rel_jh_to_free": {
+      "NE": [
+        2.68,
+        -0.25
+      ],
+      "SW": [
+        3.36,
+        -0.22
+      ]
+    },
+    "hmax_median_m": {
+      "NE": 155,
+      "SW": 111,
+      "ASK_slope": 80,
+      "agnesi": 90,
+      "hull_swg4": "24–36"
+    },
+    "askervein_head_cover_lee": 0.0,
+    "norm_ratio_free_jh": {
+      "NE": 0.874,
+      "SW": 0.97,
+      "ASK": 1.0
+    },
+    "rotor_menke": "free_jh: есть на 3 из 6 разрезов Menke (NE T2 930 м против 490, T3 1070 против 420, SW T1 490 против 680); free_jh_thin — 0 из 6"
+  },
+  "t": "2026-11-09T03:58:38",
+  "by": "executor"
+}
