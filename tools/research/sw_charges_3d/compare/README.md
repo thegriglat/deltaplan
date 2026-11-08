@@ -3,7 +3,7 @@ type: "research"
 status: "active"
 module: "sw-charges-3d"
 updated: "2026-11-08"
-summary: "SWD-5: панели 3D (potential, potential_jh) против мачт Askervein/Perdigão и Пикара (nom, adv1); сканы σ, z/H, ds_min; статусы 12 проблем 2D."
+summary: "SWD-5/5b: панели 3D (potential, potential_jh, vortex_jh с вихревыми нитями) против мачт Askervein/Perdigão и Пикара (nom, adv1); сканы σ, z/H, ds_min, tau_s; ротор; статусы 12 проблем 2D."
 related: ["docs/contracts/sw-charges-3d.md", "docs/plan/sw-charges-3d.md", "tools/research/sw_charges_3d/panels3d/README.md", "tools/research/sw_charges_3d/refs/README.md"]
 conclusion: "tools/research/sw_charges_3d/compare/summary.md"
 data: "tools/research/sw_charges_3d/out/compare/"
@@ -11,12 +11,13 @@ applied_in: ""
 ---
 # compare: панели 3D против эталонов (SWD-5)
 
-Формат — SWD5 v2 (`docs/contracts/sw-charges-3d.md`). Варианты: `potential` (`panels3d.velocity`), `potential_jh` (`velocity_jh`); `vortex_jh` и ротор с нитями — SWD-5b. `panels3d`, `refs`, Пикар не менялись (импорт).
+Формат — SWD5 v2 (`docs/contracts/sw-charges-3d.md`). Варианты: `potential` (`panels3d.velocity`), `potential_jh` (`velocity_jh`); `vortex_jh` и ротор с нитями — SWD-5b (раздел «SWD-5b» ниже). `panels3d`, `refs`, Пикар не менялись (импорт).
 
 | Файл | Что |
 |---|---|
 | `core.py` | `Run` (террейн из `out/refs/<case>.h5`, сетка, LU, поле в точках), ротор по разрезу, диагностика отрыва |
-| `run_compare.py` | основной набор, сканы, контроль логарифмического фона, гаусс-прокси, статусы проблем 2D, `points.json/.csv`, `tables.md` |
+| `run_compare.py` | основной набор, сканы, контроль логарифмического фона, гаусс-прокси, статусы проблем 2D, `points.json/.csv`, `tables.md`; SWD-5b: команды `vortex-run`, `vortex-merge` |
+| `vortex.py` | SWD-5b: расчёт `sim3d.run` по случаю и tau_s, строки vortex_jh, ротор по снимкам нитей, кеш `_cache/<case>_vortex_tau<tau>.json` |
 | `../out/compare/` | `points.json` (+`.csv`), `tables.md`, `_cache/` (промежуточные json по случаям; удалить — пересчёт) |
 
 ## Воспроизведение
@@ -52,3 +53,25 @@ cd tools/research/sw_charges_3d
 
 ## Источники и лицензии
 Данные — как SWD-1 (`refs/README.md`): Askervein — Zenodo 4095052 (CC BY 4.0), Taylor & Teunissen 1987; Perdigão — ISFS NCAR/EOL doi:10.26023/ZDMJ-D1TY-FG14, Menke et al. 2019 ACP 19, 2713 (CC BY 4.0), Copernicus GLO-30, ESA WorldCover 2021 (CC BY 4.0) — `tools/research/data/*/README.md`, `ASSETS.md`. Новых внешних данных нет; `out/compare` — производные. Jackson & Hunt 1975 QJRMS 101:929; Head 1958 ARC R&M 3152; Hess & Smith 1967; Taylor & Lee 1984.
+
+## SWD-5b: vortex_jh (вихревые нити с гребня)
+Расчёт — `sim3d.run` (SWD4 v3: панели + замкнутые нити, `couple=True`, `restart=True`, `separation3d(lee_only, streamlines_from="bg")`), в той же постановке, что основной набор: σ = 40 м, ds_min = 25 м, логарифмический фон, z0 — медиана растра, фокус панелей в точках сравнения, `norm` те же. Строки `variant = "vortex_jh"` добавлены в тот же `points.json` (rows/rotor/timing/diag; `potential` и `potential_jh` не менялись). Статусы проблем 2D №5, 8, 9, 11 пересчитаны.
+```bash
+cd tools/research/sw_charges_3d
+export SIM3D_PROGRESS=1                                    # строка на шаг в stderr
+./py compare/run_compare.py vortex-run PERD_NE 60 1e9 15   # case, затем tau_s (с); 1e9 = без затухания; кеш в out/compare/_cache
+./py compare/run_compare.py vortex-merge                   # points.json/.csv, tables.md; идемпотентно
+./py contract/check_contract.py files out/compare
+```
+Запускать **последовательно, по одному процессу**: два процесса CuPy параллельно на одном GPU замедляют друг друга на порядки (замечено при N ≈ 18 тыс.). ASK ≈ 5 мин на tau, Perdigão ≈ 20–25 мин (число узлов растёт до 25–28 тыс., шаг до 70 с).
+
+Параметры (выбраны заранее, не по данным): `dt` = 3 с, `t_end` = 120 с, окно усреднения t ≥ 60 с (точки rows — probes каждый шаг окна; ротор — 10 снимков нитей окна); ядро новых нитей `core` = ds_min = 25 м (по умолчанию sim3d — ds_min/2; число узлов от ядра не зависит: пробный запуск PERD_NE с 12,5 м дал те же 6661 узел на 17-м шаге; выбор — решение исполнителя, влияет на сглаживание индуцированной скорости); `sep_every` по правилу sim3d (1 на Perdigão, 2 на Askervein); `gamma_min` = 1 м²/с; `r_rec` = 0; основной tau_s = 60 с. Обоснование tau_s: порядок оборота вихря гряды (полуширина ≈ 500 м, U_ref ≈ 7–12 м/с → 40–70 с) — **оценка порядка, не измерение**. Скан tau_s: 15, 30, 60, 120 с и без затухания (1e9) — сколько успело, в `tables.md` и `diag` (`vortex_tau<tau>_<метрика>`). Контракт SWD5 `scan.param` не содержит `tau_s`, поэтому скан tau_s — в `diag`, не в `scan` (предложение — в отчёте).
+
+Ротор: критерий SWD5 (u∥ < −0,5 м/с на 15 м, > 50 м, шаг 10 м) по среднему за окно полю `velocity_jh` с нитями на 10 снимках; глубина — по уровням 15…600 м в колонках лучшего участка. u∥ масштабируется к U данных в опорной точке по vortex_jh. Строки с `present = false` имеют L = 0.
+
+Допущения и границы SWD-5b:
+1. **Нестационарность и длина счёта.** Поток запускается с нуля (импульсивный старт), 120 с ≈ 1,4–1,8 км пролёта воздуха — это порядка размера гряды, не установившийся след. Окно усреднения 60 с. Ротор Menke развивается за гребнем на 400–700 м, т.е. в пределах пролёта; более длинный счёт не делали (шаг растёт до 70 с).
+2. **Нити у стены гасятся изображением в панелях** (SWD4): вклад в `velocity_jh` на 10–30 м — доли процента (diag `vortex_dv_*`); это свойство метода, а не результат скана.
+3. Один шаг σ на подшаги нитей; Γ при сходе — по накопленной ½u_s²Δt (правило SWD4); перезамыкание выключено (лавина, README sim3d).
+4. Все 106–110 отрывов на шаг на Perdigão — линии тока от рельефа вокруг всего хребта; доля линий, дающих устойчивый след, не исследовалась.
+5. Время: шаг на 18 тыс. панелей без нитей ≈ 3–9 с (панели), с 25 тыс. узлов ≈ 70 с (O(узлов²) на подшаг).

@@ -195,7 +195,7 @@ def separation_diag(run):
 
     def spy(s, ue, du, z0, uref, sep_ok=None):
         r = orig(s, ue, du, z0, uref, sep_ok)
-        c = dict(s=np.array(s), H=r["H"].copy(), cf=r["cf"].copy(), i_sep=r["i_sep"], ue0=float(ue[0]), n=len(s))
+        c = dict(s=np.array(s), H=r["H"].copy(), cf=r["cf"].copy(), i_sep=r["i_sep"], ue0=float(ue[0]), n=len(s), ue=np.array(ue), du=np.array(du), first=bool(s[0] == 0.0))
         if calls and calls[-1]["n"] == c["n"] and calls[-1]["ue0"] == c["ue0"] and calls[-1]["s"][-1] == c["s"][-1]:
             calls[-1] = c         # повторный расчёт той же линии после отбраковки lee_only
         else:
@@ -218,21 +218,32 @@ def separation_diag(run):
     ex, ey = run.wt if hasattr(run, "wt") else (1.0, 0.0)
     px, py = -ey, ex
     q = [(r[0, 0] - T.cx) * px + (r[0, 1] - T.cy) * py for r in recs]
-    kc = int(np.argmin(np.abs(q))) if recs and len(recs) == len(calls) else None
+    firsts = [c for c in calls if c["first"]]      # первый вызов на линию (с restart на линии несколько вызовов)
+    kc = int(np.argmin(np.abs(q))) if recs and len(recs) == len(firsts) else None
     central = None
     if kc is not None:
-        c = calls[kc]
+        c = firsts[kc]
         r = recs[kc]
         n = c["s"].size
         idx = np.unique(np.linspace(0, n - 1, 14).astype(int))
         sx = np.interp(c["s"][idx], r[:, 3], r[:, 0])
         sy = np.interp(c["s"][idx], r[:, 3], r[:, 1])
         sz = np.interp(c["s"][idx], r[:, 3], r[:, 2])
-        central = dict(q=float(q[kc]), s=c["s"][idx], H=c["H"][idx], cf=c["cf"][idx], x=sx, y=sy, z=sz, i_sep=int(c["i_sep"]),
+        i0 = int(c["i_sep"])
+        trace = None
+        if i0 >= 1:
+            sl = slice(max(0, i0 - 8), i0 + 1)
+            trace = dict(i=list(range(sl.start, i0 + 1)), s=c["s"][sl], ue=c["ue"][sl], du=c["du"][sl], H=c["H"][sl], cf=c["cf"][sl])
+        central = dict(trace=trace, q=float(q[kc]), s=c["s"][idx], H=c["H"][idx], cf=c["cf"][idx], x=sx, y=sy, z=sz, i_sep=int(c["i_sep"]),
                        s_total=float(c["s"][-1]))
+    jumps = []          # по всем линиям с отрывом: H(i_sep) − H(i_sep−2) (прыжок > 5 — срыв интегрирования, не плавный рост)
+    for c in calls:
+        i0 = int(c["i_sep"])
+        if i0 >= 2 and np.isfinite(c["H"][i0]) and np.isfinite(c["H"][i0 - 2]):
+            jumps.append(float(c["H"][i0] - c["H"][i0 - 2]))
     Hs = [float(np.nanmax(c["H"])) for c in calls if np.isfinite(c["H"]).any()]
     cs = [float(np.nanmin(c["cf"])) for c in calls if np.isfinite(c["cf"]).any()]
     pts, rej = res["points"], res["rejected"]
     return dict(n_lines=len(Hs), n_sep=int(len(pts["x"])), n_rej=int(len(rej["x"])),
                 H_max=max(Hs) if Hs else None, cf_min=min(cs) if cs else None,
-                H_sep=[float(v) for v in pts["value"]], rej=rej, sep=pts, central=central)
+                H_sep=[float(v) for v in pts["value"]], rej=rej, sep=pts, central=central, jumps=jumps)
