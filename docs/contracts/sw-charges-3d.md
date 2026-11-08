@@ -4,9 +4,9 @@ status: "active"
 module: "sw-charges-3d"
 area: "air"
 updated: "2026-11-08"
-summary: "Стыки sw-charges-3d: эталоны 3D (SWD1), панели 3D (SWD2), вихревые нити (SWD3), связка (SWD4), сравнение (SWD5)."
+summary: "Стыки sw-charges-3d: эталоны (SWD1), панели (SWD2), нити (SWD3), связка (SWD4), сравнение (SWD5), установившийся слой (SWD6)."
 related: ["docs/plan/sw-charges-3d.md", "docs/contracts/sw-charges.md", "tools/research/sw_charges_3d/README.md"]
-contracts: [{"id": "SWD1", "version": 2}, {"id": "SWD2", "version": 4}, {"id": "SWD3", "version": 4}, {"id": "SWD4", "version": 4}, {"id": "SWD5", "version": 3}]
+contracts: [{"id": "SWD1", "version": 2}, {"id": "SWD2", "version": 4}, {"id": "SWD3", "version": 4}, {"id": "SWD4", "version": 4}, {"id": "SWD5", "version": 4}, {"id": "SWD6", "version": 1}]
 ---
 # Контракты модуля sw-charges-3d
 
@@ -224,13 +224,14 @@ v3 (2026-11-08, отчёт SWD-4): изображение — замкнутое
   двойной хребет (два Agnesi H/L 0,5 через 3L) — с `restart` отрыв за обоими гребнями, без — только за первым;
   время шага на N ≈ 5000 панелей и 2000 узлов — в отчёте.
 
-## SWD5 v3 — сравнение 3D с эталонами
+## SWD5 v4 — сравнение 3D с эталонами
+v4 (2026-11-08, решение о вихревом слое): `variant` — ещё "sheet_jh" (SWD6: установившийся вихревой слой + `velocity_jh(couple=True)`).
 v3 (2026-11-08, отчёт SWD-5b): `scan.param` — ещё "tau_s" (затухание нитей, с; "inf" — без затухания — value null).
 Владелец — SWD-5 (potential, potential_jh, сканы), SWD-5b (vortex_jh, ротор); потребители — итог модуля, шлюз.
 v2 (2026-11-08, итог 2D №4, №7, №8): `smooth_m`, `ref_use`, `scan`, `diag`; `problems2d.kind` — ещё "эталон", "не выяснено".
 - Путь — `tools/research/sw_charges_3d/out/compare/points.json` + `.csv`; JSON (`format` = "sw3d-compare",
-  `version` = 3): `git`, `created`, `tol_picard` (0,15), `rows` — {`case`, `variant` ("potential" | "potential_jh" |
-  "vortex_jh"), `point`, `name`, `x`, `y`, `z_agl`, `ref_kind` (как SWD1), `ref_source`, `ref_reliability`, `ref_err`,
+  `version` = 4): `git`, `created`, `tol_picard` (0,15), `rows` — {`case`, `variant` ("potential" | "potential_jh" |
+  "vortex_jh" | "sheet_jh"), `point`, `name`, `x`, `y`, `z_agl`, `ref_kind` (как SWD1), `ref_source`, `ref_reliability`, `ref_err`,
   `ref_use` ("эталон" | "справочно": строки Пикара ниже 50 м — справочно, 2D №7), `s_ref`, `s_pan` (s_norm: скорость /
   скорость в опорной точке `norm` того же источника), `dS_ref`, `dS_pan` (Askervein, иначе null), `u_par_ref`,
   `u_par_pan` (u∥, м/с, отнесённые к U опорной точки данных), `err` (= s_pan − s_ref), `within_tol` (picard:
@@ -245,3 +246,30 @@ v2 (2026-11-08, итог 2D №4, №7, №8): `smooth_m`, `ref_use`, `scan`, `d
 - `problems2d` — {`problem`, `kind` ("схема" | "2D-артефакт" | "эталон" | "не выяснено"), `status` ("ушла" | "осталась"
   | "новая в 3D" | "не проверено"), `evidence` (строка: строки таблицы/числа)}; 12 проблем — docs/research/sw_charges.md,
   раздел «7. Итог 2D: проблемы для 3D».
+
+## SWD6 v1 — установившийся вихревой слой (пакет `sheet3d`)
+Владелец — SWD-8; потребители — SWD-5d. Решение пользователя 2026-11-08: вариант без эволюции во времени — лист
+вихрей вдоль линии отрыва и границы зоны рециркуляции, сила — из критерия отрыва, цена порядка панелей.
+Схема — модель свободной линии тока / слоя смешения (Kirchhoff — Helmholtz; замыкание зоны — по типу Riabouchinsky /
+Roshko): слой дискретизирован поперечными (вдоль линии отрыва) нитями `filaments3d` с шагом Δs вниз по слою,
+Γ ряда = γ·Δs, γ = |u_s| в точке отрыва (скачок скорости через слой; согласовано со сходом SWD3: dΓ/dt = ½u_s² при
+переносе слоя со скоростью u_s/2); концы рядов — якоря на земле (замкнутость, ∇·ω = 0).
+Пакет `tools/research/sw_charges_3d/sheet3d/` (NumPy/CuPy; панели — SWD2, нити — SWD3, только вызывать).
+- `Sheet` — {`filaments` (SWD3), `rows` (список: номер линии отрыва, s вдоль слоя, Γ ряда), `reattach` (список
+  {x, y, z} | null по линиям), `iters`, `residual` (макс. сдвиг узлов последней итерации, м), `stats`}.
+- `build_sheet(panels, bg, z0, infl=None, params=None)` → `(sheet, sigma, info)`: (1) σ для bg и
+  `separation3d(restart=True, lee_only=True)` (SWD2 v4); (2) по каждой polyline `lines` — слой: ряды через Δs
+  (`ds_sheet`, по умолчанию 2·ds_min) вдоль направления внешней скорости в точке отрыва на высоте `h0` (по умолчанию
+  ds_min/2), ядро `core` (по умолчанию ds_min/2); (3) итерации до `n_iter` (10): σ ← solve(bg, extra = induced слоя),
+  узлы слоя ← линии тока полной скорости (bg + панели + слой без самоиндукции ряда) от точки отрыва, шаг Δs;
+  ряд, ушедший к земле ближе `core`, — присоединение: слой заканчивается (замыкание зоны); длина не больше `L_max`
+  (10·H гребня по `hill_length`); релаксация `relax` (0,5); стоп — `residual` < 0,05·Δs. `info` — {`t_s`, `iters`,
+  `residual`, `N`, `n_nodes`}. `params` — dict ключей выше и `gamma_decay` (None — γ постоянна вдоль слоя; число —
+  γ(s) = γ0·exp(−s/`gamma_decay`), спадание при росте слоя смешения — в README со ссылкой).
+- `velocity_sheet(panels, sigma, bg, sheet, x, y, z, z0, U_ref=None, infl=None)` → (u, v, w) =
+  `velocity_jh(..., extra=induced слоя, couple=True)`.
+- Инварианты (тесты): ровная земля / гаусс H/L 0,1 — отрыва нет, слоя нет, поле = `velocity_jh` без extra побитно;
+  imbalance ≤ 1e-12; длинный хребет Agnesi H/L 0,5 + `bg_profile` — слой за гребнем, итерации сходятся (residual
+  < 0,05·Δs не больше чем за `n_iter`), обратный u∥ у земли (10 м) за гребнем есть, длина зоны L_b/H — в README и
+  отчёте (ориентир 2D-хребтов: L_b/H ~ 5–10 — литература в README); цена `build_sheet` ≤ 10 решений панелей того же
+  N (замер в отчёте); двойной хребет (два Agnesi через 3L) — слой за первым и за вторым гребнем.

@@ -2,7 +2,7 @@
 """Контрактный тест sw-charges-3d (docs/contracts/sw-charges-3d.md, SWD1–SWD5).
 
   py check_contract.py files <файлы|каталоги> ...   SWD1 (*.h5 sw3d-ref, points.json sw3d-points), SWD5 (sw3d-compare)
-  py check_contract.py api <panels3d|filaments3d|sim3d> ...   публичные имена и параметры SWD2–SWD4
+  py check_contract.py api <panels3d|filaments3d|sim3d|sheet3d> ...   публичные имена и параметры SWD2–SWD4, SWD6
   py check_contract.py --selftest
 Печать OK/FAIL по объекту; выход 1 при любом FAIL. Интерпретатор — tools/research/sw_charges_3d/py.
 """
@@ -19,7 +19,7 @@ POINTS = {"upstream", "windward", "crest", "lee", "valley"}
 REF_KIND = {"mast", "lidar", "picard_nom", "picard_adv1"}
 RELIAB = {"измерение", "модель ±15 %"}
 ROTOR_SRC = {"menke2019", "picard_nom", "picard_adv1", "masts"}
-VARIANTS = {"potential", "potential_jh", "vortex_jh"}
+VARIANTS = {"potential", "potential_jh", "vortex_jh", "sheet_jh"}
 Z_REQUIRED = (2, 5, 10, 20, 30, 50, 75, 100, 150, 200, 300)
 
 # SWD2–SWD4: имя -> обязательные параметры (по порядку, как в контракте); класс — параметры __init__
@@ -49,6 +49,10 @@ API = {
         "line": ["points", "gamma", "core", "anchored_ends"],
         "shed": ["f", "line_pts", "u_s", "dt", "core", "normals", "t"],
         "step": ["f", "flow", "dt", "ground", "params"],
+    },
+    "sheet3d": {
+        "build_sheet": ["panels", "bg", "z0", "infl", "params"],
+        "velocity_sheet": ["panels", "sigma", "bg", "sheet", "x", "y", "z", "z0", "U_ref", "infl"],
     },
     "sim3d": {
         "Setup": ["terrain", "panels", "bg", "z0", "params"],
@@ -275,7 +279,7 @@ def check_compare(path, d):
         need(r, ("case", "item", "value", "note"), f"diag[{i}]")
 
 
-JSON_FORMATS = {"sw3d-points": (1, check_points), "sw3d-compare": (3, check_compare)}
+JSON_FORMATS = {"sw3d-points": (1, check_points), "sw3d-compare": (4, check_compare)}
 
 
 def check_file(path):
@@ -382,7 +386,7 @@ def _good_compare():
            "s_ref": 1.0, "s_pan": 1.1, "dS_ref": None, "dS_pan": None, "u_par_ref": 5.0, "u_par_pan": 5.5, "err": 0.1,
            "within_tol": True, "within_tol_ref": True, "ds_min": 25.0, "N": 10000, "ref_use": "справочно",
            "smooth_m": 40.0}
-    return {"format": "sw3d-compare", "version": 3, "git": "x", "created": "t", "tol_picard": 0.15, "rows": [row],
+    return {"format": "sw3d-compare", "version": 4, "git": "x", "created": "t", "tol_picard": 0.15, "rows": [row],
             "rotor": [{"case": "PERD_NE", "transect": "T1", "variant": "vortex_jh", "present": True, "L_m": 500.0,
                        "depth_m": 100.0, "L_ref": 530.0, "ref_source": "menke2019"}],
             "timing": [{"case": "PERD_NE", "variant": "potential", "N": 10000, "t_assemble_s": 1.0, "t_solve_s": 1.0,
