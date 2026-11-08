@@ -1,0 +1,51 @@
+{
+  "id": "SWD-1",
+  "module": "sw-charges-3d",
+  "type": "dp-researcher",
+  "title": "Эталоны 3D: поля Пикара (Б1 nom/adv1) и измерения Askervein, Perdigão",
+  "goal": "Получить 3D-поля Пикара (air3d в постановке Б1, варианты nom и adv1) для ASK_TU03B, PERD_NE, PERD_SW и таблицу точек измерений и Пикара по типам и высотам, роторы и разрезы — в формате SWD1.",
+  "plan_ref": "Задачи 3 (Сравнение)",
+  "contracts": [
+    {
+      "name": "SWD1",
+      "version": "1",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sw-charges-3d-SWD-1",
+  "branch": "sw-charges-3d/SWD-1",
+  "base": "feature/sw-charges-3d",
+  "scope": [
+    "tools/research/sw_charges_3d/refs/",
+    "tools/research/sw_charges_3d/out/refs/"
+  ],
+  "dont_touch": [
+    "tools/research/air3d/",
+    "tools/research/cases/",
+    "tools/research/data/",
+    "tools/research/sw_charges/",
+    "docs/contracts/",
+    "tools/research/sw_charges_3d/contract/",
+    "rust/"
+  ],
+  "accept": [
+    {
+      "name": "contract-files",
+      "cmd": "tools/research/sw_charges_3d/py tools/research/sw_charges_3d/contract/check_contract.py files tools/research/sw_charges_3d/out/refs",
+      "expect": "exit=0"
+    },
+    {
+      "name": "three-cases",
+      "cmd": "ls tools/research/sw_charges_3d/out/refs/ASK_TU03B.h5 tools/research/sw_charges_3d/out/refs/PERD_NE.h5 tools/research/sw_charges_3d/out/refs/PERD_SW.h5 tools/research/sw_charges_3d/refs/README.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "selftest",
+      "cmd": "tools/research/sw_charges_3d/py tools/research/sw_charges_3d/contract/check_contract.py --selftest",
+      "expect": "re:selftest: OK"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-08T05:30:54"
+}
