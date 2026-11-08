@@ -1,0 +1,62 @@
+{
+  "id": "SWG-6",
+  "module": "sw-ground",
+  "type": "dp-researcher",
+  "title": "Время поля, рычаги опроса панелей на окнах: FP32, только надземные точки, агрегирование дальнего поля",
+  "goal": "Оценить, насколько можно ускорить опрос поля панелей 3D на окнах игры 100/50 м (89–93 % времени в SWG-3) без потери точности: FP32, только надземные точки, агрегирование дальних панелей (кластеры/мультиполь) — время и ошибка против FP64, таблица SWG4 v2 рядом с Пикаром SWG-3.",
+  "plan_ref": "Задачи 3",
+  "contracts": [
+    {
+      "name": "SWG4",
+      "version": "2",
+      "ref": "docs/contracts/sw-ground.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sw-ground-SWG-6",
+  "branch": "sw-ground/SWG-6",
+  "base": "feature/sw-ground",
+  "scope": [
+    "tools/research/sw_ground/query/",
+    "tools/research/sw_ground/out/swg-6/"
+  ],
+  "dont_touch": [
+    "tools/research/sw_charges_3d/",
+    "tools/research/sw_ground/timing/",
+    "tools/research/sw_ground/out/swg-3/",
+    "tools/research/sw_ground/ground/",
+    "tools/research/sw_ground/contract/",
+    "tools/research/sw_ground/py",
+    "rust/",
+    "docs/"
+  ],
+  "accept": [
+    {
+      "name": "contract",
+      "cmd": "tools/research/sw_ground/py tools/research/sw_ground/contract/check_contract.py tools/research/sw_ground/out/swg-6/timing.json",
+      "expect": "exit=0"
+    },
+    {
+      "name": "windows",
+      "cmd": "tools/research/sw_ground/py tools/research/sw_ground/contract/accept_metrics.py timing tools/research/sw_ground/out/swg-6/timing.json",
+      "expect": "num:windows (\\d+) >=2"
+    },
+    {
+      "name": "stages",
+      "cmd": "tools/research/sw_ground/py tools/research/sw_ground/contract/accept_metrics.py timing tools/research/sw_ground/out/swg-6/timing.json",
+      "expect": "num:stages (\\d+) >=2"
+    },
+    {
+      "name": "fp32",
+      "cmd": "grep -o '\"variant\": \"fp32' tools/research/sw_ground/out/swg-6/timing.json | wc -l",
+      "expect": "num:(\\d+) >=2"
+    },
+    {
+      "name": "pytest",
+      "cmd": "tools/research/sw_ground/py -m pytest -q tools/research/sw_ground/query",
+      "expect": "re:passed"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-08T23:08:40"
+}

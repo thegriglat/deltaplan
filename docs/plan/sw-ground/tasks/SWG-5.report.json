@@ -1,0 +1,83 @@
+{
+  "status": "done",
+  "summary": "Нить rotor3d v2 (параметры SWG-2) на плотных точках SWG1 и мачтах: rotor_jh против potential_jh на групповых сетках SWG-1. Нить в лее Perdigão срезает завышение (mean rel 10 м NE +1,48→+1,19, SW +2,00→+1,66; 50 м +1,68→+0,88, +1,87→+1,25), но доля в ±15 % растёт мало (лее 50 м 0,08–0,13→0,22–0,24; 10 м NE 0,155→0,131, SW 0,081→0,110); Askervein — перебор; мачты лучше только на NE. Не улучшилось до цели — результат с числами.",
+  "commits": [
+    "5c028cb62 SWG-5: нить ротора на плотных точках у земли"
+  ],
+  "checks": [
+    {
+      "name": "base",
+      "value": "base_variants 1",
+      "pass": true
+    },
+    {
+      "name": "contract",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "rotor_rows",
+      "value": "5355",
+      "pass": true
+    },
+    {
+      "name": "masts",
+      "value": "masts_new 15",
+      "pass": true
+    },
+    {
+      "name": "pytest",
+      "value": "4 passed",
+      "pass": true
+    },
+    {
+      "name": "база potential_jh против SWG-1",
+      "value": "max |Δs| = 0,0",
+      "pass": true
+    },
+    {
+      "name": "чувствительность корня Γ на групповой сетке",
+      "value": "rms Δs 0,001–0,034, max 0,11 при эффекте 0,26–0,70",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Время на всём поле (задача 3) не входит; дальнее поле нити (300 м, наветренная, сдвиг опорной точки) не исследовано глубже диагностики fixnorm."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept SWG-5; tools/research/sw_ground/rotor_ground/README.md",
+  "uncertain": [
+    {
+      "where": "out/swg-5/ground.json rotor_jh",
+      "why": "Нить тормозит опорную точку Perdigão на 10–15 % (norm_ratio 0,85–0,90), s всего варианта сдвигается; с нормировкой без нити лучше (лее 50 м NE 0,29, SW 0,23), но SWD1-определение s требует норму того же варианта",
+      "checked": "term total_fixnorm в decomp и tables.md"
+    },
+    {
+      "where": "ridges.json",
+      "why": "Окна хребтов пересекаются, на ложных хребтах Perdigão n=20–38 и вклад чужих нитей; мачт в окнах ложных хребтов только Askervein (5)",
+      "checked": "категории по SWG-2, приоритет ложный > подтверждён"
+    },
+    {
+      "where": "Askervein",
+      "why": "Единственная нить стоит на пороге 0,274 против 0,27 (ложный ротор SWG-2), перебор лее 50 м mean -0,60 — эффект ложного ротора, не механизма",
+      "checked": "сравнение с SWG-2 rotor.json: Γ и число нитей те же"
+    }
+  ],
+  "dp_feedback": "Foreground job wait обрывается на 120 с по таймауту оболочки; удобнее документировать run_in_background для wait. rtk-хук подменяет команды (sleep+tail блокируются).",
+  "extra": {
+    "lee_valley_perd_pooled_frac_tol": {
+      "lee10": "0,114→0,119",
+      "lee50": "0,109→0,231",
+      "valley10": "0,209→0,244",
+      "valley50": "0,209→0,198"
+    },
+    "norm_ratio_perd": "0,85–0,90",
+    "masts_rmse_all": {
+      "ASK": "0,218→0,360",
+      "NE": "0,184→0,150",
+      "SW": "0,126→0,160"
+    }
+  },
+  "t": "2026-11-08T23:08:51",
+  "by": "executor"
+}
