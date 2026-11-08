@@ -1,28 +1,20 @@
 {
   "status": "done",
-  "summary": "Таблицы SWD5 v2 (1092 строки: potential и potential_jh × ASK_TU03B, PERD_NE, PERD_SW × мачты, Пикар nom, adv1), сканы σ / z/H / ds_min, ротор, время, диагностика отрыва, статусы 12 проблем 2D. Основной набор σ = 40 м, ds_min = 25 м выбран заранее, не по данным. Ключевое: потенциал не лучше JH по мачтам (RMSE s 0,14–0,20), JH на Askervein HT 10 м недобирает dS (0,62 против 0,88), результат сильно зависит от σ.",
+  "summary": "Доработка по ревью: z0 JH/отрыва — медиана растра (Perdigão 1,80 м), таблицы доли в ±15 % для nom и adv1 по случаю × типу × z, dS линий A/AA/B, H(s)/cf(s) средней линии тока, координаты отброшенных lee_only точек (diag windward_sep_point), сетка скана σ расширена (0/20/25/40/50/60/80/120/160). Основной набор σ = 40, ds_min = 25 выбран заранее. №8 теперь «осталась» (частично): на средней линии NE отрыва нет, SW есть.",
   "commits": [
-    "7c20da240 sw-charges-3d: SWD-5 — сравнение panels3d (potential, potential_jh) с мачтами и Пикаром, сканы"
+    "7c20da240 SWD-5 сравнение panels3d",
+    "d2b8213d1 SWD-5 доработка по ревью",
+    "60597fe55 SWD-5 разбор нормировки JH"
   ],
   "checks": [
-    {
-      "name": "accept SWD-5 --dry",
-      "value": "5/5 PASS",
-      "pass": true
-    },
     {
       "name": "contract-files",
       "value": "OK",
       "pass": true
     },
     {
-      "name": "readme",
-      "value": "README.md, tables.md есть",
-      "pass": true
-    },
-    {
       "name": "case-variants",
-      "value": "6",
+      "value": "6 пар",
       "pass": true
     },
     {
@@ -32,14 +24,24 @@
     },
     {
       "name": "scans",
-      "value": "3",
+      "value": "3 параметра, 598 строк",
+      "pass": true
+    },
+    {
+      "name": "readme",
+      "value": "README.md, tables.md есть",
+      "pass": true
+    },
+    {
+      "name": "accept SWD-5 --dry",
+      "value": "5/5 PASS",
       "pass": true
     }
   ],
   "not_done": [
     "vortex_jh и ротор с нитями — SWD-5b (проблемы 5, 6, 9, 10, 11 — «не проверено»)",
-    "поправка эталона 2D №7 (±15 % + 1,5·|P100r−P50|) не введена: в SWD1 нет второго уровня Пикара того же положения; строки Пикара ниже 50 м помечены «справочно»",
-    "Gaussian H/L = 0,1 как контроль проблемы 1 — прокси, не C4"
+    "поправка эталона 2D №7 не введена (нет второго уровня Пикара того же положения); строки Пикара ниже 50 м — «справочно»",
+    "скан z0 не делался; гаусс H/L = 0,1 — прокси для №1, не C4"
   ],
   "questions": [],
   "images": [],
@@ -47,75 +49,56 @@
   "uncertain": [
     {
       "where": "tools/research/sw_charges_3d/compare/run_compare.py:problems",
-      "why": "статусы 12 проблем выставлены по порогам, выбранным мной (размах >0,05 для №4; доля >=0,8 для №12; |dS err|<=0,15 для №3); пороги в evidence, но не согласованы с координатором",
-      "checked": "числа в tables.md и points.json совпадают с evidence"
+      "why": "статусы 12 проблем — по моим порогам (размах >0,05 для №4; доля >=0,8 для №12; |dS err|<=0,15 для №3; №8 — отрыв есть на средней линии обоих случаев)",
+      "checked": "пороги и числа в evidence"
     },
     {
-      "where": "out/compare/points.json rows[*].s_pan (potential_jh, Askervein)",
-      "why": "JH занижает s на гребне на 50–300 м на ~0,5 против Пикара (frac в ±15 % = 0,12); это поведение velocity_jh по контракту (ΔS на высоте max(z,l), сшивка до 2h_m), а не ошибка расчёта — не разбирался глубже",
-      "checked": "логарифмический фон вместо степенного даёт те же 0,624 на HT 10 м, т.е. не несогласованность профилей; ds_min 25→35 не меняет"
+      "where": "out/compare/points.json rows (potential_jh, Askervein)",
+      "why": "s у JH на гребне ниже Пикара из-за нормировки: на 300 м скорость potential и jh одинакова (11,72 м/с), в RS 10 м potential 5,00, jh 6,13 м/с (u0 JH — логарифм от U_ref, фон степенной). С лог. фоном norm 4,98/5,00, s 1,654/1,660. dS HT 10 м JH 0,62 (против 0,88) от нормировки не зависит — ΔS берётся на высоте l",
+      "checked": "пересчёт в P_crest_0 и RS для обоих фонов, README п.8"
     },
     {
-      "where": "diag H_max_along_lines = 11,67 (PERD)",
-      "why": "насыщение формулы H(H1), не физическое значение",
-      "checked": "число точек отрыва 60/36 и 126/120 отброшенных lee_only согласованы"
+      "where": "z0 Perdigão",
+      "why": "медиана растра 1,80 м (лес) против среднего по ln z0 0,645 м; JH на Perdigão чувствителен, скан z0 не делался",
+      "checked": "сравнение двух версий: RMSE s мачт NE 0,201→0,183, SW 0,118→0,126"
     }
   ],
-  "dp_feedback": "Запуск py без -I обязателен (PYTHONPATH), -I из README refs ломает импорт panels3d — стоит отметить в README модуля. dpcli job wait работает, но блокирующий until-цикл в Bash переводится в фон.",
+  "dp_feedback": "py запускать без -I (нужен PYTHONPATH). Файл отчёта r-<ID>.json исчезает после report — держать копию, если нужен повтор.",
   "extra": {
-    "rmse_s_mast_potential_jh": {
-      "ASK": 0.211,
-      "PERD_NE": 0.201,
-      "PERD_SW": 0.118
-    },
     "rmse_s_mast_potential": {
       "ASK": 0.199,
       "PERD_NE": 0.179,
       "PERD_SW": 0.143
     },
-    "frac_tol_picard_ge50_potential_jh": {
-      "ASK": 0.12,
-      "PERD_NE": 0.64,
-      "PERD_SW": 0.62
-    },
-    "frac_tol_picard_ge50_potential": {
-      "ASK": 0.96,
-      "PERD_NE": 0.55,
-      "PERD_SW": 0.41
+    "rmse_s_mast_potential_jh": {
+      "ASK": 0.211,
+      "PERD_NE": 0.183,
+      "PERD_SW": 0.126
     },
     "dS_HT_10": {
       "data": 0.884,
       "potential": 0.893,
       "potential_jh": 0.624
     },
-    "dS_HT_10_sigma_scan_0_to_160_potential": [
-      0.983,
-      0.953,
-      0.893,
-      0.77,
-      0.471
-    ],
-    "timing_s_assemble_plus_LU": "4,5–10 (N 12,7–17,9 тыс.)",
-    "query_us_per_point": {
-      "potential": "97–191",
-      "potential_jh": "751–1474"
-    },
-    "rotor_without_vortices": "0 из 36 разрезов",
     "separation_points_lee_only": {
       "ASK": 4,
-      "PERD_NE": 60,
-      "PERD_SW": 36
+      "PERD_NE": 77,
+      "PERD_SW": 53
+    },
+    "windward_points_rejected_by_lee_only": {
+      "PERD_NE": 117,
+      "PERD_SW": 117
     },
     "problems2d_status": {
       "ушла": [
-        1,
-        8
+        1
       ],
       "осталась": [
         2,
         3,
         4,
         7,
+        8,
         12
       ],
       "не проверено": [
@@ -127,6 +110,6 @@
       ]
     }
   },
-  "t": "2026-11-08T06:16:10",
+  "t": "2026-11-08T06:28:58",
   "by": "executor"
 }
