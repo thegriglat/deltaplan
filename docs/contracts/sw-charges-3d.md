@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-11-08"
 summary: "Стыки sw-charges-3d: эталоны, панели, нити, связка, сравнение, вихревой слой, нить ротора, прототипы, цепочка «сток + вихрь» (SWD1–SWD9)."
 related: ["docs/plan/sw-charges-3d.md", "docs/contracts/sw-charges-3d/panels3d.md", "docs/contracts/sw-charges-3d/filaments3d.md", "docs/contracts/sw-charges-3d/sheet3d.md", "docs/contracts/sw-charges.md", "tools/research/sw_charges_3d/README.md"]
-contracts: [{"id": "SWD1", "version": 2}, {"id": "SWD2", "version": 5}, {"id": "SWD3", "version": 4}, {"id": "SWD4", "version": 4}, {"id": "SWD5", "version": 6}, {"id": "SWD6", "version": 6}, {"id": "SWD7", "version": 2}, {"id": "SWD8", "version": 1}, {"id": "SWD9", "version": 3}]
+contracts: [{"id": "SWD1", "version": 2}, {"id": "SWD2", "version": 5}, {"id": "SWD3", "version": 4}, {"id": "SWD4", "version": 4}, {"id": "SWD5", "version": 6}, {"id": "SWD6", "version": 6}, {"id": "SWD7", "version": 2}, {"id": "SWD8", "version": 1}, {"id": "SWD9", "version": 4}]
 ---
 # Контракты модуля sw-charges-3d
 
@@ -169,7 +169,15 @@ v2 (2026-11-08, ответ Q3, вариант A): одно условие — `p
   `t_run_s`, `backend`}; `problems2d` — {`problem` (№6 или №10 из docs/research/sw_charges.md §7), `status`
   ("ушла" | "осталась" | "новая в 3D" | "не проверено"), `evidence`}.
 
-## SWD9 v3 — ротор как цепочка «сток + вихрь» (пакет `chain3d`)
+## SWD9 v4 — ротор как цепочка «сток + вихрь» (пакет `chain3d`)
+v4 (2026-11-08, по SWD-16 — `tools/research/sw_charges_3d/breakdown/README.md`): число закрутки звена
+S = v_θ,max / W, v_θ,max = |Γ_k|/(2π r_c), W = |q_k|·l_link/(π r_c²) (осевая скорость оттока в ядре); порог распада
+S_c ∈ [0,9; 1,2] (Spall, Gatski & Grosch 1987, NASA ICASE 87-3: Squire k ≥ 1,0…1,2, Ro_c ≈ 0,64–0,65); state ротора —
+по наибольшему S его звеньев: < 0,9 "есть", 0,9–1,2 "дышит", > 1,2 "нет". Порог — для свободного вихря/трубы; к
+лежачему вихрю у склона не подтверждён (открытый вопрос, писать в README и в отчётах); S_c — параметр, одно место.
+E по умолчанию 0,05 (диапазон 0,02–0,10, SWD-16). Определение v3 `|Γ|/|q|` остаётся полем `Gamma_over_q`.
+
+### v3
 v3 (2026-11-08, по отчёту SWD-15 и решениям пользователя 19:00, 19:03): (1) ядро — по геометрии, не по сетке:
 радиус ядра звена r_c = `R_rule`·(x_r − x_c), R_rule 0,25 (то же правило, что SWD7 v2 — одно на варианты);
 δ Розенхеда–Мура = r_c; равновесие ищется при n ≥ r_c (ядро не уходит в землю; если корень только на границе —
