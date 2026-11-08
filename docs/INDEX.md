@@ -134,6 +134,24 @@ generated: true
   - [tools/research/sw_charges/proto_c/README.md](../tools/research/sw_charges/proto_c/README.md) — Прототип C (SWC-7): пуассоновы диполи ЛЧ и пары болтанки в 2D без рельефа на NumPy — код, команды, таблицы.
   - [tools/research/sw_charges/regimes/README.md](../tools/research/sw_charges/regimes/README.md) — SWC-8: код, команды и время счёта таблиц режимов слоя Рипа A1 (F0 × M) и A2 (условия air-phase, R1).
   - [tools/research/sw_charges/sections/README.md](../tools/research/sw_charges/sections/README.md) — SWC-9: слой Рипа (swpy) против Пикара на разрезах cascade-2d C0–C4 и разрезе Perdigão: код, команды, время, где данные.
+- **sw-charges-3d** — 3D: заряды на поверхности (панели) + замкнутые вихревые нити против Askervein, Perdigão и Пикара; продолжение sw-charges после 2D. [active 2026-11-08] — [план](plan/sw-charges-3d.md) · [контракты](contracts/sw-charges-3d.md)
+  - [docs/contracts/sw-charges-3d/filaments3d.md](contracts/sw-charges-3d/filaments3d.md) — SWD3 sw-charges-3d — вихревые нити 3D (filaments3d): Био–Савар, замыкание, кольцо, огрубление.
+  - [docs/contracts/sw-charges-3d/panels3d.md](contracts/sw-charges-3d/panels3d.md) — SWD2 sw-charges-3d — панели 3D (panels3d): API, правило присоединения, влияние панели.
+  - [docs/contracts/sw-charges-3d/sheet3d.md](contracts/sw-charges-3d/sheet3d.md) — SWD6 sw-charges-3d — установившийся вихревой слой (sheet3d): Фёппль — отрицательный, слой free/roshko.
+  - [docs/research/sw_charges_3d.md](research/sw_charges_3d.md) — Итог sw-charges-3d: панели + Jackson–Hunt на уровне Пикара выше 50 м, ротор Perdigão не воспроизвёл ни один вариант; 12 проблем 2D.
+  - [tools/research/sw_charges_3d/README.md](../tools/research/sw_charges_3d/README.md) — sw-charges-3d: панели-источники по рельефу и замкнутые вихревые нити в 3D против Askervein, Perdigão и Пикара — код, данные, команды.
+  - [tools/research/sw_charges_3d/chain3d/README.md](../tools/research/sw_charges_3d/chain3d/README.md) — chain3d (SWD9 v5): ротор — заряженный провод у склона; звено по геометрии без равновесия, ≤ 2 решений панелей, state по S.
+  - [tools/research/sw_charges_3d/compare/README.md](../tools/research/sw_charges_3d/compare/README.md) — SWD-5/5b/17: панели 3D (potential_jh, vortex_jh, chain_jh) против мачт Askervein/Perdigão и Пикара; сканы; ротор; проблемы 2D.
+  - [tools/research/sw_charges_3d/filaments3d/README.md](../tools/research/sw_charges_3d/filaments3d/README.md) — filaments3d: замкнутые вихревые нити (граф отрезков с Γ), Био — Савар Розенхеда — Мура, RK2, дробление, перезамыкание.
+  - [tools/research/sw_charges_3d/panels3d/README.md](../tools/research/sw_charges_3d/panels3d/README.md) — panels3d (SWD2): треугольные панели-источники по рельефу, слой Jackson–Hunt, отрыв Хеда по линиям тока — устройство, числа, границы.
+  - [tools/research/sw_charges_3d/proto3d/README.md](../tools/research/sw_charges_3d/proto3d/README.md) — SWD-12: прототипы A (термик, вихревые частицы) и C (кольца болтанки, порог по Ri) в 3D над рельефом — код, команды, границы.
+  - [tools/research/sw_charges_3d/refs/README.md](../tools/research/sw_charges_3d/refs/README.md) — SWD-1: эталоны 3D — поля Пикара (air3d, Б1 nom/adv1) для Askervein и Perdigão NE/SW, мачты и точки по типам, ротор (SWD1).
+  - [tools/research/sw_charges_3d/rotor3d/README.md](../tools/research/sw_charges_3d/rotor3d/README.md) — rotor3d (SWD7): нить ротора с геометрическим замыканием; корня при x_m посередине нет (Agnesi, C2, C4), сдвиг x_m даёт нефизичный Γ.
+  - [tools/research/sw_charges_3d/sheet3d/README.md](../tools/research/sw_charges_3d/sheet3d/README.md) — sheet3d v6: нить Фёппля (нет корня), вихревой слой за линией отрыва Хеда, замыкание Roshko (C_pb) — без сходимости.
+  - [tools/research/sw_charges_3d/sim3d/README.md](../tools/research/sw_charges_3d/sim3d/README.md) — sim3d (SWD4): связка панелей panels3d и замкнутых нитей filaments3d — шаг, подшаги, средние в точках, инварианты, границы.
+  - [tools/research/sw_charges_3d/compare/summary.md](../tools/research/sw_charges_3d/compare/summary.md) — SWD-5/5b: итог сравнения panels3d (potential, potential_jh) и vortex_jh (вихревые нити) с мачтами и Пикаром; ротор; статусы 12 проблем 2D.
+  - [tools/research/sw_charges_3d/out/proto3d/summary.md](../tools/research/sw_charges_3d/out/proto3d/summary.md) — SWD-12: A и C в 3D — кольцо термика сходится к теории, отрыва от склона нет; σ_w колец в 9 % игры при R_r = ℓ/2, порог по Ri работает.
+  - [tools/research/sw_charges_3d/refs/summary.md](../tools/research/sw_charges_3d/refs/summary.md) — SWD-1: итог эталонов 3D — Пикар nom/adv1 против мачт Askervein и Perdigão, ротор; границы эталонов.
 
 ## flight
 
@@ -599,6 +617,7 @@ generated: true
 - [tools/research/steam_license/README.md](../tools/research/steam_license/README.md) — Команды воспроизведения аудита лицензий сборки SA-1: настоящий экспорт, разбор PCK, сверка с эмуляцией, сводки. [closed]
 - [tools/research/surface_heat/README.md](../tools/research/surface_heat/README.md) — SH-3: инструмент замера до/после (контракт SH5) — H поля, источники термиков, потолок, подъём на склоне, вода; прогон «до»
 - [tools/research/surface_heat/moisture/README.md](../tools/research/surface_heat/moisture/README.md) — Перцентили влажности рельефа по 4 местам: медиана 0,475, p10 0,26, p90 0,68; пороги m_dry 0,25, m_norm 0,47, m_wet 0,70 [closed]
+- [tools/research/sw_charges_3d/breakdown/README.md](../tools/research/sw_charges_3d/breakdown/README.md) — S_c [0.9,1.2] подтверждён обзором Lucca-Negro 2001; градиент давления снижает порог, малый Re ядра повышает [closed]
 - [tools/research/tune/README.md](../tools/research/tune/README.md) — AM-09: калибровка масштаба 1 и порогов масштаба 3 по Askervein схемой Professor (полиномы по прогонам, χ², eigentunes). [closed]
 - [tools/research/wind_compare/README.md](../tools/research/wind_compare/README.md) — Сравнение поля ветра main и feature/air-model (Онгудай) — Выгрузка из игры (Atmosphere.air_velocity_at / mean_wind_at), не из air.py. [closed]
 - [tools/research/windninja/README.md](../tools/research/windninja/README.md) — WindNinja как эталон: гребневой разгон и поворот потока совпадают с решателем air-nn, торможения массивом нет — как запасной вариант условно [closed]
