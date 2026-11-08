@@ -1,0 +1,46 @@
+{
+  "id": "SWD-1a",
+  "module": "sw-charges-3d",
+  "type": "dp-researcher",
+  "title": "Эталоны 3D: доработка по ревью SWD-1 (dS Askervein, первые клетки, нормировка)",
+  "goal": "Довести эталоны SWD-1 до SWD1 v2: dS Askervein во всех строках Пикара, атрибут first_cell_levels, пометка FSR у мачт; без новых прогонов, если поля не нужны заново.",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "SWD1",
+      "version": "2",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sw-charges-3d-SWD-1a",
+  "branch": "sw-charges-3d/SWD-1a",
+  "base": "feature/sw-charges-3d",
+  "scope": [
+    "tools/research/sw_charges_3d/refs/",
+    "tools/research/sw_charges_3d/out/refs/"
+  ],
+  "dont_touch": [
+    "tools/research/air3d/",
+    "tools/research/cases/",
+    "tools/research/data/",
+    "docs/contracts/",
+    "tools/research/sw_charges_3d/contract/",
+    "tools/research/sw_charges_3d/panels3d/",
+    "tools/research/sw_charges_3d/filaments3d/"
+  ],
+  "accept": [
+    {
+      "name": "contract-files",
+      "cmd": "tools/research/sw_charges_3d/py tools/research/sw_charges_3d/contract/check_contract.py files tools/research/sw_charges_3d/out/refs",
+      "expect": "exit=0"
+    },
+    {
+      "name": "selftest",
+      "cmd": "tools/research/sw_charges_3d/py tools/research/sw_charges_3d/contract/check_contract.py --selftest",
+      "expect": "re:selftest: OK"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-08T05:49:43"
+}
