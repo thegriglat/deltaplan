@@ -1,0 +1,52 @@
+---
+type: "research"
+status: "active"
+module: "sw-charges-3d"
+updated: "2026-11-08"
+summary: "SWD-5: панели 3D (potential, potential_jh) против мачт Askervein/Perdigão и Пикара (nom, adv1); сканы σ, z/H, ds_min; статусы 12 проблем 2D."
+related: ["docs/contracts/sw-charges-3d.md", "docs/plan/sw-charges-3d.md", "tools/research/sw_charges_3d/panels3d/README.md", "tools/research/sw_charges_3d/refs/README.md"]
+conclusion: "tools/research/sw_charges_3d/compare/summary.md"
+data: "tools/research/sw_charges_3d/out/compare/"
+applied_in: ""
+---
+# compare: панели 3D против эталонов (SWD-5)
+
+Формат — SWD5 v2 (`docs/contracts/sw-charges-3d.md`). Варианты: `potential` (`panels3d.velocity`), `potential_jh` (`velocity_jh`); `vortex_jh` и ротор с нитями — SWD-5b. `panels3d`, `refs`, Пикар не менялись (импорт).
+
+| Файл | Что |
+|---|---|
+| `core.py` | `Run` (террейн из `out/refs/<case>.h5`, сетка, LU, поле в точках), ротор по разрезу, диагностика отрыва |
+| `run_compare.py` | основной набор, сканы, контроль логарифмического фона, гаусс-прокси, статусы проблем 2D, `points.json/.csv`, `tables.md` |
+| `../out/compare/` | `points.json` (+`.csv`), `tables.md`, `_cache/` (промежуточные json по случаям; удалить — пересчёт) |
+
+## Воспроизведение
+```bash
+cd tools/research/sw_charges_3d
+.dpcli/dpcli job start swd5-all 3000 ./py compare/run_compare.py all   # ≈ 12 мин с нуля на RTX 4070 SUPER (кеш _cache — секунды)
+./py contract/check_contract.py files out/compare                      # OK
+```
+Зависимости — `requirements.txt` модуля (+ brotli, как у `refs`). GPU-замок не берётся (не замер FPS). Запуск без `-I` (нужен PYTHONPATH обёртки `py`).
+
+## Постановка
+- **Рельеф** — растр SWD1 (`out/refs/<case>.h5`, 10 м; Perdigão: DSM + 0,7·h_c·доля леса — леса как смещение, крон нет); `Terrain3D(smooth_m=σ)`, `far_m` = 10 км. Сетка `build_panels` с фокусом в каждой точке сравнения и `focus_r` = 10·ds_min.
+- **Основной набор** — σ = 40 м (как в 2D), ds_min = 25 м (нижняя граница задачи). **Выбраны заранее, не по данным**; скан показывает чувствительность, подгонки нет. N = 17 902 (Askervein), 13 254 (NE), 12 656 (SW).
+- **Фон** — `bg_profile(U10 = 5, α = 0,235, z_sat = 500 м, σ_bg = 250 м)`: α — номинал перекалибровки Askervein/Perdigão (`cases/*.NOM`), z_sat — допущение. Все величины в таблицах — отношения к опорной точке (`norm`), от U10 не зависят (поле линейно по фону). z0 для JH: Askervein 0,03 м, Perdigão `z0_nominal()` (≈ 0,64 м по доле леса).
+- **s_pan** = горизонтальная скорость в точке / то же в опорной точке (RS 10 м; Perdigão — гребень tse13/tse04 100 м). Точка = `panels.height(x, y)` + z_agl (поверхность панелей, сглаженная). **dS_pan** (Askervein) = s в точке / s в RS на том же z_agl − 1. **u_par** — проекция на направление ветра, масштаб к U данных в опорной точке. Строки сравнения: все строки SWD1 (мачты, Пикар nom/adv1).
+- **Допуск** — `within_tol`: ±15 % Пикара (только строки Пикара); `within_tol_ref`: max(0,15; ref_err) для всех. Пикар ниже 50 м — `ref_use` = «справочно» (2D №7), в долях `frac_tol_picard_ge50` не входит.
+- **Скан**: `smooth_m` 0/20/40/80/160 м; `ds_min` 25/35/50 м; `z_over_H` — по высотам сравнения z_agl/H (H = HT−RS 119,9 м, Perdigão 173,6 м), метрики с основного набора.
+- **Ротор** — критерий SWD5 (u∥ < −0,5 м/с на 15 м, > 50 м, шаг 10 м) по разрезам SWD1; `L_ref` — Menke 2019, иначе Пикар nom.
+- **Диагностика отрыва** — `separation3d(lee_only=True)` по линиям тока; перехват `march_layer` для max H, min cf. Контроль 2D №1 — осесимметричный гаусс H/L = 0,1 (ds_min 50 м).
+- **Контроль фона**: те же метрики с логарифмическим фоном (`diag`, `bglog_*`) — проверка, не объясняется ли недобор JH несогласованностью профилей. Нет: dS_HT 10 м для JH не меняется (0,624).
+
+## Допущения и границы
+1. Пикар — не истина: на Perdigão расходится с мачтами на −23…−27 % (SWD-1); сравнение с Пикаром — по допуску ±15 %, с мачтами — по `ref_err`. Мачты Perdigão — окна-средние нейтрального периода, положение мачты ±DEM 30 м.
+2. `spd` Perdigão принят за модуль среднего вектора (SWD-1); u∥ мачт Askervein не заданы (u, v = null) — u_par_ref там null.
+3. **Потенциальное течение**: нет затухания в долине (направление вдоль долины), нет следа; занижение/завышение в долинах Perdigão — ожидаемо.
+4. **JH** (контракт SWD2): ΔS берётся на высоте max(z, l) — ниже l скорость не растёт к земле; на HT 10 м при L ≈ сотен метров это даёт dS 0,62 против 0,88 данных.
+5. `ds_min` = 50 м: гребень H ≈ 120 м < 2·ds_min — `hill_length` не видит холм (правило SW6 v4), JH на HT превращается в ровную землю (dS 0,08). Это граница метода, а не результат скана.
+6. Gaussian-контроль №1 — прокси, не C4 (рельеф C4 в 3D не определён).
+7. Ротор: проверен только без вихрей; потенциальное течение обратной скорости не даёт.
+8. Время: запрос потенциала 100–200 мкс/точку, JH 0,75–1,5 мс/точку (колонка `hill_length` в Python); сборка + LU N ≈ 13–18 тыс. — 4–10 с на GPU.
+
+## Источники и лицензии
+Данные — как SWD-1 (`refs/README.md`): Askervein — Zenodo 4095052 (CC BY 4.0), Taylor & Teunissen 1987; Perdigão — ISFS NCAR/EOL doi:10.26023/ZDMJ-D1TY-FG14, Menke et al. 2019 ACP 19, 2713 (CC BY 4.0), Copernicus GLO-30, ESA WorldCover 2021 (CC BY 4.0) — `tools/research/data/*/README.md`, `ASSETS.md`. Новых внешних данных нет; `out/compare` — производные. Jackson & Hunt 1975 QJRMS 101:929; Head 1958 ARC R&M 3152; Hess & Smith 1967; Taylor & Lee 1984.
