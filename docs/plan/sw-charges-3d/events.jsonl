@@ -234,3 +234,4 @@
 {"t": "2026-11-08T19:20:36", "by": "coordinator", "task": "SWD-14", "ev": "merged", "commits": ["62dab04"]}
 {"t": "2026-11-08T19:20:40", "by": "reviewer", "task": "SWD-15a", "ev": "reviewed", "note": "Интерфейс SWD9 v3/v4 выдержан (r_c по геометрии у каждого звена, lee_slope отдельной функцией, образ в касательной плоскости, n_solves 3, S по v4 + Gamma_over_…", "verdict": "accept", "issues": {"minor": 3}, "review": "docs/plan/sw-charges-3d/tasks/SWD-15a.review.json"}
 {"t": "2026-11-08T19:20:53", "by": "coordinator", "task": "SWD-15a", "ev": "accepted", "note": "accept 5/5, ревью fable accept 3m (в следующую задачу по Q4); partial: при ядре по геометрии равновесия нет, S>1,2 везде — шлюз Q4"}
+{"t": "2026-11-08T19:20:58", "by": "coordinator", "task": "SWD-15a", "ev": "merged", "commits": ["ea1f234"]}
