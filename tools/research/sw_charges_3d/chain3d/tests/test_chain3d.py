@@ -127,7 +127,14 @@ def agnesi():
 
 @pytest.fixture(scope="module")
 def ag_chain(agnesi):
-    return chain3d.chain_rotor(agnesi["p"], agnesi["bg"], 0.1, agnesi["infl"], dict(apply_state=False, keep_unconverged=True))
+    return chain3d.chain_rotor(agnesi["p"], agnesi["bg"], 0.1, agnesi["infl"], dict(apply_state=False, keep_unconverged=True,
+                                                                                         position="equilibrium"))
+
+
+@pytest.fixture(scope="module")
+def ag_geo(agnesi):
+    """v5: положение по геометрии, state отключён (поле ротора есть, диагностика)."""
+    return chain3d.chain_rotor(agnesi["p"], agnesi["bg"], 0.1, agnesi["infl"], dict(apply_state=False))
 
 
 def test_agnesi_core_by_geometry_and_invariants(agnesi, ag_chain):
@@ -163,33 +170,27 @@ def test_lee_slope_rule():
 def test_swirl_v4_definition_and_ratio(agnesi, ag_chain):
     ch, sig, info = ag_chain
     r = info["rotors"][0]
-    ll = 2.0 * 125.0
+    ll = r["length_m"] / r["n_links"]          # фактическая l_link звена (ревью SWD-15a): длина ротора / число звеньев
     sw = []
     for l in info["links"]:
         vth = l["Gamma"] / (2 * np.pi * l["core"])
         W = abs(l["q"]) * ll / (np.pi * l["core"] ** 2)
         sw.append(vth / W)
-    assert abs(max(sw) - r["S"]) <= 1e-6 * r["S"] or abs(max(sw) - r["S"]) <= 0.35 * r["S"]
+    assert abs(max(sw) - r["S"]) <= 1e-6 * r["S"]
     assert r["Gamma_over_q"] > 0 and r["S_c_range"] == (0.9, 1.2)
 
 
 def test_E_sensitivity_table(agnesi):
-    """state и |u_min|/U на 10 м при E ×½, ×1, ×2 (apply_state=False — диагностика). Таблица — в README."""
-    from panels3d.terrain import u_ref_of
-    U, _ = u_ref_of(agnesi["bg"], agnesi["t"])
-    Sv, rows = [], []
+    """v5 (position="geometry"): state, S и u_min/U на 10 м при E ×½, ×1, ×2 (apply_state=False). Таблица — в README."""
+    Sv = []
     for k in (0.5, 1.0, 2.0):
         ch, sig, info = chain3d.chain_rotor(agnesi["p"], agnesi["bg"], 0.1, agnesi["infl"],
-                                            dict(apply_state=False, keep_unconverged=True, E=C.DEFAULTS["E"] * k))
+                                            dict(apply_state=False, E=C.DEFAULTS["E"] * k))
         r = info["rotors"][0]
-        xs = np.linspace(0.0, 725.0, 30)
-        zz = agnesi["t"].height(xs, 0 * xs) + 10.0
-        u = chain3d.velocity_chain(agnesi["p"], sig, agnesi["bg"], ch, xs, 0 * xs, zz, 0.1, infl=agnesi["infl"])[0]
-        rows.append((k, r["state"], r["S"], r["Gamma_over_q"], float(-np.nanmin(u)) / U, sum(l["converged"] for l in info["links"])))
+        print(f"\nE x{k}: state {r['state']}, S {r['S']:.2f}, Γ/q {r['Gamma_over_q']:.1f}, u_min/U на 10 м {r['u_min_over_U']:+.3f}, "
+              f"невязка {np.mean([l['residual'] for l in info['links']]):.2f}·U")
         Sv.append(r["S"])
-        assert info["n_solves"] <= 4
-    for row in rows:
-        print(f"\nE x{row[0]}: state {row[1]}, S {row[2]:.2f}, Γ/q {row[3]:.1f}, |u_min|/U {row[4]:.2f}, сошлось {row[5]}")
+        assert info["n_solves"] <= 2
     assert Sv[0] > Sv[1] > Sv[2]
 
 
@@ -217,7 +218,8 @@ def test_agnesi_state_rule_and_default_gate(agnesi, ag_chain):
     lo, hi = r["S_c_range"]
     assert r["state"] == ("есть" if r["S"] < lo else "дышит" if r["S"] <= hi else "нет")
     assert abs(r["axis_to"][1] - r["axis_from"][1] - r["length_m"]) < 1e-6
-    assert r["state"] == "нет" and len(ch["fil"].seg) == 0 and info["n_solves"] == 0
+    assert r["state"] == "нет" and len(ch["fil"].seg) == 0 and 1 <= info["n_solves"] <= 2
+    assert r["u_min_over_U"] is not None and np.isfinite(r["u_min_over_U"])      # v5: диагностика при state "нет"
     assert np.array_equal(sig, agnesi["sg"])
     assert same_as_jh(agnesi["p"], sig, agnesi["bg"], ch, agnesi["infl"])
 
@@ -228,8 +230,31 @@ def test_zero_sink_means_state_no(agnesi):
     assert r["S"] == float("inf") and r["state"] == "нет" and len(ch["fil"].seg) == 0
 
 
+def test_geometry_position_formulas(agnesi, ag_geo):
+    """SWD9 v5: s = (x_r − x_c)/2 от гребня вдоль ветра, n = r_c; converged = True, residual — диагностика; n_solves ≤ 2."""
+    ch, sig, info = ag_geo
+    assert info["links"] and info["n_solves"] <= 2
+    for l in info["links"]:
+        assert abs(l["s"] - 0.5 * (l["x_r"][0] - l["x_c"][0])) <= 1.0
+        assert abs(l["n"] - l["core"]) <= 1.0 and abs(l["core"] - C.DEFAULTS["R_rule"] * (l["x_r"][0] - l["x_c"][0])) <= 1e-6
+        assert l["converged"] is True and l["on_ground"] is False and np.isfinite(l["residual"])
+    # ось звена: фактическое положение центра нитей = формула (x от гребня + s; z от склона по нормали n)
+    seg = ch["fil"]
+    assert F.imbalance(seg) <= 1e-12 and abs(info["mass_balance"]) <= 1e-9 * sum(
+        abs(s_["q"]) * np.linalg.norm(s_["b"] - s_["a"]) for s_ in ch["sinks"])
+    r = info["rotors"][0]
+    print(f"\nAgnesi v5: S {r['S']:.2f}, state {r['state']} (без применения), u_min/U на 10 м {r['u_min_over_U']:+.3f}, "
+          f"невязка {np.mean([l['residual'] for l in info['links']]):.2f}·U, решений {info['n_solves']}, {info['t_s']:.1f} с")
+
+
+def test_position_equilibrium_is_v4(agnesi, ag_chain):
+    """position="equilibrium" — прежнее v4: n_solves ≤ 4, u_min_over_U не считается."""
+    ch, sig, info = ag_chain
+    assert info["n_solves"] <= 4 and info["rotors"][0]["u_min_over_U"] is None
+
+
 def test_cost_in_panel_solves(agnesi, ag_chain):
-    """Цена в решениях панелей (по кешу LU). SWD9 v3: ≤ 4 сверх фона."""
+    """Цена в решениях панелей (по кешу LU). SWD9 v3: ≤ 4 сверх фона (v4)."""
     ch, sig, info = ag_chain
     p, infl, bg = agnesi["p"], agnesi["infl"], agnesi["bg"]
     t0 = time.time()
@@ -275,3 +300,15 @@ def test_saddle_gives_two_rotors():
     print(f"\nседловина: роторы {[(round(q['axis_from'][1]), round(q['axis_to'][1])) for q in r]}")
     assert len(r) == 2 and r[0]["axis_to"][1] < 0 < r[1]["axis_from"][1] or \
         (len(r) == 2 and r[0]["axis_to"][1] <= r[1]["axis_from"][1])
+
+
+def test_mass_balance_on_ridge_with_varying_height():
+    """v5: высота хребта меняется вдоль оси — длины стока (по рельефу) и источника (горизонталь) различны, расход сохраняется."""
+    def env(Y):
+        t = np.clip((np.abs(Y) - 600.0) / 400.0, 0.0, 1.0)
+        return 1.0 - 0.5 * np.sin(0.5 * np.pi * t) ** 2
+    p, bg = ridge_case(env)
+    ch, sig, info = chain3d.chain_rotor(p, bg, 0.1, None, dict(apply_state=False))
+    qtot = sum(abs(s["q"]) * np.linalg.norm(s["b"] - s["a"]) for s in ch["sinks"])
+    print(f"\nбаланс масс: Σ расходов {info['mass_balance']:.3e} при Σ|q| {qtot:.1f}, звеньев {len(info['links'])}")
+    assert qtot > 0 and abs(info["mass_balance"]) <= 1e-9 * qtot and F.imbalance(ch["fil"]) <= 1e-12

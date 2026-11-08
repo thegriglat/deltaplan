@@ -60,7 +60,7 @@ def reverse_len(case, ch, sig, x_c, z_agl=15.0):
 def test_c4_no_rotor_by_slope(c4):
     ch, sig, info = chain3d.chain_rotor(c4["p"], c4["bg"], 0.1, c4["infl"], {})
     print(f"\nC4 N={c4['p'].N}: роторов {len(info['rotors'])}")
-    assert info["rotors"] == [] and len(ch["fil"].seg) == 0 and np.array_equal(sig, c4["sg"])
+    assert info["rotors"] == [] and len(ch["fil"].seg) == 0 and np.array_equal(sig, c4["sg"]) and info["n_solves"] == 0
 
 
 def test_c2_rotor_present_state_and_length(c2):
@@ -68,9 +68,10 @@ def test_c2_rotor_present_state_and_length(c2):
     ch0, sig0, info0 = chain3d.chain_rotor(p, bg, 0.1, c2["infl"], {})
     assert len(info0["rotors"]) >= 1
     r = info0["rotors"][0]
-    print(f"\nC2 N={p.N}: ротор {r['length_m']:.0f} м, S={r['S']:.2f}, state {r['state']}")
+    print(f"\nC2 N={p.N}: ротор {r['length_m']:.0f} м, S={r['S']:.2f}, state {r['state']}, u_min/U на 10 м {r['u_min_over_U']:+.3f}")
+    assert r["state"] in ("есть", "дышит", "нет") and r["S"] > 0 and info0["n_solves"] <= 2
     t0 = time.time()
-    ch, sig, info = chain3d.chain_rotor(p, bg, 0.1, c2["infl"], dict(apply_state=False, keep_unconverged=True))
+    ch, sig, info = chain3d.chain_rotor(p, bg, 0.1, c2["infl"], dict(apply_state=False, keep_unconverged=True, position="equilibrium"))
     ok = info["links"]
     print(f"C2 (state отключён): сошлось {len(ok)}/{len(info['links'])}, {time.time() - t0:.0f} с, решений {info['n_solves']}")
     if ok:
