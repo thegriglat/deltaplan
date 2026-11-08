@@ -17,12 +17,12 @@ import panels3d as P
 import sim3d
 from sim3d.core import _Extra
 
-TAU_MAIN = 60.0                       # с: выбран заранее (см. README): ~ полуширина гряды 500 м / U_ref ~ 8 м/с, порядок, не измерение
-TAU_SCAN = (15.0, 30.0, 60.0, 120.0, 1.0e9)      # 1e9 — без затухания (ограничитель только gamma_min и t_end)
-CORE = C.DS_MAIN                      # м: ядро новых нитей = ds_min (решение исполнителя; умолчание sim3d ds_min/2; число узлов от ядра не зависит)
+TAU_MAIN = 150.0                      # с: карточка/координатор (замер 2D, прототип A: |u| 0,20–0,24·U100 при τ = 150 с); 60 и 300 — скан
+TAU_SCAN = (60.0, 150.0, 300.0)     # 1e9 — без затухания (ограничитель только gamma_min и t_end)
+CORE = None                       # умолчание sim3d (ds_min/2) — ревью SWD-5b; число узлов от ядра не зависит
 GAMMA_MIN = 1.0                       # м²/с: нить слабее удаляется (иначе число узлов не ограничено; решение исполнителя, README)
 DT = 3.0                              # с: шаг связки (сход каждый шаг при U_ref·dt ≥ 2·core); шаг sim3d ≈ 9 с при N 18 тыс. (панели), поэтому dt не меньше
-T_END = 120.0                         # с: пролёт воздуха U_ref ≈ 7–12 м/с — 1–2 км; окно усреднения — вторая половина
+T_END = None                          # t_end = 3 прохода области по U_ref, t_avg = 1 проход (см. t_pass)
 N_SNAP = 8                            # снимков нитей в окне усреднения (ротор)
 LEVELS = np.arange(15.0, 601.0, 15.0)
 
@@ -31,8 +31,17 @@ def tau_name(tau):
     return "inf" if tau >= 1e8 else f"{tau:g}"
 
 
-def cache_file(case, tau):
-    return C.CACHE / f"{case}_vortex_tau{tau_name(tau)}.json"
+def cache_file(case, tau, legacy=False):
+    """legacy — первый круг SWD-5b (tau_s 60/inf, t_end 120 с, ядро 25 м): файлы без «3p»."""
+    return C.CACHE / (f"{case}_vortex_tau{tau_name(tau)}.json" if legacy else f"{case}_vortex3p_tau{tau_name(tau)}.json")
+
+
+def t_pass(run, st):
+    """Время одного прохода области по U_ref: протяжённость растра вдоль ветра / U_ref."""
+    ex, ey = run.wt
+    T = run.terrain
+    L = abs(ex) * (T.x[-1] - T.x[0]) + abs(ey) * (T.y[-1] - T.y[0])
+    return float(L / st.U_ref)
 
 
 def _mean_vel(setup, snaps, x, y, z):
@@ -111,7 +120,11 @@ def simulate(case, refs, tau, t_end=T_END, dt=DT, make_rows=None, norm_info=None
     st.fil["gamma_min"] = GAMMA_MIN
     x, y, z = run.points()
     pr = np.stack([x, y, z], 1)
-    t_avg = 0.5 * t_end
+    tp = t_pass(run, st)
+    if t_end is None:
+        t_end = 3.0 * tp
+    t_end = float(np.ceil(t_end / dt) * dt)
+    t_avg = float(np.ceil(tp / dt) * dt)
     rec = max(1, int(round((t_end - t_avg) / dt / N_SNAP)))
     res = sim3d.run(st, t_end, dt, t_avg=t_avg, probes=pr, record_every=rec)
     S = res["stats"]
@@ -146,7 +159,7 @@ def simulate(case, refs, tau, t_end=T_END, dt=DT, make_rows=None, norm_info=None
         if a["s_pan"] is not None and b["s_pan"]:
             dv.append(dict(point=a["point"], z_agl=a["z_agl"], name=a["name"], ref_kind=a["ref_kind"], rel=(a["s_pan"] - b["s_pan"]) / b["s_pan"]))
     summ = dict(
-        case=case, tau_s=float(tau), t_end=t_end, dt=dt, N=int(run.N), U_ref=st.U_ref, core=st.core, sep_every=max(1, int(round(2.0 * st.core / (st.U_ref * dt)))),
+        case=case, tau_s=float(tau), t_end=t_end, dt=dt, N=int(run.N), U_ref=st.U_ref, core=st.core, sep_every=int(S[-1]["sep_every"]), u_s_mean=float(getattr(st, "u_s_mean", 0.0)), t_pass=tp, t_avg=t_avg,
         n_nodes_end=S[-1]["n_nodes"], n_seg_end=S[-1]["n_seg"], n_nodes_max=max(s["n_nodes"] for s in S), n_seg_max=max(s["n_seg"] for s in S),
         gamma_abs_end=S[-1]["gamma_abs"], imbalance_max=max(s["imbalance"] for s in S),
         t_step_median=float(np.median([s["t_step"] for s in S])), t_step_last=S[-1]["t_step"], t_step_max=max(s["t_step"] for s in S),

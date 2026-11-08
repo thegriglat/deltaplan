@@ -510,10 +510,20 @@ def main_all():
 
 
 # ---------------------------------------------------------------- SWD-5b: vortex_jh
-def _vload(case, tau):
+def _vload(case, tau, legacy=False):
     import vortex as V
-    f = V.cache_file(case, tau)
-    return json.load(open(f)) if f.exists() else None
+    f = V.cache_file(case, tau, legacy)
+    if not f.exists():
+        return None
+    d = json.load(open(f))
+    d["legacy"] = legacy
+    return d
+
+
+def run_desc(res):
+    s = res["summary"]
+    return (f"tau_s {s['tau_s']:g} с, t_end {s['t_end']:g} с, окно t ≥ {s.get('t_avg', 0.5 * s['t_end']):g} с"
+            + (" [первый круг SWD-5b, импульсивный старт 120 с, ядро 25 м; ждёт Q1]" if res.get("legacy") else ""))
 
 
 def _med(a):
@@ -527,7 +537,7 @@ def sep_stats(s):
     ns, se, dt = s["n_sep_by_step"], s["sep_every"], s["dt"]
     idx = [i for i in range(len(ns)) if i % se == 0]
     early = [ns[i] for i in idx if (i + 1) * dt <= 12.0 + 1e-9]
-    win = [ns[i] for i in idx if (i + 1) * dt > 0.5 * s["t_end"] + 1e-9]
+    win = [ns[i] for i in idx if (i + 1) * dt > s.get("t_avg", 0.5 * s["t_end"]) + 1e-9]
     return dict(early=float(np.mean(early)) if early else None, win=float(np.mean(win)) if win else None,
                 frac_win=float(np.mean([v > 0 for v in win])) if win else None, n_win_steps=len(win))
 
@@ -563,23 +573,31 @@ def vortex_merge():
     doc["rotor"] = [r for r in doc["rotor"] if r["variant"] != "vortex_jh"]
     doc["timing"] = [r for r in doc["timing"] if r["variant"] != "vortex_jh"]
     doc["diag"] = [d for d in doc["diag"] if not d["item"].startswith("vortex_")]
+    doc["scan"] = [x for x in doc["scan"] if x["param"] != "tau_s"]
+    doc["version"] = 3
     main_res, scan_res = {}, {}
     for c in C.CASES:
-        main_res[c] = _vload(c, V.TAU_MAIN)
+        main_res[c] = _vload(c, V.TAU_MAIN) or _vload(c, 60.0, True)
         if main_res[c] is None:
             raise SystemExit(f"нет кеша {V.cache_file(c, V.TAU_MAIN)}")
         for tau in V.TAU_SCAN:
             r = _vload(c, tau)
             if r is not None:
                 scan_res[(c, tau)] = r
+        if main_res[c].get("legacy"):
+            for tau in (15.0, 30.0, 60.0, 120.0, 1e9):
+                r = _vload(c, tau, True)
+                if r is not None:
+                    scan_res[(c, tau)] = r
     for c in C.CASES:
         m = main_res[c]
+        tau_c = m["summary"]["tau_s"]
         doc["rows"] += m["rows"]
         for r in m["rotor"]:
             rr = {k: v for k, v in r.items() if k not in ("u_par_min_15m", "u_par_min_over_U")}
             doc["rotor"].append(rr)
             doc["diag"].append(dict(case=c, item=f"vortex_rotor_upar_min_{r['transect']}", value=fnum(r["u_par_min_over_U"]),
-                                    note=f"vortex_jh, tau_s {V.TAU_MAIN:g} с: min u∥ на 15 м вдоль разреза, доля U данных опорной точки ({r['u_par_min_15m']:.2f} м/с); "
+                                    note=f"vortex_jh, tau_s {tau_c:g} с: min u∥ на 15 м вдоль разреза, доля U данных опорной точки ({r['u_par_min_15m']:.2f} м/с); "
                                          f"ротор {'есть' if r['present'] else 'нет'}, L = {r['L_m']:.0f} м, глубина {r['depth_m']:.0f} м"))
         doc["timing"].append(m["timing"])
         s = m["summary"]
@@ -592,23 +610,39 @@ def vortex_merge():
                         ("n_skipped_sum", "точек линии отрыва вне сетки панелей (отброшено)"),
                         ("f_reconnect", "перезамыканий (r_rec = 0 — выключено)"), ("f_split", "делений отрезков"), ("f_merge", "слияний отрезков"),
                         ("f_lifted", "узлов поднято с земли"), ("f_removed", "узлов удалено (gamma_min, границы)"), ("n_snapshots", "снимков нитей в окне для ротора")):
-            doc["diag"].append(dict(case=c, item=f"vortex_{k}", value=fnum(s[k]), note=f"vortex_jh, tau_s {V.TAU_MAIN:g} с: {note}"))
+            doc["diag"].append(dict(case=c, item=f"vortex_{k}", value=fnum(s[k]), note=f"vortex_jh, tau_s {tau_c:g} с: {note}"))
         q = sep_stats(s)
-        doc["diag"].append(dict(case=c, item="vortex_n_sep_early", value=fnum(q["early"]), note=f"vortex_jh, tau_s {V.TAU_MAIN:g} с: точек отрыва на шаге схода, среднее за t ≤ 12 с"))
-        doc["diag"].append(dict(case=c, item="vortex_n_sep_win", value=fnum(q["win"]), note=f"vortex_jh, tau_s {V.TAU_MAIN:g} с: точек отрыва на шаге схода, среднее за окно t > t_end/2"))
-        doc["diag"].append(dict(case=c, item="vortex_frac_sep_win", value=fnum(q["frac_win"]), note=f"vortex_jh, tau_s {V.TAU_MAIN:g} с: доля шагов схода в окне, где отрыв есть"))
+        doc["diag"].append(dict(case=c, item="vortex_n_sep_early", value=fnum(q["early"]), note=f"vortex_jh, tau_s {tau_c:g} с: точек отрыва на шаге схода, среднее за t ≤ 12 с"))
+        doc["diag"].append(dict(case=c, item="vortex_n_sep_win", value=fnum(q["win"]), note=f"vortex_jh, tau_s {tau_c:g} с: точек отрыва на шаге схода, среднее за окно t > t_end/2"))
+        doc["diag"].append(dict(case=c, item="vortex_frac_sep_win", value=fnum(q["frac_win"]), note=f"vortex_jh, tau_s {tau_c:g} с: доля шагов схода в окне, где отрыв есть"))
         vm = vortex_metrics(m)
         for k in ("dv_median_lee_valley_lt30", "dv_median_lt30", "dv_max_lt30"):
             doc["diag"].append(dict(case=c, item=f"vortex_{k}", value=fnum(vm[k]),
                                     note="|s_vortex_jh − s_potential_jh|/s_potential_jh в точках rows (s — доля опорной точки), "
                                          + {"dv_median_lee_valley_lt30": "медиана, lee и valley, z_agl < 30 м", "dv_median_lt30": "медиана, все точки z_agl < 30 м",
                                             "dv_max_lt30": "максимум, все точки z_agl < 30 м"}[k]))
+    # №8: трассировка перед отрывом
+    for c in ("PERD_NE", "PERD_SW"):
+        f = C.CACHE / f"{c}_septrace.json"
+        if not f.exists():
+            continue
+        st_ = json.load(open(f))
+        t_ = st_["trace"]
+        if t_:
+            for k in range(len(t_["i"])):
+                doc["diag"].append(dict(case=c, item=f"sep_trace_H_before_isep_{k - len(t_['i']) + 1}", value=t_["H"][k],
+                                        note=f"средняя линия тока, шаг {k - len(t_['i']) + 1} относительно i_sep = {st_['i_sep_central']}: s = {t_['s'][k]:.0f} м, "
+                                             f"u_e = {t_['ue'][k]:.3f} м/с, du_e/ds = {t_['du'][k]:.4f} 1/с, H = {t_['H'][k]:.3f}, cf = {t_['cf'][k]:.5f}"))
+        j = np.array(st_["jumps"])
+        for nm, v, nt in (("sep_jump_median", float(np.median(j)), "медиана H(i_sep) − H(i_sep−2) по линиям"),
+                          ("sep_jump_frac_gt5", float(np.mean(j > 5)), "доля линий, где H за 2 шага перед отрывом растёт более чем на 5 (срыв к насыщению H(H1) ~ 11,7)"),
+                          ("sep_jump_n_lines", float(len(j)), "линий с отрывом (вызовов march_layer с i_sep ≥ 2)")):
+            doc["diag"].append(dict(case=c, item=nm, value=fnum(v), note=nt))
     # скан tau_s
     for (c, tau), res in sorted(scan_res.items()):
         for k, v in vortex_metrics(res).items():
-            doc["diag"].append(dict(case=c, item=f"vortex_tau{V.tau_name(tau)}_{k}", value=fnum(v),
-                                    note=f"скан tau_s = {tau:g} с ({'без затухания' if tau >= 1e8 else 'экспоненциальное'}); остальное как в основном наборе; "
-                                         f"метрика {k}; N = {res['summary']['N']}, t_end {res['summary']['t_end']:g} с"))
+            if v is not None:
+                doc["scan"].append(dict(case=c, variant="vortex_jh", param="tau_s", value=None if tau >= 1e8 else float(tau), metric=k, result=float(v)))
     probs = {p["problem"].split(".")[0]: p for p in doc["problems2d"]}
     for p in vortex_problems(doc, main_res, scan_res):
         probs[p["problem"].split(".")[0]] = p
@@ -650,7 +684,7 @@ def vortex_problems(doc, main_res, scan_res):
             tau_ev.append(f"{c} tau {tau:g}: роторов {sum(r['present'] for r in m)}/3")
     st5 = "ушла" if all(v >= 2 for v in ok5.values()) else "осталась"
     P_.append(dict(problem="5. реальные роторы не воспроизведены; сила и незатухание ротора", kind="2D-артефакт", status=st5,
-                   evidence="vortex_jh (sim3d: нити с гребня, couple, restart), tau_s " + f"{V.TAU_MAIN:g} с (заранее), t_end {V.T_END:g} с, окно t ≥ {V.T_END/2:g} с; разрезы Menke: " + "; ".join(ev) +
+                   evidence="vortex_jh (sim3d: нити с гребня, couple, restart); " + "; ".join(f"{c}: {run_desc(main_res[c])}" for c in C.CASES) + ". Первый круг (120 с, импульсивный старт; ждёт Q1 для Perdigão, для Askervein полный счёт 3 прохода не выполним — см. отчёт) — результат не по установившемуся окну, статус предварительный. Разрезы Menke: " + "; ".join(ev) +
                             f". Правило статуса: «ушла» — ротор на ≥ 2 из 3 разрезов Menke в каждом случае и L в пределах ×2 от Menke ({ok5['PERD_NE']} / {ok5['PERD_SW']} из 3). "
                             f"Роторы по всем {len(allp)} разрезам: {sum(r['present'] for r in allp)} (Askervein: {sum(r['present'] for r in ask)} из {len(ask)}; данных об обратном течении нет). "
                             "Скан tau_s (разрезы Menke): " + "; ".join(tau_ev) + ". Число узлов, время шага — diag `vortex_*`. Сила: min u∥/U — diag `vortex_rotor_upar_min_*` (2D: |u| 0,89–0,96·U100 против 0,22 ± 0,08 Menke)"))
@@ -669,8 +703,16 @@ def vortex_problems(doc, main_res, scan_res):
         rev_ok &= (b[2] == 0) or (b[3] >= 0.5 * b[2])
         ev8.append(f"{c}: RMSE u∥/U potential_jh {a[0]:.3f} → vortex_jh {b[0]:.3f} (n {b[1]}); мачт с u∥ < 0: данные {b[2]}, potential_jh {a[3]}, vortex_jh {b[3]}")
     old8 = next(p for p in doc["problems2d"] if p["problem"].startswith("8."))
+    tr8 = []
+    for c in ("PERD_NE", "PERD_SW"):
+        hh = [d for d in doc["diag"] if d["case"] == c and d["item"].startswith("sep_trace_H_before_isep_")]
+        fj = next((d["value"] for d in doc["diag"] if d["case"] == c and d["item"] == "sep_jump_frac_gt5"), None)
+        if hh:
+            tr8.append(f"{c} средняя линия, H в 4 шагах до i_sep (шаг 25 м): " + " → ".join(f"{d['value']:.2f}" for d in hh[-4:])
+                       + f" (du_e/ds ≈ {hh[-1]['note'].split('du_e/ds = ')[1].split(' ')[0]} 1/с — слабое торможение); доля линий с прыжком H > 5 за 2 шага: {fj:.2f}")
+    tr8 = "Трассировка перед отрывом: " + "; ".join(tr8) + ". H растёт плавно до ~2,3, затем за один шаг уходит к 6,05 (NE) / 11,67 = насыщение H(H1) (SW): по правилу ревью SWD-5 это прыжок, а не плавный рост — отрыв по Хеду нельзя считать установленным физически, «ушла» не ставится, вопрос (рост H или срыв интегрирования шагом 25 м) — для SWD-4. " if tr8 else ""
     P_.append(dict(problem="8. мачты Perdigão и исчезнувший отрыв", kind="не выяснено", status="осталась" if (old8["status"] != "ушла" or worse or not rev_ok) else "ушла",
-                   evidence="Отрыв в лее по Хеду есть (SWD-5, до вихрей); с вихрями: " + "; ".join(ev8) +
+                   evidence=tr8 + "Отрыв в лее по Хеду есть (SWD-5, до вихрей; см. выше про прыжок H); с вихрями: " + "; ".join(ev8) +
                             ". Правило (по определению проблемы 8 в 2D: «обратный u∥ в данных у 8 точек NE, в модели ни у одной»): «ушла» — отрыв в лее есть, RMSE u∥/U vortex_jh не хуже potential_jh более чем на 10 % и модель даёт u∥ < 0 хотя бы на половине тех мачт, где он отрицателен в данных. Первое условие выполнено со SWD-5 (отрыв по Хеду есть), последнее — нет. Ранее: " + old8["evidence"]))
     # 9
     dv = {c: next(d["value"] for d in doc["diag"] if d["case"] == c and d["item"] == "vortex_dv_median_lee_valley_lt30") for c in C.CASES}
@@ -700,7 +742,7 @@ def vortex_problems(doc, main_res, scan_res):
 def vortex_tables(doc, main_res, scan_res):
     import vortex as V
     L = ["", "# SWD-5b: vortex_jh (sim3d: вихревые нити, couple, restart)", "",
-         f"tau_s основной = {V.TAU_MAIN:g} с (выбор заранее), gamma_min = {V.GAMMA_MIN:g} м²/с, dt = {V.DT:g} с, t_end = {V.T_END:g} с, окно усреднения t ≥ {V.T_END/2:g} с, "
+         f"tau_s основной = {V.TAU_MAIN:g} с (карточка), gamma_min = {V.GAMMA_MIN:g} м²/с, dt = {V.DT:g} с, t_end = 3 прохода области по U_ref, окно после 1 прохода (Askervein); все три случая — первый круг (120 с, tau_s 60 основной, ядро 25 м, ASK также 15/30/120/∞; полный счёт 3 прохода не выполнен), "
          f"r_rec = 0; те же σ = {C.SMOOTH_MAIN:g} м, ds_min = {C.DS_MAIN:g} м, лог. фон, z0 — медиана растра.", "",
          "## Скан tau_s (разрезы Menke — 3 на случай Perdigão)", "",
          "| случай | tau_s, с | RMSE s мачты | доля мачт в допуске | доля nom ≥50 м в ±15 % | dS HT 10 м | роторов Menke | L ротора (среднее), м | узлов в конце | шаг (медиана), с | мед. Δs/s лее+долина <30 м |",
@@ -723,6 +765,19 @@ def vortex_tables(doc, main_res, scan_res):
     return "\n".join(L) + "\n"
 
 
+def septrace_run(case):
+    """SWD-5b (№8): H, cf, u_e, du_e/ds в 8 шагах трассировки перед i_sep на средней линии тока + прыжки H по всем линиям."""
+    run = C.Run(case, refs=C.load_refs())
+    d = C.separation_diag(run)
+    ce = d["central"]
+    tr = ce["trace"] if ce else None
+    out = dict(case=case, s_total=ce["s_total"] if ce else None, i_sep_central=ce["i_sep"] if ce else None, jumps=d["jumps"],
+               trace=None if tr is None else {k: [fnum(x) for x in v] for k, v in tr.items()})
+    json.dump(out, open(C.CACHE / f"{case}_septrace.json", "w"), allow_nan=False)
+    run.free()
+    print("septrace", case, "lines", len(d["jumps"]), "central trace", tr is not None, flush=True)
+
+
 def vortex_run(case, taus):
     import vortex as V
     refs = C.load_refs()
@@ -736,7 +791,10 @@ def vortex_run(case, taus):
 
 
 if __name__ == "__main__":
-    if sys.argv[1:2] == ["vortex-run"]:
+    if sys.argv[1:2] == ["sep-trace"]:
+        for c in sys.argv[2:]:
+            septrace_run(c)
+    elif sys.argv[1:2] == ["vortex-run"]:
         vortex_run(sys.argv[2], [float(a) for a in sys.argv[3:]])
     elif sys.argv[1:] == ["vortex-merge"]:
         vortex_merge()

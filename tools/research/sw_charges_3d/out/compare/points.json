@@ -1,8 +1,8 @@
 {
  "format": "sw3d-compare",
- "version": 2,
- "git": "b70219ae2d573d172e41b43abcde91db71f3f73f",
- "created": "2026-11-08T10:28:28+0500",
+ "version": 3,
+ "git": "5b804e7110e947915dd500a978864ff91f555930",
+ "created": "2026-11-08T10:51:04+0500",
  "tol_picard": 0.15,
  "rows": [
   {
@@ -47698,6 +47698,1054 @@
    "value": 0.34572169403630076,
    "metric": "rmse_s_mast_z",
    "result": 0.1346041924560911
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 15.0,
+   "metric": "rmse_s_mast",
+   "result": 0.21769004199445402
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 15.0,
+   "metric": "frac_tol_ref_mast",
+   "result": 0.7246376811594203
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 15.0,
+   "metric": "frac_tol_picard_ge50",
+   "result": 0.125
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 15.0,
+   "metric": "dS_HT_10",
+   "result": 0.6239401963442543
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 15.0,
+   "metric": "rotor_present_all",
+   "result": 0.0
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 15.0,
+   "metric": "rotor_n_all",
+   "result": 4.0
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 15.0,
+   "metric": "rotor_menke_present",
+   "result": 0.0
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 15.0,
+   "metric": "rotor_menke_n",
+   "result": 0.0
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 15.0,
+   "metric": "rotor_L_mean_present",
+   "result": 0.0
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 15.0,
+   "metric": "n_nodes_end",
+   "result": 56.0
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 15.0,
+   "metric": "n_nodes_max",
+   "result": 67.0
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 15.0,
+   "metric": "t_step_median",
+   "result": 4.653681516647339
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 15.0,
+   "metric": "dv_median_lee_valley_lt30",
+   "result": 0.0010384413674754231
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 15.0,
+   "metric": "dv_median_lt30",
+   "result": 0.00016262112486116213
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 15.0,
+   "metric": "dv_max_lt30",
+   "result": 0.002384006574531845
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 30.0,
+   "metric": "rmse_s_mast",
+   "result": 0.2171929238376159
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 30.0,
+   "metric": "frac_tol_ref_mast",
+   "result": 0.7246376811594203
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 30.0,
+   "metric": "frac_tol_picard_ge50",
+   "result": 0.125
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 30.0,
+   "metric": "dS_HT_10",
+   "result": 0.624982800226022
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 30.0,
+   "metric": "rotor_present_all",
+   "result": 0.0
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 30.0,
+   "metric": "rotor_n_all",
+   "result": 4.0
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 30.0,
+   "metric": "rotor_menke_present",
+   "result": 0.0
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 30.0,
+   "metric": "rotor_menke_n",
+   "result": 0.0
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 30.0,
+   "metric": "rotor_L_mean_present",
+   "result": 0.0
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 30.0,
+   "metric": "n_nodes_end",
+   "result": 362.0
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 30.0,
+   "metric": "n_nodes_max",
+   "result": 373.0
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 30.0,
+   "metric": "t_step_median",
+   "result": 4.8005688190460205
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 30.0,
+   "metric": "dv_median_lee_valley_lt30",
+   "result": 0.0038448783570308857
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 30.0,
+   "metric": "dv_median_lt30",
+   "result": 0.0006380283639199581
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 30.0,
+   "metric": "dv_max_lt30",
+   "result": 0.0066951809521790685
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "rmse_s_mast",
+   "result": 0.21690182237915778
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "frac_tol_ref_mast",
+   "result": 0.7246376811594203
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "frac_tol_picard_ge50",
+   "result": 0.125
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "dS_HT_10",
+   "result": 0.626002666978785
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "rotor_present_all",
+   "result": 0.0
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "rotor_n_all",
+   "result": 4.0
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "rotor_menke_present",
+   "result": 0.0
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "rotor_menke_n",
+   "result": 0.0
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "rotor_L_mean_present",
+   "result": 0.0
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "n_nodes_end",
+   "result": 486.0
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "n_nodes_max",
+   "result": 486.0
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "t_step_median",
+   "result": 5.1558637619018555
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "dv_median_lee_valley_lt30",
+   "result": 0.005301545858421346
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "dv_median_lt30",
+   "result": 0.0009234408694754975
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "dv_max_lt30",
+   "result": 0.00935067460610353
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 120.0,
+   "metric": "rmse_s_mast",
+   "result": 0.21680327321820042
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 120.0,
+   "metric": "frac_tol_ref_mast",
+   "result": 0.7246376811594203
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 120.0,
+   "metric": "frac_tol_picard_ge50",
+   "result": 0.125
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 120.0,
+   "metric": "dS_HT_10",
+   "result": 0.6269395632823089
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 120.0,
+   "metric": "rotor_present_all",
+   "result": 0.0
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 120.0,
+   "metric": "rotor_n_all",
+   "result": 4.0
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 120.0,
+   "metric": "rotor_menke_present",
+   "result": 0.0
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 120.0,
+   "metric": "rotor_menke_n",
+   "result": 0.0
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 120.0,
+   "metric": "rotor_L_mean_present",
+   "result": 0.0
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 120.0,
+   "metric": "n_nodes_end",
+   "result": 517.0
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 120.0,
+   "metric": "n_nodes_max",
+   "result": 517.0
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 120.0,
+   "metric": "t_step_median",
+   "result": 5.046595215797424
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 120.0,
+   "metric": "dv_median_lee_valley_lt30",
+   "result": 0.005737629440725754
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 120.0,
+   "metric": "dv_median_lt30",
+   "result": 0.001188361970592686
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 120.0,
+   "metric": "dv_max_lt30",
+   "result": 0.01076418801047075
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "rmse_s_mast",
+   "result": 0.21676174337937643
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "frac_tol_ref_mast",
+   "result": 0.7246376811594203
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "frac_tol_picard_ge50",
+   "result": 0.125
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "dS_HT_10",
+   "result": 0.6278254570345994
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "rotor_present_all",
+   "result": 0.0
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "rotor_n_all",
+   "result": 4.0
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "rotor_menke_present",
+   "result": 0.0
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "rotor_menke_n",
+   "result": 0.0
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "rotor_L_mean_present",
+   "result": 0.0
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "n_nodes_end",
+   "result": 533.0
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "n_nodes_max",
+   "result": 533.0
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "t_step_median",
+   "result": 5.057883858680725
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "dv_median_lee_valley_lt30",
+   "result": 0.005722548588382562
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "dv_median_lt30",
+   "result": 0.0014085880822392164
+  },
+  {
+   "case": "ASK_TU03B",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "dv_max_lt30",
+   "result": 0.011754129308555104
+  },
+  {
+   "case": "PERD_NE",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "rmse_s_mast",
+   "result": 0.18322635818173316
+  },
+  {
+   "case": "PERD_NE",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "frac_tol_ref_mast",
+   "result": 0.4642857142857143
+  },
+  {
+   "case": "PERD_NE",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "frac_tol_picard_ge50",
+   "result": 0.6363636363636364
+  },
+  {
+   "case": "PERD_NE",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "rotor_present_all",
+   "result": 0.0
+  },
+  {
+   "case": "PERD_NE",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "rotor_n_all",
+   "result": 7.0
+  },
+  {
+   "case": "PERD_NE",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "rotor_menke_present",
+   "result": 0.0
+  },
+  {
+   "case": "PERD_NE",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "rotor_menke_n",
+   "result": 3.0
+  },
+  {
+   "case": "PERD_NE",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "rotor_L_mean_present",
+   "result": 0.0
+  },
+  {
+   "case": "PERD_NE",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "n_nodes_end",
+   "result": 27696.0
+  },
+  {
+   "case": "PERD_NE",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "n_nodes_max",
+   "result": 27696.0
+  },
+  {
+   "case": "PERD_NE",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "t_step_median",
+   "result": 23.93664860725403
+  },
+  {
+   "case": "PERD_NE",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "dv_median_lee_valley_lt30",
+   "result": 0.008227756490003733
+  },
+  {
+   "case": "PERD_NE",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "dv_median_lt30",
+   "result": 0.00043182240283296225
+  },
+  {
+   "case": "PERD_NE",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "dv_max_lt30",
+   "result": 0.014994939942302074
+  },
+  {
+   "case": "PERD_NE",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "rmse_s_mast",
+   "result": 0.1836670728951642
+  },
+  {
+   "case": "PERD_NE",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "frac_tol_ref_mast",
+   "result": 0.4642857142857143
+  },
+  {
+   "case": "PERD_NE",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "frac_tol_picard_ge50",
+   "result": 0.6363636363636364
+  },
+  {
+   "case": "PERD_NE",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "rotor_present_all",
+   "result": 0.0
+  },
+  {
+   "case": "PERD_NE",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "rotor_n_all",
+   "result": 7.0
+  },
+  {
+   "case": "PERD_NE",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "rotor_menke_present",
+   "result": 0.0
+  },
+  {
+   "case": "PERD_NE",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "rotor_menke_n",
+   "result": 3.0
+  },
+  {
+   "case": "PERD_NE",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "rotor_L_mean_present",
+   "result": 0.0
+  },
+  {
+   "case": "PERD_NE",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "n_nodes_end",
+   "result": 31189.0
+  },
+  {
+   "case": "PERD_NE",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "n_nodes_max",
+   "result": 31189.0
+  },
+  {
+   "case": "PERD_NE",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "t_step_median",
+   "result": 26.189098715782166
+  },
+  {
+   "case": "PERD_NE",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "dv_median_lee_valley_lt30",
+   "result": 0.012684610990133639
+  },
+  {
+   "case": "PERD_NE",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "dv_median_lt30",
+   "result": 0.0009186028171559521
+  },
+  {
+   "case": "PERD_NE",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "dv_max_lt30",
+   "result": 0.022837209259872135
+  },
+  {
+   "case": "PERD_SW",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "rmse_s_mast",
+   "result": 0.12729001143014562
+  },
+  {
+   "case": "PERD_SW",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "frac_tol_ref_mast",
+   "result": 0.68
+  },
+  {
+   "case": "PERD_SW",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "frac_tol_picard_ge50",
+   "result": 0.71875
+  },
+  {
+   "case": "PERD_SW",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "rotor_present_all",
+   "result": 0.0
+  },
+  {
+   "case": "PERD_SW",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "rotor_n_all",
+   "result": 7.0
+  },
+  {
+   "case": "PERD_SW",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "rotor_menke_present",
+   "result": 0.0
+  },
+  {
+   "case": "PERD_SW",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "rotor_menke_n",
+   "result": 3.0
+  },
+  {
+   "case": "PERD_SW",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "rotor_L_mean_present",
+   "result": 0.0
+  },
+  {
+   "case": "PERD_SW",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "n_nodes_end",
+   "result": 24561.0
+  },
+  {
+   "case": "PERD_SW",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "n_nodes_max",
+   "result": 24561.0
+  },
+  {
+   "case": "PERD_SW",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "t_step_median",
+   "result": 29.280569314956665
+  },
+  {
+   "case": "PERD_SW",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "dv_median_lee_valley_lt30",
+   "result": 0.010499123030439109
+  },
+  {
+   "case": "PERD_SW",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "dv_median_lt30",
+   "result": 0.0015667334034734637
+  },
+  {
+   "case": "PERD_SW",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": 60.0,
+   "metric": "dv_max_lt30",
+   "result": 0.019094406165965416
+  },
+  {
+   "case": "PERD_SW",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "rmse_s_mast",
+   "result": 0.1279489782473529
+  },
+  {
+   "case": "PERD_SW",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "frac_tol_ref_mast",
+   "result": 0.68
+  },
+  {
+   "case": "PERD_SW",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "frac_tol_picard_ge50",
+   "result": 0.71875
+  },
+  {
+   "case": "PERD_SW",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "rotor_present_all",
+   "result": 0.0
+  },
+  {
+   "case": "PERD_SW",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "rotor_n_all",
+   "result": 7.0
+  },
+  {
+   "case": "PERD_SW",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "rotor_menke_present",
+   "result": 0.0
+  },
+  {
+   "case": "PERD_SW",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "rotor_menke_n",
+   "result": 3.0
+  },
+  {
+   "case": "PERD_SW",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "rotor_L_mean_present",
+   "result": 0.0
+  },
+  {
+   "case": "PERD_SW",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "n_nodes_end",
+   "result": 27799.0
+  },
+  {
+   "case": "PERD_SW",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "n_nodes_max",
+   "result": 27799.0
+  },
+  {
+   "case": "PERD_SW",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "t_step_median",
+   "result": 30.09818732738495
+  },
+  {
+   "case": "PERD_SW",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "dv_median_lee_valley_lt30",
+   "result": 0.016039898206047083
+  },
+  {
+   "case": "PERD_SW",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "dv_median_lt30",
+   "result": 0.0020401604385610235
+  },
+  {
+   "case": "PERD_SW",
+   "variant": "vortex_jh",
+   "param": "tau_s",
+   "value": null,
+   "metric": "dv_max_lt30",
+   "result": 0.030039635973533364
   }
  ],
  "rotor": [
@@ -50904,814 +51952,148 @@
    "note": "|s_vortex_jh − s_potential_jh|/s_potential_jh в точках rows (s — доля опорной точки), максимум, все точки z_agl < 30 м"
   },
   {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau15_rmse_s_mast",
-   "value": 0.21769004199445402,
-   "note": "скан tau_s = 15 с (экспоненциальное); остальное как в основном наборе; метрика rmse_s_mast; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau15_frac_tol_ref_mast",
-   "value": 0.7246376811594203,
-   "note": "скан tau_s = 15 с (экспоненциальное); остальное как в основном наборе; метрика frac_tol_ref_mast; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau15_frac_tol_picard_ge50",
-   "value": 0.125,
-   "note": "скан tau_s = 15 с (экспоненциальное); остальное как в основном наборе; метрика frac_tol_picard_ge50; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau15_dS_HT_10",
-   "value": 0.6239401963442543,
-   "note": "скан tau_s = 15 с (экспоненциальное); остальное как в основном наборе; метрика dS_HT_10; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau15_rotor_present_all",
-   "value": 0.0,
-   "note": "скан tau_s = 15 с (экспоненциальное); остальное как в основном наборе; метрика rotor_present_all; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau15_rotor_n_all",
-   "value": 4.0,
-   "note": "скан tau_s = 15 с (экспоненциальное); остальное как в основном наборе; метрика rotor_n_all; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau15_rotor_menke_present",
-   "value": 0.0,
-   "note": "скан tau_s = 15 с (экспоненциальное); остальное как в основном наборе; метрика rotor_menke_present; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau15_rotor_menke_n",
-   "value": 0.0,
-   "note": "скан tau_s = 15 с (экспоненциальное); остальное как в основном наборе; метрика rotor_menke_n; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau15_rotor_L_mean_present",
-   "value": 0.0,
-   "note": "скан tau_s = 15 с (экспоненциальное); остальное как в основном наборе; метрика rotor_L_mean_present; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau15_n_nodes_end",
-   "value": 56.0,
-   "note": "скан tau_s = 15 с (экспоненциальное); остальное как в основном наборе; метрика n_nodes_end; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau15_n_nodes_max",
-   "value": 67.0,
-   "note": "скан tau_s = 15 с (экспоненциальное); остальное как в основном наборе; метрика n_nodes_max; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau15_t_step_median",
-   "value": 4.653681516647339,
-   "note": "скан tau_s = 15 с (экспоненциальное); остальное как в основном наборе; метрика t_step_median; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau15_dv_median_lee_valley_lt30",
-   "value": 0.0010384413674754231,
-   "note": "скан tau_s = 15 с (экспоненциальное); остальное как в основном наборе; метрика dv_median_lee_valley_lt30; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau15_dv_median_lt30",
-   "value": 0.00016262112486116213,
-   "note": "скан tau_s = 15 с (экспоненциальное); остальное как в основном наборе; метрика dv_median_lt30; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau15_dv_max_lt30",
-   "value": 0.002384006574531845,
-   "note": "скан tau_s = 15 с (экспоненциальное); остальное как в основном наборе; метрика dv_max_lt30; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau30_rmse_s_mast",
-   "value": 0.2171929238376159,
-   "note": "скан tau_s = 30 с (экспоненциальное); остальное как в основном наборе; метрика rmse_s_mast; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau30_frac_tol_ref_mast",
-   "value": 0.7246376811594203,
-   "note": "скан tau_s = 30 с (экспоненциальное); остальное как в основном наборе; метрика frac_tol_ref_mast; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau30_frac_tol_picard_ge50",
-   "value": 0.125,
-   "note": "скан tau_s = 30 с (экспоненциальное); остальное как в основном наборе; метрика frac_tol_picard_ge50; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau30_dS_HT_10",
-   "value": 0.624982800226022,
-   "note": "скан tau_s = 30 с (экспоненциальное); остальное как в основном наборе; метрика dS_HT_10; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau30_rotor_present_all",
-   "value": 0.0,
-   "note": "скан tau_s = 30 с (экспоненциальное); остальное как в основном наборе; метрика rotor_present_all; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau30_rotor_n_all",
-   "value": 4.0,
-   "note": "скан tau_s = 30 с (экспоненциальное); остальное как в основном наборе; метрика rotor_n_all; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau30_rotor_menke_present",
-   "value": 0.0,
-   "note": "скан tau_s = 30 с (экспоненциальное); остальное как в основном наборе; метрика rotor_menke_present; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau30_rotor_menke_n",
-   "value": 0.0,
-   "note": "скан tau_s = 30 с (экспоненциальное); остальное как в основном наборе; метрика rotor_menke_n; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau30_rotor_L_mean_present",
-   "value": 0.0,
-   "note": "скан tau_s = 30 с (экспоненциальное); остальное как в основном наборе; метрика rotor_L_mean_present; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau30_n_nodes_end",
-   "value": 362.0,
-   "note": "скан tau_s = 30 с (экспоненциальное); остальное как в основном наборе; метрика n_nodes_end; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau30_n_nodes_max",
-   "value": 373.0,
-   "note": "скан tau_s = 30 с (экспоненциальное); остальное как в основном наборе; метрика n_nodes_max; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau30_t_step_median",
-   "value": 4.8005688190460205,
-   "note": "скан tau_s = 30 с (экспоненциальное); остальное как в основном наборе; метрика t_step_median; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau30_dv_median_lee_valley_lt30",
-   "value": 0.0038448783570308857,
-   "note": "скан tau_s = 30 с (экспоненциальное); остальное как в основном наборе; метрика dv_median_lee_valley_lt30; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau30_dv_median_lt30",
-   "value": 0.0006380283639199581,
-   "note": "скан tau_s = 30 с (экспоненциальное); остальное как в основном наборе; метрика dv_median_lt30; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau30_dv_max_lt30",
-   "value": 0.0066951809521790685,
-   "note": "скан tau_s = 30 с (экспоненциальное); остальное как в основном наборе; метрика dv_max_lt30; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau60_rmse_s_mast",
-   "value": 0.21690182237915778,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика rmse_s_mast; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau60_frac_tol_ref_mast",
-   "value": 0.7246376811594203,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика frac_tol_ref_mast; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau60_frac_tol_picard_ge50",
-   "value": 0.125,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика frac_tol_picard_ge50; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau60_dS_HT_10",
-   "value": 0.626002666978785,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика dS_HT_10; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau60_rotor_present_all",
-   "value": 0.0,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика rotor_present_all; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau60_rotor_n_all",
-   "value": 4.0,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика rotor_n_all; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau60_rotor_menke_present",
-   "value": 0.0,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика rotor_menke_present; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau60_rotor_menke_n",
-   "value": 0.0,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика rotor_menke_n; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau60_rotor_L_mean_present",
-   "value": 0.0,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика rotor_L_mean_present; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau60_n_nodes_end",
-   "value": 486.0,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика n_nodes_end; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau60_n_nodes_max",
-   "value": 486.0,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика n_nodes_max; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau60_t_step_median",
-   "value": 5.1558637619018555,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика t_step_median; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau60_dv_median_lee_valley_lt30",
-   "value": 0.005301545858421346,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика dv_median_lee_valley_lt30; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau60_dv_median_lt30",
-   "value": 0.0009234408694754975,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика dv_median_lt30; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau60_dv_max_lt30",
-   "value": 0.00935067460610353,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика dv_max_lt30; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau120_rmse_s_mast",
-   "value": 0.21680327321820042,
-   "note": "скан tau_s = 120 с (экспоненциальное); остальное как в основном наборе; метрика rmse_s_mast; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau120_frac_tol_ref_mast",
-   "value": 0.7246376811594203,
-   "note": "скан tau_s = 120 с (экспоненциальное); остальное как в основном наборе; метрика frac_tol_ref_mast; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau120_frac_tol_picard_ge50",
-   "value": 0.125,
-   "note": "скан tau_s = 120 с (экспоненциальное); остальное как в основном наборе; метрика frac_tol_picard_ge50; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau120_dS_HT_10",
-   "value": 0.6269395632823089,
-   "note": "скан tau_s = 120 с (экспоненциальное); остальное как в основном наборе; метрика dS_HT_10; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau120_rotor_present_all",
-   "value": 0.0,
-   "note": "скан tau_s = 120 с (экспоненциальное); остальное как в основном наборе; метрика rotor_present_all; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau120_rotor_n_all",
-   "value": 4.0,
-   "note": "скан tau_s = 120 с (экспоненциальное); остальное как в основном наборе; метрика rotor_n_all; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau120_rotor_menke_present",
-   "value": 0.0,
-   "note": "скан tau_s = 120 с (экспоненциальное); остальное как в основном наборе; метрика rotor_menke_present; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau120_rotor_menke_n",
-   "value": 0.0,
-   "note": "скан tau_s = 120 с (экспоненциальное); остальное как в основном наборе; метрика rotor_menke_n; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau120_rotor_L_mean_present",
-   "value": 0.0,
-   "note": "скан tau_s = 120 с (экспоненциальное); остальное как в основном наборе; метрика rotor_L_mean_present; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau120_n_nodes_end",
-   "value": 517.0,
-   "note": "скан tau_s = 120 с (экспоненциальное); остальное как в основном наборе; метрика n_nodes_end; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau120_n_nodes_max",
-   "value": 517.0,
-   "note": "скан tau_s = 120 с (экспоненциальное); остальное как в основном наборе; метрика n_nodes_max; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau120_t_step_median",
-   "value": 5.046595215797424,
-   "note": "скан tau_s = 120 с (экспоненциальное); остальное как в основном наборе; метрика t_step_median; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau120_dv_median_lee_valley_lt30",
-   "value": 0.005737629440725754,
-   "note": "скан tau_s = 120 с (экспоненциальное); остальное как в основном наборе; метрика dv_median_lee_valley_lt30; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau120_dv_median_lt30",
-   "value": 0.001188361970592686,
-   "note": "скан tau_s = 120 с (экспоненциальное); остальное как в основном наборе; метрика dv_median_lt30; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tau120_dv_max_lt30",
-   "value": 0.01076418801047075,
-   "note": "скан tau_s = 120 с (экспоненциальное); остальное как в основном наборе; метрика dv_max_lt30; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tauinf_rmse_s_mast",
-   "value": 0.21676174337937643,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика rmse_s_mast; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tauinf_frac_tol_ref_mast",
-   "value": 0.7246376811594203,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика frac_tol_ref_mast; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tauinf_frac_tol_picard_ge50",
-   "value": 0.125,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика frac_tol_picard_ge50; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tauinf_dS_HT_10",
-   "value": 0.6278254570345994,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика dS_HT_10; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tauinf_rotor_present_all",
-   "value": 0.0,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика rotor_present_all; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tauinf_rotor_n_all",
-   "value": 4.0,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика rotor_n_all; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tauinf_rotor_menke_present",
-   "value": 0.0,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика rotor_menke_present; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tauinf_rotor_menke_n",
-   "value": 0.0,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика rotor_menke_n; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tauinf_rotor_L_mean_present",
-   "value": 0.0,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика rotor_L_mean_present; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tauinf_n_nodes_end",
-   "value": 533.0,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика n_nodes_end; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tauinf_n_nodes_max",
-   "value": 533.0,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика n_nodes_max; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tauinf_t_step_median",
-   "value": 5.057883858680725,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика t_step_median; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tauinf_dv_median_lee_valley_lt30",
-   "value": 0.005722548588382562,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика dv_median_lee_valley_lt30; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tauinf_dv_median_lt30",
-   "value": 0.0014085880822392164,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика dv_median_lt30; N = 17902, t_end 120 с"
-  },
-  {
-   "case": "ASK_TU03B",
-   "item": "vortex_tauinf_dv_max_lt30",
-   "value": 0.011754129308555104,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика dv_max_lt30; N = 17902, t_end 120 с"
+   "case": "PERD_NE",
+   "item": "sep_trace_H_before_isep_-8",
+   "value": 1.622330577105916,
+   "note": "средняя линия тока, шаг -8 относительно i_sep = 129: s = 3027 м, u_e = 8.261 м/с, du_e/ds = -0.0104 1/с, H = 1.622, cf = 0.00148"
   },
   {
    "case": "PERD_NE",
-   "item": "vortex_tau60_rmse_s_mast",
-   "value": 0.18322635818173316,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика rmse_s_mast; N = 13254, t_end 120 с"
+   "item": "sep_trace_H_before_isep_-7",
+   "value": 1.6985783391934184,
+   "note": "средняя линия тока, шаг -7 относительно i_sep = 129: s = 3052 м, u_e = 8.011 м/с, du_e/ds = -0.0090 1/с, H = 1.699, cf = 0.00147"
   },
   {
    "case": "PERD_NE",
-   "item": "vortex_tau60_frac_tol_ref_mast",
-   "value": 0.4642857142857143,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика frac_tol_ref_mast; N = 13254, t_end 120 с"
+   "item": "sep_trace_H_before_isep_-6",
+   "value": 1.7889412332636447,
+   "note": "средняя линия тока, шаг -6 относительно i_sep = 129: s = 3077 м, u_e = 7.792 м/с, du_e/ds = -0.0078 1/с, H = 1.789, cf = 0.00146"
   },
   {
    "case": "PERD_NE",
-   "item": "vortex_tau60_frac_tol_picard_ge50",
-   "value": 0.6363636363636364,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика frac_tol_picard_ge50; N = 13254, t_end 120 с"
+   "item": "sep_trace_H_before_isep_-5",
+   "value": 1.8917012698150364,
+   "note": "средняя линия тока, шаг -5 относительно i_sep = 129: s = 3102 м, u_e = 7.609 м/с, du_e/ds = -0.0057 1/с, H = 1.892, cf = 0.00144"
   },
   {
    "case": "PERD_NE",
-   "item": "vortex_tau60_dS_HT_10",
-   "value": null,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика dS_HT_10; N = 13254, t_end 120 с"
+   "item": "sep_trace_H_before_isep_-4",
+   "value": 1.9878647912418679,
+   "note": "средняя линия тока, шаг -4 относительно i_sep = 129: s = 3127 м, u_e = 7.492 м/с, du_e/ds = -0.0033 1/с, H = 1.988, cf = 0.00144"
   },
   {
    "case": "PERD_NE",
-   "item": "vortex_tau60_rotor_present_all",
-   "value": 0.0,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика rotor_present_all; N = 13254, t_end 120 с"
+   "item": "sep_trace_H_before_isep_-3",
+   "value": 2.0554484574121252,
+   "note": "средняя линия тока, шаг -3 относительно i_sep = 129: s = 3152 м, u_e = 7.453 м/с, du_e/ds = -0.0016 1/с, H = 2.055, cf = 0.00143"
   },
   {
    "case": "PERD_NE",
-   "item": "vortex_tau60_rotor_n_all",
-   "value": 7.0,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика rotor_n_all; N = 13254, t_end 120 с"
+   "item": "sep_trace_H_before_isep_-2",
+   "value": 2.1177650514562494,
+   "note": "средняя линия тока, шаг -2 относительно i_sep = 129: s = 3177 м, u_e = 7.451 м/с, du_e/ds = -0.0021 1/с, H = 2.118, cf = 0.00143"
   },
   {
    "case": "PERD_NE",
-   "item": "vortex_tau60_rotor_menke_present",
-   "value": 0.0,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика rotor_menke_present; N = 13254, t_end 120 с"
+   "item": "sep_trace_H_before_isep_-1",
+   "value": 2.3010694646115306,
+   "note": "средняя линия тока, шаг -1 относительно i_sep = 129: s = 3202 м, u_e = 7.416 м/с, du_e/ds = -0.0057 1/с, H = 2.301, cf = 0.00141"
   },
   {
    "case": "PERD_NE",
-   "item": "vortex_tau60_rotor_menke_n",
-   "value": 3.0,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика rotor_menke_n; N = 13254, t_end 120 с"
+   "item": "sep_trace_H_before_isep_0",
+   "value": 6.050370757808942,
+   "note": "средняя линия тока, шаг 0 относительно i_sep = 129: s = 3227 м, u_e = 7.209 м/с, du_e/ds = -0.0104 1/с, H = 6.050, cf = 0.00131"
   },
   {
    "case": "PERD_NE",
-   "item": "vortex_tau60_rotor_L_mean_present",
-   "value": 0.0,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика rotor_L_mean_present; N = 13254, t_end 120 с"
+   "item": "sep_jump_median",
+   "value": 2.1694391662669874,
+   "note": "медиана H(i_sep) − H(i_sep−2) по линиям"
   },
   {
    "case": "PERD_NE",
-   "item": "vortex_tau60_n_nodes_end",
-   "value": 27696.0,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика n_nodes_end; N = 13254, t_end 120 с"
+   "item": "sep_jump_frac_gt5",
+   "value": 0.4205607476635514,
+   "note": "доля линий, где H за 2 шага перед отрывом растёт более чем на 5 (срыв к насыщению H(H1) ~ 11,7)"
   },
   {
    "case": "PERD_NE",
-   "item": "vortex_tau60_n_nodes_max",
-   "value": 27696.0,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика n_nodes_max; N = 13254, t_end 120 с"
-  },
-  {
-   "case": "PERD_NE",
-   "item": "vortex_tau60_t_step_median",
-   "value": 23.93664860725403,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика t_step_median; N = 13254, t_end 120 с"
-  },
-  {
-   "case": "PERD_NE",
-   "item": "vortex_tau60_dv_median_lee_valley_lt30",
-   "value": 0.008227756490003733,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика dv_median_lee_valley_lt30; N = 13254, t_end 120 с"
-  },
-  {
-   "case": "PERD_NE",
-   "item": "vortex_tau60_dv_median_lt30",
-   "value": 0.00043182240283296225,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика dv_median_lt30; N = 13254, t_end 120 с"
-  },
-  {
-   "case": "PERD_NE",
-   "item": "vortex_tau60_dv_max_lt30",
-   "value": 0.014994939942302074,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика dv_max_lt30; N = 13254, t_end 120 с"
-  },
-  {
-   "case": "PERD_NE",
-   "item": "vortex_tauinf_rmse_s_mast",
-   "value": 0.1836670728951642,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика rmse_s_mast; N = 13254, t_end 120 с"
-  },
-  {
-   "case": "PERD_NE",
-   "item": "vortex_tauinf_frac_tol_ref_mast",
-   "value": 0.4642857142857143,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика frac_tol_ref_mast; N = 13254, t_end 120 с"
-  },
-  {
-   "case": "PERD_NE",
-   "item": "vortex_tauinf_frac_tol_picard_ge50",
-   "value": 0.6363636363636364,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика frac_tol_picard_ge50; N = 13254, t_end 120 с"
-  },
-  {
-   "case": "PERD_NE",
-   "item": "vortex_tauinf_dS_HT_10",
-   "value": null,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика dS_HT_10; N = 13254, t_end 120 с"
-  },
-  {
-   "case": "PERD_NE",
-   "item": "vortex_tauinf_rotor_present_all",
-   "value": 0.0,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика rotor_present_all; N = 13254, t_end 120 с"
-  },
-  {
-   "case": "PERD_NE",
-   "item": "vortex_tauinf_rotor_n_all",
-   "value": 7.0,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика rotor_n_all; N = 13254, t_end 120 с"
-  },
-  {
-   "case": "PERD_NE",
-   "item": "vortex_tauinf_rotor_menke_present",
-   "value": 0.0,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика rotor_menke_present; N = 13254, t_end 120 с"
-  },
-  {
-   "case": "PERD_NE",
-   "item": "vortex_tauinf_rotor_menke_n",
-   "value": 3.0,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика rotor_menke_n; N = 13254, t_end 120 с"
-  },
-  {
-   "case": "PERD_NE",
-   "item": "vortex_tauinf_rotor_L_mean_present",
-   "value": 0.0,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика rotor_L_mean_present; N = 13254, t_end 120 с"
-  },
-  {
-   "case": "PERD_NE",
-   "item": "vortex_tauinf_n_nodes_end",
-   "value": 31189.0,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика n_nodes_end; N = 13254, t_end 120 с"
-  },
-  {
-   "case": "PERD_NE",
-   "item": "vortex_tauinf_n_nodes_max",
-   "value": 31189.0,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика n_nodes_max; N = 13254, t_end 120 с"
-  },
-  {
-   "case": "PERD_NE",
-   "item": "vortex_tauinf_t_step_median",
-   "value": 26.189098715782166,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика t_step_median; N = 13254, t_end 120 с"
-  },
-  {
-   "case": "PERD_NE",
-   "item": "vortex_tauinf_dv_median_lee_valley_lt30",
-   "value": 0.012684610990133639,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика dv_median_lee_valley_lt30; N = 13254, t_end 120 с"
-  },
-  {
-   "case": "PERD_NE",
-   "item": "vortex_tauinf_dv_median_lt30",
-   "value": 0.0009186028171559521,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика dv_median_lt30; N = 13254, t_end 120 с"
-  },
-  {
-   "case": "PERD_NE",
-   "item": "vortex_tauinf_dv_max_lt30",
-   "value": 0.022837209259872135,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика dv_max_lt30; N = 13254, t_end 120 с"
+   "item": "sep_jump_n_lines",
+   "value": 107.0,
+   "note": "линий с отрывом (вызовов march_layer с i_sep ≥ 2)"
   },
   {
    "case": "PERD_SW",
-   "item": "vortex_tau60_rmse_s_mast",
-   "value": 0.12729001143014562,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика rmse_s_mast; N = 12656, t_end 120 с"
+   "item": "sep_trace_H_before_isep_-8",
+   "value": 1.2308967343487862,
+   "note": "средняя линия тока, шаг -8 относительно i_sep = 160: s = 3802 м, u_e = 9.724 м/с, du_e/ds = -0.0163 1/с, H = 1.231, cf = 0.00084"
   },
   {
    "case": "PERD_SW",
-   "item": "vortex_tau60_frac_tol_ref_mast",
-   "value": 0.68,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика frac_tol_ref_mast; N = 12656, t_end 120 с"
+   "item": "sep_trace_H_before_isep_-7",
+   "value": 1.2476622265166468,
+   "note": "средняя линия тока, шаг -7 относительно i_sep = 160: s = 3827 м, u_e = 9.061 м/с, du_e/ds = -0.0229 1/с, H = 1.248, cf = 0.00084"
   },
   {
    "case": "PERD_SW",
-   "item": "vortex_tau60_frac_tol_picard_ge50",
-   "value": 0.71875,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика frac_tol_picard_ge50; N = 12656, t_end 120 с"
+   "item": "sep_trace_H_before_isep_-6",
+   "value": 1.276680425937321,
+   "note": "средняя линия тока, шаг -6 относительно i_sep = 160: s = 3852 м, u_e = 8.405 м/с, du_e/ds = -0.0282 1/с, H = 1.277, cf = 0.00083"
   },
   {
    "case": "PERD_SW",
-   "item": "vortex_tau60_dS_HT_10",
-   "value": null,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика dS_HT_10; N = 12656, t_end 120 с"
+   "item": "sep_trace_H_before_isep_-5",
+   "value": 1.3246670833077818,
+   "note": "средняя линия тока, шаг -5 относительно i_sep = 160: s = 3877 м, u_e = 7.627 м/с, du_e/ds = -0.0291 1/с, H = 1.325, cf = 0.00082"
   },
   {
    "case": "PERD_SW",
-   "item": "vortex_tau60_rotor_present_all",
-   "value": 0.0,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика rotor_present_all; N = 12656, t_end 120 с"
+   "item": "sep_trace_H_before_isep_-4",
+   "value": 1.4044342855366176,
+   "note": "средняя линия тока, шаг -4 относительно i_sep = 160: s = 3902 м, u_e = 6.919 м/с, du_e/ds = -0.0274 1/с, H = 1.404, cf = 0.00081"
   },
   {
    "case": "PERD_SW",
-   "item": "vortex_tau60_rotor_n_all",
-   "value": 7.0,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика rotor_n_all; N = 12656, t_end 120 с"
+   "item": "sep_trace_H_before_isep_-3",
+   "value": 1.5466726050613393,
+   "note": "средняя линия тока, шаг -3 относительно i_sep = 160: s = 3927 м, u_e = 6.179 м/с, du_e/ds = -0.0228 1/с, H = 1.547, cf = 0.00080"
   },
   {
    "case": "PERD_SW",
-   "item": "vortex_tau60_rotor_menke_present",
-   "value": 0.0,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика rotor_menke_present; N = 12656, t_end 120 с"
+   "item": "sep_trace_H_before_isep_-2",
+   "value": 1.7569532950445383,
+   "note": "средняя линия тока, шаг -2 относительно i_sep = 160: s = 3952 м, u_e = 5.740 м/с, du_e/ds = -0.0168 1/с, H = 1.757, cf = 0.00078"
   },
   {
    "case": "PERD_SW",
-   "item": "vortex_tau60_rotor_menke_n",
-   "value": 3.0,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика rotor_menke_n; N = 12656, t_end 120 с"
+   "item": "sep_trace_H_before_isep_-1",
+   "value": 2.1636035907887674,
+   "note": "средняя линия тока, шаг -1 относительно i_sep = 160: s = 3977 м, u_e = 5.387 м/с, du_e/ds = -0.0117 1/с, H = 2.164, cf = 0.00077"
   },
   {
    "case": "PERD_SW",
-   "item": "vortex_tau60_rotor_L_mean_present",
-   "value": 0.0,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика rotor_L_mean_present; N = 12656, t_end 120 с"
+   "item": "sep_trace_H_before_isep_0",
+   "value": 11.673936347487775,
+   "note": "средняя линия тока, шаг 0 относительно i_sep = 160: s = 4002 м, u_e = 5.184 м/с, du_e/ds = -0.0086 1/с, H = 11.674, cf = 0.00069"
   },
   {
    "case": "PERD_SW",
-   "item": "vortex_tau60_n_nodes_end",
-   "value": 24561.0,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика n_nodes_end; N = 12656, t_end 120 с"
+   "item": "sep_jump_median",
+   "value": 9.895365494027011,
+   "note": "медиана H(i_sep) − H(i_sep−2) по линиям"
   },
   {
    "case": "PERD_SW",
-   "item": "vortex_tau60_n_nodes_max",
-   "value": 24561.0,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика n_nodes_max; N = 12656, t_end 120 с"
+   "item": "sep_jump_frac_gt5",
+   "value": 0.6666666666666666,
+   "note": "доля линий, где H за 2 шага перед отрывом растёт более чем на 5 (срыв к насыщению H(H1) ~ 11,7)"
   },
   {
    "case": "PERD_SW",
-   "item": "vortex_tau60_t_step_median",
-   "value": 29.280569314956665,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика t_step_median; N = 12656, t_end 120 с"
-  },
-  {
-   "case": "PERD_SW",
-   "item": "vortex_tau60_dv_median_lee_valley_lt30",
-   "value": 0.010499123030439109,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика dv_median_lee_valley_lt30; N = 12656, t_end 120 с"
-  },
-  {
-   "case": "PERD_SW",
-   "item": "vortex_tau60_dv_median_lt30",
-   "value": 0.0015667334034734637,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика dv_median_lt30; N = 12656, t_end 120 с"
-  },
-  {
-   "case": "PERD_SW",
-   "item": "vortex_tau60_dv_max_lt30",
-   "value": 0.019094406165965416,
-   "note": "скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика dv_max_lt30; N = 12656, t_end 120 с"
-  },
-  {
-   "case": "PERD_SW",
-   "item": "vortex_tauinf_rmse_s_mast",
-   "value": 0.1279489782473529,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика rmse_s_mast; N = 12656, t_end 120 с"
-  },
-  {
-   "case": "PERD_SW",
-   "item": "vortex_tauinf_frac_tol_ref_mast",
-   "value": 0.68,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика frac_tol_ref_mast; N = 12656, t_end 120 с"
-  },
-  {
-   "case": "PERD_SW",
-   "item": "vortex_tauinf_frac_tol_picard_ge50",
-   "value": 0.71875,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика frac_tol_picard_ge50; N = 12656, t_end 120 с"
-  },
-  {
-   "case": "PERD_SW",
-   "item": "vortex_tauinf_dS_HT_10",
-   "value": null,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика dS_HT_10; N = 12656, t_end 120 с"
-  },
-  {
-   "case": "PERD_SW",
-   "item": "vortex_tauinf_rotor_present_all",
-   "value": 0.0,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика rotor_present_all; N = 12656, t_end 120 с"
-  },
-  {
-   "case": "PERD_SW",
-   "item": "vortex_tauinf_rotor_n_all",
-   "value": 7.0,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика rotor_n_all; N = 12656, t_end 120 с"
-  },
-  {
-   "case": "PERD_SW",
-   "item": "vortex_tauinf_rotor_menke_present",
-   "value": 0.0,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика rotor_menke_present; N = 12656, t_end 120 с"
-  },
-  {
-   "case": "PERD_SW",
-   "item": "vortex_tauinf_rotor_menke_n",
-   "value": 3.0,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика rotor_menke_n; N = 12656, t_end 120 с"
-  },
-  {
-   "case": "PERD_SW",
-   "item": "vortex_tauinf_rotor_L_mean_present",
-   "value": 0.0,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика rotor_L_mean_present; N = 12656, t_end 120 с"
-  },
-  {
-   "case": "PERD_SW",
-   "item": "vortex_tauinf_n_nodes_end",
-   "value": 27799.0,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика n_nodes_end; N = 12656, t_end 120 с"
-  },
-  {
-   "case": "PERD_SW",
-   "item": "vortex_tauinf_n_nodes_max",
-   "value": 27799.0,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика n_nodes_max; N = 12656, t_end 120 с"
-  },
-  {
-   "case": "PERD_SW",
-   "item": "vortex_tauinf_t_step_median",
-   "value": 30.09818732738495,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика t_step_median; N = 12656, t_end 120 с"
-  },
-  {
-   "case": "PERD_SW",
-   "item": "vortex_tauinf_dv_median_lee_valley_lt30",
-   "value": 0.016039898206047083,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика dv_median_lee_valley_lt30; N = 12656, t_end 120 с"
-  },
-  {
-   "case": "PERD_SW",
-   "item": "vortex_tauinf_dv_median_lt30",
-   "value": 0.0020401604385610235,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика dv_median_lt30; N = 12656, t_end 120 с"
-  },
-  {
-   "case": "PERD_SW",
-   "item": "vortex_tauinf_dv_max_lt30",
-   "value": 0.030039635973533364,
-   "note": "скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика dv_max_lt30; N = 12656, t_end 120 с"
+   "item": "sep_jump_n_lines",
+   "value": 78.0,
+   "note": "линий с отрывом (вызовов march_layer с i_sep ≥ 2)"
   }
  ],
  "problems2d": [
@@ -51743,7 +52125,7 @@
    "problem": "5. реальные роторы не воспроизведены; сила и незатухание ротора",
    "kind": "2D-артефакт",
    "status": "осталась",
-   "evidence": "vortex_jh (sim3d: нити с гребня, couple, restart), tau_s 60 с (заранее), t_end 120 с, окно t ≥ 60 с; разрезы Menke: PERD_NE menke_T1: нет L 0 м (Menke 570.0), глубина 0 м, min u∥/U +0.18; PERD_NE menke_T2: нет L 0 м (Menke 490.0), глубина 0 м, min u∥/U +0.20; PERD_NE menke_T3: нет L 0 м (Menke 420.0), глубина 0 м, min u∥/U +0.19; PERD_SW menke_T1: нет L 0 м (Menke 680.0), глубина 0 м, min u∥/U +0.11; PERD_SW menke_T2: нет L 0 м (Menke 670.0), глубина 0 м, min u∥/U +0.18; PERD_SW menke_T3: нет L 0 м (Menke 500.0), глубина 0 м, min u∥/U +0.14. Правило статуса: «ушла» — ротор на ≥ 2 из 3 разрезов Menke в каждом случае и L в пределах ×2 от Menke (0 / 0 из 3). Роторы по всем 18 разрезам: 0 (Askervein: 0 из 4; данных об обратном течении нет). Скан tau_s (разрезы Menke): PERD_NE tau 60: роторов 0/3; PERD_NE tau 1e+09: роторов 0/3; PERD_SW tau 60: роторов 0/3; PERD_SW tau 1e+09: роторов 0/3. Число узлов, время шага — diag `vortex_*`. Сила: min u∥/U — diag `vortex_rotor_upar_min_*` (2D: |u| 0,89–0,96·U100 против 0,22 ± 0,08 Menke)"
+   "evidence": "vortex_jh (sim3d: нити с гребня, couple, restart); ASK_TU03B: tau_s 60 с, t_end 120 с, окно t ≥ 60 с [первый круг SWD-5b, импульсивный старт 120 с, ядро 25 м; ждёт Q1]; PERD_NE: tau_s 60 с, t_end 120 с, окно t ≥ 60 с [первый круг SWD-5b, импульсивный старт 120 с, ядро 25 м; ждёт Q1]; PERD_SW: tau_s 60 с, t_end 120 с, окно t ≥ 60 с [первый круг SWD-5b, импульсивный старт 120 с, ядро 25 м; ждёт Q1]. Первый круг (120 с, импульсивный старт; ждёт Q1 для Perdigão, для Askervein полный счёт 3 прохода не выполним — см. отчёт) — результат не по установившемуся окну, статус предварительный. Разрезы Menke: PERD_NE menke_T1: нет L 0 м (Menke 570.0), глубина 0 м, min u∥/U +0.18; PERD_NE menke_T2: нет L 0 м (Menke 490.0), глубина 0 м, min u∥/U +0.20; PERD_NE menke_T3: нет L 0 м (Menke 420.0), глубина 0 м, min u∥/U +0.19; PERD_SW menke_T1: нет L 0 м (Menke 680.0), глубина 0 м, min u∥/U +0.11; PERD_SW menke_T2: нет L 0 м (Menke 670.0), глубина 0 м, min u∥/U +0.18; PERD_SW menke_T3: нет L 0 м (Menke 500.0), глубина 0 м, min u∥/U +0.14. Правило статуса: «ушла» — ротор на ≥ 2 из 3 разрезов Menke в каждом случае и L в пределах ×2 от Menke (0 / 0 из 3). Роторы по всем 18 разрезам: 0 (Askervein: 0 из 4; данных об обратном течении нет). Скан tau_s (разрезы Menke): PERD_NE tau 60: роторов 0/3; PERD_NE tau 1e+09: роторов 0/3; PERD_SW tau 60: роторов 0/3; PERD_SW tau 1e+09: роторов 0/3. Число узлов, время шага — diag `vortex_*`. Сила: min u∥/U — diag `vortex_rotor_upar_min_*` (2D: |u| 0,89–0,96·U100 против 0,22 ± 0,08 Menke)"
   },
   {
    "problem": "6. завышение σ_w",
@@ -51761,7 +52143,7 @@
    "problem": "8. мачты Perdigão и исчезнувший отрыв",
    "kind": "не выяснено",
    "status": "осталась",
-   "evidence": "Отрыв в лее по Хеду есть (SWD-5, до вихрей); с вихрями: PERD_NE: RMSE u∥/U potential_jh 0.424 → vortex_jh 0.424 (n 28); мачт с u∥ < 0: данные 11, potential_jh 0, vortex_jh 0; PERD_SW: RMSE u∥/U potential_jh 0.230 → vortex_jh 0.231 (n 25); мачт с u∥ < 0: данные 2, potential_jh 0, vortex_jh 0. Правило (по определению проблемы 8 в 2D: «обратный u∥ в данных у 8 точек NE, в модели ни у одной»): «ушла» — отрыв в лее есть, RMSE u∥/U vortex_jh не хуже potential_jh более чем на 10 % и модель даёт u∥ < 0 хотя бы на половине тех мачт, где он отрицателен в данных. Первое условие выполнено со SWD-5 (отрыв по Хеду есть), последнее — нет. Ранее: PERD_NE/potential: RMSE u∥/U 0.399 (n 28), RMSE s 0.172; PERD_NE/potential_jh: RMSE u∥/U 0.424 (n 28), RMSE s 0.183; PERD_SW/potential: RMSE u∥/U 0.239 (n 25), RMSE s 0.160; PERD_SW/potential_jh: RMSE u∥/U 0.230 (n 25), RMSE s 0.126. Отрыв в лее по Хеду (lee_only): точек NE 93, SW 60; на средней линии тока отрыв NE есть, SW есть; медиана H в точках отрыва NE 5.782398141891756, SW 11.673936347487775 (порог 2,4); H(s), cf(s) средней линии — diag `central_line_H_s*`. Ротор (обратный u∥ на 15 м) при этом не возникает ни в одном разрезе — слой Хеда не даёт обратной скорости; число H_max вдоль линий (~11,7) — насыщение формулы, в статус не входит. 2D: RMSE u∥/S 0,27 (NE), 0,21 (SW) у игры, 0,495 и 0,273 у SWC-19 — сравнение лишь по порядку (другая нормировка, набор мачт)"
+   "evidence": "Трассировка перед отрывом: PERD_NE средняя линия, H в 4 шагах до i_sep (шаг 25 м): 2.06 → 2.12 → 2.30 → 6.05 (du_e/ds ≈ -0.0104 1/с — слабое торможение); доля линий с прыжком H > 5 за 2 шага: 0.42; PERD_SW средняя линия, H в 4 шагах до i_sep (шаг 25 м): 1.55 → 1.76 → 2.16 → 11.67 (du_e/ds ≈ -0.0086 1/с — слабое торможение); доля линий с прыжком H > 5 за 2 шага: 0.67. H растёт плавно до ~2,3, затем за один шаг уходит к 6,05 (NE) / 11,67 = насыщение H(H1) (SW): по правилу ревью SWD-5 это прыжок, а не плавный рост — отрыв по Хеду нельзя считать установленным физически, «ушла» не ставится, вопрос (рост H или срыв интегрирования шагом 25 м) — для SWD-4. Отрыв в лее по Хеду есть (SWD-5, до вихрей; см. выше про прыжок H); с вихрями: PERD_NE: RMSE u∥/U potential_jh 0.424 → vortex_jh 0.424 (n 28); мачт с u∥ < 0: данные 11, potential_jh 0, vortex_jh 0; PERD_SW: RMSE u∥/U potential_jh 0.230 → vortex_jh 0.231 (n 25); мачт с u∥ < 0: данные 2, potential_jh 0, vortex_jh 0. Правило (по определению проблемы 8 в 2D: «обратный u∥ в данных у 8 точек NE, в модели ни у одной»): «ушла» — отрыв в лее есть, RMSE u∥/U vortex_jh не хуже potential_jh более чем на 10 % и модель даёт u∥ < 0 хотя бы на половине тех мачт, где он отрицателен в данных. Первое условие выполнено со SWD-5 (отрыв по Хеду есть), последнее — нет. Ранее: PERD_NE/potential: RMSE u∥/U 0.399 (n 28), RMSE s 0.172; PERD_NE/potential_jh: RMSE u∥/U 0.424 (n 28), RMSE s 0.183; PERD_SW/potential: RMSE u∥/U 0.239 (n 25), RMSE s 0.160; PERD_SW/potential_jh: RMSE u∥/U 0.230 (n 25), RMSE s 0.126. Отрыв в лее по Хеду (lee_only): точек NE 93, SW 60; на средней линии тока отрыв NE есть, SW есть; медиана H в точках отрыва NE 5.782398141891756, SW 11.673936347487775 (порог 2,4); H(s), cf(s) средней линии — diag `central_line_H_s*`. Ротор (обратный u∥ на 15 м) при этом не возникает ни в одном разрезе — слой Хеда не даёт обратной скорости; число H_max вдоль линий (~11,7) — насыщение формулы, в статус не входит. 2D: RMSE u∥/S 0,27 (NE), 0,21 (SW) у игры, 0,495 и 0,273 у SWC-19 — сравнение лишь по порядку (другая нормировка, набор мачт)"
   },
   {
    "problem": "9. вихри не влияют на velocity_jh (вклад аддитивный)",

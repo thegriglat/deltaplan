@@ -129,7 +129,7 @@ def _probe_variants(setup, sigma, sigma_bg, extra, pts):
 
 
 def run(setup, t_end, dt, t_avg=None, probes=None, sep_every=None, record_every=None):
-    """Интегрирование до t_end шагом dt. sep_every=None — `params["sep_every"]` или правило U_ref·dt·n ≈ 2·core. → dict(t, filaments, stats, probes_mean, probes_std, snapshots, probes, t_avg).
+    """Интегрирование до t_end шагом dt. sep_every=None — `params["sep_every"]` или правило |u_s|·dt·n ≈ 2·core (|u_s| — среднее |ut| на линиях первого схода). → dict(t, filaments, stats, probes_mean, probes_std, snapshots, probes, t_avg).
     t_avg=None — средние за вторую половину (t ≥ t_end/2)."""
     panels, bg = setup.panels, setup.bg
     t_avg = 0.5 * t_end if t_avg is None else float(t_avg)
@@ -140,8 +140,9 @@ def run(setup, t_end, dt, t_avg=None, probes=None, sep_every=None, record_every=
     acc = {v: [0, None, None] for v in VARIANTS}    # n, mean, M2 (Welford)
     sigma_bg = setup.sigma_bg
     last_shed = 0.0
+    auto_sep = sep_every is None and not setup.sep_every      # правило ниже, по |u_s| на линиях первого схода
     if sep_every is None:
-        sep_every = setup.sep_every if setup.sep_every else max(1, int(round(2.0 * setup.core / (setup.U_ref * dt))))
+        sep_every = setup.sep_every if setup.sep_every else 1       # временно 1 до первого схода
     sep_every = max(int(sep_every), 1)
     old, m_hist, skipped_tot = None, [], 0     # линии прошлого схода, средние |u|² на них по шагам периода
     for it in range(n_steps):
@@ -169,6 +170,12 @@ def run(setup, t_end, dt, t_avg=None, probes=None, sep_every=None, record_every=
             else:
                 # период-среднее |u|² (m_hist: шаги периода, последний — конец) к значению в конце периода
                 k_acc = float(np.sqrt(np.mean(m_hist) / max(m_hist[-1], 1e-300)))
+            if auto_sep and data:
+                # sep_every по правилу |u_s|·dt·n ≈ 2·core: |u_s| — среднее |ut| на линиях первого схода (не U_ref на 100 м)
+                us = float(np.mean(np.concatenate([np.sqrt((_line_ut(panels, utn, d) ** 2).sum(1)) for d in data])))
+                sep_every = max(1, int(round(2.0 * setup.core / max(us * dt, 1e-9))))
+                setup.sep_every_auto, setup.u_s_mean = sep_every, us
+                auto_sep = False
             f, n_lines = _shed_all(setup, f, data, utn, t - last_shed if it else dt * sep_every, k_acc)
             last_shed = t
             old, m_hist = data, []
@@ -198,7 +205,7 @@ def run(setup, t_end, dt, t_avg=None, probes=None, sep_every=None, record_every=
                 f = F.step(f, flow, dt / nsub, panels.height, setup.fil)
         stats.append(dict(t=t + dt, n_fil=f.n_filaments, n_nodes=len(f.x), n_seg=len(f.seg),
                           gamma_abs=float(np.abs(f.gamma).sum()), imbalance=F.imbalance(f), max_u=umax,
-                          substeps=nsub, t_step=time.time() - t0, residual=info["residual"], n_sep=n_sep,
+                          substeps=nsub, sep_every=sep_every, t_step=time.time() - t0, residual=info["residual"], n_sep=n_sep,
                           n_reattach=n_rea, n_lines=n_lines, n_skipped=n_skip, **{"f_" + k: v for k, v in f.stats.items()}))
         if PROGRESS:
             s_ = stats[-1]
