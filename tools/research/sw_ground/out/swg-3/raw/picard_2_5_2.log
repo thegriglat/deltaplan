@@ -1,0 +1,3 @@
+lock cpu: 8 сл., cgroup CPUQuota=800%
+cold wall 50.4s passes 1 windows 2
+wind_change wall 69.9s report 69.7s passes 1 windows 2
