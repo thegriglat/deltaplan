@@ -75,3 +75,5 @@
 {"t": "2026-11-08T23:54:58", "by": "coordinator", "task": "SWG-4", "ev": "checked", "note": "5/5 contract=ok:exit 0; base=ok:2; wake_rows=ok:10553; masts=ok:30; pytest=ok:passed"}
 {"t": "2026-11-08T23:57:11", "by": "reviewer", "task": "SWG-4", "ev": "reviewed", "note": "Схема соответствует заданию: q = d(U_e·δ*)/ds как новая правая часть той же LU (знак согласован с rhs_of: A σ = v_n), JH couple, два триггера показаны оба, лож…", "verdict": "accept", "issues": {"minor": 2}, "review": "docs/plan/sw-ground/tasks/SWG-4.review.json"}
 {"t": "2026-11-08T23:57:33", "by": "coordinator", "task": "SWG-4", "ev": "accepted", "note": "по ревью (fable): результат отрицательный; 2 minor — ссылка на нет summary.md, итерации U_e без критерия (~1 % точек)"}
+{"t": "2026-11-08T23:58:19", "by": "coordinator", "task": "SWG-4", "ev": "accepted", "commits": ["e10064c64"], "note": "5/5 contract=ok:exit 0; base=ok:2; wake_rows=ok:10553; masts=ok:30; pytest=ok:passed"}
+{"t": "2026-11-08T23:58:19", "by": "coordinator", "task": "SWG-4", "ev": "merged"}
