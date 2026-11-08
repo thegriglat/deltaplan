@@ -1,0 +1,41 @@
+{
+  "verdict": "accept",
+  "summary": "Итог 3D сверен с tables.md/points.json/summary: числа, статусы 12 проблем (1,11 ушла; 6 условно; 9 осталась), ротор Menke, оговорки (Пикар не истина, другая машина, пересчёт из points.json) на месте. Скоуп чист, контракты не тронуты.",
+  "issues": [
+    {
+      "file": "docs/research/sw_charges_3d.md",
+      "line": 22,
+      "severity": "minor",
+      "what": "В тексте «6 вариантов», в таблице 7 строк вариантов (+Пикар).",
+      "fix": "Выровнять счёт или перечислить варианты явно."
+    },
+    {
+      "file": "docs/registry/findings.md",
+      "line": 1,
+      "severity": "minor",
+      "what": "findings.md уже 45 КБ > 40 КБ (было 45173 до задачи), docs check по нему падает; не вина задачи, но +9 строк усугубляют.",
+      "fix": "Координатору: разбить реестр отдельной задачей."
+    },
+    {
+      "file": "docs/research/sw_charges_3d.md",
+      "line": 84,
+      "severity": "minor",
+      "what": "potential_jh ΔS на 3–10 м = 0,624 (константа — JH считается на высоте l), в таблице без пояснения выглядит ошибкой.",
+      "fix": "Добавить примечание: до 10 м jh постоянен по построению."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "accept SWD-18 --dry",
+      "value": "5/5, scope ok",
+      "pass": true
+    },
+    {
+      "name": "сверка ΔS Askervein с out/compare/tables.md",
+      "value": "совпало",
+      "pass": true
+    }
+  ],
+  "t": "2026-11-08T20:00:22",
+  "by": "reviewer"
+}

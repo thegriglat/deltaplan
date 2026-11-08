@@ -1,0 +1,61 @@
+{
+  "status": "done",
+  "summary": "docs/research/sw_charges_3d.md: 7 вариантов по осям ротор/время/стройность, отклонения от мачт и Пикара по типам и высотам (10/50/300 м), ротор Perdigão против Menke, время, статусы 12 проблем 2D, новые проблемы 3D, масштабы 1-3, законы и пределы, открытые вопросы; 6 пунктов в реестре findings (раздел sw-charges-3d), INDEX пересобран.",
+  "commits": [
+    "9a68fde42 SWD-18: итог sw-charges-3d"
+  ],
+  "checks": [
+    {
+      "name": "exists",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "нет ОШИБКА по sw_charges_3d",
+      "pass": true
+    },
+    {
+      "name": "tables",
+      "value": "104",
+      "pass": true
+    },
+    {
+      "name": "problems",
+      "value": "22",
+      "pass": true
+    },
+    {
+      "name": "finding",
+      "value": "6",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Таблица отклонений от Пикара по типам и высотам пересчитана мной из points.json (среднее относительное по строкам, n 1-17); в отчётах задач её нет.",
+    "Оценка «стройность» — суждение автора по числу ингредиентов и параметров, не измерение."
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SWD-18",
+  "uncertain": [
+    {
+      "where": "docs/research/sw_charges_3d.md, раздел 12 проблем 2D, №6 и №10",
+      "why": "в points.json (версия 7) №6 и №10 всё ещё «не проверено»; статусы взяты из out/proto3d/summary.md (SWD-12/12a): №6 ушла условно (R_r = l/2), №10 осталась",
+      "checked": "сверено с отчётами SWD-12, SWD-12a"
+    },
+    {
+      "where": "docs/research/sw_charges_3d.md, доли в допуске Пикар против мачт",
+      "why": "SWD-1 считает ±15 %, SWD-5 — max(0,15; ref_err); прямое сравнение долей приблизительное",
+      "checked": "оговорка записана в тексте"
+    },
+    {
+      "where": "docs/research/sw_charges_3d.md, время Пикар против панелей",
+      "why": "время Пикара из SWD-1 и из docs/plan/picard-rs.md (другая машина, 8 потоков); Пикар отдаёт поле, панели - точки",
+      "checked": "оговорка записана в тексте"
+    }
+  ],
+  "dp_feedback": "docs check падает на docs/registry/findings.md (47 КБ > 40 КБ) и docs/plan/pilot-voice.md - не из этой задачи, но accept docs-проверка по маске не ловит; docs index переписывает registry/research.md и contracts.md вне скоупа (пришлось откатывать git checkout). dpcli plan sw-charges-3d читает копию ~/worktrees/deltaplan/sw-charges-3d, а не текущую.",
+  "t": "2026-11-08T19:59:25",
+  "by": "executor"
+}
