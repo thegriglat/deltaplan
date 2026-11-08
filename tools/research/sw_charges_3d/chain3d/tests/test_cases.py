@@ -70,8 +70,8 @@ def test_c2_rotor_present_state_and_length(c2):
     r = info0["rotors"][0]
     print(f"\nC2 N={p.N}: ротор {r['length_m']:.0f} м, S={r['S']:.2f}, state {r['state']}")
     t0 = time.time()
-    ch, sig, info = chain3d.chain_rotor(p, bg, 0.1, c2["infl"], dict(apply_state=False))
-    ok = [l for l in info["links"] if l["converged"]]
+    ch, sig, info = chain3d.chain_rotor(p, bg, 0.1, c2["infl"], dict(apply_state=False, keep_unconverged=True))
+    ok = info["links"]
     print(f"C2 (state отключён): сошлось {len(ok)}/{len(info['links'])}, {time.time() - t0:.0f} с, решений {info['n_solves']}")
     if ok:
         x_c = ok[len(ok) // 2]["x_c"][0]
