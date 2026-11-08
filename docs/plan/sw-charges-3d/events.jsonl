@@ -270,3 +270,4 @@
 {"t": "2026-11-08T20:01:18", "by": "coordinator", "task": "SWD-18", "ev": "accepted", "note": "accept 5/5, ревью accept 3m (2 исправлены, findings.md > 40 КБ — до задачи, вне модуля)"}
 {"t": "2026-11-08T20:01:27", "by": "coordinator", "task": "SWD-18", "ev": "merged", "commits": ["f6c91bc"]}
 {"t": "2026-11-08T20:01:28", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: (9) task set не умеет --scope (только ПОЛЕ=JSON), а task show после этого выводит скоуп списком — неочевидно; (10) docs index переписывает registry/research.md (со слов исполнителя SWD-18); (11) SendMessage вместе с другими вызовами блокируется классификатором авто-режима — слать отдельно"}
+{"t": "2026-11-08T20:05:32", "by": "main", "task": null, "ev": "delivered", "commits": ["7aeeea098"], "note": "squash в main: 7aeeea098"}
