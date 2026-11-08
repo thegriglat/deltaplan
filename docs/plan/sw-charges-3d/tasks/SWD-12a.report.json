@@ -1,0 +1,44 @@
+{
+  "status": "done",
+  "summary": "Статус №6 записан условно (УСЛОВНО: ушла при R_r = ℓ/2) с обоснованием в README и evidence; в README абзац про отход от одного кольца; строки σ_w в C — ref_kind theory (Panofsky & Dutton), h→∞; summary ≤140 в трёх файлах.",
+  "commits": [
+    "f2e2bfaa4 SWD-12a: обоснование R_r"
+  ],
+  "checks": [
+    {
+      "name": "contract-files",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "pytest",
+      "value": "passed",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "нет ошибок по proto3d/out/proto3d/compare",
+      "pass": true
+    },
+    {
+      "name": "rr-arg",
+      "value": "2",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Числа не пересчитывались (таблица не менялась, кроме ref_kind/note); analyze перезапущен."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept SWD-12a --dry",
+  "uncertain": [
+    {
+      "where": "proto3d/analyze.py:131",
+      "why": "Поле status по enum контракта SWD8 не допускает «условно»: оставлено «ушла», условие — в evidence с пометкой УСЛОВНО",
+      "checked": "check_contract.py files exit 0"
+    }
+  ],
+  "dp_feedback": "accept --dry показывает FAIL docs из-за чужих файлов, хотя регэксп их не ловит; в строке итога это путает (3/4 при фактическом PASS).",
+  "t": "2026-11-08T18:59:53",
+  "by": "executor"
+}
