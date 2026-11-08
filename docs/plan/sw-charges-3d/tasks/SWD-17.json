@@ -1,0 +1,94 @@
+{
+  "id": "SWD-17",
+  "module": "sw-charges-3d",
+  "type": "dp-researcher",
+  "title": "C' по SWD9 v5 (звено по геометрии) и сравнение на Askervein/Perdigão: режим ротора против Menke 2019, время против Пикара",
+  "goal": "Ответ на Q4 (1+3): звено цепочки по геометрии без равновесия, state по S честно; прогнать chain_jh на ASK_TU03B, PERD_NE, PERD_SW, записать в out/compare (SWD5 v7) режим и L ротора против Menke 2019/Пикара, поток в мачтах и время против Пикара.",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "SWD9",
+      "version": "5",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    },
+    {
+      "name": "SWD5",
+      "version": "7",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    },
+    {
+      "name": "SWD2",
+      "version": "5",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    },
+    {
+      "name": "SWD1",
+      "version": "2",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sw-charges-3d-SWD-17",
+  "branch": "sw-charges-3d/SWD-17",
+  "base": "feature/sw-charges-3d",
+  "scope": [
+    "tools/research/sw_charges_3d/chain3d/",
+    "tools/research/sw_charges_3d/compare/",
+    "tools/research/sw_charges_3d/out/compare/"
+  ],
+  "dont_touch": [
+    "tools/research/sw_charges_3d/panels3d/",
+    "tools/research/sw_charges_3d/filaments3d/",
+    "tools/research/sw_charges_3d/sim3d/",
+    "tools/research/sw_charges_3d/sheet3d/",
+    "tools/research/sw_charges_3d/rotor3d/",
+    "tools/research/sw_charges_3d/proto3d/",
+    "tools/research/sw_charges_3d/breakdown/",
+    "tools/research/sw_charges_3d/out/refs/",
+    "tools/research/sw_charges_3d/out/proto3d/",
+    "tools/research/sw_charges_3d/refs/",
+    "tools/research/sw_charges/",
+    "docs/contracts/",
+    "tools/research/sw_charges_3d/contract/",
+    "rust/"
+  ],
+  "accept": [
+    {
+      "name": "pytest",
+      "cmd": "tools/research/sw_charges_3d/py -m pytest -q tools/research/sw_charges_3d/chain3d/tests",
+      "expect": "!re:(failed|error)"
+    },
+    {
+      "name": "pytest-pass",
+      "cmd": "tools/research/sw_charges_3d/py -m pytest -q tools/research/sw_charges_3d/chain3d/tests",
+      "expect": "num:(\\d+) passed >=18"
+    },
+    {
+      "name": "api",
+      "cmd": "tools/research/sw_charges_3d/py tools/research/sw_charges_3d/contract/check_contract.py api chain3d",
+      "expect": "exit=0"
+    },
+    {
+      "name": "contract-files",
+      "cmd": "tools/research/sw_charges_3d/py tools/research/sw_charges_3d/contract/check_contract.py files tools/research/sw_charges_3d/out/compare",
+      "expect": "exit=0"
+    },
+    {
+      "name": "chain-rotor",
+      "cmd": "tools/research/sw_charges_3d/py -c \"import json;d=json.load(open('tools/research/sw_charges_3d/out/compare/points.json'));print('cases', len({r['case'] for r in d['rotor'] if r['variant']=='chain_jh'}))\"",
+      "expect": "num:cases (\\d+) >=3"
+    },
+    {
+      "name": "chain-timing",
+      "cmd": "tools/research/sw_charges_3d/py -c \"import json;d=json.load(open('tools/research/sw_charges_3d/out/compare/points.json'));print('t', len([r for r in d['timing'] if r['variant']=='chain_jh']))\"",
+      "expect": "num:t (\\d+) >=3"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "!re:ОШИБКА +tools/research/sw_charges_3d/(chain3d|compare|out/compare)/"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-08T19:31:47"
+}
