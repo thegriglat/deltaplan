@@ -1,0 +1,62 @@
+{
+  "verdict": "rework",
+  "summary": "Скоуп чист, интерфейс по SWD2 v4 / SWD4 v3 (координатор принял отклонения по изображению, couple и присоединению). Не сделаны три пункта карточки: тест (7), регрессии v3 = v2 в panels3d, долг ревью SWD-2 про s_sep. Инвариант роста отрезков держится только на подобранных настройках теста.",
+  "issues": [
+    {
+      "file": "tools/research/sw_charges_3d/sim3d/tests/test_sim3d.py",
+      "line": 117,
+      "severity": "major",
+      "what": "Теста (7) из карточки нет: «probes_mean совпадает со средним снимков ± 1e-9». velocity_mean в тех же точках просто возвращает probes_mean, так что assert np.allclose(velocity_mean(pr), probes_mean) сравнивает массив сам с собой. Исполнитель сам пишет, что численно не сравнивал. Путь через снимки (_probe_variants по s['sigma'] и нитям) с путём проб (Welford) не сверен.",
+      "fix": "Прогон с record_every=1, t_avg кратным dt и probes; среднее vortex_jh по снимкам в тех же точках (путь snapshots, например через другой массив той же формы или прямым вызовом) против probes_mean — допуск 1e-9."
+    },
+    {
+      "file": "tools/research/sw_charges_3d/panels3d/tests/test_panels3d.py",
+      "line": 372,
+      "severity": "major",
+      "what": "Нет регрессионных тестов v3 из карточки: «couple=False побитно как v2» и «restart на одном хребте без вихрей = v2». В test_jh_couple_flat_and_reverse есть только approx на ровной земле со своей формулой, а в test_separation_ridge_lee_only (теперь restart=True по умолчанию) — сверка с 2D с допуском 2·ds_min. Ни один тест не сравнивает с выводом v2. При этом sep.py переписан: u_s теперь проекция со знаком, а не |ut|, и march_layer идёт по срезам.",
+      "fix": "Сравнить velocity_jh(couple=False) на хребте с extra с эталоном v2 (сохранить его из feature/sw-charges-3d или из старого кода в тесте) побитно. separation3d(restart=True) против restart=False на одном хребте без extra: те же points для k=0 (x, s_sep, value) побитно."
+    },
+    {
+      "file": "tools/research/sw_charges_3d/panels3d/tests/test_panels3d.py",
+      "line": 357,
+      "severity": "major",
+      "what": "Долг ревью SWD-2 «тест отрыва на хребте — сравнивать s_sep (не x)» не закрыт: тест по-прежнему сравнивает x_sep. Причина (разное начало дуги) записана только в комментарии; в отчёте нет ни «не вышло», ни вопроса координатору.",
+      "fix": "Сравнить дугу от общей точки (например от гребня x=0: s_sep3d − s(гребня) против s_sep2d − s2d(гребня)) или поднять вопрос координатору «SWD-4 contract: …», а не оставлять отклонение молча."
+    },
+    {
+      "file": "tools/research/sw_charges_3d/sim3d/tests/test_sim3d.py",
+      "line": 63,
+      "severity": "major",
+      "what": "Инварианты (3)/(4) — 200 шагов и «рост отрезков < ×10» — проверены не в постановке контракта, а с подобранными параметрами: sep_every=20 вместо 1, tau_s=25 с (README: «физически обоснованного tau_s нет»), gamma_min=1, r_rec=0 (перезамыкание выключено по умолчанию в Setup) и обрезанные bounds. По README при сходе каждый шаг число узлов удваивается каждые ~12 с, то есть в штатной постановке инвариант не выполняется. В отчёте это не стоит в «не вышло». Заодно карточка просила обосновать tau_s и nu_t как физические параметры.",
+      "fix": "Записать в отчёт «не вышло»: рост при sep_every=1 и без затухания (числа есть в bench). Либо прогнать тест с sep_every=1, либо поднять «SWD-4 contract: …» про обязательные tau_s/sep_every. Указать, что tau_s=25 с — параметр теста, а не модели."
+    },
+    {
+      "file": "tools/research/sw_charges_3d/panels3d/tests/test_panels3d.py",
+      "line": 436,
+      "severity": "minor",
+      "what": "Пустые проверки: `assert ... is None or True` (строка ~436) и в test_ridge_couple_changes_layer_behind_crest `rel[5.0][xs < 0].size == 0` при xs от 30 м — всегда истинны.",
+      "fix": "Удалить или заменить содержательными (например, проверить, что за вторым гребнем reattach есть или линия кончилась; эффект couple при x<0 — на сетке с x<0)."
+    },
+    {
+      "file": "tools/research/sw_charges_3d/sim3d/core.py",
+      "line": 77,
+      "severity": "minor",
+      "what": "_shed_all: точки линии отрыва вне сетки (locate → t=−1) молча берут треугольник 0 через np.maximum(t, 0): u_s и нормаль приходят с чужой панели. То же в sep._trace, но там точки вне сетки останавливаются.",
+      "fix": "Отбрасывать точки с t<0 перед shed или проверить assert (t>=0).all()."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "accept --only api --dry (+scope)",
+      "value": "PASS, 10 файлов в границах",
+      "pass": true
+    },
+    {
+      "name": "ровная земля: |probes_mean − bg| (сетка теста 1)",
+      "value": "potential 0.0; potential_jh/vortex_jh 5,7 % (JH — лог-профиль против степенного bg; тест проверяет только potential)",
+      "pass": true
+    }
+  ],
+  "t": "2026-11-08T07:59:05",
+  "by": "reviewer"
+}

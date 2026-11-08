@@ -1,0 +1,116 @@
+{
+  "status": "done",
+  "summary": "Основной набор пересчитан с логарифмическим притоком (решение координатора; z0 — медиана растра), степенной α = 0,235 — в scan/diag bgpower_*. Мачты RMSE s: Askervein 0,23/0,22, NE 0,17/0,18, SW 0,16/0,13 (potential/jh); dS HT 10 м: 0,666 / 0,624 (данные 0,884). Статусы: ушла №1, №8; осталась №2, 3, 4, 7, 12; не проверено №5, 6, 9, 10, 11.",
+  "commits": [
+    "7c20da240 SWD-5 сравнение panels3d",
+    "d2b8213d1 SWD-5 доработка по ревью",
+    "60597fe55 SWD-5 разбор нормировки JH",
+    "217110be3 SWD-5 основной набор с логарифмическим притоком"
+  ],
+  "checks": [
+    {
+      "name": "contract-files",
+      "value": "OK",
+      "pass": true
+    },
+    {
+      "name": "case-variants",
+      "value": "6 пар",
+      "pass": true
+    },
+    {
+      "name": "problems12",
+      "value": "12",
+      "pass": true
+    },
+    {
+      "name": "scans",
+      "value": "3 параметра, 598 строк",
+      "pass": true
+    },
+    {
+      "name": "readme",
+      "value": "README.md, tables.md есть",
+      "pass": true
+    },
+    {
+      "name": "accept SWD-5 --dry",
+      "value": "5/5 PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "vortex_jh и ротор с нитями — SWD-5b (проблемы 5, 6, 9, 10, 11 — «не проверено»)",
+    "поправка эталона 2D №7 не введена (нет второго уровня Пикара того же положения); строки Пикара ниже 50 м — «справочно»",
+    "скан z0 не делался; гаусс H/L = 0,1 — прокси для №1, не C4"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SWD-5; чтение: tools/research/sw_charges_3d/out/compare/tables.md",
+  "uncertain": [
+    {
+      "where": "tools/research/sw_charges_3d/compare/run_compare.py:problems",
+      "why": "статусы 12 проблем — по моим порогам (размах >0,05 для №4; доля >=0,8 для №12; |dS err|<=0,15 для №3; №8 — отрыв есть на средней линии обоих случаев)",
+      "checked": "пороги и числа в evidence"
+    },
+    {
+      "where": "out/compare/points.json rows (potential_jh, Askervein)",
+      "why": "при логарифмическом фоне оба варианта на Askervein ниже Пикара на гребне на ~0,5 (доля ±15 % 0,04 / 0,12): профиль Пикара круче логарифма; нормировка JH согласована (norm 4,98/5,00). dS HT 10 м JH 0,62 — ΔS на высоте l по контракту",
+      "checked": "пересчёт в P_crest_0 и RS для обоих фонов, README п.8"
+    },
+    {
+      "where": "z0 Perdigão",
+      "why": "медиана растра 1,80 м (лес) против среднего по ln z0 0,645 м; JH на Perdigão чувствителен, скан z0 не делался",
+      "checked": "сравнение двух версий: RMSE s мачт NE 0,201→0,183, SW 0,118→0,126"
+    }
+  ],
+  "dp_feedback": "py запускать без -I (нужен PYTHONPATH). Файл отчёта r-<ID>.json исчезает после report — держать копию, если нужен повтор.",
+  "extra": {
+    "rmse_s_mast_potential": {
+      "ASK": 0.229,
+      "PERD_NE": 0.172,
+      "PERD_SW": 0.16
+    },
+    "rmse_s_mast_potential_jh": {
+      "ASK": 0.218,
+      "PERD_NE": 0.183,
+      "PERD_SW": 0.126
+    },
+    "dS_HT_10": {
+      "data": 0.884,
+      "potential": 0.666,
+      "potential_jh": 0.624
+    },
+    "separation_points_lee_only": {
+      "ASK": 2,
+      "PERD_NE": 93,
+      "PERD_SW": 60
+    },
+    "windward_points_rejected_by_lee_only": {
+      "PERD_NE": 115,
+      "PERD_SW": 117
+    },
+    "problems2d_status": {
+      "ушла": [
+        1,
+        8
+      ],
+      "осталась": [
+        2,
+        3,
+        4,
+        7,
+        12
+      ],
+      "не проверено": [
+        5,
+        6,
+        9,
+        10,
+        11
+      ]
+    }
+  },
+  "t": "2026-11-08T06:37:55",
+  "by": "executor"
+}

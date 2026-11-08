@@ -1,0 +1,73 @@
+{
+  "id": "SWD-5",
+  "module": "sw-charges-3d",
+  "type": "dp-researcher",
+  "title": "Сравнение 3D: потенциал и Jackson–Hunt против Askervein, Perdigão и Пикара; сканы σ, высоты, ds_min",
+  "goal": "Таблицы SWD5 v2 для вариантов potential и potential_jh на ASK_TU03B, PERD_NE, PERD_SW против мачт и Пикара (nom, adv1), сканы сглаживания, высоты сравнения и ds_min, время, статусы 12 проблем 2D (вихревые — «не проверено» до SWD-5b).",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "SWD1",
+      "version": "2",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    },
+    {
+      "name": "SWD2",
+      "version": "2",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    },
+    {
+      "name": "SWD5",
+      "version": "2",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sw-charges-3d-SWD-5",
+  "branch": "sw-charges-3d/SWD-5",
+  "base": "feature/sw-charges-3d",
+  "scope": [
+    "tools/research/sw_charges_3d/compare/",
+    "tools/research/sw_charges_3d/out/compare/"
+  ],
+  "dont_touch": [
+    "tools/research/sw_charges_3d/panels3d/",
+    "tools/research/sw_charges_3d/filaments3d/",
+    "tools/research/sw_charges_3d/sim3d/",
+    "tools/research/sw_charges_3d/refs/",
+    "tools/research/sw_charges_3d/out/refs/",
+    "tools/research/sw_charges/",
+    "docs/contracts/",
+    "tools/research/sw_charges_3d/contract/",
+    "rust/"
+  ],
+  "accept": [
+    {
+      "name": "contract-files",
+      "cmd": "tools/research/sw_charges_3d/py tools/research/sw_charges_3d/contract/check_contract.py files tools/research/sw_charges_3d/out/compare",
+      "expect": "exit=0"
+    },
+    {
+      "name": "case-variants",
+      "cmd": "tools/research/sw_charges_3d/py -c \"import json;d=json.load(open('tools/research/sw_charges_3d/out/compare/points.json'));print('pairs', len({(r['case'],r['variant']) for r in d['rows'] if r['variant'] in ('potential','potential_jh')}))\"",
+      "expect": "num:pairs (\\d+) >=6"
+    },
+    {
+      "name": "problems12",
+      "cmd": "tools/research/sw_charges_3d/py -c \"import json;d=json.load(open('tools/research/sw_charges_3d/out/compare/points.json'));print('problems', len(d['problems2d']))\"",
+      "expect": "num:problems (\\d+) >=12"
+    },
+    {
+      "name": "scans",
+      "cmd": "tools/research/sw_charges_3d/py -c \"import json;d=json.load(open('tools/research/sw_charges_3d/out/compare/points.json'));print('params', len({r['param'] for r in d['scan']}))\"",
+      "expect": "num:params (\\d+) >=3"
+    },
+    {
+      "name": "readme",
+      "cmd": "ls tools/research/sw_charges_3d/compare/README.md tools/research/sw_charges_3d/out/compare/tables.md",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-08T05:57:26"
+}

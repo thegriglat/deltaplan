@@ -230,7 +230,7 @@ def check_points(path, d):
 
 # ---------- SWD5 ----------
 def check_compare(path, d):
-    need(d, ("git", "created", "tol_picard", "rows", "rotor", "timing", "problems2d"), path)
+    need(d, ("git", "created", "tol_picard", "rows", "scan", "rotor", "timing", "diag", "problems2d"), path)
     num(d["tol_picard"], "tol_picard")
     if not d["rows"]:
         raise ContractError("rows: пусто")
@@ -238,7 +238,10 @@ def check_compare(path, d):
         w = f"rows[{i}]"
         need(r, ("case", "variant", "point", "name", "x", "y", "z_agl", "ref_kind", "ref_source", "ref_reliability",
                  "ref_err", "s_ref", "s_pan", "dS_ref", "dS_pan", "u_par_ref", "u_par_pan", "err", "within_tol",
-                 "within_tol_ref", "ds_min", "N"), w)
+                 "within_tol_ref", "ds_min", "N", "ref_use", "smooth_m"), w)
+        one_of(r["ref_use"], {"эталон", "справочно"}, w + ".ref_use")
+        if r["ref_kind"].startswith("picard") and r["z_agl"] < 50 and r["ref_use"] != "справочно":
+            raise ContractError(f"{w}: Пикар ниже 50 м — справочно (v2)")
         one_of(r["case"], CASES, w + ".case")
         one_of(r["variant"], VARIANTS, w + ".variant")
         one_of(r["point"], POINTS, w + ".point")
@@ -262,11 +265,16 @@ def check_compare(path, d):
         need(r, ("case", "variant", "N", "t_assemble_s", "t_solve_s", "t_query_us", "t_run_s", "backend"), f"timing[{i}]")
     for i, r in enumerate(d["problems2d"]):
         need(r, ("problem", "kind", "status", "evidence"), f"problems2d[{i}]")
-        one_of(r["kind"], {"схема", "2D-артефакт"}, f"problems2d[{i}].kind")
-        one_of(r["status"], {"ушла", "осталась", "новая в 3D"}, f"problems2d[{i}].status")
+        one_of(r["kind"], {"схема", "2D-артефакт", "эталон", "не выяснено"}, f"problems2d[{i}].kind")
+        one_of(r["status"], {"ушла", "осталась", "новая в 3D", "не проверено"}, f"problems2d[{i}].status")
+    for i, r in enumerate(d["scan"]):
+        need(r, ("case", "variant", "param", "value", "metric", "result"), f"scan[{i}]")
+        one_of(r["param"], {"smooth_m", "z_over_H", "ds_min"}, f"scan[{i}].param")
+    for i, r in enumerate(d["diag"]):
+        need(r, ("case", "item", "value", "note"), f"diag[{i}]")
 
 
-JSON_FORMATS = {"sw3d-points": (1, check_points), "sw3d-compare": (1, check_compare)}
+JSON_FORMATS = {"sw3d-points": (1, check_points), "sw3d-compare": (2, check_compare)}
 
 
 def check_file(path):
@@ -371,12 +379,16 @@ def _good_compare():
     row = {"case": "PERD_NE", "variant": "potential", "point": "crest", "name": "P_crest_0", "x": 0.0, "y": 0.0,
            "z_agl": 10.0, "ref_kind": "picard_nom", "ref_source": "x", "ref_reliability": "модель ±15 %", "ref_err": None,
            "s_ref": 1.0, "s_pan": 1.1, "dS_ref": None, "dS_pan": None, "u_par_ref": 5.0, "u_par_pan": 5.5, "err": 0.1,
-           "within_tol": True, "within_tol_ref": True, "ds_min": 25.0, "N": 10000}
-    return {"format": "sw3d-compare", "version": 1, "git": "x", "created": "t", "tol_picard": 0.15, "rows": [row],
+           "within_tol": True, "within_tol_ref": True, "ds_min": 25.0, "N": 10000, "ref_use": "справочно",
+           "smooth_m": 40.0}
+    return {"format": "sw3d-compare", "version": 2, "git": "x", "created": "t", "tol_picard": 0.15, "rows": [row],
             "rotor": [{"case": "PERD_NE", "transect": "T1", "variant": "vortex_jh", "present": True, "L_m": 500.0,
                        "depth_m": 100.0, "L_ref": 530.0, "ref_source": "menke2019"}],
             "timing": [{"case": "PERD_NE", "variant": "potential", "N": 10000, "t_assemble_s": 1.0, "t_solve_s": 1.0,
                         "t_query_us": 10.0, "t_run_s": None, "backend": "cupy"}],
+            "scan": [{"case": "PERD_NE", "variant": "potential", "param": "smooth_m", "value": 40.0,
+                      "metric": "rmse_s_mast", "result": 0.3}],
+            "diag": [{"case": "PERD_NE", "item": "H_lee_max", "value": 1.9, "note": "x"}],
             "problems2d": [{"problem": "отрыв на наветренном склоне", "kind": "схема", "status": "ушла", "evidence": "x"}]}
 
 
@@ -439,6 +451,8 @@ def selftest():
         expect(not jtry(d, None), "compare: err ≠ s_pan − s_ref — ловится")
         d = _good_compare(); d["rows"][0]["s_pan"] = 1.3; d["rows"][0]["err"] = 0.3
         expect(not jtry(d, None), "compare: within_tol не по порогу — ловится")
+        d = _good_compare(); d["rows"][0]["ref_use"] = "эталон"
+        expect(not jtry(d, None), "compare: Пикар на 10 м как эталон — ловится")
         d = _good_compare(); d["problems2d"][0]["status"] = "непонятно"
         expect(not jtry(d, None), "compare: неверный статус проблемы — ловится")
 
