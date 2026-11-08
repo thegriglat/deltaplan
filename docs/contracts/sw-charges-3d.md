@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-11-08"
 summary: "Стыки sw-charges-3d: эталоны (SWD1), панели (SWD2), нити (SWD3), связка (SWD4), сравнение (SWD5), установившийся слой (SWD6)."
 related: ["docs/plan/sw-charges-3d.md", "docs/contracts/sw-charges.md", "tools/research/sw_charges_3d/README.md"]
-contracts: [{"id": "SWD1", "version": 2}, {"id": "SWD2", "version": 4}, {"id": "SWD3", "version": 4}, {"id": "SWD4", "version": 4}, {"id": "SWD5", "version": 4}, {"id": "SWD6", "version": 1}]
+contracts: [{"id": "SWD1", "version": 2}, {"id": "SWD2", "version": 4}, {"id": "SWD3", "version": 4}, {"id": "SWD4", "version": 4}, {"id": "SWD5", "version": 5}, {"id": "SWD6", "version": 2}]
 ---
 # Контракты модуля sw-charges-3d
 
@@ -224,14 +224,15 @@ v3 (2026-11-08, отчёт SWD-4): изображение — замкнутое
   двойной хребет (два Agnesi H/L 0,5 через 3L) — с `restart` отрыв за обоими гребнями, без — только за первым;
   время шага на N ≈ 5000 панелей и 2000 узлов — в отчёте.
 
-## SWD5 v4 — сравнение 3D с эталонами
+## SWD5 v5 — сравнение 3D с эталонами
+v5 (2026-11-08, решение о нити Фёппля): `variant` — ещё "foppl_jh" (SWD6 v2 `velocity_foppl`).
 v4 (2026-11-08, решение о вихревом слое): `variant` — ещё "sheet_jh" (SWD6: установившийся вихревой слой + `velocity_jh(couple=True)`).
 v3 (2026-11-08, отчёт SWD-5b): `scan.param` — ещё "tau_s" (затухание нитей, с; "inf" — без затухания — value null).
 Владелец — SWD-5 (potential, potential_jh, сканы), SWD-5b (vortex_jh, ротор); потребители — итог модуля, шлюз.
 v2 (2026-11-08, итог 2D №4, №7, №8): `smooth_m`, `ref_use`, `scan`, `diag`; `problems2d.kind` — ещё "эталон", "не выяснено".
 - Путь — `tools/research/sw_charges_3d/out/compare/points.json` + `.csv`; JSON (`format` = "sw3d-compare",
-  `version` = 4): `git`, `created`, `tol_picard` (0,15), `rows` — {`case`, `variant` ("potential" | "potential_jh" |
-  "vortex_jh" | "sheet_jh"), `point`, `name`, `x`, `y`, `z_agl`, `ref_kind` (как SWD1), `ref_source`, `ref_reliability`, `ref_err`,
+  `version` = 5): `git`, `created`, `tol_picard` (0,15), `rows` — {`case`, `variant` ("potential" | "potential_jh" |
+  "vortex_jh" | "sheet_jh" | "foppl_jh"), `point`, `name`, `x`, `y`, `z_agl`, `ref_kind` (как SWD1), `ref_source`, `ref_reliability`, `ref_err`,
   `ref_use` ("эталон" | "справочно": строки Пикара ниже 50 м — справочно, 2D №7), `s_ref`, `s_pan` (s_norm: скорость /
   скорость в опорной точке `norm` того же источника), `dS_ref`, `dS_pan` (Askervein, иначе null), `u_par_ref`,
   `u_par_pan` (u∥, м/с, отнесённые к U опорной точки данных), `err` (= s_pan − s_ref), `within_tol` (picard:
@@ -247,7 +248,29 @@ v2 (2026-11-08, итог 2D №4, №7, №8): `smooth_m`, `ref_use`, `scan`, `d
   | "новая в 3D" | "не проверено"), `evidence` (строка: строки таблицы/числа)}; 12 проблем — docs/research/sw_charges.md,
   раздел «7. Итог 2D: проблемы для 3D».
 
-## SWD6 v1 — установившийся вихревой слой (пакет `sheet3d`)
+## SWD6 v2 — установившийся вихревой слой (пакет `sheet3d`)
+v2 (2026-11-08, решение пользователя: первым — простейший вариант): одна установившаяся нить ротора (Фёппль) —
+`foppl_vortex`, `velocity_foppl` (ниже, задача SWD-8); слой из рядов (`build_sheet`, `velocity_sheet`, v1) — следующий
+шаг, только если нити Фёппля мало (отдельное решение).
+- v2. `foppl_vortex(panels, bg, z0, infl=None, params=None)` → `(fil, sigma, info)`: по каждому гребню (`hill_length`
+  на линиях тока поперёк области; гребни соседних линий, совпадающие в пределах 2·ds_min, — один хребет) — одна прямая
+  нить вдоль оси хребта (МНК по точкам гребня) за гребнем, длина — протяжённость гребня по линиям тока, концы —
+  ножки в землю подковой (якоря; ∇·ω = 0); отражение в земле — панелями (σ с extra = нить). Неизвестные на хребет —
+  положение (s за гребнем вдоль ветра, h над землёй) в середине нити и Γ; уравнения: скорость в середине нити
+  (bg + панели + ножки и прочие нити, без самоиндукции прямого участка) в плоскости поперёк оси = 0 (2 уравнения,
+  равновесие Фёппля) и условие отрыва на гребне — касательная скорость у земли в точке гребня на середине нити = 0
+  (аналог условия Кутты; точка отрыва — гребень по решению пользователя; `params["sep"]="separation3d"` — точка
+  отрыва Хеда, вторично). Решение — Ньютон/`scipy.optimize.root` с начальным h = H/2, s = H, Γ = U_ref·H;
+  `params`: `core` (ds_min/2), `sep` ("crest"), `tol` (1e-3 отн.). `fil` — Filaments (SWD3); `info` — по хребтам
+  {`x_c`, `y_c`, `axis`, `L_axis`, `s`, `h`, `Gamma`, `converged`, `residual`, `iters`} и `t_s`. Нет решения —
+  `converged=False`, нить не ставится (счётчик), без подгонки.
+- v2. `velocity_foppl(panels, sigma, bg, fil, x, y, z, z0, U_ref=None, infl=None)` → (u, v, w) =
+  `velocity_jh(..., extra=induced(fil), couple=True)`.
+- Инварианты v2 (тесты): ровная земля и гаусс H/L 0,1 без хребта — нитей нет, поле = `velocity_jh` побитно;
+  imbalance ≤ 1e-12; 2D-предел — круговой цилиндр (полуцилиндр на стенке, длинный, R) с отрывом в вершине: положение
+  и Γ середины нити — в ± 10 % от 2D-решения равновесия вихря за полуцилиндром на стенке с тем же условием (посчитать
+  в тесте panels2d или аналитикой Фёппля с изображением; README); длинный хребет Agnesi H/L 0,5: решение сходится,
+  обратный u∥ на 10 м за гребнем, s/H, h/H, Γ/(U·H) — в отчёте; цена ≤ 20 решений панелей того же N.
 Владелец — SWD-8; потребители — SWD-5d. Решение пользователя 2026-11-08: вариант без эволюции во времени — лист
 вихрей вдоль линии отрыва и границы зоны рециркуляции, сила — из критерия отрыва, цена порядка панелей.
 Схема — модель свободной линии тока / слоя смешения (Kirchhoff — Helmholtz; замыкание зоны — по типу Riabouchinsky /
