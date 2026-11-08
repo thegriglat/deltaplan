@@ -12,13 +12,17 @@ import rotor3d
 from rotor3d import rotor as R
 
 DATA = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
-CASES = dict(C2=dict(x0=-1800, x1=2400, Ly=6000, foc=(-250, 900), sm=0.0),
-             C4=dict(x0=-1800, x1=3400, Ly=5500, foc=(-300, 1500), sm=25.0))
+# одно сглаживание рельефа для C2 и C4: 25 м — как у 2D-опыта C4 (panels_exp/run_cc.py: smooth_m=25 для C4; там C2 — 0, не симметрично)
+SM = 25.0
+CASES = dict(C2=dict(x0=-1800, x1=2400, Ly=6000, foc=(-250, 900), sm=SM),
+             C4=dict(x0=-1800, x1=3400, Ly=5500, foc=(-300, 1500), sm=SM))
 DS = 60.0
 
 
-def build(case):
-    c = CASES[case]
+def build(case, sm=None):
+    c = dict(CASES[case])
+    if sm is not None:
+        c["sm"] = sm
     d = np.load(os.path.join(DATA, f"{case}_profile.npz"))
     x, h = d["x"], d["h"]
     m = (x >= c["x0"]) & (x <= c["x1"])

@@ -113,9 +113,10 @@ class _Rotor(_fp._Ridge):
         return float(np.linalg.lstsq(A, v, rcond=None)[0][0]) if len(v) >= 4 else float(v.mean())
 
     def geometry(self, R):
-        """(s, h) нити для R: s — смещение по ветру от P_c, h — высота над землёй под серединой нити."""
-        s = self.rule["s_m"] + R * self.n_h
-        xy = self.P_c + s * self.wv
+        """(s, h) нити для R: s — смещение от P_c по нормали к оси (проекция смещения вдоль ветра, s_w·(wv·na)), h — высота над землёй под серединой нити."""
+        s_w = self.rule["s_m"] + R * self.n_h                    # смещение вдоль ветра (в плоскости профиля)
+        s = s_w * float(self.wv @ self.na)                       # → вдоль нормали к оси na: так build/node_xy ставят нить
+        xy = self.P_c + s * self.na
         zf = self.rule["z_m"] + R * self.n_z
         return float(s), float(zf - float(self.panels.height(xy[0], xy[1])))
 

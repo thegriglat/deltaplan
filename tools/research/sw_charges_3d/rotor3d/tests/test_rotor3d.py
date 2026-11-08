@@ -232,3 +232,26 @@ def test_v2_agnesi_root_zero_at_reattach(agnesi, ag_v2):
           f"u_t(x_c)={r['ut_c']:.2f} (фон {r['ut_bg'][0]:.1f}), u∥(10 м) min {umin:.1f} ({umin / U:.2f}·U), nsolve {info['nsolve']}")
     assert umin < 0
 
+
+
+# ---------- ревью SWD-11 minor 1: смещение нити — по нормали к оси (как build/node_xy), не вдоль ветра ----------
+def test_geometry_offset_is_along_axis_normal_for_oblique_wind():
+    class Pan:
+        @staticmethod
+        def height(x, y):
+            return 0.1 * np.asarray(x, float)       # наклонная плоскость: h зависит от точки, где нить стоит на самом деле
+
+    ob = R._Rotor.__new__(R._Rotor)
+    th = np.radians(30.0)
+    ob.a = np.array([0.0, 1.0])
+    ob.na = np.array([1.0, 0.0])
+    ob.wv = np.array([np.cos(th), np.sin(th)])       # ветер под 30° к нормали оси
+    ob.P_c = np.array([100.0, 0.0])
+    ob.panels = Pan()
+    ob.rule = dict(s_m=200.0, z_m=40.0)
+    ob.n_h, ob.n_z = 0.6, 0.8
+    s, h = ob.geometry(50.0)
+    s_w = 200.0 + 50.0 * 0.6
+    assert s == pytest.approx(s_w * np.cos(th))
+    xy = ob.P_c + s * ob.na                                   # где build поставит середину нити
+    assert h == pytest.approx(40.0 + 50.0 * 0.8 - 0.1 * xy[0])
