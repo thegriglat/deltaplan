@@ -1,0 +1,44 @@
+{
+  "verdict": "accept",
+  "summary": "Схема соответствует заданию: q = d(U_e·δ*)/ds как новая правая часть той же LU (знак согласован с rhs_of: A σ = v_n), JH couple, два триггера показаны оба, ложные следы Askervein отмечены. Параметры с источниками (0,27 — SWD9 v3, 0,181 — Brown & Roshko), подгонки нет. Отрицательный результат записан с числами и механизмом. Все файлы в скоупе (15), проверки воспроизведены.",
+  "issues": [
+    {
+      "file": "tools/research/sw_ground/wake/README.md",
+      "line": 15,
+      "severity": "minor",
+      "what": "Текст ссылается на «Вывод — summary.md», но summary.md не записан (сам отчёт это признаёт); frontmatter conclusion указывает на README.",
+      "fix": "Заменить ссылку на раздел «Вывод и следующая идея» README (или координатору записать summary.md при приёмке)."
+    },
+    {
+      "file": "tools/research/sw_ground/wake/core.py",
+      "line": 215,
+      "severity": "minor",
+      "what": "Итерации U_e→q при N_ITER=4 не сходятся у ~1–1,5 % точек лее (max |Δs| до 0,70), критерий сходимости не проверяется и в ground.json не сохраняется кроме wake_conv в decomp.",
+      "fix": "Для следующей идеи (вихревой лист) — остановка по dq_rel с порогом и релаксация; здесь менять не нужно, знак вывода не зависит."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "pytest",
+      "value": "passed (5), 43 с",
+      "pass": true
+    },
+    {
+      "name": "contract",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "masts",
+      "value": "30",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "15 файлов в границах",
+      "pass": true
+    }
+  ],
+  "t": "2026-11-08T23:57:11",
+  "by": "reviewer"
+}

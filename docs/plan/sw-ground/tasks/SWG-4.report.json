@@ -1,0 +1,109 @@
+{
+  "status": "done",
+  "summary": "Заряды вытеснения следа q = d(U_e·δ*)/ds на панелях за отрывом (новая правая часть, те же LU, 4 итерации U_e) + JH couple посчитаны на всех 4956 точках SWG1 и мачтах с двумя триггерами (slope — основной, head — Хед со следом). Результат отрицательный: в лее Perdigão и Askervein завышение растёт, мачты хуже. Механизм: источники дают только внешний поток над телом вытеснения, которое заливает вогнутое подножие склона, — ускорение; дефицит под слоем сдвига дают только токи (вихревой лист).",
+  "commits": [
+    "c7f1b934d sw-ground SWG-4: заряды вытеснения следа (Lighthill) + JH couple — схема, таблица до/после SWG2"
+  ],
+  "checks": [
+    {
+      "name": "contract",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "base",
+      "value": "2",
+      "pass": true
+    },
+    {
+      "name": "wake_rows",
+      "value": "10553",
+      "pass": true
+    },
+    {
+      "name": "masts",
+      "value": "30",
+      "pass": true
+    },
+    {
+      "name": "pytest",
+      "value": "5 passed",
+      "pass": true
+    },
+    {
+      "name": "potential_jh против out/swg-1",
+      "value": "max |Δs| = 0 (побитно)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Улучшения нет: lee 10 м — NE +1,48 → +1,91, SW +2,00 → +2,47, ASK +1,01 → +1,17 (доля в ±15 % 0,15/0,08/0,03 → 0,15/0,11/0,03); lee 50 м — NE +1,68 → +2,12, SW +1,87 → +2,30; мачты lee NE +0,80 → +1,55, SW +0,52 → +0,96, ASK +0,51 → +0,60; RMSE s мачт (all) 0,218/0,184/0,126 → 0,242/0,209/0,170. Единственное улучшение — мачты гребня NE, RMSE 0,185 → 0,102.",
+    "summary.md не записан: хук запретил Write файлов summary для субагента; вывод — в разделе «Вывод и следующая идея» README, conclusion во frontmatter указывает на README."
+  ],
+  "questions": [
+    "Следующий шаг — вихревой лист (идея 2 SWG-1) на геометрии WakeGrid (x_s, x_r, оболочка δ*) из этой задачи — завести задачу?"
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SWG-4; таблицы — tools/research/sw_ground/out/swg-4/tables.md; README — tools/research/sw_ground/wake/README.md",
+  "uncertain": [
+    {
+      "where": "tools/research/sw_ground/wake/core.py:profile_dstar",
+      "why": "Закон δ* после отрыва (оболочка профиля + δ_ω/2, δ_ω = 0,181·(s − x_s), закрытие (1 − ξ)) — допущение; закрытие ничем не обосновано, кроме постановки δ* → 0 в x_r",
+      "checked": "Знак эффекта общий для любого δ*, обращающегося в 0 на обоих концах (∫q = 0, поле как над горбом); на Аньези лее +28…+40 %"
+    },
+    {
+      "where": "tools/research/sw_ground/wake/core.py:wake_sigma",
+      "why": "Итерации U_e сходятся не везде: max |Δs| между 3-й и 4-й > 0,05 у 20/1480 (NE) и 11/1477 (SW) точек, в лее NE до 0,70",
+      "checked": "Медиана 5e-5, 95-й процентиль 0,006; на средние rel ≤ 0,01, знак вывода не меняется"
+    },
+    {
+      "where": "tools/research/sw_ground/wake/core.py:wake_panels",
+      "why": "q квазидвумерно вдоль ветра (поперечная дивергенция U_e·δ* отброшена); чистый поток ∫q dA на Аньези ≈ 5 % от U_e·δ*max, не 0",
+      "checked": "pytest Аньези; знак не зависит"
+    },
+    {
+      "where": "README «Схема», ссылки Wood 1995 BLM 76:137, Finnigan et al. 2020 BLM 177:247",
+      "why": "Ссылки на порог отрыва ≈ 0,3 приведены по памяти, страницы не перепроверял",
+      "checked": "Lighthill 1958 JFM 4:383 и Brown & Roshko 1974 JFM 64:775 — стандартные"
+    }
+  ],
+  "dp_feedback": "`dpcli job stop` останавливает обёртку, но не дочерний python: первая копия без замка проработала дальше, пока я не убил её по PID. Ещё: порядок опций `job --no-tmux start` неочевиден — при `start … --no-tmux` флаг ушёл в команду (timeout: --no-tmux). Хук запрещает субагенту Write summary.md, а правила исследователя этот файл требуют.",
+  "extra": {
+    "trigger_slope_segments": {
+      "ASK": "16/48, у Пикара u∥<0 на 10 м — 0 %",
+      "NE": "454/475, 75 %",
+      "SW": "400/443, 75 %"
+    },
+    "trigger_head_segments": {
+      "ASK": "0",
+      "NE": "209 (92 %)",
+      "SW": "90 (96 %)"
+    },
+    "head_separations_pot_vs_wake": {
+      "NE": "42 → 45",
+      "SW": "20 → 24",
+      "ASK": "0 → 0"
+    },
+    "lee_wake_outer_rel_10_50m": {
+      "NE": "+0.73/+0.39",
+      "SW": "+0.63/+0.40",
+      "ASK": "+0.14/+0.03"
+    },
+    "lee_inside_wake_frac_10m": {
+      "NE": 0.52,
+      "SW": 0.43,
+      "ASK": 0.3
+    },
+    "norm_point_slowdown": {
+      "NE": 0.976,
+      "SW": 0.967
+    },
+    "agnesi_10m_ratio": {
+      "crest": 0.91,
+      "lee_mid": "1.28-1.40",
+      "behind_reattach": 0.84
+    }
+  },
+  "t": "2026-11-08T23:52:58",
+  "by": "executor"
+}
