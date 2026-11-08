@@ -1,0 +1,69 @@
+{
+  "id": "SWD-11",
+  "module": "sw-charges-3d",
+  "type": "dp-engineer",
+  "title": "rotor3d: нить ротора с геометрическим замыканием — R и Γ из точек остановки на гребне и в присоединении (SWD7)",
+  "goal": "Пакет rotor3d по SWD7: одна нить вдоль хребта над подветренным склоном по нормали от середины между гребнем и точкой присоединения; R и Γ — из нулевой касательной скорости на гребне и в присоединении; порог по Хеду; без подгонки; инварианты SWD7 (в т. ч. нет ложного ротора на C4, есть на C2) — тестами.",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "SWD2",
+      "version": "5",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    },
+    {
+      "name": "SWD3",
+      "version": "4",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    },
+    {
+      "name": "SWD7",
+      "version": "1",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sw-charges-3d-SWD-11",
+  "branch": "sw-charges-3d/SWD-11",
+  "base": "feature/sw-charges-3d",
+  "scope": [
+    "tools/research/sw_charges_3d/rotor3d/"
+  ],
+  "dont_touch": [
+    "tools/research/sw_charges_3d/panels3d/",
+    "tools/research/sw_charges_3d/filaments3d/",
+    "tools/research/sw_charges_3d/sim3d/",
+    "tools/research/sw_charges_3d/sheet3d/",
+    "tools/research/sw_charges_3d/compare/",
+    "tools/research/sw_charges_3d/out/",
+    "tools/research/sw_charges_3d/refs/",
+    "tools/research/sw_charges/",
+    "docs/contracts/",
+    "tools/research/sw_charges_3d/contract/",
+    "rust/"
+  ],
+  "accept": [
+    {
+      "name": "pytest",
+      "cmd": "tools/research/sw_charges_3d/py -m pytest -q tools/research/sw_charges_3d/rotor3d/tests",
+      "expect": "!re:(failed|error)"
+    },
+    {
+      "name": "pytest-pass",
+      "cmd": "tools/research/sw_charges_3d/py -m pytest -q tools/research/sw_charges_3d/rotor3d/tests",
+      "expect": "num:(\\d+) passed >=6"
+    },
+    {
+      "name": "api",
+      "cmd": "tools/research/sw_charges_3d/py tools/research/sw_charges_3d/contract/check_contract.py api rotor3d",
+      "expect": "exit=0"
+    },
+    {
+      "name": "readme",
+      "cmd": "ls tools/research/sw_charges_3d/rotor3d/README.md",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-08T17:45:52"
+}

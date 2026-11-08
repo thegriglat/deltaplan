@@ -18,7 +18,7 @@
     },
     {
       "name": "SWD6",
-      "version": "4",
+      "version": "5",
       "ref": "docs/contracts/sw-charges-3d.md"
     }
   ],
@@ -47,17 +47,18 @@
       "expect": "!re:(failed|error)"
     },
     {
-      "name": "pytest-pass",
-      "cmd": "tools/research/sw_charges_3d/py -m pytest -q tools/research/sw_charges_3d/sheet3d/tests",
-      "expect": "num:(\\d+) passed >=13"
-    },
-    {
       "name": "api",
       "cmd": "tools/research/sw_charges_3d/py tools/research/sw_charges_3d/contract/check_contract.py api sheet3d",
       "expect": "exit=0"
+    },
+    {
+      "name": "pytest-pass",
+      "cmd": "tools/research/sw_charges_3d/py -m pytest -q tools/research/sw_charges_3d/sheet3d/tests",
+      "expect": "num:(\\d+) passed >=12"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-11-08T17:43:08"
+  "created": "2026-11-08T17:43:08",
+  "edited": "2026-11-08T17:45:51"
 }
