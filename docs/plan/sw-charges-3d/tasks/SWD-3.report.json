@@ -1,0 +1,57 @@
+{
+  "status": "done",
+  "summary": "Доработка по ревью: shed на земле с переменной u_s больше не схлопывает ножки (узел поднят на core, якорь в исходной точке); тест 50 шагов; замер induced 1e4x1e4: numpy 7.9 с, cupy 0.29 с; таблица ошибки кольца по n и δ; сноска про ядра убрана.",
+  "commits": [
+    "filaments3d: shed на земле с переменной u_s (ножки с поднятым узлом), замер induced CPU/GPU, ошибка кольца по δ"
+  ],
+  "checks": [
+    {
+      "name": "pytest",
+      "value": "11 passed",
+      "pass": true
+    },
+    {
+      "name": "pytest-pass",
+      "value": "11",
+      "pass": true
+    },
+    {
+      "name": "readme",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "api",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "induced 1e4x1e4",
+      "value": "numpy 7.94 с, cupy 0.29 с",
+      "pass": true
+    },
+    {
+      "name": "shed на земле + 50 step",
+      "value": "нить жива, imbalance<=1e-12, нет NaN (z0=0 и 0.5)",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept SWD-3",
+  "uncertain": [
+    {
+      "where": "filaments3d/dynamics.py:shed/_reconnect",
+      "why": "shed на земле с переменной u_s за 50 шагов даёт взрыв числа отрезков (≈1.4e4, 1.3e4 перезамыканий) и отрыв/удаление мелких петель (removed=31): соседние ножки противоположного знака сближаются и перезамыкаются каскадом",
+      "checked": "инвариант (imbalance, конечность, нить жива) держится; физичность каскада и стоимость не оценивал — нужен контроль SWD-4 (r_rec, gamma_min)"
+    },
+    {
+      "where": "filaments3d/dynamics.py:_reconnect",
+      "why": "критерий по серединам отрезков; один обмен на отрезок за шаг",
+      "checked": "встречные кольца, неравные Γ"
+    }
+  ],
+  "dp_feedback": "pytest создаёт .pytest_cache в каталоге модуля, docs check ругается на его README.",
+  "t": "2026-11-08T05:43:44",
+  "by": "executor"
+}

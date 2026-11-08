@@ -4,3 +4,4 @@ matplotlib
 h5py
 cupy-cuda12x[ctk]
 pytest
+brotli

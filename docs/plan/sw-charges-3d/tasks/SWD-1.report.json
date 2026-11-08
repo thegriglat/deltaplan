@@ -1,0 +1,135 @@
+{
+  "status": "done",
+  "summary": "Шесть прогонов Пикара Б1 (nom, adv1 x Askervein TU03B, Perdigao NE, SW) сошлись; записаны 3 h5 SWD1 (11 уровней z_agl 2-300 м, int16), points.json/.csv (546 строк: мачты 69+28+25 с парами nom/adv1, синтетические точки 5 типов x 6 высот, 18 разрезов, 43 строки ротора), tables.md, README и summary.",
+  "commits": [
+    "3f383c4ec SWD-1: эталоны 3D — поля Пикара (Б1 nom/adv1) и мачты Askervein/Perdigão, SWD1",
+    "27f6d69fe SWD-1: поправка чисел в summary"
+  ],
+  "checks": [
+    {
+      "name": "contract-files",
+      "value": "OK 3 h5 + points.json",
+      "pass": true
+    },
+    {
+      "name": "three-cases",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "selftest",
+      "value": "OK",
+      "pass": true
+    },
+    {
+      "name": "Пикар nom vs мачты, s_norm, доля в ±15 %",
+      "value": "Askervein 0.84 (сдвиг -0.02); Perdigao NE 0.61 (-0.23); SW 0.36 (-0.27)",
+      "pass": true
+    },
+    {
+      "name": "adv1 vs мачты, доля в ±15 %",
+      "value": "Askervein 0.77; NE 0.50; SW 0.32",
+      "pass": true
+    },
+    {
+      "name": "Askervein HT 10 м dS",
+      "value": "nom 0.746, adv1 0.610, данные 0.884 (FSR)",
+      "pass": true
+    },
+    {
+      "name": "ротор Perdigao NE, L в м",
+      "value": "nom 0/430/170 (sec-500/0/+500), adv1 280/300/210; Menke 570/490/420",
+      "pass": true
+    },
+    {
+      "name": "ротор Perdigao SW, L в м",
+      "value": "nom 0 на всех разрезах, adv1 60 на одном; Menke 680/670/500",
+      "pass": true
+    },
+    {
+      "name": "время прогона Пикара",
+      "value": "решатель 6-24 с, всего 11-24 с; 4.2-4.7 млн клеток",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Лидарные RHI-разрезы Menke (ref_kind lidar) не добавлены — по желанию, поля u_par по лучам не извлекались",
+    "Askervein: подветренный склон внутри области без боковой губки мал (около 400 м от HT), тип valley стоит у границы губки"
+  ],
+  "questions": [
+    "Для SWD-5: Askervein dS мачт на 10 м взят как опубликованный FSR (RS своего прогона), s_norm мачт — S/8.895 по контракту; они расходятся до 0.06 на отдельных точках. Нужна ли единая нормировка (достаточно сменить правило в points.py masts_ask)?",
+    "Опорная точка Perdigao — мачта наветренного гребня 100 м (tse13 NE, tse04 SW), та же, по которой калибруется U10 случая; s_norm Пикара на ней равно 1 по построению. Нужна ли другая (Пикар вверх по потоку на 100 м)?"
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SWD-1",
+  "uncertain": [
+    {
+      "where": "tools/research/sw_charges_3d/refs/points.py:classify",
+      "why": "типы точек (crest/windward/lee/valley/upstream) — эвристики по положению вдоль ветра и высоте; в Askervein valley только низкая земля с подветренной стороны",
+      "checked": "числа по типам в tables.md; границы на картах не проверялись"
+    },
+    {
+      "where": "tools/research/sw_charges_3d/refs/points.py:transects (menke_T1-T3)",
+      "why": "положение лидара WS105 в данных не задано, разрезы T1-T3 условно совпадают со сдвигами -500/0/+500 м; соответствие нумерации Menke не установлено",
+      "checked": "длины зоны Menke взяты из fig8_zones_approx.csv (приближение по рисунку, +-50 м)"
+    },
+    {
+      "where": "tools/research/sw_charges_3d/refs/points.py:masts_pd",
+      "why": "spd из windowmean принят за модуль среднего вектора; u,v восстановлены из spd и dir_deg",
+      "checked": "не сравнивал с векторным средним по 5-мин рядам"
+    },
+    {
+      "where": "tools/research/sw_charges_3d/refs/make_refs.py:rotor_line",
+      "why": "критерий ротора SWD5 (u_par < -0.5 м/с на 15 м, >50 м) отличается от Menke (слепая зона, условная статистика по периодам); глубина — max z_agl связной области с шагом 15 м",
+      "checked": "Perdigao NE nom 430 м на центре согласуется по порядку с L/D 0.2-0.4 из cases/README.md"
+    },
+    {
+      "where": "out/refs/*.h5 picard_*",
+      "why": "боковая губка (Askervein 700 м, Perdigao 1050 м) в полях не маскирована; значения на z_agl ниже 1*dz — первая клетка",
+      "checked": "границы в params.sponge_side_m, пометки в ref_source точек"
+    }
+  ],
+  "dp_feedback": "В requirements.txt venv sw_charges_3d нет brotli (air3d/terrain.py его импортирует, run_one падает с ModuleNotFoundError) — доустановил в venv вручную (uv pip install brotli); файл вне моего скоупа, координатору добавить. dpcli plan sw-charges-3d 'Задачи 3' не находит раздел (в плане пункты нумерованного списка внутри 'Задачи').",
+  "extra": {
+    "files": [
+      "tools/research/sw_charges_3d/out/refs/ASK_TU03B.h5",
+      "tools/research/sw_charges_3d/out/refs/PERD_NE.h5",
+      "tools/research/sw_charges_3d/out/refs/PERD_SW.h5",
+      "tools/research/sw_charges_3d/out/refs/points.json",
+      "tools/research/sw_charges_3d/out/refs/tables.md"
+    ],
+    "rows": {
+      "ASK_TU03B": {
+        "mast": 69,
+        "picard_nom": 99,
+        "picard_adv1": 99
+      },
+      "PERD_NE": {
+        "mast": 28,
+        "picard_nom": 58,
+        "picard_adv1": 58
+      },
+      "PERD_SW": {
+        "mast": 25,
+        "picard_nom": 55,
+        "picard_adv1": 55
+      }
+    },
+    "picard_runs": {
+      "ASK_TU03B": {
+        "nom": "101 it, 6.1 s",
+        "adv1": "91 it, 6.8 s"
+      },
+      "PERD_NE": {
+        "nom": "211 it, 24.2 s",
+        "adv1": "161 it, 10.9 s"
+      },
+      "PERD_SW": {
+        "nom": "191 it, 15.6 s",
+        "adv1": "171 it, 12.8 s"
+      }
+    }
+  },
+  "t": "2026-11-08T05:45:03",
+  "by": "executor"
+}

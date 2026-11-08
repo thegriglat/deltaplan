@@ -1,0 +1,57 @@
+{
+  "id": "SWD-2",
+  "module": "sw-charges-3d",
+  "type": "dp-engineer",
+  "title": "panels3d: треугольные панели-источники по рельефу, внутренний слой Jackson–Hunt, отрыв по линиям тока",
+  "goal": "Пакет panels3d по SWD2: панели постоянного источника на триангуляции рельефа (25 м у фокусов, крупнее вдали), решение на GPU с кешем факторизации, скорость, внутренний слой JH и отрыв Хеда только с подветренной стороны; инварианты SWD2 — тестами.",
+  "plan_ref": "Задачи 1 (Панели 3D)",
+  "contracts": [
+    {
+      "name": "SWD2",
+      "version": "2",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sw-charges-3d-SWD-2",
+  "branch": "sw-charges-3d/SWD-2",
+  "base": "feature/sw-charges-3d",
+  "scope": [
+    "tools/research/sw_charges_3d/panels3d/"
+  ],
+  "dont_touch": [
+    "tools/research/sw_charges/",
+    "docs/contracts/",
+    "tools/research/sw_charges_3d/contract/",
+    "tools/research/sw_charges_3d/filaments3d/",
+    "tools/research/sw_charges_3d/refs/",
+    "tools/research/sw_charges_3d/py",
+    "tools/research/sw_charges_3d/requirements.txt",
+    "rust/"
+  ],
+  "accept": [
+    {
+      "name": "pytest",
+      "cmd": "tools/research/sw_charges_3d/py -m pytest -q tools/research/sw_charges_3d/panels3d/tests",
+      "expect": "!re:(failed|error)"
+    },
+    {
+      "name": "pytest-pass",
+      "cmd": "tools/research/sw_charges_3d/py -m pytest -q tools/research/sw_charges_3d/panels3d/tests",
+      "expect": "num:(\\d+) passed >=12"
+    },
+    {
+      "name": "api",
+      "cmd": "tools/research/sw_charges_3d/py tools/research/sw_charges_3d/contract/check_contract.py api panels3d",
+      "expect": "exit=0"
+    },
+    {
+      "name": "readme",
+      "cmd": "ls tools/research/sw_charges_3d/panels3d/README.md",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-08T05:31:31",
+  "edited": "2026-11-08T05:48:10"
+}
