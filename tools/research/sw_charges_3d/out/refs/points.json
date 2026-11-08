@@ -1,8 +1,8 @@
 {
  "format": "sw3d-points",
  "version": 1,
- "git": "2c0aaae654d77943cc8550492a6edc7f8b97657a",
- "created": "2026-11-08T05:43:36+0500",
+ "git": "c82e537eb637bee58643a5b562015f2361f51e30",
+ "created": "2026-11-08T05:53:12+0500",
  "norm": {
   "ASK_TU03B": {
    "name": "RS",
@@ -35,7 +35,7 @@
    "y": 20980.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: AES tilted gill uvw, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (RS), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: AES tilted gill uvw, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (RS), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": null,
    "u": null,
@@ -1007,7 +1007,7 @@
    "y": 23122.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: AES  gill uvw, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (ASW85), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: AES  gill uvw, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (ASW85), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.0496141124586549,
    "u": null,
@@ -1061,7 +1061,7 @@
    "y": 23378.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: AES  gill uvw, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (ASW50), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: AES  gill uvw, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (ASW50), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.05905006418485237,
    "u": null,
@@ -1115,7 +1115,7 @@
    "y": 23498.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: AES  gill uvw, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (ASW35), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: AES  gill uvw, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (ASW35), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.07765830346475508,
    "u": null,
@@ -1169,7 +1169,7 @@
    "y": 23604.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: AES  gill uvw, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (ASW20), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: AES  gill uvw, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (ASW20), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.0032760032760032758,
    "u": null,
@@ -1223,7 +1223,7 @@
    "y": 23667.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: AES  gill uvw, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (ASW10), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: AES  gill uvw, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (ASW10), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.02736156351791531,
    "u": null,
@@ -1277,7 +1277,7 @@
    "y": 23735.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: AES  gill uvw, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (HT), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: AES  gill uvw, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (HT), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.03450106157112527,
    "u": null,
@@ -1331,7 +1331,7 @@
    "y": 23812.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: AES  gill uvw, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (ANE10), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: AES  gill uvw, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (ANE10), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.032974910394265235,
    "u": null,
@@ -1385,7 +1385,7 @@
    "y": 23884.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: AES  gill uvw, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (ANE20), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: AES  gill uvw, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (ANE20), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.06758832565284177,
    "u": null,
@@ -1439,7 +1439,7 @@
    "y": 24017.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: AES  gill uvw, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (ANE40), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: AES  gill uvw, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (ANE40), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.2378223495702006,
    "u": null,
@@ -1493,7 +1493,7 @@
    "y": 23396.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: AES  gill uvw, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (AASW10), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: AES  gill uvw, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (AASW10), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.030906593406593408,
    "u": null,
@@ -1547,7 +1547,7 @@
    "y": 23320.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: FRG cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (AASW20), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: FRG cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (AASW20), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.03209459459459459,
    "u": null,
@@ -1601,7 +1601,7 @@
    "y": 23253.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: FRG cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (AASW30), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: FRG cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (AASW30), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.027522935779816515,
    "u": null,
@@ -1655,7 +1655,7 @@
    "y": 23174.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: FRG cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (AASW40), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: FRG cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (AASW40), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.029411764705882353,
    "u": null,
@@ -1709,7 +1709,7 @@
    "y": 23107.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: FRG cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (AASW50), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: FRG cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (AASW50), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.051771117166212535,
    "u": null,
@@ -1763,7 +1763,7 @@
    "y": 23038.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: FRG cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (AASW60), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: FRG cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (AASW60), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.04534883720930233,
    "u": null,
@@ -1817,7 +1817,7 @@
    "y": 22968.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: FRG cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (AASW70), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: FRG cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (AASW70), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.037199124726477024,
    "u": null,
@@ -1871,7 +1871,7 @@
    "y": 23466.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: FRG cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (CP (FRG_mf)), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: FRG cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (CP (FRG_mf)), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.029318036966220522,
    "u": null,
@@ -1925,7 +1925,7 @@
    "y": 23466.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: FRG gill uvw, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (CP (FRG_t)), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: FRG gill uvw, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (CP (FRG_t)), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.027611044417767107,
    "u": null,
@@ -1979,7 +1979,7 @@
    "y": 23540.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: FRG cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (AANE10), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: FRG cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (AANE10), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.027380952380952377,
    "u": null,
@@ -2033,7 +2033,7 @@
    "y": 23610.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: FRG cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (AANE20), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: FRG cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (AANE20), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.042417815482502653,
    "u": null,
@@ -2087,7 +2087,7 @@
    "y": 23675.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: FRG cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (AANE30), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: FRG cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (AANE30), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.03337453646477132,
    "u": null,
@@ -2141,7 +2141,7 @@
    "y": 23745.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: FRG cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (AANE40), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: FRG cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (AANE40), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.07872696817420435,
    "u": null,
@@ -2195,7 +2195,7 @@
    "y": 23886.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: FRG cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (AANE60), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: FRG cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (AANE60), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.06351351351351352,
    "u": null,
@@ -2249,7 +2249,7 @@
    "y": 23810.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: AES cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (BNW10), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: AES cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (BNW10), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.06534870950027458,
    "u": null,
@@ -2303,7 +2303,7 @@
    "y": 23875.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: AES cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (BNW20), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: AES cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (BNW20), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.041064198958935795,
    "u": null,
@@ -2357,7 +2357,7 @@
    "y": 23745.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: AES cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (HT (10m_t)), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: AES cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (HT (10m_t)), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.03768577494692144,
    "u": null,
@@ -2411,7 +2411,7 @@
    "y": 23671.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: AES cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (BSE10), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: AES cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (BSE10), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.033408833522083806,
    "u": null,
@@ -2465,7 +2465,7 @@
    "y": 23603.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: AES cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (BSE20), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: AES cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (BSE20), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.03377218088151116,
    "u": null,
@@ -2519,7 +2519,7 @@
    "y": 23535.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: AES cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (BSE30), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: AES cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (BSE30), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.032407407407407406,
    "u": null,
@@ -2573,7 +2573,7 @@
    "y": 23466.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: FRG cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (CP (FRG_mf)), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: FRG cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (CP (FRG_mf)), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.029318036966220522,
    "u": null,
@@ -2627,7 +2627,7 @@
    "y": 23466.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: FRG gill uvw, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (CP (FRG_t)), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: FRG gill uvw, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (CP (FRG_t)), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.027611044417767107,
    "u": null,
@@ -2681,7 +2681,7 @@
    "y": 23397.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: AES cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (BSE50), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: AES cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (BSE50), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.029288702928870293,
    "u": null,
@@ -2735,7 +2735,7 @@
    "y": 23324.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: AES cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (BSE60), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: AES cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (BSE60), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.0273321449792038,
    "u": null,
@@ -2789,7 +2789,7 @@
    "y": 23260.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: AES cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (BSE70), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: AES cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (BSE70), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.031130876747141045,
    "u": null,
@@ -2843,7 +2843,7 @@
    "y": 23193.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: AES cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (BSE80), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: AES cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (BSE80), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.02638700947225981,
    "u": null,
@@ -2897,7 +2897,7 @@
    "y": 23130.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: AES cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (BSE90), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: AES cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (BSE90), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.031988873435326845,
    "u": null,
@@ -2951,7 +2951,7 @@
    "y": 23063.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: AES cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (BSE100), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: AES cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (BSE100), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.02963525835866261,
    "u": null,
@@ -3005,7 +3005,7 @@
    "y": 22997.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: AES cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (BSE110), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: AES cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (BSE110), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.031538461538461536,
    "u": null,
@@ -3059,7 +3059,7 @@
    "y": 22723.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: AES cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (BSE150), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: AES cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (BSE150), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.03516295025728988,
    "u": null,
@@ -3113,7 +3113,7 @@
    "y": 22585.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: AES cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (BSE170), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: AES cup, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (BSE170), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": 0.03418803418803419,
    "u": null,
@@ -3653,7 +3653,7 @@
    "y": 23466.0,
    "z_agl": 10.0,
    "ref_kind": "mast",
-   "ref_source": "askervein_validation1.txt: FRG gill uvw, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (CP), смещения от линии нет (координаты мачты в файле)",
+   "ref_source": "askervein_validation1.txt: FRG gill uvw, Zenodo 4095052 (Taylor & Teunissen 1983/85); линия по имени (CP), смещения от линии нет (координаты мачты в файле); dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)",
    "ref_reliability": "измерение",
    "ref_err": null,
    "u": null,
@@ -3805,7 +3805,7 @@
    "w": -0.0072998621032048655,
    "speed": 13.364478978254208,
    "s_norm": 1.501879191327709,
-   "dS": null
+   "dS": 0.042143409754760164
   },
   {
    "case": "ASK_TU03B",
@@ -3823,7 +3823,7 @@
    "w": -0.010406887458268423,
    "speed": 15.378613674609353,
    "s_norm": 1.7282244902285493,
-   "dS": null
+   "dS": 0.017404987620675216
   },
   {
    "case": "ASK_TU03B",
@@ -3841,7 +3841,7 @@
    "w": -0.004861538114315046,
    "speed": 17.853910347459877,
    "s_norm": 2.0063944489202377,
-   "dS": null
+   "dS": 0.0036145463992096616
   },
   {
    "case": "ASK_TU03B",
@@ -3859,7 +3859,7 @@
    "w": 0.0058213055074921504,
    "speed": 19.542420443657075,
    "s_norm": 2.1961465658528643,
-   "dS": null
+   "dS": -0.001421238009494341
   },
   {
    "case": "ASK_TU03B",
@@ -3913,7 +3913,7 @@
    "w": 3.2744929395226205,
    "speed": 14.426779608958462,
    "s_norm": 1.6212588704596096,
-   "dS": null
+   "dS": 0.12498012963498262
   },
   {
    "case": "ASK_TU03B",
@@ -3931,7 +3931,7 @@
    "w": 2.7476880569306936,
    "speed": 16.779857779770925,
    "s_norm": 1.8856941055376895,
-   "dS": null
+   "dS": 0.11010728001385917
   },
   {
    "case": "ASK_TU03B",
@@ -3949,7 +3949,7 @@
    "w": 1.7130166218928844,
    "speed": 19.30537960252184,
    "s_norm": 2.1695082878193475,
-   "dS": null
+   "dS": 0.0852053928682388
   },
   {
    "case": "ASK_TU03B",
@@ -3967,7 +3967,7 @@
    "w": 1.082634990357631,
    "speed": 20.734851100719485,
    "s_norm": 2.3301500532957546,
-   "dS": null
+   "dS": 0.059509593599718524
   },
   {
    "case": "ASK_TU03B",
@@ -4021,7 +4021,7 @@
    "w": 0.4807193137124752,
    "speed": 19.120269662101382,
    "s_norm": 2.148705922977608,
-   "dS": null
+   "dS": 0.49097193040710363
   },
   {
    "case": "ASK_TU03B",
@@ -4039,7 +4039,7 @@
    "w": 0.5237446876658386,
    "speed": 19.88915419766495,
    "s_norm": 2.2351119614304022,
-   "dS": null
+   "dS": 0.3158094161419933
   },
   {
    "case": "ASK_TU03B",
@@ -4057,7 +4057,7 @@
    "w": 0.40918045186383706,
    "speed": 20.938328564710158,
    "s_norm": 2.353016531635013,
-   "dS": null
+   "dS": 0.17699768374937075
   },
   {
    "case": "ASK_TU03B",
@@ -4075,7 +4075,7 @@
    "w": 0.29892542971781577,
    "speed": 21.684124752250828,
    "s_norm": 2.4368279377408117,
-   "dS": null
+   "dS": 0.10801558652261889
   },
   {
    "case": "ASK_TU03B",
@@ -4129,7 +4129,7 @@
    "w": -1.7991340637135262,
    "speed": 13.49415435483893,
    "s_norm": 1.5164519068100764,
-   "dS": null
+   "dS": 0.05225531455367727
   },
   {
    "case": "ASK_TU03B",
@@ -4147,7 +4147,7 @@
    "w": -1.3786495630168858,
    "speed": 17.447886866309744,
    "s_norm": 1.960766166776052,
-   "dS": null
+   "dS": 0.1543021690266715
   },
   {
    "case": "ASK_TU03B",
@@ -4165,7 +4165,7 @@
    "w": -0.7729825588000269,
    "speed": 19.74329135897796,
    "s_norm": 2.2187201243398254,
-   "dS": null
+   "dS": 0.10982154699164726
   },
   {
    "case": "ASK_TU03B",
@@ -4183,7 +4183,7 @@
    "w": -0.4250341398288155,
    "speed": 21.034968835832306,
    "s_norm": 2.3638768137663844,
-   "dS": null
+   "dS": 0.07484501211885197
   },
   {
    "case": "ASK_TU03B",
@@ -4237,7 +4237,7 @@
    "w": -1.029430016176044,
    "speed": 9.11407442193815,
    "s_norm": 1.0242253921603393,
-   "dS": null
+   "dS": -0.2892972026599716
   },
   {
    "case": "ASK_TU03B",
@@ -4255,7 +4255,7 @@
    "w": -1.140361790215896,
    "speed": 14.029454223599553,
    "s_norm": 1.5766080666813422,
-   "dS": null
+   "dS": -0.07185153338935735
   },
   {
    "case": "ASK_TU03B",
@@ -4273,7 +4273,7 @@
    "w": -0.8422724360754876,
    "speed": 18.264732046533723,
    "s_norm": 2.052561947270817,
-   "dS": null
+   "dS": 0.0267078982276292
   },
   {
    "case": "ASK_TU03B",
@@ -4291,7 +4291,7 @@
    "w": -0.5885403155350112,
    "speed": 20.07714725896731,
    "s_norm": 2.2562383268759554,
-   "dS": null
+   "dS": 0.025902237236323122
   },
   {
    "case": "ASK_TU03B",
@@ -4345,7 +4345,7 @@
    "w": -0.003896455437857572,
    "speed": 13.288701012305504,
    "s_norm": 1.4936589801311597,
-   "dS": null
+   "dS": 0.03621564379524589
   },
   {
    "case": "ASK_TU03B",
@@ -4363,7 +4363,7 @@
    "w": -0.005214742650203947,
    "speed": 15.333924466801761,
    "s_norm": 1.7235434794779627,
-   "dS": null
+   "dS": 0.014432756008683878
   },
   {
    "case": "ASK_TU03B",
@@ -4381,7 +4381,7 @@
    "w": 0.0011143727727064327,
    "speed": 17.841368469988694,
    "s_norm": 2.0053818810695123,
-   "dS": null
+   "dS": 0.0028889812130086234
   },
   {
    "case": "ASK_TU03B",
@@ -4399,7 +4399,7 @@
    "w": 0.011505502829926156,
    "speed": 19.539527190700777,
    "s_norm": 2.196256069640001,
-   "dS": null
+   "dS": -0.001591804198528668
   },
   {
    "case": "ASK_TU03B",
@@ -4453,7 +4453,7 @@
    "w": 3.171654052862419,
    "speed": 13.731108248885214,
    "s_norm": 1.5433858526960837,
-   "dS": null
+   "dS": 0.07071331960626837
   },
   {
    "case": "ASK_TU03B",
@@ -4471,7 +4471,7 @@
    "w": 2.811615428312714,
    "speed": 16.543884933218475,
    "s_norm": 1.8595438541265803,
-   "dS": null
+   "dS": 0.09447903074194319
   },
   {
    "case": "ASK_TU03B",
@@ -4489,7 +4489,7 @@
    "w": 1.8025391219099267,
    "speed": 19.255556557478982,
    "s_norm": 2.164337578433637,
-   "dS": null
+   "dS": 0.08238252750080677
   },
   {
    "case": "ASK_TU03B",
@@ -4507,7 +4507,7 @@
    "w": 1.1612935277898266,
    "speed": 20.73131454339198,
    "s_norm": 2.3302137740164888,
-   "dS": null
+   "dS": 0.05930476965233322
   },
   {
    "case": "ASK_TU03B",
@@ -4561,7 +4561,7 @@
    "w": 0.5283059688607058,
    "speed": 18.32461133635571,
    "s_norm": 2.059698706037206,
-   "dS": null
+   "dS": 0.4289018103135991
   },
   {
    "case": "ASK_TU03B",
@@ -4579,7 +4579,7 @@
    "w": 0.629402993078647,
    "speed": 19.67744521911226,
    "s_norm": 2.2117581492991065,
-   "dS": null
+   "dS": 0.3017831819930288
   },
   {
    "case": "ASK_TU03B",
@@ -4597,7 +4597,7 @@
    "w": 0.5219926687622908,
    "speed": 20.909476466334134,
    "s_norm": 2.3502392946353634,
-   "dS": null
+   "dS": 0.1753517442506196
   },
   {
    "case": "ASK_TU03B",
@@ -4615,7 +4615,7 @@
    "w": 0.39206169290089854,
    "speed": 21.711327109624314,
    "s_norm": 2.4403678491844683,
-   "dS": null
+   "dS": 0.10938032002596043
   },
   {
    "case": "ASK_TU03B",
@@ -4669,7 +4669,7 @@
    "w": -1.3732353940693738,
    "speed": 11.912065344519156,
    "s_norm": 1.3389242001361967,
-   "dS": null
+   "dS": -0.07113054553099285
   },
   {
    "case": "ASK_TU03B",
@@ -4687,7 +4687,7 @@
    "w": -1.0499183178896114,
    "speed": 16.78843838974887,
    "s_norm": 1.887031828017368,
-   "dS": null
+   "dS": 0.11065773551101143
   },
   {
    "case": "ASK_TU03B",
@@ -4705,7 +4705,7 @@
    "w": -0.5626562822968653,
    "speed": 19.747846262193544,
    "s_norm": 2.219671274149427,
-   "dS": null
+   "dS": 0.11005483981548836
   },
   {
    "case": "ASK_TU03B",
@@ -4723,7 +4723,7 @@
    "w": -0.2902555478482956,
    "speed": 21.105980139850942,
    "s_norm": 2.37232644042225,
-   "dS": null
+   "dS": 0.07844899962978635
   },
   {
    "case": "ASK_TU03B",
@@ -4777,7 +4777,7 @@
    "w": -0.7755652854299792,
    "speed": 7.475497341845531,
    "s_norm": 0.8402509564519872,
-   "dS": null
+   "dS": -0.41708167836743315
   },
   {
    "case": "ASK_TU03B",
@@ -4795,7 +4795,7 @@
    "w": -0.9447887532702347,
    "speed": 12.821556829399528,
    "s_norm": 1.4411516580710564,
-   "dS": null
+   "dS": -0.15177570758684256
   },
   {
    "case": "ASK_TU03B",
@@ -4813,7 +4813,7 @@
    "w": -0.6942387028044731,
    "speed": 18.28655496225454,
    "s_norm": 2.0554211438530015,
-   "dS": null
+   "dS": 0.02791355421195263
   },
   {
    "case": "ASK_TU03B",
@@ -4831,7 +4831,7 @@
    "w": -0.48681879736494155,
    "speed": 20.20930828404766,
    "s_norm": 2.271539917464798,
-   "dS": null
+   "dS": 0.032631896634347735
   },
   {
    "case": "PERD_NE",
@@ -10118,7 +10118,7 @@
    "present": true,
    "L_m": 570.0,
    "depth_m": 157.0,
-   "criterion": "нулевой контур среднего u∥ по периодам с рециркуляцией, ±50 м; средняя глубина 157 м над дном",
+   "criterion": "нулевой контур среднего u∥ по периодам с рециркуляцией, ±50 м; средняя глубина 157 м над дном; сравнивать разброс/среднее по T1–T3 с разрезами sec*, а не попарно (номера T_k ↔ sec — допущение)",
    "ref_source": "Menke et al. 2019, ACP 19, 2713, Рис. 8 (menke2019/fig8_zones_approx.csv, по рисунку ±50 м), Рис. 8 и текст (глубина 157 ± 30 м); условная статистика по периодам с рециркуляцией"
   },
   {
@@ -10128,7 +10128,7 @@
    "present": true,
    "L_m": 490.0,
    "depth_m": 157.0,
-   "criterion": "нулевой контур среднего u∥ по периодам с рециркуляцией, ±50 м; средняя глубина 157 м над дном",
+   "criterion": "нулевой контур среднего u∥ по периодам с рециркуляцией, ±50 м; средняя глубина 157 м над дном; сравнивать разброс/среднее по T1–T3 с разрезами sec*, а не попарно (номера T_k ↔ sec — допущение)",
    "ref_source": "Menke et al. 2019, ACP 19, 2713, Рис. 8 (menke2019/fig8_zones_approx.csv, по рисунку ±50 м), Рис. 8 и текст (глубина 157 ± 30 м); условная статистика по периодам с рециркуляцией"
   },
   {
@@ -10138,7 +10138,7 @@
    "present": true,
    "L_m": 420.0,
    "depth_m": 157.0,
-   "criterion": "нулевой контур среднего u∥ по периодам с рециркуляцией, ±50 м; средняя глубина 157 м над дном",
+   "criterion": "нулевой контур среднего u∥ по периодам с рециркуляцией, ±50 м; средняя глубина 157 м над дном; сравнивать разброс/среднее по T1–T3 с разрезами sec*, а не попарно (номера T_k ↔ sec — допущение)",
    "ref_source": "Menke et al. 2019, ACP 19, 2713, Рис. 8 (menke2019/fig8_zones_approx.csv, по рисунку ±50 м), Рис. 8 и текст (глубина 157 ± 30 м); условная статистика по периодам с рециркуляцией"
   },
   {
@@ -10288,7 +10288,7 @@
    "present": true,
    "L_m": 680.0,
    "depth_m": 157.0,
-   "criterion": "нулевой контур среднего u∥ по периодам с рециркуляцией, ±50 м; средняя глубина 157 м над дном",
+   "criterion": "нулевой контур среднего u∥ по периодам с рециркуляцией, ±50 м; средняя глубина 157 м над дном; сравнивать разброс/среднее по T1–T3 с разрезами sec*, а не попарно (номера T_k ↔ sec — допущение)",
    "ref_source": "Menke et al. 2019, ACP 19, 2713, Рис. 8 (menke2019/fig8_zones_approx.csv, по рисунку ±50 м), Рис. 8 и текст (глубина 157 ± 30 м); условная статистика по периодам с рециркуляцией"
   },
   {
@@ -10298,7 +10298,7 @@
    "present": true,
    "L_m": 670.0,
    "depth_m": 157.0,
-   "criterion": "нулевой контур среднего u∥ по периодам с рециркуляцией, ±50 м; средняя глубина 157 м над дном",
+   "criterion": "нулевой контур среднего u∥ по периодам с рециркуляцией, ±50 м; средняя глубина 157 м над дном; сравнивать разброс/среднее по T1–T3 с разрезами sec*, а не попарно (номера T_k ↔ sec — допущение)",
    "ref_source": "Menke et al. 2019, ACP 19, 2713, Рис. 8 (menke2019/fig8_zones_approx.csv, по рисунку ±50 м), Рис. 8 и текст (глубина 157 ± 30 м); условная статистика по периодам с рециркуляцией"
   },
   {
@@ -10308,7 +10308,7 @@
    "present": true,
    "L_m": 500.0,
    "depth_m": 157.0,
-   "criterion": "нулевой контур среднего u∥ по периодам с рециркуляцией, ±50 м; средняя глубина 157 м над дном",
+   "criterion": "нулевой контур среднего u∥ по периодам с рециркуляцией, ±50 м; средняя глубина 157 м над дном; сравнивать разброс/среднее по T1–T3 с разрезами sec*, а не попарно (номера T_k ↔ sec — допущение)",
    "ref_source": "Menke et al. 2019, ACP 19, 2713, Рис. 8 (menke2019/fig8_zones_approx.csv, по рисунку ±50 м), Рис. 8 и текст (глубина 157 ± 30 м); условная статистика по периодам с рециркуляцией"
   },
   {
