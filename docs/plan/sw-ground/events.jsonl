@@ -168,3 +168,5 @@
 {"t": "2026-11-09T03:59:16", "by": "coordinator", "task": "SWG-12", "ev": "checked", "note": "5/5 contract=ok:exit 0; base=ok:2; free_rows=ok:25727; masts=ok:105; pytest=ok:passed"}
 {"t": "2026-11-09T04:02:12", "by": "reviewer", "task": "SWG-12", "ev": "reviewed", "note": "Скоуп и SWG2 v1 соблюдены (9 вариантов × 5078 строк, summary/masts/decomp есть; potential_jh = out/swg-1 побитно). Геометрия Кирхгофа реализована как заявлено:…", "verdict": "accept", "issues": {"minor": 4}, "review": "docs/plan/sw-ground/tasks/SWG-12.review.json"}
 {"t": "2026-11-09T04:02:38", "by": "coordinator", "task": "SWG-12", "ev": "accepted", "note": "по ревью (fable): по мачтам free_jh хуже zone_jh (NE 0,224/0,159, SW 0,139/0,120); 4 minor — линейная теория при уклонах 0,4–0,6, сдвиг нормировки от листа NE 0,874 (выбор — без листа в нормировке), слабый порог теста, mast_line пропущен"}
+{"t": "2026-11-09T04:03:01", "by": "coordinator", "task": "SWG-12", "ev": "accepted", "commits": ["ee1439f1e"], "note": "5/5 contract=ok:exit 0; base=ok:2; free_rows=ok:25727; masts=ok:105; pytest=ok:passed"}
+{"t": "2026-11-09T04:03:02", "by": "coordinator", "task": "SWG-12", "ev": "merged"}
