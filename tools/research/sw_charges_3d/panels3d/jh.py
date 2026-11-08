@@ -69,7 +69,7 @@ def _line_profile(terrain, x, y, ex, ey, step):
 
 
 def hill_length(terrain, x, y, wind_to, smooth_m=None, ds_min=25.0):
-    """Ближайший гребень выше по ветру (или в точке) по профилю земли вдоль wind_to через (x, y):
+    """Ближайший (в любую сторону, v2) гребень по профилю земли вдоль wind_to через (x, y):
     {x_c, y_c, z_c, L} или None. Правило гребней — panels2d.crests (SW6 v4)."""
     w = np.asarray(wind_to, float)
     ex, ey = w / np.hypot(w[0], w[1])
@@ -79,10 +79,9 @@ def hill_length(terrain, x, y, wind_to, smooth_m=None, ds_min=25.0):
     if s.size < 3:
         return None
     zs, cr = crests_profile(s, z, ds_min, smooth_m)
-    cr = [c for c in cr if c["s_c"] <= 0.5 * step]
     if not cr:
         return None
-    c = max(cr, key=lambda q: q["s_c"])
+    c = min(cr, key=lambda q: abs(q["s_c"]))
     return dict(x_c=float(x + c["s_c"] * ex), y_c=float(y + c["s_c"] * ey), z_c=c["z_c"], L=c["L"])
 
 

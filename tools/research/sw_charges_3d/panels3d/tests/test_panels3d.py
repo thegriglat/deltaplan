@@ -229,13 +229,17 @@ def test_hill_length_rule():
     a, H, t = gauss_hill()
     hl = P.hill_length(t, 0.0, 0.0, (1, 0))
     assert abs(hl["L"] / 600.0 - 1) < 0.03 and abs(hl["x_c"]) < 1e-6 and hl["z_c"] == pytest.approx(H, rel=0.05)
-    assert P.hill_length(t, 300.0, 0.0, (1, 0))["x_c"] == pytest.approx(0.0, abs=1e-6)   # гребень выше по ветру
-    assert P.hill_length(t, -300.0, 0.0, (1, 0)) is None
+    assert P.hill_length(t, 300.0, 0.0, (1, 0))["x_c"] == pytest.approx(0.0, abs=1e-6)   # ближайший гребень в обе стороны
+    w = P.hill_length(t, -300.0, 0.0, (1, 0))          # наветренный склон: гребень ниже по ветру, L тот же
+    assert w["x_c"] == pytest.approx(0.0, abs=1e-6) and abs(w["L"] / hl["L"] - 1) < 1e-9
     assert P.hill_length(t, 0.0, -400.0, (0, -1))["y_c"] == pytest.approx(0.0, abs=1e-6)  # ветер на юг
     assert P.hill_length(t, 0.0, 0.0, (1, 0), ds_min=100.0) is None                      # перепад < 2·ds_min
     xr, yr, zr = raster(lambda X, Y: 125.0 / (1 + (X / 250.0) ** 2), 3000, 2500)
     hr = P.hill_length(P.Terrain3D(xr, yr, zr, far_m=9000), 100.0, 0.0, (1, 0), ds_min=12.5)
     assert abs(hr["L"] / 250.0 - 1) < 0.03
+    hw = P.hill_length(P.Terrain3D(xr, yr, zr, far_m=9000), -200.0, 0.0, (1, 0), ds_min=12.5)
+    assert hw["x_c"] == pytest.approx(hr["x_c"], abs=1e-6) and hw["L"] == pytest.approx(hr["L"])
+    assert P.hill_length(P.Terrain3D(xr, yr, zr, far_m=9000), 2500.0, 0.0, (1, 0), ds_min=12.5)["x_c"] == pytest.approx(0.0, abs=1e-6)
 
 
 @pytest.fixture(scope="module")
