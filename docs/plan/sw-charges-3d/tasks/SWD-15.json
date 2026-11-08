@@ -18,7 +18,7 @@
     },
     {
       "name": "SWD9",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/sw-charges-3d.md"
     }
   ],
@@ -50,11 +50,6 @@
       "expect": "!re:(failed|error)"
     },
     {
-      "name": "pytest-pass",
-      "cmd": "tools/research/sw_charges_3d/py -m pytest -q tools/research/sw_charges_3d/chain3d/tests",
-      "expect": "num:(\\d+) passed >=8"
-    },
-    {
       "name": "api",
       "cmd": "tools/research/sw_charges_3d/py tools/research/sw_charges_3d/contract/check_contract.py api chain3d",
       "expect": "exit=0"
@@ -63,9 +58,15 @@
       "name": "readme",
       "cmd": "ls tools/research/sw_charges_3d/chain3d/README.md",
       "expect": "exit=0"
+    },
+    {
+      "name": "pytest-pass",
+      "cmd": "tools/research/sw_charges_3d/py -m pytest -q tools/research/sw_charges_3d/chain3d/tests",
+      "expect": "num:(\\d+) passed >=11"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-11-08T18:54:16"
+  "created": "2026-11-08T18:54:16",
+  "edited": "2026-11-08T18:55:31"
 }
