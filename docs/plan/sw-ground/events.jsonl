@@ -90,3 +90,5 @@
 {"t": "2026-11-09T00:40:01", "by": "coordinator", "task": "SWG-6", "ev": "checked", "note": "5/5 contract=ok:exit 0; windows=ok:2; stages=ok:2; fp32=ok:20; pytest=ok:passed"}
 {"t": "2026-11-09T00:42:24", "by": "reviewer", "task": "SWG-6", "ev": "reviewed", "note": "Частичная сдача по решению пользователя. Скоуп чист (70 файлов в границах), timing.json по SWG4 v2 (version 2, variant/err, n_points фактические, строки SWG-3 …", "verdict": "accept", "issues": {"minor": 3}, "review": "docs/plan/sw-ground/tasks/SWG-6.review.json"}
 {"t": "2026-11-09T00:42:49", "by": "coordinator", "task": "SWG-6", "ev": "accepted", "note": "по ревью (fable), частично (прервана решением пользователя); 3 minor — err above_ground против себя, глобальная подмена lu_solve, _BLOCK 1e6 против 3e6"}
+{"t": "2026-11-09T00:42:50", "by": "coordinator", "task": "SWG-6", "ev": "checked", "commits": ["0adc36922"], "note": "1/5 contract=FAIL:exit 1 · FAIL tools/research/…; windows=FAIL:число не найдено; stages=FAIL:число не найдено; fp32=ok:6; pytest=FAIL:нет совпадения"}
+{"t": "2026-11-09T00:42:51", "by": "coordinator", "task": "SWG-6", "ev": "merged"}
