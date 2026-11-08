@@ -92,3 +92,5 @@
 {"t": "2026-11-09T00:42:49", "by": "coordinator", "task": "SWG-6", "ev": "accepted", "note": "по ревью (fable), частично (прервана решением пользователя); 3 minor — err above_ground против себя, глобальная подмена lu_solve, _BLOCK 1e6 против 3e6"}
 {"t": "2026-11-09T00:42:50", "by": "coordinator", "task": "SWG-6", "ev": "checked", "commits": ["0adc36922"], "note": "1/5 contract=FAIL:exit 1 · FAIL tools/research/…; windows=FAIL:число не найдено; stages=FAIL:число не найдено; fp32=ok:6; pytest=FAIL:нет совпадения"}
 {"t": "2026-11-09T00:42:51", "by": "coordinator", "task": "SWG-6", "ev": "merged"}
+{"t": "2026-11-09T00:43:23", "by": "coordinator", "task": "SWG-6", "ev": "accepted", "commits": ["f595b289d"], "note": "5/5 contract=ok:exit 0; windows=ok:2; stages=ok:2; fp32=ok:20; pytest=ok:passed"}
+{"t": "2026-11-09T00:43:30", "by": "coordinator", "task": "SWG-6", "ev": "note", "note": "поправка: первое слияние не прошло (грязный план в копии модуля), merged записан раньше; фактическое слияние f595b28, accept --here 5/5"}
