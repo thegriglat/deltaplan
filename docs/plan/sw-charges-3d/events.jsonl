@@ -45,3 +45,7 @@
 {"t": "2026-11-08T05:53:53", "by": "coordinator", "task": "SWD-1a", "ev": "checked", "note": "2/2 contract-files=ok:exit 0; selftest=ok:selftest: OK"}
 {"t": "2026-11-08T05:54:00", "by": "coordinator", "task": "SWD-1a", "ev": "accepted", "note": "по отчёту"}
 {"t": "2026-11-08T05:54:00", "by": "coordinator", "task": "SWD-2", "ev": "accepted", "note": "по ревью"}
+{"t": "2026-11-08T05:54:08", "by": "coordinator", "task": "SWD-1a", "ev": "accepted", "commits": ["4a93fa919"], "note": "2/2 contract-files=ok:exit 0; selftest=ok:selftest: OK"}
+{"t": "2026-11-08T05:55:06", "by": "coordinator", "task": "SWD-2", "ev": "accepted", "commits": ["937cab116"], "note": "4/4 pytest=ok:exit 0; pytest-pass=ok:15; api=ok:exit 0; readme=ok:exit 0"}
+{"t": "2026-11-08T05:55:07", "by": "coordinator", "task": "SWD-1a", "ev": "merged"}
+{"t": "2026-11-08T05:55:07", "by": "coordinator", "task": "SWD-2", "ev": "merged"}
