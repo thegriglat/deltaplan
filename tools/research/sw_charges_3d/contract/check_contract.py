@@ -19,7 +19,7 @@ POINTS = {"upstream", "windward", "crest", "lee", "valley"}
 REF_KIND = {"mast", "lidar", "picard_nom", "picard_adv1"}
 RELIAB = {"измерение", "модель ±15 %"}
 ROTOR_SRC = {"menke2019", "picard_nom", "picard_adv1", "masts"}
-VARIANTS = {"potential", "potential_jh", "vortex_jh", "sheet_jh", "foppl_jh", "rotor_jh"}
+VARIANTS = {"potential", "potential_jh", "vortex_jh", "sheet_jh", "foppl_jh", "rotor_jh", "chain_jh"}
 Z_REQUIRED = (2, 5, 10, 20, 30, 50, 75, 100, 150, 200, 300)
 
 # SWD2–SWD4: имя -> обязательные параметры (по порядку, как в контракте); класс — параметры __init__
@@ -55,6 +55,10 @@ API = {
         "velocity_foppl": ["panels", "sigma", "bg", "fil", "x", "y", "z", "z0", "U_ref", "infl"],
         "build_sheet": ["panels", "bg", "z0", "infl", "params"],
         "velocity_sheet": ["panels", "sigma", "bg", "sheet", "x", "y", "z", "z0", "U_ref", "infl"],
+    },
+    "chain3d": {
+        "chain_rotor": ["panels", "bg", "z0", "infl", "params"],
+        "velocity_chain": ["panels", "sigma", "bg", "chain", "x", "y", "z", "z0", "U_ref", "infl"],
     },
     "rotor3d": {
         "rotor_vortex": ["panels", "bg", "z0", "infl", "params"],
