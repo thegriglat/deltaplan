@@ -147,3 +147,4 @@
 {"t": "2026-11-09T02:44:27", "by": "coordinator", "task": "SWG-10", "ev": "accepted", "note": "по ревью (fable), частично: Perdigão не сошлось (Carter), таблица — последняя итерация; 4 minor — Carter от δ* слоя, Аньези без отрыва, строка «лее вне зоны» не сделана, цитировать с пометкой «не сошлось»"}
 {"t": "2026-11-09T02:46:46", "by": "coordinator", "task": "SWG-10", "ev": "accepted", "commits": ["a086d09c3"], "note": "5/5 contract=ok:exit 0; base=ok:2; vii_rows=ok:10323; masts=ok:30; pytest=ok:passed"}
 {"t": "2026-11-09T02:46:46", "by": "coordinator", "task": "SWG-10", "ev": "merged"}
+{"t": "2026-11-09T02:47:09", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: accept --here SWG-10 (pytest 138 с) выходит за 120 с таймаута оболочки — вес проверок; merge при грязной копии модуля отказывает — исправлено коммитом плана; r-*.json исполнители оставляют в корне копии (scope FAIL) — подсказка в task brief"}
