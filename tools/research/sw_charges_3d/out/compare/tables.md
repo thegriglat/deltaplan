@@ -8,10 +8,13 @@
 |---|---|---|---|---|---|---|---|
 | ASK_TU03B | potential | 17902 | 0.229 | -0.129 | 0.80 | 0.535 | 0.04 |
 | ASK_TU03B | potential_jh | 17902 | 0.218 | -0.116 | 0.72 | 0.523 | 0.12 |
+| ASK_TU03B | vortex_jh | 17902 | 0.217 | -0.116 | 0.72 | 0.523 | 0.12 |
 | PERD_NE | potential | 13254 | 0.172 | +0.099 | 0.54 | 0.182 | 0.55 |
 | PERD_NE | potential_jh | 13254 | 0.183 | +0.142 | 0.46 | 0.171 | 0.64 |
+| PERD_NE | vortex_jh | 13254 | 0.183 | +0.142 | 0.46 | 0.172 | 0.64 |
 | PERD_SW | potential | 12656 | 0.160 | -0.033 | 0.68 | 0.176 | 0.44 |
 | PERD_SW | potential_jh | 12656 | 0.126 | -0.028 | 0.68 | 0.130 | 0.72 |
+| PERD_SW | vortex_jh | 12656 | 0.127 | -0.027 | 0.68 | 0.130 | 0.72 |
 
 ## По типам точек (мачты, вариант potential_jh и potential): RMSE s
 
@@ -19,10 +22,13 @@
 |---|---|---|---|---|---|---|
 | ASK_TU03B | potential | 0.245 (n 23) | 0.242 (n 14) | 0.158 (n 26) | 0.360 (n 6) | — |
 | ASK_TU03B | potential_jh | 0.150 (n 23) | 0.199 (n 14) | 0.251 (n 26) | 0.306 (n 6) | — |
+| ASK_TU03B | vortex_jh | 0.150 (n 23) | 0.199 (n 14) | 0.250 (n 26) | 0.302 (n 6) | — |
 | PERD_NE | potential | — | 0.120 (n 3) | 0.110 (n 14) | 0.228 (n 6) | 0.247 (n 5) |
 | PERD_NE | potential_jh | — | 0.106 (n 3) | 0.183 (n 14) | 0.215 (n 6) | 0.175 (n 5) |
+| PERD_NE | vortex_jh | — | 0.106 (n 3) | 0.184 (n 14) | 0.214 (n 6) | 0.179 (n 5) |
 | PERD_SW | potential | — | 0.191 (n 5) | 0.026 (n 12) | 0.239 (n 3) | 0.237 (n 5) |
 | PERD_SW | potential_jh | — | 0.144 (n 5) | 0.079 (n 12) | 0.197 (n 3) | 0.144 (n 5) |
+| PERD_SW | vortex_jh | — | 0.146 (n 5) | 0.079 (n 12) | 0.201 (n 3) | 0.144 (n 5) |
 
 ## Askervein: HT и dS
 
@@ -52,6 +58,11 @@
 | ASK_TU03B | potential_jh | crest | 0.94 / 0.88 (n 17) | 0.00 / 0.00 (n 1) | 0.00 / 0.00 (n 1) |
 | ASK_TU03B | potential_jh | lee | 0.00 / 0.00 (n 7) | 1.00 / 1.00 (n 1) | 0.00 / 0.00 (n 1) |
 | ASK_TU03B | potential_jh | valley | 0.00 / 0.00 (n 1) | 1.00 / 0.00 (n 1) | 0.00 / 0.00 (n 1) |
+| ASK_TU03B | vortex_jh | upstream | 1.00 / 1.00 (n 7) | 0.00 / 0.00 (n 1) | 0.00 / 0.00 (n 1) |
+| ASK_TU03B | vortex_jh | windward | 0.67 / 0.67 (n 15) | 0.00 / 0.00 (n 1) | 0.00 / 0.00 (n 1) |
+| ASK_TU03B | vortex_jh | crest | 0.94 / 0.88 (n 17) | 0.00 / 0.00 (n 1) | 0.00 / 0.00 (n 1) |
+| ASK_TU03B | vortex_jh | lee | 0.00 / 0.00 (n 7) | 1.00 / 1.00 (n 1) | 0.00 / 0.00 (n 1) |
+| ASK_TU03B | vortex_jh | valley | 0.00 / 0.00 (n 1) | 1.00 / 0.00 (n 1) | 0.00 / 0.00 (n 1) |
 | PERD_NE | potential | upstream | 0.00 / 0.00 (n 1) | 0.00 / 0.00 (n 1) | 0.00 / 0.00 (n 1) |
 | PERD_NE | potential | windward | 1.00 / 1.00 (n 1) | 1.00 / 1.00 (n 1) | 1.00 / 1.00 (n 1) |
 | PERD_NE | potential | crest | 0.00 / 0.00 (n 1) | 1.00 / 1.00 (n 1) | 1.00 / 1.00 (n 1) |
@@ -62,6 +73,11 @@
 | PERD_NE | potential_jh | crest | 1.00 / 1.00 (n 1) | 1.00 / 1.00 (n 1) | 1.00 / 1.00 (n 1) |
 | PERD_NE | potential_jh | lee | 0.00 / 0.00 (n 1) | 0.00 / 0.00 (n 1) | 1.00 / 1.00 (n 1) |
 | PERD_NE | potential_jh | valley | 0.00 / 0.00 (n 1) | 0.00 / 0.00 (n 1) | 1.00 / 1.00 (n 1) |
+| PERD_NE | vortex_jh | upstream | 0.00 / 0.00 (n 1) | 1.00 / 1.00 (n 1) | 1.00 / 1.00 (n 1) |
+| PERD_NE | vortex_jh | windward | 1.00 / 1.00 (n 1) | 1.00 / 1.00 (n 1) | 1.00 / 1.00 (n 1) |
+| PERD_NE | vortex_jh | crest | 1.00 / 1.00 (n 1) | 1.00 / 1.00 (n 1) | 1.00 / 1.00 (n 1) |
+| PERD_NE | vortex_jh | lee | 0.00 / 0.00 (n 1) | 0.00 / 0.00 (n 1) | 1.00 / 1.00 (n 1) |
+| PERD_NE | vortex_jh | valley | 0.00 / 0.00 (n 1) | 0.00 / 0.00 (n 1) | 1.00 / 1.00 (n 1) |
 | PERD_SW | potential | upstream | 0.00 / 0.00 (n 1) | 0.00 / 0.00 (n 1) | 0.00 / 0.00 (n 1) |
 | PERD_SW | potential | windward | 0.00 / 0.00 (n 1) | 1.00 / 1.00 (n 1) | 1.00 / 1.00 (n 1) |
 | PERD_SW | potential | crest | 0.00 / 0.00 (n 1) | 1.00 / 1.00 (n 1) | 1.00 / 1.00 (n 1) |
@@ -72,6 +88,11 @@
 | PERD_SW | potential_jh | crest | 1.00 / 1.00 (n 1) | 1.00 / 1.00 (n 1) | 1.00 / 1.00 (n 1) |
 | PERD_SW | potential_jh | lee | 0.00 / 0.00 (n 1) | 0.00 / 0.00 (n 1) | 1.00 / 1.00 (n 1) |
 | PERD_SW | potential_jh | valley | 0.00 / 0.00 (n 1) | 0.00 / 0.00 (n 1) | 1.00 / 1.00 (n 1) |
+| PERD_SW | vortex_jh | upstream | 1.00 / 1.00 (n 1) | 1.00 / 1.00 (n 1) | 1.00 / 1.00 (n 1) |
+| PERD_SW | vortex_jh | windward | 1.00 / 1.00 (n 1) | 1.00 / 1.00 (n 1) | 1.00 / 1.00 (n 1) |
+| PERD_SW | vortex_jh | crest | 1.00 / 1.00 (n 1) | 1.00 / 1.00 (n 1) | 1.00 / 1.00 (n 1) |
+| PERD_SW | vortex_jh | lee | 0.00 / 0.00 (n 1) | 0.00 / 0.00 (n 1) | 1.00 / 1.00 (n 1) |
+| PERD_SW | vortex_jh | valley | 0.00 / 0.00 (n 1) | 0.00 / 0.00 (n 1) | 1.00 / 1.00 (n 1) |
 
 Все высоты (nom / adv1), доля в ±15 %, только z_agl ≥ 50 м:
 
@@ -79,10 +100,13 @@
 |---|---|---|---|
 | ASK_TU03B | potential | 0.04 (n 24) | 0.12 (n 24) |
 | ASK_TU03B | potential_jh | 0.12 (n 24) | 0.12 (n 24) |
+| ASK_TU03B | vortex_jh | 0.12 (n 24) | 0.12 (n 24) |
 | PERD_NE | potential | 0.55 (n 33) | 0.45 (n 33) |
 | PERD_NE | potential_jh | 0.64 (n 33) | 0.58 (n 33) |
+| PERD_NE | vortex_jh | 0.64 (n 33) | 0.58 (n 33) |
 | PERD_SW | potential | 0.44 (n 32) | 0.47 (n 32) |
 | PERD_SW | potential_jh | 0.72 (n 32) | 0.66 (n 32) |
+| PERD_SW | vortex_jh | 0.72 (n 32) | 0.66 (n 32) |
 
 ## Askervein: линии A, AA, B (мачты на 10 м) — dS данных (FSR) и панелей
 
@@ -180,6 +204,9 @@
 | PERD_NE | potential_jh | 13254 | 1.4 | 3.1 | 732 | cupy |
 | PERD_SW | potential | 12656 | 1.3 | 2.7 | 102 | cupy |
 | PERD_SW | potential_jh | 12656 | 1.3 | 2.7 | 699 | cupy |
+| ASK_TU03B | vortex_jh | 17902 | 2.6 | 7.4 | 1201 | cupy |
+| PERD_NE | vortex_jh | 13254 | 1.4 | 3.2 | 2346 | cupy |
+| PERD_SW | vortex_jh | 12656 | 1.3 | 2.7 | 2404 | cupy |
 
 ## Скан (метрика по параметру)
 
@@ -520,6 +547,24 @@
 | PERD_SW | menke_T1 | potential_jh | False | 0 | 680.0 |
 | PERD_SW | menke_T2 | potential_jh | False | 0 | 670.0 |
 | PERD_SW | menke_T3 | potential_jh | False | 0 | 500.0 |
+| ASK_TU03B | wind_HT | vortex_jh | False | 0 | 0.0 |
+| ASK_TU03B | line_A | vortex_jh | False | 0 | 0.0 |
+| ASK_TU03B | line_AA | vortex_jh | False | 0 | 0.0 |
+| ASK_TU03B | line_B | vortex_jh | False | 0 | 0.0 |
+| PERD_NE | sec-500 | vortex_jh | False | 0 | 0.0 |
+| PERD_NE | sec+0 | vortex_jh | False | 0 | 430.0 |
+| PERD_NE | sec+500 | vortex_jh | False | 0 | 170.0 |
+| PERD_NE | mast_line | vortex_jh | False | 0 | 600.0 |
+| PERD_NE | menke_T1 | vortex_jh | False | 0 | 570.0 |
+| PERD_NE | menke_T2 | vortex_jh | False | 0 | 490.0 |
+| PERD_NE | menke_T3 | vortex_jh | False | 0 | 420.0 |
+| PERD_SW | sec-500 | vortex_jh | False | 0 | 0.0 |
+| PERD_SW | sec+0 | vortex_jh | False | 0 | 0.0 |
+| PERD_SW | sec+500 | vortex_jh | False | 0 | 0.0 |
+| PERD_SW | mast_line | vortex_jh | False | 0 | 0.0 |
+| PERD_SW | menke_T1 | vortex_jh | False | 0 | 680.0 |
+| PERD_SW | menke_T2 | vortex_jh | False | 0 | 670.0 |
+| PERD_SW | menke_T3 | vortex_jh | False | 0 | 500.0 |
 
 ## Диагностика отрыва
 
@@ -573,6 +618,246 @@
 | PERD_SW | bgpower_potential_jh_err_crest_50_vs_picard_nom | 0.05498537779921264 | фон степенной α = 0,235 (как в 2D) вместо логарифмического основного набора; остальное как в основном наборе |
 | GAUSS_H0.1 | sep_n_points_lee_only | 0.0 | осесимметричный гаусс H/L = 0,1 (H 100 м, L 1000 м), N = 9776: отрыва быть не должно |
 | GAUSS_H0.1 | H_max_along_lines | 1.6809033547309256 | порог 2,4 |
+| ASK_TU03B | vortex_rotor_upar_min_wind_HT | 0.8592694954331963 | vortex_jh, tau_s 60 с: min u∥ на 15 м вдоль разреза, доля U данных опорной точки (7.64 м/с); ротор нет, L = 0 м, глубина 0 м |
+| ASK_TU03B | vortex_rotor_upar_min_line_A | 0.8408252537007731 | vortex_jh, tau_s 60 с: min u∥ на 15 м вдоль разреза, доля U данных опорной точки (7.48 м/с); ротор нет, L = 0 м, глубина 0 м |
+| ASK_TU03B | vortex_rotor_upar_min_line_AA | 0.8188533797919245 | vortex_jh, tau_s 60 с: min u∥ на 15 м вдоль разреза, доля U данных опорной точки (7.28 м/с); ротор нет, L = 0 м, глубина 0 м |
+| ASK_TU03B | vortex_rotor_upar_min_line_B | 1.0871583462546897 | vortex_jh, tau_s 60 с: min u∥ на 15 м вдоль разреза, доля U данных опорной точки (9.67 м/с); ротор нет, L = 0 м, глубина 0 м |
+| ASK_TU03B | vortex_tau_s | 60.0 | vortex_jh, tau_s 60 с: затухание нитей Γ·exp(−t/tau_s), с (выбрано заранее) |
+| ASK_TU03B | vortex_t_end | 120.0 | vortex_jh, tau_s 60 с: длина счёта, с |
+| ASK_TU03B | vortex_dt | 3.0 | vortex_jh, tau_s 60 с: шаг связки, с |
+| ASK_TU03B | vortex_sep_every | 2.0 | vortex_jh, tau_s 60 с: сход раз в столько шагов (правило sim3d) |
+| ASK_TU03B | vortex_U_ref | 6.982650035508586 | vortex_jh, tau_s 60 с: м/с, фон на 100 м у наветренного края |
+| ASK_TU03B | vortex_core | 25.0 | vortex_jh, tau_s 60 с: ядро новых нитей, м |
+| ASK_TU03B | vortex_n_nodes_end | 486.0 | vortex_jh, tau_s 60 с: узлов нитей в конце |
+| ASK_TU03B | vortex_n_seg_end | 466.0 | vortex_jh, tau_s 60 с: отрезков в конце |
+| ASK_TU03B | vortex_n_nodes_max | 486.0 | vortex_jh, tau_s 60 с: узлов нитей, максимум |
+| ASK_TU03B | vortex_gamma_abs_end | 6284.999923539298 | vortex_jh, tau_s 60 с: Σ|Γ| в конце, м²/с |
+| ASK_TU03B | vortex_imbalance_max | 4.263256414560601e-14 | vortex_jh, tau_s 60 с: max дивергенции Γ в узлах (инвариант ∇·ω = 0) |
+| ASK_TU03B | vortex_t_step_median | 5.1558637619018555 | vortex_jh, tau_s 60 с: медиана времени шага связки, с |
+| ASK_TU03B | vortex_t_step_last | 3.728769540786743 | vortex_jh, tau_s 60 с: время последнего шага, с |
+| ASK_TU03B | vortex_substeps_max | 4.0 | vortex_jh, tau_s 60 с: подшагов нитей, максимум |
+| ASK_TU03B | vortex_n_reattach_sum | 55.0 | vortex_jh, tau_s 60 с: присоединений (точек) за всё время |
+| ASK_TU03B | vortex_n_lines_sum | 20.0 | vortex_jh, tau_s 60 с: линий отрыва, давших нити, за всё время |
+| ASK_TU03B | vortex_n_skipped_sum | 0.0 | vortex_jh, tau_s 60 с: точек линии отрыва вне сетки панелей (отброшено) |
+| ASK_TU03B | vortex_f_reconnect | 0.0 | vortex_jh, tau_s 60 с: перезамыканий (r_rec = 0 — выключено) |
+| ASK_TU03B | vortex_f_split | 416.0 | vortex_jh, tau_s 60 с: делений отрезков |
+| ASK_TU03B | vortex_f_merge | 0.0 | vortex_jh, tau_s 60 с: слияний отрезков |
+| ASK_TU03B | vortex_f_lifted | 2.0 | vortex_jh, tau_s 60 с: узлов поднято с земли |
+| ASK_TU03B | vortex_f_removed | 0.0 | vortex_jh, tau_s 60 с: узлов удалено (gamma_min, границы) |
+| ASK_TU03B | vortex_n_snapshots | 10.0 | vortex_jh, tau_s 60 с: снимков нитей в окне для ротора |
+| ASK_TU03B | vortex_n_sep_early | 2.0 | vortex_jh, tau_s 60 с: точек отрыва на шаге схода, среднее за t ≤ 12 с |
+| ASK_TU03B | vortex_n_sep_win | 3.0 | vortex_jh, tau_s 60 с: точек отрыва на шаге схода, среднее за окно t > t_end/2 |
+| ASK_TU03B | vortex_frac_sep_win | 1.0 | vortex_jh, tau_s 60 с: доля шагов схода в окне, где отрыв есть |
+| ASK_TU03B | vortex_dv_median_lee_valley_lt30 | 0.005301545858421346 | |s_vortex_jh − s_potential_jh|/s_potential_jh в точках rows (s — доля опорной точки), медиана, lee и valley, z_agl < 30 м |
+| ASK_TU03B | vortex_dv_median_lt30 | 0.0009234408694754975 | |s_vortex_jh − s_potential_jh|/s_potential_jh в точках rows (s — доля опорной точки), медиана, все точки z_agl < 30 м |
+| ASK_TU03B | vortex_dv_max_lt30 | 0.00935067460610353 | |s_vortex_jh − s_potential_jh|/s_potential_jh в точках rows (s — доля опорной точки), максимум, все точки z_agl < 30 м |
+| PERD_NE | vortex_rotor_upar_min_sec-500 | 0.17846188815811237 | vortex_jh, tau_s 60 с: min u∥ на 15 м вдоль разреза, доля U данных опорной точки (1.57 м/с); ротор нет, L = 0 м, глубина 0 м |
+| PERD_NE | vortex_rotor_upar_min_sec+0 | 0.20347927509587344 | vortex_jh, tau_s 60 с: min u∥ на 15 м вдоль разреза, доля U данных опорной точки (1.79 м/с); ротор нет, L = 0 м, глубина 0 м |
+| PERD_NE | vortex_rotor_upar_min_sec+500 | 0.19243374139335356 | vortex_jh, tau_s 60 с: min u∥ на 15 м вдоль разреза, доля U данных опорной точки (1.69 м/с); ротор нет, L = 0 м, глубина 0 м |
+| PERD_NE | vortex_rotor_upar_min_mast_line | 0.1958311811486719 | vortex_jh, tau_s 60 с: min u∥ на 15 м вдоль разреза, доля U данных опорной точки (1.72 м/с); ротор нет, L = 0 м, глубина 0 м |
+| PERD_NE | vortex_rotor_upar_min_menke_T1 | 0.17846188815811237 | vortex_jh, tau_s 60 с: min u∥ на 15 м вдоль разреза, доля U данных опорной точки (1.57 м/с); ротор нет, L = 0 м, глубина 0 м |
+| PERD_NE | vortex_rotor_upar_min_menke_T2 | 0.20347927509587344 | vortex_jh, tau_s 60 с: min u∥ на 15 м вдоль разреза, доля U данных опорной точки (1.79 м/с); ротор нет, L = 0 м, глубина 0 м |
+| PERD_NE | vortex_rotor_upar_min_menke_T3 | 0.19243374139335356 | vortex_jh, tau_s 60 с: min u∥ на 15 м вдоль разреза, доля U данных опорной точки (1.69 м/с); ротор нет, L = 0 м, глубина 0 м |
+| PERD_NE | vortex_tau_s | 60.0 | vortex_jh, tau_s 60 с: затухание нитей Γ·exp(−t/tau_s), с (выбрано заранее) |
+| PERD_NE | vortex_t_end | 120.0 | vortex_jh, tau_s 60 с: длина счёта, с |
+| PERD_NE | vortex_dt | 3.0 | vortex_jh, tau_s 60 с: шаг связки, с |
+| PERD_NE | vortex_sep_every | 1.0 | vortex_jh, tau_s 60 с: сход раз в столько шагов (правило sim3d) |
+| PERD_NE | vortex_U_ref | 12.101298733374879 | vortex_jh, tau_s 60 с: м/с, фон на 100 м у наветренного края |
+| PERD_NE | vortex_core | 25.0 | vortex_jh, tau_s 60 с: ядро новых нитей, м |
+| PERD_NE | vortex_n_nodes_end | 27696.0 | vortex_jh, tau_s 60 с: узлов нитей в конце |
+| PERD_NE | vortex_n_seg_end | 27238.0 | vortex_jh, tau_s 60 с: отрезков в конце |
+| PERD_NE | vortex_n_nodes_max | 27696.0 | vortex_jh, tau_s 60 с: узлов нитей, максимум |
+| PERD_NE | vortex_gamma_abs_end | 109622.71236073424 | vortex_jh, tau_s 60 с: Σ|Γ| в конце, м²/с |
+| PERD_NE | vortex_imbalance_max | 3.019806626980426e-14 | vortex_jh, tau_s 60 с: max дивергенции Γ в узлах (инвариант ∇·ω = 0) |
+| PERD_NE | vortex_t_step_median | 23.93664860725403 | vortex_jh, tau_s 60 с: медиана времени шага связки, с |
+| PERD_NE | vortex_t_step_last | 68.1552882194519 | vortex_jh, tau_s 60 с: время последнего шага, с |
+| PERD_NE | vortex_substeps_max | 9.0 | vortex_jh, tau_s 60 с: подшагов нитей, максимум |
+| PERD_NE | vortex_n_reattach_sum | 4169.0 | vortex_jh, tau_s 60 с: присоединений (точек) за всё время |
+| PERD_NE | vortex_n_lines_sum | 568.0 | vortex_jh, tau_s 60 с: линий отрыва, давших нити, за всё время |
+| PERD_NE | vortex_n_skipped_sum | 0.0 | vortex_jh, tau_s 60 с: точек линии отрыва вне сетки панелей (отброшено) |
+| PERD_NE | vortex_f_reconnect | 0.0 | vortex_jh, tau_s 60 с: перезамыканий (r_rec = 0 — выключено) |
+| PERD_NE | vortex_f_split | 30052.0 | vortex_jh, tau_s 60 с: делений отрезков |
+| PERD_NE | vortex_f_merge | 812.0 | vortex_jh, tau_s 60 с: слияний отрезков |
+| PERD_NE | vortex_f_lifted | 5104.0 | vortex_jh, tau_s 60 с: узлов поднято с земли |
+| PERD_NE | vortex_f_removed | 110.0 | vortex_jh, tau_s 60 с: узлов удалено (gamma_min, границы) |
+| PERD_NE | vortex_n_snapshots | 10.0 | vortex_jh, tau_s 60 с: снимков нитей в окне для ротора |
+| PERD_NE | vortex_n_sep_early | 107.5 | vortex_jh, tau_s 60 с: точек отрыва на шаге схода, среднее за t ≤ 12 с |
+| PERD_NE | vortex_n_sep_win | 105.35 | vortex_jh, tau_s 60 с: точек отрыва на шаге схода, среднее за окно t > t_end/2 |
+| PERD_NE | vortex_frac_sep_win | 1.0 | vortex_jh, tau_s 60 с: доля шагов схода в окне, где отрыв есть |
+| PERD_NE | vortex_dv_median_lee_valley_lt30 | 0.008227756490003733 | |s_vortex_jh − s_potential_jh|/s_potential_jh в точках rows (s — доля опорной точки), медиана, lee и valley, z_agl < 30 м |
+| PERD_NE | vortex_dv_median_lt30 | 0.00043182240283296225 | |s_vortex_jh − s_potential_jh|/s_potential_jh в точках rows (s — доля опорной точки), медиана, все точки z_agl < 30 м |
+| PERD_NE | vortex_dv_max_lt30 | 0.014994939942302074 | |s_vortex_jh − s_potential_jh|/s_potential_jh в точках rows (s — доля опорной точки), максимум, все точки z_agl < 30 м |
+| PERD_SW | vortex_rotor_upar_min_sec-500 | 0.1149209938134522 | vortex_jh, tau_s 60 с: min u∥ на 15 м вдоль разреза, доля U данных опорной точки (1.01 м/с); ротор нет, L = 0 м, глубина 0 м |
+| PERD_SW | vortex_rotor_upar_min_sec+0 | 0.1771119335894656 | vortex_jh, tau_s 60 с: min u∥ на 15 м вдоль разреза, доля U данных опорной точки (1.56 м/с); ротор нет, L = 0 м, глубина 0 м |
+| PERD_SW | vortex_rotor_upar_min_sec+500 | 0.1387181087209149 | vortex_jh, tau_s 60 с: min u∥ на 15 м вдоль разреза, доля U данных опорной точки (1.22 м/с); ротор нет, L = 0 м, глубина 0 м |
+| PERD_SW | vortex_rotor_upar_min_mast_line | 0.14984330173924562 | vortex_jh, tau_s 60 с: min u∥ на 15 м вдоль разреза, доля U данных опорной точки (1.32 м/с); ротор нет, L = 0 м, глубина 0 м |
+| PERD_SW | vortex_rotor_upar_min_menke_T1 | 0.1149209938134522 | vortex_jh, tau_s 60 с: min u∥ на 15 м вдоль разреза, доля U данных опорной точки (1.01 м/с); ротор нет, L = 0 м, глубина 0 м |
+| PERD_SW | vortex_rotor_upar_min_menke_T2 | 0.1771119335894656 | vortex_jh, tau_s 60 с: min u∥ на 15 м вдоль разреза, доля U данных опорной точки (1.56 м/с); ротор нет, L = 0 м, глубина 0 м |
+| PERD_SW | vortex_rotor_upar_min_menke_T3 | 0.1387181087209149 | vortex_jh, tau_s 60 с: min u∥ на 15 м вдоль разреза, доля U данных опорной точки (1.22 м/с); ротор нет, L = 0 м, глубина 0 м |
+| PERD_SW | vortex_tau_s | 60.0 | vortex_jh, tau_s 60 с: затухание нитей Γ·exp(−t/tau_s), с (выбрано заранее) |
+| PERD_SW | vortex_t_end | 120.0 | vortex_jh, tau_s 60 с: длина счёта, с |
+| PERD_SW | vortex_dt | 3.0 | vortex_jh, tau_s 60 с: шаг связки, с |
+| PERD_SW | vortex_sep_every | 1.0 | vortex_jh, tau_s 60 с: сход раз в столько шагов (правило sim3d) |
+| PERD_SW | vortex_U_ref | 12.119690400383815 | vortex_jh, tau_s 60 с: м/с, фон на 100 м у наветренного края |
+| PERD_SW | vortex_core | 25.0 | vortex_jh, tau_s 60 с: ядро новых нитей, м |
+| PERD_SW | vortex_n_nodes_end | 24561.0 | vortex_jh, tau_s 60 с: узлов нитей в конце |
+| PERD_SW | vortex_n_seg_end | 24098.0 | vortex_jh, tau_s 60 с: отрезков в конце |
+| PERD_SW | vortex_n_nodes_max | 24561.0 | vortex_jh, tau_s 60 с: узлов нитей, максимум |
+| PERD_SW | vortex_gamma_abs_end | 227432.85876901855 | vortex_jh, tau_s 60 с: Σ|Γ| в конце, м²/с |
+| PERD_SW | vortex_imbalance_max | 2.5579538487363607e-13 | vortex_jh, tau_s 60 с: max дивергенции Γ в узлах (инвариант ∇·ω = 0) |
+| PERD_SW | vortex_t_step_median | 29.280569314956665 | vortex_jh, tau_s 60 с: медиана времени шага связки, с |
+| PERD_SW | vortex_t_step_last | 76.57771897315979 | vortex_jh, tau_s 60 с: время последнего шага, с |
+| PERD_SW | vortex_substeps_max | 11.0 | vortex_jh, tau_s 60 с: подшагов нитей, максимум |
+| PERD_SW | vortex_n_reattach_sum | 2915.0 | vortex_jh, tau_s 60 с: присоединений (точек) за всё время |
+| PERD_SW | vortex_n_lines_sum | 514.0 | vortex_jh, tau_s 60 с: линий отрыва, давших нити, за всё время |
+| PERD_SW | vortex_n_skipped_sum | 0.0 | vortex_jh, tau_s 60 с: точек линии отрыва вне сетки панелей (отброшено) |
+| PERD_SW | vortex_f_reconnect | 0.0 | vortex_jh, tau_s 60 с: перезамыканий (r_rec = 0 — выключено) |
+| PERD_SW | vortex_f_split | 23809.0 | vortex_jh, tau_s 60 с: делений отрезков |
+| PERD_SW | vortex_f_merge | 1246.0 | vortex_jh, tau_s 60 с: слияний отрезков |
+| PERD_SW | vortex_f_lifted | 3086.0 | vortex_jh, tau_s 60 с: узлов поднято с земли |
+| PERD_SW | vortex_f_removed | 51.0 | vortex_jh, tau_s 60 с: узлов удалено (gamma_min, границы) |
+| PERD_SW | vortex_n_snapshots | 10.0 | vortex_jh, tau_s 60 с: снимков нитей в окне для ротора |
+| PERD_SW | vortex_n_sep_early | 77.5 | vortex_jh, tau_s 60 с: точек отрыва на шаге схода, среднее за t ≤ 12 с |
+| PERD_SW | vortex_n_sep_win | 76.0 | vortex_jh, tau_s 60 с: точек отрыва на шаге схода, среднее за окно t > t_end/2 |
+| PERD_SW | vortex_frac_sep_win | 1.0 | vortex_jh, tau_s 60 с: доля шагов схода в окне, где отрыв есть |
+| PERD_SW | vortex_dv_median_lee_valley_lt30 | 0.010499123030439109 | |s_vortex_jh − s_potential_jh|/s_potential_jh в точках rows (s — доля опорной точки), медиана, lee и valley, z_agl < 30 м |
+| PERD_SW | vortex_dv_median_lt30 | 0.0015667334034734637 | |s_vortex_jh − s_potential_jh|/s_potential_jh в точках rows (s — доля опорной точки), медиана, все точки z_agl < 30 м |
+| PERD_SW | vortex_dv_max_lt30 | 0.019094406165965416 | |s_vortex_jh − s_potential_jh|/s_potential_jh в точках rows (s — доля опорной точки), максимум, все точки z_agl < 30 м |
+| ASK_TU03B | vortex_tau15_rmse_s_mast | 0.21769004199445402 | скан tau_s = 15 с (экспоненциальное); остальное как в основном наборе; метрика rmse_s_mast; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau15_frac_tol_ref_mast | 0.7246376811594203 | скан tau_s = 15 с (экспоненциальное); остальное как в основном наборе; метрика frac_tol_ref_mast; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau15_frac_tol_picard_ge50 | 0.125 | скан tau_s = 15 с (экспоненциальное); остальное как в основном наборе; метрика frac_tol_picard_ge50; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau15_dS_HT_10 | 0.6239401963442543 | скан tau_s = 15 с (экспоненциальное); остальное как в основном наборе; метрика dS_HT_10; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau15_rotor_present_all | 0.0 | скан tau_s = 15 с (экспоненциальное); остальное как в основном наборе; метрика rotor_present_all; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau15_rotor_n_all | 4.0 | скан tau_s = 15 с (экспоненциальное); остальное как в основном наборе; метрика rotor_n_all; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau15_rotor_menke_present | 0.0 | скан tau_s = 15 с (экспоненциальное); остальное как в основном наборе; метрика rotor_menke_present; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau15_rotor_menke_n | 0.0 | скан tau_s = 15 с (экспоненциальное); остальное как в основном наборе; метрика rotor_menke_n; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau15_rotor_L_mean_present | 0.0 | скан tau_s = 15 с (экспоненциальное); остальное как в основном наборе; метрика rotor_L_mean_present; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau15_n_nodes_end | 56.0 | скан tau_s = 15 с (экспоненциальное); остальное как в основном наборе; метрика n_nodes_end; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau15_n_nodes_max | 67.0 | скан tau_s = 15 с (экспоненциальное); остальное как в основном наборе; метрика n_nodes_max; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau15_t_step_median | 4.653681516647339 | скан tau_s = 15 с (экспоненциальное); остальное как в основном наборе; метрика t_step_median; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau15_dv_median_lee_valley_lt30 | 0.0010384413674754231 | скан tau_s = 15 с (экспоненциальное); остальное как в основном наборе; метрика dv_median_lee_valley_lt30; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau15_dv_median_lt30 | 0.00016262112486116213 | скан tau_s = 15 с (экспоненциальное); остальное как в основном наборе; метрика dv_median_lt30; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau15_dv_max_lt30 | 0.002384006574531845 | скан tau_s = 15 с (экспоненциальное); остальное как в основном наборе; метрика dv_max_lt30; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau30_rmse_s_mast | 0.2171929238376159 | скан tau_s = 30 с (экспоненциальное); остальное как в основном наборе; метрика rmse_s_mast; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau30_frac_tol_ref_mast | 0.7246376811594203 | скан tau_s = 30 с (экспоненциальное); остальное как в основном наборе; метрика frac_tol_ref_mast; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau30_frac_tol_picard_ge50 | 0.125 | скан tau_s = 30 с (экспоненциальное); остальное как в основном наборе; метрика frac_tol_picard_ge50; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau30_dS_HT_10 | 0.624982800226022 | скан tau_s = 30 с (экспоненциальное); остальное как в основном наборе; метрика dS_HT_10; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau30_rotor_present_all | 0.0 | скан tau_s = 30 с (экспоненциальное); остальное как в основном наборе; метрика rotor_present_all; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau30_rotor_n_all | 4.0 | скан tau_s = 30 с (экспоненциальное); остальное как в основном наборе; метрика rotor_n_all; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau30_rotor_menke_present | 0.0 | скан tau_s = 30 с (экспоненциальное); остальное как в основном наборе; метрика rotor_menke_present; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau30_rotor_menke_n | 0.0 | скан tau_s = 30 с (экспоненциальное); остальное как в основном наборе; метрика rotor_menke_n; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau30_rotor_L_mean_present | 0.0 | скан tau_s = 30 с (экспоненциальное); остальное как в основном наборе; метрика rotor_L_mean_present; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau30_n_nodes_end | 362.0 | скан tau_s = 30 с (экспоненциальное); остальное как в основном наборе; метрика n_nodes_end; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau30_n_nodes_max | 373.0 | скан tau_s = 30 с (экспоненциальное); остальное как в основном наборе; метрика n_nodes_max; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau30_t_step_median | 4.8005688190460205 | скан tau_s = 30 с (экспоненциальное); остальное как в основном наборе; метрика t_step_median; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau30_dv_median_lee_valley_lt30 | 0.0038448783570308857 | скан tau_s = 30 с (экспоненциальное); остальное как в основном наборе; метрика dv_median_lee_valley_lt30; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau30_dv_median_lt30 | 0.0006380283639199581 | скан tau_s = 30 с (экспоненциальное); остальное как в основном наборе; метрика dv_median_lt30; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau30_dv_max_lt30 | 0.0066951809521790685 | скан tau_s = 30 с (экспоненциальное); остальное как в основном наборе; метрика dv_max_lt30; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau60_rmse_s_mast | 0.21690182237915778 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика rmse_s_mast; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau60_frac_tol_ref_mast | 0.7246376811594203 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика frac_tol_ref_mast; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau60_frac_tol_picard_ge50 | 0.125 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика frac_tol_picard_ge50; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau60_dS_HT_10 | 0.626002666978785 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика dS_HT_10; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau60_rotor_present_all | 0.0 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика rotor_present_all; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau60_rotor_n_all | 4.0 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика rotor_n_all; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau60_rotor_menke_present | 0.0 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика rotor_menke_present; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau60_rotor_menke_n | 0.0 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика rotor_menke_n; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau60_rotor_L_mean_present | 0.0 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика rotor_L_mean_present; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau60_n_nodes_end | 486.0 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика n_nodes_end; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau60_n_nodes_max | 486.0 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика n_nodes_max; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau60_t_step_median | 5.1558637619018555 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика t_step_median; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau60_dv_median_lee_valley_lt30 | 0.005301545858421346 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика dv_median_lee_valley_lt30; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau60_dv_median_lt30 | 0.0009234408694754975 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика dv_median_lt30; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau60_dv_max_lt30 | 0.00935067460610353 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика dv_max_lt30; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau120_rmse_s_mast | 0.21680327321820042 | скан tau_s = 120 с (экспоненциальное); остальное как в основном наборе; метрика rmse_s_mast; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau120_frac_tol_ref_mast | 0.7246376811594203 | скан tau_s = 120 с (экспоненциальное); остальное как в основном наборе; метрика frac_tol_ref_mast; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau120_frac_tol_picard_ge50 | 0.125 | скан tau_s = 120 с (экспоненциальное); остальное как в основном наборе; метрика frac_tol_picard_ge50; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau120_dS_HT_10 | 0.6269395632823089 | скан tau_s = 120 с (экспоненциальное); остальное как в основном наборе; метрика dS_HT_10; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau120_rotor_present_all | 0.0 | скан tau_s = 120 с (экспоненциальное); остальное как в основном наборе; метрика rotor_present_all; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau120_rotor_n_all | 4.0 | скан tau_s = 120 с (экспоненциальное); остальное как в основном наборе; метрика rotor_n_all; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau120_rotor_menke_present | 0.0 | скан tau_s = 120 с (экспоненциальное); остальное как в основном наборе; метрика rotor_menke_present; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau120_rotor_menke_n | 0.0 | скан tau_s = 120 с (экспоненциальное); остальное как в основном наборе; метрика rotor_menke_n; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau120_rotor_L_mean_present | 0.0 | скан tau_s = 120 с (экспоненциальное); остальное как в основном наборе; метрика rotor_L_mean_present; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau120_n_nodes_end | 517.0 | скан tau_s = 120 с (экспоненциальное); остальное как в основном наборе; метрика n_nodes_end; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau120_n_nodes_max | 517.0 | скан tau_s = 120 с (экспоненциальное); остальное как в основном наборе; метрика n_nodes_max; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau120_t_step_median | 5.046595215797424 | скан tau_s = 120 с (экспоненциальное); остальное как в основном наборе; метрика t_step_median; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau120_dv_median_lee_valley_lt30 | 0.005737629440725754 | скан tau_s = 120 с (экспоненциальное); остальное как в основном наборе; метрика dv_median_lee_valley_lt30; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau120_dv_median_lt30 | 0.001188361970592686 | скан tau_s = 120 с (экспоненциальное); остальное как в основном наборе; метрика dv_median_lt30; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tau120_dv_max_lt30 | 0.01076418801047075 | скан tau_s = 120 с (экспоненциальное); остальное как в основном наборе; метрика dv_max_lt30; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tauinf_rmse_s_mast | 0.21676174337937643 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика rmse_s_mast; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tauinf_frac_tol_ref_mast | 0.7246376811594203 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика frac_tol_ref_mast; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tauinf_frac_tol_picard_ge50 | 0.125 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика frac_tol_picard_ge50; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tauinf_dS_HT_10 | 0.6278254570345994 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика dS_HT_10; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tauinf_rotor_present_all | 0.0 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика rotor_present_all; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tauinf_rotor_n_all | 4.0 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика rotor_n_all; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tauinf_rotor_menke_present | 0.0 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика rotor_menke_present; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tauinf_rotor_menke_n | 0.0 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика rotor_menke_n; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tauinf_rotor_L_mean_present | 0.0 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика rotor_L_mean_present; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tauinf_n_nodes_end | 533.0 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика n_nodes_end; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tauinf_n_nodes_max | 533.0 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика n_nodes_max; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tauinf_t_step_median | 5.057883858680725 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика t_step_median; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tauinf_dv_median_lee_valley_lt30 | 0.005722548588382562 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика dv_median_lee_valley_lt30; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tauinf_dv_median_lt30 | 0.0014085880822392164 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика dv_median_lt30; N = 17902, t_end 120 с |
+| ASK_TU03B | vortex_tauinf_dv_max_lt30 | 0.011754129308555104 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика dv_max_lt30; N = 17902, t_end 120 с |
+| PERD_NE | vortex_tau60_rmse_s_mast | 0.18322635818173316 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика rmse_s_mast; N = 13254, t_end 120 с |
+| PERD_NE | vortex_tau60_frac_tol_ref_mast | 0.4642857142857143 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика frac_tol_ref_mast; N = 13254, t_end 120 с |
+| PERD_NE | vortex_tau60_frac_tol_picard_ge50 | 0.6363636363636364 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика frac_tol_picard_ge50; N = 13254, t_end 120 с |
+| PERD_NE | vortex_tau60_dS_HT_10 | None | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика dS_HT_10; N = 13254, t_end 120 с |
+| PERD_NE | vortex_tau60_rotor_present_all | 0.0 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика rotor_present_all; N = 13254, t_end 120 с |
+| PERD_NE | vortex_tau60_rotor_n_all | 7.0 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика rotor_n_all; N = 13254, t_end 120 с |
+| PERD_NE | vortex_tau60_rotor_menke_present | 0.0 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика rotor_menke_present; N = 13254, t_end 120 с |
+| PERD_NE | vortex_tau60_rotor_menke_n | 3.0 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика rotor_menke_n; N = 13254, t_end 120 с |
+| PERD_NE | vortex_tau60_rotor_L_mean_present | 0.0 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика rotor_L_mean_present; N = 13254, t_end 120 с |
+| PERD_NE | vortex_tau60_n_nodes_end | 27696.0 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика n_nodes_end; N = 13254, t_end 120 с |
+| PERD_NE | vortex_tau60_n_nodes_max | 27696.0 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика n_nodes_max; N = 13254, t_end 120 с |
+| PERD_NE | vortex_tau60_t_step_median | 23.93664860725403 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика t_step_median; N = 13254, t_end 120 с |
+| PERD_NE | vortex_tau60_dv_median_lee_valley_lt30 | 0.008227756490003733 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика dv_median_lee_valley_lt30; N = 13254, t_end 120 с |
+| PERD_NE | vortex_tau60_dv_median_lt30 | 0.00043182240283296225 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика dv_median_lt30; N = 13254, t_end 120 с |
+| PERD_NE | vortex_tau60_dv_max_lt30 | 0.014994939942302074 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика dv_max_lt30; N = 13254, t_end 120 с |
+| PERD_NE | vortex_tauinf_rmse_s_mast | 0.1836670728951642 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика rmse_s_mast; N = 13254, t_end 120 с |
+| PERD_NE | vortex_tauinf_frac_tol_ref_mast | 0.4642857142857143 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика frac_tol_ref_mast; N = 13254, t_end 120 с |
+| PERD_NE | vortex_tauinf_frac_tol_picard_ge50 | 0.6363636363636364 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика frac_tol_picard_ge50; N = 13254, t_end 120 с |
+| PERD_NE | vortex_tauinf_dS_HT_10 | None | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика dS_HT_10; N = 13254, t_end 120 с |
+| PERD_NE | vortex_tauinf_rotor_present_all | 0.0 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика rotor_present_all; N = 13254, t_end 120 с |
+| PERD_NE | vortex_tauinf_rotor_n_all | 7.0 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика rotor_n_all; N = 13254, t_end 120 с |
+| PERD_NE | vortex_tauinf_rotor_menke_present | 0.0 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика rotor_menke_present; N = 13254, t_end 120 с |
+| PERD_NE | vortex_tauinf_rotor_menke_n | 3.0 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика rotor_menke_n; N = 13254, t_end 120 с |
+| PERD_NE | vortex_tauinf_rotor_L_mean_present | 0.0 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика rotor_L_mean_present; N = 13254, t_end 120 с |
+| PERD_NE | vortex_tauinf_n_nodes_end | 31189.0 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика n_nodes_end; N = 13254, t_end 120 с |
+| PERD_NE | vortex_tauinf_n_nodes_max | 31189.0 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика n_nodes_max; N = 13254, t_end 120 с |
+| PERD_NE | vortex_tauinf_t_step_median | 26.189098715782166 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика t_step_median; N = 13254, t_end 120 с |
+| PERD_NE | vortex_tauinf_dv_median_lee_valley_lt30 | 0.012684610990133639 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика dv_median_lee_valley_lt30; N = 13254, t_end 120 с |
+| PERD_NE | vortex_tauinf_dv_median_lt30 | 0.0009186028171559521 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика dv_median_lt30; N = 13254, t_end 120 с |
+| PERD_NE | vortex_tauinf_dv_max_lt30 | 0.022837209259872135 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика dv_max_lt30; N = 13254, t_end 120 с |
+| PERD_SW | vortex_tau60_rmse_s_mast | 0.12729001143014562 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика rmse_s_mast; N = 12656, t_end 120 с |
+| PERD_SW | vortex_tau60_frac_tol_ref_mast | 0.68 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика frac_tol_ref_mast; N = 12656, t_end 120 с |
+| PERD_SW | vortex_tau60_frac_tol_picard_ge50 | 0.71875 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика frac_tol_picard_ge50; N = 12656, t_end 120 с |
+| PERD_SW | vortex_tau60_dS_HT_10 | None | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика dS_HT_10; N = 12656, t_end 120 с |
+| PERD_SW | vortex_tau60_rotor_present_all | 0.0 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика rotor_present_all; N = 12656, t_end 120 с |
+| PERD_SW | vortex_tau60_rotor_n_all | 7.0 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика rotor_n_all; N = 12656, t_end 120 с |
+| PERD_SW | vortex_tau60_rotor_menke_present | 0.0 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика rotor_menke_present; N = 12656, t_end 120 с |
+| PERD_SW | vortex_tau60_rotor_menke_n | 3.0 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика rotor_menke_n; N = 12656, t_end 120 с |
+| PERD_SW | vortex_tau60_rotor_L_mean_present | 0.0 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика rotor_L_mean_present; N = 12656, t_end 120 с |
+| PERD_SW | vortex_tau60_n_nodes_end | 24561.0 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика n_nodes_end; N = 12656, t_end 120 с |
+| PERD_SW | vortex_tau60_n_nodes_max | 24561.0 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика n_nodes_max; N = 12656, t_end 120 с |
+| PERD_SW | vortex_tau60_t_step_median | 29.280569314956665 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика t_step_median; N = 12656, t_end 120 с |
+| PERD_SW | vortex_tau60_dv_median_lee_valley_lt30 | 0.010499123030439109 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика dv_median_lee_valley_lt30; N = 12656, t_end 120 с |
+| PERD_SW | vortex_tau60_dv_median_lt30 | 0.0015667334034734637 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика dv_median_lt30; N = 12656, t_end 120 с |
+| PERD_SW | vortex_tau60_dv_max_lt30 | 0.019094406165965416 | скан tau_s = 60 с (экспоненциальное); остальное как в основном наборе; метрика dv_max_lt30; N = 12656, t_end 120 с |
+| PERD_SW | vortex_tauinf_rmse_s_mast | 0.1279489782473529 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика rmse_s_mast; N = 12656, t_end 120 с |
+| PERD_SW | vortex_tauinf_frac_tol_ref_mast | 0.68 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика frac_tol_ref_mast; N = 12656, t_end 120 с |
+| PERD_SW | vortex_tauinf_frac_tol_picard_ge50 | 0.71875 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика frac_tol_picard_ge50; N = 12656, t_end 120 с |
+| PERD_SW | vortex_tauinf_dS_HT_10 | None | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика dS_HT_10; N = 12656, t_end 120 с |
+| PERD_SW | vortex_tauinf_rotor_present_all | 0.0 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика rotor_present_all; N = 12656, t_end 120 с |
+| PERD_SW | vortex_tauinf_rotor_n_all | 7.0 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика rotor_n_all; N = 12656, t_end 120 с |
+| PERD_SW | vortex_tauinf_rotor_menke_present | 0.0 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика rotor_menke_present; N = 12656, t_end 120 с |
+| PERD_SW | vortex_tauinf_rotor_menke_n | 3.0 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика rotor_menke_n; N = 12656, t_end 120 с |
+| PERD_SW | vortex_tauinf_rotor_L_mean_present | 0.0 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика rotor_L_mean_present; N = 12656, t_end 120 с |
+| PERD_SW | vortex_tauinf_n_nodes_end | 27799.0 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика n_nodes_end; N = 12656, t_end 120 с |
+| PERD_SW | vortex_tauinf_n_nodes_max | 27799.0 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика n_nodes_max; N = 12656, t_end 120 с |
+| PERD_SW | vortex_tauinf_t_step_median | 30.09818732738495 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика t_step_median; N = 12656, t_end 120 с |
+| PERD_SW | vortex_tauinf_dv_median_lee_valley_lt30 | 0.016039898206047083 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика dv_median_lee_valley_lt30; N = 12656, t_end 120 с |
+| PERD_SW | vortex_tauinf_dv_median_lt30 | 0.0020401604385610235 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика dv_median_lt30; N = 12656, t_end 120 с |
+| PERD_SW | vortex_tauinf_dv_max_lt30 | 0.030039635973533364 | скан tau_s = 1e+09 с (без затухания); остальное как в основном наборе; метрика dv_max_lt30; N = 12656, t_end 120 с |
 
 ## 12 проблем 2D
 
@@ -582,11 +867,87 @@
 | 2. отрыв на наветренном склоне (Хед без lee_only) | схема | осталась | Хед даёт отрыв вне подветренной зоны (отброшено lee_only): Askervein 1.0, Perdigão NE 115.0, SW 117.0 точек (по линиям тока); координаты — diag `windward_sep_point`; без lee_only эти точки остались бы |
 | 3. внутренний слой у земли: недобор ΔS трубы, затем перелёт | схема | осталась | Askervein HT 10 м: dS данных 0.884 (FSR опубл.), potential 0.666, potential_jh 0.624; гребень P_crest_0, 50 м, s_pan − s_nom: ASK_TU03B potential: -0.52; ASK_TU03B potential_jh: -0.49; PERD_NE potential: +0.02; PERD_NE potential_jh: +0.09; PERD_SW potential: +0.02; PERD_SW potential_jh: +0.05. Порог: |dS_pan − dS_ref| ≤ 0,15·dS_ref у potential_jh на HT 10 м. Со степенным фоном α = 0,235 (контроль, diag bgpower_*) HT 10 м dS потенциал 0.893, jh 0.624. Перелёта нет, есть недобор (ΔS берётся на высоте l > 10 м по контракту SWD2). Труб Lubitz–White в 3D не считали |
 | 4. зависимость от сглаживания фона и высоты сравнения (σ, z/H) | схема | осталась | скан σ 0…160 м: размах rmse_s_mast/dS_HT_10 по (случай, вариант): ASK_TU03B/potential/rmse_s_mast 0.066; ASK_TU03B/potential/dS_HT_10 0.371; ASK_TU03B/potential_jh/rmse_s_mast 0.119; ASK_TU03B/potential_jh/dS_HT_10 0.367; PERD_NE/potential/rmse_s_mast 0.073; PERD_NE/potential_jh/rmse_s_mast 0.039; PERD_SW/potential/rmse_s_mast 0.028; PERD_SW/potential_jh/rmse_s_mast 0.018; скан z/H и ds_min — таблицы scan; порог «чувствительна» — размах > 0,05 |
-| 5. реальные роторы не воспроизведены; сила и незатухание ротора | 2D-артефакт | не проверено | вихревых нитей в SWD-5 нет (SWD-5b). Контроль без вихрей: ротор u∥ < −0,5 м/с на 15 м в potential/potential_jh — 0 из 36 разрезов (потенциальное течение с фоном без обратного потока; ротор без нитей не ожидается) |
+| 5. реальные роторы не воспроизведены; сила и незатухание ротора | 2D-артефакт | осталась | vortex_jh (sim3d: нити с гребня, couple, restart), tau_s 60 с (заранее), t_end 120 с, окно t ≥ 60 с; разрезы Menke: PERD_NE menke_T1: нет L 0 м (Menke 570.0), глубина 0 м, min u∥/U +0.18; PERD_NE menke_T2: нет L 0 м (Menke 490.0), глубина 0 м, min u∥/U +0.20; PERD_NE menke_T3: нет L 0 м (Menke 420.0), глубина 0 м, min u∥/U +0.19; PERD_SW menke_T1: нет L 0 м (Menke 680.0), глубина 0 м, min u∥/U +0.11; PERD_SW menke_T2: нет L 0 м (Menke 670.0), глубина 0 м, min u∥/U +0.18; PERD_SW menke_T3: нет L 0 м (Menke 500.0), глубина 0 м, min u∥/U +0.14. Правило статуса: «ушла» — ротор на ≥ 2 из 3 разрезов Menke в каждом случае и L в пределах ×2 от Menke (0 / 0 из 3). Роторы по всем 18 разрезам: 0 (Askervein: 0 из 4; данных об обратном течении нет). Скан tau_s (разрезы Menke): PERD_NE tau 60: роторов 0/3; PERD_NE tau 1e+09: роторов 0/3; PERD_SW tau 60: роторов 0/3; PERD_SW tau 1e+09: роторов 0/3. Число узлов, время шага — diag `vortex_*`. Сила: min u∥/U — diag `vortex_rotor_upar_min_*` (2D: |u| 0,89–0,96·U100 против 0,22 ± 0,08 Menke) |
 | 6. завышение σ_w | 2D-артефакт | не проверено | конвективный слой/вихри в SWD-5 не считаются; σ_w в 3D — вне постановки (панели без нитей) |
 | 7. погрешность эталона Пикара у земли | эталон | осталась | строки Пикара ниже 50 м помечены ref_use = «справочно» (246 строк на вариант), в frac_tol_picard_ge50 не входят; поправка ±15 % + 1,5·|P100r − P50| из 2D не вводилась (нет второго уровня Пикара того же положения в SWD1) |
-| 8. мачты Perdigão и исчезнувший отрыв | не выяснено | ушла | PERD_NE/potential: RMSE u∥/U 0.399 (n 28), RMSE s 0.172; PERD_NE/potential_jh: RMSE u∥/U 0.424 (n 28), RMSE s 0.183; PERD_SW/potential: RMSE u∥/U 0.239 (n 25), RMSE s 0.160; PERD_SW/potential_jh: RMSE u∥/U 0.230 (n 25), RMSE s 0.126. Отрыв в лее по Хеду (lee_only): точек NE 93, SW 60; на средней линии тока отрыв NE есть, SW есть; медиана H в точках отрыва NE 5.782398141891756, SW 11.673936347487775 (порог 2,4); H(s), cf(s) средней линии — diag `central_line_H_s*`. Ротор (обратный u∥ на 15 м) при этом не возникает ни в одном разрезе — слой Хеда не даёт обратной скорости; число H_max вдоль линий (~11,7) — насыщение формулы, в статус не входит. 2D: RMSE u∥/S 0,27 (NE), 0,21 (SW) у игры, 0,495 и 0,273 у SWC-19 — сравнение лишь по порядку (другая нормировка, набор мачт) |
-| 9. вихри не влияют на velocity_jh (вклад аддитивный) | схема | не проверено | нужны нити (SWD-5b, velocity_jh(couple=True)); в SWD-5 вихрей нет |
+| 8. мачты Perdigão и исчезнувший отрыв | не выяснено | осталась | Отрыв в лее по Хеду есть (SWD-5, до вихрей); с вихрями: PERD_NE: RMSE u∥/U potential_jh 0.424 → vortex_jh 0.424 (n 28); мачт с u∥ < 0: данные 11, potential_jh 0, vortex_jh 0; PERD_SW: RMSE u∥/U potential_jh 0.230 → vortex_jh 0.231 (n 25); мачт с u∥ < 0: данные 2, potential_jh 0, vortex_jh 0. Правило (по определению проблемы 8 в 2D: «обратный u∥ в данных у 8 точек NE, в модели ни у одной»): «ушла» — отрыв в лее есть, RMSE u∥/U vortex_jh не хуже potential_jh более чем на 10 % и модель даёт u∥ < 0 хотя бы на половине тех мачт, где он отрицателен в данных. Первое условие выполнено со SWD-5 (отрыв по Хеду есть), последнее — нет. Ранее: PERD_NE/potential: RMSE u∥/U 0.399 (n 28), RMSE s 0.172; PERD_NE/potential_jh: RMSE u∥/U 0.424 (n 28), RMSE s 0.183; PERD_SW/potential: RMSE u∥/U 0.239 (n 25), RMSE s 0.160; PERD_SW/potential_jh: RMSE u∥/U 0.230 (n 25), RMSE s 0.126. Отрыв в лее по Хеду (lee_only): точек NE 93, SW 60; на средней линии тока отрыв NE есть, SW есть; медиана H в точках отрыва NE 5.782398141891756, SW 11.673936347487775 (порог 2,4); H(s), cf(s) средней линии — diag `central_line_H_s*`. Ротор (обратный u∥ на 15 м) при этом не возникает ни в одном разрезе — слой Хеда не даёт обратной скорости; число H_max вдоль линий (~11,7) — насыщение формулы, в статус не входит. 2D: RMSE u∥/S 0,27 (NE), 0,21 (SW) у игры, 0,495 и 0,273 у SWC-19 — сравнение лишь по порядку (другая нормировка, набор мачт) |
+| 9. вихри не влияют на velocity_jh (вклад аддитивный) | схема | осталась | velocity_jh(couple=True) с нитями против couple=False без нитей, точки rows z_agl < 30 м: медиана |Δs|/s в лее и долине ASK_TU03B 0.005; PERD_NE 0.008; PERD_SW 0.010; максимум по точкам < 30 м ASK_TU03B 0.009; PERD_NE 0.015; PERD_SW 0.019. Правило: «ушла» — медиана > 0,05 хотя бы в одном случае. SWD-4: ΔS у стены гасится изображением нити в панелях (на 10 м за гребнем ~4,5 %); сравнение в SWD-5b — не только couple, но и вклад нитей в σ и extra |
 | 10. отрыв термика от склона | схема | не проверено | термики/нагрев склона в SWD-5 не заложены (прототипы A/C 3D — отдельная задача) |
-| 11. нет присоединения за отрывом и повторного старта слоя | схема | не проверено | отрыв Хеда в SWD-5 считается v2 (без restart); restart=True требует нитей/ротора — SWD-5b |
+| 11. нет присоединения за отрывом и повторного старта слоя | схема | ушла | sim3d (restart=True, separation3d streamlines_from="bg"): ASK_TU03B: точек отрыва на шаге схода в начале 2.0, в окне 3.0 (шагов схода с отрывом 100% из 10), точек с присоединением (restart) за всё время 55; PERD_NE: точек отрыва на шаге схода в начале 107.5, в окне 105.3 (шагов схода с отрывом 100% из 20), точек с присоединением (restart) за всё время 4169; PERD_SW: точек отрыва на шаге схода в начале 77.5, в окне 76.0 (шагов схода с отрывом 100% из 20), точек с присоединением (restart) за всё время 2915. Правило: «ушла» — в окне усреднения отрывов не меньше половины ранних, присоединения есть (в 2D число отрывов в окне вихрей падало до 0). Правило присоединения в panels3d дополнено исполнителем SWD-2 (README sim3d) |
 | 12. у земли на гребнях и в лее (< 30 м) | схема | осталась | Askervein, мачты z_agl < 30 м, доля в допуске max(0,15; ref_err): potential crest: 0.96 (n 25); potential lee: 0.17 (n 6); potential_jh crest: 0.72 (n 25); potential_jh lee: 0.17 (n 6); порог «ушла» — не менее 0,8 по обеим зонам |
+
+# SWD-5b: vortex_jh (sim3d: вихревые нити, couple, restart)
+
+tau_s основной = 60 с (выбор заранее), gamma_min = 1 м²/с, dt = 3 с, t_end = 120 с, окно усреднения t ≥ 60 с, r_rec = 0; те же σ = 40 м, ds_min = 25 м, лог. фон, z0 — медиана растра.
+
+## Скан tau_s (разрезы Menke — 3 на случай Perdigão)
+
+| случай | tau_s, с | RMSE s мачты | доля мачт в допуске | доля nom ≥50 м в ±15 % | dS HT 10 м | роторов Menke | L ротора (среднее), м | узлов в конце | шаг (медиана), с | мед. Δs/s лее+долина <30 м |
+|---|---|---|---|---|---|---|---|---|---|---|
+| ASK_TU03B | 15 | 0.218 | 0.72 | 0.12 | 0.624 | 0/0 | 0 | 56 | 4.7 | 0.001 |
+| ASK_TU03B | 30 | 0.217 | 0.72 | 0.12 | 0.625 | 0/0 | 0 | 362 | 4.8 | 0.004 |
+| ASK_TU03B | 60 | 0.217 | 0.72 | 0.12 | 0.626 | 0/0 | 0 | 486 | 5.2 | 0.005 |
+| ASK_TU03B | 120 | 0.217 | 0.72 | 0.12 | 0.627 | 0/0 | 0 | 517 | 5.0 | 0.006 |
+| ASK_TU03B | ∞ | 0.217 | 0.72 | 0.12 | 0.628 | 0/0 | 0 | 533 | 5.1 | 0.006 |
+| PERD_NE | 60 | 0.183 | 0.46 | 0.64 | — | 0/3 | 0 | 27696 | 23.9 | 0.008 |
+| PERD_NE | ∞ | 0.184 | 0.46 | 0.64 | — | 0/3 | 0 | 31189 | 26.2 | 0.013 |
+| PERD_SW | 60 | 0.127 | 0.68 | 0.72 | — | 0/3 | 0 | 24561 | 29.3 | 0.010 |
+| PERD_SW | ∞ | 0.128 | 0.68 | 0.72 | — | 0/3 | 0 | 27799 | 30.1 | 0.016 |
+
+## Ротор vortex_jh по разрезам (основной набор)
+
+| случай | разрез | есть | L, м | глубина, м | эталон L, м | min u∥/U |
+|---|---|---|---|---|---|---|
+| ASK_TU03B | wind_HT | False | 0 | 0 | 0.0 | +0.86 |
+| ASK_TU03B | line_A | False | 0 | 0 | 0.0 | +0.84 |
+| ASK_TU03B | line_AA | False | 0 | 0 | 0.0 | +0.82 |
+| ASK_TU03B | line_B | False | 0 | 0 | 0.0 | +1.09 |
+| PERD_NE | sec-500 | False | 0 | 0 | 0.0 | +0.18 |
+| PERD_NE | sec+0 | False | 0 | 0 | 430.0 | +0.20 |
+| PERD_NE | sec+500 | False | 0 | 0 | 170.0 | +0.19 |
+| PERD_NE | mast_line | False | 0 | 0 | 600.0 | +0.20 |
+| PERD_NE | menke_T1 | False | 0 | 0 | 570.0 | +0.18 |
+| PERD_NE | menke_T2 | False | 0 | 0 | 490.0 | +0.20 |
+| PERD_NE | menke_T3 | False | 0 | 0 | 420.0 | +0.19 |
+| PERD_SW | sec-500 | False | 0 | 0 | 0.0 | +0.11 |
+| PERD_SW | sec+0 | False | 0 | 0 | 0.0 | +0.18 |
+| PERD_SW | sec+500 | False | 0 | 0 | 0.0 | +0.14 |
+| PERD_SW | mast_line | False | 0 | 0 | 0.0 | +0.15 |
+| PERD_SW | menke_T1 | False | 0 | 0 | 680.0 | +0.11 |
+| PERD_SW | menke_T2 | False | 0 | 0 | 670.0 | +0.18 |
+| PERD_SW | menke_T3 | False | 0 | 0 | 500.0 | +0.14 |
+
+## Нити и отрыв по времени (основной набор)
+
+| случай | t, с | узлов | отрывов | присоединений |
+|---|---|---|---|---|
+| ASK_TU03B | 3 | 3 | 2 | 2 |
+| ASK_TU03B | 15 | 10 | 2 | 2 |
+| ASK_TU03B | 27 | 21 | 2 | 2 |
+| ASK_TU03B | 39 | 44 | 3 | 3 |
+| ASK_TU03B | 51 | 72 | 3 | 3 |
+| ASK_TU03B | 63 | 114 | 3 | 3 |
+| ASK_TU03B | 75 | 168 | 3 | 3 |
+| ASK_TU03B | 87 | 238 | 3 | 3 |
+| ASK_TU03B | 99 | 321 | 3 | 3 |
+| ASK_TU03B | 111 | 413 | 3 | 3 |
+| PERD_NE | 3 | 298 | 107 | 105 |
+| PERD_NE | 15 | 1499 | 109 | 107 |
+| PERD_NE | 27 | 2794 | 107 | 105 |
+| PERD_NE | 39 | 4373 | 107 | 105 |
+| PERD_NE | 51 | 6661 | 107 | 105 |
+| PERD_NE | 63 | 9253 | 105 | 103 |
+| PERD_NE | 75 | 12236 | 106 | 104 |
+| PERD_NE | 87 | 15665 | 105 | 103 |
+| PERD_NE | 99 | 19564 | 105 | 103 |
+| PERD_NE | 111 | 23998 | 105 | 103 |
+| PERD_SW | 3 | 350 | 78 | 74 |
+| PERD_SW | 15 | 1806 | 79 | 75 |
+| PERD_SW | 27 | 3419 | 79 | 75 |
+| PERD_SW | 39 | 5213 | 77 | 73 |
+| PERD_SW | 51 | 7207 | 77 | 73 |
+| PERD_SW | 63 | 9445 | 77 | 73 |
+| PERD_SW | 75 | 11940 | 76 | 72 |
+| PERD_SW | 87 | 14745 | 76 | 72 |
+| PERD_SW | 99 | 17899 | 76 | 72 |
+| PERD_SW | 111 | 21535 | 76 | 72 |

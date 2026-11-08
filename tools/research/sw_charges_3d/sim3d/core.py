@@ -7,6 +7,8 @@
   3. filaments3d.step с flow = bg + панели (σ этого шага, не пересчитывается на подшагах), ground = panels.height;
      подшаги dt_f ≤ cfl·min(core)/max|u в узлах|.
 """
+import os
+import sys
 import time
 import numpy as np
 
@@ -17,6 +19,7 @@ from panels3d.sep import _nodal_field, _sigma_bg
 from panels3d.terrain import u_ref_of
 
 VARIANTS = ("potential", "potential_jh", "vortex_jh")
+PROGRESS = bool(os.environ.get("SIM3D_PROGRESS"))      # печать строки на шаг (долгие счёты SWD-5b)
 
 
 class Setup:
@@ -197,6 +200,9 @@ def run(setup, t_end, dt, t_avg=None, probes=None, sep_every=None, record_every=
                           gamma_abs=float(np.abs(f.gamma).sum()), imbalance=F.imbalance(f), max_u=umax,
                           substeps=nsub, t_step=time.time() - t0, residual=info["residual"], n_sep=n_sep,
                           n_reattach=n_rea, n_lines=n_lines, n_skipped=n_skip, **{"f_" + k: v for k, v in f.stats.items()}))
+        if PROGRESS:
+            s_ = stats[-1]
+            print(f"sim3d {it + 1}/{n_steps} t={s_['t']:.0f} nodes={s_['n_nodes']} sub={s_['substeps']} step={s_['t_step']:.1f}s sep={n_sep}", file=sys.stderr, flush=True)
     mean = {v: A[1] for v, A in acc.items() if A[1] is not None}
     std = {v: np.sqrt(A[2] / max(A[0], 1)) for v, A in acc.items() if A[1] is not None}
     return dict(t=n_steps * dt, filaments=f, stats=stats, probes_mean=mean, probes_std=std, snapshots=snaps,
