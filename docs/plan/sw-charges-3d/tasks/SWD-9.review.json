@@ -1,0 +1,60 @@
+{
+  "verdict": "accept",
+  "summary": "Код и тесты соответствуют отчёту (7 passed, api/scope PASS перепроверены). Скоуп соблюдён, подгонки нет: отсутствие корня у замыкания «Фёппль + Kutta в вершине» показано честно (2D-аналитика + 3D), контрактные инварианты по Agnesi и отрыву в вершине не выполнены как результат модели, а не ошибка кода. Статус partial верный; дальше — решение координатора/пользователя по вопросам отчёта (замыкание, sep_point, panel_velocity), а не доработка исполнителя.",
+  "issues": [
+    {
+      "file": "tools/research/sw_charges_3d/sheet3d/foppl.py",
+      "line": 17,
+      "severity": "major",
+      "what": "Контракт SWD6 v2: 2D-предел и Agnesi требуют отрыва в вершине (sep=crest); 2D-инвариант пройден только при θ=60° через params['sep_point'] — ключ вне контракта, инвариант по Agnesi не выполнен (нить не ставится). Это ограничение модели, не кода, но контракт в текущей формулировке не закрыт.",
+      "fix": "Координатору: принять решение по вопросу 1 отчёта (точка отрыва Хед/заданная; другое замыкание Γ; или зафиксировать «не работает» и идти к SWD6 v1) и либо внести sep_point в контракт как v3, либо убрать."
+    },
+    {
+      "file": "tools/research/sw_charges_3d/sheet3d/foppl.py",
+      "line": 15,
+      "severity": "major",
+      "what": "Используется panels3d.influence.panel_velocity(..., self_idx) — внутренний модуль, не входит в разрешённый список «только вызывать» карточки (public API panels3d его не экспортирует). Интерфейс panels3d не менялся, поэтому не blocker.",
+      "fix": "Координатору: открыть panel_velocity(self_idx) в публичном API panels3d (SWD2 v5) или дать замену (surface_flow на подмножестве панелей)."
+    },
+    {
+      "file": "tools/research/sw_charges_3d/sheet3d/tests/test_sheet3d.py",
+      "line": 161,
+      "severity": "minor",
+      "what": "Инвариант «цена ≤ 20 решений панелей» измерен против холодного решения (сборка+LU+solve, 7 с): отношение 1,5. Если «решение» = solve с готовым LU (0,03 с), это ≈150 решений. README это честно пишет, но порог теста выбран по мягкой трактовке.",
+      "fix": "Координатору уточнить метрику в контракте (с сборкой или без); при трактовке «solve» — пересмотреть порог или число вычислений невязки (hybr без якобиана тратит 150 вызовов)."
+    },
+    {
+      "file": "tools/research/sw_charges_3d/sheet3d/tests/test_sheet3d.py",
+      "line": 170,
+      "severity": "minor",
+      "what": "Тесты test_agnesi_ridge_report и test_semicylinder_crest_separation_has_no_root закрепляют отрицательный результат (assert not converged, len(fil.seg)==0): при любой смене замыкания они сломаются, хотя это желаемый исход.",
+      "fix": "После решения по замыканию переписать как отчётные тесты (печать чисел) или пометить xfail(strict) с причиной."
+    },
+    {
+      "file": "tools/research/sw_charges_3d/sheet3d/foppl.py",
+      "line": 243,
+      "severity": "minor",
+      "what": "При sep='separation3d' и gate='none' хребет без точки Хеда (p_sep=None) молча берёт точку отрыва = гребень; в info не видно, что отрыв взят не по Хеду.",
+      "fix": "Писать в rec['sep_used'] ('crest'|'head'|'point') или предупреждение."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "pytest sheet3d (GPU, -s)",
+      "value": "7 passed in 93 s; 2D: s 2,105 vs 2,166R, h 0,951 vs 0,978R, Γ 11,32 vs 11,90 UR; цена 11,0/7,3 с = 1,5 (152 невязки); Agnesi N=8662, 288 невязок, 9 стартов, корня нет",
+      "pass": true
+    },
+    {
+      "name": "accept SWD-9 --only api --dry; --only readme --dry",
+      "value": "api exit 0; scope 4 файла в границах; README есть",
+      "pass": true
+    },
+    {
+      "name": "git diff --stat feature/sw-charges-3d...SWD-9",
+      "value": "4 файла, все в sheet3d/; panels3d/filaments3d не тронуты",
+      "pass": true
+    }
+  ],
+  "t": "2026-11-08T17:31:35",
+  "by": "reviewer"
+}
