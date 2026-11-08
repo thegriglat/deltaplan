@@ -188,3 +188,7 @@
 {"t": "2026-11-08T18:58:39", "by": "coordinator", "task": "SWD-12a", "ev": "started", "note": "dp-researcher sonnet"}
 {"t": "2026-11-08T18:58:39", "by": "coordinator", "task": "SWD-13a", "ev": "started", "note": "dp-engineer sonnet"}
 {"t": "2026-11-08T18:58:39", "by": "coordinator", "task": "SWD-14", "ev": "note", "note": "docs check: summary во frontmatter sheet3d/README.md — 163 симв., нужно ≤ 140 (.dpcli/dpcli docs check, строки ОШИБКА с sheet3d).", "addendum": true}
+{"t": "2026-11-08T18:59:10", "by": "coordinator", "task": "SWD-14", "ev": "note", "note": "Контракты SWD2, SWD3, SWD6 вынесены без изменений в docs/contracts/sw-charges-3d/{panels3d,filaments3d,sheet3d}.md (основной файл > 40 КБ); версии те же.", "addendum": true}
+{"t": "2026-11-08T18:59:11", "by": "coordinator", "task": "SWD-15", "ev": "note", "note": "Контракты SWD2, SWD3, SWD6 вынесены без изменений в docs/contracts/sw-charges-3d/{panels3d,filaments3d,sheet3d}.md (основной файл > 40 КБ); версии те же.", "addendum": true}
+{"t": "2026-11-08T18:59:11", "by": "coordinator", "task": "SWD-13a", "ev": "note", "note": "Контракты SWD2, SWD3, SWD6 вынесены без изменений в docs/contracts/sw-charges-3d/{panels3d,filaments3d,sheet3d}.md (основной файл > 40 КБ); версии те же.", "addendum": true}
+{"t": "2026-11-08T18:59:11", "by": "coordinator", "task": "SWD-12a", "ev": "note", "note": "Контракты SWD2, SWD3, SWD6 вынесены без изменений в docs/contracts/sw-charges-3d/{panels3d,filaments3d,sheet3d}.md (основной файл > 40 КБ); версии те же.", "addendum": true}
