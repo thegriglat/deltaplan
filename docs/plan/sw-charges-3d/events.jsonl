@@ -152,3 +152,6 @@
 {"t": "2026-11-08T18:21:27", "by": "reviewer", "task": "SWD-11", "ev": "reviewed", "note": "Пакет rotor3d по SWD7 сделан строго по контракту (имена, info, velocity_rotor = velocity_jh побитно без нити, гейты head/slope, подкова из sheet3d импортом), в…", "verdict": "accept", "issues": {"minor": 3}, "review": "docs/plan/sw-charges-3d/tasks/SWD-11.review.json"}
 {"t": "2026-11-08T18:21:42", "by": "coordinator", "task": "SWD-11", "ev": "accepted", "note": "по ревью (fable): partial — у геометрического замыкания (нить посередине x_c–x_r, нули на гребне и в присоединении) корня нет на Agnesi/C2/C4; порог Хеда пропускает C4, уклон 0,27 — отсекает"}
 {"t": "2026-11-08T18:21:43", "by": "coordinator", "task": "SWD-11", "ev": "merged"}
+{"t": "2026-11-08T18:22:51", "by": "coordinator", "task": "SWD-11", "ev": "accepted", "commits": ["c7b19505c"], "note": "4/4 pytest=ok:exit 0; pytest-pass=ok:9; api=ok:exit 0; readme=ok:exit 0"}
+{"t": "2026-11-08T18:25:51", "by": "coordinator", "task": "SWD-10", "ev": "checked", "note": "2/3 pytest=FAIL:есть: failed; api=ok:exit 0; pytest-pass=ok:15"}
+{"t": "2026-11-08T18:32:18", "by": "coordinator", "task": "SWD-10", "ev": "checked", "note": "3/3 pytest=ok:exit 0; api=ok:exit 0; pytest-pass=ok:15"}
