@@ -4,9 +4,9 @@ status: "active"
 module: "sw-charges-3d"
 area: "air"
 updated: "2026-11-08"
-summary: "Стыки sw-charges-3d: эталоны (SWD1), панели (SWD2), нити (SWD3), связка (SWD4), сравнение (SWD5), установившийся слой (SWD6)."
+summary: "Стыки sw-charges-3d: эталоны, панели, нити, связка, сравнение, вихревой слой, нить ротора (SWD1–SWD7)."
 related: ["docs/plan/sw-charges-3d.md", "docs/contracts/sw-charges.md", "tools/research/sw_charges_3d/README.md"]
-contracts: [{"id": "SWD1", "version": 2}, {"id": "SWD2", "version": 5}, {"id": "SWD3", "version": 4}, {"id": "SWD4", "version": 4}, {"id": "SWD5", "version": 5}, {"id": "SWD6", "version": 4}]
+contracts: [{"id": "SWD1", "version": 2}, {"id": "SWD2", "version": 5}, {"id": "SWD3", "version": 4}, {"id": "SWD4", "version": 4}, {"id": "SWD5", "version": 6}, {"id": "SWD6", "version": 5}, {"id": "SWD7", "version": 1}]
 ---
 # Контракты модуля sw-charges-3d
 
@@ -227,15 +227,16 @@ v3 (2026-11-08, отчёт SWD-4): изображение — замкнутое
   двойной хребет (два Agnesi H/L 0,5 через 3L) — с `restart` отрыв за обоими гребнями, без — только за первым;
   время шага на N ≈ 5000 панелей и 2000 узлов — в отчёте.
 
-## SWD5 v5 — сравнение 3D с эталонами
+## SWD5 v6 — сравнение 3D с эталонами
+v6 (2026-11-08, решение о варианте B): `variant` — ещё "rotor_jh" (SWD7 `velocity_rotor`).
 v5 (2026-11-08, решение о нити Фёппля): `variant` — ещё "foppl_jh" (SWD6 v2 `velocity_foppl`).
 v4 (2026-11-08, решение о вихревом слое): `variant` — ещё "sheet_jh" (SWD6: установившийся вихревой слой + `velocity_jh(couple=True)`).
 v3 (2026-11-08, отчёт SWD-5b): `scan.param` — ещё "tau_s" (затухание нитей, с; "inf" — без затухания — value null).
 Владелец — SWD-5 (potential, potential_jh, сканы), SWD-5b (vortex_jh, ротор); потребители — итог модуля, шлюз.
 v2 (2026-11-08, итог 2D №4, №7, №8): `smooth_m`, `ref_use`, `scan`, `diag`; `problems2d.kind` — ещё "эталон", "не выяснено".
 - Путь — `tools/research/sw_charges_3d/out/compare/points.json` + `.csv`; JSON (`format` = "sw3d-compare",
-  `version` = 5): `git`, `created`, `tol_picard` (0,15), `rows` — {`case`, `variant` ("potential" | "potential_jh" |
-  "vortex_jh" | "sheet_jh" | "foppl_jh"), `point`, `name`, `x`, `y`, `z_agl`, `ref_kind` (как SWD1), `ref_source`, `ref_reliability`, `ref_err`,
+  `version` = 6): `git`, `created`, `tol_picard` (0,15), `rows` — {`case`, `variant` ("potential" | "potential_jh" |
+  "vortex_jh" | "sheet_jh" | "foppl_jh" | "rotor_jh"), `point`, `name`, `x`, `y`, `z_agl`, `ref_kind` (как SWD1), `ref_source`, `ref_reliability`, `ref_err`,
   `ref_use` ("эталон" | "справочно": строки Пикара ниже 50 м — справочно, 2D №7), `s_ref`, `s_pan` (s_norm: скорость /
   скорость в опорной точке `norm` того же источника), `dS_ref`, `dS_pan` (Askervein, иначе null), `u_par_ref`,
   `u_par_pan` (u∥, м/с, отнесённые к U опорной точки данных), `err` (= s_pan − s_ref), `within_tol` (picard:
@@ -251,7 +252,9 @@ v2 (2026-11-08, итог 2D №4, №7, №8): `smooth_m`, `ref_use`, `scan`, `d
   | "новая в 3D" | "не проверено"), `evidence` (строка: строки таблицы/числа)}; 12 проблем — docs/research/sw_charges.md,
   раздел «7. Итог 2D: проблемы для 3D».
 
-## SWD6 v4 — установившийся вихревой слой (пакет `sheet3d`)
+## SWD6 v5 — установившийся вихревой слой (пакет `sheet3d`)
+v5 (2026-11-08, решение пользователя о варианте B): `fold_sheet` / `velocity_fold` сняты — нить ротора делается
+геометрическим замыканием (SWD7, пакет `rotor3d`); слой (A) — без изменений v4.
 v4 (2026-11-08, ответ Q2: A, затем B): делается слой из рядов (`build_sheet`, `velocity_sheet` — v1 ниже) с точкой
 отрыва Хеда (`separation3d`, restart, lee_only), γ = |u_s| там, форма — по линиям тока до присоединения, без Kutta;
 ряды — замкнутые петли с возвратом под землёй (отражение панелями открытой подковы даёт ~20 % ошибки — SWD-9);
@@ -312,3 +315,29 @@ Roshko): слой дискретизирован поперечными (вдо�
   < 0,05·Δs не больше чем за `n_iter`), обратный u∥ у земли (10 м) за гребнем есть, длина зоны L_b/H — в README и
   отчёте (ориентир 2D-хребтов: L_b/H ~ 5–10 — литература в README); цена `build_sheet` ≤ 10 решений панелей того же
   N (замер в отчёте); двойной хребет (два Agnesi через 3L) — слой за первым и за вторым гребнем.
+
+## SWD7 v1 — нить ротора с геометрическим замыканием (пакет `rotor3d`)
+Владелец — SWD-11; потребители — SWD-5d. Решение пользователя 2026-11-08 (вариант B): вихрь в потенциальном потоке
+сам не держится (Фёппль; держат вязкость и турбулентность, которых в панелях нет) — положение задаётся правилом
+геометрии, одним на все места, без подгонки по месту.
+Пакет `tools/research/sw_charges_3d/rotor3d/` (панели — SWD2 v5, нити — SWD3, только вызывать).
+- `rotor_vortex(panels, bg, z0, infl=None, params=None)` → `(fil, sigma, info)`. По каждому хребту (гребни
+  `hill_length` на линиях тока поперёк области, совпадающие в пределах 2·ds_min, — один хребет; ось — МНК по точкам
+  гребня): на линии тока через середину хребта — гребень x_c; точка присоединения x_r = ближайшая по ветру из
+  (подножие подветренного склона — первый минимум сглаженного профиля за гребнем, σ как у `hill_length`; середина
+  долины — половина пути до следующего гребня); середина x_m = (x_c + x_r)/2 на поверхности; нить — прямая вдоль оси
+  хребта через точку x_m + R·n (n — нормаль к сглаженному склону в x_m), длина — протяжённость гребня; концы —
+  подкова в землю, замкнутая под землёй (как `sheet3d`, отражение ±0,2 %). Неизвестные R > 0 и Γ; уравнения —
+  касательная скорость у поверхности (bg + панели + нить) по ветру = 0 в x_c и в x_r (середина нити) —
+  `scipy.optimize.root`; σ — с extra = нить (кеш `infl`). Порог постановки (`params["gate"]`): "head" (по умолчанию)
+  — у хребта есть отрыв Хеда (`separation3d(restart=True, lee_only=True)`) на подветренной стороне; "slope" —
+  макс. подветренный уклон сглаженного профиля > `slope_min` (0,27); ниже порога — нити нет. `info` — по хребтам
+  {`x_c`, `x_r`, `x_m`, `rule_r` ("foot" | "valley_mid"), `R`, `Gamma`, `gate`, `placed`, `converged`, `residual`},
+  `t_s`. Нет корня — `converged=False`, нить не ставится (без подгонки).
+- `velocity_rotor(panels, sigma, bg, fil, x, y, z, z0, U_ref=None, infl=None)` → (u, v, w) =
+  `velocity_jh(..., extra=induced(fil), couple=True)`.
+- Инварианты (тесты): ровная земля и гаусс H/L 0,1 — нити нет, поле = `velocity_jh` побитно; imbalance ≤ 1e-12;
+  длинный хребет Agnesi H/L 0,5 + `bg_profile` — нить стоит, корень есть, касательная скорость в x_c и x_r ≤ 1e-3·U,
+  обратный u∥ на 10 м между x_c и x_r; разрез C4 (cascade-2d, вытянутый вдоль оси в длинный хребет) — нити нет
+  (у Пикара ротора нет; контроль ложного ротора), разрез C2 — нить есть (у Пикара ротор L ≈ 800 м; L — числом);
+  цена ≤ 5 решений панелей того же N (по кешу LU) — замер.
