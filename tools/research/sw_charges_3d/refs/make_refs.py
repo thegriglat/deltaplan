@@ -126,7 +126,26 @@ def write_group(h, case, variant, S, r):
         sub = P.CASES[case]["sub"]
         grp.attrs["U_ref"], grp.attrs["z_ref"] = PD.U10_IN[sub], 10.0
         grp.attrs["U_ref_note"] = "U10 фона (приток); U100 мачты " + PD.case_inputs(sub)["ref"] + f" = {PD.case_inputs(sub)['u100']:.2f} м/с"
+    grp.attrs["first_cell_levels"] = np.array(first_cell_levels(levels, g.dz), "f4")
     grp.attrs["levels_dropped"] = [int(z) for z in P.Z_LEVELS if z not in levels]
+
+
+def first_cell_levels(levels, dz):
+    """z_agl, где значение — первая воздушная клетка, а не интерполяция по колонне: z_agl < dz/2 (центр первой клетки
+    над землёй; synth.agl ограничивает снизу). Perdigão dz = 15 м → [2, 5]; Askervein dz = 10 м → [2]."""
+    return [float(z) for z in levels if z < dz / 2.0]
+
+
+def cmd_patch():
+    """v2 без повторного счёта: first_cell_levels в уже записанные группы (dz = dx/2 из атрибута dx)."""
+    import h5py
+    for f in sorted(OUT.glob("*.h5")):
+        with h5py.File(f, "a") as h:
+            for gn in h:
+                if gn.startswith("picard_"):
+                    g = h[gn]
+                    g.attrs["first_cell_levels"] = np.array(first_cell_levels(list(g["z_agl"][:]), g.attrs["dx"] / 2.0), "f4")
+                    print(f.name, gn, list(g.attrs["first_cell_levels"]))
 
 
 def ensure_file(case):
@@ -162,6 +181,9 @@ def pts_for_eval(case):
         add(f"m{i}", m["x"], m["y"], m["z_agl"])
         if case == "ASK_TU03B":
             add(f"rs@{m['z_agl']:g}", P.RS_ASK[0], P.RS_ASK[1], m["z_agl"])
+    if case == "ASK_TU03B":
+        for z in P.Z_SYN:           # v2: RS на уровнях синтетических точек (dS у всех строк Пикара)
+            add(f"rs@{z:g}", P.RS_ASK[0], P.RS_ASK[1], z)
     for name, s in P.synthetic(case).items():
         for z in P.Z_SYN:
             add(f"syn:{name}:{z:g}", s["x"], s["y"], z)
@@ -311,7 +333,7 @@ def cmd_assemble():
             ml = P.menke_ref(case)
             for k in (1, 2, 3):
                 rotor.append(dict(case=case, transect=f"menke_T{k}", source="menke2019", present=True, L_m=ml[k], depth_m=157.0,
-                                  criterion="нулевой контур среднего u∥ по периодам с рециркуляцией, ±50 м; средняя глубина 157 м над дном",
+                                  criterion="нулевой контур среднего u∥ по периодам с рециркуляцией, ±50 м; средняя глубина 157 м над дном; сравнивать разброс/среднее по T1–T3 с разрезами sec*, а не попарно (номера T_k ↔ sec — допущение)",
                                   ref_source="Menke et al. 2019, ACP 19, 2713, Рис. 8 (menke2019/fig8_zones_approx.csv, по рисунку ±50 м), "
                                              "Рис. 8 и текст (глубина 157 ± 30 м); условная статистика по периодам с рециркуляцией"))
         for variant, c in cache.items():
@@ -338,6 +360,8 @@ if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else "run"
     if cmd == "run":
         cmd_run(sys.argv[2:])
+    elif cmd == "patch":
+        cmd_patch()
     elif cmd == "assemble":
         cmd_assemble()
     else:

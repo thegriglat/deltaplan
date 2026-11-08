@@ -272,7 +272,8 @@ def masts_ask():
         out.append(dict(case="ASK_TU03B", name=nm, x=x, y=y, z_agl=h, speed=S, u=None, v=None, w=None, dS=dS,
                         ref_err=err, point=classify("ASK_TU03B", x, y),
                         ref_source=f"askervein_validation1.txt: {r['Sensor'].strip()}, Zenodo 4095052 (Taylor & Teunissen 1983/85); "
-                                   f"линия по имени ({name}), смещения от линии нет (координаты мачты в файле)",
+                                   f"линия по имени ({name}), смещения от линии нет (координаты мачты в файле)"
+                                   + ("; dS — FSR опубл. (RS своего прогона; s_norm = S/8,895, расхождение до 0,06)" if h == 10.0 and fsr > -900 else ""),
                         ref_reliability="измерение", sensor=r["Sensor"].strip()))
     return out
 
