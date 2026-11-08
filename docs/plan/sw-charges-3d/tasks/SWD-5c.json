@@ -1,0 +1,58 @@
+{
+  "id": "SWD-5c",
+  "module": "sw-charges-3d",
+  "type": "dp-researcher",
+  "title": "Урезанный счёт нитей (Q1, вариант A): Perdigão и Askervein до 240 с, окно 120–240 с, tau_s 150 (+75/300 на NE)",
+  "goal": "Пересчитать vortex_jh на PERD_NE, PERD_SW, ASK_TU03B урезанным счётом по ответу Q1 (t_end ≈ 240 с, среднее за 120–240 с, tau_s 150 с; на NE скан 75/300) с нынешним sim3d; ротор, точки, время, статусы №5, №9, №11 — с пометкой «урезанный счёт».",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "SWD4",
+      "version": "3",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    },
+    {
+      "name": "SWD5",
+      "version": "3",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sw-charges-3d-SWD-5c",
+  "branch": "sw-charges-3d/SWD-5c",
+  "base": "feature/sw-charges-3d",
+  "scope": [
+    "tools/research/sw_charges_3d/compare/",
+    "tools/research/sw_charges_3d/out/compare/"
+  ],
+  "dont_touch": [
+    "tools/research/sw_charges_3d/panels3d/",
+    "tools/research/sw_charges_3d/filaments3d/",
+    "tools/research/sw_charges_3d/sim3d/",
+    "tools/research/sw_charges_3d/refs/",
+    "tools/research/sw_charges_3d/out/refs/",
+    "tools/research/sw_charges/",
+    "docs/contracts/",
+    "tools/research/sw_charges_3d/contract/",
+    "rust/"
+  ],
+  "accept": [
+    {
+      "name": "contract-files",
+      "cmd": "tools/research/sw_charges_3d/py tools/research/sw_charges_3d/contract/check_contract.py files tools/research/sw_charges_3d/out/compare",
+      "expect": "exit=0"
+    },
+    {
+      "name": "vortex-cases",
+      "cmd": "tools/research/sw_charges_3d/py -c \"import json;d=json.load(open('tools/research/sw_charges_3d/out/compare/points.json'));print('cases', len({r['case'] for r in d['rows'] if r['variant']=='vortex_jh'}))\"",
+      "expect": "num:cases (\\d+) >=3"
+    },
+    {
+      "name": "tau-scan",
+      "cmd": "tools/research/sw_charges_3d/py -c \"import json;d=json.load(open('tools/research/sw_charges_3d/out/compare/points.json'));print('tau', len({r['value'] for r in d['scan'] if r['param']=='tau_s' and r['case']=='PERD_NE'}))\"",
+      "expect": "num:tau (\\d+) >=3"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-08T16:45:11"
+}

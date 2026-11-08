@@ -1,0 +1,67 @@
+{
+  "id": "SWD-7",
+  "module": "sw-charges-3d",
+  "type": "dp-engineer",
+  "title": "Ограничитель роста вихревых нитей: огрубление по возрасту, слияние, потолок узлов, дерево Барнса–Хата (SWD3 v3, SWD4 v4)",
+  "goal": "Сделать счёт нитей на Perdigão/Askervein установившимся за часы: число узлов ограничено (огрубление старых нитей, слияние, потолок), Био–Савар деревом; инварианты SWD3 v3 и SWD4 v4 — тестами, v2-поведение по умолчанию сохранено.",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "SWD3",
+      "version": "3",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    },
+    {
+      "name": "SWD4",
+      "version": "4",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sw-charges-3d-SWD-7",
+  "branch": "sw-charges-3d/SWD-7",
+  "base": "feature/sw-charges-3d",
+  "scope": [
+    "tools/research/sw_charges_3d/filaments3d/",
+    "tools/research/sw_charges_3d/sim3d/"
+  ],
+  "dont_touch": [
+    "tools/research/sw_charges_3d/panels3d/",
+    "tools/research/sw_charges_3d/compare/",
+    "tools/research/sw_charges_3d/out/",
+    "tools/research/sw_charges_3d/refs/",
+    "tools/research/sw_charges/",
+    "docs/contracts/",
+    "tools/research/sw_charges_3d/contract/",
+    "rust/"
+  ],
+  "accept": [
+    {
+      "name": "pytest-fil",
+      "cmd": "tools/research/sw_charges_3d/py -m pytest -q tools/research/sw_charges_3d/filaments3d/tests",
+      "expect": "!re:(failed|error)"
+    },
+    {
+      "name": "pytest-fil-pass",
+      "cmd": "tools/research/sw_charges_3d/py -m pytest -q tools/research/sw_charges_3d/filaments3d/tests",
+      "expect": "num:(\\d+) passed >=16"
+    },
+    {
+      "name": "pytest-sim",
+      "cmd": "tools/research/sw_charges_3d/py -m pytest -q tools/research/sw_charges_3d/sim3d/tests",
+      "expect": "!re:(failed|error)"
+    },
+    {
+      "name": "pytest-sim-pass",
+      "cmd": "tools/research/sw_charges_3d/py -m pytest -q tools/research/sw_charges_3d/sim3d/tests",
+      "expect": "num:(\\d+) passed >=9"
+    },
+    {
+      "name": "api",
+      "cmd": "tools/research/sw_charges_3d/py tools/research/sw_charges_3d/contract/check_contract.py api filaments3d sim3d panels3d",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-08T16:44:46"
+}
