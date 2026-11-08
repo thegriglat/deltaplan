@@ -1,0 +1,61 @@
+{
+  "status": "done",
+  "summary": "dS Askervein задан во всех 198 строках Пикара (RS своего прогона на том же z_agl; Askervein nom/adv1 пересчитан за ~25 с, скорости всех 546 строк совпали с прежними), first_cell_levels в группах (Perdigão [2,5], Askervein [2]), у мачт на 10 м ref_source помечен «FSR опубл.», в README и criterion Menke — сравнение по разбросу/среднему трёх разрезов, не попарно.",
+  "commits": [
+    "1ab36cc60 SWD-1a: эталоны 3D v2"
+  ],
+  "checks": [
+    {
+      "name": "contract-files",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "selftest",
+      "value": "OK",
+      "pass": true
+    },
+    {
+      "name": "dS=null в строках Пикара Askervein",
+      "value": "0 из 198 (было 40 из 60 синтетических)",
+      "pass": true
+    },
+    {
+      "name": "скорости до/после",
+      "value": "макс. расхождение 0 по 546 строкам",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Единая нормировка s_norm/dS у мачт на 10 м (S/8,895 против FSR, до 0,06) — решение координатора; в ref_source только помечено",
+    "Атрибут below_first_cell не заводился: first_cell_levels из контракта v2 несёт ту же информацию"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept SWD-1a",
+  "uncertain": [
+    {
+      "where": "tools/research/sw_charges_3d/refs/make_refs.py:first_cell_levels",
+      "why": "правило z_agl < dz/2 — приближение: фактическая граница зависит от положения земли внутри клетки (ограничение kb в synth.agl по колонкам)",
+      "checked": "даёт ровно списки из ревью: Perdigão [2,5], Askervein [2]"
+    }
+  ],
+  "dp_feedback": "",
+  "extra": {
+    "first_cell_levels": {
+      "ASK_TU03B": [
+        2
+      ],
+      "PERD_NE": [
+        2,
+        5
+      ],
+      "PERD_SW": [
+        2,
+        5
+      ]
+    },
+    "rows_total": 546
+  },
+  "t": "2026-11-08T05:53:42",
+  "by": "executor"
+}
