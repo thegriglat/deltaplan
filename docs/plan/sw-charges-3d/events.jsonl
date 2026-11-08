@@ -94,3 +94,5 @@
 {"t": "2026-11-08T10:53:09", "by": "coordinator", "task": null, "ev": "note", "note": "К Q1: пробный счёт ASK_TU03B с ядром ds_min/2 и sep_every по |u_s| — узлы 644 → 2719 за 93 → 153 с, шаг 16 с и растёт; оценка > 10 ч на прогон. Без ограничителя роста нитей полный счёт невыполним и на Askervein — вариант B (ограничитель) становится обязательным для любого установившегося результата по ротору."}
 {"t": "2026-11-08T10:54:17", "by": "coordinator", "task": "SWD-5b", "ev": "checked", "note": "5/5 contract-files=ok:exit 0; vortex-cases=ok:3; vortex-rotor=ok:18; unchecked=ok:2; pytest-sim=ok:exit 0"}
 {"t": "2026-11-08T10:54:27", "by": "coordinator", "task": "SWD-5b", "ev": "accepted", "note": "по отчёту, partial: правки ревью (sim3d sep_every, №8, scan tau_s, summary) сделаны; полный счёт нитей — шлюз Q1, числа vortex_jh предварительные (120 с)"}
+{"t": "2026-11-08T10:54:28", "by": "coordinator", "task": "SWD-5b", "ev": "merged"}
+{"t": "2026-11-08T10:55:50", "by": "coordinator", "task": "SWD-5b", "ev": "accepted", "commits": ["1700888be"], "note": "5/5 contract-files=ok:exit 0; vortex-cases=ok:3; vortex-rotor=ok:18; unchecked=ok:2; pytest-sim=ok:exit 0"}
