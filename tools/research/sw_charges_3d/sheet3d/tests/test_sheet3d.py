@@ -363,6 +363,9 @@ def test_sheet_cost_vs_cold_panel_solves(agn):
 @gpu
 def test_sheet_double_ridge_two_sheets():
     """Два хребта Agnesi через 1500 м (6a): слой за первым и за вторым гребнем."""
+    import gc
+    gc.collect()
+    _cp.get_default_memory_pool().free_all_blocks()
     c = agnesi_case(x_c=(0.0, 1500.0), xmax=3000.0, foc_x=((-100.0, 700.0), (1400.0, 2200.0)))
     sh, sig, info = sheet3d.build_sheet(c["p"], c["bg"], 0.1, c["infl"], dict(gamma_decay=250.0))
     xs = sorted(float(ln["X0"][:, 0].mean()) for ln in sh.lines)
