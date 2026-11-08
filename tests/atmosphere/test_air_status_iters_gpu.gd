@@ -38,7 +38,6 @@ func test_iters_grow_during_solver_stage() -> void:
 		"forecast":
 		{"temperature_c": 26.0, "wind_speed_kmh": 17.3, "wind_from_deg": 131.0, "sky": "clear"},
 		"start_hour": 12.0,
-		"inflow_mode": "start",
 	}
 	check(a.set_conditions(cond) == 0, "set_conditions")
 	check(a.load_place(p) == 0, "load_place")

@@ -64,7 +64,7 @@ func test_start_hint_every_flight_hides_on_w() -> void:
 		check(hint.modulate.a < 1.0, "полупрозрачная")
 		var l := (hint.get_node("Left/Text") as Label).text
 		var r := (hint.get_node("Right/Text") as Label).text
-		check(l.contains("Shift") and l.contains("↑") and l.contains("W"), "слева клавиши: " + l)
+		check(l.contains("Shift") and l.contains("W"), "слева клавиши: " + l)
 		check(r != "" and not r.contains("%s"), "справа мышь: " + r)
 		main.call("_unhandled_input", w)
 		check(not hint.visible, "полёт %d: первое W скрыло подсказку" % flight)

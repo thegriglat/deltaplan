@@ -28,7 +28,7 @@
 //! let fw    = weather_core::field_weather(cond, place, &wc, configs, climate, hour, &dom)?;
 //! let inp   = build_window_input(place, &wc.sh, &zi, &dom, &fw.day, parent_zi.as_ref())?;
 //! let heat  = AirWindowCase::from_input(&inp, &fw.wind, fw.inputs.u10, fw.inputs.wdir,
-//!                                       Some(&fw.heat), &opts)?;
+//!                                       Some(&fw.heat))?;
 //! let mech  = heat.without_heat();
 //! let planes = heat.prepare()?;                          // PreparedPlanes (как у области)
 //! let tc    = tcode(&planes);                            // типы клеток и граней, u8
@@ -49,9 +49,7 @@
 //! Стиль: плоские массивы SoA, обход подряд, `rayon` по строкам и плоскостям, без промежуточных
 //! `Vec` в горячем пути (кроме выходных массивов).
 use super::case_build::{SolverCfg, build_solver_case};
-use super::case_prepare::{
-    AirCaseRs, CaseOpts, CaseParams, NLEV, P_NEST, PreparedPlanes, build_case_with,
-};
+use super::case_prepare::{AirCaseRs, CaseParams, NLEV, P_NEST, PreparedPlanes, build_case_with};
 use super::place_input::{DomainInput, ZiCfg, zi_columns};
 use super::surface_heat::SurfaceHeatCfg;
 use super::weather_core::{Day, Domain, block_mean, cell_surface, cell_z0};
@@ -253,11 +251,8 @@ impl AirWindowCase {
         u10_menu: f64,
         wdir: f64,
         heat: Option<&[f64]>,
-        opts: &CaseOpts,
     ) -> Result<Self, Error> {
-        Ok(Self::new(build_case_with(
-            inp, wind, u10_menu, wdir, heat, opts,
-        )?))
+        Ok(Self::new(build_case_with(inp, wind, u10_menu, wdir, heat)?))
     }
 
     /// То же окно без нагрева (`w_mech`).

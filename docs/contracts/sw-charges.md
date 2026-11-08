@@ -1,6 +1,6 @@
 ---
 type: "contract"
-status: "active"
+status: "closed"
 module: "sw-charges"
 area: "air"
 updated: "2026-11-08"

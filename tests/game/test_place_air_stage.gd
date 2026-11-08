@@ -116,7 +116,6 @@ func test_small_place_ready_with_wind() -> void:
 		"start_hour": 13.0,
 		"speed": 1.0,
 		"quantum_h": Weather.quantum_h(),
-		"inflow_mode": "start",
 	}
 	check(a.set_conditions(cond) == 0, "условия приняты")
 	check(a.load_place(place) == 0, "load_place " + a.last_error())

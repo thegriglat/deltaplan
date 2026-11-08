@@ -115,7 +115,7 @@ generated: true
   - [tools/research/cascade_2d/cascade_rs/README.md](../tools/research/cascade_2d/cascade_rs/README.md) — cascade_rs: каскад 400 → 25 м делением граней, V0–V3 и V3h, баланс массы точный; всё поле и опрос точки совпадают побитно
   - [tools/research/cascade_2d/cases/README.md](../tools/research/cascade_2d/cases/README.md) — cascade-2d CSD-1: квази-2D случаи R1 C0–C4 (400…25 м), решения picard_rs, F1/F2, сходимость эталона по сетке.
   - [tools/research/cascade_2d/metrics/README.md](../tools/research/cascade_2d/metrics/README.md) — Метрики M1 (E_u, E_w, dS, r_w, L_rec, баланс, термик, σ), базовые линии B_k и картинки поле-против-эталона для cascade-2d.
-- **sw-charges** — Исследование без Пикара: слой мелкой воды (блокирование, стоки, склоны), затем заряды на поверхности рельефа и вихревые нити — 3D-поле. [active 2026-11-08] — [план](plan/sw-charges.md) · [контракты](contracts/sw-charges.md)
+- **sw-charges** — Исследование без Пикара: слой мелкой воды (блокирование, стоки, склоны), затем заряды на поверхности рельефа и вихревые нити — 3D-поле. [closed 2026-11-08] — [план](plan/sw-charges.md) · [контракты](contracts/sw-charges.md)
   - [docs/research/sw_charges/literature.md](research/sw_charges/literature.md) — Литература SWC-1: мелкая вода Рипа над рельефом, режимы по Fr (критическая высота), стоки, вовлечение, схемы; правило U10,N,z_i → h0,b0,U0.
   - [docs/research/sw_charges/proto-a-terrain.md](research/sw_charges/proto-a-terrain.md) — Прототип A над рельефом (SWC-13): термик у склона и ротор за гребнем, земля — панели; подтекание есть, ротор — только со сходом вихрей.
   - [docs/research/sw_charges/proto-a.md](research/sw_charges/proto-a.md) — Прототип A (SWC-6): вихревые частицы с плавучестью, 2D; кольцо, ∫w dx=0 и a=b/2 получаются, КГ-слой частично; N² на CuPy 43 мс при 10⁴.
@@ -152,6 +152,8 @@ generated: true
   - [tools/research/sw_charges_3d/compare/summary.md](../tools/research/sw_charges_3d/compare/summary.md) — SWD-5/5b: итог сравнения panels3d (potential, potential_jh) и vortex_jh (вихревые нити) с мачтами и Пикаром; ротор; статусы 12 проблем 2D.
   - [tools/research/sw_charges_3d/out/proto3d/summary.md](../tools/research/sw_charges_3d/out/proto3d/summary.md) — SWD-12: A и C в 3D — кольцо термика сходится к теории, отрыва от склона нет; σ_w колец в 9 % игры при R_r = ℓ/2, порог по Ri работает.
   - [tools/research/sw_charges_3d/refs/summary.md](../tools/research/sw_charges_3d/refs/summary.md) — SWD-1: итог эталонов 3D — Пикар nom/adv1 против мачт Askervein и Perdigão, ротор; границы эталонов.
+- **wind-forecast** — Ветер меню — как в прогнозе (10 м над открытой местностью): убрать подгонку под старт и два прохода k; показ «на старте X м/с». [closed 2026-11-08] — [план](plan/wind-forecast.md) · [контракты](contracts/wind-forecast.md) · [решения](plan/wind-forecast/decisions.md) · [сводка](plan/wind-forecast/summary.md) · полный журнал: `archive/wind-forecast`
+  - [tools/research/wind_forecast/README.md](../tools/research/wind_forecast/README.md) — Аудит привязки ветра к старту: места файл:строка, U над стартом start/inflow на 8 стартах, загрузка, кеш, wind_ref.
 
 ## flight
 
@@ -340,7 +342,7 @@ generated: true
 - [docs/guide/air-model/field-cpu.md](guide/air-model/field-cpu.md) — Как игра читает среднее поле воздуха на CPU: сетка, выборка, уровни и подмена, клипмапы, стык с аналитикой, ключи air_model.
 - [docs/guide/air-model/limits.md](guide/air-model/limits.md) — Границы модели воздуха: разрешение сетки, калибровка AM-09, слова пилота против модели, профиль притока и длина перемешивания.
 - [docs/guide/air-model/phases.md](guide/air-model/phases.md) — Фазы поля масштаба 1: классификатор A/B/C/D/F/G/H, механизмы, код и вызов AirPhase, числа CPU-тестов.
-- [docs/guide/air-model/runtime.md](guide/air-model/runtime.md) — Как поле считается при загрузке и в полёте: конвейер фазы → Пикар → проекция, два прохода под ветер меню, пересчёт по сроку.
+- [docs/guide/air-model/runtime.md](guide/air-model/runtime.md) — Как поле считается при загрузке и в полёте: конвейер фазы → Пикар → проекция, один проход (k = 1), пересчёт по сроку.
 - [docs/guide/air-model/surface-heat.md](guide/air-model/surface-heat.md) — Поток тепла H по классу покрова: Солнце → Rn → H, вода и лёд, z0 по клетке, замер до и после, чего модель не умеет.
 - [docs/guide/air-model/thermals.md](guide/air-model/thermals.md) — Термики из поля: законы Аллена и Дирдорфа, выбор источников, числа против литературы, сеть, чего модель не умеет.
 - [docs/guide/air-model/turbulence.md](guide/air-model/turbulence.md) — Болтанка, рывки и подветренная зона из поля: законы, числа у старта и за гребнем, чего модель не умеет.

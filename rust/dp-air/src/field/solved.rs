@@ -36,8 +36,6 @@ pub struct SolvedField {
     /// Имя уровня (`dx50`, …) и json `meta` уровня (без упакованных массивов), по уровням.
     pub names: Vec<String>,
     pub level_meta: Vec<Map<String, Value>>,
-    /// Множитель притока (`meta.inflow_k` первого уровня, 1 — нет).
-    pub inflow_k: f64,
 }
 
 #[derive(Deserialize)]
@@ -109,10 +107,6 @@ pub fn parse_solved(header_json: &str, data: &[u8]) -> Result<SolvedField, Error
         })
         .collect::<Result<_, _>>()?;
     let (levels, level_meta): (Vec<_>, Vec<_>) = built.into_iter().unzip();
-    let inflow_k = level_meta[0]
-        .get("inflow_k")
-        .and_then(Value::as_f64)
-        .unwrap_or(1.0);
     Ok(SolvedField {
         location: h.location,
         site: h.site,
@@ -121,7 +115,6 @@ pub fn parse_solved(header_json: &str, data: &[u8]) -> Result<SolvedField, Error
         levels,
         names: h.levels.into_iter().map(|l| l.name).collect(),
         level_meta,
-        inflow_k,
     })
 }
 

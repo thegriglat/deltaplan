@@ -7,7 +7,8 @@ HERE=$(cd "$(dirname "$0")" && pwd)
 REPO=$(cd "$HERE/../../.." && pwd)
 REF=${REF:-$HOME/worktrees/deltaplan/rw6u-ref}
 SITE=${1:-landing_hill}
-OUT="$REPO/tests/fixtures/wind/baked/training_island"
+# WF-2: фикстура tests/fixtures/wind/baked удалена (нигде не загружалась) — печать идёт во временный каталог
+OUT=${OUT:-$REPO/build/rust_wind_t1_ref}
 [ -d "$REF" ] || git -C "$REPO" worktree add --detach "$REF" c591b1026
 git -C "$REF" apply "$HERE/ref_c591b1026.patch"   # крючки: CPU-фазы, статус решателя (если уже применён — ошибка, это ок)
 export XDG_DATA_HOME=${XDG_DATA_HOME:-$HOME/.cache/dp-xdg/rw6u-ref}

@@ -35,19 +35,17 @@ const CONSUMERS: Array[String] = [
 ## Файлы реализации (явный список): scripts/atmosphere/*.gd, не потребители. Новый файл — правка
 ## этого списка и W10 через координатора. scripts/atmosphere/air_model/** — реализация целиком.
 const IMPL_FILES: Array[String] = [
+	"res://scripts/atmosphere/air_model_hash.gd",
 	"res://scripts/atmosphere/air_place_data.gd",
-	"res://scripts/atmosphere/atmo_day.gd",
 	"res://scripts/atmosphere/atmo_thermal.gd",
 	"res://scripts/atmosphere/atmosphere.gd",
-	"res://scripts/atmosphere/climate_grid.gd",
 	"res://scripts/atmosphere/cloud_compositor_effect.gd",
 	"res://scripts/atmosphere/cloud_model.gd",
 	"res://scripts/atmosphere/dust_model.gd",
 	"res://scripts/atmosphere/ground_field.gd",
 	"res://scripts/atmosphere/sun_transmission.gd",
-	"res://scripts/atmosphere/surface_heat.gd",
-	"res://scripts/atmosphere/surface_heating.gd",
-	"res://scripts/atmosphere/weather_model.gd",
+	"res://scripts/atmosphere/surface_snapshot.gd",
+	"res://scripts/atmosphere/weather.gd",
 	"res://scripts/atmosphere/wind_model.gd",
 	"res://scripts/atmosphere/wind_profile.gd",
 ]
