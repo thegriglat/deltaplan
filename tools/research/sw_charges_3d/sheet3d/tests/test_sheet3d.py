@@ -1,0 +1,211 @@
+"""Тесты sheet3d (SWD6 v2): нить Фёппля за гребнем. Тяжёлые (N ~ 10⁴, плотная матрица) — только с GPU (CuPy)."""
+import time
+
+import numpy as np
+import pytest
+from scipy.optimize import root
+
+import filaments3d as F
+import panels3d as P
+import sheet3d
+from sheet3d import foppl
+
+try:
+    import cupy as _cp
+    _cp.cuda.runtime.getDeviceCount()
+    HAS_GPU = True
+except Exception:
+    HAS_GPU = False
+gpu = pytest.mark.skipif(not HAS_GPU, reason="нужен CuPy и GPU")
+
+
+def raster(f, hx, hy, step):
+    x = np.arange(-hx, hx + 0.1, step)
+    y = np.arange(-hy, hy + 0.1, step)
+    X, Y = np.meshgrid(x, y)
+    return x, y, f(X, Y)
+
+
+# ---------- 2D-эталон: равновесие вихря за полуцилиндром на стенке (Föppl 1913) ----------
+def foppl_semicylinder_2d(theta_deg, R=1.0, U=1.0, guess=(2.2, 1.0, -12.0)):
+    """Вихрь Γ в z0 над стенкой, цилиндр |z| = R: изображения — в стенке (−Γ в z̄0) и в окружности (−Γ в R²/z̄0,
+    +Γ в R²/z0, теорема о круге Милн-Томсона). Три уравнения: u = v = 0 в z0 без собственного члена и нулевая
+    касательная скорость в точке R·e^{iθ} (θ от оси +x, по ветру). → (x0/R, y0/R, |Γ|/(U·R))."""
+    th = np.radians(theta_deg)
+
+    def W(z, z0, G, own=True):
+        zs, q = [z0, np.conj(z0), R ** 2 / np.conj(z0), R ** 2 / z0], [1, -1, -1, 1]
+        if not own:
+            zs, q = zs[1:], q[1:]
+        return U * (1 - R ** 2 / z ** 2) + G / (2j * np.pi) * sum(qi / (z - zi) for qi, zi in zip(q, zs))
+
+    def f(p):
+        x0, y0, G = p
+        z0 = x0 + 1j * y0
+        v = W(z0, z0, G, own=False)
+        zt = R * np.exp(1j * th)
+        return [v.real, v.imag, (W(zt, z0, G) * zt).imag]
+    s = root(f, guess, method="hybr", tol=1e-13)
+    assert s.success
+    return s.x[0], s.x[1], abs(s.x[2])
+
+
+def test_2d_reference_crest_has_no_finite_root():
+    """Условие отрыва в вершине (θ = 90°) для полуцилиндра: касательная скорость в вершине вдоль кривой равновесия
+    Фёппля остаётся положительной и стремится к нулю только при уходе вихря в бесконечность — конечного корня нет."""
+    R = U = 1.0
+
+    def top_on_curve(y0):
+        def parts(x0):
+            z0 = x0 + 1j * y0
+            a = U * (1 - R ** 2 / z0 ** 2)
+            b = sum(q / (z0 - zi) for q, zi in zip((-1, -1, 1), (np.conj(z0), R ** 2 / np.conj(z0), R ** 2 / z0))) / (2j * np.pi)
+            return a, b
+        xs = np.linspace(1.05, 12, 4000)
+        im = np.array([(-parts(x)[0] / parts(x)[1]).imag for x in xs])
+        k = np.nonzero((im[:-1] * im[1:] < 0) & (np.abs(im[:-1]) < 5))[0]
+        out = []
+        for i in k:
+            from scipy.optimize import brentq
+            x = brentq(lambda t: (-parts(t)[0] / parts(t)[1]).imag, xs[i], xs[i + 1])
+            G = (-parts(x)[0] / parts(x)[1]).real
+            if G < 0:
+                z0 = x + 1j * y0
+                zt = 1j * R
+                zs, q = [z0, np.conj(z0), R ** 2 / np.conj(z0), R ** 2 / z0], [1, -1, -1, 1]
+                w = U * (1 - R ** 2 / zt ** 2) + G / (2j * np.pi) * sum(qi / (zt - zi) for qi, zi in zip(q, zs))
+                out.append(w.real)
+        return out
+    vals = [top_on_curve(y0) for y0 in (1.0, 1.6, 2.4, 3.2)]
+    assert all(len(v) == 1 and v[0] > 0.1 for v in vals)
+    assert vals[0][0] > vals[1][0] > vals[2][0] > vals[3][0]       # убывает, но не доходит до нуля
+
+
+# ---------- ровная земля и гаусс ----------
+def test_flat_and_gauss_no_filaments_field_equals_jh_bitwise():
+    x, y, z = raster(lambda X, Y: np.zeros_like(X), 1000, 1000, 50.0)
+    tf = P.Terrain3D(x, y, z, far_m=3000)
+    pf = P.build_panels(tf, focus=[(0, 0)], ds_min=100.0, focus_r=400)
+    bgf = P.bg_profile(10.0, 0.2, 200.0, tf)
+    fil, sig, info = sheet3d.foppl_vortex(pf, bgf, 0.1)
+    assert len(fil.seg) == 0 and info["n_ridges"] == 0 and F.imbalance(fil) == 0.0
+    pts = (np.array([0.0, 100.0]), np.array([0.0, 50.0]), np.array([10.0, 40.0]))
+    a = sheet3d.velocity_foppl(pf, sig, bgf, fil, *pts, 0.1)
+    b = P.velocity_jh(pf, sig, bgf, *pts, 0.1)
+    assert all(np.array_equal(u, v) for u, v in zip(a, b))
+
+    # гаусс H/L = 0,1 (L — наветренная полуширина на половине высоты = 1,177σ): гребень есть, отрыва по Хеду нет
+    sg_, H = 300.0, 0.1 * 1.177 * 300.0
+    x, y, z = raster(lambda X, Y: H * np.exp(-(X ** 2 + Y ** 2) / (2 * sg_ ** 2)), 700, 500, 16.0)
+    tg = P.Terrain3D(x, y, z, far_m=3000)
+    foc = [(a_, b_) for a_ in np.arange(-300, 301, 100.0) for b_ in np.arange(-300, 301, 100.0)]
+    pg = P.build_panels(tg, focus=foc, ds_min=16.0, focus_r=60, ds_max=500, growth=1.5)
+    assert pg.N < 9000
+    bgg = P.bg_profile(10.0, 0.2, 200.0, tg)
+    fil, sig, info = sheet3d.foppl_vortex(pg, bgg, 0.1)
+    assert info["n_ridges"] >= 1 and info["n_rejected"] == info["n_ridges"] and len(fil.seg) == 0
+    pts = (np.array([0.0, 150.0]), np.array([0.0, 20.0]), np.array([H + 10.0, H + 40.0]))
+    a = sheet3d.velocity_foppl(pg, sig, bgg, fil, *pts, 0.1)
+    b = P.velocity_jh(pg, sig, bgg, *pts, 0.1)
+    assert all(np.array_equal(u, v) for u, v in zip(a, b))
+
+
+# ---------- полуцилиндр: 2D-предел ----------
+R_CYL, DS_CYL, TH_SEP = 100.0, 15.0, 60.0
+
+
+@pytest.fixture(scope="module")
+def cyl():
+    """Длинный полуцилиндр R = 100 м, длина 20R, ds_min R/6,7, однородный ветер 10 м/с."""
+    R, ds, Len = R_CYL, DS_CYL, 20 * R_CYL
+    st = ds / 2
+    x = np.arange(-6 * R, 6 * R + 0.1, st)
+    y = np.arange(-Len / 2 - 4 * ds, Len / 2 + 4 * ds + 0.1, st)
+    X, Y = np.meshgrid(x, y)
+    z = np.where((np.abs(X) < R) & (np.abs(Y) <= Len / 2), np.sqrt(np.maximum(R ** 2 - X ** 2, 0)), 0.0)
+    t = P.Terrain3D(x, y, z, far_m=8 * R)
+    foc = [(a, b) for a in np.arange(-1.5 * R, 3.5 * R, 2 * ds) for b in np.arange(-Len / 2 - 2 * ds, Len / 2 + 2 * ds + 1, 3 * ds)]
+    p = P.build_panels(t, focus=foc, ds_min=ds, focus_r=1.6 * ds, ds_max=600, growth=1.5)
+    bg = P.bg_uniform(10.0)
+    t0 = time.time()
+    infl = P.assemble(p)
+    sg, inf0 = P.solve(p, bg, None, infl)
+    t_cold = time.time() - t0            # холодное решение панелей: сборка + LU + решение
+    prm = dict(gate="none", sep_point=(R * np.cos(np.radians(TH_SEP)), 0.0))
+    fil, sig, info = sheet3d.foppl_vortex(p, bg, 0.1, infl, prm)
+    return dict(t=t, p=p, bg=bg, infl=infl, fil=fil, sig=sig, info=info, t_cold=t_cold)
+
+
+@gpu
+def test_semicylinder_2d_limit(cyl):
+    """Середина нити против 2D-решения Фёппля (полуцилиндр на стенке, отрыв при θ = 60° от оси по ветру): ± 10 %."""
+    info = cyl["info"]
+    r = info["ridges"][0]
+    assert r["converged"] and r["residual"] < 1e-3
+    x0, y0, G = foppl_semicylinder_2d(TH_SEP)
+    U = 10.0
+    s3, h3 = r["s"] / R_CYL, r["h"] / R_CYL
+    ground = 0.0 if x0 * R_CYL > R_CYL else np.sqrt(R_CYL ** 2 - (x0 * R_CYL) ** 2) / R_CYL
+    assert abs(s3 / x0 - 1) < 0.10 and abs(h3 / (y0 - ground) - 1) < 0.10 and abs(r["Gamma"] / (U * R_CYL) / G - 1) < 0.10
+    print(f"\n2D: s={x0:.3f}R h={y0 - ground:.3f}R Γ={G:.2f}UR; 3D: s={s3:.3f} h={h3:.3f} Γ={r['Gamma'] / (U * R_CYL):.2f}")
+
+
+@gpu
+def test_semicylinder_closed_and_reverse_flow(cyl):
+    fil = cyl["fil"]
+    assert len(fil.seg) > 0 and F.imbalance(fil) <= 1e-12 and fil.anchored.sum() == 2
+    assert np.all(fil.gamma > 0) and np.allclose(fil.gamma, fil.gamma[0])
+    p, bg, sig = cyl["p"], cyl["bg"], cyl["sig"]
+    x = np.array([R_CYL + 40.0, R_CYL + 80.0])
+    y = np.zeros(2)
+    z = np.array([10.0, 10.0])
+    u, v, w = sheet3d.velocity_foppl(p, sig, bg, fil, x, y, z, 0.1, infl=cyl["infl"])
+    sg0, _ = P.solve(p, bg, None, cyl["infl"])
+    u0 = P.velocity_jh(p, sg0, bg, x, y, z, 0.1)[0]
+    assert np.all(u < 0) and np.all(u0 > 0)          # обратный u∥ у земли за склоном: есть с нитью, нет без неё
+
+
+@gpu
+def test_semicylinder_crest_separation_has_no_root(cyl):
+    """Отрыв в вершине (sep = "crest"): конечного корня нет (см. 2D-тест), нить не ставится, счётчик."""
+    t0 = time.time()
+    fil, sig, info = sheet3d.foppl_vortex(cyl["p"], cyl["bg"], 0.1, cyl["infl"], dict(gate="none", maxfev=40))
+    assert len(fil.seg) == 0 and info["n_unconverged"] == 1 and not info["ridges"][0]["converged"]
+    sg0, _ = P.solve(cyl["p"], cyl["bg"], None, cyl["infl"])
+    assert np.array_equal(sig, sg0)
+
+
+@gpu
+def test_cost_vs_cold_panel_solve(cyl):
+    """Цена foppl_vortex (infl готов) ≤ 20 холодных решений панелей того же N (сборка + LU + решение)."""
+    t_f = cyl["info"]["t_s"]
+    ratio = t_f / cyl["t_cold"]
+    print(f"\nN={cyl['p'].N} нить {t_f:.1f} с, холодное решение {cyl['t_cold']:.1f} с, отношение {ratio:.1f}, вычислений невязки {cyl['info']['nfev']}")
+    assert ratio <= 20.0
+
+
+# ---------- хребет Agnesi ----------
+@gpu
+def test_agnesi_ridge_report():
+    """Длинный хребет Agnesi H/L 0,5 (a = 250 м, H = 125 м, длина 1500 м) + bg_profile: гребень найден, отрыв по Хеду
+    за ним есть (хребет принят), корня Фёппля с s > 0 нет (для sep = crest и separation3d) → нить не ставится,
+    поле = velocity_jh побитно. Числа безуспешных стартов — в README."""
+    a, H, ds = 250.0, 125.0, 25.0
+    x, y, z = raster(lambda X, Y: H / (1 + (X / a) ** 2), 1500, 750, ds)
+    t = P.Terrain3D(x, y, z, far_m=4000)
+    foc = [(xx, yy) for xx in np.arange(-100, 700, 50.0) for yy in np.arange(-750, 751, 75.0)]
+    p = P.build_panels(t, focus=foc, ds_min=ds, focus_r=70, ds_max=500, growth=1.5)
+    bg = P.bg_profile(10.0, 0.2, 200.0, t)
+    infl = P.assemble(p)
+    fil, sig, info = sheet3d.foppl_vortex(p, bg, 0.1, infl, dict(sep="separation3d", maxfev=30))
+    assert info["n_ridges"] == 1 and info["n_rejected"] == 0
+    r = info["ridges"][0]
+    assert abs(r["x_c"]) < 1.0 and abs(r["L_axis"] - 1500.0) <= 2 * ds
+    assert r["p_sep"][0] > 100.0                    # точка отрыва по Хеду на подветренном склоне
+    assert not r["converged"] and len(fil.seg) == 0
+    pts = (np.array([300.0, 400.0]), np.zeros(2), np.array([80.0, 100.0]))
+    a_ = sheet3d.velocity_foppl(p, sig, bg, fil, *pts, 0.1, infl=infl)
+    b_ = P.velocity_jh(p, sig, bg, *pts, 0.1, infl=infl)
+    assert all(np.array_equal(u, v) for u, v in zip(a_, b_))
+    print(f"\nAgnesi N={p.N}: ridge H={r['H']:.0f} м, p_sep=({r['p_sep'][0]:.0f},{r['p_sep'][1]:.0f}), "
+          f"невязок {info['nfev']}, стартов {r['starts']}, {info['t_s']:.0f} с")
