@@ -4,9 +4,9 @@ status: "active"
 module: "sw-charges-3d"
 area: "air"
 updated: "2026-11-08"
-summary: "Стыки sw-charges-3d: эталоны, панели, нити, связка, сравнение, вихревой слой, нить ротора (SWD1–SWD7)."
+summary: "Стыки sw-charges-3d: эталоны, панели, нити, связка, сравнение, вихревой слой, нить ротора, прототипы A/C (SWD1–SWD8)."
 related: ["docs/plan/sw-charges-3d.md", "docs/contracts/sw-charges.md", "tools/research/sw_charges_3d/README.md"]
-contracts: [{"id": "SWD1", "version": 2}, {"id": "SWD2", "version": 5}, {"id": "SWD3", "version": 4}, {"id": "SWD4", "version": 4}, {"id": "SWD5", "version": 6}, {"id": "SWD6", "version": 5}, {"id": "SWD7", "version": 1}]
+contracts: [{"id": "SWD1", "version": 2}, {"id": "SWD2", "version": 5}, {"id": "SWD3", "version": 4}, {"id": "SWD4", "version": 4}, {"id": "SWD5", "version": 6}, {"id": "SWD6", "version": 5}, {"id": "SWD7", "version": 1}, {"id": "SWD8", "version": 1}]
 ---
 # Контракты модуля sw-charges-3d
 
@@ -341,3 +341,13 @@ Roshko): слой дискретизирован поперечными (вдо�
   обратный u∥ на 10 м между x_c и x_r; разрез C4 (cascade-2d, вытянутый вдоль оси в длинный хребет) — нити нет
   (у Пикара ротора нет; контроль ложного ротора), разрез C2 — нить есть (у Пикара ротор L ≈ 800 м; L — числом);
   цена ≤ 5 решений панелей того же N (по кешу LU) — замер.
+
+## SWD8 v1 — прототипы A/C в 3D: сводка
+Владелец — SWD-12; потребители — итог модуля. Задача 4 плана (решение пользователя 2026-11-08: GPU — задаче 4).
+- Путь — `tools/research/sw_charges_3d/out/proto3d/summary.json` + `.csv`; JSON (`format` = "sw3d-proto",
+  `version` = 1): `git`, `created`, `rows` — {`proto` ("A" | "C"), `case` (строка: постановка, напр. "flat",
+  "agnesi_heated_lee", "perd_ne"), `metric` (имя), `value` (число | null), `unit`, `ref` (число | null), `ref_kind`
+  ("theory" | "lab" | "field" | "game" | "2d"), `ref_source` (статья/путь), `ref_reliability` (строка), `ok`
+  (bool | null — в допуске, допуск — в `note`), `note`}; `timing` — {`proto`, `case`, `n_nodes`, `t_step_s`,
+  `t_run_s`, `backend`}; `problems2d` — {`problem` (№6 или №10 из docs/research/sw_charges.md §7), `status`
+  ("ушла" | "осталась" | "новая в 3D" | "не проверено"), `evidence`}.

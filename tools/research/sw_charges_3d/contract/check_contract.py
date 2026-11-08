@@ -285,7 +285,28 @@ def check_compare(path, d):
         need(r, ("case", "item", "value", "note"), f"diag[{i}]")
 
 
-JSON_FORMATS = {"sw3d-points": (1, check_points), "sw3d-compare": (6, check_compare)}
+def check_proto(path, d):
+    need(d, ("git", "created", "rows", "timing", "problems2d"), path)
+    if not d["rows"]:
+        raise ContractError("rows: пусто")
+    for i, r in enumerate(d["rows"]):
+        w = f"rows[{i}]"
+        need(r, ("proto", "case", "metric", "value", "unit", "ref", "ref_kind", "ref_source", "ref_reliability", "ok",
+                 "note"), w)
+        one_of(r["proto"], {"A", "C"}, w + ".proto")
+        one_of(r["ref_kind"], {"theory", "lab", "field", "game", "2d"}, w + ".ref_kind")
+        num(r["value"], w + ".value", allow_null=True)
+        num(r["ref"], w + ".ref", allow_null=True)
+        if r["ok"] is not None and not isinstance(r["ok"], bool):
+            raise ContractError(f"{w}.ok: bool | null")
+    for i, r in enumerate(d["timing"]):
+        need(r, ("proto", "case", "n_nodes", "t_step_s", "t_run_s", "backend"), f"timing[{i}]")
+    for i, r in enumerate(d["problems2d"]):
+        need(r, ("problem", "status", "evidence"), f"problems2d[{i}]")
+        one_of(r["status"], {"ушла", "осталась", "новая в 3D", "не проверено"}, f"problems2d[{i}].status")
+
+
+JSON_FORMATS = {"sw3d-proto": (1, check_proto), "sw3d-points": (1, check_points), "sw3d-compare": (6, check_compare)}
 
 
 def check_file(path):
