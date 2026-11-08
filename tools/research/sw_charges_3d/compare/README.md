@@ -3,7 +3,7 @@ type: "research"
 status: "active"
 module: "sw-charges-3d"
 updated: "2026-11-08"
-summary: "SWD-5/5b: панели 3D (potential, potential_jh, vortex_jh с вихревыми нитями) против мачт Askervein/Perdigão и Пикара (nom, adv1); сканы σ, z/H, ds_min, tau_s; ротор; статусы 12 проблем 2D."
+summary: "SWD-5/5b: панели 3D (potential, potential_jh, vortex_jh) против мачт Askervein/Perdigão и Пикара; сканы; ротор; статусы проблем 2D."
 related: ["docs/contracts/sw-charges-3d.md", "docs/plan/sw-charges-3d.md", "tools/research/sw_charges_3d/panels3d/README.md", "tools/research/sw_charges_3d/refs/README.md"]
 conclusion: "tools/research/sw_charges_3d/compare/summary.md"
 data: "tools/research/sw_charges_3d/out/compare/"
