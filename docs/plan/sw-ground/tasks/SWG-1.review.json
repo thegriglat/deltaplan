@@ -1,0 +1,56 @@
+{
+  "verdict": "accept",
+  "summary": "SWG1/SWG2 по контракту (инварианты проверены скриптом: n summary = rows, within_tol согласован, все id из SWG1, n ≥ 30 у всех обязательных типов), 47 файлов в скоупе, dont_touch не тронуты (panels3d меняется только патчем в процессе, воспроизведение SWD5 до 3e-15). Разложение bg+panels+jh=total и su_required = s_ref·norm/logfac — алгебра верна, формулы в коде совпадают с README. Отчёт соответствует факту: contract, decomp 256, base 2, pytest passed перезапущены. Причины названы с числами, неподтверждённые гипотезы отмечены, границы модели (Пикар не истина, долина мачтами не подтверждена, клип фона на 10 м) оговорены.",
+  "issues": [
+    {
+      "file": "tools/research/sw_ground/ground/points.py",
+      "line": 17,
+      "severity": "minor",
+      "what": "CAP = 225 вместо «≤ ~150 точек на (случай, тип, высота)» из дополнения координатора: PERD_SW lee 209, ASK windward 179, upstream 224. Контракт SWG1 (n ≥ 30, равномерный шаг) не нарушен, правило записано в rule.",
+      "fix": "Ничего не менять; координатору учесть, что набор плотнее заявленного (время счёта для задач «после» ~6 мин GPU на случай)."
+    },
+    {
+      "file": "tools/research/sw_ground/ground/run_before.py",
+      "line": 39,
+      "severity": "minor",
+      "what": "Сканы σ/z0/фона считались на подмножестве (lee/valley × 10, 50 м через одну точку + мачты), базовые метрики scan при 40/0/0/250 — по тому же подмножеству и потому отличаются от summary (NE lee 10 м: +1,52 против +1,48). В README сказано, в ground.json.scan не помечено.",
+      "fix": "При использовании scan потребителями сравнивать только внутри scan; описание подмножества желательно добавить в scan_codes (можно в следующей задаче)."
+    },
+    {
+      "file": "tools/research/sw_ground/ground/model.py",
+      "line": 35,
+      "severity": "minor",
+      "what": "Патч в процессе: Influence.lu → lu_factor(overwrite_a=True) и assemble → многопоточная копия для всего импортированного panels3d. Файлы sw_charges_3d не правлены, корректность подтверждена repro (|Δs| ≤ 3e-15) и тестом jh_parts ≡ velocity_jh, но любой код, импортирующий ground.model в том же процессе, получит изменённый panels3d (матрица A после LU разрушена).",
+      "fix": "Принять как есть; отметить в контракте/README для задач «после», что ground.model патчит panels3d при импорте."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "contract (accept --only contract --dry)",
+      "value": "exit 0, 47 файлов в скоупе",
+      "pass": true
+    },
+    {
+      "name": "decomp (accept --only decomp --dry)",
+      "value": "256 (>= 16)",
+      "pass": true
+    },
+    {
+      "name": "base (accept --only base --dry)",
+      "value": "2 (>= 2)",
+      "pass": true
+    },
+    {
+      "name": "pytest (accept --only pytest --dry)",
+      "value": "passed, 10 с",
+      "pass": true
+    },
+    {
+      "name": "инварианты SWG1/SWG2 своим скриптом",
+      "value": "n по (случай, тип, z) ≥ 41 у обязательных типов; summary.n = rows 0 расхождений; within_tol 0 расхождений; все id Пикара из SWG1",
+      "pass": true
+    }
+  ],
+  "t": "2026-11-08T22:49:27",
+  "by": "reviewer"
+}
