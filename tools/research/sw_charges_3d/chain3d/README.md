@@ -3,7 +3,7 @@ type: "research"
 status: "active"
 module: "sw-charges-3d"
 updated: "2026-11-08"
-summary: "chain3d (SWD9 v4): ротор как заряженный провод вдоль хребта; ядро по геометрии r_c = 0,25·(x_r − x_c), цена 3 решения панелей; при таком ядре равновесия на Agnesi нет, обратного течения нет."
+summary: "chain3d (SWD9 v4): ротор — заряженный провод у склона; ядро по геометрии, 3 решения панелей, равновесия на Agnesi нет."
 related: ["docs/contracts/sw-charges-3d.md", "docs/plan/sw-charges-3d.md", "tools/research/sw_charges_3d/rotor3d/README.md", "tools/research/sw_charges_3d/breakdown/README.md"]
 conclusion: "Ядро по геометрии (181 м у Agnesi H/L 0,5) ослабляет индуцированную скорость до ~Γ/(4π r_c) ≈ 3 м/с при требуемых ~17 м/с: равновесие звеньев не найдено (невязка 0,9·U, 4 из 7 звеньев на границе n = r_c), обратного течения нет (|u_min|/U = 0,06), S = 4,4 (v4) — state «нет» при E ×½, ×1, ×2. Цена 3 решения панелей (≤ 4) выполнена."
 data: ""
