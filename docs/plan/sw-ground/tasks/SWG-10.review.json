@@ -1,0 +1,53 @@
+{
+  "verdict": "accept",
+  "summary": "Partial честный: схема VII собрана по карточке (Карман/Хед/Coles/Carter, σ_d теми же LU, профиль у земли), уравнения в bl._rhs сверены с формулами docstring — согласованы; скоуп чистый (20 файлов в vii/ и out/swg-10/), potential_jh побитно = SWG-1, pytest 6 passed перезапущен. Несходимость на Perdigão и отсутствие vii_rotor/литературы — в отчёте и README, в ground.json есть conv_max и layer_info.converged. Замечания — minor, на следующий круг.",
+  "issues": [
+    {
+      "file": "tools/research/sw_ground/vii/core.py",
+      "line": 287,
+      "severity": "minor",
+      "what": "Поправка Carter считается от δ* слоя текущей итерации (ds_l), а docstring (строка 4) и README пишут δ*_{k+1} = δ*_k·[1 + ω(…)] от предыдущей δ*_k (D). В обратной зоне ds_l следует наклону D, но уровень другой — формула и код расходятся.",
+      "fix": "Либо carter = D·(1 + ω(ratio − 1)), либо поправить docstring/README на фактическую формулу и сказать, почему так."
+    },
+    {
+      "file": "tools/research/sw_ground/vii/test_vii.py",
+      "line": 160,
+      "severity": "minor",
+      "what": "Карточка просила на Аньези H/L 0,5 проверку «отрыв есть» числом; тест утверждает только сходимость и конечность профилей, факт отсутствия отрыва (separated=false) — только в agnesi.json/README. Не подгонка (ничего не ослаблено), но критерий карточки не закрыт тестом.",
+      "fix": "В README/отчёте явно: критерий «отрыв есть» не выполнен при δ0 = 500 м (есть в scan_agnesi) — координатору учесть при следующем круге."
+    },
+    {
+      "file": "tools/research/sw_ground/vii/README.md",
+      "line": 218,
+      "severity": "minor",
+      "what": "Дополнение координатора 01:16 (строка decomp «лее вне зоны» по маске SWG-9) не сделано и не упомянуто в «не вышло»; ветка не синхронизирована с feature/sw-ground (attached/ и zone/ отсутствуют), так что маски и не было.",
+      "fix": "Записать в отчёт/README как не сделанное с причиной (SWG-9 не слит в ветку модуля на момент работы)."
+    },
+    {
+      "file": "tools/research/sw_ground/out/swg-10/tables.md",
+      "line": 175,
+      "severity": "minor",
+      "what": "Perdigão: таблицы vii — последняя итерация несошедшегося расчёта (conv_max до 0,06 s в лее 50 м NE, в decomp). В ground.json variants.vii это читается только через layer_info.converged/decomp.conv_max; строки rows не помечены.",
+      "fix": "При использовании таблиц SWG-10 в сводках цитировать с пометкой «не сошлось» (README уже так делает)."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "pytest",
+      "value": "6 passed, 138 с",
+      "pass": true
+    },
+    {
+      "name": "base",
+      "value": "PASS (potential_jh побитно = out/swg-1)",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "20 файлов в границах",
+      "pass": true
+    }
+  ],
+  "t": "2026-11-09T02:44:04",
+  "by": "reviewer"
+}
