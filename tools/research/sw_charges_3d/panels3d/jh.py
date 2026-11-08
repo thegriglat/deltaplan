@@ -105,8 +105,35 @@ def middle_top(L, z0):
     return L / np.sqrt(np.log(np.maximum(L, 3 * z0) / z0))
 
 
-def velocity_jh(panels, sigma, bg, x, y, z, z0, U_ref=None, extra=None, infl=None):
-    """Внутренний слой Jackson–Hunt (контракт SWD2). → (u, v, w)."""
+def _column_scales(terrain, xf, yf, ex, ey, ds_min):
+    """L по колонкам (x, y): профиль вдоль ветра считается один раз на поперечную линию (кеш по координате поперёк),
+    ближайший гребень — по координате вдоль ветра (то же правило, что `hill_length`)."""
+    q = np.round(np.stack([xf, yf], 1), 6)
+    uq, inv = np.unique(q, axis=0, return_inverse=True)
+    cross = np.round(-uq[:, 0] * ey + uq[:, 1] * ex, 4)
+    along = uq[:, 0] * ex + uq[:, 1] * ey
+    sm = 2.0 * ds_min
+    step = min(ds_min, terrain.dx, terrain.dy, sm / 4.0)
+    Lq = np.empty(uq.shape[0])
+    done = {}
+    for i in range(uq.shape[0]):
+        key = float(cross[i])
+        if key not in done:
+            qx, qy = uq[i]
+            s, z = _line_profile(terrain, float(qx), float(qy), ex, ey, step)
+            cr = [] if s.size < 3 else crests_profile(s, z, ds_min)[1]
+            done[key] = (float(qx * ex + qy * ey), cr)
+        a0, cr = done[key]
+        if not cr:
+            Lq[i] = L_FLAT
+        else:
+            Lq[i] = min(cr, key=lambda c: abs(a0 + c["s_c"] - along[i]))["L"]
+    return Lq[inv.ravel()]
+
+
+def velocity_jh(panels, sigma, bg, x, y, z, z0, U_ref=None, extra=None, infl=None, couple=False):
+    """Внутренний слой Jackson–Hunt (контракт SWD2 v3). `couple=True` — ΔS из полной внешней скорости
+    (потенциал + extra + панели от σ_extra, в масштабе U_ref); extra ниже h_m отдельно не прибавляется. → (u, v, w)."""
     terrain = panels.terrain
     ex, ey = wind_of(bg, terrain)
     if U_ref is None:
@@ -120,6 +147,7 @@ def velocity_jh(panels, sigma, bg, x, y, z, z0, U_ref=None, extra=None, infl=Non
     if infl is None:
         infl = _inf.assemble(panels, "auto")
     be = infl.backend
+    coupled = bool(couple) and extra is not None
     if extra is None:
         sig_bg, sig_ex = sigma, None
     else:
@@ -133,18 +161,15 @@ def velocity_jh(panels, sigma, bg, x, y, z, z0, U_ref=None, extra=None, infl=Non
 
     zg = panels.height(xf, yf)
     zagl = zf - zg
-    # масштаб холма по колонкам (x, y)
-    q = np.round(np.stack([xf, yf], 1), 6)
-    uq, inv = np.unique(q, axis=0, return_inverse=True)
-    Lq = np.empty(uq.shape[0])
-    for i, (qx, qy) in enumerate(uq):
-        hl = hill_length(terrain, qx, qy, (ex, ey), ds_min=panels.ds_min)
-        Lq[i] = L_FLAT if hl is None else hl["L"]
-    L = Lq[inv.ravel()]
+    L = _column_scales(terrain, xf, yf, ex, ey, panels.ds_min)
     l = inner_depth(L, z0)
     hm = middle_top(L, z0)
 
-    uv, vv, wv = _inf.velocity(panels, sig_bg, bg, xf, yf, zf, None, be)   # потенциал + фон (без extra)
+    if coupled:     # снаружи слоя — velocity() с extra и полным σ (ниже h_m extra уже в ΔS, t = 0)
+        uv, vv, wv = _inf.velocity(panels, sigma, bg, xf, yf, zf, extra, be)
+        wv0 = _inf.velocity(panels, sig_bg, bg, xf, yf, zf, None, be)[2]
+    else:
+        uv, vv, wv = _inf.velocity(panels, sig_bg, bg, xf, yf, zf, None, be)   # потенциал + фон (без extra)
     ok = np.isfinite(uv)
     zz = np.where(ok, np.maximum(zagl, z0), z0)
     ze = np.maximum(zz, l)
@@ -152,7 +177,17 @@ def velocity_jh(panels, sigma, bg, x, y, z, z0, U_ref=None, extra=None, infl=Non
     sp = np.hypot(up, vp)
     dx_ = np.where(sp > 1e-9, up / np.maximum(sp, 1e-12), ex)
     dy_ = np.where(sp > 1e-9, vp / np.maximum(sp, 1e-12), ey)
-    dS = sp / U_ref - 1.0
+    if coupled:
+        # полная внешняя u∥ на max(z_agl, l): потенциал + (extra + панели от σ_extra)·U_ref/|bg(100 м)|
+        k_sc = U_ref / u_ref_of(bg, terrain)[0]
+        Pe = np.stack([xf, yf, np.where(ok, zg + ze, zg + 1.0)], 1)
+        eu, ev, _ = _inf.horizontal_extra(extra, Pe)
+        pe = _inf.panel_velocity(panels, sig_ex, Pe, be)
+        up_t = up + k_sc * (eu + pe[:, 0])
+        vp_t = vp + k_sc * (ev + pe[:, 1])
+        dS = (up_t * dx_ + vp_t * dy_) / U_ref - 1.0      # со знаком: < −1 — обратный поток у земли
+    else:
+        dS = sp / U_ref - 1.0
     lnh = np.log(np.maximum(hm, 1.01 * z0) / z0)
     A = np.where(ze < hm, (lnh / np.log(np.maximum(ze, 1.0001 * z0) / z0)) ** 2, 1.0)
     u0 = U_ref * np.log(zz / z0) / np.log(100.0 / z0)
@@ -168,8 +203,8 @@ def velocity_jh(panels, sigma, bg, x, y, z, z0, U_ref=None, extra=None, infl=Non
     V = (1 - t) * uh_in * dy_ + t * uh_out * oy
     U = np.where(ok, U, np.nan)
     V = np.where(ok, V, np.nan)
-    W = np.where(ok, wv, np.nan)
-    if extra is not None:
+    W = np.where(ok, (1 - t) * wv0 + t * wv if coupled else wv, np.nan)
+    if extra is not None and not coupled:
         P = np.stack([xf, yf, zf], 1)
         eu, ev, ew = _inf.horizontal_extra(extra, P)
         pe = _inf.panel_velocity(panels, sig_ex, P, be)

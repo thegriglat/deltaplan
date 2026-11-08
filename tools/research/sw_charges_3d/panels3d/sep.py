@@ -108,8 +108,11 @@ def _nodal_field(panels, ut):
     return acc / w[:, None]
 
 
-def _trace(panels, ut_node, seeds, wind, rect, ucut, max_steps):
-    """Линии тока из seeds (M, 2); возвращает списки массивов (x, y, z, s, speed, tri) по линиям."""
+def _trace(panels, ut_node, seeds, wind, rect, ucut, max_steps, aux_node=None):
+    """Линии тока из seeds (M, 2) по полю ut_node; возвращает массивы (x, y, z, s, speed, ax, ay, az) по линиям,
+    (ax, ay, az) — вектор aux_node (по умолчанию то же поле) в точке."""
+    if aux_node is None:
+        aux_node = ut_node
     M = seeds.shape[0]
     pos = seeds.copy()
     act = np.ones(M, bool)
@@ -117,11 +120,15 @@ def _trace(panels, ut_node, seeds, wind, rect, ucut, max_steps):
     s_acc = np.zeros(M)
     prev = None
 
+    aux = [None]
+
     def field(p):
         t, l1, l2, l3 = panels.locate(p[:, 0], p[:, 1])
         tt = np.maximum(t, 0)
         tr = panels.tris[tt]
         f = l1[:, None] * ut_node[tr[:, 0]] + l2[:, None] * ut_node[tr[:, 1]] + l3[:, None] * ut_node[tr[:, 2]]
+        fa = l1[:, None] * aux_node[tr[:, 0]] + l2[:, None] * aux_node[tr[:, 1]] + l3[:, None] * aux_node[tr[:, 2]]
+        aux[0] = fa
         z = l1 * panels.v[tt, 0, 2] + l2 * panels.v[tt, 1, 2] + l3 * panels.v[tt, 2, 2]
         return t, f, z
 
@@ -132,11 +139,12 @@ def _trace(panels, ut_node, seeds, wind, rect, ucut, max_steps):
             break
         p = pos[idx]
         t, f, z = field(p)
+        fa0 = aux[0]
         inside = (t >= 0) & (p[:, 0] >= x0) & (p[:, 0] <= x1) & (p[:, 1] >= y0) & (p[:, 1] <= y1)
         sp = np.linalg.norm(f, axis=1)
         for q, i in enumerate(idx):
             if inside[q]:
-                recs[i].append((p[q, 0], p[q, 1], z[q], s_acc[i], sp[q]))
+                recs[i].append((p[q, 0], p[q, 1], z[q], s_acc[i], sp[q], fa0[q, 0], fa0[q, 1], fa0[q, 2]))
         stop = ~inside | (sp < ucut)
         h = 0.5 * panels.ds[np.maximum(t, 0)]
         tau = f / np.maximum(sp, 1e-300)[:, None]
@@ -154,13 +162,48 @@ def _trace(panels, ut_node, seeds, wind, rect, ucut, max_steps):
         s_acc[idx[keep]] += dl[keep]
         pos[idx[keep]] = pn[keep]
         act[idx[stop]] = False
-    return [np.array(r) if len(r) else np.zeros((0, 5)) for r in recs]
+    return [np.array(r) if len(r) else np.zeros((0, 8)) for r in recs]
 
 
-def separation3d(panels, sigma, bg, z0, extra=None, method="head", lee_only=True, seed_dy=None):
-    """Линии отрыва по поверхностным линиям тока (контракт SWD2). → {points, lines, rejected}."""
+def _sigma_bg(panels, bg):
+    """σ для одного bg (без extra): `Influence` берётся из panels._infl_obj (кладёт sim3d или первый вызов)."""
+    infl = getattr(panels, "_infl_obj", None)
+    if infl is None:
+        infl = panels._infl_obj = _inf.assemble(panels, "auto")
+    if ("bg", bg) not in infl._cache:
+        from .api import solve
+        infl._cache[("bg", bg)] = solve(panels, bg, None, infl)[0]
+    return infl._cache[("bg", bg)]
+
+
+def _reattach_index(s, us, ue, i, n2):
+    """Присоединение после отрыва в i: первая точка j > i, где u_s > 0 на ≥ n2 отсчётов подряд, после того как u_s
+    было ≤ 0 (обратное течение); если u_s не менялось на ≤ 0 — первая точка, где u_s растёт на ≥ n2 отсчётов подряд
+    (ускорение, неблагоприятного градиента нет). −1 — линия кончилась."""
+    n = s.size
+    neg = np.nonzero(us[i:] <= 0)[0]
+    if neg.size:
+        j0 = i + int(neg[0])
+        ok = us > 0
+    else:
+        j0 = i
+        ok = np.concatenate([[False], np.diff(us) > 0])
+    for j in range(j0 + 1, n - n2 + 1):
+        if ok[j:j + n2].all():
+            return j
+    return -1
+
+
+def separation3d(panels, sigma, bg, z0, extra=None, method="head", lee_only=True, seed_dy=None, restart=True,
+                 streamlines_from="bg"):
+    """Линии отрыва по поверхностным линиям тока (контракт SWD2 v3). → {points, lines, rejected}.
+    `streamlines_from="bg"` — линии тока по решению для одного bg (σ_bg), u_s — полная касательная скорость (с extra)
+    вдоль линии со знаком; `"full"` — линии по полному решению (v2). `restart` — после отрыва слой стартует заново
+    с присоединения (`_reattach_index`), возможны несколько отрывов на линии."""
     if method != "head":
         raise ValueError("method='head'")
+    if streamlines_from not in ("bg", "full"):
+        raise ValueError("streamlines_from: bg | full")
     terrain = panels.terrain
     dsm = panels.ds_min
     if seed_dy is None:
@@ -169,6 +212,10 @@ def separation3d(panels, sigma, bg, z0, extra=None, method="head", lee_only=True
     U_ref, _ = u_ref_of(bg, terrain)
     ut = _inf.tangent_velocity(panels, sigma, bg, extra)
     ut_node = _nodal_field(panels, ut)
+    if streamlines_from == "bg" and extra is not None:
+        ut_tr = _nodal_field(panels, _inf.tangent_velocity(panels, _sigma_bg(panels, bg), bg, None))
+    else:
+        ut_tr = ut_node
     x0, x1, y0, y1 = terrain.x[0], terrain.x[-1], terrain.y[0], terrain.y[-1]
     rect = (x0, y0, x1, y1)
     px, py = -ey, ex
@@ -196,17 +243,16 @@ def separation3d(panels, sigma, bg, z0, extra=None, method="head", lee_only=True
     seeds = np.array(seeds)
     diag = float(np.hypot(x1 - x0, y1 - y0))
     max_steps = int(2.0 * diag / (0.5 * float(panels.ds.min()))) + 100
-    recs = _trace(panels, ut_node, seeds, (ex, ey), rect, 0.02 * max(U_ref, 1e-9), max_steps)
+    recs = _trace(panels, ut_tr, seeds, (ex, ey), rect, 0.02 * max(U_ref, 1e-9), max_steps, ut_node)
 
-    pts = dict(x=[], y=[], z=[], streamline=[], s_sep=[], u_s=[], value=[], method=[])
-    rej = {k: [] for k in pts}
+    keys = ("x", "y", "z", "streamline", "s_sep", "u_s", "value", "method", "k", "reattach")
+    pts = {k: [] for k in keys}
+    rej = {k: [] for k in keys}
 
-    def put(d, k, i, s, xx, yy, zz, us, Hv):
-        for key, val in zip(("x", "y", "z", "streamline", "s_sep", "u_s", "value", "method"),
-                            (xx, yy, zz, k, s, us, Hv, "head")):
+    def put(d, k, kk, s, xx, yy, zz, us, Hv, rea=None):
+        for key, val in zip(keys, (xx, yy, zz, k, s, us, Hv, "head", kk, rea)):
             d[key].append(val)
 
-    sep_of = {}
     for k, r in enumerate(recs):
         if r.shape[0] < 4:
             continue
@@ -220,13 +266,14 @@ def separation3d(panels, sigma, bg, z0, extra=None, method="head", lee_only=True
         X = np.interp(s, s_raw, r[:, 0])
         Y = np.interp(s, s_raw, r[:, 1])
         Z = np.interp(s, s_raw, r[:, 2])
-        us = np.interp(s, s_raw, r[:, 4])
-        # u_e: на кромке слоя фон на H_EDGE над поверхностью вдоль касательной линии
         tx = np.gradient(X, s)
         ty = np.gradient(Y, s)
         tz = np.gradient(Z, s)
         tn = np.sqrt(tx * tx + ty * ty + tz * tz)
         tx, ty, tz = tx / tn, ty / tn, tz / tn
+        # u_s: касательная скорость полного решения вдоль линии (со знаком; при "full" и extra=None — |ut|)
+        A3 = np.stack([np.interp(s, s_raw, r[:, 5 + c]) for c in range(3)], 1)
+        us = A3[:, 0] * tx + A3[:, 1] * ty + A3[:, 2] * tz
         tt, l1, l2, l3 = panels.locate(X, Y)
         nn = panels.n[np.maximum(tt, 0)]
         b0 = bg(X, Y, Z)
@@ -241,27 +288,45 @@ def separation3d(panels, sigma, bg, z0, extra=None, method="head", lee_only=True
         if lee_only:
             zsm, cr = crests_profile(s, Z, dsm)
             sep_ok = lee_mask_profile(s, zsm, cr)
-        bl = march_layer(s, ue, du, z0, U_ref, None)
-        i = bl["i_sep"]
-        if i >= 0 and sep_ok is not None and not sep_ok[i]:
-            put(rej, k, i, *_where(s, X, Y, Z, us, bl, i))
-            bl = march_layer(s, ue, du, z0, U_ref, sep_ok)
+        n2 = max(2, int(np.ceil(2.0 * dsm / max(float(s[1] - s[0]), 1e-9))))
+        i0, kk = 0, 0
+        while i0 < s.size - 3:
+            sl = slice(i0, None)
+            ok_sl = None if sep_ok is None else sep_ok[sl]
+            bl = march_layer(s[sl], ue[sl], du[sl], z0, U_ref, None)
             i = bl["i_sep"]
-        if i >= 0:
-            sep_of[k] = _where(s, X, Y, Z, us, bl, i)
-            put(pts, k, i, *sep_of[k])
-    ks = sorted(sep_of)
-    lines, run = [], []
-    for k in ks:
-        if run and k != run[-1][0] + 1:
-            lines.append(np.array([q[1] for q in run]))
-            run = []
-        run.append((k, np.array(sep_of[k][1:4])))
-    if run:
-        lines.append(np.array([q[1] for q in run]))
-    out = {k: (np.array(v) if k != "method" else list(v)) for k, v in pts.items()}
-    rj = {k: (np.array(v) if k != "method" else list(v)) for k, v in rej.items()}
-    return dict(points=out, lines=lines, rejected=rj)
+            if i >= 0 and ok_sl is not None and not ok_sl[i]:
+                put(rej, k, kk, *_where(s[sl], X[sl], Y[sl], Z[sl], us[sl], bl, i))
+                bl = march_layer(s[sl], ue[sl], du[sl], z0, U_ref, ok_sl)
+                i = bl["i_sep"]
+            if i < 0:
+                break
+            w = _where(s[sl], X[sl], Y[sl], Z[sl], us[sl], bl, i)
+            ig = i0 + i
+            j = _reattach_index(s, us, ue, ig, n2) if restart else -1
+            rea = None if j < 0 else dict(x=float(X[j]), y=float(Y[j]), z=float(Z[j]))
+            put(pts, k, kk, *w, rea)
+            kk += 1
+            if j < 0:
+                break
+            i0 = j
+    lines = []
+    sk, kv = np.array(pts["streamline"], int), np.array(pts["k"], int)
+    xyz = np.array([pts["x"], pts["y"], pts["z"]]).T
+    for level in sorted(set(kv.tolist())):
+        sel = np.nonzero(kv == level)[0]
+        sel = sel[np.argsort(sk[sel])]
+        run = []
+        for q in sel:
+            if run and sk[q] != sk[run[-1]] + 1:
+                lines.append(xyz[run])
+                run = []
+            run.append(q)
+        if run:
+            lines.append(xyz[run])
+    def pack(d):
+        return {k: (np.array(v) if k not in ("method", "reattach") else list(v)) for k, v in d.items()}
+    return dict(points=pack(pts), lines=lines, rejected=pack(rej))
 
 
 def _where(s, X, Y, Z, us, bl, i):
