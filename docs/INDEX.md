@@ -122,6 +122,7 @@ generated: true
   - [docs/research/sw_charges/proto-c.md](research/sw_charges/proto-c.md) — Прототип C (SWC-7): диполи Лэмба — Чаплыгина и пары болтанки, 2D без рельефа; поток тепла из замыкания сходится, σ_w и ядро — нет.
   - [docs/research/sw_charges/stage1-regimes.md](research/sw_charges/stage1-regimes.md) — Слой Рипа даёт режимы теории §2 (94 % ridge, бор ±0,001); в условиях air-phase при h/z_i ≥ 1 всегда R6, Fr_game,c ≈ 1,2–1,3.
   - [docs/research/sw_charges/stage1-sections.md](research/sw_charges/stage1-sections.md) — SWC-9: слой Рипа на сетке 400/200 м против Пикара на разрезах C0–C4 и Perdigão; на масштабе 400 м слой не лучше ровного ветра.
+  - [docs/research/sw_charges/stage2-2d-bl.md](research/sw_charges/stage2-2d-bl.md) — SWC-17: слой и отрыв Хеда на 2D: паритета с Пикаром у земли нет (6/15 против 2/15), ложный ротор C4 исчез, реальные тоже.
   - [docs/research/sw_charges/stage2-2d-tunnel.md](research/sw_charges/stage2-2d-tunnel.md) — SWC-16: недобор dS панелей против труб Lubitz–White — от сглаживания фона и высоты сравнения, не формы; эталон Пикара у земли ±6–30 %.
   - [docs/research/sw_charges/stage2-2d.md](research/sw_charges/stage2-2d.md) — SWC-12: панели и вихри на 2D-разрезах: паритета у земли с Пикаром, трубой и мачтами нет, ротор с вихрями есть.
   - [docs/research/sw_charges/unified-scales.md](research/sw_charges/unified-scales.md) — Три варианта единого описания ветра трёх масштабов (вихревые частицы, слой + поток массы, диполи и пары), литература, два 2D-прототипа.
