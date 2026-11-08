@@ -163,6 +163,21 @@ def test_removal_and_ground():
     assert all(np.isfinite(g.x).all() for g in (e,))
 
 
+def test_shed_on_ground_variable_us_survives():
+    M = 21
+    P = np.stack([np.zeros(M), np.linspace(0, 100, M), np.zeros(M)], 1)
+    N = np.tile([0, 0, 1.0], (M, 1))
+    wind = lambda x, y, z: (np.full_like(x, 5.0), np.zeros_like(x), np.zeros_like(x))
+    for z0 in (0.0, 0.5):
+        U = np.tile([8.0, 0, 0], (M, 1)) * np.linspace(1, 1.5, M)[:, None]
+        f = shed(None, P + [0, 0, z0], U, 0.5, 1.0, N)
+        assert f.anchored.sum() > 2
+        for _ in range(50):
+            f = step(f, wind, 0.5, FLAT, None)
+            assert imbalance(f) <= 1e-12 and np.isfinite(f.x).all()
+        assert len(f.seg) > 0 and f.anchored.any()
+
+
 def test_anchored_projection_and_no_nan():
     hill = lambda x, y: 2.0 * np.exp(-(np.asarray(x) ** 2 + np.asarray(y) ** 2) / 400.0)
     P = np.stack([np.linspace(-20, 20, 21), np.zeros(21), 10.0 * np.ones(21)], 1)

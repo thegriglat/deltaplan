@@ -251,8 +251,8 @@ def step(f, flow, dt, ground, params=None):
 def shed(f, line_pts, u_s, dt, core, normals):
     """Добавляет нить схода по line_pts (M,3); u_s (M,3) — скорость слоя в узлах; normals (M,3) — нормали земли.
     Γ отрезка = ½ū²·dt (ū — среднее модулей на концах), направление ω — n × û_t (знак Γ — по a→b).
-    Концы якорные; разность Γ соседних отрезков в промежуточном узле уходит ножкой длиной core по −n
-    в якорный узел (∇·ω = 0)."""
+    Концы якорные; разность Γ соседних отрезков в промежуточном узле уходит ножкой длиной core
+    в якорный узел в исходной точке линии (сам узел поднят на core по n; ∇·ω = 0). Линия — на земле."""
     P = np.asarray(line_pts, float).reshape(-1, 3)
     m = len(P)
     f = Filaments() if f is None else f.copy()
@@ -276,7 +276,10 @@ def shed(f, line_pts, u_s, dt, core, normals):
     for k in range(1, m - 1):
         dG = G[k - 1] - G[k]  # избыток входящей
         if abs(dG) > 1e-14 * max(abs(G[k - 1]), abs(G[k]), 1e-300):
-            nodes.append(P[k] - core * N[k])
+            # узел поднят на core по n, ножка уходит в якорь в исходной точке линии (на земле): ножка длиной core,
+            # якорь не уходит под землю и не схлопывается проекцией на ground
+            nodes[k] = P[k] + core * N[k]
+            nodes.append(P[k])
             anc.append(True)
             seg.append((k, len(nodes) - 1))
             gam.append(dG)
