@@ -47,3 +47,16 @@ tools/research/cascade_2d/py -I tools/research/sw_charges/panels_exp/merge2.py
 python3 tools/research/sw_charges/contract/check_contract.py tools/research/sw_charges/out/panels2d
 ```
 Данные: Пикар `~/data/cascade_2d/fields/` (как выше); труба — PDF Lubitz & White 2007 (UC Davis, открытый доступ, только прочитан: геометрия, определение ΔS, α, табл. 2; файлов данных не добавлено, лицензий нет).
+
+## SWC-17 (круг 3): пограничный слой и отрыв Хеда
+Вывод — `docs/research/sw_charges/stage2-2d-bl.md`. SW7 v2 `out/panels2d/points.{json,csv}` (version 2: 4 варианта, `ref_err`, `within_tol_ref`); прежний (SWC-16, version 1) — `out/panels2d/prev_swc16/points_v1.json.gz` (gzip, чтобы контрактный тест не проверял его как текущий); `prev_swc12/points.json` так же упакован.
+- `bl_common.py` — `run_bl_variants`: potential_bl (`surface_flow` → `boundary_layer` → `velocity_bl`) и vortex_bl (`step(shed="auto")`, `velocity_bl` с вихрями на каждом шаге окна); библиотека `panels2d` не менялась.
+- `run_bl.py <C1|C2|C4|PERD_NE|PERD_SW|LW_x> [H для LW, м | z0 для PERD]` → `cases/<case>_bl[...].json`. Случаи C*/PERD вызывают прежние `run_cc.case_cc` / `run_case.case_perd` с подменой `run_variants`; LW — масштабированный хребет (H = 21,1 м при z0 = 0,1 м: z0/H трубы 0,18 мм/38 мм), см. вывод.
+- `run_bl_all.sh` — все случаи + чувствительность LW (H = 50, 150 м); Perdigão с z0 = 0,1 м — строка в комментарии конца скрипта.
+- `merge3.py` — SW7 v2, `tables.md`, `parity.json`, `info.json`.
+```
+.dpcli/dpcli lock cpu swc17 -- bash tools/research/sw_charges/panels_exp/run_bl_all.sh      # ≈ 33 мин CPU суммарно
+OPENBLAS_NUM_THREADS=1 tools/research/cascade_2d/py -I tools/research/sw_charges/panels_exp/merge3.py
+python3 tools/research/sw_charges/contract/check_contract.py tools/research/sw_charges/out/panels2d
+```
+Данные и лицензии — как в SWC-12/16; новых внешних файлов нет. Эталон погрешности — `out/panels2d/tunnel/picard_err.json` (SWC-16).
