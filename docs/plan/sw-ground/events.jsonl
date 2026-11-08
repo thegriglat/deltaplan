@@ -94,3 +94,4 @@
 {"t": "2026-11-09T00:42:51", "by": "coordinator", "task": "SWG-6", "ev": "merged"}
 {"t": "2026-11-09T00:43:23", "by": "coordinator", "task": "SWG-6", "ev": "accepted", "commits": ["f595b289d"], "note": "5/5 contract=ok:exit 0; windows=ok:2; stages=ok:2; fp32=ok:20; pytest=ok:passed"}
 {"t": "2026-11-09T00:43:30", "by": "coordinator", "task": "SWG-6", "ev": "note", "note": "поправка: первое слияние не прошло (грязный план в копии модуля), merged записан раньше; фактическое слияние f595b28, accept --here 5/5"}
+{"t": "2026-11-09T00:43:43", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: lock cpu даёт 1 слот (CPUQuota 100 %) — исполнители уходили без замка или ждали; нужен вес задачи; dpcli merge при грязной копии модуля отказывает, но в связке с accept --here/event merged это легко пропустить — merge стоит завершать ненулевым кодом; job stop не убивает дочерний python; черновики r-*.json в корне копии валят scope"}
