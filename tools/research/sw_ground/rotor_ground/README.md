@@ -3,7 +3,7 @@ type: "research"
 status: "active"
 module: "sw-ground"
 updated: "2026-11-08"
-summary: "SWG-5: нить ротора rotor3d v2 на плотных точках у земли: в лее срезает завышение вдвое-втрое, но доля в ±15 % остаётся 11–24 %; на Askervein перебор, мачты не лучше."
+summary: "Нить ротора SWG-2 в лее Perdigão срезает завышение у земли (50 м +1,7…1,9 → +0,9…1,25), но доля в ±15 % мала; мачты Askervein хуже."
 related: ["docs/contracts/sw-ground.md", "tools/research/sw_ground/rotor/README.md", "tools/research/sw_ground/ground/README.md"]
 conclusion: "Нить (штатная, SWG-2) убирает часть завышения в лее Perdigão (mean rel_err 10 м: NE +1,48 → +1,19, SW +2,00 → +1,66; 50 м: +1,68 → +0,88, +1,87 → +1,25), но доля точек в ±15 % Пикара лее+долина (Perdigão) выросла лишь с 0,11–0,21 до 0,12–0,24, а нить даёт перебор на Askervein (лее 50 м: доля 0,56 → 0,00, mean −0,60) и сдвигает опорную точку (−10…−15 % на Perdigão). Мачты: RMSE s лучше только на NE (0,184 → 0,150), на Askervein и SW хуже. Дефицита следа, достаточного для ±15 %, нить одна не даёт."
 data: "out/swg-5/ground.json"
