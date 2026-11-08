@@ -1,0 +1,48 @@
+{
+  "verdict": "accept",
+  "summary": "v2 по SWD7: closure=reattach — R=R_rule·(x_r−x_c) по нормали от x_m, Γ линейно из u_t(x_r)=0 (1 решение панелей), v1 сохранён как two_point; скоуп чист, подгонки нет, провалы (|u_min|/U=0,54; Agnesi при gate=slope нити нет — порог 0,27 отрезает Agnesi 0,244 и C4 0,249) показаны честно и вынесены вопросом. Невыполненное из дополнения карточки — в следующую итерацию вместе с решением по порогу: чувствительность R_rule 0,15/0,25/0,35 в README нет; minor 1 и 3 ревью SWD-11 не исправлены.",
+  "issues": [
+    {
+      "file": "tools/research/sw_charges_3d/rotor3d/README.md",
+      "line": 15,
+      "severity": "major",
+      "what": "Дополнение карточки требовало чувствительность R_rule 0,15/0,25/0,35 числами в README — таблицы нет (есть только 0,25). Без неё пользователю нечем судить, насколько |u_min|/U и Γ зависят от правила.",
+      "fix": "Три прогона Agnesi (gate=head) и C2 при R_rule 0,15/0,25/0,35: R, Γ, u_t(x_c), min u∥, L зоны — таблицей в README, без выбора по данным."
+    },
+    {
+      "file": "tools/research/sw_charges_3d/rotor3d/rotor.py",
+      "line": 115,
+      "severity": "minor",
+      "what": "Minor 1 ревью SWD-11 (дополнение карточки: исправить) не сделан: geometry(R) считает s и h вдоль ветра (P_c + s·wv), а унаследованный build ставит нить со смещением s вдоль na (нормаль к оси). В тестах ось ⟂ ветру — расхождения нет, в общем случае есть.",
+      "fix": "Проецировать s на na (s·(wv·na)) и брать h в той же точке, либо записать в «Границы модели»: ось хребта ⟂ ветру."
+    },
+    {
+      "file": "tools/research/sw_charges_3d/rotor3d/tests/test_cases.py",
+      "line": 15,
+      "severity": "minor",
+      "what": "Minor 3 ревью SWD-11 не сделан: C4 сглажен 25 м, C2 — 0. Вывод «уклон 0,27 не разделяет Agnesi (0,244) и C4 (0,249)» опирается на уклон C4 при дополнительном сглаживании; Agnesi отрезается независимо, но сравнение с C4 нечистое.",
+      "fix": "Одинаковое smooth_m для C2/C4 (или ссылка на параметр 2D-опыта) и уклон C4 при sm=0 — числом в README."
+    },
+    {
+      "file": "tools/research/sw_charges_3d/rotor3d/tests/test_rotor3d.py",
+      "line": 198,
+      "severity": "minor",
+      "what": "test_v2_agnesi_default_slope_gate_rejects закрепляет противоречие контракта как assert (slope_lee < 0,27, нити нет). При решении по порогу/критерию отрыва тест сломается по замыслу.",
+      "fix": "Ничего сейчас; при правке SWD7 переписать под новый критерий. Статус partial оставить."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "pytest-pass (accept --only pytest-pass --dry)",
+      "value": "12 passed, 26 с",
+      "pass": true
+    },
+    {
+      "name": "api rotor3d (accept --only api --dry)",
+      "value": "exit 0, scope 4 файла в границах",
+      "pass": true
+    }
+  ],
+  "t": "2026-11-08T18:56:43",
+  "by": "reviewer"
+}
