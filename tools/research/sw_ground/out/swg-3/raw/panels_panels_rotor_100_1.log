@@ -1,0 +1,1 @@
+100 panels_rotor 1 N 17156 cold 250.9 wc 252.7 {'gpu_init': 0.37, 'terrain': 0.15, 'mesh': 0.11, 'assemble': 7.26, 'lu': 10.65, 'bg': 0.0, 'solve': 0.14, 'rotor': 12.39, 'query_jh': 219.66}

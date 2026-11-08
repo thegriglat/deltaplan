@@ -1,0 +1,1 @@
+100 panels 2 N 17156 cold 180.9 wc 174.9 {'gpu_init': 0.37, 'terrain': 0.12, 'mesh': 0.11, 'assemble': 3.53, 'lu': 9.46, 'bg': 0.0, 'solve': 0.17, 'query_jh': 107.99}
