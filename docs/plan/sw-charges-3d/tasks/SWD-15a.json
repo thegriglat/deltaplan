@@ -8,7 +8,7 @@
   "contracts": [
     {
       "name": "SWD9",
-      "version": "3",
+      "version": "4",
       "ref": "docs/contracts/sw-charges-3d.md"
     },
     {
@@ -73,5 +73,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-11-08T19:05:40"
+  "created": "2026-11-08T19:05:40",
+  "edited": "2026-11-08T19:07:45"
 }

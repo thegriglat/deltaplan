@@ -1,0 +1,36 @@
+{
+  "verdict": "accept",
+  "summary": "Скоуп и контракт SWD6 v6 соблюдены (правки только в sheet3d), γ=U·√(1−C_pb) постоянна, отрицательный результат (нет присоединения, нет сходимости) честно в отчёте. Принять как исследовательский результат; не считать L_b/H=9.2 и обратный u∥ физическим результатом модели.",
+  "issues": [
+    {
+      "file": "tools/research/sw_charges_3d/sheet3d/sheet.py",
+      "line": 319,
+      "severity": "major",
+      "what": "Критерий присоединения hit.any() -> hit.mean()>=0.5 изменён для всех closure, в т.ч. 'free'; контракт требует free = v5 побитно. Регрессионный тест сравнивает только nodes, но не reattach/L_b/n_reattached.",
+      "fix": "Условие 0,5 включать только при closure='roshko'; в тест free добавить сравнение reattach и L_b."
+    },
+    {
+      "file": "tools/research/sw_charges_3d/sheet3d/tests/test_sheet3d.py",
+      "line": 440,
+      "severity": "major",
+      "what": "Тест L_b/H>1 тавтологичен: при riabouchinsky L_b = расстояние до плоскости изображения ~ L_max=10H по построению (9.2), это не физический L_b. Отчёт верно помечает FAIL, но тест создаёт видимость результата.",
+      "fix": "В тесте и README называть это границей L_max, не L_b; L_b/H в info для riabouchinsky отдавать NaN либо отдельным ключом."
+    },
+    {
+      "file": "tools/research/sw_charges_3d/sheet3d/sheet.py",
+      "line": 290,
+      "severity": "minor",
+      "what": "Откат к лучшей итерации и relax=0,1 по умолчанию - эвристики под неустойчивую итерацию; динамическое условие |u|=u_b не проверяется, внутри зоны u∥≈-4...-5 м/с вместо покоя. C_pb=-0,2 взят по памяти, не сверен с первоисточником.",
+      "fix": "Сверить C_pb с литературой в docs/research/sw_charges/literature.md; в выводах не использовать u∥ за гребнем как подтверждение модели."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "координатор accept: pytest/pytest-pass/api",
+      "value": "ok, 21 passed (не перезапускал, GPU занят)",
+      "pass": true
+    }
+  ],
+  "t": "2026-11-08T19:07:36",
+  "by": "reviewer"
+}
