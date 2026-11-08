@@ -1,0 +1,77 @@
+{
+  "status": "done",
+  "summary": "Обзор Lucca-Negro & O'Doherty 2001 подтверждает S_c=k=v_theta,max/W в [0.9,1.2] (Squire 1-1.2, Benjamin 1.2) для изолированного вихря. Неблагоприятный градиент давления порог снижает (Lambourne: k_c ниже 1; оценка k_c=k_c0*sqrt(1-c)); малый Re_core (<100) повышает. Для ротора за хребтом c=Cp*(U/W)^2 при E<=0.05 >1, поэтому S по W стока с фиксированным порогом неприменим там, где есть внешний подъём давления.",
+  "commits": [
+    "6e413acec SWD-16b: порог распада по обзору Lucca-Negro & O'Doherty 2001, градиент давления и Re ядра"
+  ],
+  "checks": [
+    {
+      "name": "readme",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "PASS (ошибка summary>140 устранена)",
+      "pass": true
+    },
+    {
+      "name": "review-cited",
+      "value": "Lucca-Negro упомянут 4 раза",
+      "pass": true
+    },
+    {
+      "name": "k_c(c) c=0.2/0.5",
+      "value": "0.81-1.07 / 0.64-0.85",
+      "pass": true
+    },
+    {
+      "name": "c для S=1.7 / 4.0 (Perdigao, SWD-17)",
+      "value": "0.50-0.72 / 0.91-0.95",
+      "pass": true
+    },
+    {
+      "name": "W/U от E=0.02/0.05/0.10",
+      "value": "0.10/0.26/0.51; c при Cp=0.1: 9.7/1.5/0.39",
+      "pass": true
+    },
+    {
+      "name": "Re_core при Gamma 300-1000",
+      "value": "molec 3e6-1e7; nu_eff 0.1: 480-1600; 1: 48-160; 10: 5-16",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Числа k_c(dp/dx) и k_c(Re_core<100) в обзоре отсутствуют (только график Spall+ 1987 и слова); нужны первоисточники Lambourne 1967, Spall+ 1987 fig.",
+    "Поле давления Perdigao не оценивалось (Cp=0.05-0.3 взят как допущение)."
+  ],
+  "questions": [
+    "Заводить ли в chain3d поправку на внешний градиент (k_c=k_c0*sqrt(1-c), c из давления потенциального поля в зоне присоединения) вместо пересмотра S_c/E?"
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SWD-16b; python3 tools/research/sw_charges_3d/breakdown/adverse_re.py",
+  "uncertain": [
+    {
+      "where": "breakdown/README.md п.5.2-5.3",
+      "why": "k_c=k_c0*sqrt(1-c) - собственная квазиодномерная оценка (Бернулли по оси), не из обзора; без вклада закрутки и расширения ядра",
+      "checked": "согласуется по направлению и 'ниже 1' с Lambourne/Sarpkaya в обзоре"
+    },
+    {
+      "where": "breakdown/README.md п.5.4",
+      "why": "nu_eff ядра ротора в ПС неизвестно (0.1-20 м2/с), от этого зависит, лежит ли Re_core ниже 100",
+      "checked": "сканом по nu_eff"
+    },
+    {
+      "where": "breakdown/README.md п.5.1",
+      "why": "выходные данные обзора (том/страницы) взяты из карточки; номера Squire 1-1.2 и Ro_c 0.65 читаны из текстового слоя PDF",
+      "checked": "строки 1004-1056, 1399-1416 vortex.txt"
+    }
+  ],
+  "dp_feedback": "Длинные дополнения координатора в task show обрезаются; текстовый слой PDF лежит в scratchpad другой сессии.",
+  "extra": {
+    "E_needed_S1.2_from_SWD17": 0.185,
+    "Ro_c_Spall": 0.65
+  },
+  "t": "2026-11-08T19:52:57",
+  "by": "executor"
+}
