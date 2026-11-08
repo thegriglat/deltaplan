@@ -65,3 +65,5 @@
 {"t": "2026-11-08T23:08:52", "by": "coordinator", "task": "SWG-6", "ev": "note", "note": "timing.json — json.dump с разделителями по умолчанию (': '), проверка fp32 ищет строку '\"variant\": \"fp32'.", "addendum": true}
 {"t": "2026-11-08T23:08:52", "by": "coordinator", "task": "SWG-6", "ev": "started"}
 {"t": "2026-11-08T23:09:14", "by": "coordinator", "task": "SWG-5", "ev": "checked", "note": "5/5 contract=ok:exit 0; base=ok:1; rotor_rows=ok:5355; masts=ok:15; pytest=ok:passed"}
+{"t": "2026-11-08T23:11:09", "by": "reviewer", "task": "SWG-5", "ev": "reviewed", "note": "Скоуп соблюдён (18 файлов в границах), контракт SWG2 v1 выдержан, параметры нити равны SWG-2 (PARAMS совпадает с rotor/run_rotor.py), velocity_jh(extra, couple…", "verdict": "accept", "issues": {"minor": 1}, "review": "docs/plan/sw-ground/tasks/SWG-5.review.json"}
+{"t": "2026-11-08T23:11:27", "by": "coordinator", "task": "SWG-5", "ev": "accepted", "note": "по ревью (fable): 1 minor — мёртвый код prio в rotor_ground/assemble.py, на числа не влияет"}
