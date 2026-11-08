@@ -17,8 +17,11 @@ from panels3d import influence as _inf
 
 from .foppl import _induced_fn, _merge, find_ridges, _ridge_height
 
+# closure: "free" — v4/v5 (γ = |u_s| Хеда); "roshko" — v6: давление в зоне постоянно, γ = U_ref·√(1 − C_pb).
+# CPB_DEFAULT = −0,2: база отрывных зон за уступами/хребтами (Tani 1964; Roshko & Lau 1965: C_pb ≈ −0,1…−0,25), см. README.
+CPB_DEFAULT = -0.2
 DEFAULTS = dict(ds_sheet=None, h0=None, core=None, n_iter=10, L_max=None, relax=0.5, gamma_decay=None,
-                tol_rel=0.05)
+                tol_rel=0.05, closure="free", cpb=CPB_DEFAULT)
 
 
 @dataclass
@@ -126,6 +129,8 @@ def _build_lines(panels, bg, sep, wind, U_ref, pr, ds_sheet, h0, core):
         xy = np.array([[pts["x"][q], pts["y"][q]] for q in run])
         us = np.abs(np.array([pts["u_s"][q] for q in run], float))
         L.gamma0 = float(us.mean())
+        if pr["closure"] == "roshko":
+            L.gamma0 = float(U_ref) * float(np.sqrt(1.0 - float(pr["cpb"])))   # u_b = U_ref·√(1 − C_pb)
         L.us = us
         # высота хребта: ближайший по поперечной координате хребет из find_ridges, иначе разброс высот вдоль ветра
         cx_, cy_ = -wind[1], wind[0]
@@ -157,6 +162,7 @@ class _Solver:
         self.lines, self.pr, self.dsh, self.core = lines, pr, ds_sheet, core
         self.sigma_bg = sigma_bg
         self.n_vel = 0
+        self.wind = None
 
     # геометрия
     def init_shape(self):
@@ -176,7 +182,7 @@ class _Solver:
     def _gammas(self, L):
         g = np.full(L.nr, L.gamma0)
         dec = self.pr["gamma_decay"]
-        if dec:
+        if dec and self.pr["closure"] != "roshko":
             g = g * np.exp(-np.arange(L.nr) * self.dsh / float(dec))
         return g * self.dsh
 
@@ -184,10 +190,26 @@ class _Solver:
         """Ряды по линиям: {(l, i): Filaments}; пустые — не включаются."""
         out = {}
         for l, L in enumerate(self.lines):
+            L.closure_kind = "reattach" if (L.act[-1].mean() < 0.5 or (self.pr["closure"] != "roshko" and not L.act[-1].all())) else (
+                "riabouchinsky" if self.pr["closure"] == "roshko" else "open")
             for i in range(L.nr):
                 lp = _row_loops(self.panels, L.nodes[i], L.act[i], L.Gam[i], self.core)
                 if lp:
                     out[(l, i)] = _merge(lp)
+            if L.closure_kind == "riabouchinsky":
+                # изображение слоя в плоскости ⟂ ветру через последний ряд; отражение меняет знак циркуляции
+                w = np.asarray(self.wind, float)
+                xe = L.nodes[-1]
+                for i in range(L.nr - 2, -1, -1):
+                    nd = L.nodes[i].copy()
+                    d = ((nd[:, 0] - xe[:, 0]) * w[0] + (nd[:, 1] - xe[:, 1]) * w[1])
+                    nd[:, 0] -= 2 * d * w[0]
+                    nd[:, 1] -= 2 * d * w[1]
+                    zg = np.asarray(self.panels.height(nd[:, 0], nd[:, 1]), float)
+                    nd[:, 2] = np.maximum(nd[:, 2], zg + 2 * self.core)
+                    lp = _row_loops(self.panels, nd, L.act[i], -L.Gam[i], self.core)
+                    if lp:
+                        out[(l, -1 - i)] = _merge(lp)
         return out
 
     def velocity_free(self, sigma, extra_all, rows, l, i, pts):
@@ -244,6 +266,8 @@ class _Solver:
         self.init_shape()
         sigma = self.sigma_bg
         resid, it = np.inf, 0
+        self.hist = []
+        best = (np.inf, None)
         rows = self.loops()
         for it in range(1, int(pr["n_iter"]) + 1):
             fil = _merge(list(rows.values()))
@@ -263,15 +287,25 @@ class _Solver:
                 upd = both[..., None]
                 L.nodes = np.where(upd, L.nodes + r * (nn - L.nodes), np.where(aa[..., None], nn, L.nodes))
                 L.act = aa
+            self.hist.append(float(resid))
+            if pr["closure"] == "roshko" and resid < best[0]:
+                best = (resid, [(L.nodes.copy(), L.act.copy()) for L in self.lines])
             rows = self.loops()
+            if pr["closure"] == "roshko" and best[1] is not None and resid > 3.0 * best[0] and it > 5:
+                break           # неустойчивость формы слоя: берём лучшую итерацию
             if resid < pr["tol_rel"] * self.dsh:
                 break
+        if pr["closure"] == "roshko" and best[1] is not None and resid > best[0]:
+            for L, (nn, aa) in zip(self.lines, best[1]):
+                L.nodes, L.act = nn, aa
+            resid = best[0]
+            rows = self.loops()
         fil = _merge(list(rows.values()))
         sigma, _ = P.solve(self.panels, self.bg, _induced_fn(fil), self.infl)
         return sigma, rows, it, resid
 
 
-def _finish_line(L, panels, wind, dsh):
+def _finish_line(L, panels, wind, dsh, is_roshko=False):
     """Присоединение и длина зоны по линии: узлы, ушедшие к земле раньше конца слоя."""
     nr, n = L.act.shape
     last = np.zeros(n, int)       # номер последнего активного ряда столбца
@@ -282,7 +316,8 @@ def _finish_line(L, panels, wind, dsh):
         last[j] = (bad[0] - 1) if bad.size else nr - 1
     hit = last < nr - 1
     L.n_reattached = int(hit.sum())
-    if hit.any():
+    need = (hit.mean() >= 0.5) if is_roshko else hit.any()   # roshko: ушла к земле большая часть столбцов; free — как v5
+    if need:
         pts = np.array([L.nodes[last[j] + 1, j] for j in np.nonzero(hit)[0]])
         zg = np.asarray(panels.height(pts[:, 0], pts[:, 1]), float)
         L.reattach = dict(x=float(pts[:, 0].mean()), y=float(pts[:, 1].mean()), z=float(zg.mean()))
@@ -290,7 +325,12 @@ def _finish_line(L, panels, wind, dsh):
         L.L_b = float(np.mean(along))
     else:
         L.reattach = None
-        L.L_b = float("nan")
+        if getattr(L, "closure_kind", "") == "riabouchinsky":      # зона замкнута плоскостью изображения: L_b ≥ расстояние до неё
+            along = (L.nodes[-1, :, 0] - L.sep_xy[:, 0]) * wind[0] + (L.nodes[-1, :, 1] - L.sep_xy[:, 1]) * wind[1]
+            L.L_edge = float(np.mean(along))      # граница L_max, не L_b
+            L.L_b = float("nan")
+        else:
+            L.L_b = float("nan")
     L.last = last
 
 
@@ -299,6 +339,10 @@ def build_sheet(panels, bg, z0, infl=None, params=None):
     t_start = time.time()
     pr = dict(DEFAULTS)
     pr.update(params or {})
+    if pr["closure"] == "roshko" and "relax" not in (params or {}):
+        pr["relax"] = 0.1       # релаксация 0,3–0,5 даёт неустойчивость формы слоя (README, v6)
+    if pr["closure"] not in ("free", "roshko"):
+        raise ValueError("closure: 'free' | 'roshko'")
     ds = panels.ds_min
     dsh = 2.0 * ds if pr["ds_sheet"] is None else float(pr["ds_sheet"])
     h0 = 0.5 * ds if pr["h0"] is None else float(pr["h0"])
@@ -319,10 +363,11 @@ def build_sheet(panels, bg, z0, infl=None, params=None):
         sh.stats = dict(info)
         return sh, sigma_bg, info
     sol = _Solver(panels, bg, z0, infl, sigma_bg, lines, pr, dsh, core)
+    sol.wind = wind
     sigma, rows, it, resid = sol.run()
     sh.filaments = _merge(list(rows.values())) if rows else F.Filaments()
     for l, L in enumerate(lines):
-        _finish_line(L, panels, wind, dsh)
+        _finish_line(L, panels, wind, dsh, pr["closure"] == "roshko")
         for i in range(L.nr):
             na = int(L.act[i].sum())
             if (l, i) in rows:
@@ -331,10 +376,14 @@ def build_sheet(panels, bg, z0, infl=None, params=None):
         sh.lines.append(dict(nodes=L.nodes, active=L.act, gamma0=L.gamma0, Gamma=L.Gam, H=L.H, L_b=L.L_b,
                              L_b_over_H=L.L_b / L.H if np.isfinite(L.L_b) else float("nan"), last=L.last,
                              n_reattached=L.n_reattached, X0=L.X0, k=L.k, n_cols=len(L.X0),
-                             wind=wind, L_max=L.L_max))
+                             wind=wind, L_max=L.L_max, closure_kind=L.closure_kind))
     sh.iters, sh.residual = it, float(resid)
-    info.update(t_s=time.time() - t_start, iters=it, residual=float(resid), n_nodes=int(len(sh.filaments.x)),
-                n_vel=sol.n_vel)
+    info.update(t_s=time.time() - t_start, iters=it, converged=bool(resid < pr["tol_rel"] * dsh), residual=float(resid), n_nodes=int(len(sh.filaments.x)),
+                n_vel=sol.n_vel, residual_history=[round(h, 2) for h in sol.hist])
+    if pr["closure"] == "roshko":
+        info.update(L_closure_plane=[getattr(L, "L_edge", float("nan")) for L in lines], cpb=float(pr["cpb"]), u_b=float(lines[0].gamma0),
+                    L_b=[L.L_b for L in lines], L_b_over_H=[L.L_b / L.H if np.isfinite(L.L_b) else float("nan") for L in lines],
+                    closure_kind=[L.closure_kind for L in lines])
     sh.stats = dict(info, ds_sheet=dsh, tol=pr["tol_rel"] * dsh)
     return sh, sigma, info
 
