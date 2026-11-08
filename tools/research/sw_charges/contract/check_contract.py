@@ -12,7 +12,7 @@ import struct
 import sys
 import tempfile
 
-FORMATS = {"sw-case": 1, "sw-field": 1, "sw-run": 1, "sw-regimes": 1, "sw-sections": 2, "sw-panels2d": 2}
+FORMATS = {"sw-case": 1, "sw-field": 1, "sw-run": 1, "sw-regimes": 1, "sw-sections": 2, "sw-panels2d": 3}
 REGIMES = {"R1", "R2", "R3", "R4j", "R5", "R6", "unclassified"}
 THEORY = {"R1", "R2", "R3", "R2|R4j", "R5", "R6"}
 BC = {"farfield", "transmissive", "wall", "periodic"}
@@ -256,7 +256,7 @@ def check_panels(path, d):
         cs = r["case"]
         if not (cs in ("C1", "C2", "C4", "PERD_NE", "PERD_SW") or (isinstance(cs, str) and cs.startswith("LW_"))):
             raise ContractError(f"rows[{i}].case: {cs!r}")
-        if r["variant"] not in ("potential", "vortex", "potential_bl", "vortex_bl"):
+        if r["variant"] not in ("potential", "vortex", "potential_bl", "vortex_bl", "potential_jh", "vortex_jh"):
             raise ContractError(f"rows[{i}].variant: {r['variant']!r}")
         if r["point"] not in PAN_POINTS:
             raise ContractError(f"rows[{i}].point: {r['point']!r}")
@@ -395,7 +395,7 @@ def _synth(t):
     with open(secp, "w") as f:
         json.dump(sec, f)
     open(secp[:-5] + ".csv", "w").close()
-    pan = {"format": "sw-panels2d", "version": 2, "git": "x", "created": "2026-11-08T00:00:00", "tol_picard": 0.15,
+    pan = {"format": "sw-panels2d", "version": 3, "git": "x", "created": "2026-11-08T00:00:00", "tol_picard": 0.15,
            "rows": [{"case": "C1", "variant": "potential", "point": "crest", "x": 0.0, "z_agl": 50.0,
                      "ref_kind": "picard", "ref_source": "P50", "ref_reliability": "модель ±15 %", "u_ref": 8.0,
                      "w_ref": 0.0, "u_pan": 8.8, "w_pan": 0.0, "units": "m/s", "err": 0.8, "within_tol": True,

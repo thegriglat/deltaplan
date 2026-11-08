@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-11-08"
 summary: "Стыки sw-charges: слой Рипа (SW1–SW3), режимы (SW4), слой против Пикара (SW5), панели 2D (SW6), их сравнение с эталонами (SW7)."
 related: ["docs/plan/sw-charges.md", "docs/contracts/cascade-2d.md", "tools/research/sw_charges/README.md"]
-contracts: [{"id": "SW1", "version": 1}, {"id": "SW2", "version": 1}, {"id": "SW3", "version": 1}, {"id": "SW4", "version": 1}, {"id": "SW5", "version": 2}, {"id": "SW6", "version": 3}, {"id": "SW7", "version": 2}]
+contracts: [{"id": "SW1", "version": 1}, {"id": "SW2", "version": 1}, {"id": "SW3", "version": 1}, {"id": "SW4", "version": 1}, {"id": "SW5", "version": 2}, {"id": "SW6", "version": 4}, {"id": "SW7", "version": 3}]
 ---
 # Контракты модуля sw-charges
 
@@ -127,7 +127,9 @@ v2 (2026-11-08, решение пользователя о масштабах м
   `rule_b0`, `h0`, `b0`, `U0`, `F0`, `M`, `E`, `E0`, `S_sw`, `S_p`, `D_sw`, `D_p`, `x_D_sw`, `x_D_p`, `status`, `wall_s`};
   неприменимое — `null`.
 
-## SW6 v3 — панели и вихри на 2D-разрезе (библиотека `panels2d`)
+## SW6 v4 — панели и вихри на 2D-разрезе (библиотека `panels2d`)
+v4 (2026-11-08, Q4 — последний круг): внутренний слой Jackson–Hunt `velocity_jh`, отрыв только на подветренной стороне
+(`separation(..., lee_only=True)` по умолчанию, `step` shed="auto" — с ним); всё v3 без изменений поведения, кроме этого.
 v3 (2026-11-08, Q3): пограничный слой у стенки и отрыв по градиенту давления — `surface_flow`, `boundary_layer`,
 `separation`, `velocity_bl` (ниже); всё v2 без изменений.
 v2 (2026-11-08, ревью SWC-11): `bg_profile` — сглаживание параметром `smooth_m`; нет панелей-обрезков; `Panels.ds_min`;
@@ -174,6 +176,20 @@ v2 (2026-11-08, ревью SWC-11): `bg_profile` — сглаживание па
 - v3. `velocity_bl(panels, sigma, bg, x, z, bl, vortices=None)` → `(u, w)`: при z_agl < δ(x) касательная к земле
   составляющая заменена на log-закон u_*/κ·ln(z_agl/z0) (u_* — из непрерывной сшивки с потенциальной скоростью на
   z_agl = δ, `bl["u_star"]` — справочно; z_agl — над панелью под точкой); выше δ и за точкой отрыва — как `velocity`.
+- v4. `crests(panels, smooth_m=None)` → список {`x_c`, `z_c`, `L`} — локальные максимумы сглаженной земли (σ = `smooth_m`,
+  по умолчанию 2·ds_min) с перепадом ≥ 2·ds_min над соседними минимумами; `L` — наветренная полуширина на половине высоты
+  над наветренным минимумом (как L у Jackson–Hunt).
+- v4. `separation(panels, flow, bl, method="head", lee_only=True)`: при `lee_only` точка отрыва допустима только между
+  гребнем `crests` и следующим минимумом по ветру; наветренные и дальние — отбрасываются (в выводе `rejected`).
+- v4. `velocity_jh(panels, sigma, bg, x, z, z0, U_ref=None)` → `(u, w)` — внутренний слой Jackson–Hunt (Jackson & Hunt
+  1975; Hunt, Leibovich & Richards 1988; формулы — в README со ссылками): толщина l(x) из l·ln(l/z0) = 2κ²·L (L — у
+  ближайшего гребня `crests`, κ = 0,4); фон у земли — логарифмический u0(z) = u*0/κ·ln(z/z0), u*0 — из `bg` на 100 м;
+  относительный разгон ΔS(x, z) = Δu_pot/u_ref берётся из потенциального решения с однородным фоном (σ панелей для
+  `bg_uniform(U_ref)`) на высоте max(z_agl, l), u = u0(z_agl)·(1 + ΔS); выше внешнего слоя h_m (Hunt: h_m ln(h_m/z0)^½ ~ L,
+  формула — README) — как `velocity` с `bg`; между l и h_m — гладкая сшивка (README). w — потенциальная.
+- Инварианты v4 (тесты): ровная земля — `velocity_jh` = u0(z) ± 1 % на 2–300 м; Agnesi H/L = 0,1 — ΔS на z = l в ±25 %
+  от линейной формулы Jackson–Hunt/Taylor–Lee ΔS_max ≈ B·H/L (B = 2 для 2D-хребта, slope-flow.md §2.1); `separation`
+  с `lee_only` на Agnesi H/L 0,5 — отрыв только за гребнем; прежние тесты v1–v3 проходят.
 - Инварианты v3 (тесты): ровная земля + `bg_profile` — `velocity_bl` = `bg_profile` ± 3 % на 10–300 м; на ровной земле
   θ постоянна (равновесный слой), отрыва нет; Agnesi H/L = 0,1 — отрыва нет ни одним методом; Хед — отрыв на подветренном
   склоне Agnesi при H/L ≥ 0,7 на `bg_uniform` и ≥ 0,5 на `bg_profile` (макс. уклон 0,45 / 0,32 — ср. порог Finnigan
@@ -184,13 +200,14 @@ v2 (2026-11-08, ревью SWC-11): `bg_profile` — сглаживание па
   θ ∈ [30°, 150°]; у основания (угол 90° открытой линии источников) ошибка первого порядка по ds — граница модели,
   числа по θ и ds — в README; без особенностей у точек коллокации.
 
-## SW7 v2 — панели против эталонов на разрезах
-Владелец — SWC-12 (v1), SWC-17 (v2); потребители — итог этапа 2 (2D), шлюз.
+## SW7 v3 — панели против эталонов на разрезах
+Владелец — SWC-12 (v1), SWC-17 (v2), SWC-19 (v3); потребители — итог этапа 2 (2D), шлюз.
+v3 (2026-11-08, Q4): `variant` ещё "potential_jh" | "vortex_jh" (`velocity_jh`, отрыв Хеда с `lee_only`).
 v2 (2026-11-08, Q3): `variant` ещё "potential_bl" | "vortex_bl" (`velocity_bl`, отрыв Хеда, `shed="auto"`); в строке
 `ref_err` — оценка погрешности эталона (доля, `null` — нет) и `within_tol_ref` (bool | null: |err| ≤ max(tol, ref_err)·|u_ref|).
 - Путь — `tools/research/sw_charges/out/panels2d/points.json` + `.csv`; JSON (`format: "sw-panels2d"`, `version: 1`):
   `git`, `created`, `tol_picard` (0,15), `rows` — {`case` ("C1" | "C2" | "C4" | "PERD_NE" | "PERD_SW" | "LW_<модель>"),
-  `variant` ("potential" | "vortex" | "potential_bl" | "vortex_bl"), `point` ("upstream" | "windward" | "crest" | "lee" | "valley" | "foot"),
+  `variant` ("potential" | "vortex" | "potential_bl" | "vortex_bl" | "potential_jh" | "vortex_jh"), `point` ("upstream" | "windward" | "crest" | "lee" | "valley" | "foot"),
   `x` м, `z_agl` м, `ref_kind` ("picard" | "mast" | "lidar" | "tunnel"), `ref_source` (строка: путь/статья),
   `ref_reliability` ("измерение" | "труба" | "модель ±15 %"), `u_ref`, `w_ref` (м/с или безразм. ΔS — см. `units`),
   `u_pan`, `w_pan`, `units` ("m/s" | "dS"), `err` (u_pan − u_ref, в `units`), `within_tol` (bool: для picard —
