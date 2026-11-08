@@ -1,0 +1,62 @@
+{
+  "id": "SWD-16",
+  "module": "sw-charges-3d",
+  "type": "dp-researcher",
+  "title": "C': применимость порога распада вихря к лежачему вихрю у склона и разброс Q по литературе",
+  "goal": "По литературе установить, какое число закрутки и какой порог распада применимы к лежачему вихрю ротора у склона с осевым оттоком (а не к свободной струе/трубе), и разумный диапазон осевого оттока Q (коэффициент E в SWD9) — для проверки, что ротор Perdigão есть во всём диапазоне.",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "SWD9",
+      "version": "2",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sw-charges-3d-SWD-16",
+  "branch": "sw-charges-3d/SWD-16",
+  "base": "feature/sw-charges-3d",
+  "scope": [
+    "tools/research/sw_charges_3d/breakdown/"
+  ],
+  "dont_touch": [
+    "tools/research/sw_charges_3d/panels3d/",
+    "tools/research/sw_charges_3d/filaments3d/",
+    "tools/research/sw_charges_3d/sim3d/",
+    "tools/research/sw_charges_3d/sheet3d/",
+    "tools/research/sw_charges_3d/rotor3d/",
+    "tools/research/sw_charges_3d/chain3d/",
+    "tools/research/sw_charges_3d/proto3d/",
+    "tools/research/sw_charges_3d/compare/",
+    "tools/research/sw_charges_3d/out/",
+    "tools/research/sw_charges_3d/refs/",
+    "tools/research/sw_charges/",
+    "docs/contracts/",
+    "tools/research/sw_charges_3d/contract/",
+    "rust/"
+  ],
+  "accept": [
+    {
+      "name": "readme",
+      "cmd": "ls tools/research/sw_charges_3d/breakdown/README.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "!re:ОШИБКА +tools/research/sw_charges_3d/breakdown/"
+    },
+    {
+      "name": "sources",
+      "cmd": "grep -ciE 'doi|https?://' tools/research/sw_charges_3d/breakdown/README.md",
+      "expect": "num:(\\d+) >=6"
+    },
+    {
+      "name": "table",
+      "cmd": "grep -c '^|' tools/research/sw_charges_3d/breakdown/README.md",
+      "expect": "num:(\\d+) >=8"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-08T19:01:21"
+}
