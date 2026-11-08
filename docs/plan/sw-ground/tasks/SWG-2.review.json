@@ -1,0 +1,44 @@
+{
+  "verdict": "accept",
+  "summary": "Контракт SWG3 v1 соблюдён (params один набор, rows по всем 18 разрезам, ridges 20, timing); параметры не подбирались; скоуп чист (8 файлов). Ось массива Пикара [iy, ix] проверена по z_ground против рельефа (corr 1,0 против 0,29/0,89 транспонированного). Отчёт совпадает с rotor.json (ложные ASK 1/1, NE 6/11, SW 2/8). Вывод «ложные роторы есть» честный, слабые места (глубина ×2, Пикар занижает, край области) названы.",
+  "issues": [
+    {
+      "file": "tools/research/sw_ground/rotor/run_rotor.py",
+      "line": 148,
+      "severity": "minor",
+      "what": "picard_reverse считается по ближайшей клетке с clip к краю: для хребта PERD_SW ridge 0 (x_c −3109 м, окно 525 м) часть точек вне поля Пикара ±2985 м — pr=False ненадёжен, хребет попадает в ложные (SW 2 вместо, возможно, 1). Контракт допускает null.",
+      "fix": "В lookup_picard помечать точки вне диапазона px/py и ставить picard_reverse=None (false_rotor=False/None), либо исключать хребет из счёта ложных в README явно."
+    },
+    {
+      "file": "tools/research/sw_ground/rotor/run_rotor.py",
+      "line": 166,
+      "severity": "minor",
+      "what": "menke_rotor_nearby = окно хребта в 250 м от любого разреза Menke; для подветренного хребта NE ridge 8 (x_c 722) это срабатывает по концу разреза, хотя Menke мерил ротор в долине за первым хребтом. На счёт ложных не влияет (там picard_reverse=True), но признак неточен.",
+      "fix": "Учитывать Menke только для хребта, с которого начинается разрез (x_c ближе к началу, чем к концу), или оговорить в README."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "contract (accept --only contract --dry)",
+      "value": "exit 0, scope 8 файлов в границах",
+      "pass": true
+    },
+    {
+      "name": "ridges (accept --only ridges --dry)",
+      "value": "20",
+      "pass": true
+    },
+    {
+      "name": "ось Пикара [iy,ix] vs рельеф (corr z_ground)",
+      "value": "ASK 1.0/0.886, NE 1.0/0.293, SW 1.0/0.293",
+      "pass": true
+    },
+    {
+      "name": "счёт ложных роторов по rotor.json",
+      "value": "ASK 1/1, NE 6/11, SW 2/8 — как в отчёте",
+      "pass": true
+    }
+  ],
+  "t": "2026-11-08T22:26:39",
+  "by": "reviewer"
+}
