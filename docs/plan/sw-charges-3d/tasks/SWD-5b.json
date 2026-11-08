@@ -1,0 +1,78 @@
+{
+  "id": "SWD-5b",
+  "module": "sw-charges-3d",
+  "type": "dp-researcher",
+  "title": "Сравнение 3D с вихревыми нитями: vortex_jh и ротор против Menke, мачт и Пикара; статусы проблем 2D №5, №8, №9, №11",
+  "goal": "Добавить в SWD5 вариант vortex_jh (sim3d: нити с гребня, couple, restart) для ASK_TU03B, PERD_NE, PERD_SW: точки, ротор вдоль разрезов, время; скан затухания tau_s; обновить статусы 12 проблем 2D по числам.",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "SWD2",
+      "version": "4",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    },
+    {
+      "name": "SWD3",
+      "version": "2",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    },
+    {
+      "name": "SWD4",
+      "version": "3",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    },
+    {
+      "name": "SWD5",
+      "version": "2",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sw-charges-3d-SWD-5b",
+  "branch": "sw-charges-3d/SWD-5b",
+  "base": "feature/sw-charges-3d",
+  "scope": [
+    "tools/research/sw_charges_3d/compare/",
+    "tools/research/sw_charges_3d/out/compare/",
+    "tools/research/sw_charges_3d/sim3d/"
+  ],
+  "dont_touch": [
+    "tools/research/sw_charges_3d/panels3d/",
+    "tools/research/sw_charges_3d/filaments3d/",
+    "tools/research/sw_charges_3d/refs/",
+    "tools/research/sw_charges_3d/out/refs/",
+    "tools/research/sw_charges/",
+    "docs/contracts/",
+    "tools/research/sw_charges_3d/contract/",
+    "rust/"
+  ],
+  "accept": [
+    {
+      "name": "contract-files",
+      "cmd": "tools/research/sw_charges_3d/py tools/research/sw_charges_3d/contract/check_contract.py files tools/research/sw_charges_3d/out/compare",
+      "expect": "exit=0"
+    },
+    {
+      "name": "vortex-cases",
+      "cmd": "tools/research/sw_charges_3d/py -c \"import json;d=json.load(open('tools/research/sw_charges_3d/out/compare/points.json'));print('cases', len({r['case'] for r in d['rows'] if r['variant']=='vortex_jh'}))\"",
+      "expect": "num:cases (\\d+) >=3"
+    },
+    {
+      "name": "vortex-rotor",
+      "cmd": "tools/research/sw_charges_3d/py -c \"import json;d=json.load(open('tools/research/sw_charges_3d/out/compare/points.json'));print('rotor', len([r for r in d['rotor'] if r['variant']=='vortex_jh']))\"",
+      "expect": "num:rotor (\\d+) >=3"
+    },
+    {
+      "name": "unchecked",
+      "cmd": "tools/research/sw_charges_3d/py -c \"import json;d=json.load(open('tools/research/sw_charges_3d/out/compare/points.json'));print('unchecked', sum(r['status']=='не проверено' for r in d['problems2d']))\"",
+      "expect": "num:unchecked (\\d+) <=2"
+    },
+    {
+      "name": "pytest-sim",
+      "cmd": "tools/research/sw_charges_3d/py -m pytest -q tools/research/sw_charges_3d/sim3d/tests",
+      "expect": "!re:(failed|error)"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-08T08:28:06"
+}
