@@ -28,3 +28,5 @@
 {"t": "2026-11-08T22:24:47", "by": "coordinator", "task": "SWG-2", "ev": "note", "note": "ревью: dp-reviewer model fable (решение пользователя)"}
 {"t": "2026-11-08T22:26:39", "by": "reviewer", "task": "SWG-2", "ev": "reviewed", "note": "Контракт SWG3 v1 соблюдён (params один набор, rows по всем 18 разрезам, ridges 20, timing); параметры не подбирались; скоуп чист (8 файлов). Ось массива Пикара…", "verdict": "accept", "issues": {"minor": 2}, "review": "docs/plan/sw-ground/tasks/SWG-2.review.json"}
 {"t": "2026-11-08T22:26:56", "by": "coordinator", "task": "SWG-2", "ev": "accepted", "note": "по ревью (fable): 2 minor — SW ridge 0 picard_reverse ненадёжен (ложных на SW 1–2), menke_rotor_nearby у NE ridge 8"}
+{"t": "2026-11-08T22:27:03", "by": "coordinator", "task": "SWG-2", "ev": "accepted", "commits": ["a2bffda04"], "note": "5/5 contract=ok:exit 0; menke=ok:6; cases=ok:3; ridges=ok:20; pytest=ok:passed"}
+{"t": "2026-11-08T22:27:03", "by": "coordinator", "task": "SWG-2", "ev": "merged"}
