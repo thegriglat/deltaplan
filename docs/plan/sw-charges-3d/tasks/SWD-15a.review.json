@@ -1,0 +1,41 @@
+{
+  "verdict": "accept",
+  "summary": "Интерфейс SWD9 v3/v4 выдержан (r_c по геометрии у каждого звена, lee_slope отдельной функцией, образ в касательной плоскости, n_solves 3, S по v4 + Gamma_over_q, E/S_c/R_rule — одно место, README в аналогии). Отчёт честный: FAIL равновесия на Agnesi — следствие формул контракта (Γ/(4π r_c) ≈ 3 м/с против фона ~17), не подгонялось; вопрос уже поднят координатором (Q4). Скоуп — только chain3d; перепроверены pytest-pass (16) и api.",
+  "issues": [
+    {
+      "file": "tools/research/sw_charges_3d/chain3d/tests/test_chain3d.py",
+      "line": 207,
+      "severity": "minor",
+      "what": "Сходимость равновесия и обратное течение на Agnesi больше не проверяются условием (только print); по v3 это допустимо (|u_min|/U — числом), но после решения Q4 инвариант «равновесие есть» (v2) останется без теста.",
+      "fix": "После смены формулы Γ/R_rule по Q4 вернуть assert на converged всех звеньев (или on_ground с rz<tol)."
+    },
+    {
+      "file": "tools/research/sw_charges_3d/chain3d/tests/test_chain3d.py",
+      "line": 174,
+      "severity": "minor",
+      "what": "test_swirl_v4_definition_and_ratio: допуск 0,35·S — тест почти не различает формулу (l_link взят как 2H вместо фактической длины звена).",
+      "fix": "Брать l_link = |t1−t0| из звена (выдавать в info['links']) и сверять с допуском 1e-6."
+    },
+    {
+      "file": "tools/research/sw_charges_3d/chain3d/chain.py",
+      "line": 248,
+      "severity": "minor",
+      "what": "Образ вихря в итерациях — открытая линия F.line(anchored_ends=False) без ножек, т.е. не соленоидальная; модель итераций приближённая (исполнитель отметил в uncertain). Исправляется поправками n_corr, на результат при n_corr=2 влияет слабо.",
+      "fix": "Оставить; при расхождении точного и модельного поля > tol после n_corr — отражать петлю целиком."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "pytest-pass",
+      "value": "16 passed, 39 с",
+      "pass": true
+    },
+    {
+      "name": "api",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "t": "2026-11-08T19:20:40",
+  "by": "reviewer"
+}
