@@ -53,6 +53,9 @@ API = {
     "sheet3d": {
         "foppl_vortex": ["panels", "bg", "z0", "infl", "params"],
         "velocity_foppl": ["panels", "sigma", "bg", "fil", "x", "y", "z", "z0", "U_ref", "infl"],
+        "build_sheet": ["panels", "bg", "z0", "infl", "params"],
+        "velocity_sheet": ["panels", "sigma", "bg", "sheet", "x", "y", "z", "z0", "U_ref", "infl"],
+        "fold_sheet": ["sheet"],
     },
     "sim3d": {
         "Setup": ["terrain", "panels", "bg", "z0", "params"],
