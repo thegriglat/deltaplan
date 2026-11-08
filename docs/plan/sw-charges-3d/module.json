@@ -1,0 +1,11 @@
+{
+  "module": "sw-charges-3d",
+  "plan": "docs/plan/sw-charges-3d.md",
+  "contracts": "docs/contracts/sw-charges-3d.md",
+  "branch": "feature/sw-charges-3d",
+  "copy": "~/worktrees/deltaplan/sw-charges-3d",
+  "created": "2026-11-08T05:21:24",
+  "code": "SWD",
+  "area": "air",
+  "base": "main"
+}
