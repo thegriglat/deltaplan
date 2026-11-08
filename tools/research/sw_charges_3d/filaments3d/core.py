@@ -37,6 +37,7 @@ class Filaments:
     anchored: np.ndarray = field(default_factory=lambda: np.zeros(0, bool))
     fid: np.ndarray = field(default_factory=lambda: np.zeros(0, int))
     stats: dict = field(default_factory=dict)
+    t_birth: np.ndarray = field(default_factory=lambda: np.zeros(0))   # K: время схода отрезка, с (SWD3 v3)
 
     def __post_init__(self):
         self.x = np.asarray(self.x, float).reshape(-1, 3)
@@ -48,12 +49,15 @@ class Filaments:
         self.fid = np.asarray(self.fid, int).reshape(-1)
         if len(self.fid) != k:
             self.fid = np.zeros(k, int)
-        for key in ("split", "merge", "reconnect", "lifted", "removed"):
+        tb = np.asarray(self.t_birth, float).reshape(-1)
+        self.t_birth = np.zeros(k) if len(tb) != k else tb.copy()
+        for key in ("split", "merge", "reconnect", "lifted", "removed", "coarsen_collapse", "coarsen_rounds",
+                    "coarsen_nmax_unmet"):
             self.stats.setdefault(key, 0)
 
     def copy(self):
         return Filaments(self.x.copy(), self.seg.copy(), self.gamma.copy(), self.core.copy(),
-                         self.anchored.copy(), self.fid.copy(), dict(self.stats))
+                         self.anchored.copy(), self.fid.copy(), dict(self.stats), self.t_birth.copy())
 
     @property
     def n_filaments(self):
@@ -86,9 +90,13 @@ def _bs_chunk(xp, px, py, pz, a, t, L, d2, g):
     return (c * cx).sum(1), (c * cy).sum(1), (c * cz).sum(1)
 
 
-def induced(f, x, y, z, backend="auto"):
+def induced(f, x, y, z, backend="auto", method="direct", theta=0.5):
     """Скорость (u, v, w) в точках от всех нитей (Био — Савар, Розенхед — Мур, δ = core отрезка).
     backend: "auto" (GPU при N·K ≥ 1e6, если есть), "numpy", "cupy"."""
+    if method == "tree":
+        raise NotImplementedError("method='tree' (Барнс — Хат) не реализован: SWD3 v4, необязательная часть")
+    if method != "direct":
+        raise ValueError("method: direct | tree")
     x = np.asarray(x, float)
     shape = x.shape
     px, py, pz = (np.ravel(np.asarray(c, float)) for c in np.broadcast_arrays(x, y, z))
@@ -124,11 +132,11 @@ def induced(f, x, y, z, backend="auto"):
     return tuple(res)
 
 
-def self_velocity(f):
+def self_velocity(f, method="direct", theta=0.5):
     """Скорость в узлах (M,3) от всех отрезков той же регуляризацией."""
     if len(f.x) == 0:
         return np.zeros((0, 3))
-    u, v, w = induced(f, f.x[:, 0], f.x[:, 1], f.x[:, 2])
+    u, v, w = induced(f, f.x[:, 0], f.x[:, 1], f.x[:, 2], method=method, theta=theta)
     return np.stack([u, v, w], 1)
 
 

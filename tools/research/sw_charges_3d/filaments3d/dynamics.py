@@ -8,7 +8,7 @@ from scipy.spatial import cKDTree
 
 from .core import Filaments, induced
 
-DEFAULTS = dict(l_max=None, l_min=None, r_rec=None, nu_t=0.0, tau_s=None, gamma_min=0.0, bounds=None)
+DEFAULTS = dict(l_max=None, l_min=None, r_rec=None, nu_t=0.0, tau_s=None, gamma_min=0.0, bounds=None, l_age=None, t=0.0, bs_method="direct", theta=0.5)
 COS_REC = -0.5
 MAX_SPLIT_PASSES = 10
 MIN_SEGS_PER_FILAMENT = 4  # слияние не сжимает нить меньше этого числа отрезков
@@ -33,9 +33,9 @@ def _ground_normal(g, x, y, h=0.5):
     return n / np.linalg.norm(n, axis=1)[:, None]
 
 
-def _velocity(f, X, flow, g):
+def _velocity(f, X, flow, g, method="direct", theta=0.5):
     ff = Filaments(X, f.seg, f.gamma, f.core, f.anchored, f.fid)
-    V = _flow_vel(flow, X) + np.stack(induced(ff, X[:, 0], X[:, 1], X[:, 2]), 1)
+    V = _flow_vel(flow, X) + np.stack(induced(ff, X[:, 0], X[:, 1], X[:, 2], method=method, theta=theta), 1)
     if f.anchored.any():
         a = f.anchored
         n = _ground_normal(g, X[a, 0], X[a, 1])
@@ -61,15 +61,17 @@ def relabel(f):
     G = coo_matrix((np.ones(len(seg)), (seg[:, 0], seg[:, 1])), shape=(m, m))
     _, lab = connected_components(G, directed=False)
     _, fid = np.unique(lab[seg[:, 0]], return_inverse=True)
-    return Filaments(f.x[used], seg, f.gamma, f.core, f.anchored[used], fid, f.stats)
+    return Filaments(f.x[used], seg, f.gamma, f.core, f.anchored[used], fid, f.stats, f.t_birth)
 
 
 # ---------- топология ----------
-def _split(f, l_max):
+def _split(f, l_max, l_age=None, t=0.0):
     for _ in range(MAX_SPLIT_PASSES):
         d = f.x[f.seg[:, 1]] - f.x[f.seg[:, 0]]
         L = np.linalg.norm(d, axis=1)
         lim = (2 * f.core) if l_max is None else np.full(len(L), float(l_max))
+        if l_age:
+            lim = np.maximum(lim, l_age * (t - f.t_birth))
         idx = np.nonzero(L > lim)[0]
         if len(idx) == 0:
             break
@@ -84,14 +86,16 @@ def _split(f, l_max):
         f.gamma = np.concatenate([f.gamma, f.gamma[idx]])
         f.core = np.concatenate([f.core, f.core[idx]])
         f.fid = np.concatenate([f.fid, f.fid[idx]])
+        f.t_birth = np.concatenate([f.t_birth, f.t_birth[idx]])
         f.stats["split"] += len(idx)
     return f
 
 
-def _merge(f, l_min):
+def _merge(f, l_min, lim=None):
     d = f.x[f.seg[:, 1]] - f.x[f.seg[:, 0]]
     L = np.linalg.norm(d, axis=1)
-    lim = (0.5 * f.core) if l_min is None else np.full(len(L), float(l_min))
+    if lim is None:
+        lim = (0.5 * f.core) if l_min is None else np.full(len(L), float(l_min))
     cand = np.nonzero(L < lim)[0]
     if len(cand) == 0:
         return f
@@ -124,7 +128,7 @@ def _merge(f, l_min):
     drop |= seg[:, 0] == seg[:, 1]
     keep = ~drop
     f.x, f.seg = X, seg[keep]
-    f.gamma, f.core, f.fid = f.gamma[keep], f.core[keep], f.fid[keep]
+    f.gamma, f.core, f.fid, f.t_birth = f.gamma[keep], f.core[keep], f.fid[keep], f.t_birth[keep]
     return f
 
 
@@ -157,7 +161,7 @@ def _reconnect(f, r_rec):
         return f
     ci = ci[np.argsort(dist[ci])]
     used = np.zeros(k, bool)
-    new_seg, new_g, new_c, new_f = [], [], [], []
+    new_seg, new_g, new_c, new_f, new_t = [], [], [], [], []
     for p in ci:
         s1, s2 = i[p], j[p]
         if used[s1] or used[s2]:
@@ -168,11 +172,11 @@ def _reconnect(f, r_rec):
         g1, g2 = f.gamma[s1], f.gamma[s2]
         if g1 > g2:      # s1 делится: остаток (a1→b1) и часть g2, которая обменивается
             f.gamma[s1] = g1 - g2
-            new_seg.append((a1, b2)); new_g.append(g2); new_c.append(f.core[s1]); new_f.append(f.fid[s1])
+            new_seg.append((a1, b2)); new_g.append(g2); new_c.append(f.core[s1]); new_f.append(f.fid[s1]); new_t.append(min(f.t_birth[s1], f.t_birth[s2]))
             f.seg[s2] = (a2, b1)
         elif g2 > g1:
             f.gamma[s2] = g2 - g1
-            new_seg.append((a2, b1)); new_g.append(g1); new_c.append(f.core[s2]); new_f.append(f.fid[s2])
+            new_seg.append((a2, b1)); new_g.append(g1); new_c.append(f.core[s2]); new_f.append(f.fid[s2]); new_t.append(min(f.t_birth[s1], f.t_birth[s2]))
             f.seg[s1] = (a1, b2)
         else:
             f.seg[s1] = (a1, b2)
@@ -183,6 +187,7 @@ def _reconnect(f, r_rec):
         f.gamma = np.concatenate([f.gamma, new_g])
         f.core = np.concatenate([f.core, new_c])
         f.fid = np.concatenate([f.fid, new_f])
+        f.t_birth = np.concatenate([f.t_birth, new_t])
     return f
 
 
@@ -209,7 +214,7 @@ def _ground_and_removal(f, g, gamma_min, bounds):
     if kill.any():
         f.stats["removed"] += int(kill.sum())
         keep = ~kill[f.fid]
-        f.seg, f.gamma, f.core, f.fid = f.seg[keep], f.gamma[keep], f.core[keep], f.fid[keep]
+        f.seg, f.gamma, f.core, f.fid, f.t_birth = f.seg[keep], f.gamma[keep], f.core[keep], f.fid[keep], f.t_birth[keep]
         f = relabel(f)
         if len(f.seg) == 0:
             return f
@@ -234,12 +239,12 @@ def step(f, flow, dt, ground, params=None):
     if len(f.seg) == 0:
         return f
     X0 = f.x
-    k1 = _velocity(f, X0, flow, g)
+    k1 = _velocity(f, X0, flow, g, p["bs_method"], p["theta"])
     Xm = _snap(X0 + 0.5 * dt * k1, f.anchored, g)
-    k2 = _velocity(f, Xm, flow, g)
+    k2 = _velocity(f, Xm, flow, g, p["bs_method"], p["theta"])
     f.x = _snap(X0 + dt * k2, f.anchored, g)
     f = relabel(f)
-    f = _split(f, p["l_max"])
+    f = _split(f, p["l_max"], p["l_age"], p["t"])
     f = _merge(f, p["l_min"])
     f = _reconnect(f, p["r_rec"])
     f.core = np.sqrt(f.core ** 2 + 4.0 * p["nu_t"] * dt)
@@ -248,7 +253,7 @@ def step(f, flow, dt, ground, params=None):
     return _ground_and_removal(f, g, p["gamma_min"], p["bounds"])
 
 
-def shed(f, line_pts, u_s, dt, core, normals):
+def shed(f, line_pts, u_s, dt, core, normals, t=0.0):
     """Добавляет нить схода по line_pts (M,3); u_s (M,3) — скорость слоя в узлах; normals (M,3) — нормали земли.
     Γ отрезка = ½ū²·dt (ū — среднее модулей на концах), направление ω — n × û_t (знак Γ — по a→b).
     Концы якорные; разность Γ соседних отрезков в промежуточном узле уходит ножкой длиной core
@@ -288,5 +293,6 @@ def shed(f, line_pts, u_s, dt, core, normals):
     m0 = len(f.x)
     out = Filaments(np.vstack([f.x, new.x]), np.vstack([f.seg, new.seg + m0]), np.concatenate([f.gamma, new.gamma]),
                     np.concatenate([f.core, new.core]), np.concatenate([f.anchored, new.anchored]),
-                    np.zeros(len(f.seg) + len(new.seg), int), f.stats)
+                    np.zeros(len(f.seg) + len(new.seg), int), f.stats,
+                    np.concatenate([f.t_birth, np.full(len(new.seg), float(t))]))
     return relabel(out)

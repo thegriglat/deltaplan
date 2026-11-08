@@ -26,7 +26,7 @@ class Setup:
     """Постановка: terrain, panels, bg, z0, params (fil, core, cfl, couple, restart, U_ref, sep_every). `infl` — один раз."""
 
     def __init__(self, terrain, panels, bg, z0, params=None):
-        p = dict(fil={}, core=None, cfl=0.25, couple=True, restart=True, U_ref=None)
+        p = dict(fil={}, core=None, cfl=0.25, couple=True, restart=True, U_ref=None, coarsen=None, bs_method="direct", theta=0.5)
         p.update(params or {})
         self.terrain, self.panels, self.bg, self.z0 = terrain, panels, bg, float(z0)
         self.params = p
@@ -34,6 +34,8 @@ class Setup:
         self.cfl = float(p["cfl"])
         self.couple = bool(p["couple"])
         self.restart = bool(p["restart"])
+        self.coarsen = dict(p["coarsen"]) if p["coarsen"] else None
+        self.bs_method, self.theta = p["bs_method"], float(p["theta"])
         self.sep_every = p.get("sep_every")
         self.U_ref = float(p["U_ref"]) if p["U_ref"] is not None else u_ref_of(bg, terrain)[0]
         self.infl = P.assemble(panels, "auto")
@@ -52,8 +54,9 @@ class Setup:
 class _Extra:
     """extra(x, y, z) нитей; значения в центроидах панелей считаются один раз (кеш по равенству входа)."""
 
-    def __init__(self, f, panels):
+    def __init__(self, f, panels, method="direct", theta=0.5):
         self.f, self.c = f, panels.c
+        self.method, self.theta = method, theta
         self._cache = None
 
     def __call__(self, x, y, z):
@@ -61,7 +64,7 @@ class _Extra:
         if self._cache is not None and x.shape == self.c[:, 0].shape and np.array_equal(x, self.c[:, 0]) \
                 and np.array_equal(y, self.c[:, 1]) and np.array_equal(z, self.c[:, 2]):
             return self._cache
-        r = F.induced(self.f, x, y, z)
+        r = F.induced(self.f, x, y, z, method=self.method, theta=self.theta)
         if x.shape == self.c[:, 0].shape and np.array_equal(x, self.c[:, 0]) and np.array_equal(y, self.c[:, 1]):
             self._cache = r
         return r
@@ -104,14 +107,14 @@ def _ut_node(setup, sigma, extra):
     return _nodal_field(setup.panels, _inf.tangent_velocity(setup.panels, sigma, setup.bg, extra))
 
 
-def _shed_all(setup, f, data, ut_node, dt_shed, k_acc=1.0):
+def _shed_all(setup, f, data, ut_node, dt_shed, k_acc=1.0, t=0.0):
     """Сход по линиям; u_s умножается на k_acc = √(период-среднее |u|² / |u|² в конце периода) — накопленная
     Γ = Σ ½|u_s|²·dt за период (решение координатора)."""
     n_lines = 0
     for d in data:
         if len(d[0]) < 2:
             continue
-        f = F.shed(f, d[0], k_acc * _line_ut(setup.panels, ut_node, d), dt_shed, setup.core, d[3])
+        f = F.shed(f, d[0], k_acc * _line_ut(setup.panels, ut_node, d), dt_shed, setup.core, d[3], t)
         n_lines += 1
     return f, n_lines
 
@@ -148,7 +151,7 @@ def run(setup, t_end, dt, t_avg=None, probes=None, sep_every=None, record_every=
     for it in range(n_steps):
         t0 = time.time()
         t = it * dt
-        extra = _Extra(f, panels) if len(f.seg) else None
+        extra = _Extra(f, panels, setup.bs_method, setup.theta) if len(f.seg) else None
         sigma, info = P.solve(panels, bg, extra, setup.infl)
         n_lines = n_sep = n_rea = 0
         if record_every and it % record_every == 0:
@@ -176,7 +179,7 @@ def run(setup, t_end, dt, t_avg=None, probes=None, sep_every=None, record_every=
                 sep_every = max(1, int(round(2.0 * setup.core / max(us * dt, 1e-9))))
                 setup.sep_every_auto, setup.u_s_mean = sep_every, us
                 auto_sep = False
-            f, n_lines = _shed_all(setup, f, data, utn, t - last_shed if it else dt * sep_every, k_acc)
+            f, n_lines = _shed_all(setup, f, data, utn, t - last_shed if it else dt * sep_every, k_acc, t)
             last_shed = t
             old, m_hist = data, []
             if sep_every > 1 and data:
@@ -197,12 +200,18 @@ def run(setup, t_end, dt, t_avg=None, probes=None, sep_every=None, record_every=
         nsub, umax = 1, 0.0
         if len(f.seg):
             flow = _flow(setup, sigma)
-            u0 = np.stack(flow(f.x[:, 0], f.x[:, 1], f.x[:, 2]), 1) + F.self_velocity(f)
+            u0 = np.stack(flow(f.x[:, 0], f.x[:, 1], f.x[:, 2]), 1) + F.self_velocity(f, setup.bs_method, setup.theta)
             umax = float(np.sqrt((u0 ** 2).sum(1)).max())
             cmin = float(f.core.min())
             nsub = max(1, int(np.ceil(dt * umax / (setup.cfl * cmin)))) if umax > 0 else 1
-            for _ in range(nsub):
-                f = F.step(f, flow, dt / nsub, panels.height, setup.fil)
+            fil = dict(setup.fil, bs_method=setup.bs_method, theta=setup.theta)
+            if setup.coarsen and setup.coarsen.get("l_age"):
+                fil["l_age"] = setup.coarsen["l_age"]          # дробление в step согласовано с огрублением
+            for j in range(nsub):
+                fil["t"] = t + (j + 1) * dt / nsub
+                f = F.step(f, flow, dt / nsub, panels.height, fil)
+            if setup.coarsen:
+                f = F.coarsen(f, t + dt, setup.coarsen)
         stats.append(dict(t=t + dt, n_fil=f.n_filaments, n_nodes=len(f.x), n_seg=len(f.seg),
                           gamma_abs=float(np.abs(f.gamma).sum()), imbalance=F.imbalance(f), max_u=umax,
                           substeps=nsub, sep_every=sep_every, t_step=time.time() - t0, residual=info["residual"], n_sep=n_sep,
@@ -237,7 +246,7 @@ def velocity_mean(result, x, y, z, variant):
             raise ValueError("нет снимков за t ≥ t_avg: задайте record_every")
         m = 0.0
         for s in sn:
-            ex = _Extra(s["filaments"], setup.panels) if len(s["filaments"].seg) else None
+            ex = _Extra(s["filaments"], setup.panels, setup.bs_method, setup.theta) if len(s["filaments"].seg) else None
             m = m + _probe_variants(setup, s["sigma"], setup.sigma_bg, ex, pts)[variant]
         m = m / len(sn)
     return m[:, 0].reshape(shp), m[:, 1].reshape(shp), m[:, 2].reshape(shp)
