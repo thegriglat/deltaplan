@@ -55,3 +55,5 @@
 {"t": "2026-11-08T23:05:09", "by": "coordinator", "task": "SWG-3", "ev": "checked", "note": "4/4 contract=ok:exit 0; windows=ok:2; stages=ok:2; pytest=ok:passed"}
 {"t": "2026-11-08T23:07:02", "by": "reviewer", "task": "SWG-3", "ev": "reviewed", "note": "Сетка окна совпадает с rust/dp-air window.rs (window_domain/window_vertical, nz 62/112, угол кратен 25 м); порядок классов z0 = CLASS_NAMES крейта; Пикар — For…", "verdict": "accept", "issues": {"minor": 2}, "review": "docs/plan/sw-ground/tasks/SWG-3.review.json"}
 {"t": "2026-11-08T23:07:22", "by": "coordinator", "task": "SWG-3", "ev": "accepted", "note": "по ревью (fable): 2 minor — число нитей 24/26 и повторений в README"}
+{"t": "2026-11-08T23:07:27", "by": "coordinator", "task": "SWG-3", "ev": "accepted", "commits": ["bb7cdec9e"], "note": "4/4 contract=ok:exit 0; windows=ok:2; stages=ok:2; pytest=ok:passed"}
+{"t": "2026-11-08T23:07:28", "by": "coordinator", "task": "SWG-3", "ev": "merged"}
