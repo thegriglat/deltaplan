@@ -1,0 +1,60 @@
+{
+  "id": "SWD-13",
+  "module": "sw-charges-3d",
+  "type": "dp-engineer",
+  "title": "rotor3d v2: нить ротора с одним условием — ноль скорости в присоединении, R по правилу геометрии (Q3, A)",
+  "goal": "SWD7 v2: Γ из нуля касательной скорости в точке присоединения, R = (x_r − x_c)/4 по нормали от середины, порог уклон 0,27; без подгонки; инварианты v2 (корень на Agnesi, нет нити на C4, есть на C2) — тестами, физичность |u_min| — числом.",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "SWD2",
+      "version": "5",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    },
+    {
+      "name": "SWD7",
+      "version": "2",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sw-charges-3d-SWD-13",
+  "branch": "sw-charges-3d/SWD-13",
+  "base": "feature/sw-charges-3d",
+  "scope": [
+    "tools/research/sw_charges_3d/rotor3d/"
+  ],
+  "dont_touch": [
+    "tools/research/sw_charges_3d/panels3d/",
+    "tools/research/sw_charges_3d/filaments3d/",
+    "tools/research/sw_charges_3d/sim3d/",
+    "tools/research/sw_charges_3d/sheet3d/",
+    "tools/research/sw_charges_3d/compare/",
+    "tools/research/sw_charges_3d/out/",
+    "tools/research/sw_charges_3d/refs/",
+    "tools/research/sw_charges_3d/proto3d/",
+    "tools/research/sw_charges/",
+    "docs/contracts/",
+    "tools/research/sw_charges_3d/contract/",
+    "rust/"
+  ],
+  "accept": [
+    {
+      "name": "pytest",
+      "cmd": "tools/research/sw_charges_3d/py -m pytest -q tools/research/sw_charges_3d/rotor3d/tests",
+      "expect": "!re:(failed|error)"
+    },
+    {
+      "name": "pytest-pass",
+      "cmd": "tools/research/sw_charges_3d/py -m pytest -q tools/research/sw_charges_3d/rotor3d/tests",
+      "expect": "num:(\\d+) passed >=11"
+    },
+    {
+      "name": "api",
+      "cmd": "tools/research/sw_charges_3d/py tools/research/sw_charges_3d/contract/check_contract.py api rotor3d",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-08T18:49:57"
+}
