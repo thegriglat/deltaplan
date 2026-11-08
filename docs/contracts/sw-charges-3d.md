@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-11-08"
 summary: "Стыки sw-charges-3d: эталоны 3D (SWD1), панели 3D (SWD2), вихревые нити (SWD3), связка (SWD4), сравнение (SWD5)."
 related: ["docs/plan/sw-charges-3d.md", "docs/contracts/sw-charges.md", "tools/research/sw_charges_3d/README.md"]
-contracts: [{"id": "SWD1", "version": 2}, {"id": "SWD2", "version": 3}, {"id": "SWD3", "version": 2}, {"id": "SWD4", "version": 2}, {"id": "SWD5", "version": 1}]
+contracts: [{"id": "SWD1", "version": 2}, {"id": "SWD2", "version": 3}, {"id": "SWD3", "version": 2}, {"id": "SWD4", "version": 2}, {"id": "SWD5", "version": 2}]
 ---
 # Контракты модуля sw-charges-3d
 
@@ -192,17 +192,23 @@ v2 (2026-11-08, отчёт SWD-3): скорость кольца Розенхе�
   двойной хребет (два Agnesi H/L 0,5 через 3L) — с `restart` отрыв за обоими гребнями, без — только за первым;
   время шага на N ≈ 5000 панелей и 2000 узлов — в отчёте.
 
-## SWD5 v1 — сравнение 3D с эталонами
-Владелец — SWD-5; потребители — итог модуля, шлюз.
+## SWD5 v2 — сравнение 3D с эталонами
+Владелец — SWD-5 (potential, potential_jh, сканы), SWD-5b (vortex_jh, ротор); потребители — итог модуля, шлюз.
+v2 (2026-11-08, итог 2D №4, №7, №8): `smooth_m`, `ref_use`, `scan`, `diag`; `problems2d.kind` — ещё "эталон", "не выяснено".
 - Путь — `tools/research/sw_charges_3d/out/compare/points.json` + `.csv`; JSON (`format` = "sw3d-compare",
-  `version` = 1): `git`, `created`, `tol_picard` (0,15), `rows` — {`case`, `variant` ("potential" | "potential_jh" |
+  `version` = 2): `git`, `created`, `tol_picard` (0,15), `rows` — {`case`, `variant` ("potential" | "potential_jh" |
   "vortex_jh"), `point`, `name`, `x`, `y`, `z_agl`, `ref_kind` (как SWD1), `ref_source`, `ref_reliability`, `ref_err`,
-  `s_ref`, `s_pan` (s_norm: скорость / скорость в опорной точке `norm` того же источника), `dS_ref`, `dS_pan` (Askervein,
-  иначе null), `u_par_ref`, `u_par_pan` (u∥, м/с, отнесённые к U опорной точки данных), `err` (= s_pan − s_ref),
-  `within_tol` (picard: |err| ≤ 0,15·|s_ref|; иначе null), `within_tol_ref` (|err| ≤ max(0,15, ref_err)·|s_ref| |
-  null), `ds_min`, `N`}.
+  `ref_use` ("эталон" | "справочно": строки Пикара ниже 50 м — справочно, 2D №7), `s_ref`, `s_pan` (s_norm: скорость /
+  скорость в опорной точке `norm` того же источника), `dS_ref`, `dS_pan` (Askervein, иначе null), `u_par_ref`,
+  `u_par_pan` (u∥, м/с, отнесённые к U опорной точки данных), `err` (= s_pan − s_ref), `within_tol` (picard:
+  |err| ≤ 0,15·|s_ref|; иначе null), `within_tol_ref` (|err| ≤ max(0,15, ref_err)·|s_ref| | null), `ds_min`, `N`,
+  `smooth_m` (σ сглаживания рельефа панелей, м)} — основной набор при выбранных σ и ds_min (обоснование — README).
+- `scan` — {`case`, `variant`, `param` ("smooth_m" | "z_over_H" | "ds_min"), `value`, `metric` (имя: напр.
+  "rmse_s_mast", "frac_tol_picard_ge50", "dS_HT_10"), `result`} — скан σ и высоты сравнения до выводов (2D №4).
 - `rotor` — {`case`, `transect`, `variant`, `present` (u∥ < −0,5 м/с на z_agl 15 м на отрезке > 50 м вдоль
   `transects` SWD1, среднее за t ≥ t_avg), `L_m`, `depth_m`, `L_ref`, `ref_source`}.
 - `timing` — {`case`, `variant`, `N`, `t_assemble_s`, `t_solve_s`, `t_query_us` (на точку), `t_run_s`, `backend`}.
-- `problems2d` — {`problem`, `kind` ("схема" | "2D-артефакт"), `status` ("ушла" | "осталась" | "новая в 3D"),
-  `evidence` (строка: строки таблицы/числа)}; список проблем — из итога sw-charges (сообщит координатор).
+- `diag` — {`case`, `item`, `value`, `note`} — диагностика (напр. H(s), cf в лее Perdigão — 2D №8).
+- `problems2d` — {`problem`, `kind` ("схема" | "2D-артефакт" | "эталон" | "не выяснено"), `status` ("ушла" | "осталась"
+  | "новая в 3D" | "не проверено"), `evidence` (строка: строки таблицы/числа)}; 12 проблем — docs/research/sw_charges.md,
+  раздел «7. Итог 2D: проблемы для 3D».
