@@ -84,10 +84,11 @@ for r in flux:
     
 # ------------------------------------------------------------------ C
 neu = J("c_neutral.json")
+TH_SW = "Panofsky & Dutton 1984: σ_w = 1,25 u* в приземном слое (нейтраль); формула игры turbulence.md совпадает при h→∞"
 GAME = "docs/guide/air-model/turbulence.md: σ_w = 1,25 u*(1−z/h)^¾ (нейтральная механическая); 2D C (SWC-7): ×1,53/1,73/1,74/1,35"
 for r in neu:
     z = r["z"]
-    add("C", "flat_neutral", f"σ_w / (1,25 u*), z = {z:g} м", r["ratio_sw"], "1", 1.0, "game", GAME, "модель игры (Panofsky–Dutton ±20 %)", within(r["ratio_sw"], 1, 0.3), "допуск ±30 %; u* = 0,4; 3 снимка")
+    add("C", "flat_neutral", f"σ_w / (1,25 u*), z = {z:g} м", r["ratio_sw"], "1", 1.0, "theory", TH_SW, "модель игры (Panofsky–Dutton ±20 %)", within(r["ratio_sw"], 1, 0.3), "допуск ±30 %; u* = 0,4; 3 снимка; приземный слой (множитель (1−z/h)^¾ игры не применён, h→∞; ref = 1)")
     add("C", "flat_neutral", f"L_w / z, z = {z:g} м", r["Lw_over_z"], "1", 1.0, "game", "Карман L_w = z (docs/guide/air-model/turbulence.md); 2D C: 0,31–0,39", "модель", within(r["Lw_over_z"], 1, 0.3),
         "" if z < 100 else "z=120: 4 линии по 96 точек, шум велик")
     add("C", "flat_neutral", f"−⟨u'w'⟩/u*², z = {z:g} м", -r["uw_over_ust2"], "1", 1.0, "theory", "постоянный поток импульса в приземном слое; 2D C: 1,5–2,7 к игре", "высокая", within(-r["uw_over_ust2"], 1, 0.3), "допуск ±30 %")
@@ -95,7 +96,7 @@ for r in neu:
     timing.append(dict(proto="C", case=f"neutral_z{z:g}", n_nodes=r["n_rings"] * 12, t_step_s=r["wall_s"] / 3, t_run_s=r["wall_s"], backend="cupy RTX 4070 SUPER f64"))
 sens = J("c_sens.json")
 for r in sens:
-    add("C", "flat_neutral_sens", f"σ_w/(1,25 u*), z = 25 м, вариант {r['tag']}", r["ratio_sw"], "1", 1.0, "game", GAME, "модель", within(r["ratio_sw"], 1, 0.3),
+    add("C", "flat_neutral_sens", f"σ_w/(1,25 u*), z = 25 м, вариант {r['tag']}", r["ratio_sw"], "1", 1.0, "theory", TH_SW, "модель", within(r["ratio_sw"], 1, 0.3),
         f"−⟨u'w'⟩/u*² = {-r['uw_over_ust2']:.2f}; L_w/z = {r['Lw_over_z']:.2f}; чувствительность, не подгонка")
 th = J("c_thresh.json")
 for zc in (30.0, 60.0):
@@ -129,8 +130,9 @@ for t in ter:
 fl_dn = {k: get(c, U)["dn"][59] - get("flat", 0)["dn"][59] for k, (c, U) in dict(ww=("hill_wind", 0), ft=("hill_foot", 0), pd=("perd", 0), ww3=("hill_wind", 3), pd3=("perd", 3)).items()}
 sw_ratio = [r["ratio_sw"] for r in neu]
 problems.append(dict(problem="№6", status="ушла",
-    evidence=f"σ_w/(1,25 u*) на 10/25/60/120 м: {', '.join(f'{x:.2f}' for x in sw_ratio)} (2D C: 1,53/1,73/1,74/1,35); −⟨u'w'⟩/u* ² {-neu[1]['uw_over_ust2']:.2f}. "
-             f"Оговорки: (1) кольцо диаметром d = ℓ (R_r = ℓ/2) — по аналогии с парой; при R_r = ℓ σ_w в {sens[2]['ratio_sw']:.1f} раза выше — выбор масштаба неподтверждён данными; "
+    evidence=f"[УСЛОВНО: ушла при R_r = ℓ/2] σ_w/(1,25 u*) на 10/25/60/120 м: {', '.join(f'{x:.2f}' for x in sw_ratio)} (2D C: 1,53/1,73/1,74/1,35); −⟨u'w'⟩/u* ² {-neu[1]['uw_over_ust2']:.2f}. "
+             f"Условие: R_r = ℓ/2 — кольцо, диаметр которого равен расстоянию пары ℓ: пара 2D есть сечение кольца плоскостью через ось, расстояние между вихрями сечения = 2R_r = ℓ; "
+             f"при R_r = ℓ (пара — сечение, расстояние 2ℓ) σ_w в {sens[2]['ratio_sw']:.1f} раза выше и №6 не ушла бы (чувствительность ×2 к параметру, данными не подтверждён). Оговорки: (1) R_r = ℓ/2 — выбор по аналогии с парой, не измерение; "
              f"(2) кольца не взаимодействуют, анизотропии σ_u/σ_w нет; (3) эталон — формула игры, не измерение."))
 fx = [r for r in flux if r["case"] == "hill_wind" and r["T"] > 200]
 problems.append(dict(problem="№10", status="осталась",

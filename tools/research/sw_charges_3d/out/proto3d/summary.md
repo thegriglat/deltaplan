@@ -4,7 +4,7 @@ status: "active"
 module: "sw-charges-3d"
 area: "air"
 updated: "2026-11-08"
-summary: "SWD-12: A и C в 3D — кольцо термика сходится к теории, отрыва от склона нет (≈ 5 мин нагрева и там, и на ровной земле); σ_w болтанки колец в пределах 9 % игры, порог по Ri работает."
+summary: "SWD-12: A и C в 3D — кольцо термика сходится к теории, отрыва от склона нет; σ_w колец в 9 % игры при R_r = ℓ/2, порог по Ri работает."
 related: ["tools/research/sw_charges_3d/proto3d/README.md", "docs/contracts/sw-charges-3d.md"]
 conclusion: "Прототип A в 3D даёт кольцо (a/b → 2/3, ∫w⁻/∫w⁺ 0,95), но не отрыв от склона (№10 осталась); C даёт σ_w в 1,05–1,09 игры при R_r = ℓ/2 (№6 ушла, но зависит от масштаба кольца), порог Ri и равновесие Ri → ¼ — да."
 data: "tools/research/sw_charges_3d/out/proto3d/"

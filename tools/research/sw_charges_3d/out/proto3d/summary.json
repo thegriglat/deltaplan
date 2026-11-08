@@ -1,8 +1,8 @@
 {
  "format": "sw3d-proto",
  "version": 1,
- "git": "679702a14",
- "created": "2026-11-08T18:49:57+05:00",
+ "git": "7de7a653b",
+ "created": "2026-11-08T18:59:18+05:00",
  "rows": [
   {
    "proto": "A",
@@ -583,11 +583,11 @@
    "value": 1.0897880267791067,
    "unit": "1",
    "ref": 1.0,
-   "ref_kind": "game",
-   "ref_source": "docs/guide/air-model/turbulence.md: σ_w = 1,25 u*(1−z/h)^¾ (нейтральная механическая); 2D C (SWC-7): ×1,53/1,73/1,74/1,35",
+   "ref_kind": "theory",
+   "ref_source": "Panofsky & Dutton 1984: σ_w = 1,25 u* в приземном слое (нейтраль); формула игры turbulence.md совпадает при h→∞",
    "ref_reliability": "модель игры (Panofsky–Dutton ±20 %)",
    "ok": true,
-   "note": "допуск ±30 %; u* = 0,4; 3 снимка"
+   "note": "допуск ±30 %; u* = 0,4; 3 снимка; приземный слой (множитель (1−z/h)^¾ игры не применён, h→∞; ref = 1)"
   },
   {
    "proto": "C",
@@ -635,11 +635,11 @@
    "value": 1.094249049243473,
    "unit": "1",
    "ref": 1.0,
-   "ref_kind": "game",
-   "ref_source": "docs/guide/air-model/turbulence.md: σ_w = 1,25 u*(1−z/h)^¾ (нейтральная механическая); 2D C (SWC-7): ×1,53/1,73/1,74/1,35",
+   "ref_kind": "theory",
+   "ref_source": "Panofsky & Dutton 1984: σ_w = 1,25 u* в приземном слое (нейтраль); формула игры turbulence.md совпадает при h→∞",
    "ref_reliability": "модель игры (Panofsky–Dutton ±20 %)",
    "ok": true,
-   "note": "допуск ±30 %; u* = 0,4; 3 снимка"
+   "note": "допуск ±30 %; u* = 0,4; 3 снимка; приземный слой (множитель (1−z/h)^¾ игры не применён, h→∞; ref = 1)"
   },
   {
    "proto": "C",
@@ -687,11 +687,11 @@
    "value": 1.0607173381393908,
    "unit": "1",
    "ref": 1.0,
-   "ref_kind": "game",
-   "ref_source": "docs/guide/air-model/turbulence.md: σ_w = 1,25 u*(1−z/h)^¾ (нейтральная механическая); 2D C (SWC-7): ×1,53/1,73/1,74/1,35",
+   "ref_kind": "theory",
+   "ref_source": "Panofsky & Dutton 1984: σ_w = 1,25 u* в приземном слое (нейтраль); формула игры turbulence.md совпадает при h→∞",
    "ref_reliability": "модель игры (Panofsky–Dutton ±20 %)",
    "ok": true,
-   "note": "допуск ±30 %; u* = 0,4; 3 снимка"
+   "note": "допуск ±30 %; u* = 0,4; 3 снимка; приземный слой (множитель (1−z/h)^¾ игры не применён, h→∞; ref = 1)"
   },
   {
    "proto": "C",
@@ -739,11 +739,11 @@
    "value": 1.0458429466977635,
    "unit": "1",
    "ref": 1.0,
-   "ref_kind": "game",
-   "ref_source": "docs/guide/air-model/turbulence.md: σ_w = 1,25 u*(1−z/h)^¾ (нейтральная механическая); 2D C (SWC-7): ×1,53/1,73/1,74/1,35",
+   "ref_kind": "theory",
+   "ref_source": "Panofsky & Dutton 1984: σ_w = 1,25 u* в приземном слое (нейтраль); формула игры turbulence.md совпадает при h→∞",
    "ref_reliability": "модель игры (Panofsky–Dutton ±20 %)",
    "ok": true,
-   "note": "допуск ±30 %; u* = 0,4; 3 снимка"
+   "note": "допуск ±30 %; u* = 0,4; 3 снимка; приземный слой (множитель (1−z/h)^¾ игры не применён, h→∞; ref = 1)"
   },
   {
    "proto": "C",
@@ -791,8 +791,8 @@
    "value": 1.0270350953965388,
    "unit": "1",
    "ref": 1.0,
-   "ref_kind": "game",
-   "ref_source": "docs/guide/air-model/turbulence.md: σ_w = 1,25 u*(1−z/h)^¾ (нейтральная механическая); 2D C (SWC-7): ×1,53/1,73/1,74/1,35",
+   "ref_kind": "theory",
+   "ref_source": "Panofsky & Dutton 1984: σ_w = 1,25 u* в приземном слое (нейтраль); формула игры turbulence.md совпадает при h→∞",
    "ref_reliability": "модель",
    "ok": true,
    "note": "−⟨u'w'⟩/u*² = 0.89; L_w/z = 0.22; чувствительность, не подгонка"
@@ -804,8 +804,8 @@
    "value": 1.1438210783851877,
    "unit": "1",
    "ref": 1.0,
-   "ref_kind": "game",
-   "ref_source": "docs/guide/air-model/turbulence.md: σ_w = 1,25 u*(1−z/h)^¾ (нейтральная механическая); 2D C (SWC-7): ×1,53/1,73/1,74/1,35",
+   "ref_kind": "theory",
+   "ref_source": "Panofsky & Dutton 1984: σ_w = 1,25 u* в приземном слое (нейтраль); формула игры turbulence.md совпадает при h→∞",
    "ref_reliability": "модель",
    "ok": true,
    "note": "−⟨u'w'⟩/u*² = 1.36; L_w/z = 0.30; чувствительность, не подгонка"
@@ -817,8 +817,8 @@
    "value": 2.108485607435574,
    "unit": "1",
    "ref": 1.0,
-   "ref_kind": "game",
-   "ref_source": "docs/guide/air-model/turbulence.md: σ_w = 1,25 u*(1−z/h)^¾ (нейтральная механическая); 2D C (SWC-7): ×1,53/1,73/1,74/1,35",
+   "ref_kind": "theory",
+   "ref_source": "Panofsky & Dutton 1984: σ_w = 1,25 u* в приземном слое (нейтраль); формула игры turbulence.md совпадает при h→∞",
    "ref_reliability": "модель",
    "ok": false,
    "note": "−⟨u'w'⟩/u*² = 3.44; L_w/z = 0.46; чувствительность, не подгонка"
@@ -830,8 +830,8 @@
    "value": 1.1663698758511571,
    "unit": "1",
    "ref": 1.0,
-   "ref_kind": "game",
-   "ref_source": "docs/guide/air-model/turbulence.md: σ_w = 1,25 u*(1−z/h)^¾ (нейтральная механическая); 2D C (SWC-7): ×1,53/1,73/1,74/1,35",
+   "ref_kind": "theory",
+   "ref_source": "Panofsky & Dutton 1984: σ_w = 1,25 u* в приземном слое (нейтраль); формула игры turbulence.md совпадает при h→∞",
    "ref_reliability": "модель",
    "ok": true,
    "note": "−⟨u'w'⟩/u*² = 0.91; L_w/z = 0.32; чувствительность, не подгонка"
@@ -843,8 +843,8 @@
    "value": 0.8990311025320403,
    "unit": "1",
    "ref": 1.0,
-   "ref_kind": "game",
-   "ref_source": "docs/guide/air-model/turbulence.md: σ_w = 1,25 u*(1−z/h)^¾ (нейтральная механическая); 2D C (SWC-7): ×1,53/1,73/1,74/1,35",
+   "ref_kind": "theory",
+   "ref_source": "Panofsky & Dutton 1984: σ_w = 1,25 u* в приземном слое (нейтраль); формула игры turbulence.md совпадает при h→∞",
    "ref_reliability": "модель",
    "ok": true,
    "note": "−⟨u'w'⟩/u*² = 0.87; L_w/z = 0.24; чувствительность, не подгонка"
@@ -856,8 +856,8 @@
    "value": 1.0421836959672253,
    "unit": "1",
    "ref": 1.0,
-   "ref_kind": "game",
-   "ref_source": "docs/guide/air-model/turbulence.md: σ_w = 1,25 u*(1−z/h)^¾ (нейтральная механическая); 2D C (SWC-7): ×1,53/1,73/1,74/1,35",
+   "ref_kind": "theory",
+   "ref_source": "Panofsky & Dutton 1984: σ_w = 1,25 u* в приземном слое (нейтраль); формула игры turbulence.md совпадает при h→∞",
    "ref_reliability": "модель",
    "ok": true,
    "note": "−⟨u'w'⟩/u*² = 1.02; L_w/z = 0.29; чувствительность, не подгонка"
@@ -869,8 +869,8 @@
    "value": 1.0505250877963748,
    "unit": "1",
    "ref": 1.0,
-   "ref_kind": "game",
-   "ref_source": "docs/guide/air-model/turbulence.md: σ_w = 1,25 u*(1−z/h)^¾ (нейтральная механическая); 2D C (SWC-7): ×1,53/1,73/1,74/1,35",
+   "ref_kind": "theory",
+   "ref_source": "Panofsky & Dutton 1984: σ_w = 1,25 u* в приземном слое (нейтраль); формула игры turbulence.md совпадает при h→∞",
    "ref_reliability": "модель",
    "ok": true,
    "note": "−⟨u'w'⟩/u*² = 0.98; L_w/z = 0.25; чувствительность, не подгонка"
@@ -882,8 +882,8 @@
    "value": 1.0766482951038607,
    "unit": "1",
    "ref": 1.0,
-   "ref_kind": "game",
-   "ref_source": "docs/guide/air-model/turbulence.md: σ_w = 1,25 u*(1−z/h)^¾ (нейтральная механическая); 2D C (SWC-7): ×1,53/1,73/1,74/1,35",
+   "ref_kind": "theory",
+   "ref_source": "Panofsky & Dutton 1984: σ_w = 1,25 u* в приземном слое (нейтраль); формула игры turbulence.md совпадает при h→∞",
    "ref_reliability": "модель",
    "ok": true,
    "note": "−⟨u'w'⟩/u*² = 1.18; L_w/z = 0.39; чувствительность, не подгонка"
@@ -895,8 +895,8 @@
    "value": 1.1391341138146953,
    "unit": "1",
    "ref": 1.0,
-   "ref_kind": "game",
-   "ref_source": "docs/guide/air-model/turbulence.md: σ_w = 1,25 u*(1−z/h)^¾ (нейтральная механическая); 2D C (SWC-7): ×1,53/1,73/1,74/1,35",
+   "ref_kind": "theory",
+   "ref_source": "Panofsky & Dutton 1984: σ_w = 1,25 u* в приземном слое (нейтраль); формула игры turbulence.md совпадает при h→∞",
    "ref_reliability": "модель",
    "ok": true,
    "note": "−⟨u'w'⟩/u*² = 1.03; L_w/z = 0.24; чувствительность, не подгонка"
@@ -908,8 +908,8 @@
    "value": 1.0425972991410113,
    "unit": "1",
    "ref": 1.0,
-   "ref_kind": "game",
-   "ref_source": "docs/guide/air-model/turbulence.md: σ_w = 1,25 u*(1−z/h)^¾ (нейтральная механическая); 2D C (SWC-7): ×1,53/1,73/1,74/1,35",
+   "ref_kind": "theory",
+   "ref_source": "Panofsky & Dutton 1984: σ_w = 1,25 u* в приземном слое (нейтраль); формула игры turbulence.md совпадает при h→∞",
    "ref_reliability": "модель",
    "ok": true,
    "note": "−⟨u'w'⟩/u*² = 1.13; L_w/z = 0.32; чувствительность, не подгонка"
@@ -1460,7 +1460,7 @@
   {
    "problem": "№6",
    "status": "ушла",
-   "evidence": "σ_w/(1,25 u*) на 10/25/60/120 м: 1.09, 1.09, 1.06, 1.05 (2D C: 1,53/1,73/1,74/1,35); −⟨u'w'⟩/u* ² 1.06. Оговорки: (1) кольцо диаметром d = ℓ (R_r = ℓ/2) — по аналогии с парой; при R_r = ℓ σ_w в 2.1 раза выше — выбор масштаба неподтверждён данными; (2) кольца не взаимодействуют, анизотропии σ_u/σ_w нет; (3) эталон — формула игры, не измерение."
+   "evidence": "[УСЛОВНО: ушла при R_r = ℓ/2] σ_w/(1,25 u*) на 10/25/60/120 м: 1.09, 1.09, 1.06, 1.05 (2D C: 1,53/1,73/1,74/1,35); −⟨u'w'⟩/u* ² 1.06. Условие: R_r = ℓ/2 — кольцо, диаметр которого равен расстоянию пары ℓ: пара 2D есть сечение кольца плоскостью через ось, расстояние между вихрями сечения = 2R_r = ℓ; при R_r = ℓ (пара — сечение, расстояние 2ℓ) σ_w в 2.1 раза выше и №6 не ушла бы (чувствительность ×2 к параметру, данными не подтверждён). Оговорки: (1) R_r = ℓ/2 — выбор по аналогии с парой, не измерение; (2) кольца не взаимодействуют, анизотропии σ_u/σ_w нет; (3) эталон — формула игры, не измерение."
   },
   {
    "problem": "№10",
