@@ -1,0 +1,51 @@
+{
+  "verdict": "accept",
+  "summary": "Исследовательская задача выполнена честно: схема по карточке (WakeGrid SWG-4 импортом, петли с возвратом, σ_ex теми же LU, velocity_jh couple, итерации γ с критерием 1e-3 и счётчиком), все 4956 точек и мачты, SWG2 v1 соблюдён (инварианты n/mean_rel/frac_tol/within_tol сверены скриптом — 0 расхождений). Отчёт совпадает с ground.json (лее 10 м NE +1,48 → +1,12, мачты RMSE, сходимость 64/64). Цель лее не достигнута — записано с разложением и следующей идеей. Скоуп чистый (13 файлов). Замечания только minor.",
+  "issues": [
+    {
+      "file": "tools/research/sw_ground/sheet/README.md",
+      "line": 42,
+      "severity": "minor",
+      "what": "В тексте «показан вариант `sheet_jh_zone` (`_cpb_zone`)» — имя не то; в ground.json есть шесть вариантов, включая sheet_jh_cpb_zone, которого нет в таблицах README (есть в tables.md).",
+      "fix": "Поправить имя и либо добавить столбец sheet_jh_cpb_zone, либо одной строкой сказать, что он хуже zone и вынесен в tables.md. Можно при следующем круге."
+    },
+    {
+      "file": "tools/research/sw_ground/sheet/core.py",
+      "line": 200,
+      "severity": "minor",
+      "what": "Замыкание «rest»: γ ← max(U_ср + γ/2, 0) — обрезка снизу не описана в docstring/README; при нуле γ узел молча выпадает из листа.",
+      "fix": "Одна строка в README (сколько узлов попали в обрезку — 0 или нет); для вердикта не критично."
+    },
+    {
+      "file": "tools/research/sw_ground/sheet/core.py",
+      "line": 330,
+      "severity": "minor",
+      "what": "zone_speed — модуль невязкого поля (в т.ч. обратного) × лог-профиль с z0 растра: это авторское определение, не скорость рециркуляции из литературы; честно помечено в uncertain и README, но при переносе в следующий круг (вопрос исполнителя) его надо обосновать или заменить (напр. u_d из C_pb/обратного потока ~0,2–0,3 U_e по Roshko).",
+      "fix": "Координатору учесть при постановке следующего круга; в этой задаче — ничего."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "contract (accept --only contract --dry)",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "pytest (accept --only pytest --dry)",
+      "value": "passed, 12 с",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "13 файлов в границах, все в sheet/ и out/swg-7/",
+      "pass": true
+    },
+    {
+      "name": "инварианты SWG2 (свой скрипт по ground.json)",
+      "value": "within_tol↔rel_err 0 расхождений; summary.n/mean_rel/frac_tol = пересчёт по rows (0 расхождений); лее 10 м NE sheet_jh +1,12, мачты NE RMSE 0,151 — как в отчёте",
+      "pass": true
+    }
+  ],
+  "t": "2026-11-09T00:47:45",
+  "by": "reviewer"
+}
