@@ -1,0 +1,68 @@
+{
+  "id": "SWD-8",
+  "module": "sw-charges-3d",
+  "type": "dp-engineer",
+  "title": "sheet3d: установившийся вихревой слой вдоль линии отрыва и границы зоны рециркуляции (SWD6)",
+  "goal": "Пакет sheet3d по SWD6: стационарный лист вихрей с линии отрыва (сила γ = |u_s|), форма — итерациями по линиям тока полной скорости до присоединения, замкнутый на землю; поле — velocity_jh(couple) с этим слоем; цена — порядка нескольких решений панелей; инварианты SWD6 — тестами.",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "SWD2",
+      "version": "4",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    },
+    {
+      "name": "SWD3",
+      "version": "2",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    },
+    {
+      "name": "SWD6",
+      "version": "1",
+      "ref": "docs/contracts/sw-charges-3d.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sw-charges-3d-SWD-8",
+  "branch": "sw-charges-3d/SWD-8",
+  "base": "feature/sw-charges-3d",
+  "scope": [
+    "tools/research/sw_charges_3d/sheet3d/"
+  ],
+  "dont_touch": [
+    "tools/research/sw_charges_3d/panels3d/",
+    "tools/research/sw_charges_3d/filaments3d/",
+    "tools/research/sw_charges_3d/sim3d/",
+    "tools/research/sw_charges_3d/compare/",
+    "tools/research/sw_charges_3d/out/",
+    "tools/research/sw_charges_3d/refs/",
+    "tools/research/sw_charges/",
+    "docs/contracts/",
+    "tools/research/sw_charges_3d/contract/",
+    "rust/"
+  ],
+  "accept": [
+    {
+      "name": "pytest",
+      "cmd": "tools/research/sw_charges_3d/py -m pytest -q tools/research/sw_charges_3d/sheet3d/tests",
+      "expect": "!re:(failed|error)"
+    },
+    {
+      "name": "pytest-pass",
+      "cmd": "tools/research/sw_charges_3d/py -m pytest -q tools/research/sw_charges_3d/sheet3d/tests",
+      "expect": "num:(\\d+) passed >=6"
+    },
+    {
+      "name": "api",
+      "cmd": "tools/research/sw_charges_3d/py tools/research/sw_charges_3d/contract/check_contract.py api sheet3d",
+      "expect": "exit=0"
+    },
+    {
+      "name": "readme",
+      "cmd": "ls tools/research/sw_charges_3d/sheet3d/README.md",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-08T16:47:58"
+}
