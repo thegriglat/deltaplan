@@ -373,3 +373,77 @@ def test_sheet_double_ridge_two_sheets():
     assert any(100 < v < 700 for v in xs) and any(1600 < v < 2200 for v in xs)
     assert F.imbalance(sh.filaments) <= 1e-12
     print(f"\nдвойной хребет: N={c['p'].N}, линии отрыва x = {np.round(xs)}, iters={info['iters']}, residual={info['residual']:.2f}")
+
+
+# ---------- v6: слой с постоянным давлением в зоне (Roshko) ----------
+def test_roshko_bad_closure_rejected():
+    with pytest.raises(ValueError):
+        sheet3d.build_sheet(None, None, 0.1, None, dict(closure="kirchhoff"))
+
+
+def test_roshko_flat_no_sheet_field_equals_jh_bitwise():
+    x, y, z = raster(lambda X, Y: np.zeros_like(X), 1000, 1000, 50.0)
+    tf = P.Terrain3D(x, y, z, far_m=3000)
+    pf = P.build_panels(tf, focus=[(0, 0)], ds_min=100.0, focus_r=400)
+    bgf = P.bg_profile(10.0, 0.2, 200.0, tf)
+    sh, sig, info = sheet3d.build_sheet(pf, bgf, 0.1, None, dict(closure="roshko", cpb=-0.2))
+    assert len(sh.filaments.seg) == 0 and info["n_lines"] == 0
+    pts = (np.array([0.0, 100.0]), np.array([0.0, 50.0]), np.array([10.0, 40.0]))
+    a = sheet3d.velocity_sheet(pf, sig, bgf, sh, *pts, 0.1)
+    b = P.velocity_jh(pf, sig, bgf, *pts, 0.1)
+    assert all(np.array_equal(u, v) for u, v in zip(a, b))
+
+
+@gpu
+def test_roshko_closure_free_is_v5_regression(agn):
+    """closure="free" (по умолчанию) — v5: те же ряды и Γ, что без параметра."""
+    sh0, _, _ = agn["const"]
+    sh1, _, info1 = sheet3d.build_sheet(agn["p"], agn["bg"], 0.1, agn["infl"], dict(closure="free"))
+    assert np.array_equal(sh0.lines[0]["nodes"], sh1.lines[0]["nodes"]) and "cpb" not in info1
+
+
+@pytest.fixture(scope="module")
+def roshko():
+    c = agnesi_case()
+    c["bu"] = P.bg_uniform(10.0)
+    c["su"], _ = P.solve(c["p"], c["bu"], None, c["infl"])
+    c["res"] = sheet3d.build_sheet(c["p"], c["bu"], 0.1, c["infl"], dict(closure="roshko", cpb=-0.2, n_iter=40))
+    return c
+
+
+@gpu
+def test_roshko_gamma_is_ub_everywhere_and_closed(roshko):
+    sh, sig, info = roshko["res"]
+    fil = sh.filaments
+    u_b = 10.0 * np.sqrt(1.2)
+    assert abs(info["u_b"] - u_b) < 1e-6 * u_b and info["cpb"] == -0.2
+    dsh = sh.params["ds_sheet"]
+    assert all(abs(r["Gamma"] - u_b * dsh) < 1e-9 * u_b * dsh for r in sh.rows)       # γ постоянна: u_b вдоль всего слоя
+    assert F.imbalance(fil) <= 1e-12
+    assert info["closure_kind"][0] in ("reattach", "riabouchinsky") and info["closure_kind"][0] == sh.lines[0]["closure_kind"]
+
+
+@gpu
+def test_roshko_agnesi_reverse_flow_and_lb_report(roshko):
+    """Agnesi H/L 0,5, bg_uniform: обратный u∥ на 10 м за гребнем, L_b/H — числом; итерации с релаксацией 0,1 монотонно
+    уменьшают сдвиг узлов, но до 0,05·Δs за 40 итераций не доходят (README: конечное число итераций — результат, не порог)."""
+    sh, sig, info = roshko["res"]
+    p, bu = roshko["p"], roshko["bu"]
+    xs = np.array([300.0, 400.0, 500.0, 700.0])
+    zz = p.height(xs, np.zeros(4)) + 10.0
+    u1 = sheet3d.velocity_sheet(p, sig, bu, sh, xs, np.zeros(4), zz, 0.1, infl=roshko["infl"])[0]
+    u0 = P.velocity_jh(p, roshko["su"], bu, xs, np.zeros(4), zz, 0.1, infl=roshko["infl"])[0]
+    assert np.all(np.isfinite(u1)) and np.any(u1 < 0.0) and np.all(u1 < u0)
+    hist = info["residual_history"]
+    assert hist[-1] < hist[0] and info["residual"] <= min(hist) + 1e-9
+    assert np.isfinite(info["L_b_over_H"][0]) and info["L_b_over_H"][0] > 1.0
+    print(f"\nRoshko Cpb=-0,2 u_b={info['u_b']:.2f}: {info['closure_kind'][0]}, L_b/H={info['L_b_over_H'][0]:.1f}, "
+          f"iters={info['iters']} residual={info['residual']:.1f} м (история {hist[0]:.0f}→{hist[-1]:.0f}), converged={info['converged']}, "
+          f"u∥(10 м) со слоем {np.round(u1, 2)}, без {np.round(u0, 2)}, t={info['t_s']:.0f} с")
+
+
+@gpu
+def test_roshko_cost_vs_cold_panel_solves(roshko):
+    t_s = roshko["res"][2]["t_s"]
+    print(f"\nRoshko: слой {t_s:.1f} с, холодное решение {roshko['t_cold']:.1f} с, отношение {t_s / roshko['t_cold']:.1f}")
+    assert t_s / roshko["t_cold"] <= 10.0 * 4     # 40 итераций вместо 10: цена ×4 (README)
