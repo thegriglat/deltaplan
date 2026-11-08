@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-11-08"
 summary: "Стыки sw-charges-3d: эталоны 3D (SWD1), панели 3D (SWD2), вихревые нити (SWD3), связка (SWD4), сравнение (SWD5)."
 related: ["docs/plan/sw-charges-3d.md", "docs/contracts/sw-charges.md", "tools/research/sw_charges_3d/README.md"]
-contracts: [{"id": "SWD1", "version": 2}, {"id": "SWD2", "version": 4}, {"id": "SWD3", "version": 3}, {"id": "SWD4", "version": 4}, {"id": "SWD5", "version": 3}]
+contracts: [{"id": "SWD1", "version": 2}, {"id": "SWD2", "version": 4}, {"id": "SWD3", "version": 4}, {"id": "SWD4", "version": 4}, {"id": "SWD5", "version": 3}]
 ---
 # Контракты модуля sw-charges-3d
 
@@ -138,7 +138,10 @@ Taylor & Lee 1,6, −29 %: граница квазидвумерного вну�
   Agnesi H/L 0,5 + `bg_profile` — отрыв только за гребнем, s_sep средней линии в ± 2·ds_min от `panels2d.separation`
   на том же разрезе.
 
-## SWD3 v3 — вихревые нити 3D (пакет `filaments3d`)
+## SWD3 v4 — вихревые нити 3D (пакет `filaments3d`)
+v4 (2026-11-08, решение пользователя: ограничитель — только если дёшев): обязательны `t_birth`, огрубление по возрасту
+(а) и потолок `n_max` (в); слияние (б) и `method="tree"` — необязательны: не сделано — `NotImplementedError` при
+включении, их тесты пропускаются (`pytest.skip` с причиной); имена параметров — как v3.
 v3 (2026-11-08, Q1 — вариант C): ограничитель роста и быстрое суммирование; всё v2 без изменений поведения при
 значениях по умолчанию.
 - v3. `Filaments.t_birth` (K) — время схода отрезка, с (наследуется при дроблении/слиянии/перезамыкании — минимум);
