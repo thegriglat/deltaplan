@@ -1,0 +1,176 @@
+---
+type: "contract"
+status: "active"
+module: "sw-charges-3d"
+area: "air"
+updated: "2026-11-08"
+summary: "Стыки sw-charges-3d: эталоны 3D (SWD1), панели 3D (SWD2), вихревые нити (SWD3), связка (SWD4), сравнение (SWD5)."
+related: ["docs/plan/sw-charges-3d.md", "docs/contracts/sw-charges.md", "tools/research/sw_charges_3d/README.md"]
+contracts: [{"id": "SWD1", "version": 1}, {"id": "SWD2", "version": 1}, {"id": "SWD3", "version": 1}, {"id": "SWD4", "version": 1}, {"id": "SWD5", "version": 1}]
+---
+# Контракты модуля sw-charges-3d
+
+Владелец всех стыков — координатор модуля; меняет только он (версия +1, потребителям — `task note`).
+Интерпретатор — `tools/research/sw_charges_3d/py` (venv numpy, scipy, matplotlib, h5py, cupy, pytest; PYTHONPATH —
+`tools/research/sw_charges_3d` и `tools/research/sw_charges`, оттуда `panels2d` — только чтение).
+Контрактный тест: `tools/research/sw_charges_3d/py tools/research/sw_charges_3d/contract/check_contract.py --selftest`;
+`check_contract.py files <файлы|каталоги>` — файлы SWD1, SWD5 по полю `format`; `check_contract.py api <пакет>` —
+публичные имена и сигнатуры SWD2–SWD4 (`panels3d`, `filaments3d`, `sim3d`). Поведение SWD2–SWD4 — тесты пакетов.
+
+Общее:
+- Оси: x — на восток, y — на север, z — вверх (м, над уровнем моря); система случая — та же, что у модулей
+  `tools/research/cases/askervein.py`, `perdigao.py` (начало — их). Скорость (u, v, w), м/с.
+- Ветер: `wind_to` — единичный горизонтальный вектор, куда дует (ex, ey); `wind_from_deg` — метеорологическое
+  направление (откуда, ° от севера по часовой). u∥ = (u, v)·wind_to.
+- Случаи: `ASK_TU03B` (Askervein, подслучай b1 `tu03b`), `PERD_NE`, `PERD_SW` (Perdigão, b1 `ne`, `sw`); синтетика —
+  только в тестах пакетов.
+- Типы точек: `upstream`, `windward`, `crest`, `lee`, `valley`.
+- Неприменимое — `null`. Запись файлов — во временный файл и переименование.
+
+## SWD1 v1 — эталоны 3D (Пикар и измерения)
+Владелец — SWD-1; потребители — SWD-5 (сравнение), SWD-2/SWD-4 (рельеф случая).
+Пикар — решатель `tools/research/air3d` в постановке Б1 (`tools/research/cases/b1`), варианты `nom` (номинал, тот же,
+что «игра (b1 nom)» в 2D SWC-12) и `adv1` (1-й порядок переноса — схема игры); решатель и модули случаев не меняются.
+- Путь — `tools/research/sw_charges_3d/out/refs/<case>.h5` (по случаю) и `tools/research/sw_charges_3d/out/refs/points.json` + `.csv`.
+- HDF5: атрибуты файла `format` = "sw3d-ref", `version` = 1, `case`, `git`, `created`, `wind_to` (2), `wind_from_deg`.
+  - Группа `terrain` — растр рельефа для панелей (тот, что строит модуль случая до блочного осреднения Пикара; DSM
+    Perdigão — со смещением под пологом, как в `perdigao.py`): `x` (nx), `y` (ny) — центры, шаг постоянный, по
+    возрастанию; `z` (ny, nx) м; `z0` (ny, nx) м (шероховатость случая); атрибуты `dx`, `source`, `smoothing` (строка).
+  - Группа `picard_<variant>` (`nom`, `adv1`): `x` (nx), `y` (ny) — центры клеток Пикара; `z_ground` (ny, nx) м —
+    земля Пикара; `z_agl` (nz) — уровни над землёй Пикара, обязательно 2, 5, 10, 20, 30, 50, 75, 100, 150, 200, 300 м
+    (выше верха области — не писать); `u`, `v`, `w` (nz, ny, nx) — интерполяция из клеток по вертикали вдоль колонны
+    (метод — атрибут `interp`); атрибуты `params` (JSON-строка параметров прогона), `status` (сходимость), `iters`,
+    `wall_s`, `dx`, `U_ref`, `z_ref` (масштаб притока прогона).
+  - Массивы скоростей — int16 со смещением и масштабом (значение = raw·`scale` + `offset`, атрибуты массива;
+    raw −32768 — NaN), ошибка квантования ≤ 0,005 м/с; высоты — float32; чанки + gzip.
+- `points.json`: `format` = "sw3d-points", `version` = 1, `git`, `created`;
+  - `norm` — {case: {`name`, `x`, `y`, `z_agl`, `source`}}: опорная точка случая (Askervein — мачта RS; Perdigão —
+    выбор SWD-1, в README), по ней `s_norm`;
+  - `rows` — {`case`, `name` (мачта или `P_<point>_<k>` для синтетических точек Пикара), `point`, `x`, `y`, `z_agl`,
+    `ref_kind` ("mast" | "lidar" | "picard_nom" | "picard_adv1"), `ref_source` (путь/статья; для мачт вне линии —
+    смещение), `ref_reliability` ("измерение" | "модель ±15 %"), `ref_err` (доля | null), `u`, `v`, `w`, `speed`
+    (м/с; не измерено — null), `s_norm` (= speed / speed в `norm` того же `ref_kind`), `dS` (только Askervein:
+    speed / speed(RS, тот же z_agl) − 1, как FSR; иначе null)};
+  - строки Пикара — во всех точках мачт и в синтетических точках: по каждому типу `point` ≥ 1 положение на z_agl 10,
+    50, 300 м (где есть область);
+  - `transects` — {`case`, `name`, `x0`, `y0`, `x1`, `y1`, `source`}: линии вдоль ветра через центр области и разрезы
+    лидаров Menke 2019 (Perdigão);
+  - `rotor` — {`case`, `transect`, `source` ("menke2019" | "picard_nom" | "picard_adv1" | "masts"), `present`
+    (bool | null), `L_m`, `depth_m`, `criterion` (строка), `ref_source`}; критерий для полей — как SWD5.
+
+## SWD2 v1 — панели 3D (пакет `panels3d`)
+Владелец — SWD-2; потребители — SWD-4, SWD-5, SWD-6.
+Пакет `tools/research/sw_charges_3d/panels3d/` (NumPy; CuPy — `backend="cupy"`, `"auto"` — CuPy, если есть GPU).
+Схема — плоские треугольные панели постоянной плотности источника (Hess & Smith 1967; Katz & Plotkin, гл. 10–11);
+ближнее поле — точная формула треугольника, дальнее — допускается квадратура/мультиполь с ошибкой ≤ 1e-4 относит.
+- `Terrain3D(x, y, z, smooth_m=0.0, far_m=20000.0, blend_m=2000.0)` — растр (x (nx), y (ny) по возрастанию, шаг
+  постоянный; z (ny, nx) м); `smooth_m` > 0 — гауссово сглаживание σ. Вне растра: высота ближайшей точки края,
+  линейно сводимая к `z_far` (медиана края) на расстоянии `blend_m`, дальше ровно до квадрата ±`far_m` от центра
+  растра. `height(x, y)` → z (билинейно внутри, продолжение снаружи).
+- `build_panels(terrain, focus=None, ds_min=25.0, ds_max=1000.0, growth=1.2, focus_r=None)` → `Panels`:
+  согласованная триангуляция по дереву квадрантов (без висячих узлов, баланс 2:1) на квадрате ±`far_m`; размер
+  клетки `ds_min` на расстоянии ≤ `focus_r` (по умолчанию 10·`ds_min`) от любой точки `focus` (список (x, y)),
+  дальше h(d) = min(`ds_max`, `ds_min` + (`growth` − 1)·d); `focus=None` — `ds_min` по всему растру. Узлы — на
+  поверхности `terrain.height`. Поля `Panels`: `v` (N, 3, 3) вершины, `c` (N, 3) центроиды (коллокация), `n` (N, 3)
+  единичная нормаль в воздух (n_z > 0), `area` (N), `ds` = √area, `ds_min` (заданный), `N`, `terrain`;
+  `height(x, y)` — z поверхности панелей.
+- Фон — функция `bg(x, y, z) -> (u, v, w)` (массивы): `bg_uniform(U, wind_to=(1, 0))`; `bg_profile(U10, alpha, z_sat,
+  terrain, wind_to=(1, 0), smooth_m=250.0)` — горизонтальный U(z_agl) = U10·(z_agl/10)^alpha до z_sat, выше
+  постоянный, z_agl — над землёй, сглаженной σ = `smooth_m`, w = 0; z_agl < 0,1 м — как на 0,1 м. `bg_zero()`.
+- `extra(x, y, z) -> (u, v, w)` — внешняя индуцированная скорость (нити SWD3) или `None`.
+- `assemble(panels, backend="auto")` → `Influence` (матрица нормальных скоростей N×N в центроидах, собственный
+  вклад σ/2; LU/факторизация кешируется в объекте); `Influence.N`, `.backend`, `.mem_bytes`, `.t_assemble_s`.
+- `solve(panels, bg, extra=None, infl=None, method="dense", backend="auto")` → `(sigma, info)`: σ (N, м/с) — нормальная
+  скорость (фон + extra + панели) в центроидах = 0; `method="dense"` (f64) — невязка max|u·n| ≤ 1e-8·max|bg|,
+  `"gmres"` — ≤ 1e-5·max|bg|; `info` = {`N`, `method`, `backend`, `residual`, `t_assemble_s`, `t_solve_s`,
+  `mem_bytes`}; с `infl` повторное решение — без пересборки (другая правая часть).
+- `velocity(panels, sigma, bg, x, y, z, extra=None, backend="auto")` → `(u, v, w)` той же формы; под поверхностью
+  панелей — NaN; ближе ds/4 к панели — конечно (без особенностей у рёбер).
+- `surface_flow(panels, sigma, bg, extra=None)` → {`ut` (N, 3) касательная скорость в центроидах, `speed` (N),
+  `cp` = 1 − (speed/U_ref)², `U_ref` = |bg| на 100 м над землёй в середине наветренного края растра}.
+- `hill_length(terrain, x, y, wind_to, smooth_m=None, ds_min=25.0)` → {`x_c`, `y_c`, `z_c`, `L`} — по профилю
+  земли вдоль `wind_to` через (x, y) правило `panels2d.crests` (SW6 v4: локальный максимум сглаженного профиля,
+  σ по умолчанию 2·ds_min, перепад ≥ 2·ds_min, L — наветренная полуширина на половине высоты); ближайший гребень
+  выше по ветру или в точке; нет гребня — `None`.
+- `velocity_jh(panels, sigma, bg, x, y, z, z0, U_ref=None, extra=None, infl=None)` → `(u, v, w)` — внутренний слой
+  Jackson–Hunt (как SW6 v4, квазидвумерно вдоль ветра): σ — полное решение для (bg + extra); σ_bg — решение для bg,
+  σ_extra = σ − σ_bg (линейность); l из l·ln(l/z0) = 2κ²·L (L — `hill_length` в точке, κ = 0,4; нет гребня —
+  ровная земля); u0(z) = u*0/κ·ln(z/z0), u*0 — из bg на 100 м; ΔS — из потенциального решения для
+  `bg_uniform(U_ref, wind_to)` на высоте max(z_agl, l); горизонтальная скорость = u0(z_agl)·(1 + ΔS) по направлению
+  потенциальной горизонтальной скорости там же; выше h_m — `velocity` с bg; между l и h_m — сшивка как в
+  `panels2d.velocity_jh`; w — потенциальная; к итогу прибавляется extra + скорость панелей от σ_extra.
+- `separation3d(panels, sigma, bg, z0, extra=None, method="head", lee_only=True, seed_dy=None)` →
+  {`points`, `lines`, `rejected`}: поверхностные линии тока `ut` от наветренного края растра с шагом поперёк ветра
+  `seed_dy` (по умолчанию 2·ds_min), шаг трассировки ≤ ds/2, до выхода или застоя; вдоль каждой — интегральный слой
+  SW6 v3 (Карман + вовлечение Хеда, cf/2 = (κ/ln(δ/z0))², старт — равновесный слой ровной земли) квазидвумерно по
+  u_s(s) линии тока (без растекания линий тока — граница v1, в README); отрыв — первая точка торможения с H ≥ 2,4
+  или cf ≤ 0; `lee_only` — только между гребнем (`hill_length` по линии) и следующим минимумом по ветру. `points` —
+  {`x`, `y`, `z`, `streamline`, `s_sep`, `u_s`, `value`, `method`}; `lines` — список (M, 3) — точки соседних линий
+  тока, соединённые поперёк ветра (разрыв, где у соседа отрыва нет); `rejected` — отброшенные `lee_only`.
+- Инварианты (тесты пакета): ровная земля + `bg_uniform` — |σ| ≤ 1e-6·U, u = U ± 0,5 % на 2–300 м; полусфера
+  радиуса R на ровной земле, ds_min = R/20 — на вершине 1,5U ± 2 %, на поверхности в плоскости симметрии
+  1,5U·sin θ ± 5 % при θ ∈ [30°, 150°] (у основания — граница, числа в README); длинный хребет (Agnesi по x,
+  длина по y ≥ 20 полуширин) — в середине u на гребне на 10, 50, 300 м = `panels2d` (потенциал) ± 3 %; осесимметричный
+  гаусс H/L = 0,1 — ΔS `velocity_jh` на z = l над вершиной в ± 25 % от B·H/L, B = 1,6 (Taylor & Lee 1984, 3D-холм);
+  ровная земля — `velocity_jh` = u0(z) ± 1 % на 2–300 м; `separation3d`: гаусс H/L 0,1 — отрыва нет; длинный хребет
+  Agnesi H/L 0,5 + `bg_profile` — отрыв только за гребнем, s_sep средней линии в ± 2·ds_min от `panels2d.separation`
+  на том же разрезе.
+
+## SWD3 v1 — вихревые нити 3D (пакет `filaments3d`)
+Владелец — SWD-3; потребители — SWD-4, SWD-6. Без рельефа: стенку даёт вызывающий (скорость `flow` и `ground`).
+Пакет `tools/research/sw_charges_3d/filaments3d/` (NumPy; CuPy — `backend`).
+- `Filaments` — узлы `x` (M, 3) м, отрезки `seg` (K, 2) int (от a к b), `gamma` (K) м²/с (завихренность — вдоль a→b,
+  правило правой руки), `core` (K) м, `anchored` (M) bool — узел на земле, `fid` (K) — номер нити. Пустой набор допустим.
+- Замкнутость (∇·ω = 0): в каждом неякорном узле Σ Γ входящих = Σ Γ исходящих; линия — петля или кончается якорными
+  узлами на земле. `imbalance(f)` → max |дисбаланс| по неякорным узлам (м²/с).
+- `induced(f, x, y, z, backend="auto")` → `(u, v, w)` — Био — Савар с регуляризацией Розенхеда — Мура (δ = core
+  отрезка); `self_velocity(f)` → (M, 3) — в узлах, той же регуляризацией.
+- `ring(R, gamma, core, n, center=(0, 0, 0), normal=(0, 0, 1))`, `line(points, gamma, core, anchored_ends=True)` —
+  конструкторы.
+- `shed(f, line_pts, u_s, dt, core, normals)` → новый `Filaments`: нить по `line_pts` (M, 3), Γ отрезка = ½·ū_s²·dt
+  (ū_s — среднее скорости слоя в концах), завихренность — по n × û_t (n — нормаль земли `normals` (M, 3), û_t —
+  направление скорости слоя), концы — якорные узлы на земле (нить замкнута стенкой).
+- `step(f, flow, dt, ground, params)` → `Filaments`: `flow(x, y, z)` — скорость без самоиндукции нитей (фон + панели
+  от вызывающего); узлы движутся со скоростью flow + `induced` (RK2), растяжение — от движения узлов (Γ отрезка
+  постоянна); якорные узлы — проекция на `ground(x, y)` с касательной скоростью; затем по `params`: дробление
+  отрезков длиннее `l_max` (по умолчанию 2·core) и слияние короче `l_min` (0,5·core) с сохранением замкнутости;
+  перезамыкание встречных отрезков ближе `r_rec` (по умолчанию core, косинус направлений < −0,5) — обмен связями
+  (Γ и замкнутость сохраняются, правило — в README со ссылкой); рост ядра core² += 4·`nu_t`·dt; затухание
+  Γ·exp(−dt/`tau_s`) (`tau_s=None` — нет); удаление нитей с |Γ| < `gamma_min`, ушедших под землю или за `bounds`.
+  `params` — dict с ключами `l_max`, `l_min`, `r_rec`, `nu_t`, `tau_s`, `gamma_min`, `bounds` (xmin, xmax, ymin,
+  ymax, zmax); нет ключа — значение по умолчанию.
+- Инварианты (тесты пакета): кольцо R, Γ, δ ≪ R — скорость Γ/(4πR)·(ln(8R/δ) − ½) ± 3 % (Розенхед — Мур; Saffman
+  1992, §11) и форма сохраняется 100 шагов; `imbalance` ≤ 1e-12 после `step`, дробления, слияния, перезамыкания;
+  Σ Γ·длина·направление (импульс по завихренности) — сохранение без затухания ± 1 % за 100 шагов кольца;
+  перезамыкание двух встречных колец — две петли превращаются в одну (или наоборот), замкнутость сохранена;
+  прямая бесконечная (длинная) нить у плоской стенки с изображением через `flow` — скорость Γ/(4πh) ± 2 %.
+
+## SWD4 v1 — связка панелей и нитей (пакет `sim3d`)
+Владелец — SWD-4; потребители — SWD-5, SWD-6.
+Пакет `tools/research/sw_charges_3d/sim3d/`.
+- `Setup(terrain, panels, bg, z0, params)`; `run(setup, t_end, dt, t_avg=None, probes=None, sep_every=1,
+  record_every=None)` → {`t`, `filaments` (последнее состояние), `stats` (по шагам: N нитей, узлов, Σ|Γ|, время шага,
+  невязка), `probes_mean` / `probes_std` — средние и СКО (u, v, w) в точках `probes` (P, 3) за t ≥ `t_avg`}.
+- Шаг: `solve` (SWD2, `infl` кеш, extra = `filaments3d.induced`) → `separation3d` каждые `sep_every` шагов → `shed`
+  по `lines` (u_s — из точек отрыва) → `filaments3d.step` с flow = bg + панели (σ этого шага) и ground =
+  `panels.height` → следующее.
+- `velocity_mean(...)`, `velocity_jh_mean(...)` — среднее поле в точках по сохранённым состояниям (или накопленное
+  при `probes`).
+- Инварианты (тесты): ровная земля без отрыва — нитей нет, поле = фон; нить у ровной земли — скорость изображения
+  Γ/(4πh) ± 3 % через панели; хребет Agnesi H/L 0,5 — нити рождаются только за гребнем, `imbalance` ≤ 1e-12,
+  нет NaN 200 шагов; время шага на N ≈ 5000 панелей и 2000 узлов — в отчёте.
+
+## SWD5 v1 — сравнение 3D с эталонами
+Владелец — SWD-5; потребители — итог модуля, шлюз.
+- Путь — `tools/research/sw_charges_3d/out/compare/points.json` + `.csv`; JSON (`format` = "sw3d-compare",
+  `version` = 1): `git`, `created`, `tol_picard` (0,15), `rows` — {`case`, `variant` ("potential" | "potential_jh" |
+  "vortex_jh"), `point`, `name`, `x`, `y`, `z_agl`, `ref_kind` (как SWD1), `ref_source`, `ref_reliability`, `ref_err`,
+  `s_ref`, `s_pan` (s_norm: скорость / скорость в опорной точке `norm` того же источника), `dS_ref`, `dS_pan` (Askervein,
+  иначе null), `u_par_ref`, `u_par_pan` (u∥, м/с, отнесённые к U опорной точки данных), `err` (= s_pan − s_ref),
+  `within_tol` (picard: |err| ≤ 0,15·|s_ref|; иначе null), `within_tol_ref` (|err| ≤ max(0,15, ref_err)·|s_ref| |
+  null), `ds_min`, `N`}.
+- `rotor` — {`case`, `transect`, `variant`, `present` (u∥ < −0,5 м/с на z_agl 15 м на отрезке > 50 м вдоль
+  `transects` SWD1, среднее за t ≥ t_avg), `L_m`, `depth_m`, `L_ref`, `ref_source`}.
+- `timing` — {`case`, `variant`, `N`, `t_assemble_s`, `t_solve_s`, `t_query_us` (на точку), `t_run_s`, `backend`}.
+- `problems2d` — {`problem`, `kind` ("схема" | "2D-артефакт"), `status` ("ушла" | "осталась" | "новая в 3D"),
+  `evidence` (строка: строки таблицы/числа)}; список проблем — из итога sw-charges (сообщит координатор).
