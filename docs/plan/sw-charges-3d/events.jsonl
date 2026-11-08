@@ -237,3 +237,4 @@
 {"t": "2026-11-08T19:20:58", "by": "coordinator", "task": "SWD-15a", "ev": "merged", "commits": ["ea1f234"]}
 {"t": "2026-11-08T19:24:49", "by": "executor", "task": "SWD-13a", "ev": "reported", "commits": ["159129313", "ca5402636"], "note": "done: Таблица R_rule 0,15/0,25/0,35 (Agnesi, C2, C4) в README, корень есть во всех 9; смещение нити по нормали к оси; C2/C4 с…", "dp_feedback": "job wait в foreground уходит в фон после 180 с."}
 {"t": "2026-11-08T19:25:36", "by": "coordinator", "task": "SWD-13a", "ev": "checked", "note": "5/5 pytest=ok:exit 0; pytest-pass=ok:13; api=ok:exit 0; docs=ok:exit 1; rrule=ok:10"}
+{"t": "2026-11-08T19:25:45", "by": "coordinator", "task": "SWD-13a", "ev": "accepted", "note": "accept PASS; ревью не нужно по риску — исправления по ревью SWD-11/13; находка: C4 по правилу 1·ds_min 0,268 против порога 0,27 (чувствительность к началу профиля ~1 %) — гейт уклона на грани"}
