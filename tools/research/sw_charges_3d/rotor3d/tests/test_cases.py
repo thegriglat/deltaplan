@@ -64,17 +64,16 @@ def reverse_zone(case, fil, sig, x_c, z_agl=15.0, y=0.0):
     return float(xs[j] - xs[i0] + 20.0), u
 
 
-def test_c4_no_false_rotor_with_contract_rule(c4):
-    """C4 (у Пикара ротора нет): нить не ставится. Флаги порогов Хеда и уклона — числами (README)."""
+def test_c4_no_false_rotor_with_slope_rule(c4):
+    """C4 (у Пикара ротора нет): правило уклона SWD9 v3 (1·ds_min, без доп. сглаживания) даёт 0,268 < 0,27 — нить не
+    ставится, но запас 0,7 % (README; порог не подгонялся)."""
     fil, sig, info = rotor3d.rotor_vortex(c4["p"], c4["bg"], 0.1, c4["infl"], {})
     cand = info["candidates"]
-    print(f"\nC4 N={c4['p'].N}: кандидаты {cand}; ridges {[(r['x_c'], r['placed'], r['residual']) for r in info['ridges']]}")
-    assert len(fil.seg) == 0 and all(not r["placed"] for r in info["ridges"])
-    assert F.imbalance(fil) == 0.0
-    assert np.array_equal(sig, c4["sg"])
-    # порог по уклону отрезает C4 (макс. подветренный уклон ниже 0,27); Хед — см. README
+    print(f"\nC4 N={c4['p'].N}: кандидаты {cand}")
     main = min(cand, key=lambda q: abs(q["x_c"] - 62.5))
-    assert main["slope"] is False and main["slope_lee"] < 0.27
+    assert main["head"] is True and main["slope"] is False and 0.26 < main["slope_lee"] < 0.27
+    assert len(fil.seg) == 0 and info["ridges"] == [] and F.imbalance(fil) == 0.0
+    assert np.array_equal(sig, c4["sg"])
 
 
 def test_c4_slope_gate_no_ridge(c4):

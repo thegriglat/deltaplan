@@ -46,10 +46,19 @@ def slope_of(case, sm):
     t = P.Terrain3D(x, y, np.tile(h, (len(y), 1)), smooth_m=sm, far_m=5000)
     s, z = _line_profile(t, float(x[np.argmax(h)]), 0.0, 1.0, 0.0, 25.0)
     rule = R.profile_rule(s, z, TC.DS, 0.0)
-    return None if rule is None else rule["slope_lee"]
+    return None if rule is None else R.lee_slope(s, z, rule["s_c"], rule["s_r"], TC.DS)
+
+
+def slope_agnesi():
+    x, y, z = TR.raster(lambda X, Y: TR.H_AG / (1 + (X / TR.A_AG) ** 2), 1500, 750, TR.DS_AG / 2)
+    t = P.Terrain3D(x, y, z, far_m=4000)
+    s, zz = _line_profile(t, 0.0, 0.0, 1.0, 0.0, TR.DS_AG / 2)
+    rule = R.profile_rule(s, zz, TR.DS_AG, 0.0)
+    return R.lee_slope(s, zz, rule["s_c"], rule["s_r"], TR.DS_AG)
 
 
 def main():
+    print("Agnesi: уклон (1·ds_min)", slope_agnesi(), flush=True)
     for k in ("C2", "C4"):
         print(f"{k}: уклон подветренный sm=0 -> {slope_of(k, 0.0)}, sm=25 -> {slope_of(k, 25.0)}", flush=True)
     rows = []

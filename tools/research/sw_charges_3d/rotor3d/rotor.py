@@ -18,7 +18,7 @@ from panels3d.jh import crests_profile, _line_profile
 from sheet3d import foppl as _fp
 
 DEFAULTS = dict(core=None, closure="reattach", R_rule=0.25, gate="slope", slope_min=0.27, tail_frac=0.10, seg=None, patch=1.5, tol=4e-4,
-                r_min=None, r_max=3.0, maxfev=6, m_frac=0.5)
+                r_min=None, r_max=3.0, maxfev=6, m_frac=0.5, slope_smooth=1.0)
 
 
 def _wind(bg, terrain):
@@ -156,6 +156,16 @@ def _solve_reattach(ob, infl, sigma_bg, bg0, pr):
     return rec
 
 
+def lee_slope(s, z, s_c, s_r, smooth_m):
+    """Правило уклона для порога 0,27 (SWD9 v3 п. 2, одно с chain3d): максимум подветренного уклона профиля рельефа
+    вдоль ветра между гребнем s_c и присоединением s_r при сглаживании smooth_m = 1·ds_min панелей, без доп. сглаживания."""
+    from scipy.ndimage import gaussian_filter1d
+    h = float(s[1] - s[0])
+    zg = gaussian_filter1d(np.asarray(z, float), smooth_m / h, mode="nearest")
+    lee = (s >= s_c) & (s <= s_r)
+    return float(-np.gradient(zg, h)[lee].min()) if lee.sum() > 1 else 0.0
+
+
 def _gate_slope(rule, slope_min):
     return rule["slope_lee"] > slope_min
 
@@ -194,6 +204,8 @@ def rotor_vortex(panels, bg, z0, infl=None, params=None):
         P_c = ax["c0"] + 0.5 * (ax["t0"] + ax["t1"]) * ax["a"]
         s, z = _line_profile(terrain, float(P_c[0]), float(P_c[1]), wv[0], wv[1], step)
         rule = profile_rule(s, z, ds, 0.0, pr["tail_frac"], pr["m_frac"])
+        if rule is not None:
+            rule["slope_lee"] = lee_slope(s, z, rule["s_c"], rule["s_r"], ds * pr["slope_smooth"])
         head_ok = id(r) in kept_ids
         slope_ok = rule is not None and _gate_slope(rule, pr["slope_min"])
         info["candidates"].append(dict(x_c=float(P_c[0]), y_c=float(P_c[1]), head=bool(head_ok), slope=bool(slope_ok),
