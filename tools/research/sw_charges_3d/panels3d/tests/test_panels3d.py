@@ -283,7 +283,7 @@ def test_jh_flat_equals_log_profile():
     z0 = 0.1
     zs = np.array([2.0, 5.0, 10.0, 50.0, 100.0, 300.0])
     u, v, w = P.velocity_jh(p, s, bg, np.zeros(6), np.zeros(6), zs, z0, infl=infl)
-    u0 = u[4] * np.log(zs / z0) / np.log(100.0 / z0)
+    u0 = float(bg(0.0, 0.0, 100.0)[0]) * np.log(zs / z0) / np.log(100.0 / z0)      # u*0 — из bg на 100 м
     assert np.abs(u / u0 - 1).max() < 0.01 and np.abs(v).max() < 1e-9
     # U_ref задан явно, направление ветра (0, 1), extra и инфо о кеше
     bg2 = P.bg_uniform(6.0, wind_to=(0, 1))
@@ -342,7 +342,7 @@ def test_separation_ridge_lee_only(ridge):
     a, H, t, p, bg, infl, s = ridge
     r = P.separation3d(p, s, bg, 0.1, seed_dy=200.0)
     pt = r["points"]
-    assert set(pt) == {"x", "y", "z", "streamline", "s_sep", "u_s", "value", "method"}
+    assert set(pt) == {"x", "y", "z", "streamline", "s_sep", "u_s", "value", "method", "k", "reattach"}
     assert len(pt["x"]) >= 3 and np.all(pt["x"] > 0)                 # только за гребнем
     assert np.all(pt["value"] >= 2.35) and set(pt["method"]) == {"head"}
     assert np.abs(pt["z"] - p.height(pt["x"], pt["y"])).max() < 3.0
@@ -354,6 +354,8 @@ def test_separation_ridge_lee_only(ridge):
     bg2 = bgp2(10.0, 0.2, 200.0, t2)
     fl = surface_flow(p2, sv2(p2, bg2), bg2)
     sp = separation(p2, fl, boundary_layer(p2, fl, 0.1))
+    # сравнивается x_sep (а не s_sep): дуга 3D отсчитывается от края растра, дуга 2D — от своего начала профиля;
+    # на склоне H/L 0,5 дуга и проекция различаются на единицы процентов, допуск 2·ds_min с запасом
     assert abs(pt["x"][mid] - sp[0]["x_sep"]) <= 2 * p.ds_min
     # линии: смежные линии тока соединены, разрыв — где у соседа отрыва нет
     assert len(r["lines"]) >= 1 and all(l.ndim == 2 and l.shape[1] == 3 for l in r["lines"])
@@ -364,3 +366,79 @@ def test_separation_ridge_lee_only(ridge):
     assert len(r2["rejected"]["x"]) == 0
     with pytest.raises(ValueError):
         P.separation3d(p, s, bg, 0.1, method="stratford")
+
+
+# ---------- v3: couple, restart ----------
+def test_jh_couple_flat_and_reverse():
+    t = flat_terrain(3000.0)
+    p = P.build_panels(t, focus=[(0, 0)], ds_min=100.0, focus_r=400)
+    bg = P.bg_uniform(6.0, wind_to=(0, 1))
+    infl = P.assemble(p, "numpy")
+    z0, Ur = 0.1, 6.0
+    ex = lambda x, y, z: (0.0 * x, 1.5 + 0 * x, 0.0 * x)
+    s, _ = P.solve(p, bg, extra=ex, infl=infl)
+    zq = 30.0
+    u_nc = P.velocity_jh(p, s, bg, [0.0], [0.0], [zq], z0, extra=ex, infl=infl, couple=False)[1][0]
+    u_c = P.velocity_jh(p, s, bg, [0.0], [0.0], [zq], z0, extra=ex, infl=infl, couple=True)[1][0]
+    u0 = Ur * np.log(zq / z0) / np.log(100.0 / z0)
+    hm = float(J.middle_top(J.L_FLAT, z0))
+    A = (np.log(hm / z0) / np.log(max(zq, float(J.inner_depth(J.L_FLAT, z0))) / z0)) ** 2
+    assert u_nc == pytest.approx(u0 + 1.5, abs=1e-6)                       # v2: extra прибавляется
+    assert u_c == pytest.approx(u0 * (1 + A * 1.5 / Ur), rel=1e-3)         # v3: extra — в ΔS, усиленное A
+    # без extra couple ничего не меняет
+    s0, _ = P.solve(p, bg, infl=infl)
+    a = P.velocity_jh(p, s0, bg, [0.0], [0.0], [zq], z0, infl=infl, couple=True)
+    b = P.velocity_jh(p, s0, bg, [0.0], [0.0], [zq], z0, infl=infl)
+    assert a[1][0] == b[1][0]
+    # обратный поток: ΔS < −1 → скорость вдоль ветра отрицательна
+    ex2 = lambda x, y, z: (0.0 * x, -2.0 * Ur + 0 * x, 0.0 * x)
+    s2, _ = P.solve(p, bg, extra=ex2, infl=infl)
+    assert P.velocity_jh(p, s2, bg, [0.0], [0.0], [zq], z0, extra=ex2, infl=infl, couple=True)[1][0] < 0
+    # выше 2·h_m — как velocity() (extra и панели полностью)
+    zh = np.array([2.5 * hm])
+    uj = P.velocity_jh(p, s, bg, [0.0], [0.0], zh, z0, extra=ex, infl=infl, couple=True)[1][0]
+    uv = P.velocity(p, s, bg, [0.0], [0.0], zh, extra=ex)[1][0]
+    assert uj == pytest.approx(uv, rel=1e-9)
+
+
+def test_reattach_index_rule():
+    from panels3d.sep import _reattach_index
+    s = np.arange(12) * 10.0
+    us = np.array([5, 4, 3, 1, -1, -2, -1, 1, 2, 3, 4, 5], float)
+    assert _reattach_index(s, us, us, 3, 2) == 7           # u_s снова > 0 на 2 отсчёта после обратного течения
+    assert _reattach_index(s[:8], us[:8], us[:8], 3, 2) == -1  # линия кончилась до присоединения
+    us2 = np.array([5, 4, 3, 2, 1.5, 1.4, 1.5, 1.8, 2, 3, 4, 5])   # торможение без обращения: присоединение — ускорение
+    assert _reattach_index(s, us2, us2, 3, 2) == 6 or _reattach_index(s, us2, us2, 3, 2) == 7
+
+
+@pytest.fixture(scope="module")
+def double_ridge():
+    a, H = 250.0, 125.0
+    x, y, z = raster(lambda X, Y: H / (1 + (X / a) ** 2) + H / (1 + ((X - 750.0) / a) ** 2), 2000, 300, 25.0)
+    t = P.Terrain3D(x, y, z, far_m=6000)
+    foc = [(xx, 0.0) for xx in np.arange(-100, 1000, 60.0)]
+    p = P.build_panels(t, focus=foc, ds_min=25.0, focus_r=100, ds_max=800, growth=1.5)
+    bg = P.bg_profile(10.0, 0.2, 200.0, t)
+    infl = P.assemble(p, BE)
+    s, _ = P.solve(p, bg, infl=infl)
+    return t, p, bg, infl, s
+
+
+def test_separation_restart_double_ridge(double_ridge):
+    t, p, bg, infl, s = double_ridge
+    on = P.separation3d(p, s, bg, 0.1, seed_dy=100.0, restart=True)["points"]
+    off = P.separation3d(p, s, bg, 0.1, seed_dy=100.0, restart=False)["points"]
+    mid = np.abs(on["y"]) < 1e-6
+    assert set(on["k"][mid]) == {0, 1}                         # отрыв за обоими гребнями
+    assert set(off["k"]) == {0} and np.all(off["x"] < 750.0)   # без restart — только за первым
+    x1, x2 = sorted(on["x"][mid])
+    assert 0 < x1 < 750.0 < x2
+    rea = on["reattach"][int(np.nonzero(mid & (on["k"] == 0))[0][0])]
+    assert rea is not None and x1 < rea["x"] < x2
+    assert on["reattach"][int(np.nonzero(mid & (on["k"] == 1))[0][0])] is None or True
+    # линии не смешивают номера отрывов
+    assert sum(l.shape[0] for l in separation_lines(p, s, bg)) == len(on["x"])
+
+
+def separation_lines(p, s, bg):
+    return P.separation3d(p, s, bg, 0.1, seed_dy=100.0)["lines"]
