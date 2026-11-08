@@ -1,0 +1,11 @@
+{
+  "module": "sw-ground",
+  "plan": "docs/plan/sw-ground.md",
+  "contracts": "docs/contracts/sw-ground.md",
+  "branch": "feature/sw-ground",
+  "copy": "~/worktrees/deltaplan/sw-ground",
+  "created": "2026-11-08T20:36:26",
+  "code": "SWG",
+  "area": "air",
+  "base": "main"
+}
