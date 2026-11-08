@@ -68,3 +68,5 @@
 {"t": "2026-11-08T06:38:03", "by": "coordinator", "task": "SWD-5", "ev": "checked", "note": "5/5 contract-files=ok:exit 0; case-variants=ok:6; problems12=ok:12; scans=ok:3; readme=ok:exit 0"}
 {"t": "2026-11-08T06:39:35", "by": "reviewer", "task": "SWD-5", "ev": "reviewed", "note": "Формат SWD5 v2, скоуп (13 файлов) и решение координатора о логарифмическом фоне соблюдены. RMSE мачт и доли Пикара, пересчитанные из points.json, совпадают с о…", "verdict": "accept", "issues": {"major": 1, "minor": 2}, "review": "docs/plan/sw-charges-3d/tasks/SWD-5.review.json"}
 {"t": "2026-11-08T06:39:47", "by": "coordinator", "task": "SWD-5", "ev": "accepted", "note": "по ревью; major №8 и 2 minor — в SWD-5b"}
+{"t": "2026-11-08T06:39:48", "by": "coordinator", "task": "SWD-5", "ev": "accepted", "commits": ["5f4d537e9"], "note": "5/5 contract-files=ok:exit 0; case-variants=ok:6; problems12=ok:12; scans=ok:3; readme=ok:exit 0"}
+{"t": "2026-11-08T06:39:48", "by": "coordinator", "task": "SWD-5", "ev": "merged"}
