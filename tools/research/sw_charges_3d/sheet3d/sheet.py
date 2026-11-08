@@ -5,7 +5,6 @@
 скорости через слой). Форма — линии тока полной скорости (фон + панели + слой без самоиндукции ряда) от точки отрыва,
 итерациями с релаксацией, до присоединения (узел ближе `core` к земле). Каждый ряд (непрерывная серия активных узлов)
 замыкается ножками до земли (якоря) и возвратом под землёй: открытая подкова даёт ~20 % ошибки отражения (SWD-9).
-Свёртка: одна нить с Γ = Σ Γ рядов по линии, положение — центр завихренности (по Γ) каждого столбца слоя.
 Только вызывает panels3d и filaments3d."""
 import time
 from dataclasses import dataclass, field
@@ -19,14 +18,14 @@ from panels3d import influence as _inf
 from .foppl import _induced_fn, _merge, find_ridges, _ridge_height
 
 DEFAULTS = dict(ds_sheet=None, h0=None, core=None, n_iter=10, L_max=None, relax=0.5, gamma_decay=None,
-                tol_rel=0.05, fold_core=None)
+                tol_rel=0.05)
 
 
 @dataclass
 class Sheet:
     """Слой: filaments — все ряды (SWD3); rows — [{line, i, s, Gamma, n_active}]; reattach — по линиям {x, y, z} | None;
     iters, residual (м, макс. сдвиг узлов последней итерации); stats; lines — геометрия по линиям отрыва
-    {nodes (nr, n, 3), active (nr, n), gamma0, Gamma, H, L_b, ...} (для свёртки и диагностики)."""
+    {nodes (nr, n, 3), active (nr, n), gamma0, Gamma, H, L_b, ...} (диагностика)."""
     filaments: F.Filaments = field(default_factory=F.Filaments)
     rows: list = field(default_factory=list)
     reattach: list = field(default_factory=list)

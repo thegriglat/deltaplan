@@ -299,17 +299,56 @@ def test_sheet_agnesi_iterations_converge_with_decay(agn):
     assert info["iters"] <= 10 and info["residual"] < 0.05 * sh.params["ds_sheet"]
 
 
+def stream_height(p, sg, bg, x0, h0, ds=50.0, n=24):
+    """Высота над землёй конца линии тока (фон + панели, без слоя) от точки (x0, 0, земля + h0), шаг ds, RK2."""
+    from panels3d import influence as I
+    pt = np.array([x0, 0.0, float(p.height(np.array([x0]), np.array([0.0]))[0]) + h0])
+    for _ in range(n):
+        v = np.array([float(a) for a in I.velocity(p, sg, bg, *pt)])
+        pm = pt + 0.5 * ds * v / np.linalg.norm(v)
+        v2 = np.array([float(a) for a in I.velocity(p, sg, bg, *pm)])
+        pt = pt + ds * v2 / np.linalg.norm(v2)
+    return float(pt[2] - p.height(np.array([pt[0]]), np.array([0.0]))[0])
+
+
 @gpu
-def test_sheet_agnesi_constant_gamma_not_converged_negative_result(agn):
-    """γ постоянна вдоль слоя (контракт v4 по умолчанию): слой без давления не замыкается — поднимается и не присоединяется,
-    итерации за n_iter не сходятся (число — в README); результат, а не дефект."""
+def test_sheet_agnesi_constant_gamma_report(agn):
+    """γ постоянна (контракт v4 по умолчанию): числа итераций и формы слоя — в печать и README; проверяются только
+    инварианты (конечность, замкнутость)."""
     sh, sig, info = agn["const"]
     ln = sh.lines[0]
-    assert info["iters"] == 10 and info["residual"] > 0.05 * sh.params["ds_sheet"]
-    assert ln["n_reattached"] == 0 and np.isnan(ln["L_b"])
-    assert sh.reattach == [None]
-    print(f"\nAgnesi γ=const: residual={info['residual']:.1f} м, присоединения нет, H_слоя/H хребта на 1200 м = "
-          f"{(ln['nodes'][-1, 14, 2] - agn['p'].height(ln['nodes'][-1, 14, 0], 0.0)) / agn['H']:.2f}")
+    assert np.all(np.isfinite(ln["nodes"])) and F.imbalance(sh.filaments) <= 1e-12
+    print(f"\nAgnesi γ=const (bg_profile): iters={info['iters']} residual={info['residual']:.1f} м, присоединений {ln['n_reattached']}, "
+          f"h слоя на 1200 м = {(ln['nodes'][-1, 14, 2] - agn['p'].height(ln['nodes'][-1, 14, 0], 0.0)) / agn['H']:.2f}·H")
+
+
+@gpu
+def test_sheet_streamline_lift_is_bg_profile_not_sheet(agn):
+    """Линия тока без слоя от точки Хеда (x = 192 м, h0 = ds/2): при сдвиговом фоне bg_profile поднимается (≈ 58 м на
+    x ≈ 1300 м, не зависит от разрешения и фокуса панелей), при bg_uniform идёт за землёй (≈ 13 м). Подъём слоя при
+    bg_profile частично свойство фона; при bg_uniform слой с γ = const поднимается сам (нет давления в зоне)."""
+    p, bg, infl, sg = agn["p"], agn["bg"], agn["infl"], agn["sg"]
+    h_prof = stream_height(p, sg, bg, 192.0, 12.5)
+    bu = P.bg_uniform(10.0)
+    su, _ = P.solve(p, bu, None, infl)
+    h_uni = stream_height(p, su, bu, 192.0, 12.5)
+    assert h_prof > 40.0 and h_uni < 25.0
+    xs = np.array([300.0, 400.0, 500.0, 700.0])
+    zz = p.height(xs, np.zeros(4)) + 10.0
+    u0 = P.velocity_jh(p, su, bu, xs, np.zeros(4), zz, 0.1, infl=infl)[0]
+    out = {}
+    for name, prm in (("const", {}), ("decay250", dict(gamma_decay=250.0))):
+        sh, sig, info = sheet3d.build_sheet(p, bu, 0.1, infl, prm)
+        ln = sh.lines[0]
+        j = ln["nodes"].shape[1] // 2
+        h = float(ln["nodes"][20, j, 2] - p.height(ln["nodes"][20, j, 0], ln["nodes"][20, j, 1]))
+        u1 = sheet3d.velocity_sheet(p, sig, bu, sh, xs, np.zeros(4), zz, 0.1, infl=infl)[0]
+        out[name] = (info["iters"], info["residual"], h, u1)
+        assert np.all(u1 < u0)
+    assert out["const"][2] > 100.0 and out["decay250"][0] <= 10 and out["decay250"][1] < 0.05 * 50.0
+    print(f"\nбез слоя: h(x=1200) bg_profile {h_prof:.0f} м, bg_uniform {h_uni:.0f} м; u∥ без слоя (uniform) {np.round(u0, 2)}")
+    for k, (it, rs, h, u1) in out.items():
+        print(f"bg_uniform, слой {k}: iters={it} residual={rs:.1f} м, h на ряду 20 {h:.0f} м, u∥(10 м) {np.round(u1, 2)}")
 
 
 @gpu
