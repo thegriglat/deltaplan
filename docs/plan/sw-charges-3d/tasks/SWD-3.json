@@ -35,11 +35,6 @@
       "expect": "!re:(failed|error)"
     },
     {
-      "name": "pytest-pass",
-      "cmd": "tools/research/sw_charges_3d/py -m pytest -q tools/research/sw_charges_3d/filaments3d/tests",
-      "expect": "num:(\\d+) passed >=9"
-    },
-    {
       "name": "api",
       "cmd": "tools/research/sw_charges_3d/py tools/research/sw_charges_3d/contract/check_contract.py api filaments3d",
       "expect": "exit=0"
@@ -48,10 +43,15 @@
       "name": "readme",
       "cmd": "ls tools/research/sw_charges_3d/filaments3d/README.md",
       "expect": "exit=0"
+    },
+    {
+      "name": "pytest-pass",
+      "cmd": "tools/research/sw_charges_3d/py -m pytest -q tools/research/sw_charges_3d/filaments3d/tests",
+      "expect": "num:(\\d+) passed >=11"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-11-08T05:32:18",
-  "edited": "2026-11-08T05:38:30"
+  "edited": "2026-11-08T05:41:07"
 }
