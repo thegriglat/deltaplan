@@ -1,0 +1,43 @@
+{
+  "status": "partial",
+  "summary": "По SWD3 v4 сделана дешёвая часть: t_birth, coarsen (а) по возрасту и (в) потолок n_max, интеграция в sim3d (coarsen, bs_method). Слияние (б) и дерево — NotImplementedError + skip-тесты.",
+  "commits": [
+    "484ddc1b9 SWD-7: t_birth, огрубление нитей по возрасту "
+  ],
+  "checks": [
+    {
+      "name": "pytest-fil",
+      "value": "18 passed, 2 skipped",
+      "pass": true
+    },
+    {
+      "name": "pytest-sim",
+      "value": "10 passed",
+      "pass": true
+    },
+    {
+      "name": "модельный сход 500 шагов",
+      "value": "узлов 16,6 тыс. (без ограничителя ~44 тыс. к 200 шагу), с ~300 шага постоянно, imbalance 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "(б) слияние r_amal и method=tree не сделаны (по SWD3 v4 необязательны): NotImplementedError, 2 skip-теста",
+    "Инвариант SWD4 v4 проверен на хребте 200 шагов (а не 500) из-за времени сборки (~100 с setup)"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept SWD-7",
+  "uncertain": [
+    {
+      "where": "filaments3d/coarsen.py:_collapse",
+      "why": "стягивание превращает ножки схода в узлы на земле; два якорных узла сливаются (в _merge запрещено)",
+      "checked": "imbalance=0, кольцо: импульс ±2 %, поле ±5 %, нет свободных концов на хребте"
+    }
+  ],
+  "dp_feedback": "accept --dry с тестами >3 мин уходит в фон; пригодился бы режим с ожиданием.",
+  "extra": {
+    "bs_cost": "Био-Савар остаётся O(n^2): ограничитель держит число узлов, но не ускоряет шаг"
+  },
+  "t": "2026-11-08T17:12:13",
+  "by": "executor"
+}
