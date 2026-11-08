@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-11-08"
 summary: "Стыки sw-charges-3d: эталоны 3D (SWD1), панели 3D (SWD2), вихревые нити (SWD3), связка (SWD4), сравнение (SWD5)."
 related: ["docs/plan/sw-charges-3d.md", "docs/contracts/sw-charges.md", "tools/research/sw_charges_3d/README.md"]
-contracts: [{"id": "SWD1", "version": 1}, {"id": "SWD2", "version": 1}, {"id": "SWD3", "version": 1}, {"id": "SWD4", "version": 1}, {"id": "SWD5", "version": 1}]
+contracts: [{"id": "SWD1", "version": 1}, {"id": "SWD2", "version": 1}, {"id": "SWD3", "version": 2}, {"id": "SWD4", "version": 1}, {"id": "SWD5", "version": 1}]
 ---
 # Контракты модуля sw-charges-3d
 
@@ -116,7 +116,9 @@ contracts: [{"id": "SWD1", "version": 1}, {"id": "SWD2", "version": 1}, {"id": "
   Agnesi H/L 0,5 + `bg_profile` — отрыв только за гребнем, s_sep средней линии в ± 2·ds_min от `panels2d.separation`
   на том же разрезе.
 
-## SWD3 v1 — вихревые нити 3D (пакет `filaments3d`)
+## SWD3 v2 — вихревые нити 3D (пакет `filaments3d`)
+v2 (2026-11-08, отчёт SWD-3): скорость кольца Розенхеда — Мура — ln(8R/δ) − 1 (подтверждено сходимостью по n);
+`shed`: `u_s` — векторы (M, 3); при разной Γ соседних отрезков — «ножки» длиной core по −n к якорным узлам.
 Владелец — SWD-3; потребители — SWD-4, SWD-6. Без рельефа: стенку даёт вызывающий (скорость `flow` и `ground`).
 Пакет `tools/research/sw_charges_3d/filaments3d/` (NumPy; CuPy — `backend`).
 - `Filaments` — узлы `x` (M, 3) м, отрезки `seg` (K, 2) int (от a к b), `gamma` (K) м²/с (завихренность — вдоль a→b,
@@ -127,8 +129,9 @@ contracts: [{"id": "SWD1", "version": 1}, {"id": "SWD2", "version": 1}, {"id": "
   отрезка); `self_velocity(f)` → (M, 3) — в узлах, той же регуляризацией.
 - `ring(R, gamma, core, n, center=(0, 0, 0), normal=(0, 0, 1))`, `line(points, gamma, core, anchored_ends=True)` —
   конструкторы.
-- `shed(f, line_pts, u_s, dt, core, normals)` → новый `Filaments`: нить по `line_pts` (M, 3), Γ отрезка = ½·ū_s²·dt
-  (ū_s — среднее скорости слоя в концах), завихренность — по n × û_t (n — нормаль земли `normals` (M, 3), û_t —
+- `shed(f, line_pts, u_s, dt, core, normals)` → новый `Filaments`: нить по `line_pts` (M, 3), `u_s` (M, 3) — скорость слоя
+  в точках, Γ отрезка = ½·|ū_s|²·dt (ū_s — среднее в концах); разная Γ соседних отрезков — из общего узла ножка длиной core
+  по −n в якорный узел (Kirchhoff), завихренность — по n × û_t (n — нормаль земли `normals` (M, 3), û_t —
   направление скорости слоя), концы — якорные узлы на земле (нить замкнута стенкой).
 - `step(f, flow, dt, ground, params)` → `Filaments`: `flow(x, y, z)` — скорость без самоиндукции нитей (фон + панели
   от вызывающего); узлы движутся со скоростью flow + `induced` (RK2), растяжение — от движения узлов (Γ отрезка
@@ -140,8 +143,8 @@ contracts: [{"id": "SWD1", "version": 1}, {"id": "SWD2", "version": 1}, {"id": "
   `f.stats`), нить удаляется целиком, если под землёй > 50 % её узлов, если |Γ| < `gamma_min` или она вся за `bounds`.
   `params` — dict с ключами `l_max`, `l_min`, `r_rec`, `nu_t`, `tau_s`, `gamma_min`, `bounds` (xmin, xmax, ymin,
   ymax, zmax); нет ключа — значение по умолчанию.
-- Инварианты (тесты пакета): кольцо R, Γ, δ ≪ R — скорость Γ/(4πR)·(ln(8R/δ) − ½) ± 3 % (Розенхед — Мур; Saffman
-  1992, §11) и форма сохраняется 100 шагов; `imbalance` ≤ 1e-12 после `step`, дробления, слияния, перезамыкания;
+- Инварианты (тесты пакета): кольцо R, Γ, δ ≪ R — скорость Γ/(4πR)·(ln(8R/δ) − 1) ± 3 % (Розенхед — Мур, предел
+  по n; v1 ошибочно −½) и форма сохраняется 100 шагов; `imbalance` ≤ 1e-12 после `step`, дробления, слияния, перезамыкания;
   импульс I = ½·Σ Γ·(x_mid × Δl) — сохранение без затухания ± 1 % за 100 шагов кольца;
   перезамыкание двух встречных колец — две петли превращаются в одну (или наоборот), замкнутость сохранена;
   прямая бесконечная (длинная) нить у плоской стенки с изображением через `flow` — скорость Γ/(4πh) ± 2 %.

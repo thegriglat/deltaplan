@@ -8,3 +8,7 @@
 {"t": "2026-11-08T05:32:49", "by": "coordinator", "task": "SWD-1", "ev": "started"}
 {"t": "2026-11-08T05:32:49", "by": "coordinator", "task": "SWD-2", "ev": "started"}
 {"t": "2026-11-08T05:32:49", "by": "coordinator", "task": "SWD-3", "ev": "started"}
+{"t": "2026-11-08T05:37:30", "by": "executor", "task": "SWD-3", "ev": "reported", "commits": ["52378162c"], "note": "done: Пакет filaments3d (core.py, dynamics.py, README, 10 тестов за 2 с): Био-Савар Розенхеда-Мура в замкнутой форме (NumPy/C…", "dp_feedback": "task show обрезает дополнение координатора; .dpcli/dpcli plan <м> 'Задачи 2 (Вихревые нити 3D)' из карточки не находит раздел (в плане «Задачи (уточняет координатор)»). pytest создаёт .pytest_cache в каталоге модуля, docs check ругается на его README."}
+{"t": "2026-11-08T05:38:00", "by": "coordinator", "task": "SWD-3", "ev": "checked", "note": "4/4 pytest=ok:exit 0; pytest-pass=ok:10; api=ok:exit 0; readme=ok:exit 0; scope=FAIL:вне scope: r-SWD-3.json"}
+{"t": "2026-11-08T05:38:15", "by": "coordinator", "task": "SWD-3", "ev": "checked", "note": "4/4 pytest=ok:exit 0; pytest-pass=ok:10; api=ok:exit 0; readme=ok:exit 0"}
+{"t": "2026-11-08T05:38:30", "by": "coordinator", "task": "SWD-3", "ev": "edited", "note": "contract:SWD3", "diff": {"contract": ["null", "null"]}}
