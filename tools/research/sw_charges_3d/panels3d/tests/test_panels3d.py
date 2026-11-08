@@ -354,9 +354,15 @@ def test_separation_ridge_lee_only(ridge):
     bg2 = bgp2(10.0, 0.2, 200.0, t2)
     fl = surface_flow(p2, sv2(p2, bg2), bg2)
     sp = separation(p2, fl, boundary_layer(p2, fl, 0.1))
-    # сравнивается x_sep (а не s_sep): дуга 3D отсчитывается от края растра, дуга 2D — от своего начала профиля;
-    # на склоне H/L 0,5 дуга и проекция различаются на единицы процентов, допуск 2·ds_min с запасом
     assert abs(pt["x"][mid] - sp[0]["x_sep"]) <= 2 * p.ds_min
+    # s_sep: дуга от общей точки — гребня (x = 0); дуга 3D идёт от края растра x = −3000, дуга 2D — своя (fl["s"])
+    zf = lambda xx: H / (1 + (xx / a) ** 2)
+    def arc(x0):                                    # длина дуги профиля от x0 до гребня
+        xx = np.linspace(x0, 0.0, 200001)
+        return float(np.sum(np.hypot(np.diff(xx), np.diff(zf(xx)))))
+    s3 = pt["s_sep"][mid] - arc(t.x[0])
+    s2 = sp[0]["s_sep"] - float(np.interp(0.0, p2.xc, fl["s"]))
+    assert abs(s3 - s2) <= 2 * p.ds_min, (s3, s2)
     # линии: смежные линии тока соединены, разрыв — где у соседа отрыва нет
     assert len(r["lines"]) >= 1 and all(l.ndim == 2 and l.shape[1] == 3 for l in r["lines"])
     assert sum(l.shape[0] for l in r["lines"]) == len(pt["x"])
@@ -435,10 +441,47 @@ def test_separation_restart_double_ridge(double_ridge):
     assert 0 < x1 < 750.0 < x2
     rea = on["reattach"][int(np.nonzero(mid & (on["k"] == 0))[0][0])]
     assert rea is not None and x1 < rea["x"] < x2
-    assert on["reattach"][int(np.nonzero(mid & (on["k"] == 1))[0][0])] is None or True
+    # у второго отрыва присоединения нет до конца растра или оно ниже по ветру, чем сам отрыв
+    rea2 = on["reattach"][int(np.nonzero(mid & (on["k"] == 1))[0][0])]
+    assert rea2 is None or rea2["x"] > x2
     # линии не смешивают номера отрывов
     assert sum(l.shape[0] for l in separation_lines(p, s, bg)) == len(on["x"])
 
 
 def separation_lines(p, s, bg):
     return P.separation3d(p, s, bg, 0.1, seed_dy=100.0)["lines"]
+
+
+# ---------- регрессии v3 = v2 ----------
+@pytest.fixture(scope="module")
+def ridge_small():
+    a, H = 250.0, 125.0
+    x, y, z = raster(lambda X, Y: H / (1 + (X / a) ** 2), 1500, 300, 25.0)
+    t = P.Terrain3D(x, y, z, far_m=5000)
+    foc = [(xx, 0.0) for xx in np.arange(-100, 700, 60.0)]
+    p = P.build_panels(t, focus=foc, ds_min=25.0, focus_r=100, ds_max=800, growth=1.5)
+    bg = P.bg_profile(10.0, 0.2, 200.0, t)
+    return t, p, bg, P.assemble(p, "numpy")
+
+
+def test_regression_v3_equals_v2(ridge_small):
+    """Эталон — вывод panels3d v2 (коммит ab84c7590, до SWD-4) на этом же хребте: velocity_jh(couple=False) с extra
+    (u, w — побитно до 1e-12; v ~ 1e-15, шум) и separation3d(restart=True) без вихрей (линии тока те же, u_s — проекция
+    вместо модуля, отличие ~1e-4)."""
+    t, p, bg, infl = ridge_small
+    ex = lambda x, y, z: (3 * np.exp(-((x - 250) ** 2 + y ** 2 + (z - 40) ** 2) / 80 ** 2), 0 * x,
+                          -2 * np.exp(-((x - 250) ** 2 + y ** 2 + (z - 40) ** 2) / 80 ** 2))
+    s, _ = P.solve(p, bg, extra=ex, infl=infl, backend="numpy")
+    xs = np.array([100.0, 200.0, 300.0, 400.0])
+    u, v, w = P.velocity_jh(p, s, bg, xs, 0 * xs, p.height(xs, 0 * xs) + 10.0, 0.1, extra=ex, infl=infl)
+    u_ref = [1.46521369e+01, 1.17018101e+01, 1.15403909e+01, 9.32243443e+00]
+    w_ref = [-3.55791772e+00, -2.47916146e+00, -1.24848214e+00, -4.59747169e-01]
+    assert np.allclose(u, u_ref, rtol=1e-8, atol=0) and np.allclose(w, w_ref, rtol=1e-8, atol=0)
+    assert np.abs(v).max() < 1e-12
+    s0, _ = P.solve(p, bg, infl=infl, backend="numpy")
+    pt = P.separation3d(p, s0, bg, 0.1, seed_dy=100.0, restart=True)["points"]
+    order = np.argsort(pt["y"])
+    assert len(pt["x"]) == 3 and set(pt["k"]) == {0}
+    assert np.allclose(pt["x"][order], [209.04225006, 192.3350886, 209.04225006], atol=0.1)
+    assert np.allclose(pt["s_sep"][order], [1728.02319428, 1710.58995981, 1728.02319428], atol=0.1)
+    assert np.allclose(pt["u_s"][order], [6.42229134, 8.0324367, 6.42229134], rtol=1e-2)

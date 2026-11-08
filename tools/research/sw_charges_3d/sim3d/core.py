@@ -20,7 +20,7 @@ VARIANTS = ("potential", "potential_jh", "vortex_jh")
 
 
 class Setup:
-    """Постановка: terrain, panels, bg, z0, params (fil, core, cfl, couple, restart, U_ref). `infl` — один раз."""
+    """Постановка: terrain, panels, bg, z0, params (fil, core, cfl, couple, restart, U_ref, sep_every). `infl` — один раз."""
 
     def __init__(self, terrain, panels, bg, z0, params=None):
         p = dict(fil={}, core=None, cfl=0.25, couple=True, restart=True, U_ref=None)
@@ -31,6 +31,7 @@ class Setup:
         self.cfl = float(p["cfl"])
         self.couple = bool(p["couple"])
         self.restart = bool(p["restart"])
+        self.sep_every = p.get("sep_every")
         self.U_ref = float(p["U_ref"]) if p["U_ref"] is not None else u_ref_of(bg, terrain)[0]
         self.infl = P.assemble(panels, "auto")
         panels._infl_obj = self.infl            # separation3d берёт σ_bg по тому же Influence
@@ -75,18 +76,39 @@ def _flow(setup, sigma):
     return flow
 
 
-def _shed_all(setup, f, sep, sigma, extra, dt_shed):
-    panels = setup.panels
-    ut_node = _nodal_field(panels, _inf.tangent_velocity(panels, sigma, setup.bg, extra))
-    n_lines = 0
+def _line_data(panels, sep):
+    """Линии отрыва → список (точки, индексы треугольников, барицентрики, нормали); точки вне сетки (locate → −1)
+    отбрасываются, их число возвращается."""
+    out, skipped = [], 0
     for line in sep["lines"]:
-        if len(line) < 2:
-            continue
         t, l1, l2, l3 = panels.locate(line[:, 0], line[:, 1])
-        tt = np.maximum(t, 0)
-        tr = panels.tris[tt]
-        us = l1[:, None] * ut_node[tr[:, 0]] + l2[:, None] * ut_node[tr[:, 1]] + l3[:, None] * ut_node[tr[:, 2]]
-        f = F.shed(f, line, us, dt_shed, setup.core, panels.n[tt])
+        ok = t >= 0
+        skipped += int((~ok).sum())
+        if ok.sum() < 2:
+            continue
+        tt = t[ok]
+        out.append((line[ok], tt, np.stack([l1[ok], l2[ok], l3[ok]], 1), panels.n[tt]))
+    return out, skipped
+
+
+def _line_ut(panels, ut_node, d):
+    _, tt, bc, _ = d
+    tr = panels.tris[tt]
+    return bc[:, :1] * ut_node[tr[:, 0]] + bc[:, 1:2] * ut_node[tr[:, 1]] + bc[:, 2:] * ut_node[tr[:, 2]]
+
+
+def _ut_node(setup, sigma, extra):
+    return _nodal_field(setup.panels, _inf.tangent_velocity(setup.panels, sigma, setup.bg, extra))
+
+
+def _shed_all(setup, f, data, ut_node, dt_shed, k_acc=1.0):
+    """Сход по линиям; u_s умножается на k_acc = √(период-среднее |u|² / |u|² в конце периода) — накопленная
+    Γ = Σ ½|u_s|²·dt за период (решение координатора)."""
+    n_lines = 0
+    for d in data:
+        if len(d[0]) < 2:
+            continue
+        f = F.shed(f, d[0], k_acc * _line_ut(setup.panels, ut_node, d), dt_shed, setup.core, d[3])
         n_lines += 1
     return f, n_lines
 
@@ -103,8 +125,8 @@ def _probe_variants(setup, sigma, sigma_bg, extra, pts):
     return out
 
 
-def run(setup, t_end, dt, t_avg=None, probes=None, sep_every=1, record_every=None):
-    """Интегрирование до t_end шагом dt. → dict(t, filaments, stats, probes_mean, probes_std, snapshots, probes, t_avg).
+def run(setup, t_end, dt, t_avg=None, probes=None, sep_every=None, record_every=None):
+    """Интегрирование до t_end шагом dt. sep_every=None — `params["sep_every"]` или правило U_ref·dt·n ≈ 2·core. → dict(t, filaments, stats, probes_mean, probes_std, snapshots, probes, t_avg).
     t_avg=None — средние за вторую половину (t ≥ t_end/2)."""
     panels, bg = setup.panels, setup.bg
     t_avg = 0.5 * t_end if t_avg is None else float(t_avg)
@@ -115,6 +137,10 @@ def run(setup, t_end, dt, t_avg=None, probes=None, sep_every=1, record_every=Non
     acc = {v: [0, None, None] for v in VARIANTS}    # n, mean, M2 (Welford)
     sigma_bg = setup.sigma_bg
     last_shed = 0.0
+    if sep_every is None:
+        sep_every = setup.sep_every if setup.sep_every else max(1, int(round(2.0 * setup.core / (setup.U_ref * dt))))
+    sep_every = max(int(sep_every), 1)
+    old, m_hist, skipped_tot = None, [], 0     # линии прошлого схода, средние |u|² на них по шагам периода
     for it in range(n_steps):
         t0 = time.time()
         t = it * dt
@@ -123,13 +149,29 @@ def run(setup, t_end, dt, t_avg=None, probes=None, sep_every=1, record_every=Non
         n_lines = n_sep = n_rea = 0
         if record_every and it % record_every == 0:
             snaps.append(dict(t=t, filaments=f.copy(), sigma=sigma.copy()))
-        if it % max(sep_every, 1) == 0:
+        n_skip = 0
+        shed_now = it % sep_every == 0
+        if sep_every > 1 and (shed_now or old is not None):
+            utn = _ut_node(setup, sigma, extra)
+            if old:
+                m_hist.append(float(np.mean(np.concatenate([(_line_ut(panels, utn, d) ** 2).sum(1) for d in old]))))
+        if shed_now:
             sep = P.separation3d(panels, sigma, bg, setup.z0, extra=extra, lee_only=True, restart=setup.restart,
                                  streamlines_from="bg")
             n_sep = len(sep["points"]["x"])
             n_rea = sum(r is not None for r in sep["points"]["reattach"])
-            f, n_lines = _shed_all(setup, f, sep, sigma, extra, t - last_shed if it else dt * max(sep_every, 1))
+            data, n_skip = _line_data(panels, sep)
+            if sep_every == 1 or not m_hist:
+                k_acc, utn = 1.0, (_ut_node(setup, sigma, extra) if sep_every == 1 else utn)
+            else:
+                # период-среднее |u|² (m_hist: шаги периода, последний — конец) к значению в конце периода
+                k_acc = float(np.sqrt(np.mean(m_hist) / max(m_hist[-1], 1e-300)))
+            f, n_lines = _shed_all(setup, f, data, utn, t - last_shed if it else dt * sep_every, k_acc)
             last_shed = t
+            old, m_hist = data, []
+            if sep_every > 1 and data:
+                m_hist.append(float(np.mean(np.concatenate([(_line_ut(panels, utn, d) ** 2).sum(1) for d in data]))))
+        skipped_tot += n_skip
         if pr is not None and t >= t_avg - 1e-12:
             var = _probe_variants(setup, sigma, sigma_bg, extra, pr)
             for v, a in var.items():
@@ -154,7 +196,7 @@ def run(setup, t_end, dt, t_avg=None, probes=None, sep_every=1, record_every=Non
         stats.append(dict(t=t + dt, n_fil=f.n_filaments, n_nodes=len(f.x), n_seg=len(f.seg),
                           gamma_abs=float(np.abs(f.gamma).sum()), imbalance=F.imbalance(f), max_u=umax,
                           substeps=nsub, t_step=time.time() - t0, residual=info["residual"], n_sep=n_sep,
-                          n_reattach=n_rea, n_lines=n_lines, **{"f_" + k: v for k, v in f.stats.items()}))
+                          n_reattach=n_rea, n_lines=n_lines, n_skipped=n_skip, **{"f_" + k: v for k, v in f.stats.items()}))
     mean = {v: A[1] for v, A in acc.items() if A[1] is not None}
     std = {v: np.sqrt(A[2] / max(A[0], 1)) for v, A in acc.items() if A[1] is not None}
     return dict(t=n_steps * dt, filaments=f, stats=stats, probes_mean=mean, probes_std=std, snapshots=snaps,

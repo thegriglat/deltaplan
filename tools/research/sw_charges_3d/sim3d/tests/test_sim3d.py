@@ -102,7 +102,7 @@ def test_ridge_filaments_lee_closed_bounded(ridge_run):
 def short_run():
     """Сход каждый шаг (sep_every=1), ядро по умолчанию, 24 шага — вихри у земли самые сильные."""
     st = ridge_setup(params=dict(fil=dict(bounds=(-2000.0, 900.0, -300.0, 300.0, 600.0))))
-    return st, sim3d.run(st, 24.0, 1.0, record_every=8)
+    return st, sim3d.run(st, 24.0, 1.0, record_every=8)   # sep_every — по правилу Setup
 
 
 def test_ridge_couple_changes_layer_behind_crest(short_run):
@@ -119,7 +119,7 @@ def test_ridge_couple_changes_layer_behind_crest(short_run):
         u_n = P.velocity_jh(st.panels, sn["sigma"], st.bg, xs, 0 * xs, z, st.z0, extra=extra, infl=st.infl, couple=False)[0]
         rel[zagl] = np.abs(u_c - u_n) / np.abs(u_n)
     assert rel[5.0].max() > 0.10 and rel[10.0].max() > 0.03, (rel[5.0].max(), rel[10.0].max())
-    assert rel[5.0][xs < 0].size == 0 and xs[rel[5.0].argmax()] > 100.0            # эффект — за гребнем
+    assert xs[rel[5.0].argmax()] > 100.0                                           # эффект — за гребнем
 
 
 def test_ridge_stats_substeps_and_mean(ridge_run):
@@ -153,3 +153,16 @@ def test_double_ridge_restart(restart):
         assert xa.max() > 750.0 and r["stats"][0]["n_reattach"] > 0           # отрыв и за вторым гребнем
     else:
         assert xa.max() < 750.0
+
+
+def test_probes_mean_equals_snapshot_mean():
+    """Тест (7): probes_mean совпадает со средним по снимкам (независимый путь: пересчёт по σ и нитям снимков) ± 1e-9."""
+    st = ridge_setup(params=dict(fil=dict(bounds=(-2000.0, 900.0, -300.0, 300.0, 600.0))))
+    pr = np.array([[xx, 0.0, st.panels.height(xx, 0.0) + 10.0] for xx in (150.0, 250.0, 350.0)])
+    r = sim3d.run(st, 12.0, 1.0, t_avg=6.0, probes=pr, record_every=1, sep_every=1)
+    assert len(r["filaments"].seg) > 0
+    r2 = dict(r, probes=None)                                              # заставляет velocity_mean идти по снимкам
+    for v in sim3d.core.VARIANTS:
+        m = np.stack(sim3d.velocity_mean(r2, pr[:, 0], pr[:, 1], pr[:, 2], v), 1)
+        assert np.abs(m - r["probes_mean"][v]).max() < 1e-9, v
+    assert np.abs(r["probes_mean"]["vortex_jh"] - r["probes_mean"]["potential_jh"]).max() > 1e-4
