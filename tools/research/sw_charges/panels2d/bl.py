@@ -90,7 +90,8 @@ def _equilibrium(z0, delta0=None):
     return d0 / (H10 + H0), H10, H0
 
 
-def boundary_layer(panels, flow, z0, method="head"):
+def boundary_layer(panels, flow, z0, method="head", sep_ok=None):
+    """sep_ok — bool (N): где отрыв допустим (v4, для lee_only); вне — слой считается дальше без остановки."""
     if method != "head":
         raise ValueError("method='head'")
     s, ue, du = flow["s"], flow["u_e"], flow["du_e"]
@@ -133,7 +134,7 @@ def boundary_layer(panels, flow, z0, method="head"):
         c2 = _cf2(d, z0)
         theta[i], H[i], delta[i], cf[i] = th, Hh, d, 2 * c2
         ustar[i] = max(ue[i], 0.0) * np.sqrt(c2)
-        if (Hh >= H_SEP and du[i] < 0) or ue[i] <= 0:
+        if ((Hh >= H_SEP and du[i] < 0) or ue[i] <= 0) and (sep_ok is None or sep_ok[i]):
             i_sep = i
             break
     return dict(theta=theta, delta=delta, H=H, u_star=ustar, cf=cf, i_sep=i_sep, z0=float(z0))
@@ -143,21 +144,42 @@ def _pt(p, s, i0, i1, a):
     return (p.xc[i0] + a * (p.xc[i1] - p.xc[i0]), p.zc[i0] + a * (p.zc[i1] - p.zc[i0]))
 
 
-def separation(panels, flow, bl, method="head"):
+class SepList(list):
+    """Список точек отрыва; `rejected` — отброшенные lee_only (наветренные и дальние), та же структура записей."""
+    rejected = ()
+
+
+def _pt_of(p, s, bl, i):
+    if i > 0 and np.isfinite(bl["H"][i - 1]) and bl["H"][i] >= H_SEP > bl["H"][i - 1]:
+        a = (H_SEP - bl["H"][i - 1]) / (bl["H"][i] - bl["H"][i - 1])
+    else:
+        a = 1.0
+    i0 = max(i - 1, 0)
+    x, z = _pt(p, s, i0, i, a)
+    return dict(s_sep=float(s[i0] + a * (s[i] - s[i0])), x_sep=float(x), z_sep=float(z),
+                method="head", value=float(bl["H"][i]))
+
+
+def separation(panels, flow, bl, method="head", lee_only=True):
+    """lee_only (v4): отрыв допустим только между гребнем (`crests`) и следующим минимумом по ветру. Для Хеда отрыв
+    вне зоны отбрасывается (в `.rejected`), слой пересчитывается дальше (`bl` обновляется на месте: NaN — только за
+    допустимым отрывом); для Стратфорда — фильтр по положению."""
+    from .jh import crests, lee_mask
     p = panels
-    out = []
+    mask = lee_mask(p, crests(p)) if lee_only else None
+    out = SepList()
+    rej = []
+    out.rejected = rej
     s = flow["s"]
     if method == "head":
         i = bl["i_sep"]
+        if i >= 0 and mask is not None and not mask[i]:
+            rej.append(_pt_of(p, s, bl, i))
+            bl2 = boundary_layer(p, flow, bl["z0"], "head", sep_ok=mask)
+            bl.update(bl2)
+            i = bl["i_sep"]
         if i >= 0:
-            if i > 0 and np.isfinite(bl["H"][i - 1]) and bl["H"][i] >= H_SEP > bl["H"][i - 1]:
-                a = (H_SEP - bl["H"][i - 1]) / (bl["H"][i] - bl["H"][i - 1])
-            else:
-                a = 1.0
-            i0 = max(i - 1, 0)
-            x, z = _pt(p, s, i0, i, a)
-            out.append(dict(s_sep=float(s[i0] + a * (s[i] - s[i0])), x_sep=float(x), z_sep=float(z),
-                            method="head", value=float(bl["H"][i])))
+            out.append(_pt_of(p, s, bl, i))
         return out
     if method != "stratford":
         raise ValueError("method: head | stratford")
@@ -182,8 +204,9 @@ def separation(panels, flow, bl, method="head"):
                 val = cp * np.sqrt(max(x * dcp, 0.0)) / fac
                 if val >= STRAT_C:
                     j0 = j - 1
-                    out.append(dict(s_sep=float(s[j]), x_sep=float(p.xc[j]), z_sep=float(p.zc[j]),
-                                    method="stratford", value=float(val)))
+                    q = dict(s_sep=float(s[j]), x_sep=float(p.xc[j]), z_sep=float(p.zc[j]),
+                             method="stratford", value=float(val))
+                    (out if mask is None or mask[j] else rej).append(q)
                     break
                 j += 1
             i = j

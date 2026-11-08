@@ -1,0 +1,238 @@
+{
+ "picard": {
+  "potential": {
+   "нижняя клетка": {
+    "n": 15,
+    "tol": 2,
+    "tol_ref": 2,
+    "parity": false
+   },
+   "k0+1": {
+    "n": 15,
+    "tol": 3,
+    "tol_ref": 4,
+    "parity": false
+   },
+   "~50 м": {
+    "n": 15,
+    "tol": 5,
+    "tol_ref": 6,
+    "parity": false
+   },
+   "~300 м": {
+    "n": 15,
+    "tol": 14,
+    "tol_ref": 14,
+    "parity": true
+   }
+  },
+  "vortex": {
+   "нижняя клетка": {
+    "n": 15,
+    "tol": 2,
+    "tol_ref": 2,
+    "parity": false
+   },
+   "k0+1": {
+    "n": 15,
+    "tol": 3,
+    "tol_ref": 4,
+    "parity": false
+   },
+   "~50 м": {
+    "n": 15,
+    "tol": 7,
+    "tol_ref": 8,
+    "parity": false
+   },
+   "~300 м": {
+    "n": 15,
+    "tol": 14,
+    "tol_ref": 14,
+    "parity": true
+   }
+  },
+  "potential_bl": {
+   "нижняя клетка": {
+    "n": 15,
+    "tol": 4,
+    "tol_ref": 5,
+    "parity": false
+   },
+   "k0+1": {
+    "n": 15,
+    "tol": 4,
+    "tol_ref": 5,
+    "parity": false
+   },
+   "~50 м": {
+    "n": 15,
+    "tol": 5,
+    "tol_ref": 6,
+    "parity": false
+   },
+   "~300 м": {
+    "n": 15,
+    "tol": 14,
+    "tol_ref": 14,
+    "parity": true
+   }
+  },
+  "vortex_bl": {
+   "нижняя клетка": {
+    "n": 15,
+    "tol": 5,
+    "tol_ref": 6,
+    "parity": false
+   },
+   "k0+1": {
+    "n": 15,
+    "tol": 6,
+    "tol_ref": 7,
+    "parity": false
+   },
+   "~50 м": {
+    "n": 15,
+    "tol": 7,
+    "tol_ref": 8,
+    "parity": false
+   },
+   "~300 м": {
+    "n": 15,
+    "tol": 10,
+    "tol_ref": 10,
+    "parity": true
+   }
+  }
+ },
+ "perdigao": {
+  "PERD_NE|potential": {
+   "n": 15,
+   "rmse_pan": 0.4826028681907508,
+   "rmse_air": 0.14408330923462304,
+   "ratio": 3.3494710161389185,
+   "parity": false,
+   "bias_pan": 0.39403606732166846,
+   "within15_pan": 5,
+   "within15_air": 11,
+   "rev_data": 8,
+   "rev_model": 0
+  },
+  "PERD_NE|vortex": {
+   "n": 15,
+   "rmse_pan": 0.27143978872693014,
+   "rmse_air": 0.14408330923462304,
+   "ratio": 1.8839086232043836,
+   "parity": false,
+   "bias_pan": 0.19191894528721223,
+   "within15_pan": 8,
+   "within15_air": 11,
+   "rev_data": 8,
+   "rev_model": 2
+  },
+  "PERD_NE|potential_bl": {
+   "n": 15,
+   "rmse_pan": 0.4826028681907508,
+   "rmse_air": 0.14408330923462304,
+   "ratio": 3.3494710161389185,
+   "parity": false,
+   "bias_pan": 0.39403606732166846,
+   "within15_pan": 5,
+   "within15_air": 11,
+   "rev_data": 8,
+   "rev_model": 0
+  },
+  "PERD_NE|vortex_bl": {
+   "n": 15,
+   "rmse_pan": 0.482727669271297,
+   "rmse_air": 0.14408330923462304,
+   "ratio": 3.3503371891967775,
+   "parity": false,
+   "bias_pan": 0.394189742220539,
+   "within15_pan": 5,
+   "within15_air": 11,
+   "rev_data": 8,
+   "rev_model": 0
+  },
+  "PERD_SW|potential": {
+   "n": 13,
+   "rmse_pan": 0.2765194035784656,
+   "rmse_air": 0.140356688476182,
+   "ratio": 1.97011917693819,
+   "parity": false,
+   "bias_pan": 0.16103177668713567,
+   "within15_pan": 7,
+   "within15_air": 9,
+   "rev_data": 1,
+   "rev_model": 0
+  },
+  "PERD_SW|vortex": {
+   "n": 13,
+   "rmse_pan": 0.20644864339970842,
+   "rmse_air": 0.140356688476182,
+   "ratio": 1.4708856816235159,
+   "parity": false,
+   "bias_pan": -0.0664568850527029,
+   "within15_pan": 8,
+   "within15_air": 9,
+   "rev_data": 1,
+   "rev_model": 0
+  },
+  "PERD_SW|potential_bl": {
+   "n": 13,
+   "rmse_pan": 0.2765194035784656,
+   "rmse_air": 0.140356688476182,
+   "ratio": 1.97011917693819,
+   "parity": false,
+   "bias_pan": 0.16103177668713567,
+   "within15_pan": 7,
+   "within15_air": 9,
+   "rev_data": 1,
+   "rev_model": 0
+  },
+  "PERD_SW|vortex_bl": {
+   "n": 13,
+   "rmse_pan": 0.27651940357846766,
+   "rmse_air": 0.140356688476182,
+   "ratio": 1.9701191769382047,
+   "parity": false,
+   "bias_pan": 0.16103177668714624,
+   "within15_pan": 7,
+   "within15_air": 9,
+   "rev_data": 1,
+   "rev_model": 0
+  },
+  "PERD_NE|potential_bl|z0=0.1": {
+   "rmse_pan": 0.4826028681907508,
+   "rmse_air": 0.14408330923462304,
+   "ratio": 3.3494710161389185,
+   "parity": false,
+   "L_pan": 0.0,
+   "n_vortices": null
+  },
+  "PERD_NE|vortex_bl|z0=0.1": {
+   "rmse_pan": 0.4997764624385121,
+   "rmse_air": 0.14408330923462304,
+   "ratio": 3.4686631303330477,
+   "parity": false,
+   "L_pan": 0.0,
+   "n_vortices": 238.83049040511727
+  },
+  "PERD_SW|potential_bl|z0=0.1": {
+   "rmse_pan": 0.2765194035784656,
+   "rmse_air": 0.140356688476182,
+   "ratio": 1.97011917693819,
+   "parity": false,
+   "L_pan": 0.0,
+   "n_vortices": null
+  },
+  "PERD_SW|vortex_bl|z0=0.1": {
+   "rmse_pan": 0.27651940357846766,
+   "rmse_air": 0.140356688476182,
+   "ratio": 1.9701191769382047,
+   "parity": false,
+   "L_pan": 0.0,
+   "n_vortices": 0.0
+  }
+ }
+}
