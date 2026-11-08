@@ -1,0 +1,69 @@
+{
+  "id": "SWG-5",
+  "module": "sw-ground",
+  "type": "dp-researcher",
+  "title": "Слой у земли, проверка 2: даёт ли нить ротора (rotor_jh, SWG-2) дефицит следа на плотных точках",
+  "goal": "Оценить нить ротора rotor3d v2 (как в SWG-2, штатные параметры) как механизм торможения у земли: rotor_jh на плотных точках SWG1 и мачтах против potential_jh — таблица до/после SWG2 по лее, долине, гребню, наветренному склону.",
+  "plan_ref": "Задачи 1",
+  "contracts": [
+    {
+      "name": "SWG1",
+      "version": "1",
+      "ref": "docs/contracts/sw-ground.md"
+    },
+    {
+      "name": "SWG2",
+      "version": "1",
+      "ref": "docs/contracts/sw-ground.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sw-ground-SWG-5",
+  "branch": "sw-ground/SWG-5",
+  "base": "feature/sw-ground",
+  "scope": [
+    "tools/research/sw_ground/rotor_ground/",
+    "tools/research/sw_ground/out/swg-5/"
+  ],
+  "dont_touch": [
+    "tools/research/sw_charges_3d/",
+    "tools/research/sw_ground/ground/",
+    "tools/research/sw_ground/rotor/",
+    "tools/research/sw_ground/out/points/",
+    "tools/research/sw_ground/out/swg-1/",
+    "tools/research/sw_ground/out/swg-2/",
+    "tools/research/sw_ground/contract/",
+    "tools/research/sw_ground/py",
+    "docs/",
+    "rust/"
+  ],
+  "accept": [
+    {
+      "name": "contract",
+      "cmd": "tools/research/sw_ground/py tools/research/sw_ground/contract/check_contract.py tools/research/sw_ground/out/swg-5/ground.json",
+      "expect": "exit=0"
+    },
+    {
+      "name": "base",
+      "cmd": "tools/research/sw_ground/py tools/research/sw_ground/contract/accept_metrics.py ground tools/research/sw_ground/out/swg-5/ground.json",
+      "expect": "num:base_variants (\\d+) >=1"
+    },
+    {
+      "name": "rotor_rows",
+      "cmd": "grep -o rotor_jh tools/research/sw_ground/out/swg-5/ground.json | wc -l",
+      "expect": "num:(\\d+) >=500"
+    },
+    {
+      "name": "masts",
+      "cmd": "tools/research/sw_ground/py tools/research/sw_ground/contract/accept_metrics.py ground tools/research/sw_ground/out/swg-5/ground.json",
+      "expect": "num:masts_new (\\d+) >=3"
+    },
+    {
+      "name": "pytest",
+      "cmd": "tools/research/sw_ground/py -m pytest -q tools/research/sw_ground/rotor_ground",
+      "expect": "re:passed"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-08T22:51:38"
+}
