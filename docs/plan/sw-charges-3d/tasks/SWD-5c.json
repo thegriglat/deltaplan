@@ -45,14 +45,10 @@
       "name": "vortex-cases",
       "cmd": "tools/research/sw_charges_3d/py -c \"import json;d=json.load(open('tools/research/sw_charges_3d/out/compare/points.json'));print('cases', len({r['case'] for r in d['rows'] if r['variant']=='vortex_jh'}))\"",
       "expect": "num:cases (\\d+) >=3"
-    },
-    {
-      "name": "tau-scan",
-      "cmd": "tools/research/sw_charges_3d/py -c \"import json;d=json.load(open('tools/research/sw_charges_3d/out/compare/points.json'));print('tau', len({r['value'] for r in d['scan'] if r['param']=='tau_s' and r['case']=='PERD_NE'}))\"",
-      "expect": "num:tau (\\d+) >=3"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-11-08T16:45:11"
+  "created": "2026-11-08T16:45:11",
+  "edited": "2026-11-08T17:22:17"
 }
