@@ -35,3 +35,5 @@
 {"t": "2026-11-08T22:47:46", "by": "coordinator", "task": "SWG-1", "ev": "note", "note": "ревью: dp-reviewer model fable; исполнитель считал CPU-запасной путь без замка cpu (1 слот мал для LU 15 тыс.) — обратная связь главной: вес задач в lock cpu"}
 {"t": "2026-11-08T22:49:27", "by": "reviewer", "task": "SWG-1", "ev": "reviewed", "note": "SWG1/SWG2 по контракту (инварианты проверены скриптом: n summary = rows, within_tol согласован, все id из SWG1, n ≥ 30 у всех обязательных типов), 47 файлов в …", "verdict": "accept", "issues": {"minor": 3}, "review": "docs/plan/sw-ground/tasks/SWG-1.review.json"}
 {"t": "2026-11-08T22:49:50", "by": "coordinator", "task": "SWG-1", "ev": "accepted", "note": "по ревью (fable): 3 minor — CAP 225, сканы на подмножестве, патч panels3d в процессе (ground.model)"}
+{"t": "2026-11-08T22:50:01", "by": "coordinator", "task": "SWG-1", "ev": "accepted", "commits": ["939327b97"], "note": "7/7 contract=ok:exit 0; selftest=ok:exit 0; decomp=ok:256; decomp_terms=ok:32; scan=ok:4; base=ok:2; pytest=ok:passed"}
+{"t": "2026-11-08T22:50:01", "by": "coordinator", "task": "SWG-1", "ev": "merged"}
