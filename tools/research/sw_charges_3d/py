@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Обёртка Python для sw_charges_3d: venv в ${SWD_VENV:-$HOME/.cache/sw_charges_3d/venv}
+# (numpy, scipy, matplotlib, h5py, cupy, pytest). PYTHONPATH — этот каталог (пакеты panels3d, filaments3d, sim3d)
+# и tools/research/sw_charges (panels2d — только чтение).
+set -euo pipefail
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+venv="${SWD_VENV:-$HOME/.cache/sw_charges_3d/venv}"
+if [ ! -x "$venv/bin/python" ]; then
+  export PATH="$HOME/.local/bin:$PATH"
+  mkdir -p "$(dirname "$venv")"
+  uv venv "$venv" >&2
+  VIRTUAL_ENV="$venv" uv pip install -r "$here/requirements.txt" >&2
+fi
+export PYTHONPATH="$here:$here/../sw_charges${PYTHONPATH:+:$PYTHONPATH}"
+exec "$venv/bin/python" "$@"

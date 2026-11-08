@@ -1,0 +1,52 @@
+{
+  "status": "done",
+  "summary": "docs/research/sw_charges.md: добавлены круги 2–3 (5.5, SWC-15–19), раздел 7 «Итог 2D: проблемы для 3D» (12 строк с пометками схема / 2D-артефакт / эталон / не выяснено, «что работает»), «Итог» переписан, варианты продолжения сведены к «3D — sw-charges-3d», документ сжат до 40,5 КБ. В findings.md +3 строки, обновлены INDEX и registry/research.",
+  "commits": [
+    "см. git log ветки sw-charges/SWC-20: sw-charges SWC-20: итог 2D"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "problems",
+      "value": "12",
+      "pass": true
+    },
+    {
+      "name": "findings",
+      "value": "11",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "4 файла в границах",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "tools/research/sw_charges/README.md не менял: оглавление уже содержит v3/v4 (SWC-15, SWC-18)"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept SWC-20",
+  "uncertain": [
+    {
+      "where": "docs/research/sw_charges.md:раздел 7, строка 8 (Perdigão)",
+      "why": "пометка «не выяснено»: в jh-документе P5 = схема + 2D-артефакт, причина исчезновения отрыва не выяснена",
+      "checked": "stage2-2d-jh.md, таблица проблем и «Что показали числа»"
+    },
+    {
+      "where": "docs/research/sw_charges.md:раздел 7, строка 10 (отрыв термика)",
+      "why": "пометка «схема» взята из вывода proto-a-terrain (склон как нагреваемая поверхность не заложен)",
+      "checked": "раздел 6 итога"
+    }
+  ],
+  "dp_feedback": "docs check: findings.md уже 44 КБ > 40 КБ (было 42) — ошибка вне скоупа задачи, нужно разбить реестр; лимит 40 КБ для текста в карточке неясен (байты или 1024).",
+  "extra": {
+    "размер_sw_charges_md_байт": 40524
+  },
+  "t": "2026-11-08T05:52:20",
+  "by": "executor"
+}

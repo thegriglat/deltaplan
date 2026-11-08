@@ -1,0 +1,11 @@
+{
+  "module": "sw-charges",
+  "plan": "docs/plan/sw-charges.md",
+  "contracts": "docs/contracts/sw-charges.md",
+  "branch": "feature/sw-charges",
+  "copy": "~/worktrees/deltaplan/sw-charges",
+  "created": "2026-11-08T00:40:47",
+  "code": "SWC",
+  "area": "air",
+  "base": "main"
+}

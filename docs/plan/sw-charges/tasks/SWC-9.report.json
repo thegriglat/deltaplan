@@ -1,0 +1,76 @@
+{
+  "status": "done",
+  "summary": "Слой Рипа (R1, dx_sw 400/200) против Пикара dx 50/400 на C0–C4 (30 строк SW5 v2) и разрез PERD. Нейтральная крышка: E ≤ 0,012 при E0 ≤ 0,034; шлюз E ≥ E0 выполнен в 6 из 12 вариантов сильного ветра, не во всех.",
+  "commits": [
+    "8d7ab3fad sw-charges SWC-9: слой против Пикара на разрез"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "verdict",
+      "value": "1",
+      "pass": true
+    },
+    {
+      "name": "contract",
+      "value": "FAIL 0",
+      "pass": true
+    },
+    {
+      "name": "C0 E",
+      "value": "0.000",
+      "pass": true
+    },
+    {
+      "name": "шлюз E>=E0 (C1,C4,C2; 12 вариантов)",
+      "value": "E<E0 в 6, E>E0 в 6 (C2 h0 1000: E 0.35-0.51 vs E0 0.12-0.18; C1 0.002 vs 0.030; C4 0.007 vs 0.020; C2 h0 2500 N2h0 0.012 vs 0.031; N2delta 0.035 vs 0.030 / 0.048 vs 0.031 на 200 м)",
+      "pass": false
+    },
+    {
+      "name": "C3 нагрев",
+      "value": "bias -15% за 1 ч, -24% за 3 ч; E_c 0.04 ~ E0 0.05; подъёма к склону на 400 м нет",
+      "pass": false
+    },
+    {
+      "name": "PERD",
+      "value": "ū(tse09)/ū(tse13)=0.85-0.98 против мачт 0.32; обратного течения нет",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "heat_ca (2D-нагрев хребта) не сравнивался; Askervein/Lubitz-White только строкой (масштаб этапа 2); значения Taylor&Teunissen сверены поиском лишь как источник"
+  ],
+  "questions": [
+    "Шлюз: условие E ≥ E0 во всех вариантах не выполнено, но различие внутри допуска Пикара ±15 % — поднимать шлюз?",
+    "Нужен ли для C3 нагрев только склона с компенсацией на входе (в v1 однородный нагрев тянет ū вниз)?"
+  ],
+  "how_to_check": ".dpcli/dpcli accept SWC-9",
+  "uncertain": [
+    {
+      "where": "docs/research/sw_charges/stage1-sections.md, колонка эксперимент",
+      "why": "среднее по глубине из формулы Jackson-Hunt (B=2, A=3) — моя оценка, не измерение",
+      "checked": "значения B, A из experimental_data F; Taylor&Teunissen подтверждён только как источник"
+    },
+    {
+      "where": "tools/research/sw_charges/sections/run_perd.py",
+      "why": "линия вдоль ветра 60.7° через tse13; tse04 смещён на 182 м поперёк; U10 из U100 на гребне без учёта разгона",
+      "checked": "позиции мачт на линии, рельеф размах 330-360 м против 174 м Menke"
+    },
+    {
+      "where": "run_sections.py steady_tol",
+      "why": "при 5e-4 C3 объявлялся стационарным до действия нагрева; основной порог 1e-5, C3 по среднему за 30 мин",
+      "checked": "сравнение sections_tol5e-4: нейтральные строки меняются ≤ 0.002"
+    }
+  ],
+  "dp_feedback": "dpcli docs index правит registry/contracts.md вне скоупа; пришлось откатывать. Дополнения карточки приходят сообщениями, а не в task show по умолчанию (нужен --full).",
+  "extra": {
+    "E_E0_table": "out/sections/sections.csv",
+    "perd": "out/sections/perd.csv"
+  },
+  "t": "2026-11-08T02:08:18",
+  "by": "executor"
+}

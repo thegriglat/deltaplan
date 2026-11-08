@@ -1,0 +1,65 @@
+{
+  "id": "SWC-4",
+  "module": "sw-charges",
+  "type": "dp-engineer",
+  "title": "Решатель слоя мелкой воды (Рипа) на Python/NumPy: swc case/run",
+  "goal": "Пакет swpy с CLI swc: генератор случаев SW1 (идеальные формы) и явный конечнообъёмный решатель модели Рипа (1D и 2D, мокрые/сухие клетки, well-balanced) на NumPy, пишущий SW2/SW3; проверен аналитикой (покой, Риттер, Бернулли, M_c).",
+  "plan_ref": "Этапы и задачи (уточняет координатор)",
+  "contracts": [
+    {
+      "name": "SW1",
+      "version": "1",
+      "ref": "docs/contracts/sw-charges.md"
+    },
+    {
+      "name": "SW2",
+      "version": "1",
+      "ref": "docs/contracts/sw-charges.md"
+    },
+    {
+      "name": "SW3",
+      "version": "1",
+      "ref": "docs/contracts/sw-charges.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sw-charges-SWC-4",
+  "branch": "sw-charges/SWC-4",
+  "base": "feature/sw-charges",
+  "scope": [
+    "tools/research/sw_charges/swpy/",
+    "tools/research/sw_charges/py",
+    "tools/research/sw_charges/requirements.txt",
+    "tools/research/sw_charges/README.md"
+  ],
+  "dont_touch": [
+    "rust/",
+    "docs/contracts/",
+    "tools/research/sw_charges/contract/",
+    "tools/research/cascade_2d/"
+  ],
+  "accept": [
+    {
+      "name": "pytest",
+      "cmd": "tools/research/sw_charges/py -m pytest -q tools/research/sw_charges/swpy/tests",
+      "expect": "!re:(failed|error)"
+    },
+    {
+      "name": "pytest-pass",
+      "cmd": "tools/research/sw_charges/py -m pytest -q tools/research/sw_charges/swpy/tests",
+      "expect": "num:(\\d+) passed >=11"
+    },
+    {
+      "name": "smoke",
+      "cmd": "bash tools/research/sw_charges/swpy/smoke.sh",
+      "expect": "re:проверено 3, FAIL 0"
+    },
+    {
+      "name": "contract-selftest",
+      "cmd": "python3 tools/research/sw_charges/contract/check_contract.py --selftest",
+      "expect": "re:selftest OK"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-08T00:56:21"
+}

@@ -1,0 +1,59 @@
+{
+  "id": "SWC-19",
+  "module": "sw-charges",
+  "type": "dp-researcher",
+  "title": "Последний круг 2D: сняты ли проблемы правками v4 (Jackson–Hunt, отрыв с подветренной)",
+  "goal": "Быстрый пересчёт прежних случаев SW7 с вариантами potential_jh и vortex_jh (panels2d v4) и ответ по каждой проблеме 2D — снята / осталась / ухудшилась (ложный ротор C4, наветренный отрыв, недобор ΔS трубы, реальные роторы C2 и Perdigão, мачты Perdigão); числа 2D — не паритет, а проверка правок.",
+  "plan_ref": "Этапы и задачи (уточняет координатор)",
+  "contracts": [
+    {
+      "name": "SW6",
+      "version": "4",
+      "ref": "docs/contracts/sw-charges.md"
+    },
+    {
+      "name": "SW7",
+      "version": "3",
+      "ref": "docs/contracts/sw-charges.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sw-charges-SWC-19",
+  "branch": "sw-charges/SWC-19",
+  "base": "feature/sw-charges",
+  "scope": [
+    "tools/research/sw_charges/panels_exp/",
+    "tools/research/sw_charges/out/panels2d/",
+    "docs/research/sw_charges/stage2-2d-jh.md",
+    "docs/INDEX.md",
+    "docs/registry/research.md"
+  ],
+  "dont_touch": [
+    "tools/research/sw_charges/panels2d/",
+    "docs/research/sw_charges/stage2-2d.md",
+    "docs/research/sw_charges/stage2-2d-tunnel.md",
+    "docs/research/sw_charges/stage2-2d-bl.md",
+    "docs/contracts/",
+    "tools/research/sw_charges/contract/"
+  ],
+  "accept": [
+    {
+      "name": "contract",
+      "cmd": "python3 tools/research/sw_charges/contract/check_contract.py tools/research/sw_charges/out/panels2d",
+      "expect": "re:FAIL 0"
+    },
+    {
+      "name": "docs",
+      "cmd": "bash -c '.dpcli/dpcli docs check 2>&1 | grep -E \"ОШИБКА.*sw_charges\"; test ${PIPESTATUS[1]} -eq 1'",
+      "expect": "exit=0"
+    },
+    {
+      "name": "problems",
+      "cmd": "grep -cE '^\\| *P[0-9]+' docs/research/sw_charges/stage2-2d-jh.md",
+      "expect": "num:(\\d+) >=5"
+    }
+  ],
+  "report_extra": [],
+  "notes": "Решения пользователя (2026-11-08, inbox sw-charges): Q4 — последний круг 2D; роль 2D — список проблем для 3D, числа 2D паритетом/провалом не считать; артефакты 2D не чинить. Эта задача — быстрая проверка правок, не новое исследование: время работы ≤ ~1,5 ч, счёт ≤ ~1 ч CPU (урезать сетку, если надо). Библиотека panels2d v4 (SW6 v4 в docs/contracts/sw-charges.md; README «Панели panels2d», раздел v4: crests, velocity_jh с множителем среднего слоя A, separation lee_only, step shed='auto'); не менять. Исходное — panels_exp (run_bl.py, bl_common.py, merge3.py — SWC-17), таблица out/panels2d/points.{json,csv} (SW7 v2) — переписать в SW7 v3 (version 3): прежние 4 варианта переносом, новые potential_jh и vortex_jh на тех же случаях и точках (C1, C2, C4 по центрам клеток P50; LW 6 хребтов; PERD_NE/SW мачты; rotor). Параметры — как в SWC-17 (без подгонки, smooth_m 250, σ = 1000 не брать). Интерпретатор tools/research/sw_charges/py (OPENBLAS_NUM_THREADS=1); тяжёлый CPU — .dpcli/dpcli lock cpu swc19 -- <cmd>.\nВывод — docs/research/sw_charges/stage2-2d-jh.md (frontmatter type research, status active, module sw-charges, summary ≤ 140, ≤ 20 КБ): таблица проблем строками '| P<n> | проблема | было (SWC-12/16/17, число) | стало (v4, число) | снята / осталась / ухудшилась |' — минимум P1 ложный ротор C4, P2 отрыв на наветренном склоне, P3 недобор ΔS трубы у земли, P4 реальные роторы C2 (Пикар 800 м) и Perdigão (Menke 530/675 м), P5 мачты Perdigão RMSE u∥/S_ref против 0,14 у игры, P6 доля точек Пикара в допуске у земли (справочно); плюс время. Без «Вердикт»-строки про паритет. r.json — вне копии (scratchpad, имя с SWC-19).",
+  "created": "2026-11-08T05:27:58",
+  "edited": "2026-11-08T05:28:02"
+}

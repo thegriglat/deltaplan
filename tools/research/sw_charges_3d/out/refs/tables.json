@@ -1,0 +1,416 @@
+[
+ {
+  "case": "ASK_TU03B",
+  "variant": "picard_nom",
+  "group": "все",
+  "n": 69,
+  "bias": -0.018106390435297808,
+  "rms": 0.12953275195736313,
+  "frac15": 0.8405797101449275
+ },
+ {
+  "case": "ASK_TU03B",
+  "variant": "picard_nom",
+  "group": "upstream",
+  "n": 23,
+  "bias": 0.057119300651133194,
+  "rms": 0.08639506175408652,
+  "frac15": 0.8695652173913043
+ },
+ {
+  "case": "ASK_TU03B",
+  "variant": "picard_nom",
+  "group": "z=10 м",
+  "n": 42,
+  "bias": -0.0509556312815986,
+  "rms": 0.15149792690403394,
+  "frac15": 0.7857142857142857
+ },
+ {
+  "case": "ASK_TU03B",
+  "variant": "picard_nom",
+  "group": "z=30 м",
+  "n": 2,
+  "bias": 0.015659334063591435,
+  "rms": 0.060735946211297374,
+  "frac15": 1.0
+ },
+ {
+  "case": "ASK_TU03B",
+  "variant": "picard_nom",
+  "group": "windward",
+  "n": 14,
+  "bias": -0.00426810602942161,
+  "rms": 0.06657683087182259,
+  "frac15": 1.0
+ },
+ {
+  "case": "ASK_TU03B",
+  "variant": "picard_nom",
+  "group": "crest",
+  "n": 26,
+  "bias": -0.03089369601346919,
+  "rms": 0.11047301130213588,
+  "frac15": 0.8846153846153846
+ },
+ {
+  "case": "ASK_TU03B",
+  "variant": "picard_nom",
+  "group": "lee",
+  "n": 6,
+  "bias": -0.28334921237491845,
+  "rms": 0.3179863982007376,
+  "frac15": 0.16666666666666666
+ },
+ {
+  "case": "ASK_TU03B",
+  "variant": "picard_adv1",
+  "group": "все",
+  "n": 69,
+  "bias": -0.06586321822943679,
+  "rms": 0.1666576346033054,
+  "frac15": 0.7681159420289855
+ },
+ {
+  "case": "ASK_TU03B",
+  "variant": "picard_adv1",
+  "group": "upstream",
+  "n": 23,
+  "bias": 0.051710226136474066,
+  "rms": 0.08403657713267439,
+  "frac15": 0.9130434782608695
+ },
+ {
+  "case": "ASK_TU03B",
+  "variant": "picard_adv1",
+  "group": "z=10 м",
+  "n": 42,
+  "bias": -0.11242406911599005,
+  "rms": 0.1998420147543223,
+  "frac15": 0.7142857142857143
+ },
+ {
+  "case": "ASK_TU03B",
+  "variant": "picard_adv1",
+  "group": "z=30 м",
+  "n": 2,
+  "bias": 0.01589352771554564,
+  "rms": 0.060809809358680314,
+  "frac15": 1.0
+ },
+ {
+  "case": "ASK_TU03B",
+  "variant": "picard_adv1",
+  "group": "windward",
+  "n": 14,
+  "bias": -0.04309700835590966,
+  "rms": 0.08661596229792336,
+  "frac15": 0.8571428571428571
+ },
+ {
+  "case": "ASK_TU03B",
+  "variant": "picard_adv1",
+  "group": "crest",
+  "n": 26,
+  "bias": -0.09854719739279948,
+  "rms": 0.1400983404268354,
+  "frac15": 0.7692307692307693
+ },
+ {
+  "case": "ASK_TU03B",
+  "variant": "picard_adv1",
+  "group": "lee",
+  "n": 6,
+  "bias": -0.4280520016290867,
+  "rms": 0.4356376268050241,
+  "frac15": 0.0
+ },
+ {
+  "case": "PERD_NE",
+  "variant": "picard_nom",
+  "group": "все",
+  "n": 28,
+  "bias": -0.2283265302076268,
+  "rms": 0.36609161816155084,
+  "frac15": 0.6071428571428571
+ },
+ {
+  "case": "PERD_NE",
+  "variant": "picard_nom",
+  "group": "crest",
+  "n": 14,
+  "bias": -0.013578677957779641,
+  "rms": 0.034327562413435216,
+  "frac15": 1.0
+ },
+ {
+  "case": "PERD_NE",
+  "variant": "picard_nom",
+  "group": "z=30 м",
+  "n": 9,
+  "bias": -0.39440376245458336,
+  "rms": 0.4873655366789062,
+  "frac15": 0.3333333333333333
+ },
+ {
+  "case": "PERD_NE",
+  "variant": "picard_nom",
+  "group": "z=60 м",
+  "n": 6,
+  "bias": -0.14734312495227775,
+  "rms": 0.2824641770810287,
+  "frac15": 0.6666666666666666
+ },
+ {
+  "case": "PERD_NE",
+  "variant": "picard_nom",
+  "group": "lee",
+  "n": 6,
+  "bias": -0.5335766434460574,
+  "rms": 0.5597052728291462,
+  "frac15": 0.0
+ },
+ {
+  "case": "PERD_NE",
+  "variant": "picard_nom",
+  "group": "z=100 м",
+  "n": 3,
+  "bias": 0.0036515679610652496,
+  "rms": 0.007902559957516887,
+  "frac15": 1.0
+ },
+ {
+  "case": "PERD_NE",
+  "variant": "picard_nom",
+  "group": "windward",
+  "n": 3,
+  "bias": -0.1360615828662207,
+  "rms": 0.14316314534753255,
+  "frac15": 0.6666666666666666
+ },
+ {
+  "case": "PERD_NE",
+  "variant": "picard_nom",
+  "group": "valley",
+  "n": 5,
+  "bias": -0.5186793490259263,
+  "rms": 0.5991730444765736,
+  "frac15": 0.2
+ },
+ {
+  "case": "PERD_NE",
+  "variant": "picard_adv1",
+  "group": "все",
+  "n": 28,
+  "bias": -0.2700937275775094,
+  "rms": 0.3727977589045089,
+  "frac15": 0.5
+ },
+ {
+  "case": "PERD_NE",
+  "variant": "picard_adv1",
+  "group": "crest",
+  "n": 14,
+  "bias": -0.06526875060195492,
+  "rms": 0.08174337181346417,
+  "frac15": 0.9285714285714286
+ },
+ {
+  "case": "PERD_NE",
+  "variant": "picard_adv1",
+  "group": "z=30 м",
+  "n": 9,
+  "bias": -0.40131749659462324,
+  "rms": 0.4619564757037891,
+  "frac15": 0.2222222222222222
+ },
+ {
+  "case": "PERD_NE",
+  "variant": "picard_adv1",
+  "group": "z=60 м",
+  "n": 6,
+  "bias": -0.22813753807853843,
+  "rms": 0.3361122093874392,
+  "frac15": 0.6666666666666666
+ },
+ {
+  "case": "PERD_NE",
+  "variant": "picard_adv1",
+  "group": "lee",
+  "n": 6,
+  "bias": -0.5496407400976999,
+  "rms": 0.5549890796619907,
+  "frac15": 0.0
+ },
+ {
+  "case": "PERD_NE",
+  "variant": "picard_adv1",
+  "group": "z=100 м",
+  "n": 3,
+  "bias": -0.049411853734036705,
+  "rms": 0.0888524230410264,
+  "frac15": 0.6666666666666666
+ },
+ {
+  "case": "PERD_NE",
+  "variant": "picard_adv1",
+  "group": "windward",
+  "n": 3,
+  "bias": -0.1780859934932617,
+  "rms": 0.18466136980690348,
+  "frac15": 0.3333333333333333
+ },
+ {
+  "case": "PERD_NE",
+  "variant": "picard_adv1",
+  "group": "valley",
+  "n": 5,
+  "bias": -0.5633518885353819,
+  "rms": 0.6078592425522433,
+  "frac15": 0.0
+ },
+ {
+  "case": "PERD_SW",
+  "variant": "picard_nom",
+  "group": "все",
+  "n": 25,
+  "bias": -0.2675975886520037,
+  "rms": 0.36862036291232164,
+  "frac15": 0.36
+ },
+ {
+  "case": "PERD_SW",
+  "variant": "picard_nom",
+  "group": "windward",
+  "n": 5,
+  "bias": -0.4202853983504834,
+  "rms": 0.4846631913692735,
+  "frac15": 0.2
+ },
+ {
+  "case": "PERD_SW",
+  "variant": "picard_nom",
+  "group": "z=30 м",
+  "n": 8,
+  "bias": -0.31655254311254,
+  "rms": 0.4409960335382388,
+  "frac15": 0.375
+ },
+ {
+  "case": "PERD_SW",
+  "variant": "picard_nom",
+  "group": "crest",
+  "n": 12,
+  "bias": -0.0753012268087485,
+  "rms": 0.1427836099314759,
+  "frac15": 0.5833333333333334
+ },
+ {
+  "case": "PERD_SW",
+  "variant": "picard_nom",
+  "group": "z=60 м",
+  "n": 5,
+  "bias": -0.25186234297256194,
+  "rms": 0.330597222806605,
+  "frac15": 0.4
+ },
+ {
+  "case": "PERD_SW",
+  "variant": "picard_nom",
+  "group": "z=100 м",
+  "n": 3,
+  "bias": -0.1711859505332339,
+  "rms": 0.21582544261064618,
+  "frac15": 0.3333333333333333
+ },
+ {
+  "case": "PERD_SW",
+  "variant": "picard_nom",
+  "group": "lee",
+  "n": 3,
+  "bias": -0.32378273708221533,
+  "rms": 0.359278106737928,
+  "frac15": 0.3333333333333333
+ },
+ {
+  "case": "PERD_SW",
+  "variant": "picard_nom",
+  "group": "valley",
+  "n": 5,
+  "bias": -0.5427099583192095,
+  "rms": 0.5640290893871894,
+  "frac15": 0.0
+ },
+ {
+  "case": "PERD_SW",
+  "variant": "picard_adv1",
+  "group": "все",
+  "n": 25,
+  "bias": -0.3454412769730056,
+  "rms": 0.434561315206301,
+  "frac15": 0.32
+ },
+ {
+  "case": "PERD_SW",
+  "variant": "picard_adv1",
+  "group": "windward",
+  "n": 5,
+  "bias": -0.4975142928940005,
+  "rms": 0.5514815526218017,
+  "frac15": 0.2
+ },
+ {
+  "case": "PERD_SW",
+  "variant": "picard_adv1",
+  "group": "z=30 м",
+  "n": 8,
+  "bias": -0.3953390853575134,
+  "rms": 0.49603592384162143,
+  "frac15": 0.375
+ },
+ {
+  "case": "PERD_SW",
+  "variant": "picard_adv1",
+  "group": "crest",
+  "n": 12,
+  "bias": -0.12761078649465854,
+  "rms": 0.17756454865643753,
+  "frac15": 0.5833333333333334
+ },
+ {
+  "case": "PERD_SW",
+  "variant": "picard_adv1",
+  "group": "z=60 м",
+  "n": 5,
+  "bias": -0.34998391373345716,
+  "rms": 0.4118891293360457,
+  "frac15": 0.2
+ },
+ {
+  "case": "PERD_SW",
+  "variant": "picard_adv1",
+  "group": "z=100 м",
+  "n": 3,
+  "bias": -0.22150517529218752,
+  "rms": 0.2876408220489635,
+  "frac15": 0.3333333333333333
+ },
+ {
+  "case": "PERD_SW",
+  "variant": "picard_adv1",
+  "group": "lee",
+  "n": 3,
+  "bias": -0.4993033647580756,
+  "rms": 0.5202593418175173,
+  "frac15": 0.0
+ },
+ {
+  "case": "PERD_SW",
+  "variant": "picard_adv1",
+  "group": "valley",
+  "n": 5,
+  "bias": -0.6238441855290017,
+  "rms": 0.6340456650612833,
+  "frac15": 0.0
+ }
+]

@@ -1,0 +1,78 @@
+{
+  "id": "SWC-8",
+  "module": "sw-charges",
+  "type": "dp-researcher",
+  "title": "Этап 1 (а): режимы слоя по F0, M против теории и air-phase (SW4: A1, A2)",
+  "goal": "Решателем swpy на 1D-разрезах идеальных форм получить таблицы режимов SW4: A1 (гидравлика, сетка F0 × M, оба старта в зоне гистерезиса) против теории literature.md §2 и A2 (условия air-phase через правило R1, два варианта b0) против порогов Fr_c air-phase; вывод с числами и временем счёта.",
+  "plan_ref": "Этапы и задачи (уточняет координатор)",
+  "contracts": [
+    {
+      "name": "SW1",
+      "version": "1",
+      "ref": "docs/contracts/sw-charges.md"
+    },
+    {
+      "name": "SW2",
+      "version": "1",
+      "ref": "docs/contracts/sw-charges.md"
+    },
+    {
+      "name": "SW3",
+      "version": "1",
+      "ref": "docs/contracts/sw-charges.md"
+    },
+    {
+      "name": "SW4",
+      "version": "1",
+      "ref": "docs/contracts/sw-charges.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sw-charges-SWC-8",
+  "branch": "sw-charges/SWC-8",
+  "base": "feature/sw-charges",
+  "scope": [
+    "tools/research/sw_charges/regimes/",
+    "tools/research/sw_charges/out/regimes/",
+    "docs/research/sw_charges/stage1-regimes.md",
+    "docs/INDEX.md",
+    "docs/registry/research.md"
+  ],
+  "dont_touch": [
+    "tools/research/sw_charges/swpy/",
+    "docs/contracts/",
+    "tools/research/sw_charges/contract/",
+    "docs/research/sw_charges/literature.md",
+    "rust/"
+  ],
+  "accept": [
+    {
+      "name": "contract",
+      "cmd": "python3 tools/research/sw_charges/contract/check_contract.py tools/research/sw_charges/out/regimes",
+      "expect": "re:FAIL 0"
+    },
+    {
+      "name": "a1",
+      "cmd": "test -f tools/research/sw_charges/out/regimes/A1.json",
+      "expect": "exit=0"
+    },
+    {
+      "name": "a2",
+      "cmd": "test -f tools/research/sw_charges/out/regimes/A2.json",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": "bash -c '.dpcli/dpcli docs check 2>&1 | grep -E \"ОШИБКА.*sw_charges\"; test ${PIPESTATUS[1]} -eq 1'",
+      "expect": "exit=0"
+    },
+    {
+      "name": "verdict",
+      "cmd": "grep -cE '^\\*\\*Вердикт' docs/research/sw_charges/stage1-regimes.md",
+      "expect": "num:(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "Решатель — пакет tools/research/sw_charges/swpy (библиотека run(case, out) → (поле, запись); генератор swpy case ideal; README tools/research/sw_charges/README.md «Решатель swpy»), интерпретатор tools/research/sw_charges/py; swpy НЕ менять (нашёл ошибку — blocked с описанием). Теория — docs/research/sw_charges/literature.md §2 (M_c, M_s, таблица режимов 2.7, бор 2.4), правило перевода — §7 R1; читать разделами (.dpcli/dpcli docs section <путь> <раздел>). Формат вывода и классификатор — строго контракт SW4 (docs/contracts/sw-charges.md); проверка — python3 tools/research/sw_charges/contract/check_contract.py tools/research/sw_charges/out/regimes. Сырые SW1–SW3 — в ~/data/sw_charges/regimes/ (не в git; путь в README), в git — код tools/research/sw_charges/regimes/ (README с frontmatter type research: команды, время), таблицы out/regimes/A1, A2 (.json + .csv), рисунки PNG (смотреть не нужно).\nМасштабы (решение пользователя 2026-11-08): мелкая вода — только масштабы ≫ толщины слоя: брать формы с a/h0 ≥ 3 (a — масштаб формы, SW1 «Идеальные формы»); значит при заданных M и a/h0 крутизна s = H·√2·e^(−½)/a выходит из них, а не задаётся. dx = a/20 (численная сходимость; проверить на 2–3 случаях a/40 — режим не меняется).\nA1 (гидравлика, dim 1, c_d = 0, forcing none, h0 = 1000 м, b0 = 0,1): ridge при a/h0 = 3 — полная сетка F0 ∈ {0,2; 0,3; 0,5; 0,7; 0,85; 1,2; 1,5; 2; 3} × M ∈ {0,05; 0,1; 0,2; 0,3; 0,4; 0,6; 0,8; 1,0; 1,2}; контроль формы — ridge a/h0 = 6 и step_up (a/h0 = 3) при F0 ∈ {0,5; 1,5; 2} × те же M. Старт — по SW1 (ровный поток). Зона гистерезиса (F0 > 1, M_s ≤ M < M_c): каждый такой случай ещё со вторым стартом — h_init/hu_init из теоретической ветви с прыжком на наветренном склоне (literature.md §2, R4j) через arrays SW1; в строке SW4 — отдельное имя случая с суффиксом _jstart. t_end — чтобы бор прошёл зонд x_up = −10a, но не дошёл до губки (оценка по скорости бора §2.4), губка у краёв; домен ≥ 30a в обе стороны. Сравнение: доля match по режимам (матрица путаницы regime_sw × regime_theory), h1/h0 и скорость бора против §2.4, Fr_crest.\nA2 (условия air-phase, docs/research/air_phase_results.md §0–1: хребет, H = 500 м, N = 0,01 с⁻¹, h/z_i ∈ {0,3; 1; 3}, Fr_game = U_sat/(N·H), в GRID U_sat = 5·Fr): Fr_game ∈ {0,3; 0,45; 0,6; 0,8; 0,9; 1,0; 1,1; 1,3; 1,6; 2; 3}; h0 = z_i = H/(h/z_i); U0 — по R1 п. 2 (профиль U10·(z/10)^α, α и z_sat — docs/guide/air-model/limits.md); b0 — оба варианта rule_b0: N2h0 (b0 = N²·h0) и N2delta (b0 = N²·δ, δ = n_layer_m из limits.md); c_d по R1 п. 4 (z0 = 0,1 м), forcing balance; форма — ridge s = 0,3 как в air-phase (a = H·√2·e^(−½)/s ≈ 1430 м). Случаи с a/h0 < 3 — считать, но в выводе пометить «вне применимости мелкой воды» (решение о масштабах). Итог: Fr_game,c перехода к блокированию (R1→R3/R5/R6) по h/z_i и rule_b0 против Fr_c air-phase для хребта (обход 0,89, обратное течение 0,96, застой 1,26; §0 таблица) — таблица.\nПрогоны — пачкой: один скрипт на серию, разбить на 3–5 частей и запустить каждую отдельно через .dpcli/dpcli job --lock cpu start swc8-<часть> <таймаут_с> <cmd> (замок — один слот = 1 ядро на часть), ждать .dpcli/dpcli job wait. Время — в README и вывод. Если суммарно > ~4 ч CPU — урезать сетку A1 (контроль формы) и написать, что урезано.\nВывод — docs/research/sw_charges/stage1-regimes.md (frontmatter type research, status active, module sw-charges, summary ≤ 140 симв., ≤ 40 КБ; ключи conclusion/data/applied_in): постановка, таблицы A1 и A2, чего модель не умеет, строка «**Вердикт:** …» — годится ли слой для режимов блокирования и какой rule_b0. r.json — вне копии (scratchpad, имя с SWC-8).",
+  "created": "2026-11-08T01:57:57",
+  "edited": "2026-11-08T01:58:27"
+}

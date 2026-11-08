@@ -1,0 +1,48 @@
+{
+  "id": "SWC-1",
+  "module": "sw-charges",
+  "type": "dp-researcher",
+  "title": "Литература: слой мелкой воды над рельефом, стоки, связь с моделью игры",
+  "goal": "Обзор постановок reduced-gravity/Рипа/двухслойной мелкой воды для течения над рельефом и стоков с проверенными формулами режимов по Fr и правилом перевода условий игры (U10, N, z_i, Δθ, нагрев) в h0, b0, U0, c_d; что берём, с надёжностью источников.",
+  "plan_ref": "Этапы и задачи (уточняет координатор)",
+  "contracts": [
+    {
+      "name": "SW1",
+      "version": "1",
+      "ref": "docs/contracts/sw-charges.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sw-charges-SWC-1",
+  "branch": "sw-charges/SWC-1",
+  "base": "feature/sw-charges",
+  "scope": [
+    "docs/research/sw_charges/literature.md",
+    "docs/INDEX.md",
+    "docs/registry/research.md"
+  ],
+  "dont_touch": [
+    "docs/contracts/",
+    "docs/plan/sw-charges.md",
+    "tools/research/sw_charges/sw_rs/"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": "bash -c '.dpcli/dpcli docs check 2>&1 | grep -E \"ОШИБКА.*sw_charges\"; test ${PIPESTATUS[1]} -eq 1'",
+      "expect": "exit=0"
+    },
+    {
+      "name": "sections",
+      "cmd": "grep -c '^## ' docs/research/sw_charges/literature.md",
+      "expect": "num:(\\d+) >=8"
+    },
+    {
+      "name": "refs",
+      "cmd": "grep -cE '^- \\[[0-9]+\\]' docs/research/sw_charges/literature.md",
+      "expect": "num:(\\d+) >=12"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-08T00:47:10"
+}
