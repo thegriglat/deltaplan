@@ -225,3 +225,4 @@
 {"t": "2026-11-08T05:52:33", "by": "coordinator", "task": "SWC-20", "ev": "accepted", "commits": ["c4af56142"], "note": "3/3 docs=ok:exit 0; problems=ok:12; findings=ok:11"}
 {"t": "2026-11-08T05:52:33", "by": "coordinator", "task": "SWC-20", "ev": "merged", "commits": ["c4af56142"]}
 {"t": "2026-11-08T05:52:42", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: task show без --full обрезает дополнения (поле notes видно целиком — использовать его); docs index переписывает registry/contracts.md вне скоупа задач (откатывали в 6 задачах); job wait уходит в фон через 180 с без прогресса; лимит 40 КБ и длина summary видны только в accept; task set contracts=ИМЯ@В пишет строку вместо объекта — task show падает"}
+{"t": "2026-11-08T20:04:30", "by": "main", "task": null, "ev": "delivered", "commits": ["780473eb6"], "note": "squash в main: 780473eb6"}
