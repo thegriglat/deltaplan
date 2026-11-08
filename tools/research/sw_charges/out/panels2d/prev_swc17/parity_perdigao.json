@@ -1,0 +1,38 @@
+{
+ "PERD_NE|potential": {
+  "n": 15,
+  "rmse_pan": 0.4826028681907508,
+  "rmse_air": 0.14408330923462304,
+  "bias_pan": 0.39403606732166846,
+  "bias_air": 0.08933333333333333,
+  "within15_pan": 5,
+  "within15_air": 11
+ },
+ "PERD_NE|vortex": {
+  "n": 15,
+  "rmse_pan": 0.27143978872693014,
+  "rmse_air": 0.14408330923462304,
+  "bias_pan": 0.19191894528721223,
+  "bias_air": 0.08933333333333333,
+  "within15_pan": 8,
+  "within15_air": 11
+ },
+ "PERD_SW|potential": {
+  "n": 13,
+  "rmse_pan": 0.2765194035784656,
+  "rmse_air": 0.140356688476182,
+  "bias_pan": 0.16103177668713567,
+  "bias_air": -0.05923076923076923,
+  "within15_pan": 7,
+  "within15_air": 9
+ },
+ "PERD_SW|vortex": {
+  "n": 13,
+  "rmse_pan": 0.20644864339970842,
+  "rmse_air": 0.140356688476182,
+  "bias_pan": -0.0664568850527029,
+  "bias_air": -0.05923076923076923,
+  "within15_pan": 8,
+  "within15_air": 9
+ }
+}

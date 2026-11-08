@@ -60,3 +60,14 @@ OPENBLAS_NUM_THREADS=1 tools/research/cascade_2d/py -I tools/research/sw_charges
 python3 tools/research/sw_charges/contract/check_contract.py tools/research/sw_charges/out/panels2d
 ```
 Данные и лицензии — как в SWC-12/16; новых внешних файлов нет. Эталон погрешности — `out/panels2d/tunnel/picard_err.json` (SWC-16).
+
+## SWC-19 (круг 4, последний): Jackson–Hunt и отрыв с подветренной
+Вывод — `docs/research/sw_charges/stage2-2d-jh.md`. SW7 v3 `out/panels2d/points.{json,csv}` (version 3: 6 вариантов, добавлены `potential_jh`, `vortex_jh`); прежний (SWC-17, v2) — `out/panels2d/prev_swc17/` (`points_v2.json.gz`). Библиотека `panels2d` (SW6 v4) не менялась.
+- `jh_common.py` — `run_jh_variants`: potential_jh (`velocity_jh`) и vortex_jh (`step(shed="auto")`, отрыв Хеда с `lee_only`, u = `velocity_jh` + вклад вихрей: `velocity_jh` вихрей не принимает, вклад добавляется как разность `velocity` с вихрями и без).
+- `run_jh.py <case>` → `cases/<case>_jh.json`; `run_jh_all.sh` — все 11 случаев (3 процесса, ≈ 41 мин CPU суммарно); `merge4.py` — SW7 v3, `tables.md`, `parity.json`, `info.json`.
+```
+.dpcli/dpcli lock cpu swc19 -- bash tools/research/sw_charges/panels_exp/run_jh_all.sh      # Perdigão требует scipy: PY=tools/research/cascade_2d/py (по умолчанию в скрипте)
+OPENBLAS_NUM_THREADS=1 tools/research/cascade_2d/py -I tools/research/sw_charges/panels_exp/merge4.py
+python3 tools/research/sw_charges/contract/check_contract.py tools/research/sw_charges/out/panels2d
+```
+Данные и лицензии — как в SWC-12/16/17; новых внешних файлов нет.
