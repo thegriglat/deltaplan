@@ -1,0 +1,14 @@
+alpha=0.15 beta=0.5 ind=False R0=69 L=5000 alive=101.1 us/step=402 zi 1538->1438 (enc 1708) dUlayer=-0.20 H/Hk@.1,.5,.75=[0.91, 0.49, 0.24] uw/u*2=[-0.22, -0.11, -0.18] budget=1.00
+beta_0 alpha=0.15 beta=0.0 ind=False R0=69 L=5000 alive=84.9 us/step=371 zi 1538->888 (enc 1708) dUlayer=-0.17 H/Hk@.1,.5,.75=[0.92, 0.74, 0.24] uw/u*2=[-0.21, -0.11, -0.3] budget=1.00
+beta_1 alpha=0.15 beta=1.0 ind=False R0=69 L=5000 alive=94.4 us/step=449 zi 1538->512 (enc 1708) dUlayer=-0.19 H/Hk@.1,.5,.75=[0.9, 0.48, 0.25] uw/u*2=[-0.21, -0.11, -0.1] budget=1.00
+ucap_300 alpha=0.15 beta=0.5 ind=False R0=69 L=5000 alive=101.1 us/step=369 zi 1538->1438 (enc 1708) dUlayer=-0.65 H/Hk@.1,.5,.75=[0.91, 0.49, 0.24] uw/u*2=[-0.16, 0.28, -1.33] budget=1.00
+alpha_0.10 alpha=0.1 beta=0.5 ind=False R0=69 L=5000 alive=87.5 us/step=522 zi 1538->2212 (enc 1708) dUlayer=-0.23 H/Hk@.1,.5,.75=[0.91, 0.47, 0.23] uw/u*2=[-0.21, -0.09, -0.25] budget=1.00
+alpha_0.20 alpha=0.2 beta=0.5 ind=False R0=69 L=5000 alive=98.0 us/step=477 zi 1538->1062 (enc 1708) dUlayer=-0.21 H/Hk@.1,.5,.75=[0.92, 0.48, 0.22] uw/u*2=[-0.21, -0.12, -0.13] budget=1.00
+induced_on alpha=0.15 beta=0.5 ind=True R0=69 L=5000 alive=64.3 us/step=10603 zi 1538->1262 (enc 1708) dUlayer=-0.19 H/Hk@.1,.5,.75=[1.04, 0.7, 0.57] uw/u*2=[-0.26, -0.16, -0.13] budget=1.00
+R0_50 alpha=0.15 beta=0.5 ind=False R0=50 L=5000 alive=203.6 us/step=644 zi 1538->1488 (enc 1708) dUlayer=-0.41 H/Hk@.1,.5,.75=[0.9, 0.5, 0.23] uw/u*2=[-0.75, -0.59, 0.05] budget=1.00
+R0_100 alpha=0.15 beta=0.5 ind=False R0=100 L=5000 alive=40.8 us/step=267 zi 1538->2088 (enc 1708) dUlayer=-0.01 H/Hk@.1,.5,.75=[0.69, 0.51, 0.25] uw/u*2=[0.07, 0.08, -0.09] budget=1.00
+L_2500 alpha=0.15 beta=0.5 ind=False R0=69 L=2500 alive=49.6 us/step=276 zi 1538->1038 (enc 1708) dUlayer=-0.23 H/Hk@.1,.5,.75=[0.9, 0.49, 0.23] uw/u*2=[-0.22, -0.11, -0.21] budget=1.00
+L_10000 alpha=0.15 beta=0.5 ind=False R0=69 L=10000 alive=198.4 us/step=683 zi 1538->1588 (enc 1708) dUlayer=-0.21 H/Hk@.1,.5,.75=[0.91, 0.49, 0.24] uw/u*2=[-0.22, -0.12, -0.21] budget=1.00
+gam_ml_0.1 alpha=0.15 beta=0.5 ind=False R0=69 L=5000 alive=103.5 us/step=449 zi 2262->1238 (enc 1759) dUlayer=-0.21 H/Hk@.1,.5,.75=[0.91, 0.51, 0.29] uw/u*2=[-0.22, -0.12, -0.19] budget=1.00
+gam_ml_1.0 alpha=0.15 beta=0.5 ind=False R0=69 L=5000 alive=96.5 us/step=435 zi 1538->1612 (enc 1640) dUlayer=-0.21 H/Hk@.1,.5,.75=[0.9, 0.47, 0.2] uw/u*2=[-0.23, -0.13, -0.16] budget=1.00
+with_forcing alpha=0.15 beta=0.5 ind=False R0=69 L=5000 alive=101.1 us/step=434 zi 1538->1438 (enc 1708) dUlayer=-0.20 H/Hk@.1,.5,.75=[0.91, 0.49, 0.24] uw/u*2=[-0.22, -0.11, -0.18] budget=1.00

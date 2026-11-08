@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# swc case|run ... — обёртка над python -m swpy
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec "$here/../py" -m swpy "$@"
