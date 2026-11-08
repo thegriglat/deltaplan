@@ -1,0 +1,52 @@
+{
+  "status": "partial",
+  "summary": "rotor3d v2: closure=reattach (R=0.25(x_r-x_c), Γ из u_t(x_r)=0, 1 решение панелей), gate=slope 0,27 по умолчанию; two_point — v1. Инвариант 'корень на Agnesi при пороге по умолчанию' невыполним: порог уклона 0,27 отрезает Agnesi.",
+  "commits": [
+    "72066515c SWD-13 rotor3d v2"
+  ],
+  "checks": [
+    {
+      "name": "pytest",
+      "value": "12 passed",
+      "pass": true
+    },
+    {
+      "name": "Agnesi gate=head: корень, |u_t(x_r)|<=1e-3U",
+      "value": "R=181 м, Γ=8950=4,7·U·H, nsolve 1",
+      "pass": true
+    },
+    {
+      "name": "Agnesi |u_min|/U",
+      "value": "-0,54 (контракт ~0,5, чуть выше — провал в отчёт)",
+      "pass": false
+    },
+    {
+      "name": "C2 нить, L зоны на 15 м",
+      "value": "680 м (Пикар ~800), R 232, Γ 13977, min u∥ -16 м/с",
+      "pass": true
+    },
+    {
+      "name": "C4 нити нет",
+      "value": "уклон 0,249<0,27",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Agnesi при gate=slope по умолчанию нити не получает: уклон сглаженного профиля 0,244 (ds 50) < 0,27"
+  ],
+  "questions": [
+    "SWD7 v2: порог уклона 0,27 не разделяет Agnesi H/L 0,5 (0,244; без сглаживания 0,32) и C4 (0,249; 0,31). Нужен другой критерий отрыва/сглаживания или инвариант Agnesi с gate=head."
+  ],
+  "how_to_check": ".dpcli/dpcli accept SWD-13",
+  "uncertain": [
+    {
+      "where": "rotor3d/rotor.py _solve_reattach",
+      "why": "R считается по s_r−s_c профиля (горизонтально), нормаль n от x_m; u_t(x_c) остаётся 13 м/с (фон 17) — гребень не гасится",
+      "checked": "тесты Agnesi/C2, независимое решение панелей"
+    }
+  ],
+  "dp_feedback": "job wait в фоне с run_in_background шлёт уведомление, но агенту нечем ждать — пришлось ждать на переднем плане",
+  "extra": {},
+  "t": "2026-11-08T18:53:35",
+  "by": "executor"
+}
