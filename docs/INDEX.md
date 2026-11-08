@@ -127,7 +127,7 @@ generated: true
   - [docs/research/sw_charges/stage2-2d-tunnel.md](research/sw_charges/stage2-2d-tunnel.md) — SWC-16: недобор dS панелей против труб Lubitz–White — от сглаживания фона и высоты сравнения, не формы; эталон Пикара у земли ±6–30 %.
   - [docs/research/sw_charges/stage2-2d.md](research/sw_charges/stage2-2d.md) — SWC-12: панели и вихри на 2D-разрезах: паритета у земли с Пикаром, трубой и мачтами нет, ротор с вихрями есть.
   - [docs/research/sw_charges/unified-scales.md](research/sw_charges/unified-scales.md) — Три варианта единого описания ветра трёх масштабов (вихревые частицы, слой + поток массы, диполи и пары), литература, два 2D-прототипа.
-  - [docs/research/sw_charges.md](research/sw_charges.md) — Итог sw-charges: слой Рипа (этап 1), панели и вихри на 2D (этап 2), прототип A над рельефом — вердикты с числами.
+  - [docs/research/sw_charges.md](research/sw_charges.md) — Итог sw-charges: слой Рипа, панели и вихри на 2D (три круга), прототип A; итог 2D — проблемы для 3D (схема / 2D-артефакт).
   - [tools/research/sw_charges/README.md](../tools/research/sw_charges/README.md) — sw-charges: опыты слоя мелкой воды (Рипа, reduced gravity) и зарядов на поверхности рельефа на Rust — данные, команды, таблицы.
   - [tools/research/sw_charges/panels_exp/README.md](../tools/research/sw_charges/panels_exp/README.md) — SWC-12: панели и вихри panels2d против труб Lubitz–White, мачт Perdigão и Пикара (C1, C2, C4) на 2D-разрезах: код, команды, время, данные.
   - [tools/research/sw_charges/proto_a/README.md](../tools/research/sw_charges/proto_a/README.md) — Прототип A (SWC-6): вихревые частицы с плавучестью, 2D, прямая сумма на CuPy — термик-пятно и сдвиговой слой; код, команды, таблицы.
