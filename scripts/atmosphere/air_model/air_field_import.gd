@@ -63,6 +63,8 @@ static func _level(lv: Dictionary, body: PackedByteArray) -> WindField:
 			m["heat"] = _array(body, arrays[name])
 		elif name.begins_with("meta."):
 			m[name.substr(5)] = _array(body, arrays[name])
+		elif name == "k1":
+			m["k1"] = _array(body, arrays[name])  # версия 2 файла поля (PT-10): первая воздушная клетка
 	return WindField.from_arrays(
 		m, ch.u, ch.v, ch.w_mech, ch.w_conv, ch.theta, _array(body, arrays["hc"])
 	)

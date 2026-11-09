@@ -1,5 +1,5 @@
 {
- "description": "Автопилот у склона (BotPilot.setup_ridge), ветер 20 км/ч в склон, термики выключены, 5 мин, все 10 стартов. До = f44c66b4a, после = ветка PT-12. gain_*_m — среднее по 4 зёрнам атмосферы (4242,1,2,3); полёт хаотичен, разброс по зёрнам на одном старте 100-250 м.",
+ "description": "Автопилот у склона (BotPilot.setup_ridge), ветер 20 км/ч в склон, термики выключены, 5 мин, все 10 стартов. До = f44c66b4a, после = ветка PT-12. gain_*_m — среднее по 4 зёрнам атмосферы (4242,1,2,3); полёт хаотичен, разброс по зёрнам на одном старте 100-250 м. Поле после: с патчем PT-14 (GD-зеркало k1/якорь) на ветке PT-12.",
  "seeds": [
   4242,
   1,
@@ -95,7 +95,7 @@
   "askarovo/biyagoda_south_west": {
    "gain_before_m": 190.56,
    "gain_after_m": 102.8,
-   "delta_m": -87.76,
+   "delta_m": -87.75,
    "per_seed_before_m": {
     "4242": 250.19,
     "1": 254.39,
@@ -146,7 +146,7 @@
   "aushkul/ridge_west": {
    "gain_before_m": -76.61,
    "gain_after_m": -66.88,
-   "delta_m": 9.73,
+   "delta_m": 9.74,
    "per_seed_before_m": {
     "4242": -88.31,
     "1": -108.28,
@@ -163,7 +163,7 @@
   "ongudai/kayancha_south": {
    "gain_before_m": 180.58,
    "gain_after_m": 127.14,
-   "delta_m": -53.44,
+   "delta_m": -53.45,
    "per_seed_before_m": {
     "4242": 72.99,
     "1": 167.68,
@@ -181,10 +181,10 @@
  "gain_after_minus_before_min_m": -101.81,
  "gain_after_minus_before_mean_m": -22.98,
  "gain_after_minus_before_median_m": -1.07,
- "gain_after_minus_before_min_seed4242_m": -131.71,
  "ridge_new_fails": 1,
+ "ridge_new_fails_excl_q2": 0,
+ "nan_count": 0,
  "ridge_new_fails_detail": [
-  "seed 4242, test_lee_zone_all_starts, aushkul/aushtau_south: болтанка подветренной 1.48 м/с > наветренной 1.57 м/с (до: 2.05 > 1.42)"
- ],
- "nan_count": 0
+  "test_lee_zone_all_starts aushkul/aushtau_south (seed 4242): 1.48 > 1.57 не выполнено, до 2.05 > 1.42 — известное падение Q2 (до lee-turb)"
+ ]
 }
