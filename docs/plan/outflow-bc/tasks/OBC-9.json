@@ -1,0 +1,67 @@
+{
+  "id": "OBC-9",
+  "module": "outflow-bc",
+  "type": "dp-writer",
+  "title": "Итог модуля: этап 1, предварительно этап 2, открытые вопросы",
+  "goal": "В docs/research/outflow_bc.md — итог модуля: этап 1 (мягкий выход не помогает, числа OBC-3/OBC-4), предварительные выводы этапа 2 (OBC-5 критерий (г), стенд OBC-6 есть, прогон корпуса не делался — отменён), что осталось открытым; строка в findings; документ закрыт (status closed).",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "OB2",
+      "version": "1",
+      "ref": "docs/contracts/outflow-bc.md"
+    },
+    {
+      "name": "OB4",
+      "version": "1",
+      "ref": "docs/contracts/outflow-bc.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/outflow-bc-OBC-9",
+  "branch": "outflow-bc/OBC-9",
+  "base": "feature/outflow-bc",
+  "scope": [
+    "docs/research/outflow_bc.md",
+    "docs/registry/findings.md",
+    "tools/research/outflow_bc/README.md",
+    "docs/INDEX.md"
+  ],
+  "dont_touch": [
+    "docs/plan",
+    "docs/contracts",
+    "rust",
+    "tools/research/outflow_bc/stopfit",
+    "tools/research/outflow_bc/stage2.md",
+    "tools/research/outflow_bc/out"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check docs/research/outflow_bc.md docs/registry/findings.md tools/research/outflow_bc/README.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "closed",
+      "cmd": "sed -n 1,8p docs/research/outflow_bc.md",
+      "expect": "re:status: \"?closed"
+    },
+    {
+      "name": "stage2",
+      "cmd": "grep -c -E '^##+ .*[Ээ]тап 2' docs/research/outflow_bc.md",
+      "expect": "num:(\\d+) >=1"
+    },
+    {
+      "name": "open",
+      "cmd": "grep -c -E '^##+ .*(Открыт|открыт)' docs/research/outflow_bc.md",
+      "expect": "num:(\\d+) >=1"
+    },
+    {
+      "name": "findings",
+      "cmd": "grep -c 'research/outflow_bc.md#' docs/registry/findings.md",
+      "expect": "num:(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T16:15:09"
+}
