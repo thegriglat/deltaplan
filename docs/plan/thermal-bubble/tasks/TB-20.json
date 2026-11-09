@@ -1,0 +1,91 @@
+{
+  "id": "TB-20",
+  "module": "thermal-bubble",
+  "type": "dp-engineer",
+  "title": "Круг 3: приток у земли в рельефе — высота таблицы пузыря над локальной землёй (TB4 v5)",
+  "goal": "По TB4 v5 опрашивать таблицу пузыря у земли по высоте над рельефом (сшивка 60–120 м к высоте над плоскостью источника), чтобы на склонах был приток к термику, как на плоскости, без скачков по высоте и без изменения поля выше 120 м.",
+  "plan_ref": "Задачи, круг 3 п. 8",
+  "contracts": [
+    {
+      "name": "TB4",
+      "version": "6",
+      "ref": "docs/contracts/thermal-bubble.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/thermal-bubble-TB-20",
+  "branch": "thermal-bubble/TB-20",
+  "base": "feature/thermal-bubble",
+  "scope": [
+    "rust/dp-air/src/terms/thermal/sample.rs",
+    "rust/dp-air/src/terms/thermal/mod.rs",
+    "rust/dp-air/src/terms/thermal/bubble.rs",
+    "rust/dp-air/src/terms/sum.rs",
+    "rust/dp-air/tests/thermal_bubble_embed.rs",
+    "rust/dp-air/tests/thermal_bubble_terrain.rs",
+    "rust/dp-air/tests/data/thermal_bubble_sample_v5.json",
+    "rust/dp-air/tests/thermal_bubble_cost.rs"
+  ],
+  "dont_touch": [
+    "rust/dp-air/src/terms/thermal/profile.rs",
+    "rust/dp-air/src/terms/thermal/life.rs",
+    "rust/dp-air/src/terms/thermal/cells.rs",
+    "rust/dp-air/src/terms/thermal_air/",
+    "rust/dp-air/tests/thermal_bubble_ground.rs",
+    "tools/research/thermal_bubble/",
+    "scripts/",
+    "configs/",
+    "data/",
+    "docs/",
+    "rust/Cargo.toml"
+  ],
+  "accept": [
+    {
+      "name": "dp_air_tests",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --release",
+      "expect": "exit=0"
+    },
+    {
+      "name": "terrain_zero",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --release --test thermal_bubble_terrain bubble_terrain_inflow -- --nocapture",
+      "expect": "num:terrain_zero_frac=([0-9.eE+-]+) <=0.10"
+    },
+    {
+      "name": "terrain_ur",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --release --test thermal_bubble_terrain bubble_terrain_inflow -- --nocapture",
+      "expect": "num:terrain_median_ur=([0-9.eE+-]+) >=0.05"
+    },
+    {
+      "name": "table_acc",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --release --test thermal_bubble_embed table_accuracy -- --nocapture",
+      "expect": "num:table_max_rel=([0-9.eE+-]+) <=0.05"
+    },
+    {
+      "name": "workspace",
+      "cmd": "cargo check --manifest-path rust/Cargo.toml --workspace --all-targets",
+      "expect": "exit=0"
+    },
+    {
+      "name": "blend_ratio",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --release --test thermal_bubble_terrain bubble_agl_blend_smooth -- --nocapture",
+      "expect": "num:agl_blend_ratio=([0-9.eE+-]+) <=1.6"
+    },
+    {
+      "name": "sum_agl",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --release --test thermal_bubble_terrain sum_uses_agl",
+      "expect": "exit=0"
+    },
+    {
+      "name": "cost",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --release --test thermal_bubble_cost bubble_sample_cost -- --nocapture",
+      "expect": "num:sample_ns_bubble=([0-9.eE+-]+) <=1500"
+    }
+  ],
+  "report_extra": [
+    "terrain_before_after",
+    "ground_altai_after",
+    "high_field_unchanged"
+  ],
+  "notes": "",
+  "created": "2026-11-09T23:41:23",
+  "edited": "2026-11-10T00:38:33"
+}
