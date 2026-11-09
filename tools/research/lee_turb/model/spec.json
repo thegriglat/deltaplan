@@ -1,0 +1,328 @@
+{
+ "format": "ltm-spec",
+ "version": 1,
+ "constants": [
+  {
+   "name": "mix_growth_per_lambda",
+   "value": 0.17,
+   "unit": "1",
+   "ltl": [
+    "br74_ddw_dx_over_lambda",
+    "del_ddw_dx_over_lambda",
+    "ml_ddelta_omega_dx_over_lambda"
+   ],
+   "derived": "среднее трёх измерений 0,181 / 0,168 / 0,16 = 0,170 (разброс 0,16-0,181)",
+   "doc": "dδ_ω/dx = s·λ, λ=(U1-U2)/(U1+U2)"
+  },
+  {
+   "name": "mix_delta0_over_h",
+   "value": 0.3,
+   "unit": "1",
+   "ltl": [
+    "ds_dw_x1",
+    "ds_ddw_dx_1_4"
+   ],
+   "derived": "ds_dw_x1 - ds_ddw_dx_1_4*1 = 0,4767 - 0,1809 = 0,296 (линейное продолжение к x=0)",
+   "doc": "начальная толщина слоя у гребня δ0/H (виртуальное начало слоя за уступом)"
+  },
+  {
+   "name": "mix_slow_x_over_xr",
+   "value": 0.64,
+   "unit": "1",
+   "ltl": [
+    "ds_x_tke_max"
+   ],
+   "doc": "x/x_r, после которого рост слоя замедляется (станция x/H=4 из x_r/H=6,28)"
+  },
+  {
+   "name": "mix_slow_factor",
+   "value": 0.57,
+   "unit": "1",
+   "ltl": [
+    "ds_ddw_dx_1_4"
+   ],
+   "derived": "0,1037 / 0,1809 (наклон x/H 4-6 к x/H 1-4)",
+   "doc": "множитель роста dδ_ω/dx после mix_slow_x_over_xr"
+  },
+  {
+   "name": "ridge_xr_over_h",
+   "value": 3.5,
+   "unit": "1",
+   "ltl": [
+    "ridge_xr_over_h",
+    "hill_sep_zone_kf"
+   ],
+   "doc": "длина пузыря x_r/H, когда поле её не разрешает (Perdigão 697 м / H 200 м; диапазон 2-5; гайд 2,8 в LTL не входит)"
+  },
+  {
+   "name": "bubble_resolved_cells",
+   "value": 8,
+   "unit": "1",
+   "assumption": "порог из конфигов проекта lee.field_resolved_cells=[4,8] и замера AM-08в: при L/dx>=8 поле само течёт назад у ~30 % точек; ниже 4 - почти никогда",
+   "doc": "L/dx, с которого x_r берётся из поля (между 4 и 8 - линейно)"
+  },
+  {
+   "name": "bubble_resolved_cells_min",
+   "value": 4,
+   "unit": "1",
+   "assumption": "то же: ниже 4 клеток поле пузыря не даёт (AM-08в)",
+   "doc": "L/dx, ниже которого x_r - только эвристика"
+  },
+  {
+   "name": "xr_search_u_agl_m",
+   "value": 15.0,
+   "unit": "m",
+   "assumption": "нижний уровень поля 25 м (окно 50 м), выше стены; обратный ток ищется на этой высоте над землёй (LT-2: u10 при вертикальном шаге поля 25 м)",
+   "doc": "высота над землёй для поиска u<0 в поле"
+  },
+  {
+   "name": "lee_slope_on",
+   "value": 0.128,
+   "unit": "1",
+   "assumption": "tan 7,3 град: наименьший угол линии отрыва решателя по формам (хребет 7,3, configs lee.shadow_angle_deg_doc, AP-10); не из LTL, критерий отрыва в LTL отсутствует",
+   "doc": "уклон подветренной линии гребень - точка присоединения, с которого слой появляется"
+  },
+  {
+   "name": "lee_slope_full",
+   "value": 0.22,
+   "unit": "1",
+   "assumption": "tan 12,4 град: наибольший угол решателя (холм 12,4, там же); выше слой полной силы",
+   "doc": "уклон полной силы слоя"
+  },
+  {
+   "name": "crest_search_m",
+   "value": 3200.0,
+   "unit": "m",
+   "assumption": "больше configs lee.upwind_distances_m (1600 м): слой за гребнем H=350-400 м живёт 2-3 x_r = до 3-4 км (LT-5 нашёл: при 1600 м слой обрывался на x/H 4-6); не из LTL",
+   "doc": "дальность поиска гребня против ветра"
+  },
+  {
+   "name": "foot_search_m",
+   "value": 1500.0,
+   "unit": "m",
+   "assumption": "как у H Menke 2019 и LT-2 (минимум рельефа за гребнем в пределах 1500 м)",
+   "doc": "дальность поиска подножия по ветру от гребня"
+  },
+  {
+   "name": "crest_step_m",
+   "value": 50.0,
+   "unit": "m",
+   "assumption": "шаг опроса высоты земли: клетка поля 50 м; экономия запросов",
+   "doc": "шаг луча при поиске гребня до crest_near_m"
+  },
+  {
+   "name": "crest_near_m",
+   "value": 800.0,
+   "unit": "m",
+   "assumption": "дальше 800 м шаг луча крупнее (crest_step_far_m) - гребень не нужно искать точно",
+   "doc": "до какой дальности шаг crest_step_m"
+  },
+  {
+   "name": "crest_step_far_m",
+   "value": 100.0,
+   "unit": "m",
+   "assumption": "то же",
+   "doc": "шаг луча дальше crest_near_m"
+  },
+  {
+   "name": "crest_drop_abs_m",
+   "value": 30.0,
+   "unit": "m",
+   "assumption": "гребень - первый (против ветра) максимум, за которым земля падает не менее чем на max(30 м, 25 %·(h_max-h_точки)); меньшие бугры на подветренном склоне гребнем не считаются; порог не из LTL",
+   "doc": "минимальное падение земли за гребнем, м"
+  },
+  {
+   "name": "crest_drop_frac",
+   "value": 0.25,
+   "unit": "1",
+   "assumption": "то же: доля превышения",
+   "doc": "минимальное падение за гребнем, доля превышения"
+  },
+  {
+   "name": "u2_height_over_h",
+   "value": 0.1,
+   "unit": "1",
+   "ltl": [
+    "ds_uback"
+   ],
+   "doc": "U2 - ветер поля на 0,1·H над землёй (ds_uback измерен на y/H=0,1)"
+  },
+  {
+   "name": "u2_min_over_u1",
+   "value": -0.17,
+   "unit": "1",
+   "ltl": [
+    "ds_uback"
+   ],
+   "doc": "нижний предел U2/U1 - обратный ток уступа (холм -0,25, ridge_u_back до -4 м/с в LTL как максимум)"
+  },
+  {
+   "name": "u2_unresolved_over_u1",
+   "value": -0.1,
+   "unit": "1",
+   "ltl": [
+    "ds_uback"
+   ],
+   "derived": "середина между -0,171 (x/H=4) и -0,035 (x/H=1) на y/H=0,1 уступа Driver-Seegmiller",
+   "doc": "U2/U1 в следе, когда пузырь в поле не разрешён (поле в таких клетках след занижает: LT-2)"
+  },
+  {
+   "name": "lambda_max",
+   "value": 1.0,
+   "unit": "1",
+   "assumption": "формула роста слоя s·λ проверена BR74 при 0<λ<1; обратный ток (U2<0) даёт λ>1 - обрезаем до одно-поточного предела",
+   "doc": "верхний предел λ"
+  },
+  {
+   "name": "u1_min_ms",
+   "value": 1.0,
+   "unit": "m/s",
+   "assumption": "при U1<1 м/с слоя нет (штиль, λ неопределена)",
+   "doc": "минимальный U1"
+  },
+  {
+   "name": "yc_end_over_h",
+   "value": 0.3,
+   "unit": "1",
+   "ltl": [
+    "ds_y_tke_max"
+   ],
+   "doc": "минимальная высота линии слоя над землёй, долей H (y/H пика на x/H=6 - 0,3)"
+  },
+  {
+   "name": "sigma_u_over_du",
+   "value": 0.1663,
+   "unit": "1",
+   "ltl": [
+    "del_sigma_u_peak"
+   ],
+   "doc": "пик σ_u/ΔU"
+  },
+  {
+   "name": "sigma_v_over_du",
+   "value": 0.1303,
+   "unit": "1",
+   "ltl": [
+    "del_sigma_v_peak"
+   ],
+   "doc": "пик σ_v/ΔU"
+  },
+  {
+   "name": "sigma_w_over_du",
+   "value": 0.1532,
+   "unit": "1",
+   "ltl": [
+    "del_sigma_w_peak"
+   ],
+   "doc": "пик σ_w/ΔU (гайд: 0,14 - расхождение)"
+  },
+  {
+   "name": "profile_sigma_over_delta",
+   "value": 0.4916,
+   "unit": "1",
+   "ltl": [
+    "del_su_prof_half"
+   ],
+   "derived": "σ_y/δ_ω = 0,5/sqrt(-2 ln 0,5959) для гауссова профиля, σ(0,5δ_ω)/σпик = 0,5959",
+   "doc": "ширина гаусса поперёк слоя в долях δ_ω"
+  },
+  {
+   "name": "ramp_x_over_xr",
+   "value": 0.15,
+   "unit": "1",
+   "ltl": [
+    "ds_su_x1",
+    "ds_su_x4",
+    "ds_xr"
+   ],
+   "derived": "1-exp(-(1/6,28)/ξ) = ds_su_x1/ds_su_x4 = 0,652 => ξ = 0,151",
+   "doc": "нарастание σ от гребня 1-exp(-x/(ξ·x_r))"
+  },
+  {
+   "name": "decay_x0_over_xr",
+   "value": 0.64,
+   "unit": "1",
+   "ltl": [
+    "ds_x_tke_max"
+   ],
+   "doc": "x/x_r, с которого σ убывает (положение максимума на уступе)"
+  },
+  {
+   "name": "decay_length_over_xr",
+   "value": 2.0,
+   "unit": "1",
+   "ltl": [
+    "ds_su_x4",
+    "ds_su_x6",
+    "ds_su_x10",
+    "ds_xr"
+   ],
+   "derived": "МНК ln(σ/σ4) = -(x-x4)/L по x/H = 6, 10: L = 2,0 x_r (холм: 4-9 x_r - слой медленнее)",
+   "doc": "длина убывания σ за максимумом"
+  },
+  {
+   "name": "mix_len_over_delta",
+   "value": 0.1086,
+   "unit": "1",
+   "ltl": [
+    "del_uv_peak"
+   ],
+   "derived": "-u'v'max = l²(dU/dz)², dU/dz max = ΔU/δ_ω => l/δ_ω = sqrt(0,0118) = 0,1086",
+   "doc": "предел длины перемешивания в слое l ≤ k·δ_ω"
+  },
+  {
+   "name": "mech_lambda_m",
+   "value": 40.0,
+   "unit": "m",
+   "assumption": "прежняя модель: λ = max(40 м, 0,0158·h); при h до 2500 м - 40 м; нужна только прототипу для отношения l_эфф/l (в игре l есть)",
+   "doc": "верхний предел l прежней модели в прототипе"
+  },
+  {
+   "name": "eddy_scale_over_delta",
+   "value": 0.48,
+   "unit": "1",
+   "ltl": [
+    "br74_eddy_spacing"
+   ],
+   "derived": "L = 3,3 δ_ω / 6,87 (пик k·S фон Кармана на длине волны 6,87 L, как в guide); C",
+   "doc": "интегральный масштаб L_u = L_w слоя"
+  },
+  {
+   "name": "carry_speed_weight",
+   "value": 0.5,
+   "unit": "1",
+   "assumption": "U_c=(U1+U2)/2 - допущение BR74, измеренной скорости переноса в LTL нет",
+   "doc": "вес U1 в скорости переноса вихрей"
+  },
+  {
+   "name": "burst_peak_sigmas",
+   "value": 3.0,
+   "unit": "1",
+   "assumption": "рывок вниз = пик 3σ_w слоя, как в нынешнем коде (0,42 ΔU = 3·0,14 ΔU)",
+   "doc": "амплитуда рывков в σ_w слоя, нулевое среднее"
+  },
+  {
+   "name": "combine_rule_power",
+   "value": 1.0,
+   "unit": "1",
+   "assumption": "σ = max(σ_мех с l_эфф, σ_слоя): l-ограниченная механика - то же сдвиговое производство, суммирование удвоило бы его (σ² даёт ≤ +41 % при равенстве)",
+   "doc": "1 = максимум, 2 = корень из суммы квадратов (для чувствительности)"
+  }
+ ],
+ "formulas": [
+  "x = расстояние от гребня по ветру; гребень: идём против ветра от точки шагом crest_step_m до crest_near_m, затем crest_step_far_m до crest_search_m (40 опросов), гребень = последний максимум до падения земли ниже (max - max(crest_drop_abs_m, crest_drop_frac·(max - h_точки))); H = h_гребня - min h на foot_search_m по ветру от гребня",
+  "x_r = L_поля, если L/dx >= bubble_resolved_cells, иначе ridge_xr_over_h·H (линейно между 4 и 8 клетками); L_поля = длина участка u<0 на xr_search_u_agl_m над землёй",
+  "s_lee = (h_гребня - h(x_r))/x_r; f_sep = smoothstep(lee_slope_on, lee_slope_full, s_lee)",
+  "линия слоя y_c(x) = max( h_гребня - (h_гребня - h(x_r))·x/x_r , h(x) + yc_end_over_h·H·min(x/x_r, 1) ), высота MSL",
+  "U1 = u_par(x, h_гребня); U2 = r·clamp(u_par(x, h(x)+u2_height_over_h·H), u2_min_over_u1·U1, U1) + (1-r)·u2_unresolved_over_u1·U1, r = доля разрешённого пузыря (0 при L/dx<4, 1 при L/dx>=8); ΔU = U1-U2, λ = min(ΔU/(U1+U2), lambda_max)",
+  "δ_ω(x) = mix_delta0_over_h·H + mix_growth_per_lambda·λ·(min(x, x_b) + mix_slow_factor·max(x-x_b, 0)), x_b = mix_slow_x_over_xr·x_r",
+  "g_x(x) = (1-exp(-x/(ramp_x_over_xr·x_r)))·exp(-max(x - decay_x0_over_xr·x_r, 0)/(decay_length_over_xr·x_r)), x>0",
+  "η = (y - y_c)/(profile_sigma_over_delta·δ_ω); G(η)=exp(-η²/2)",
+  "σ_i,слоя = f_sep·sigma_i_over_du·ΔU·g_x·G(η), i = u,v,w",
+  "ramp(x) = 1-exp(-x/(ramp_x_over_xr·x_r)); w_слоя = f_sep·ramp(x)·G(η); l_эфф = l·(1-w) + min(l, mix_len_over_delta·δ_ω)·w; σ_мех,новая = σ_мех·l_эфф/l (σ ∝ u* ∝ l)",
+  "σ_i = max(σ_мех,i с l_эфф, σ_i,слоя) (combine_rule_power=2: корень суммы квадратов); конвективная ветвь не меняется",
+  "L_u = L_w = eddy_scale_over_delta·δ_ω внутри слоя (по весу w_слоя смешивается с прежним масштабом); скорость переноса U_c = (U1+U2)/2",
+  "рывки вниз: амплитуда burst_peak_sigmas·σ_w,слоя, нулевое среднее (вычитается среднее g), доля дисперсии вычитается из гауссовой части",
+  "стоимость на точку: поиск гребня 40 опросов высоты земли (16 по 50 м + 24 по 100 м); кэш на гребень: ~31 (подножие, 50 м) + 1 (h(x_r)); поле: 2 опроса столбца (U1, U2); прежний relief_at - 6 опросов"
+ ]
+}
