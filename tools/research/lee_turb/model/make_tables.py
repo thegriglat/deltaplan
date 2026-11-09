@@ -39,23 +39,23 @@ for b, m in base.items():
 K = proto.K
 LT = {r["id"]: float(r["value"]) for r in csv.DictReader(open(os.path.join(HERE, "..", "lit", "lit_numbers.csv"), encoding="utf-8"))}
 L.append("\n### T5. Форма против уступа и холма (λ-модель, ΔU = U_ref(1−U2/U1), U2/U1 = −0,10, как без пузыря)\n")
-geo_step = dict(H=1.0, h_c=1.0, h_at_xr=0.0)
+geo_step = dict(H=1.0, h_c=1.0, h_at_xr=0.0, s_lee=1.0)
 rows = []
 xr = LT["ds_xr"]
 L.append("| величина | x/H | эксперимент | модель |\n|---|---|---|---|")
 for key, xh in (("ds_su_x1", 1), ("ds_su_x4", 4), ("ds_su_x6", 6), ("ds_su_x10", 10)):
-    st = proto.layer_state(np.array([float(xh)]), np.array([0.0]), np.zeros(1), dict(H=1.0, h_c=1.0, h_at_xr=0.0), xr, 1.0, K["u2_unresolved_over_u1"], f_sep_force=1.0)
+    st = proto.layer_state(np.array([float(xh)]), np.array([0.0]), np.zeros(1), dict(H=1.0, h_c=1.0, h_at_xr=0.0, s_lee=1.0), xr, 1.0, K["u2_unresolved_over_u1"], f_sep_force=1.0)
     yc = st["yc"][0]
-    st = proto.layer_state(np.array([float(xh)]), np.array([yc]), np.zeros(1), dict(H=1.0, h_c=1.0, h_at_xr=0.0), xr, 1.0, K["u2_unresolved_over_u1"], f_sep_force=1.0)
+    st = proto.layer_state(np.array([float(xh)]), np.array([yc]), np.zeros(1), dict(H=1.0, h_c=1.0, h_at_xr=0.0, s_lee=1.0), xr, 1.0, K["u2_unresolved_over_u1"], f_sep_force=1.0)
     L.append(f"| уступ: пик σ_u/U_ref | {xh} | {LT[key]:.3f} | {st['sig_u'][0]:.3f} |")
 for key, xh in (("ds_dw_x1", 1), ("ds_dw_x4", 4), ("ds_dw_x6", 6)):
-    st = proto.layer_state(np.array([float(xh)]), np.array([0.0]), np.zeros(1), dict(H=1.0, h_c=1.0, h_at_xr=0.0), xr, 1.0, K["u2_unresolved_over_u1"], f_sep_force=1.0)
+    st = proto.layer_state(np.array([float(xh)]), np.array([0.0]), np.zeros(1), dict(H=1.0, h_c=1.0, h_at_xr=0.0, s_lee=1.0), xr, 1.0, K["u2_unresolved_over_u1"], f_sep_force=1.0)
     L.append(f"| уступ: δ_ω/H | {xh} | {LT[key]:.2f} | {st['delta'][0]:.2f} |")
 xrh = LT["hill_xr"]
 for key, xh in (("hill_su_x0p5", 0.5), ("hill_su_x2", 2), ("hill_su_x4", 4), ("hill_su_x6", 6), ("hill_su_x8", 8)):
-    st = proto.layer_state(np.array([float(xh)]), np.array([1.0]), np.zeros(1), dict(H=1.0, h_c=1.0, h_at_xr=0.0), xrh, 1.0, K["u2_unresolved_over_u1"], f_sep_force=1.0)
+    st = proto.layer_state(np.array([float(xh)]), np.array([1.0]), np.zeros(1), dict(H=1.0, h_c=1.0, h_at_xr=0.0, s_lee=1.0), xrh, 1.0, K["u2_unresolved_over_u1"], f_sep_force=1.0)
     yc = st["yc"][0]
-    st = proto.layer_state(np.array([float(xh)]), np.array([yc]), np.zeros(1), dict(H=1.0, h_c=1.0, h_at_xr=0.0), xrh, 1.0, K["u2_unresolved_over_u1"], f_sep_force=1.0)
+    st = proto.layer_state(np.array([float(xh)]), np.array([yc]), np.zeros(1), dict(H=1.0, h_c=1.0, h_at_xr=0.0, s_lee=1.0), xrh, 1.0, K["u2_unresolved_over_u1"], f_sep_force=1.0)
     L.append(f"| холм: пик σ_u/u_b (Re 10 600) | {xh} | {LT[key]:.3f} | {st['sig_u'][0]:.3f} |")
 open(os.path.join(O, "tables.md"), "w", encoding="utf-8").write("\n".join(L) + "\n")
 print("\n".join(L))
