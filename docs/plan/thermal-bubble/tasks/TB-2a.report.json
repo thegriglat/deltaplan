@@ -1,0 +1,50 @@
+{
+  "status": "partial",
+  "summary": "current.py (порт profile.rs, только w) + allen_core, test_current.py и literature.md с 7 строками TB3 сделаны. Из-за веб-поиска (только аннотации) числа есть лишь для профиля L&S, радиуса и доли площади; для 4 величин чисел нет.",
+  "commits": [
+    "43255c6e6 thermal-bubble TB-2a: порт нынешнего профиля и таблица литературных эталонов"
+  ],
+  "checks": [
+    {
+      "name": "contract_tb2",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "unit",
+      "value": "6 тестов ok",
+      "pass": true
+    },
+    {
+      "name": "lit_rows",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "lit_docs",
+      "value": "нет ОШИБКА thermal_bubble",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "rise_speed_over_wstar, inflow_ground_over_wstar, outflow_top_over_wstar, ring_sink_min_over_wstar: числа не найдены (полные тексты Schmidt&Schumann 1989, Young 1988, Sullivan 1998 недоступны) - в таблице прочерк, в TB-2b null",
+    "w_core 1-2 w* и доля 0,3-0,4 взяты из пересказа в docs/guide thermals.md, оригиналы не сверены"
+  ],
+  "questions": [
+    "Дать доступ к текстам L&S 1980 / Young 1988 / Schmidt&Schumann 1989 или своё LES для четырёх пустых величин?"
+  ],
+  "how_to_check": ".dpcli/dpcli accept TB-2a",
+  "uncertain": [
+    {
+      "where": "tools/research/thermal_bubble/literature.md",
+      "why": "Scorer/Turner alpha 0,1-0,25 из памяти, не сверено; помечено low",
+      "checked": "поиск не подтвердил"
+    }
+  ],
+  "dp_feedback": "Веб-поиск возвращает только библиографию; нет способа получить тексты статей.",
+  "extra": {
+    "ring_sink_factor_default": 1.6
+  },
+  "t": "2026-11-09T08:30:42",
+  "by": "executor"
+}
