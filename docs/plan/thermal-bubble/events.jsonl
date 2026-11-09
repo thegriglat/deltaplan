@@ -250,3 +250,5 @@
 {"t": "2026-11-09T21:05:06", "by": "coordinator", "task": "TB-18", "ev": "started"}
 {"t": "2026-11-09T21:05:07", "by": "coordinator", "task": "TB-19", "ev": "started"}
 {"t": "2026-11-09T21:05:15", "by": "coordinator", "task": "TB-16", "ev": "accepted", "note": "по отчёту: инструмент TB5 v2 и сводки r3; FAIL scope — неотслеживаемый r-TB-16.json; пороги притока/присутствия/кадра — в TB-20"}
+{"t": "2026-11-09T21:05:16", "by": "coordinator", "task": "TB-16", "ev": "accepted", "commits": ["1ad38a70d"], "note": "7/7 untouched=ok:exit 0; schema=ok:exit 0; cover=ok:0.8689; axis_dx=ok:0.2083; core_w=ok:0.798; dv_max_ratio=ok:1.0853; gd_check=ok:exit 0"}
+{"t": "2026-11-09T21:05:16", "by": "coordinator", "task": "TB-16", "ev": "merged"}
