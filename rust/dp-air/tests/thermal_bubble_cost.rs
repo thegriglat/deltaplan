@@ -1,9 +1,9 @@
 //! Цена и неизменность опроса шаблона пузыря (TB-19, круг 3 п. 8): `State::sample_bubble` на сцене бюджета (плотность
 //! Аллена) — `sample_same_as_before` сверяет поле с записью до правок (`data/thermal_bubble_sample_v5.json`),
 //! `bubble_sample_cost` меряет ns на точку (release, один поток). Запись фикстуры: `TB_WRITE_FIXTURE=1`.
+use dp_air::terms::Terms;
 use dp_air::terms::thermal::bubble::BubbleCache;
 use dp_air::terms::thermal::{AtmoThermal, GroundSource, NoClouds, State};
-use dp_air::terms::Terms;
 use dp_air::{Conditions, Configs, Focus};
 use serde_json::{Value, json};
 use std::path::{Path, PathBuf};
@@ -91,7 +91,6 @@ impl Rng {
         (z >> 11) as f64 / (1u64 << 53) as f64
     }
 }
-
 
 fn setup_on() -> Arc<dp_air::terms::thermal::Setup> {
     let mut on = scene_with(|_| {}, Arc::new(Spot));
@@ -189,7 +188,11 @@ fn near_thermal_points(st: &State, n: usize, seed: u64, t: f64) -> Vec<[f32; 3]>
             let ax = h.axis_at(y, ph.drift);
             let r = 3.0 * h.radius * rng.next().sqrt();
             let a = std::f64::consts::TAU * rng.next();
-            [(ax[0] + r * a.cos()) as f32, y as f32, (ax[1] + r * a.sin()) as f32]
+            [
+                (ax[0] + r * a.cos()) as f32,
+                y as f32,
+                (ax[1] + r * a.sin()) as f32,
+            ]
         })
         .collect()
 }
@@ -204,7 +207,12 @@ struct Rec {
     out: Vec<[f64; 5]>,
 }
 
-fn eval(st: &State, setup: &dp_air::terms::thermal::Setup, t: f64, pts: &[[f32; 3]]) -> Vec<[f64; 5]> {
+fn eval(
+    st: &State,
+    setup: &dp_air::terms::thermal::Setup,
+    t: f64,
+    pts: &[[f32; 3]],
+) -> Vec<[f64; 5]> {
     pts.iter()
         .map(|&p| {
             let (o, uh) = st.sample_bubble(setup, &NoClouds, p, t);
@@ -238,14 +246,19 @@ fn sample_same_as_before() {
         println!("fixture written");
         return;
     }
-    let recs: Vec<Rec> = serde_json::from_str(&std::fs::read_to_string(fixture_path()).unwrap()).unwrap();
+    let recs: Vec<Rec> =
+        serde_json::from_str(&std::fs::read_to_string(fixture_path()).unwrap()).unwrap();
     assert_eq!(recs.len(), 3);
     let (mut worst, mut nonzero) = (0.0f64, 0usize);
     for r in &recs {
         let now = eval(&st, &setup, r.t, &r.pts);
         for c in 0..5 {
             let vmax = r.out.iter().map(|o| o[c].abs()).fold(0.0, f64::max);
-            let dmax = now.iter().zip(&r.out).map(|(a, b)| (a[c] - b[c]).abs()).fold(0.0, f64::max);
+            let dmax = now
+                .iter()
+                .zip(&r.out)
+                .map(|(a, b)| (a[c] - b[c]).abs())
+                .fold(0.0, f64::max);
             if vmax > 0.0 {
                 worst = worst.max(dmax / vmax);
             } else {
@@ -260,34 +273,28 @@ fn sample_same_as_before() {
     assert!(worst <= 1e-6, "поле изменилось: {worst:e}");
 }
 
-/// Цена опроса, ns на точку (release, один поток): 20000 случайных точек круга 1500 м, лучший из 5 прогонов, медиана из
-/// 3 серий. `sample_ns_bubble=` — `State::sample_bubble`, `sample_ns_profile=` — `State::sample` (профиль, та же сцена).
+/// Цена опроса, ns на точку (release, один поток): 20000 случайных точек круга 1500 м, лучший из 21 прогона (машина
+/// общая: помехи только прибавляют время, минимум — оценка без них). `sample_ns_bubble=` — `State::sample_bubble`, `sample_ns_profile=` — `State::sample` (профиль, та же сцена).
 #[test]
 #[cfg_attr(debug_assertions, ignore = "цена меряется в release")]
 fn bubble_sample_cost() {
     let (setup, st) = scene_state();
     let pts = random_points(20000, 77);
     let time = |bubble: bool| -> f64 {
-        let mut series = Vec::new();
-        let mut acc = 0.0;
-        for _ in 0..3 {
-            let mut best = f64::INFINITY;
-            for _ in 0..5 {
-                let ts = std::time::Instant::now();
-                for p in &pts {
-                    acc += if bubble {
-                        st.sample_bubble(&setup, &NoClouds, *p, T0).0[0]
-                    } else {
-                        st.sample(&setup, &NoClouds, *p, T0)[0]
-                    };
-                }
-                best = best.min(ts.elapsed().as_secs_f64() * 1e9 / pts.len() as f64);
+        let (mut best, mut acc) = (f64::INFINITY, 0.0);
+        for _ in 0..21 {
+            let ts = std::time::Instant::now();
+            for p in &pts {
+                acc += if bubble {
+                    st.sample_bubble(&setup, &NoClouds, *p, T0).0[0]
+                } else {
+                    st.sample(&setup, &NoClouds, *p, T0)[0]
+                };
             }
-            series.push(best);
+            best = best.min(ts.elapsed().as_secs_f64() * 1e9 / pts.len() as f64);
         }
         std::hint::black_box(acc);
-        series.sort_by(|a, b| a.total_cmp(b));
-        series[1]
+        best
     };
     let prof = time(false);
     let bub = time(true);

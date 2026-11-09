@@ -936,16 +936,63 @@ impl Frame {
     }
 }
 
+/// Ячейка билинейной выборки таблицы: положение четырёх узлов `[(i, j), (i, j+1), (i+1, j), (i+1, j+1)]`, доли по ρ и z
+/// и сами узлы после [`Cell::load`]. Положение и чтение разделены: опрос сначала находит ячейки всех таблиц в точке, потом
+/// читает узлы подряд — независимые загрузки перекрывают промахи кеша (таблицы разных термиков не в кеше).
+#[derive(Clone, Copy, Debug)]
+pub struct Cell<'a> {
+    data: &'a [Pair],
+    /// Индекс пары `(i, j)`; узлы `j` и `j + 1` — соседние пары.
+    k: usize,
+    tr: f64,
+    tz: f64,
+    c: [[f32; 2]; 4],
+}
+
+impl Cell<'_> {
+    /// Прочитать четыре узла.
+    #[inline]
+    pub fn load(&mut self) {
+        let (p0, p1) = (self.data[self.k], self.data[self.k + 1]);
+        self.c = [p0[0], p1[0], p0[1], p1[1]];
+    }
+
+    /// Билинейная выборка `(u_ρ, w)` (после [`Cell::load`]).
+    #[inline]
+    pub fn value(&self) -> [f64; 2] {
+        let [c00, c01, c10, c11] = self.c;
+        let (tr, tz) = (self.tr, self.tz);
+        let (w00, w01) = ((1.0 - tr) * (1.0 - tz), (1.0 - tr) * tz);
+        let (w10, w11) = (tr * (1.0 - tz), tr * tz);
+        let l = |k: usize| {
+            f64::from(c00[k]) * w00
+                + f64::from(c01[k]) * w01
+                + f64::from(c10[k]) * w10
+                + f64::from(c11[k]) * w11
+        };
+        [l(0), l(1)]
+    }
+}
+
+/// Пара соседних по ρ узлов таблицы `(u_ρ, w)`.
+type Pair = [[f32; 2]; 2];
+
 /// Таблица `(u_ρ, w)` `f32` одного пузыря по `(ρ, z)`: ρ — узлы с шагом ≤ [`STEP_AXIS_M`] у оси (дальше
 /// растёт), z — равномерно от 0 до `zi`; билинейная выборка; вне таблицы — 0.
 #[derive(Clone, Debug)]
 pub struct BubbleTable {
     rho: Vec<f64>,
+    /// Число ведущих узлов `rho[k] = k·STEP_AXIS_M` ровно (равномерная часть): индекс там — без поиска.
+    n_uni: usize,
+    /// Граница равномерной части: `n_uni · STEP_AXIS_M`.
+    r_uni: f64,
     nz: usize,
     dz: f64,
+    inv_dz: f64,
     pub zi: f64,
-    /// `data[i * nz + j]` — `(u_ρ, w)` в `(rho[i], j·dz)`.
-    data: Vec<[f32; 2]>,
+    /// `data[i * nz + j]` — пара узлов `(u_ρ, w)` в `(rho[i], j·dz)` и `(rho[i + 1], j·dz)` (строки `i < nr - 1`): все четыре узла
+    /// ячейки лежат рядом (одна-две строки кеша вместо двух далёких), цена — вдвое больше памяти.
+    data: Vec<Pair>,
     /// Радиус таблицы (влияния), м.
     pub r_max: f64,
     /// Состояние пузыря на момент сборки.
@@ -1095,8 +1142,8 @@ impl BubbleTable {
                 out
             }
         };
-        let mut data = vec![[0f32; 2]; nr * nz];
-        data.par_chunks_mut(nz).enumerate().for_each(|(i, col)| {
+        let mut nodes = vec![[0f32; 2]; nr * nz];
+        nodes.par_chunks_mut(nz).enumerate().for_each(|(i, col)| {
             for (j, c) in col.iter_mut().enumerate() {
                 let z = (j as f64 * dz).min(zi);
                 let h = b.hill_for_table(rho[i], z, zi);
@@ -1104,10 +1151,21 @@ impl BubbleTable {
                 *c = [(h[0] + p[0]) as f32, (h[1] + p[1]) as f32];
             }
         });
+        let data: Vec<Pair> = (0..(nr - 1) * nz)
+            .map(|k| [nodes[k], nodes[k + nz]])
+            .collect();
+        let n_uni = (0..rho.len())
+            .take_while(|&k| rho[k] == k as f64 * STEP_AXIS_M)
+            .count()
+            .saturating_sub(1);
+        let r_uni = n_uni as f64 * STEP_AXIS_M;
         BubbleTable {
             rho,
+            n_uni,
+            r_uni,
             nz,
             dz,
+            inv_dz: 1.0 / dz,
             zi,
             data,
             r_max,
@@ -1117,13 +1175,18 @@ impl BubbleTable {
     }
 
     pub fn bytes(&self) -> usize {
-        self.data.len() * std::mem::size_of::<[f32; 2]>()
-            + self.rho.len() * std::mem::size_of::<f64>()
+        self.data.len() * std::mem::size_of::<Pair>() + self.rho.len() * std::mem::size_of::<f64>()
     }
 
-    /// `(u_ρ, w)` в `(ρ, z)`; `None` — вне таблицы (ρ ≥ r_max или z вне `[0, zi]`).
+    /// Радиус таблицы по узлам ρ (последний узел): дальше `lookup` даёт `None`.
     #[inline]
-    pub fn lookup(&self, rho: f64, z: f64) -> Option<[f64; 2]> {
+    pub fn reach(&self) -> f64 {
+        self.rho[self.rho.len() - 1]
+    }
+
+    /// Ячейка билинейной выборки в `(ρ, z)` (узлы не прочитаны); `None` — вне таблицы (ρ ≥ r_max или z вне `[0, zi]`).
+    #[inline]
+    pub fn cell(&self, rho: f64, z: f64) -> Option<Cell<'_>> {
         let last = self.rho.len() - 1;
         if !rho.is_finite()
             || !z.is_finite()
@@ -1134,21 +1197,34 @@ impl BubbleTable {
         {
             return None;
         }
-        // узел слева: rho[i] ≤ ρ < rho[i + 1]
-        let i = self.rho.partition_point(|&r| r <= rho) - 1;
-        let fz = z / self.dz;
+        // узел слева: rho[i] ≤ ρ < rho[i + 1]; в равномерной части узлы — кратные шагу, без чтения `rho`
+        let (i, tr) = if rho < self.r_uni {
+            let u = rho * (1.0 / STEP_AXIS_M);
+            let i = u as usize;
+            (i, u - i as f64)
+        } else {
+            let i = self.n_uni + self.rho[self.n_uni..].partition_point(|&r| r <= rho) - 1;
+            (i, (rho - self.rho[i]) / (self.rho[i + 1] - self.rho[i]))
+        };
+        let fz = z * self.inv_dz;
         let j = (fz as usize).min(self.nz - 2);
         let tz = fz - j as f64;
-        let tr = (rho - self.rho[i]) / (self.rho[i + 1] - self.rho[i]);
-        let at = |a: usize, b: usize| self.data[a * self.nz + b];
-        let (c00, c01, c10, c11) = (at(i, j), at(i, j + 1), at(i + 1, j), at(i + 1, j + 1));
-        let l = |k: usize| {
-            f64::from(c00[k]) * (1.0 - tr) * (1.0 - tz)
-                + f64::from(c01[k]) * (1.0 - tr) * tz
-                + f64::from(c10[k]) * tr * (1.0 - tz)
-                + f64::from(c11[k]) * tr * tz
-        };
-        Some([l(0), l(1)])
+        Some(Cell {
+            data: &self.data,
+            k: i * self.nz + j,
+            tr,
+            tz,
+            c: [[0.0; 2]; 4],
+        })
+    }
+
+    /// `(u_ρ, w)` в `(ρ, z)`; `None` — вне таблицы (ρ ≥ r_max или z вне `[0, zi]`).
+    #[inline]
+    pub fn lookup(&self, rho: f64, z: f64) -> Option<[f64; 2]> {
+        self.cell(rho, z).map(|mut c| {
+            c.load();
+            c.value()
+        })
     }
 
     /// Высота в таблице для высоты `z` пузыря в положении `now`: земля неподвижна, шлейф растягивается между низом
@@ -1168,25 +1244,39 @@ impl BubbleTable {
         zt.clamp(0.0, self.zi)
     }
 
+    /// Ячейка в точке игры: `high` — высота над землёй источника, `rho` — расстояние от оси, `now` — положение пузыря в
+    /// момент опроса; `None` — вне таблицы.
+    #[inline]
+    pub fn cell_at(&self, high: f64, rho: f64, now: Frame) -> Option<Cell<'_>> {
+        if !(0.0..=self.zi).contains(&high) {
+            return None;
+        }
+        self.cell(rho, self.z_tab(high, now))
+    }
+
     /// Вклад в точке игры: `high` — высота над землёй источника, `dx`, `dz` — горизонталь от оси (x, z игры),
     /// `now` — положение пузыря в момент опроса. Возвращает `(w, [uh_x, uh_z])`.
     #[inline]
     pub fn eval(&self, high: f64, dx: f64, dz: f64, now: Frame) -> (f64, [f64; 2]) {
-        if !(0.0..=self.zi).contains(&high) {
-            return (0.0, [0.0; 2]);
-        }
-        let z = self.z_tab(high, now);
-        let rho = dx.hypot(dz);
-        match self.lookup(rho, z) {
+        let rho = (dx * dx + dz * dz).sqrt();
+        match self.cell_at(high, rho, now) {
             None => (0.0, [0.0; 2]),
-            Some([ur, w]) => {
-                if rho < 1e-6 {
-                    (w, [0.0; 2])
-                } else {
-                    (w, [ur * dx / rho, ur * dz / rho])
-                }
+            Some(mut c) => {
+                c.load();
+                polar(c.value(), dx, dz, rho)
             }
         }
+    }
+}
+
+/// `(w, uh)` из `(u_ρ, w)` таблицы и смещения от оси.
+#[inline]
+fn polar([ur, w]: [f64; 2], dx: f64, dz: f64, rho: f64) -> (f64, [f64; 2]) {
+    if rho < 1e-6 {
+        (w, [0.0; 2])
+    } else {
+        let k = ur / rho;
+        (w, [k * dx, k * dz])
     }
 }
 
@@ -1256,9 +1346,16 @@ impl Blend {
         }
     }
 
-    /// `(w, [uh_x, uh_z])` в момент `t`.
+    /// Радиус, дальше которого ни одна из таблиц пары не даёт вклада (по узлам ρ), м.
     #[inline]
-    pub fn eval(&self, high: f64, dx: f64, dz: f64, t: f64) -> (f64, [f64; 2]) {
+    pub fn reach(&self) -> f64 {
+        let r = |t: &Option<std::sync::Arc<BubbleTable>>| t.as_ref().map_or(0.0, |t| t.reach());
+        r(&self.a).max(r(&self.b))
+    }
+
+    /// Ячейки обеих таблиц пары в точке (веса смеси в момент `t`); `rho` — расстояние от оси.
+    #[inline]
+    pub fn cells(&self, high: f64, rho: f64, t: f64) -> [Option<(f64, Cell<'_>)>; 2] {
         let now = self.frame(t);
         let l = ((t - self.t_a) / (self.t_b - self.t_a)).clamp(0.0, 1.0);
         let (wa, wb) = match (&self.a, &self.b) {
@@ -1266,17 +1363,47 @@ impl Blend {
             (Some(_), None) => (1.0, 0.0),
             _ => (0.0, 1.0),
         };
-        let mut w = 0.0;
-        let mut h = [0.0; 2];
-        for (tb, k) in [(&self.a, wa), (&self.b, wb)] {
-            if let (Some(tb), true) = (tb, k > 0.0) {
-                let (wt, ht) = tb.eval(high, dx, dz, now);
-                w += k * wt;
-                h[0] += k * ht[0];
-                h[1] += k * ht[1];
+        fn one<'a>(
+            tb: &'a Option<std::sync::Arc<BubbleTable>>,
+            k: f64,
+            (high, rho, now): (f64, f64, Frame),
+        ) -> Option<(f64, Cell<'a>)> {
+            match tb {
+                Some(tb) if k > 0.0 => tb.cell_at(high, rho, now).map(|c| (k, c)),
+                _ => None,
             }
         }
-        (w, h)
+        let q = (high, rho, now);
+        [one(&self.a, wa, q), one(&self.b, wb, q)]
+    }
+
+    /// `(w, [uh_x, uh_z])` в момент `t` по ячейкам [`Blend::cells`].
+    #[inline]
+    pub fn mix(
+        cells: &[Option<(f64, Cell<'_>)>; 2],
+        dx: f64,
+        dz: f64,
+        rho: f64,
+    ) -> (f64, [f64; 2]) {
+        // `polar` линейна по `(u_ρ, w)`: смешиваем таблицы до перехода к `uh`
+        let mut v = [0.0; 2];
+        for (k, c) in cells.iter().flatten() {
+            let x = c.value();
+            v[0] += k * x[0];
+            v[1] += k * x[1];
+        }
+        polar(v, dx, dz, rho)
+    }
+
+    /// `(w, [uh_x, uh_z])` в момент `t`.
+    #[inline]
+    pub fn eval(&self, high: f64, dx: f64, dz: f64, t: f64) -> (f64, [f64; 2]) {
+        let rho = (dx * dx + dz * dz).sqrt();
+        let mut cells = self.cells(high, rho, t);
+        for (_, c) in cells.iter_mut().flatten() {
+            c.load();
+        }
+        Self::mix(&cells, dx, dz, rho)
     }
 }
 

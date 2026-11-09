@@ -2,13 +2,36 @@
 //! `bucket_m`, в каждый вписана капсула оси термика с запасом на снос), результат
 //! `(w, маска, σ края)`; ядра в радиусе физики вокруг фокуса — «активные».
 use super::CloudHooks;
-use super::bubble::{self, Blend, BubbleCache};
+use super::bubble::{self, Blend, BubbleCache, Cell};
 use super::cells::Setup;
 use super::life::AtmoThermal;
 use super::profile::{Edge, contribution};
 use rayon::prelude::*;
 use std::collections::HashMap;
+use std::hash::{BuildHasherDefault, Hasher};
 use std::sync::Arc;
+
+/// Быстрый хеш ключей ячеек поиска (два `i64`): SipHash по умолчанию — заметная доля цены опроса. Только поиск по
+/// ключу, порядок обхода карты не используется — поле не зависит от хеша.
+#[derive(Default)]
+pub struct CellHasher(u64);
+impl Hasher for CellHasher {
+    #[inline]
+    fn finish(&self) -> u64 {
+        self.0
+    }
+    #[inline]
+    fn write(&mut self, bytes: &[u8]) {
+        for &b in bytes {
+            self.0 = (self.0.rotate_left(5) ^ u64::from(b)).wrapping_mul(0x517c_c1b7_2722_0a95);
+        }
+    }
+    #[inline]
+    fn write_i64(&mut self, x: i64) {
+        self.0 = (self.0.rotate_left(5) ^ x as u64).wrapping_mul(0x517c_c1b7_2722_0a95);
+    }
+}
+type Cells = HashMap<(i64, i64), Vec<u32>, BuildHasherDefault<CellHasher>>;
 
 /// Как термик `active` даёт подъём (TB4 v3: шаблон пузыря всегда).
 #[derive(Clone, Debug)]
@@ -18,6 +41,50 @@ enum Mode {
     Profile,
     /// Таблицы ключевых кадров пузыря и его положение.
     Table(Blend),
+}
+
+/// Капсула оси термика в плане: отрезок `p0 + u·d`, `u ∈ [0, 1]`, и радиус запаса.
+#[derive(Clone, Copy, Debug)]
+struct Capsule {
+    p0: [f64; 2],
+    d: [f64; 2],
+    inv_l2: f64,
+    r2: f64,
+}
+
+impl Capsule {
+    fn new(p0: [f64; 2], p1: [f64; 2], r: f64) -> Capsule {
+        let d = [p1[0] - p0[0], p1[1] - p0[1]];
+        let l2 = d[0] * d[0] + d[1] * d[1];
+        Capsule {
+            p0,
+            d,
+            inv_l2: if l2 > 1.0e-12 { 1.0 / l2 } else { 0.0 },
+            r2: r * r,
+        }
+    }
+
+    /// Точка `(x, z)` в капсуле.
+    #[inline]
+    fn contains(&self, x: f64, z: f64) -> bool {
+        let (ax, az) = (x - self.p0[0], z - self.p0[1]);
+        let u = ((ax * self.d[0] + az * self.d[1]) * self.inv_l2).clamp(0.0, 1.0);
+        let (ex, ez) = (ax - u * self.d[0], az - u * self.d[1]);
+        ex * ex + ez * ez <= self.r2
+    }
+}
+
+/// Пачка опроса: записей, читаемых за первый проход.
+const CHUNK: usize = 8;
+
+/// Итог первого прохода по термику с таблицей в радиусе таблиц: огибающая, смещение от оси и ячейки таблиц пары.
+#[derive(Clone, Copy)]
+struct Item<'a> {
+    env: f64,
+    dx: f64,
+    dz: f64,
+    rho: f64,
+    cells: [Option<(f64, Cell<'a>)>; 2],
 }
 
 /// Набор термиков на момент обновления `t` (раз в `refresh_interval_s` атмосферы).
@@ -33,9 +100,12 @@ pub struct State {
     pub all: Vec<Arc<AtmoThermal>>,
     /// Термики в радиусе физики вокруг фокуса — те, что действуют на воздух и попадают в `cores`.
     pub active: Vec<Arc<AtmoThermal>>,
+    /// Капсула влияния каждого активного термика (ось на момент сборки с запасом бакета): вне неё вклада нет — опрос не
+    /// трогает термик.
+    segs: Vec<Capsule>,
     /// Режим опроса параллельно `active`; пусто — все профилем (набор без таблиц, `stub`).
     bubbles: Vec<Mode>,
-    buckets: HashMap<(i64, i64), Vec<u32>>,
+    buckets: Cells,
     inv_bucket: f64,
 }
 
@@ -49,8 +119,9 @@ impl State {
             slot,
             all: Vec::new(),
             active: Vec::new(),
+            segs: Vec::new(),
             bubbles: Vec::new(),
-            buckets: HashMap::new(),
+            buckets: Cells::default(),
             inv_bucket: 1.0,
         }
     }
@@ -98,8 +169,9 @@ impl State {
             slot,
             all,
             active: Vec::new(),
+            segs: Vec::new(),
             bubbles: Vec::new(),
-            buckets: HashMap::new(),
+            buckets: Cells::default(),
             inv_bucket: 1.0 / bucket,
         };
         let cut = cfg.profile_cutoff_radii;
@@ -133,6 +205,7 @@ impl State {
             if near {
                 let off = st.active.len() as u32;
                 st.active.push(th.clone());
+                st.segs.push(Capsule::new(p0, p1, pad + 1.0));
                 if let Some(m) = mode {
                     st.bubbles.push(m);
                 }
@@ -393,7 +466,30 @@ impl State {
         };
         let (mut w, mut mask, mut edge2) = (0.0f64, 0.0f64, 0.0f64);
         let mut uh = [0.0f64; 2];
+        // Два прохода по пачкам: первый считает профиль и читает узлы таблиц (независимые загрузки перекрывают промахи
+        // кеша таблиц разных термиков), второй складывает в том же порядке, что и список.
+        let (px, pz) = (f64::from(pos[0]), f64::from(pos[2]));
+        let mut items = [None::<Item>; CHUNK];
+        let mut n = 0usize;
+        let flush = |items: &mut [Option<Item<'_>>], w: &mut f64, uh: &mut [f64; 2]| {
+            // сначала читаем узлы всех ячеек подряд — промахи кеша перекрываются
+            for it in items.iter_mut().flatten() {
+                for (_, c) in it.cells.iter_mut().flatten() {
+                    c.load();
+                }
+            }
+            for it in items.iter().flatten() {
+                // огибающая термика игры: плавный распад, к концу жизни вклад 0 (пузырь живёт дольше термика)
+                let (wb, h) = Blend::mix(&it.cells, it.dx, it.dz, it.rho);
+                *w += wb * it.env;
+                uh[0] += h[0] * it.env;
+                uh[1] += h[1] * it.env;
+            }
+        };
         for &o in list {
+            if !self.segs[o as usize].contains(px, pz) {
+                continue;
+            }
             let th = &self.active[o as usize];
             let ph = th.phase(t);
             let sk = hooks.suck(th, t);
@@ -403,33 +499,37 @@ impl State {
                 edge2 += c.edge2;
             }
             match self.bubbles.get(o as usize) {
-                Some(Mode::Table(mv)) => {
-                    if f64::from(pos[1]) >= th.top {
-                        if let Some(c) = &c {
-                            w += c.w;
-                        }
-                        continue;
-                    }
+                Some(Mode::Table(mv)) if f64::from(pos[1]) < th.top => {
                     let high = f64::from(pos[1]) - f64::from(th.src[1]);
-                    // TB4 v4: центр пузыря — ось термика игры на высоте головы (снос + наклон `lean`, как у `cores`),
-                    // сдвиг пузыря целиком; шлейф ниже головы остаётся вертикальным (граница модели)
+                    // TB4 v4: центр пузыря — ось термика игры на высоте головы (снос + наклон `lean`, как у
+                    // `cores`), сдвиг пузыря целиком; шлейф ниже головы остаётся вертикальным (граница модели)
                     let zc = mv.frame(t).zc;
                     let ax = th.axis_at(f64::from(th.src[1]) + zc, ph.drift);
-                    let dx = f64::from(pos[0]) - ax[0];
-                    let dz = f64::from(pos[2]) - ax[1];
-                    // огибающая термика игры: плавный распад, к концу жизни вклад 0 (пузырь живёт дольше термика)
-                    let (wb, h) = mv.eval(high, dx, dz, t);
-                    w += wb * ph.env;
-                    uh[0] += h[0] * ph.env;
-                    uh[1] += h[1] * ph.env;
-                }
-                Some(Mode::Profile) | None => {
-                    if let Some(c) = &c {
-                        w += c.w;
+                    let dx = px - ax[0];
+                    let dz = pz - ax[1];
+                    let rho = (dx * dx + dz * dz).sqrt();
+                    // дальше узлов таблиц вклада нет
+                    if rho < mv.reach() {
+                        items[n] = Some(Item {
+                            env: ph.env,
+                            dx,
+                            dz,
+                            rho,
+                            cells: mv.cells(high, rho, t),
+                        });
+                        n += 1;
+                        if n == CHUNK {
+                            flush(&mut items, &mut w, &mut uh);
+                            n = 0;
+                            items = [None; CHUNK];
+                        }
                     }
                 }
+                // профиль: нет таблицы, или выше `top` (облачный подсос — продолжение столба в облако)
+                _ => w += c.map_or(0.0, |c| c.w),
             }
         }
+        flush(&mut items[..n], &mut w, &mut uh);
         ([w, mask, edge2.sqrt()], uh)
     }
 }
