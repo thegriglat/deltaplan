@@ -66,10 +66,14 @@ _C_T = PARAMS["C_thermal"]["value"]
 _PHI = PARAMS["front_fraction"]["value"]
 
 # численные константы шаблона (не физика)
-_S0 = 3.0          # м, сглаживание точечного источника шлейфа у земли
+_S0 = 3.0          # м, сглаживание корня s²+s0² (при виртуальном источнике s ≥ z_v ≫ s0 — не влияет)
 _BLEND = 0.5       # ширина сшивки: rho/b от 1 до 1,5
-_PANEL = 1.25      # рост панели квадратуры вдоль шлейфа
+_PANEL = 0.6       # панель квадратуры вдоль шлейфа ≤ _PANEL·b (b — радиус шлейфа)
 _GL_N = 8
+_T_GROW, _T_MATURE = 180.0, 510.0   # с: середины grow_s [120;240] и mature_s [300;720] ThermalCfg::default игры
+_B0_FRAC = 0.102 * 0.1 ** (1.0 / 3.0) * (1.0 - 0.25 * 0.1)   # r₂(ζ = 0,1)/z_l, Allen 2006: 0,0461
+_B0_DEF = _B0_FRAC * 1400.0
+_END_FRAC = 0.02   # конец жизни, когда оценка амплитуды < 2 % пика (контракт: < 5 %)
 
 
 @dataclass(frozen=True)
@@ -86,6 +90,8 @@ class Source:
     t0: float
     F0: float
     tau: float
+    b0: float = _B0_DEF   # м, радиус шлейфа у земли (площадной источник; виртуальный источник z_v = 5 b0/(6 α_p))
+    t_decay: float = 560.0  # с, время гашения головы у крышки (конвективное время z_i/w*)
 
 
 @dataclass(frozen=True)
@@ -100,11 +106,18 @@ class State:
     Q: float
     F0: float
     zb: float
+    Uh: float = -1.0       # сила поля головы (Хилл), м/с; < 0 — равна U. У крышки U → 0, а вихрь гаснет по t_decay
+    b0: float = _B0_DEF    # радиус шлейфа у земли, м
+
+
+def _zv(b0: float) -> float:
+    """Виртуальный источник MTT для площадного источника радиуса b0: b = (6/5) α_p (z + z_v) = b0 при z = 0."""
+    return 5.0 * b0 / (6.0 * _AL_P)
 
 
 # ---------------------------------------------------------------- шлейф (MTT)
 def _kp(F0: float) -> float:
-    """w_p(z) = kp z^(-1/3)."""
+    """w_p(s) = kp s^(-1/3)."""
     return 5.0 / (6.0 * _AL_P) * (0.9 * _AL_P * F0 / np.pi) ** (1.0 / 3.0)
 
 
@@ -121,101 +134,6 @@ def plume_w(F0: float, z: float) -> float:
     return _kp(F0) * z ** (-1.0 / 3.0)
 
 
-# ---------------------------------------------------------------- траектория
-def _front(F0: float, tp: float) -> tuple[float, float]:
-    """Фронт стартового факела (Turner 1962): z^(4/3) = (4/3) phi kp t; (z, dz/dt)."""
-    kp = _kp(F0)
-    z = (4.0 / 3.0 * _PHI * kp * tp) ** 0.75
-    return z, _PHI * kp * z ** (-1.0 / 3.0)
-
-
-def _raw(src: Source, tp: float) -> tuple[float, float, float]:
-    """(zc, R, U) без крышки; tp = t − t0 > 0."""
-    if tp <= src.tau:
-        zf, vf = _front(src.F0, tp)
-        k = 1.0 + _AL_H
-        zc = zf / k
-        return zc, _AL_H * zc, vf / k
-    zf, vf = _front(src.F0, src.tau)
-    k = 1.0 + _AL_H
-    zc0, R0 = zf / k, _AL_H * zf / k
-    zv = zc0 - R0 / _AL_T
-    K = (vf / k) * (R0 / _AL_T)  # непрерывность U при отрыве; B_head = thermal_B(): см. README
-    d = np.sqrt((R0 / _AL_T) ** 2 + 2.0 * K * (tp - src.tau))
-    return zv + d, _AL_T * d, K / d
-
-
-def thermal_B(src: Source) -> float:
-    """Плавучесть головы после отрыва, м⁴/с²: из непрерывности U (U = C sqrt(3B/4pi)/(alpha_th d), K = U d);
-    доля от F0·tau — сколько несёт голова, остальное осталось в шлейфе и следе."""
-    zf, vf = _front(src.F0, src.tau)
-    k = 1.0 + _AL_H
-    K = (vf / k) * (_AL_H * zf / k / _AL_T)
-    return 4.0 * np.pi / 3.0 * (K * _AL_T / _C_T) ** 2
-
-
-def _life(src: Source, env: Env) -> tuple[float, float, float, float]:
-    """(t_hit, zc_hit, R_hit, t_end) относительно t0; t_hit = inf, если крышки не достичь."""
-    f = lambda tp: (lambda r: r[0] + r[1] - env.zi)(_raw(src, tp))  # noqa: E731
-    hi = 1.0
-    while f(hi) < 0 and hi < 1e6:
-        hi *= 2.0
-    if f(hi) < 0:
-        return np.inf, 0.0, 0.0, np.inf
-    lo = 0.0
-    for _ in range(80):
-        mid = 0.5 * (lo + hi)
-        lo, hi = (mid, hi) if f(mid) < 0 else (lo, mid)
-    zc, R, U = _raw(src, hi)
-    # конец: голова упёрлась — живёт ещё ~R/U (время обтекания головой своего радиуса), но не меньше,
-    # чем нужно шлейфу, чтобы кончиться
-    t_end = hi + R / max(U, 1e-3)
-    return hi, zc, R, t_end
-
-
-def _zb(src: Source, tp: float) -> float:
-    if tp <= src.tau:
-        return 0.0
-    return (4.0 / 3.0 * _kp(src.F0) * (tp - src.tau)) ** 0.75
-
-
-def state(src: Source, env: Env, t: float) -> State | None:
-    tp = t - src.t0
-    if tp <= 0.0:
-        return None
-    t_hit, zc_h, R_h, t_end = _life(src, env)
-    stopped = tp >= t_hit
-    if stopped:
-        zc, R, U = zc_h, R_h, 0.0
-    else:
-        zc, R, U = _raw(src, tp)
-    zb = _zb(src, tp)
-    xc = src.x + env.wind[0] * tp
-    yc = src.y + env.wind[1] * tp
-    L = float(np.sqrt((xc - src.x) ** 2 + (yc - src.y) ** 2 + zc * zc))
-    zbs = zb * L / zc
-    F0, Q = src.F0, 0.0
-    if zbs >= L - R:  # нижний край догнал голову — шлейфа нет
-        F0, zb = 0.0, zc
-    else:
-        Q = plume_Q(src.F0, max(L - R, 0.0))
-    if stopped and F0 == 0.0 and tp >= t_end:
-        return None
-    return State(xs=src.x, ys=src.y, xc=xc, yc=yc, zc=zc, R=R, U=U, Q=Q, F0=F0, zb=zb)
-
-
-def from_game(x: float, y: float, t0: float, wstar: float, zl: float, env: Env) -> Source:
-    """F0 = (w*^3/z_l) / n_A, n_A = 8,5/z_l^2 (Дирдорф 1970; Аллен 2006): F0 = w*^3 z_l / 8,5.
-    tau — интервал между рождениями термиков с одного ядра: из баланса потока плавучести
-    w*^3/z_l = n_A · B / T, B = F0 · tau и T = tau (термик за tau пересекает слой), tau = время,
-    за которое фронт стартового факела с этим F0 доходит до z_l (Turner 1962)."""
-    F0 = wstar ** 3 * zl / 8.5
-    kp = _kp(F0)
-    tau = 0.75 * zl ** (4.0 / 3.0) / (_PHI * kp)
-    return Source(x=x, y=y, t0=t0, F0=F0, tau=tau)
-
-
-# ---------------------------------------------------------------- вклад одного пузыря
 def _ss(x):
     x = np.clip(x, 0.0, 1.0)
     return x ** 3 * (10.0 - 15.0 * x + 6.0 * x * x)
@@ -226,11 +144,179 @@ def _dss(x):
     return 30.0 * xc ** 2 * (1.0 - xc) ** 2
 
 
+# ---------------------------------------------------------------- траектория
+def _s0(zv: float) -> float:
+    """Начало жизни: голова радиуса R = α_h s_c, посаженная на землю (z_c = R), s_c = z_v/(1 − α_h);
+    верх головы (фронт) на s_f = (1 + α_h) z_v/(1 − α_h) (при α_h = 0,15, b0 = 65 м: z_f = 158 м)."""
+    return (1.0 + _AL_H) * zv / (1.0 - _AL_H)
+
+
+def _front(F0: float, zv: float, tp: float) -> tuple[float, float]:
+    """Фронт стартового факела (Turner 1962) от виртуального источника: s^{4/3} = s_0^{4/3} + (4/3) φ kp t,
+    s = z + z_v; возвращает (s_f, ds_f/dt)."""
+    kp = _kp(F0)
+    s = (_s0(zv) ** (4.0 / 3.0) + 4.0 / 3.0 * _PHI * kp * tp) ** 0.75
+    return s, _PHI * kp * s ** (-1.0 / 3.0)
+
+
+def _raw(src: Source, tp: float) -> tuple[float, float, float]:
+    """(zc, R, U) без крышки; tp = t − t0 ≥ 0. Пока источник включён — голова на фронте шлейфа,
+    R = α_h (z_c + z_v) (конус от виртуального источника); после — свободный термик R = α_th (z − z_v')."""
+    zv = _zv(src.b0)
+    k = 1.0 + _AL_H
+    if tp <= src.tau:
+        sf, vf = _front(src.F0, zv, tp)
+        sc = sf / k
+        return sc - zv, _AL_H * sc, vf / k
+    sf, vf = _front(src.F0, zv, src.tau)
+    sc0 = sf / k
+    zc0, R0 = sc0 - zv, _AL_H * sc0
+    zvt = zc0 - R0 / _AL_T
+    K = (vf / k) * (R0 / _AL_T)  # непрерывность U при отрыве; B_head = thermal_B(): см. README
+    d = np.sqrt((R0 / _AL_T) ** 2 + 2.0 * K * (tp - src.tau))
+    return zvt + d, _AL_T * d, K / d
+
+
+def thermal_B(src: Source) -> float:
+    """Плавучесть головы после отрыва, м⁴/с²: из непрерывности U (U = C sqrt(3B/4pi)/(alpha_th d), K = U d);
+    доля от F0·tau — сколько несёт голова, остальное осталось в шлейфе и следе."""
+    sf, vf = _front(src.F0, _zv(src.b0), src.tau)
+    k = 1.0 + _AL_H
+    K = (vf / k) * (_AL_H * sf / k / _AL_T)
+    return 4.0 * np.pi / 3.0 * (K * _AL_T / _C_T) ** 2
+
+
+def _onset(src: Source, tp: float) -> float:
+    """Гладкий выход на полную силу за время, пока голова отходит от площадки источника на свой радиус: R₀/U₀."""
+    zc, R, U = _raw(src, 0.0)
+    return float(_ss(tp / (R / U)))
+
+
+def _free(src: Source, env: Env, te: float) -> float:
+    """Доля свободного подъёма s_f ∈ [0, 1]: гладкая ступень от запаса c = z_i − (z_c + R) на масштабе R."""
+    zc, R, _ = _raw(src, te)
+    return float(_ss((env.zi - zc - R) / max(R, 1e-9)))
+
+
+@dataclass(frozen=True)
+class _Traj:
+    dt: float
+    te: np.ndarray       # «собственное» время головы в сетке реального времени
+    theta: np.ndarray    # накопленное гашение вихря головы
+    zb: np.ndarray       # низ шлейфа после отключения источника
+    t_end: float         # с (от t0)
+
+
+_CACHE: dict = {}
+
+
+def _traj(src: Source, env: Env) -> _Traj:
+    """Таблица траектории с гладкой остановкой у крышки: dte/dt = s_f(te) (время головы замедляется, пока
+    запас под крышкой c = z_i − (z_c+R) не станет 0; c→0 как t^(-1/2), крышку не пересекает);
+    гашение вихря dθ/dt = (1 − s_f)/t_decay — только у остановившейся головы."""
+    key = (src, env)
+    tr = _CACHE.get(key)
+    if tr is not None:
+        return tr
+    dt = 1.0
+    t_cap = 4.0 * src.tau + 3000.0
+    n = int(t_cap / dt) + 2
+    te = np.zeros(n)
+    th = np.zeros(n)
+    zb = np.zeros(n)
+    zv, kp = _zv(src.b0), _kp(src.F0)
+    t_up = 3.0 * src.b0 / (kp * zv ** (-1.0 / 3.0))
+    for i in range(1, n):
+        # низ шлейфа: скорость шлейфа w_p(z_b + z_v), разгон по гладкой ступени (иначе поле у земли меняется рывком)
+        tm = (i - 0.5) * dt - src.tau
+        zm = zb[i - 1] + 0.5 * dt * kp * (zb[i - 1] + zv) ** (-1.0 / 3.0) * float(_ss(tm / t_up))
+        zb[i] = zb[i - 1] + dt * kp * (zm + zv) ** (-1.0 / 3.0) * float(_ss(tm / t_up))
+        a = te[i - 1]
+        k1 = _free(src, env, a)
+        k2 = _free(src, env, a + 0.5 * dt * k1)
+        te[i] = a + dt * k2
+        sf = 0.5 * (k1 + k2)
+        th[i] = th[i - 1] + dt * (1.0 - sf) / src.t_decay
+    tr = _Traj(dt=dt, te=te, theta=th, zb=zb, t_end=t_cap)
+    # конец жизни — по оценке амплитуды
+    amp = np.array([_amp(src, env, tr, i * dt) for i in range(n)])
+    pk = float(amp.max())
+    ipk = int(np.argmax(amp))
+    idx = np.nonzero(amp[ipk:] < _END_FRAC * pk)[0]
+    t_end = (ipk + int(idx[0])) * dt if idx.size else t_cap
+    tr = _Traj(dt=dt, te=te, theta=th, zb=zb, t_end=min(t_end, t_cap))
+    _CACHE[key] = tr
+    return tr
+
+
+def _tail(src: Source, zb_t: float, tp: float, zc: float, R: float) -> tuple[float, float]:
+    """(zb, f): низ шлейфа и множитель амплитуды f ∈ [0,1] (Q ∝ f, w_p ∝ f; F0_eff = F0 f³):
+    гаснет, когда длина шлейфа top − zb меньше ~2R (низ догоняет голову)."""
+    if tp <= src.tau:
+        return 0.0, 1.0
+    top = zc - R
+    zb = min(zb_t, top)
+    Lf = min(2.0 * R, 0.4 * top)
+    f = float(_ss((top - zb) / Lf)) if Lf > 0 else 0.0
+    return zb, f
+
+
+def _amp(src: Source, env: Env, tr: _Traj, tp: float) -> float:
+    """Оценка пика возмущения: центр головы 2,5 Uh против шлейфа f·w_p у низа."""
+    st = _state_tp(src, env, tr, tp)
+    if st is None:
+        return 0.0
+    uh = st.U if st.Uh < 0 else st.Uh
+    wp = 0.0
+    if st.F0 > 0.0:
+        wp = plume_w(st.F0, st.zb + _zv(st.b0) + st.b0)
+    return max(2.5 * uh, wp)
+
+
+def _state_tp(src: Source, env: Env, tr: _Traj, tp: float) -> State | None:
+    te = float(np.interp(tp, np.arange(tr.te.size) * tr.dt, tr.te))
+    th = float(np.interp(tp, np.arange(tr.te.size) * tr.dt, tr.theta))
+    zbt = float(np.interp(tp, np.arange(tr.te.size) * tr.dt, tr.zb))
+    zc, R, Ur = _raw(src, te)
+    sf = float(_ss((env.zi - zc - R) / max(R, 1e-9)))
+    zb, f = _tail(src, zbt, tp, zc, R)
+    on = _onset(src, tp)
+    f *= on
+    F0 = src.F0 * f ** 3
+    top = zc - R + _zv(src.b0)
+    Q = _cq(F0) * top ** (5.0 / 3.0) if F0 > 0.0 else 0.0
+    xc = src.x + env.wind[0] * tp
+    yc = src.y + env.wind[1] * tp
+    return State(xs=xc, ys=yc, xc=xc, yc=yc, zc=zc, R=R, U=float(Ur * sf), Q=Q, F0=F0, zb=zb,
+                 Uh=float(Ur * on * np.exp(-th)), b0=src.b0)
+
+
+def state(src: Source, env: Env, t: float) -> State | None:
+    tp = t - src.t0
+    if tp <= 0.0:
+        return None
+    tr = _traj(src, env)
+    if tp >= tr.t_end:
+        return None
+    return _state_tp(src, env, tr, tp)
+
+
+def from_game(x: float, y: float, t0: float, wstar: float, zl: float, env: Env) -> Source:
+    """F0 = (w*^3/z_l) / n_A, n_A = 8,5/z_l^2 (Дирдорф 1970; Аллен 2006): F0 = w*^3 z_l / 8,5.
+    tau — время работы источника: ДОПУЩЕНИЕ (не вывод из баланса): рост + зрелость термика игры
+    (ThermalCfg::default: grow_s 120–240, mature_s 300–720, середины 180 + 510 = 690 с).
+    b0 — радиус шлейфа у земли = радиус ядра Аллена r₂(ζ = 0,1) = 0,0461 z_l (Allen 2006).
+    t_decay — время гашения головы у крышки: конвективное время z_l/w* (Lenschow–Stephens: жизнь термика ~ z_i/w*)."""
+    F0 = wstar ** 3 * zl / 8.5
+    return Source(x=x, y=y, t0=t0, F0=F0, tau=_T_GROW + _T_MATURE, b0=_B0_FRAC * zl, t_decay=zl / wstar)
+
+
+# ---------------------------------------------------------------- вклад одного пузыря
 def _hill(P, st: State) -> np.ndarray:
     dx, dy, s = P[:, 0] - st.xc, P[:, 1] - st.yc, P[:, 2] - st.zc
     r2 = dx * dx + dy * dy + s * s
     rho2 = dx * dx + dy * dy
-    U, R = st.U, st.R
+    U, R = (st.U if st.Uh < 0.0 else st.Uh), st.R
     inside = r2 < R * R
     r = np.sqrt(np.where(inside, 1.0, r2))
     r5 = r ** 5
@@ -247,20 +333,17 @@ def _hill(P, st: State) -> np.ndarray:
 
 
 class _Plume:
-    """Геометрия и профили потока шлейфа одного State."""
+    """Шлейф одного State: вертикальная ось через (xc, yc), начало координат s — виртуальный источник
+    на глубине z_v под землёй (s = z + z_v)."""
 
     def __init__(self, st: State):
-        a = np.array([st.xs, st.ys, 0.0])
-        c = np.array([st.xc, st.yc, st.zc])
-        d = c - a
-        self.L = float(np.linalg.norm(d))
-        self.e = d / self.L
-        self.a = a
-        self.sb = st.zb * self.L / st.zc
-        self.stb = self.L - st.R
+        self.zv = _zv(st.b0)
+        self.a = np.array([st.xc, st.yc, -self.zv])
+        self.L = st.zc + self.zv
+        self.sb = st.zb + self.zv
+        self.stb = st.zc - st.R + self.zv
         self.cq = _cq(st.F0)
-        self.attached = self.sb <= 1e-9
-        self.Lb = 0.0 if self.attached else min(0.5 * self.sb, 0.3 * (self.stb - self.sb))
+        self.Lb = max(st.b0, 0.5 * st.zb)
         self.Lt = st.R
         self.k = 1.2 * _AL_P
         self.kap = self.cq / (2.0 * np.pi * self.k ** 2)
@@ -268,20 +351,14 @@ class _Plume:
         self.m = -self._dQ(self.s) * self.wq  # сила точечных источников (отрицательная — сток)
 
     def _edges(self) -> np.ndarray:
-        pts = [max(self.sb, 0.0), self.stb, self.L]
-        if not self.attached and self.Lb > 0:
-            pts.append(self.sb + self.Lb)
-        pts = sorted(set(pts))
+        pts = sorted({self.sb, self.sb + self.Lb, self.stb, self.L})
         edges = [pts[0]]
         for lo, hi in zip(pts[:-1], pts[1:]):
-            x = lo
-            while x < hi:
-                nx = max(x * _PANEL, x + 2.0) if x >= 2.0 else min(2.0, hi)
-                nx = min(nx, hi)
-                if hi - nx < 0.2 * (nx - x):
-                    nx = hi
-                edges.append(nx)
-                x = nx
+            if hi - lo <= 0.0:
+                continue
+            h = _PANEL * self.k * 0.5 * (lo + hi)
+            n = max(int(np.ceil((hi - lo) / h)), 2)
+            edges.extend(np.linspace(lo, hi, n + 1)[1:])
         return np.array(edges)
 
     def _nodes(self):
@@ -294,11 +371,9 @@ class _Plume:
 
     # --- профили
     def _bt(self, s):
-        """BT и dBT/ds: низ (если оторван) и верх (вливание в голову)."""
+        """BT и dBT/ds: низ (подъём Q от нуля — приток у земли / оторванный низ) и верх (вливание в голову)."""
         ttop = 1.0 - _ss((s - self.stb) / self.Lt)
         dttop = -_dss((s - self.stb) / self.Lt) / self.Lt
-        if self.attached:
-            return ttop, dttop
         x = (s - self.sb) / self.Lb
         bb, dbb = _ss(x), _dss(x) / self.Lb
         return bb * ttop, dbb * ttop + bb * dttop
@@ -313,64 +388,72 @@ class _Plume:
     def _dQ(self, s):
         return self._Q_dQ(s)[1]
 
-    def G_dG(self, s):
-        se = np.sqrt(s * s + _S0 * _S0)
-        g0 = s * s * se ** (-7.0 / 3.0)
-        dg0 = 2.0 * s * se ** (-7.0 / 3.0) - 7.0 / 3.0 * s ** 3 * se ** (-13.0 / 3.0)
-        bt, dbt = self._bt(s)
-        return self.kap * g0 * bt, self.kap * (dg0 * bt + g0 * dbt)
+    def _sums(self, rho2, s, want_psi):
+        """Сумма по узлам-стокам: (u_s, B, psi) на точках (rho2, s); u_s = Σ m/(4π) ds/r³, B = −Σ m/(4π r³),
+        ψ = −Σ m/(4π) ds/r (ψ_s = B ρ², ψ_ρ = ρ u_s)."""
+        As = np.empty_like(s)
+        Bs = np.empty_like(s)
+        Ps = np.empty_like(s) if want_psi else None
+        m4 = self.m[None, :] / (4.0 * np.pi)
+        for lo in range(0, s.size, 1500):
+            sl = slice(lo, lo + 1500)
+            ds = s[sl, None] - self.s[None, :]
+            r = np.sqrt(rho2[sl, None] + ds * ds)
+            As[sl] = np.sum(m4 * ds / r ** 3, axis=1)
+            Bs[sl] = -np.sum(m4 / r ** 3, axis=1)
+            if want_psi:
+                Ps[sl] = -np.sum(m4 * ds / r, axis=1)
+        return As, Bs, Ps
 
     def velocity(self, P: np.ndarray) -> np.ndarray:
+        """ψ = χ ψ_in + (1−χ) ψ_out; ψ_out — сумма стоков (потенциальный приток), ψ_in = G(s) ρ² — труба,
+        G(s) = ψ_out(b(s), s)/b(s)²: поток трубы берётся из самого внешнего решения на её границе, поэтому
+        сшивка согласована и на концах (где Q меняется на масштабе b), а в середине G = Q/(2π b²) (w = w_p)."""
         d = P - self.a
-        s = d @ self.e
-        dperp = d - s[:, None] * self.e
-        rho2 = np.einsum("ij,ij->i", dperp, dperp)
+        s = d[:, 2]
+        rho2 = d[:, 0] ** 2 + d[:, 1] ** 2
         rho = np.sqrt(rho2)
         se = np.sqrt(s * s + _S0 * _S0)
-        # огибающая трубки: за концами шлейфа радиус сшивки сходит к нулю (там ψ_in = 0, чужое поле не стирать)
-        sb0 = max(self.sb, 0.0)
-        Lrl = max(0.5 * sb0, _S0)
-        xu, xl = (s - self.L) / self.Lt, (sb0 - s) / Lrl
-        W = (1.0 - _ss(xu)) * (1.0 - _ss(xl))
-        dW = -_dss(xu) / self.Lt * (1.0 - _ss(xl)) + (1.0 - _ss(xu)) * _dss(xl) / Lrl
-        W = np.maximum(W, 1e-3)
-        dW = np.where(W > 1e-3, dW, 0.0)
-        b = self.k * se * W
-        db = self.k * (s / se * W + se * dW)
-        inside = (s > self.sb - 1e-12) & (s < self.L)
-        G, dG = self.G_dG(s)
-        G = np.where(inside, G, 0.0)
-        dG = np.where(inside, dG, 0.0)
+        b = self.k * se
+        db = self.k * s / se
         t = (rho / b - 1.0) / _BLEND
         chi = 1.0 - _ss(t)
-        us = chi * 2.0 * G
-        Bs = chi * dG
+        us = np.zeros_like(s)
+        Bs = np.zeros_like(s)
+        near = t < 1.0
         far = t > 0.0
+        if np.any(near):
+            i = np.nonzero(near)[0]
+            bi, dbi = b[i], db[i]
+            A, B, ps = self._sums(bi * bi, s[i], True)
+            G = ps / bi ** 2
+            dG = B + A * dbi / bi - 2.0 * ps * dbi / bi ** 3
+            us[i] = chi[i] * 2.0 * G
+            Bs[i] = chi[i] * dG
+            Gn = np.zeros_like(s); Gn[i] = G
+            dGn = np.zeros_like(s); dGn[i] = dG
+        else:
+            Gn = np.zeros_like(s); dGn = Gn
         if np.any(far):
-            idx = np.nonzero(far)[0]
-            for lo in range(0, idx.size, 1500):
-                ii = idx[lo:lo + 1500]
-                ds = s[ii, None] - self.s[None, :]
-                r2 = rho2[ii, None] + ds * ds
-                r = np.sqrt(r2)
-                m4 = self.m[None, :] / (4.0 * np.pi)
-                Aout = np.sum(m4 * ds / r ** 3, axis=1)
-                Bout = -np.sum(m4 / r ** 3, axis=1)
-                psi_out = -np.sum(m4 * ds / r, axis=1)
-                psi_in = G[ii] * rho2[ii]
-                sp = _dss(t[ii])
-                diff = psi_in - psi_out
-                us[ii] = chi[ii] * 2.0 * G[ii] + (1.0 - chi[ii]) * Aout - diff * sp / (_BLEND * b[ii] * rho[ii])
-                Bs[ii] = chi[ii] * dG[ii] + (1.0 - chi[ii]) * Bout + diff * sp * db[ii] / (_BLEND * b[ii] ** 2 * rho[ii])
-        return -Bs[:, None] * dperp + us[:, None] * self.e[None, :]
+            j = np.nonzero(far)[0]
+            Aout, Bout, psi_out = self._sums(rho2[j], s[j], True)
+            psi_in = Gn[j] * rho2[j]
+            sp = _dss(t[j])
+            diff = psi_in - psi_out
+            us[j] = chi[j] * 2.0 * Gn[j] + (1.0 - chi[j]) * Aout - diff * sp / (_BLEND * b[j] * rho[j])
+            Bs[j] = chi[j] * dGn[j] + (1.0 - chi[j]) * Bout + diff * sp * db[j] / (_BLEND * b[j] ** 2 * rho[j])
+        out = -Bs[:, None] * d
+        out[:, 2] = us
+        out[:, 0] = -Bs * d[:, 0]
+        out[:, 1] = -Bs * d[:, 1]
+        return out
 
 
 def _contribution(P: np.ndarray, st: State) -> np.ndarray:
-    v = _hill(P, st) if st.U != 0.0 else np.zeros_like(P)
-    if st.F0 > 0.0 and st.zb < st.zc:
-        pl = _Plume(st)
-        if pl.sb < pl.stb - 1e-6:
-            v = v + pl.velocity(P)
+    uh = st.U if st.Uh < 0.0 else st.Uh
+    v = _hill(P, st) if uh != 0.0 else np.zeros_like(P)
+    if st.F0 > 0.0 and st.zb < st.zc - 1e-6:
+        v = v + _Plume(st).velocity(P)
     return v
 
 
