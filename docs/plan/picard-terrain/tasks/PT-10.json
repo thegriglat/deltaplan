@@ -26,7 +26,8 @@
     "rust/dp-air/tests/formula_facade.rs",
     "rust/dp-air/tests/phase_assembly.rs",
     "rust/dp-air/tests/terms_thermal_air.rs",
-    "rust/dp-air/tests/cut_consumers.rs"
+    "rust/dp-air/tests/cut_consumers.rs",
+    "rust/dp-air/tests/clipmap.rs"
   ],
   "dont_touch": [
     "rust/picard_rs",
@@ -70,9 +71,15 @@
       "name": "frozen-zero",
       "cmd": "cd rust && cargo test --offline --release -p dp-air --test cut_consumers -- --include-ignored --nocapture 2>&1 | grep -o 'frozen_zero_frac=[0-9.e+-]*' | tail -1",
       "expect": "num:frozen_zero_frac=([0-9.e+-]+) <=0.001"
+    },
+    {
+      "name": "ustar-max",
+      "cmd": "cd rust && cargo test --offline --release -p dp-air --test cut_consumers -- --include-ignored --nocapture 2>&1 | grep -o 'ustar_max_ratio=[0-9.e+-]*' | tail -1",
+      "expect": "num:ustar_max_ratio=([0-9.e+-]+) <=1.5"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-11-09T19:57:34"
+  "created": "2026-11-09T19:57:34",
+  "edited": "2026-11-09T20:23:01"
 }
