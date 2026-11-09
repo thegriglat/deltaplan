@@ -51,3 +51,5 @@
 {"t": "2026-11-09T21:31:48", "by": "coordinator", "task": "LT-3", "ev": "accepted", "note": "по ревью (fable): 3 minor — z/L NE по tse04, sigma_perdigao.py не проверен на реальных NetCDF, x от гребневой мачты; σ компонент Perdigão и Bolund — позже"}
 {"t": "2026-11-09T21:38:08", "by": "coordinator", "task": "LT-2", "ev": "checked", "commits": ["c700c00"], "note": "3/5 contract=FAIL:exit 2 · tools/research/lee_t…; slices=FAIL:0; stand_tests=ok:exit 0; docs=ok:exit 0; air_tests=ok:exit 0"}
 {"t": "2026-11-09T21:38:09", "by": "coordinator", "task": "LT-2", "ev": "merged", "commits": ["c700c00"]}
+{"t": "2026-11-09T21:38:24", "by": "coordinator", "task": "LT-3", "ev": "accepted", "commits": ["1e63389"], "note": "4/4 contract=ok:exit 0; sites=ok:2; docs=ok:exit 0; lee_rows=ok:92"}
+{"t": "2026-11-09T21:38:25", "by": "coordinator", "task": "LT-3", "ev": "merged", "commits": ["1e63389"]}
