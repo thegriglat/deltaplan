@@ -41,11 +41,14 @@ def crest_params(g_at, x_p, k=K):
     if i == 0:
         return None                                   # выше всего против ветра: слоя нет
     df = d_c + step * np.arange(0, int(k["foot_search_m"] / step) + 1)
-    foot = float(min(g_at(d) for d in df))
+    hf = np.array([g_at(d) for d in df])
+    j = int(np.argmin(hf))
+    foot = float(hf[j])
     H = h_c - foot
     if H <= 0:
         return None
-    return dict(d_c=d_c, h_c=h_c, H=H, foot=foot, n_queries=len(ds) + len(df))
+    x_foot = max(float(df[j] - d_c), step)           # расстояние гребень - подножие (минимум на foot_search_m), не меньше шага
+    return dict(d_c=d_c, h_c=h_c, H=H, foot=foot, x_foot=x_foot, s_lee=H / x_foot, n_queries=len(ds) + len(df))
 
 
 def bubble_from_field(xs, u_low, d_c, dx):
@@ -74,7 +77,7 @@ def pick_xr(H, bub, dx, k=K):
 
 
 # ---------------------------------------------------------------- слой
-def layer_state(x, y, g_x, geo, xr, u1, u2, k=K, f_sep_force=None):
+def layer_state(x, y, g_x, geo, xr, u1, u2, k=K, f_sep_force=None, res=0.0):
     """Величины слоя в точках (x, y). x, y — массивы одной формы; g_x — высота земли в x; u1, u2 — массивы или числа.
     Возвращает dict: dU, lam, delta, yc, eta, gx, ramp, w, sig{u,v,w}, L, f_sep."""
     H, h_c = geo["H"], geo["h_c"]
@@ -86,14 +89,15 @@ def layer_state(x, y, g_x, geo, xr, u1, u2, k=K, f_sep_force=None):
     dU = u1 - u2
     lam = np.minimum(np.where(u1 + u2 > 1e-6, dU / np.maximum(u1 + u2, 1e-6), 0.0), k["lambda_max"])
     h_xr = geo["h_at_xr"]
-    s_lee = (h_c - h_xr) / xr
+    s_lee = geo["s_lee"]                              # LT-6: только рельеф (средний уклон гребень - подножие), не через x_r
+    xi = k["ramp_x_over_xr"] * (1.0 - res) + k["ramp_x_over_xr_du"] * res
     f_sep = float(smoothstep(k["lee_slope_on"], k["lee_slope_full"], s_lee)) if f_sep_force is None else f_sep_force
     xp = np.maximum(x, 0.0)
     xb = k["mix_slow_x_over_xr"] * xr
     delta = k["mix_delta0_over_h"] * H + k["mix_growth_per_lambda"] * lam * (
         np.minimum(xp, xb) + k["mix_slow_factor"] * np.maximum(xp - xb, 0.0))
     yc = np.maximum(h_c - (h_c - h_xr) * xp / xr, g_x + k["yc_end_over_h"] * H * np.minimum(xp / xr, 1.0))
-    ramp = 1.0 - np.exp(-xp / (k["ramp_x_over_xr"] * xr))
+    ramp = 1.0 - np.exp(-xp / (xi * xr))              # xi: при постоянном dU (U2 не по полю) нарастание всё в g_x; при U2 по полю dU(x) растёт сам
     dec = np.exp(-np.maximum(xp - k["decay_x0_over_xr"] * xr, 0.0) / (k["decay_length_over_xr"] * xr))
     gx = ramp * dec
     on = (x > 0) & (u1 >= k["u1_min_ms"])
@@ -218,7 +222,7 @@ def run_section(path, ridge, k=K, xr_fixed_over_h=None, power=None, u2_field=Fal
             continue
         r = 1.0 if u2_field else geo["res"]      # u2_field - чувствительность: U2 всегда по полю
         u2 = r * u2 + (1.0 - r) * kk["u2_unresolved_over_u1"] * max(u1, 0.0)    # след: поле при r<1 занижает
-        st = layer_state(np.full(ny, x), y_u, np.full(ny, gnd[i]), geo, geo["xr"], np.full(ny, u1), np.full(ny, u2), kk)
+        st = layer_state(np.full(ny, x), y_u, np.full(ny, gnd[i]), geo, geo["xr"], np.full(ny, u1), np.full(ny, u2), kk, res=geo["res"])
         agl = g["agl"][i]
         m = col_ok
         mech = (g["src"][i] == "mech")
@@ -250,8 +254,8 @@ def metrics(res, agl_lo=5.0, agl_hi=150.0, xh_max=12.0):
     H, d_c, h_c = geo["H"], geo["d_c"], geo["h_c"]
     xh = (s - d_c) / H
     agl = g["agl"]
-    out = dict(H=H, xr_over_h=geo["xr"] / H, xr_from_field=bool(geo["res"] > 0.5), bubble_res=geo["res"], s_lee=float((h_c - geo["h_at_xr"]) / geo["xr"]),
-               f_sep=float(smoothstep(K["lee_slope_on"], K["lee_slope_full"], (h_c - geo["h_at_xr"]) / geo["xr"])), crest_msl=h_c)
+    out = dict(H=H, xr_over_h=geo["xr"] / H, xr_from_field=bool(geo["res"] > 0.5), bubble_res=geo["res"], s_lee=float(geo["s_lee"]),
+               f_sep=float(smoothstep(K["lee_slope_on"], K["lee_slope_full"], geo["s_lee"])), crest_msl=h_c)
     band = (agl >= agl_lo) & (agl <= agl_hi) & (xh[:, None] > 0.05) & (xh[:, None] <= xh_max)
     for tag, arr in (("old", g["sigma_w"].astype(float)), ("new", res["sig_new"]["w"])):
         a = np.where(band & np.isfinite(arr), arr, -1)
@@ -321,6 +325,11 @@ def selftest():
         assert abs(0.5 / math.sqrt(-2 * math.log(L["del_su_prof_half"])) - k["profile_sigma_over_delta"]) < 1e-3
         xi = (1 / L["ds_xr"]) / -math.log(1 - L["ds_su_x1"] / L["ds_su_x4"])
         assert abs(xi - k["ramp_x_over_xr"]) < 5e-3, xi
+        # LT-6: ξ при ΔU(x) по полю: σ_u/ΔU, ΔU = 1 - U2/U1 с ds_uback на x/H = 1 (-0,035) и 4 (-0,171)
+        r_du = (L["ds_su_x1"] / (1 + 0.035)) / (L["ds_su_x4"] / (1 + 0.171))
+        xi_du = (1 / L["ds_xr"]) / -math.log(1 - r_du)
+        assert abs(xi_du - k["ramp_x_over_xr_du"]) < 5e-3, xi_du
+        assert abs(L["ridge_xr_mean"] / 163.95 - k["ridge_xr_over_h"]) < 0.01           # 697 м / <H> моделей NE, SW (model_obs.py)
         assert abs(math.sqrt(L["del_uv_peak"]) - k["mix_len_over_delta"]) < 1e-3
         assert abs(L["br74_eddy_spacing"] / 6.87 - k["eddy_scale_over_delta"]) < 5e-3
         xs = np.array([6 - 4, 10 - 4]) / 1.0 / L["ds_xr"]
@@ -343,9 +352,10 @@ def selftest():
     # пологий склон: нет слоя
     gent = lambda d: 100.0 - 0.05 * max(d, 0.0) if d > 0 else max(100.0 + 0.1 * d, 0.0)
     cg = crest_params(gent, 400.0)
-    xr = k["ridge_xr_over_h"] * cg["H"]
-    sl = (cg["h_c"] - gent(cg["d_c"] + xr)) / xr
+    sl = cg["s_lee"]                                       # LT-6: средний уклон гребень - подножие, не через x_r
+    assert abs(sl - cg["H"] / cg["x_foot"]) < 1e-12 and sl < 0.128
     assert float(smoothstep(k["lee_slope_on"], k["lee_slope_full"], sl)) == 0.0
+    assert abs(cp["s_lee"] - 100.0 / cp["x_foot"]) < 1e-9 and cp["x_foot"] >= 50.0      # подножие синтетики: земля 0 при d >= 333 м
     # 2. пузырь в поле: u<0 на 150..350 м
     xs = np.arange(0, 800, 10.0)
     u = np.where((xs > 150) & (xs < 350), -1.0, 3.0)
@@ -354,9 +364,9 @@ def selftest():
     xr_f, r = pick_xr(100.0, b, 10.0)       # L/dx = 20 >= 8 -> поле
     assert r == 1.0 and abs(xr_f - b[2]) < 1e-9
     xr_h, r = pick_xr(100.0, b, 50.0)       # L/dx = 4 -> эвристика
-    assert r == 0.0 and abs(xr_h - 350.0) < 1e-9
+    assert r == 0.0 and abs(xr_h - k["ridge_xr_over_h"] * 100.0) < 1e-9
     # 3. слой: x_r = 350 м, U1 = 10, U2 = 0 (λ = 1)
-    geo = dict(H=100.0, h_c=100.0, h_at_xr=0.0)   # h(x_r)=max(100-105,0)=0
+    geo = dict(H=100.0, h_c=100.0, h_at_xr=0.0, s_lee=100.0 / 350.0)   # h(x_r)=max(100-105,0)=0
     xr = 350.0
     x = np.array([1.0, 50.0, 0.64 * xr, 0.64 * xr, 600.0])
     st = layer_state(x, np.full(5, 80.0), np.zeros(5), geo, xr, 10.0, 0.0)
@@ -415,6 +425,10 @@ def selftest():
     s_neg = layer_state(np.array([100.0]), np.array([50.0]), np.zeros(1), geo, xr, 10.0, -5.0)
     assert abs(s_neg["dU"][0] - 11.7) < 1e-9
     assert s_neg["lam"][0] <= k["lambda_max"] + 1e-12
+    # 7б. ξ нарастания: при U2 по полю (res=1) нарастание быстрее, чем при постоянном ΔU
+    r0 = layer_state(np.array([30.0]), np.array([50.0]), np.zeros(1), geo, xr, 10.0, 0.0, res=0.0)["ramp"][0]
+    r1 = layer_state(np.array([30.0]), np.array([50.0]), np.zeros(1), geo, xr, 10.0, 0.0, res=1.0)["ramp"][0]
+    assert abs(r0 - (1 - math.exp(-30.0 / (k["ramp_x_over_xr"] * xr)))) < 1e-12 and r1 > r0
     # 8. U1 < 1 м/с: слоя нет
     s_lo = layer_state(np.array([100.0]), np.array([50.0]), np.zeros(1), geo, xr, 0.5, 0.0)
     assert s_lo["sig_w"][0] == 0.0
@@ -426,6 +440,7 @@ def selftest():
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--selftest", action="store_true")
+    ap.add_argument("--obs", action="store_true", help="LT-6: сверка с измерениями LTO без поля -> out/obs_compare.csv, .json (model_obs.py)")
     ap.add_argument("--sections", help="каталог с *.lts.csv (LTS v1, LT-2)")
     ap.add_argument("--out", default=os.path.join(HERE, "out"))
     ap.add_argument("--xr-over-h", type=float, default=None, help="чувствительность: x_r/H вместо spec")
@@ -434,6 +449,13 @@ def main():
     a = ap.parse_args()
     if a.selftest:
         return selftest()
+    if a.obs:
+        sys.path.insert(0, HERE)
+        import model_obs
+        res, geom = model_obs.run(None)
+        model_obs.write(res, geom, a.out)
+        print("obs_compare: %d строк -> %s" % (len(res), a.out))
+        return 0
     if not a.sections:
         ap.error("нужен --selftest или --sections")
     os.makedirs(a.out, exist_ok=True)
