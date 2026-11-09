@@ -118,10 +118,6 @@ fn scene(ter: Terrain) -> Terms {
 const RING_R: [f64; 3] = [1.0, 1.5, 2.0];
 const AZ: usize = 8;
 const AGL: f64 = 10.0;
-/// Вертикали блендинга — где рельеф отличается от плоскости источника каждого близкого термика не больше чем на `OFF_MAX` м (сдвиг сшивки h_src − agl = эта разность: при ±1000 м сшивка 60–120 м протаскивает опрос через всю таблицу, градиент определяется таблицей, а не сшивкой).
-const OFF_MAX: f64 = 70.0;
-/// Радиус, в котором чужие пузыри считаются достающими до вертикали, м.
-const REACH_M: f64 = 1500.0;
 const ZERO_MS: f64 = 0.01;
 const SLOPE20: Terrain = Terrain { slope: 0.36, amp: 0.0, lam: 500.0, dem: false };
 const HILLS: Terrain = Terrain { slope: 0.0, amp: 60.0, lam: 500.0, dem: false };
@@ -200,55 +196,116 @@ fn bubble_terrain_inflow() {
     println!("num:terrain_median_ur={med:.4}");
 }
 
+/// Вертикали через рельеф без отбора (склон 20° и холмы: до ±1000 м от плоскости источника у дальних термиков), шаг
+/// 1 м, agl 0…200 м. `agl_blend_ratio=` — max|Δv|/1 м опроса с `agl` (затухающая координата TB4 v6) / то же для
+/// плоского рельефа той же сцены (те же вертикали, `sample_bubble_agl`): во сколько раз рельеф крутит таблицу;
+/// `agl_blend_max_dv_per_m=` — справочно, абсолютное.
 #[test]
 fn bubble_agl_blend_smooth() {
     let ts = [1500.0, 1800.0, 2100.0];
     let mut max_dv = 0.0f64;
     let mut nvert = 0usize;
-    for ter in [SLOPE20, HILLS] {
+    let norm = |a: [f64; 3], b: [f64; 3]| ((a[0] - b[0]).powi(2) + (a[1] - b[1]).powi(2) + (a[2] - b[2]).powi(2)).sqrt();
+    let flat = Terrain { slope: 0.0, amp: 0.0, lam: 500.0, dem: false };
+    let mut max_flat = 0.0f64;
+    for (ter, is_flat) in [(SLOPE20, false), (HILLS, false), (flat, true)] {
         each_core(ter, &ts, |st, setup, tm, ax, th| {
             let r0 = th.radius;
             for &k in &[0.0, 0.5, 1.0, 2.0] {
                 let (px, pz) = (ax[0] + k * r0, ax[1]);
                 let g = ter.h(px, pz);
-                // все термики, чьи пузыри могут достать до вертикали, должны стоять на плоскости не дальше OFF_MAX от неё
-                let off_max = st
-                    .active
-                    .iter()
-                    .filter(|o| !o.is_static)
-                    .filter(|o| {
-                        let a = o.axis_at(f64::from(o.src[1]), o.phase(tm).drift);
-                        (a[0] - px).hypot(a[1] - pz) < REACH_M
-                    })
-                    .map(|o| (g - f64::from(o.src[1])).abs())
-                    .fold(0.0f64, f64::max);
-                if off_max > OFF_MAX {
-                    continue;
-                }
-                let mut prev: Option<[f64; 3]> = None;
+                let mut prev = None::<[f64; 3]>;
                 for m in 0..=200 {
                     let agl = f64::from(m);
                     let y = g + agl;
                     if y >= th.top {
                         break;
                     }
-                    let (o, uh) = st.sample_bubble_agl(setup, &NoClouds, [px as f32, y as f32, pz as f32], tm, agl);
+                    let q = [px as f32, y as f32, pz as f32];
+                    let (o, uh) = st.sample_bubble_agl(setup, &NoClouds, q, tm, agl);
                     let v = [o[0], uh[0], uh[1]];
                     if let Some(p) = prev {
-                        let d = ((v[0] - p[0]).powi(2) + (v[1] - p[1]).powi(2) + (v[2] - p[2]).powi(2)).sqrt();
-                        if d > max_dv {
-                            max_dv = d;
+                        let d = norm(v, p);
+                        if is_flat {
+                            max_flat = max_flat.max(d);
+                        } else {
+                            max_dv = max_dv.max(d);
                         }
                     }
                     prev = Some(v);
                 }
-                nvert += 1;
+                nvert += usize::from(!is_flat);
             }
         });
     }
-    assert!(nvert >= 8, "мало вертикалей: {nvert}");
-    println!("verticals={nvert}");
+    assert!(nvert > 100, "мало вертикалей: {nvert}");
+    println!("verticals={nvert} flat_max_dv_per_m={max_flat:.4}");
     println!("num:agl_blend_max_dv_per_m={max_dv:.4}");
+    println!("num:agl_blend_ratio={:.4}", max_dv / max_flat);
+}
+
+/// Связка `sum.rs` (Ctx.agl) → `ThermalSlot::sample` → `sample_bubble_agl`: через `terms::sum` на склоне 20° (место с
+/// рельефом `Terrain`) у ядер на 10 м над землёй есть приток к оси (`T_THERMAL` в `Rec`), как при прямом опросе с agl.
+#[test]
+fn sum_uses_agl() {
+    use dp_air::terms::{self, T_THERMAL};
+    use dp_air::field::field_set::FieldSet;
+    use dp_air::{Place, PlaceHeader, SampleMode};
+    let ter = SLOPE20;
+    let header = r#"{"version":1,"loc":{"id":"slope","center_lat":43.2,"center_lon":34.0,
+"utc_offset_h":2.0,"month":7,"day":15},"model_hash":"tb20","grid":{"origin_x":-10000,"origin_z":-10000,"spacing":25,
+"width":801,"height":801},"surface_classes":{"grass":1},"start_sites":[{"x":0.0,"z":0.0,"h_msl":0.0}]}"#;
+    let h = PlaceHeader::from_json(header).unwrap();
+    let n = h.cells();
+    let w = 801usize;
+    let heights: Vec<f32> = (0..n)
+        .map(|k| ter.h(-10000.0 + 25.0 * (k % w) as f64, -10000.0 + 25.0 * (k / w) as f64) as f32)
+        .collect();
+    let pl = Place::new(h, heights, vec![0; n], vec![1; n], vec![0.5; n]).unwrap();
+    let fs = FieldSet::default();
+    let mut t = scene(ter);
+    t.start_at(1200.0);
+    t.advance(1201.0);
+    t.advance(1500.0);
+    let tm = 1500.0;
+    let slot = t.slots.thermal.as_slot().unwrap();
+    let st = slot.state().unwrap();
+    let (mut urs, mut zero) = (Vec::new(), 0usize);
+    for th in &st.active {
+        if th.is_static {
+            continue;
+        }
+        let ph = th.phase(tm);
+        if th.strength * ph.env < 0.5 {
+            continue;
+        }
+        let ax = th.axis_at(f64::from(th.src[1]), ph.drift);
+        if ax[0].hypot(ax[1]) > 2000.0 {
+            continue;
+        }
+        let (mut sum, mut cnt) = (0.0, 0usize);
+        for k in RING_R {
+            for j in 0..AZ {
+                let a = std::f64::consts::TAU * j as f64 / AZ as f64;
+                let (c, s) = (a.cos(), a.sin());
+                let (px, pz) = (ax[0] + k * th.radius * c, ax[1] + k * th.radius * s);
+                let p = [px as f32, (ter.h(px, pz) + AGL) as f32, pz as f32];
+                let mut rec = terms::Rec::default();
+                let _ = terms::sum(&t, &fs, Some(&pl), p, SampleMode::Mean, tm, Some(&mut rec));
+                let v = rec.vel[T_THERMAL];
+                sum += -(v[0] * c + v[2] * s);
+                cnt += 1;
+            }
+        }
+        let ur = sum / cnt as f64;
+        zero += usize::from(ur.abs() < ZERO_MS);
+        urs.push(ur);
+    }
+    assert!(urs.len() > 10, "мало ядер: {}", urs.len());
+    urs.sort_by(|a, b| a.partial_cmp(b).unwrap());
+    let med = urs[urs.len() / 2];
+    println!("sum_uses_agl: n={} zero={zero} median_ur={med:.4}", urs.len());
+    assert!(zero as f64 / urs.len() as f64 <= 0.10 && med >= 0.05, "в sum нет притока на склоне");
 }
 
 /// Для отчёта: до/после (`sample_bubble` на плоскости источника против `sample_bubble_agl`) на склоне, холме и Алтае,
@@ -278,7 +335,11 @@ fn bubble_terrain_before_after() {
                     s0 += -(a0[0] * c + a0[1] * s);
                     s1 += -(a1[0] * c + a1[1] * s);
                     cnt += 1;
-                    // выше 120 м над рельефом: agl = высота над землёй, h_src не меняется — поле то же
+                    // 150 м над рельефом при |рельеф − плоскость источника| ≤ 40 м у всех термиков: L = 120 м < 150 — поле то же (v6)
+                    let flat_enough = st.active.iter().all(|o| o.is_static || (ter.h(px, pz) - f64::from(o.src[1])).abs() <= 40.0);
+                    if !flat_enough {
+                        continue;
+                    }
                     let hp = [px as f32, (ter.h(px, pz) + 150.0) as f32, pz as f32];
                     let (w0, b0) = st.sample_bubble(setup, &NoClouds, hp, tm);
                     let (w1, b1) = st.sample_bubble_agl(setup, &NoClouds, hp, tm, 150.0);

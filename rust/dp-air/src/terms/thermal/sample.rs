@@ -440,16 +440,20 @@ impl State {
     }
 }
 
-/// Сшивка высоты опроса таблицы пузыря у земли (TB4 v5): до 60 м над рельефом — `agl`, выше 120 м — высота над
-/// плоскостью источника `h_src`, между — смесь с `s = smoothstep((agl − 60)/60)`. Непрерывна по `agl`.
+/// Высота опроса таблицы пузыря над рельефом (TB4 v6): затухающая координата, следующая рельефу (Gal-Chen & Somerville
+/// 1975; SLEVE — Schär et al. 2002). `d = h_src − agl` (рельеф в точке минус плоскость источника),
+/// `high = h_src − d·f(agl)`, `f(a) = 1 − smoothstep(a/L)` на `[0, L]`, 0 выше; `L = clamp(3|d|, 120 м, zi)`.
+/// `high(0) = 0`, выше `L` — `h_src`; `∂high/∂agl = 1 − d·f′ ∈ [0,5; 1,5]`.
 #[inline]
-pub fn high_eff(agl: f64, h_src: f64) -> f64 {
-    if agl >= 120.0 {
+pub fn high_eff(agl: f64, h_src: f64, zi: f64) -> f64 {
+    let d = h_src - agl;
+    let l = (3.0 * d.abs()).max(120.0).min(zi.max(1.0));
+    if agl >= l {
         return h_src;
     }
-    let x = ((agl - 60.0) / 60.0).clamp(0.0, 1.0);
-    let s = x * x * (3.0 - 2.0 * x);
-    (1.0 - s) * agl + s * h_src
+    let x = (agl / l).clamp(0.0, 1.0);
+    let sm = x * x * (3.0 - 2.0 * x);
+    h_src - d * (1.0 - sm)
 }
 
 impl State {
@@ -469,7 +473,7 @@ impl State {
     }
 
     /// То же, что [`State::sample_bubble`], но с высотой над локальным рельефом `agl` (TB4 v5): у земли таблица пузыря
-    /// опрашивается по `agl`, выше 120 м — по высоте над плоскостью источника (см. [`high_eff`]).
+    /// опрашивается по `agl`, выше слоя затухания — по высоте над плоскостью источника (см. [`high_eff`]).
     pub fn sample_bubble_agl(
         &self,
         setup: &Setup,
@@ -537,7 +541,7 @@ impl State {
             match self.bubbles.get(o as usize) {
                 Some(Mode::Table(mv)) if f64::from(pos[1]) < th.top => {
                     let h_src = f64::from(pos[1]) - f64::from(th.src[1]);
-                    let high = agl.map_or(h_src, |a| high_eff(a, h_src));
+                    let high = agl.map_or(h_src, |a| high_eff(a, h_src, th.top - f64::from(th.src[1])));
                     // TB4 v4: центр пузыря — ось термика игры на высоте головы (снос + наклон `lean`, как у
                     // `cores`), сдвиг пузыря целиком; шлейф ниже головы остаётся вертикальным (граница модели)
                     let zc = mv.frame(t).zc;
