@@ -175,7 +175,7 @@ generated: true
   - [tools/research/sw_ground/timing/summary.md](../tools/research/sw_ground/timing/summary.md) — SWG-3: панели 3D на окнах игры 100/50 м медленнее Пикара крейта в 14–40 раз (8 потоков, tol 5); узкое место — опрос поля в FP64.
   - [tools/research/sw_ground/zone/summary.md](../tools/research/sw_ground/zone/summary.md) — SWG-8 вывод: скорость зоны и слой смешения снимают ошибку под оболочкой, но доля лее в ±15 % 0,08–0,17; дальше — высота зоны.
 - **thermal-bubble** — Термик как всплывающий пузырь-вихревое кольцо: шаблон в системе пузыря + снос, масса сохраняется; проверка идеи прототипом. [active 2026-11-09] — [план](plan/thermal-bubble.md) · [контракты](contracts/thermal-bubble.md)
-  - [docs/research/thermal_bubble.md](research/thermal_bubble.md) — Итог thermal-bubble: шаблон пузыря даёт бездивергентное замкнутое поле с притоком и растеканием, опрос таблицей +43 %, но ядро шире и сильнее литературы; рекомендация — за флагом, не по умолчанию. [closed]
+  - [docs/research/thermal_bubble.md](research/thermal_bubble.md) — Итог thermal-bubble: шаблон пузыря замкнут по массе, круг 2 — ядро по измерениям, dp-air за флагом (37 мс/с, таблица 3,2 %), границы и вопросы; по умолчанию выкл. [closed]
   - [tools/research/thermal_bubble/README.md](../tools/research/thermal_bubble/README.md) — thermal-bubble: аналитический шаблон термика (голова Хилла + шлейф Тёрнера + отражения), формулы, числа из литературы, допущения.
 
 ## flight

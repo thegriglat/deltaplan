@@ -12,6 +12,8 @@ applied_in: []
 ---
 # TB-3: цена опроса шаблона пузыря
 
+> Замеры — порт шаблона v2 (круг 1). Цена встраивания v4 за флагом (сборка 37 мс на 1 с игры, таблица 3,2 %, 252 КБ на пузырь) — в TB-8 и [итоге, «Круг 2», §4](../../../docs/research/thermal_bubble.md#круг-2-ядро-по-измерениям-и-встраивание-за-флагом).
+
 Бенч `rust/dp-air/benches/thermal_bubble.rs` (criterion, release): порт `bubble.velocity` на Rust (f64) против нынешних
 `terms::thermal::profile::contribution` и `State::sample`. Порт целиком в бенче, `src` dp-air не тронут.
 
