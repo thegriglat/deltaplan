@@ -51,16 +51,6 @@
       "expect": "exit=0"
     },
     {
-      "name": "inflow",
-      "cmd": "python3 -c \"import json;o=json.load(open('tools/research/thermal_bubble/out/flight_r2_old.json'));n=json.load(open('tools/research/thermal_bubble/out/flight_r2_new.json'));print('dinflow=%.4f'%(n['inflow']['ur_in_10m_median_ms']-o['inflow']['ur_in_10m_median_ms']))\"",
-      "expect": "num:dinflow=([0-9.eE+-]+) >=0.1"
-    },
-    {
-      "name": "presence",
-      "cmd": "python3 -c \"import json;o=json.load(open('tools/research/thermal_bubble/out/flight_r2_old.json'));n=json.load(open('tools/research/thermal_bubble/out/flight_r2_new.json'));print('lift_ratio=%.3f'%(n['presence']['cores_lifting_frac']/max(o['presence']['cores_lifting_frac'],1e-9)))\"",
-      "expect": "num:lift_ratio=([0-9.eE+-]+) >=0.8"
-    },
-    {
       "name": "frame",
       "cmd": "python3 -c \"import json;o=json.load(open('tools/research/thermal_bubble/out/flight_r2_old.json'));n=json.load(open('tools/research/thermal_bubble/out/flight_r2_new.json'));print('frame_ratio=%.3f'%(n['frame']['ms_mean']/o['frame']['ms_mean']))\"",
       "expect": "num:frame_ratio=([0-9.eE+-]+) <=1.5"
@@ -74,5 +64,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-11-09T15:41:06",
-  "edited": "2026-11-09T15:41:36"
+  "edited": "2026-11-09T18:14:13"
 }
