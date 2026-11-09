@@ -158,7 +158,7 @@ def test_goldstein_stall_without_cap():
     (Аньези H/L 0,5; сетка ds_min 50 м — дешевле основной)."""
     r = S.agnesi_run(H=125.0, ds_min=50.0, hx=1500.0, hy=1000.0, focus_x=np.arange(-600.0, 1201.0, 150.0), backend="auto")
     vi = W.VII2(r, cap=False)
-    res = vi.solve(newton_max=3)
+    res = vi.solve(newton_max=3, ds_min=0.02)   # остановка грубее (шаг дуги 0,02): тест дешевле
     x, e = vi.branch[-1]
     a, lam, _ = vi._unpack(x)
     st = bl.state(a, lam, vi.z0)

@@ -478,7 +478,7 @@ class VII2:
         a[bad], lam[bad] = 1.0, self.eq.lam0
         return a, lam, r
 
-    def solve(self, newton_max=NEWTON_MAX, tol=TOL, eps0=EPS0, ds0=DS0, max_steps=ARC_STEPS):
+    def solve(self, newton_max=NEWTON_MAX, tol=TOL, eps0=EPS0, ds0=DS0, max_steps=ARC_STEPS, ds_min=DS_MIN):
         """Глобальный Ньютон с продолжением по рельефу: U_e,eff = U_e(m) − (1 − ε)(U_inv − U_l); ε = 1 — задача
         (как развёртка по углу атаки в XFOIL). Начальное — равновесный слой (a = 1, λ0), U = U_l, ε = 0 (точное
         решение). Продолжение — псевдодлина дуги (Keller 1977): неизвестные (x, ε), предиктор по секущей двух
@@ -520,8 +520,8 @@ class VII2:
             if not ok:
                 n_fail += 1
                 ds *= 0.5
-                if ds < DS_MIN:
-                    self.log(f"  продолжение остановилось: ε = {eb:.4f}, шаг дуги < {DS_MIN}")
+                if ds < ds_min:
+                    self.log(f"  продолжение остановилось: ε = {eb:.4f}, шаг дуги < {ds_min}")
                     break
                 continue
             if (ec - eb) * te < 0:
