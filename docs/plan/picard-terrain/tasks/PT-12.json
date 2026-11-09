@@ -23,7 +23,7 @@
   ],
   "dont_touch": [
     "rust",
-    "scripts",
+    "scripts/atmosphere/terms",
     "configs",
     "project.godot",
     "docs",
@@ -67,5 +67,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-11-09T21:05:29",
-  "edited": "2026-11-10T00:14:55"
+  "edited": "2026-11-10T00:15:10"
 }
