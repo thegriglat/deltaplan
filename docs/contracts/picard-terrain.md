@@ -4,7 +4,7 @@ status: "active"
 module: "picard-terrain"
 area: "air"
 updated: "2026-11-09"
-summary: "Стыки picard-terrain: случаи опыта PT1, срезанные клетки PT2, 2-й порядок PT3, строки замеров PT4, выборка PT5, построитель долей PT6, поле игры PT7."
+summary: "Стыки picard-terrain: случаи PT1, срезанные клетки PT2, 2-й порядок PT3, замеры PT4, выборка PT5, доли PT6, поле игры PT7."
 related: ["docs/plan/picard-terrain.md", "docs/contracts/picard-rs.md", "docs/contracts/air-cascade.md", "docs/contracts/sw-charges-3d.md", "tools/research/air3d/reference.md"]
 contracts: [{"id": "PT1", "version": 2}, {"id": "PT2", "version": 1}, {"id": "PT3", "version": 2}, {"id": "PT4", "version": 1}, {"id": "PT5", "version": 1}, {"id": "PT6", "version": 1}, {"id": "PT7", "version": 2}]
 ---

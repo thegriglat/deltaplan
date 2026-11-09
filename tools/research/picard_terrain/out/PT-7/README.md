@@ -1,3 +1,11 @@
+---
+type: research
+status: closed
+module: picard-terrain
+updated: 2026-11-10
+summary: "PT-7: данные разведки пути срезанных клеток в поле игры (dp-air); вывод — docs/research/picard_terrain_game.md."
+related: [docs/research/picard_terrain_game.md]
+---
 # PT-7: разведка пути срезанных клеток в поле игры
 
 Документ: `docs/research/picard_terrain_game.md`. Здесь — расчёты размеров и сдвига типов клеток по растрам мест игры
