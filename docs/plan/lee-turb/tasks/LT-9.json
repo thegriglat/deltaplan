@@ -45,14 +45,6 @@
   ],
   "accept": [
     {
-      "name": "lee",
-      "tests": "lee"
-    },
-    {
-      "name": "test_c4",
-      "tests": "test_c4"
-    },
-    {
       "name": "dp_air",
       "cmd": "cargo test -q --release --manifest-path rust/Cargo.toml -p dp-air --lib --tests",
       "expect": "exit=0"
@@ -66,9 +58,18 @@
       "name": "pt_lee",
       "cmd": "sh tools/research/lee_turb/pt_check/run.sh",
       "expect": "re:PT lee tests: 0 failed"
+    },
+    {
+      "name": "ridge_starts",
+      "tests": "ridge_starts"
+    },
+    {
+      "name": "air_field_contracts",
+      "tests": "air_field_contracts"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-11-10T00:39:56"
+  "created": "2026-11-10T00:39:56",
+  "edited": "2026-11-10T01:49:10"
 }
