@@ -1,0 +1,41 @@
+{
+  "verdict": "accept",
+  "summary": "Скоуп соблюдён (20 файлов, dont_touch и project.godot не тронуты). Доли из растра через cut_build, kf = round((hc_type−z_bot)/dz)+1, cut_cells=true, format 2, плумбинг hc_type в фазы — по карточке. Cut::rebalance: r=(fin−top)/fout, top в единицах dx·dz (ubw·af_w·dx/dz), знак по типу клетки верной; без nest — прежний путь (identical=4/4 перепроверено). Блокеров нет.",
+  "issues": [
+    {
+      "file": "rust/picard_rs/src/cut.rs",
+      "line": 270,
+      "severity": "minor",
+      "what": "Решение координатора требовало сначала проверить гипотезу числом (|net|/|area| окна 100 м до и после rebalance); прямое число не снято — в отчёте только косвенно (MaxIters 400 → 30–40 итераций, cut_nest). Отчёт честно пишет об этом в «не вышло».",
+      "fix": "Не обязательно для приёмки; при следующей правке окон напечатать bc.net/bc.area и невязку с top до/после rebalance на Онгудае."
+    },
+    {
+      "file": "rust/dp-air/tests/cut_game.rs",
+      "line": 425,
+      "severity": "minor",
+      "what": "Порог div_rms в тесте (в) записан литералом 1e-6·5, а не из конфига tol_div_rms·tol_scale — при смене tol_div_rms в configs тест разойдётся с решателем молча.",
+      "fix": "Брать tol_div_rms из Configs/RunCfg."
+    },
+    {
+      "file": "rust/dp-air/tests/cut_game.rs",
+      "line": 316,
+      "severity": "minor",
+      "what": "Гистограмма kf_new−kf_old для отчёта считает старый kf упрощённо (ceil без доводки while по zc, как в прежнем AirCaseRs::prepare) — на граничных столбцах число может отличаться на ±1 от настоящего старого kf. На код игры не влияет.",
+      "fix": "Для точной статистики взять старую формулу целиком (как ветка cut=None в case_prepare)."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "solver-default (accept --only --dry)",
+      "value": "identical=4/4",
+      "pass": true
+    },
+    {
+      "name": "picard_rs cut_nest (release, под замком)",
+      "value": "1 passed",
+      "pass": true
+    }
+  ],
+  "t": "2026-11-09T19:57:05",
+  "by": "reviewer"
+}

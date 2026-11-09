@@ -1,0 +1,128 @@
+{
+  "status": "done",
+  "summary": "Все уровни Пикара игры (1200/400/100/50 м) решаются со срезанными клетками: cut_input.rs строит доли и hc_type из растра места, kf от hc_type, доли в Case (cut_cells=true), ключ кеша format 2; путь без долей остался только для тестов-дампов. Окна сходятся после правки Cut::rebalance (учёт потока верха ubw при nest) и boundary_flux по открытым площадям.",
+  "commits": [
+    "f14ac9391 dp-air: срезанные клетки в случаях игры (cut_input, case_prepare, case_build, runtime, phase/prepare)",
+    "29e551327 dp-air: cut_game — размеры Case через nxh/nyh/nzh",
+    "e51e6b39c dp-air: cut_game — загрузка Онгудая через run_job, время долей и сдвиг kf; case_prepare chain без долей",
+    "03d0f2726 dp-air: тесты window/clipmap — цепочка окна без долей, новый хеш поведения RW-6t",
+    "ff56cb455 picard_rs: rebalance окна учитывает поток верха ubw; dp-air: boundary_flux по открытым площадям (PT7 v2)"
+  ],
+  "checks": [
+    {
+      "name": "check",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "lib",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "regress",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "cut-game",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "solver-default",
+      "value": "identical=4/4",
+      "pass": true
+    },
+    {
+      "name": "Онгудай, область 400 м (до → после)",
+      "value": "coarse [40,40] → [50,50]; итерации [60,60] → [60,60]; Converged; div_rms 3e-8",
+      "pass": true
+    },
+    {
+      "name": "Онгудай, окна 100/50 м (до → после)",
+      "value": "до: 30/30 и 30/30, Converged. После: 100 м [40,30], 50 м [30,40], Converged, div_rms 2.6e-8…9.6e-8 (допуск 5e-6). Без правки rebalance было 3000 MaxIters, div_rms 4e-5…7e-5",
+      "pass": true
+    },
+    {
+      "name": "Онгудай, загрузка с окнами (run_job, детерминизм, tol_scale 5)",
+      "value": "до 15,2 с → после 18,0 с (×1,18 при пределе ×1,3; замеры в разное время, фон мог отличаться)",
+      "pass": true
+    },
+    {
+      "name": "время cut_level 1200/400/окно 100/окно 50 м",
+      "value": "0,007 / 0,058 / 0,027 / 0,041 с",
+      "pass": true
+    },
+    {
+      "name": "kf_new − kf_old, 1200 м (1024 столбца)",
+      "value": "−3: 22, −2: 357, −1: 596, 0: 49",
+      "pass": true
+    },
+    {
+      "name": "kf_new − kf_old, 400 м (9216)",
+      "value": "−2: 115, −1: 6728, 0: 2373",
+      "pass": true
+    },
+    {
+      "name": "kf_new − kf_old, окно 100 м (4096)",
+      "value": "−1: 2401, 0: 1695",
+      "pass": true
+    },
+    {
+      "name": "kf_new − kf_old, окно 50 м (4096)",
+      "value": "−2: 2, −1: 2210, 0: 1884",
+      "pass": true
+    },
+    {
+      "name": "cut_game (б) Онгудай 400 м",
+      "value": "cell==1 ⇔ vf≥0,05; vf=1 ⇒ 6 граней=1; доли в [0,1]; mech/heat побитно равны; воздух 388416 клеток, полных 369522, срезанных 18894",
+      "pass": true
+    },
+    {
+      "name": "cut_nest (picard_rs)",
+      "value": "окно с ненулевым ubw: |net|/|area| ≤ 1e-6 после rebalance",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Фактическое число невязки до rebalance (|net|/|area| окна Онгудая 100 м) отдельно не печатал: гипотеза подтверждена сходимостью окон (3000 MaxIters → 30–40 итераций) и тестом cut_nest, а не прямым замером невязки."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept PT-9",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/tests/cut_game.rs (б): грань типа 1",
+      "why": "в задании было af ≥ 1e-3; на Онгудае есть грани типа 1 с af 9,7e-4. PT6 finish ставит AF_FLOOR только доле ≤ 0, малая положительная доля законна.",
+      "checked": "по решению координатора проверка af > 0; код cut_build.rs не менял."
+    },
+    {
+      "where": "rust/dp-air/tests/clipmap.rs:601 (хеш поведения RW-6t)",
+      "why": "хеш изменился, потому что поле теперь считается со срезанными клетками (побитность прежнего не нужна).",
+      "checked": "было 0xa5ec66d99d172394, стало 0x2ab1352ce9092843; clipmap без #[ignore] проходят."
+    },
+    {
+      "where": "rust/dp-air/tests/step_cost_same.rs, data/RW-15/ref.json",
+      "why": "Первый прогон (до правок rebalance/boundary_flux) падал: первое различающееся значение 1067022696 против 1067022654, около 40 ulp. Место плоское на 500 м, первая клетка срезана (vf=0,238), так что vf не ≡ 1. После правки окон тест проходит со старым ref.json без пересъёмки (RW15_WRITE дал побитно тот же ref). Не понял, почему именно побитно; возможно, значения теста идут из пути, не затронутого срезанной первой клеткой.",
+      "checked": "ref.json пересъёмкой побитно идентичен старому (0 из 931 значений различаются), файл не менялся. Если пересъёмка понадобится из-за PT-10, команда RW15_WRITE=1."
+    },
+    {
+      "where": "rust/picard_rs/src/cut.rs Cut::rebalance, nest_top",
+      "why": "при nest = Some баланс сторон идёт против потока верха ubw (по af, в единицах dx·dz). Выходные боковые грани масштабируются так, что боковые грани плюс верх дают нулевой поток. Без nest nest_top = 0, ветка fin/fout та же.",
+      "checked": "solver-default identical=4/4, cut_nest (синтетика с частичными af и ненулевым ubw), окна Онгудая сходятся."
+    },
+    {
+      "where": "rust/dp-air/src/field/case_prepare.rs (Q, nu_bg, fixed_scale)",
+      "why": "по решению нагрев Q ставится в клетку kf (на единицу объёма, без деления на vf), nu_bg считается от настоящего hp, баланс fixed_scale — по полным площадям. Баланс тепла Σ Q·vf·dz против heat_used не проверял (это PT-11).",
+      "checked": "не менял по решению."
+    }
+  ],
+  "dp_feedback": "accept --dry пишет в 03-regress.log только вывод cargo (без имён упавших тестов до конца); пришлось вручную перезапускать regress, чтобы увидеть, какие тесты упали. Удобно было бы показывать список FAILED в итоговой сводке. Ожидание в очереди lock cpu: когда другой модуль держит 16 из 18 слотов, у очереди нет оценки ожидания; ждал около 2,5 часов.",
+  "extra": {
+    "baseline_load_ongudai": "feature/picard-terrain: coarse [40,40], iters [60,60], окна 30/30 + 30/30, 15,2 с",
+    "after_load_ongudai": "PT-9: coarse [50,50], iters [60,60], окна [40,30] и [30,40], 18,0 с",
+    "windows_before_rebalance_fix": "400 итераций окон (потолок) MaxIters: div_rms 2.2e-5/1.9e-5 (100 м), 6.5e-5/6.4e-5 (50 м); при потолке 3000 — 4e-5…7e-5, загрузка 978 с"
+  },
+  "t": "2026-11-09T19:54:39",
+  "by": "executor"
+}
