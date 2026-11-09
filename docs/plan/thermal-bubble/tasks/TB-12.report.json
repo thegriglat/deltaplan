@@ -1,0 +1,87 @@
+{
+  "status": "done",
+  "summary": "Профиль q(ξ) шаблона = средний по жизни поток вверх по высоте (21 точка); прежний q расходится с ним до 0,105 м/с (26 % Φ), пик 0,85 против 0,40 (цель L&S 0,25). Рекомендация: подставить q_template в expected.rs.",
+  "commits": [
+    "99413a622 TB-12: профиль q(xi) между под шаблон"
+  ],
+  "checks": [
+    {
+      "name": "ошибка суммы пузыри+между, прежний q, м/с",
+      "value": "0.105 (26 % Phi)",
+      "pass": true
+    },
+    {
+      "name": "ошибка суммы с q_template",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "RMS до цели L&S: прежний / шаблон",
+      "value": "0.72 / 0.34",
+      "pass": true
+    },
+    {
+      "name": "уровней с отрицательным между: шаблон / прежний",
+      "value": "3 / 4",
+      "pass": true
+    },
+    {
+      "name": "untouched",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "tb1",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "json",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "repro",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "refs",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "md_docs",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Профиль доли площади подъёма по высоте не найден (принят постоянным); числа профилей массового потока LES не прочитаны"
+  ],
+  "questions": [
+    "Жизнь пузыря 3254 с против 990 с игры меняет верх профиля (ξ>0.7) — решать вместе с TB-10"
+  ],
+  "images": [
+    "tools/research/thermal_bubble/round3/between_profile.png"
+  ],
+  "how_to_check": ".dpcli/dpcli accept TB-12",
+  "uncertain": [
+    {
+      "where": "tools/research/thermal_bubble/round3/between.py:target",
+      "why": "цель = L&S ŵ(ξ) при постоянной доле площади 0,35; настоящий профиль массового потока поля игры иной",
+      "checked": "сравнение с q шаблона и прежним; веб-поиск дал только аннотации"
+    }
+  ],
+  "dp_feedback": "plan <модуль> <раздел> не принимает составные названия из карточки ('Задачи, круг 3 п. 5'); задачи в фоне с pipe дают пустой вывод до конца.",
+  "extra": {
+    "q_template": "out/round3_between.json",
+    "peak_xi": {
+      "template": 0.4,
+      "now": 0.85,
+      "target": 0.25
+    }
+  },
+  "t": "2026-11-09T15:55:18",
+  "by": "executor"
+}

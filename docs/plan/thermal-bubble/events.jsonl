@@ -195,3 +195,6 @@
 {"t": "2026-11-09T15:42:29", "by": "coordinator", "task": "TB-12", "ev": "started"}
 {"t": "2026-11-09T15:42:29", "by": "coordinator", "task": "TB-13", "ev": "started"}
 {"t": "2026-11-09T15:42:30", "by": "coordinator", "task": "TB-14", "ev": "started"}
+{"t": "2026-11-09T15:55:18", "by": "executor", "task": "TB-12", "ev": "reported", "commits": ["99413a622"], "note": "done: Профиль q(ξ) шаблона = средний по жизни поток вверх по высоте (21 точка); прежний q расходится с ним до 0,105 м/с (26 %…", "dp_feedback": "plan <модуль> <раздел> не принимает составные названия из карточки ('Задачи, круг 3 п. 5'); задачи в фоне с pipe дают пустой вывод до конца."}
+{"t": "2026-11-09T16:00:56", "by": "coordinator", "task": "TB-12", "ev": "checked", "note": "6/6 untouched=ok:exit 0; tb1=ok:exit 0; json=ok:exit 0; repro=ok:exit 0; refs=ok:6; md_docs=ok:exit 1"}
+{"t": "2026-11-09T16:01:19", "by": "coordinator", "task": "TB-12", "ev": "accepted", "note": "по отчёту; q_template пересчитать в TB-15 после смены F0 (TB-10)"}
