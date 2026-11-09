@@ -1,0 +1,68 @@
+{
+  "id": "PT-12",
+  "module": "picard-terrain",
+  "type": "dp-engineer",
+  "title": "Godot: тесты атмосферы и автопилот у склона на поле со срезанными клетками",
+  "goal": "Тесты Godot атмосферы проходят на поле со срезанными клетками (новых падений против базы нет), автопилот вдоль склона (ridge_starts, все старты) набирает не хуже, чем до срезанных клеток; поле есть, NaN нет.",
+  "plan_ref": "Задачи / Этап 2",
+  "contracts": [
+    {
+      "name": "PT7",
+      "version": "2",
+      "ref": "docs/contracts/picard-terrain.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/picard-terrain-PT-12",
+  "branch": "picard-terrain/PT-12",
+  "base": "feature/picard-terrain",
+  "scope": [
+    "tests/atmosphere",
+    "tools/research/picard_terrain/out/PT-12"
+  ],
+  "dont_touch": [
+    "rust",
+    "scripts",
+    "configs",
+    "project.godot",
+    "docs",
+    "CHANGELOG.md",
+    "tests/fixtures"
+  ],
+  "accept": [
+    {
+      "name": "atmosphere",
+      "tests": "atmosphere"
+    },
+    {
+      "name": "wind_field",
+      "tests": "wind_field"
+    },
+    {
+      "name": "air_field",
+      "tests": "air_field"
+    },
+    {
+      "name": "ridge-file",
+      "cmd": "test -s tools/research/picard_terrain/out/PT-12/ridge.json && python3 -c \"import json;json.load(open('tools/research/picard_terrain/out/PT-12/ridge.json'))\"",
+      "expect": "exit=0"
+    },
+    {
+      "name": "ridge-new-fails",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/picard_terrain/out/PT-12/ridge.json'));print('ridge_new_fails=%s'%d['ridge_new_fails'])\"",
+      "expect": "num:ridge_new_fails=([0-9.e+-]+) <=0"
+    },
+    {
+      "name": "ridge-gain",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/picard_terrain/out/PT-12/ridge.json'));print('gain_after_minus_before_min_m=%s'%d['gain_after_minus_before_min_m'])\"",
+      "expect": "num:gain_after_minus_before_min_m=([0-9.e+-]+) >=-20"
+    },
+    {
+      "name": "ridge-nan",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/picard_terrain/out/PT-12/ridge.json'));print('nan_count=%s'%d['nan_count'])\"",
+      "expect": "num:nan_count=([0-9.e+-]+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T21:05:29"
+}
