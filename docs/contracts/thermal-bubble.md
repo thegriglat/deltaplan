@@ -200,4 +200,5 @@ v2: `les.json` (пишет TB-6; читатели — сверка и итог) 
   один раз), без флага — побитно прежнее.
 - Тесты v2 (в `tests/thermal_bubble_embed.rs`): прежние + `bubble_cache_budget` (печатает `build_ms_per_s=`),
   `no_table_no_w` (динамический без таблицы внутри радиуса — w = 0, uh = 0; статичный — как без флага),
-  `port_vs_python` — против фикстуры v4 (`tools/research/thermal_bubble/out/bench_fixture.json`, пересобрана `bench_fixture.py`).
+  `port_vs_python` — против фикстуры v4 `tools/research/thermal_bubble/out/embed_fixture.json` (пишет `embed_fixture.py`; `bench_fixture.json` — v2 для бенча, не менять).
+- K̄ шаблона в Rust — таблица констант по (zl, w*) `rust/dp-air/src/terms/thermal/bubble_kbar.rs`, сгенерирована из `bubble.kbar` скриптом `tools/research/thermal_bubble/kbar_table.py` (tau — среднее grow_s + mature_s `ThermalCfg::default`); билинейно, вне таблицы — край.
