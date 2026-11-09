@@ -101,6 +101,9 @@ def check_case(path):
         err.append("pt.heat must be false")
     if pt["U10"] is not None and pt["U10"] < 5:
         err.append("U10 < 5 m/s")
+    if pt["site"].startswith("perdigao"):
+        if not isinstance(pt.get("U_ref"), (int, float)) or pt["U_ref"] < 5:
+            err.append("perdigao: pt.U_ref (U100 of data window) missing or < 5 m/s (PT1 v2)")
     for k in ("script", "args", "git"):
         if k not in pt["source"]:
             err.append(f"pt.source.{k} missing")
