@@ -20,6 +20,7 @@
 pub mod air;
 pub mod bubble;
 pub mod bubble_kbar;
+pub mod bubble_q;
 pub mod cells;
 pub mod cfg;
 pub mod cores;
@@ -128,7 +129,7 @@ struct Built {
     air: Option<(AirKey, AirSrc)>,
     /// Доля суши столбцов последней сборки (кеш на сетку места).
     land: LandCache,
-    /// Кеш таблиц шаблона пузыря (флаг `bubble_template`), общий для пересборок при том же окружении.
+    /// Кеш таблиц шаблона пузыря, общий для пересборок при том же окружении.
     bubbles: Arc<bubble::BubbleCache>,
 }
 
@@ -374,7 +375,9 @@ impl ThermalSlot {
             Some(b) if p.same => b.bubbles.clone(),
             _ => Arc::new(bubble::BubbleCache::default()),
         };
-        let state = State::build_cached(&setup, all, t, &focuses, p.dt, p.slot, &bubbles);
+        // `start_at` (force) синхронный: таблиц не строит, профиль до первого фонового обновления
+        let state =
+            State::build_cached(&setup, all, t, &focuses, p.dt, p.slot, &bubbles, !force);
         Some(ThermalSlot {
             ground: self.ground.clone(),
             hooks: self.hooks.clone(),
@@ -550,11 +553,7 @@ impl Thermal for ThermalSlot {
     fn sample(&self, c: &Ctx) -> Option<ThermalOut> {
         let b = self.built.as_ref()?;
         let hooks = self.hooks_of(self.cloud.as_ref());
-        let (mut o, uh) = if b.setup.cfg.bubble_template {
-            b.state.sample_bubble(&b.setup, hooks, c.pos, c.t)
-        } else {
-            (b.state.sample(&b.setup, hooks, c.pos, c.t), [0.0; 2])
-        };
+        let (mut o, uh) = b.state.sample_bubble(&b.setup, hooks, c.pos, c.t);
         if let Some(a) = &b.air {
             o = a.1.src.with_between(c.fs, c.pos, o);
         }

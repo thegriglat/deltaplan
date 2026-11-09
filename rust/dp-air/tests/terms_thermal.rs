@@ -709,7 +709,10 @@ fn start_at_equals_run_from_zero() {
     }
     let mut jump = terms_for(&l.case, Arc::new(SynGround));
     no_clouds(&mut jump);
-    jump.start_at(900.0);
+    // TB-15: `start_at` — синхронный набор без таблиц пузырей (профиль, первая сборка таблиц идёт в фоне), поэтому «прыжок»
+    // доводится одним обновлением набора: `start_at(899)` и `advance(900)` — набор на 900 с с таблицами, как у прогона
+    jump.start_at(899.0);
+    jump.advance(900.0);
     let (a, b) = (state_all(&run), state_all(&jump));
     assert_eq!(a.len(), b.len());
     let key = |h: &Arc<AtmoThermal>| h.id;

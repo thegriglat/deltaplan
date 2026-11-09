@@ -10,13 +10,12 @@ use rayon::prelude::*;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-/// Как термик `active` даёт подъём при флаге `bubble_template` (TB4 v2).
+/// Как термик `active` даёт подъём (TB4 v3: шаблон пузыря всегда).
 #[derive(Clone, Debug)]
 enum Mode {
-    /// Профиль Гедеона, как без флага: статичный или дальше `bubble_radius_m` от фокусов.
+    /// Профиль Гедеона: статичный, дальше `bubble_radius_m` от фокусов, столб ниже 100 м, пузыря нет (не родился,
+    /// кончился, радиус 0) или таблица ещё не собрана (первая сборка идёт в фоне).
     Profile,
-    /// Динамический внутри `bubble_radius_m`, а пузыря нет (не родился, кончился, радиус 0): `w = 0`, `uh = 0`.
-    NoTable,
     /// Таблицы ключевых кадров пузыря и его положение.
     Table(Blend),
 }
@@ -34,7 +33,7 @@ pub struct State {
     pub all: Vec<Arc<AtmoThermal>>,
     /// Термики в радиусе физики вокруг фокуса — те, что действуют на воздух и попадают в `cores`.
     pub active: Vec<Arc<AtmoThermal>>,
-    /// Шаблон пузыря (флаг `bubble_template`) параллельно `active`; без флага пусто.
+    /// Режим опроса параллельно `active`; пусто — все профилем (набор без таблиц, `stub`).
     bubbles: Vec<Mode>,
     buckets: HashMap<(i64, i64), Vec<u32>>,
     inv_bucket: f64,
@@ -73,10 +72,13 @@ impl State {
             margin,
             slot,
             &BubbleCache::default(),
+            true,
         )
     }
 
-    /// [`State::build`] с кешем таблиц пузырей (переносится между обновлениями набора).
+    /// [`State::build`] с кешем таблиц пузырей (переносится между обновлениями набора). `tables = false` — таблиц не
+    /// строить (синхронный `start_at`, кадр игры не ждёт): все термики опрашиваются профилем, пока фоновое обновление не
+    /// соберёт таблицы.
     pub fn build_cached(
         setup: &Setup,
         all: Vec<Arc<AtmoThermal>>,
@@ -85,6 +87,7 @@ impl State {
         margin: f64,
         slot: i64,
         cache: &BubbleCache,
+        tables: bool,
     ) -> State {
         let cfg = &setup.cfg;
         let bucket = cfg.bucket_m;
@@ -100,9 +103,7 @@ impl State {
             inv_bucket: 1.0 / bucket,
         };
         let cut = cfg.profile_cutoff_radii;
-        let tables = cfg
-            .bubble_template
-            .then(|| Self::bubble_modes(&st.all, t, focuses, margin, cfg, cache));
+        let tables = tables.then(|| Self::bubble_modes(&st.all, t, focuses, margin, cfg, cache));
         for th in st.all.clone() {
             if !(th.is_static || t <= th.t_end()) {
                 continue;
@@ -141,7 +142,7 @@ impl State {
         st
     }
 
-    /// Режимы термиков при флаге (кроме `Profile`, которого в карте нет). Динамический термик, чей круг влияния
+    /// Режимы термиков (кроме `Profile`, которого в карте нет). Динамический термик, чей круг влияния
     /// (радиус таблицы + снос за `margin`) задевает круг `bubble_radius_m` вокруг фокуса, получает пузырь: таблица из
     /// кеша по `id`, пересборка — когда она устарела ([`bubble::BubbleTable::stale`]). Радиус таблицы ещё не известен
     /// — предотбор по `R_GUESS_FRAC·z_l`, потом та же проверка с настоящим радиусом. Параллельно, порядок и биты не зависят от
@@ -177,7 +178,7 @@ impl State {
             .iter()
             .filter(|th| {
                 let zl = th.top - f64::from(th.src[1]);
-                !th.is_static
+                bubble::bubble_inputs(th).is_some()
                     && t <= th.t_end()
                     && near(th, (bubble::R_GUESS_FRAC * zl).min(bubble::R_CAP_M))
             })
@@ -267,11 +268,7 @@ impl State {
             let [fa, fb] = &frames[i];
             let st = entries[i].state_at(t);
             let (Some(st), Some(j0), true) = (st, ivs[i], fa.is_some() || fb.is_some()) else {
-                // пузыря нет: внутри круга — вклада нет, снаружи — профиль
-                if near(th, 0.0) {
-                    out.insert(th.id, Mode::NoTable);
-                }
-                continue;
+                continue; // пузыря нет — профиль
             };
             let bl_r = fa
                 .as_ref()
@@ -371,9 +368,11 @@ impl State {
 }
 
 impl State {
-    /// [`State::sample`] при флаге `bubble_template`: `w` пузырей (термики с таблицей) вместо `w` профиля,
-    /// плюс горизонталь `uh` (x, z игры); `маска` и `σ` — из профиля, как без флага. Статичные термики и динамические
-    /// дальше `bubble_radius_m` дают `w` профиля; динамический внутри радиуса без пузыря — `w = 0`, `uh = 0`.
+    /// Опрос игры (TB4 v3): `w` пузырей (термики с таблицей) вместо `w` профиля, плюс горизонталь `uh` (x, z игры);
+    /// `маска` и `σ` — из профиля. Статичные термики, дальше `bubble_radius_m`, столбы ниже 100 м и термики без таблицы
+    /// (ещё не собрана, пузыря нет) дают `w` профиля, `uh = 0`. Термик с таблицей: ниже `top` — только таблица, от `top`
+    /// до `top + cloud_depth` — `w` профиля (облачный подсос, продолжение столба в облако); шов на `top` — граница модели.
+    /// [`State::sample`] — только профиль (прежний путь, бенч).
     pub fn sample_bubble(
         &self,
         setup: &Setup,
@@ -405,16 +404,25 @@ impl State {
             }
             match self.bubbles.get(o as usize) {
                 Some(Mode::Table(mv)) => {
+                    if f64::from(pos[1]) >= th.top {
+                        if let Some(c) = &c {
+                            w += c.w;
+                        }
+                        continue;
+                    }
                     let high = f64::from(pos[1]) - f64::from(th.src[1]);
-                    let dx = f64::from(pos[0]) - (f64::from(th.src[0]) + f64::from(ph.drift[0]));
-                    let dz = f64::from(pos[2]) - (f64::from(th.src[2]) + f64::from(ph.drift[1]));
+                    // TB4 v4: центр пузыря — ось термика игры на высоте головы (снос + наклон `lean`, как у `cores`),
+                    // сдвиг пузыря целиком; шлейф ниже головы остаётся вертикальным (граница модели)
+                    let zc = mv.frame(t).zc;
+                    let ax = th.axis_at(f64::from(th.src[1]) + zc, ph.drift);
+                    let dx = f64::from(pos[0]) - ax[0];
+                    let dz = f64::from(pos[2]) - ax[1];
                     // огибающая термика игры: плавный распад, к концу жизни вклад 0 (пузырь живёт дольше термика)
                     let (wb, h) = mv.eval(high, dx, dz, t);
                     w += wb * ph.env;
                     uh[0] += h[0] * ph.env;
                     uh[1] += h[1] * ph.env;
                 }
-                Some(Mode::NoTable) => {}
                 Some(Mode::Profile) | None => {
                     if let Some(c) = &c {
                         w += c.w;

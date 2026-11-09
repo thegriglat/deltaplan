@@ -58,7 +58,7 @@ impl GroundSource for Spot {
     }
 }
 
-/// `Setup` игры (погода strong, ветер 18 км/ч с запада) с флагом шаблона и радиусом пузырей `radius_m`.
+/// `Setup` игры (погода strong, ветер 18 км/ч с запада) и радиусом пузырей `radius_m`.
 fn setup_with(radius_m: f64) -> Arc<Setup> {
     let text = std::fs::read_to_string(repo().join("configs/weather/strong.json")).unwrap();
     let mut w: Value = serde_json::from_str(&text).unwrap();
@@ -71,7 +71,6 @@ fn setup_with(radius_m: f64) -> Arc<Setup> {
     .unwrap();
     let cfg = configs_with(|v| {
         v["thermal"]["generation_radius_m"] = json!(8000.0);
-        v["thermal"]["bubble_template"] = json!(true);
         v["thermal"]["bubble_radius_m"] = json!(radius_m);
     });
     let mut t = Terms::default();
@@ -220,7 +219,7 @@ fn seam_case(setup: &Arc<Setup>, tm: f64, w0: f64) -> (f64, f64, f64, f64, f64) 
 #[test]
 fn radius_seam() {
     let setup = setup_with(2000.0);
-    assert!(setup.cfg.bubble_template && (setup.cfg.bubble_radius_m - 2000.0).abs() < 1e-9);
+    assert!((setup.cfg.bubble_radius_m - 2000.0).abs() < 1e-9);
     let (mut dw_all, mut uh_all, mut d_all) = (0.0f64, 0.0f64, f64::INFINITY);
     let mut r_all = 0.0f64;
     for &(tm, w0) in &[
@@ -310,7 +309,7 @@ fn radius_cost() {
                 let tm = t0 + k as f64;
                 let f = [15.0 * k as f64, 0.0];
                 let ts = std::time::Instant::now();
-                let st = State::build_cached(&setup, all.clone(), tm, &[f], 1.0, k as i64, &cache);
+                let st = State::build_cached(&setup, all.clone(), tm, &[f], 1.0, k as i64, &cache, true);
                 let ms = ts.elapsed().as_secs_f64() * 1e3;
                 if k == 0 {
                     warm_ms = ms;
@@ -329,7 +328,7 @@ fn radius_cost() {
         let (bytes, n_tab) = cache_bytes(&cache);
         // цена опроса: 20000 случайных точек в круге 1500 м вокруг фокуса, высота 10…1400 м, режим шаблона
         let f_end = [15.0 * steps as f64, 0.0];
-        let st = State::build_cached(&setup, all.clone(), t0 + sec, &[f_end], 1.0, 99, &cache);
+        let st = State::build_cached(&setup, all.clone(), t0 + sec, &[f_end], 1.0, 99, &cache, true);
         let mut prng = Rng(77);
         let pts: Vec<[f32; 3]> = (0..20000)
             .map(|_| {
@@ -414,7 +413,7 @@ fn radius_foci() {
                     let foc: Vec<[f64; 2]> =
                         base[..nf].iter().map(|f| [f[0] + 15.0 * k as f64, f[1]]).collect();
                     let ts = std::time::Instant::now();
-                    let st = State::build_cached(&setup, all.clone(), t0 + k as f64, &foc, 1.0, k as i64, &cache);
+                    let st = State::build_cached(&setup, all.clone(), t0 + k as f64, &foc, 1.0, k as i64, &cache, true);
                     if k == 0 {
                         warm_ms = ts.elapsed().as_secs_f64() * 1e3;
                         b0 = cache.stats.build_ns.load(Relaxed);

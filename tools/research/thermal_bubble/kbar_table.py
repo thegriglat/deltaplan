@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""Таблица K̄ шаблона для «между» (TB-8, TB4 v2): bubble.kbar на сетке z_l × w* → rust/dp-air/src/terms/thermal/bubble_kbar.rs.
+"""Таблица K̄ шаблона для «между» (TB-8/TB-15, TB4 v2/v3): bubble.kbar на сетке z_l × w* → rust/dp-air/src/terms/thermal/bubble_kbar.rs.
 
-K̄(z_l, w*) = средний по жизни и по столбу поток вверх пузыря from_strength(w0 = K_ALLEN·w*), делённый на w0, м²
+K̄(z_l, w*) = средний по жизни и по столбу поток вверх пузыря from_game_strength(w0 = K_ALLEN·w*) (v5), делённый на w0, м²
 (bubble.kbar; в игре сила термика w0 = K_ALLEN·w*, K_ALLEN = e·0,4575 — thermal_air/mod.rs). tau = среднее
 grow_s + mature_s ThermalCfg::default (середины [120; 240] и [300; 720] = 180 + 510 = 690 с). Env(zi = z_l, ветра нет).
 
 Счёт долгий (≈ 420 узлов × 10…40 с): запускать под замком, фоном:  .dpcli/dpcli lock cpu tb8k -- python3 tools/research/thermal_bubble/kbar_table.py
 Промежуточные значения — out/kbar_table.partial* (не коммитятся); перезапуск продолжает с места остановки.
-Параллельно: `--part k/n` (k = 0…n-1) в n запусках, затем `--assemble`.
+Таблица q(ξ) «между» — `--q` (быстро). Параллельно: `--part k/n` (k = 0…n-1) в n запусках, затем `--assemble`.
 Процессов: KBAR_PROCS (по умолчанию 1: замок cpu даёт 100 % ядра).
 """
 from __future__ import annotations
@@ -29,7 +29,7 @@ import bubble as bb  # noqa: E402
 ZL = [300.0 + 100.0 * i for i in range(28)]          # 300 … 3000 м
 WS = [0.5 + 0.25 * i for i in range(15)]             # 0,5 … 4 м/с
 TAU = 0.5 * (120.0 + 240.0) + 0.5 * (300.0 + 720.0)  # 690 с
-K_ALLEN = 2.718281828 * 0.4575                       # w0 = K_ALLEN·w* (thermal_air/mod.rs)
+K_ALLEN = bb.K_ALLEN                                 # w0 = K_ALLEN·w*; w* клетки = w0 / K_ALLEN (v5: from_game_strength)
 DEST = here.parents[2] / "rust" / "dp-air" / "src" / "terms" / "thermal" / "bubble_kbar.rs"
 PARTIAL = here / "out" / "kbar_table.partial"
 
@@ -45,8 +45,8 @@ def write_rust(tab: list[list[float]]) -> None:
     for row in tab:
         rows.append("    [" + ", ".join(f"{v:.2f}" for v in row) + "],")
     txt = f"""// сгенерировано tools/research/thermal_bubble/kbar_table.py, не править.
-//! K̄ шаблона пузыря для «между» (TB4 v2): средний по жизни и по столбу поток вверх пузыря
-//! `bubble.from_strength(w0 = K_ALLEN·w*)`, делённый на `w0`, м², по сетке `z_l` {ZL[0]:.0f}…{ZL[-1]:.0f} м (шаг
+//! K̄ шаблона пузыря для «между» (TB4 v3): средний по жизни и по столбу поток вверх пузыря
+//! `bubble.from_game_strength(w0 = K_ALLEN·w*)`, делённый на `w0`, м², по сетке `z_l` {ZL[0]:.0f}…{ZL[-1]:.0f} м (шаг
 //! {ZL[1] - ZL[0]:.0f} м) × `w*` {WS[0]}…{WS[-1]} м/с (шаг {WS[1] - WS[0]}); `tau` = {TAU:.0f} с (середины grow_s + mature_s
 //! `ThermalCfg::default`). Вне сетки — край; между узлами — билинейно.
 
@@ -82,6 +82,49 @@ pub fn kbar(zl: f64, wstar: f64) -> f64 {{
     os.replace(tmp, DEST)
 
 
+DEST_Q = DEST.with_name("bubble_q.rs")
+
+
+def write_q_rust() -> None:
+    """Таблица q(ξ) «между» (bubble.between_q, 21 узел) → bubble_q.rs; быстро, без счёта K̄:  kbar_table.py --q"""
+    q = bb.between_q_nodes()
+    rows = "\n".join("    " + ", ".join(repr(float(v)) for v in q[i : i + 3]) + "," for i in range(0, len(q), 3))
+    txt = f"""// сгенерировано tools/research/thermal_bubble/kbar_table.py --q, не править.
+//! Профиль «между» `q(ξ)`, ξ = z/z_l ∈ [0, 1] (TB1 v5 `bubble.between_q`): средний по жизни поток вверх шаблона
+//! (`from_game_strength`) по высоте, среднее по ξ (трапеции) = 1; {len(q)} узлов, линейно между узлами
+//! (`round3/between.py`, TB-12 на v5).
+
+/// Узлы `q` при ξ = `i / (N − 1)`.
+#[rustfmt::skip]
+const Q: [f64; {len(q)}] = [
+{rows}
+];
+
+/// `q(ξ)`: линейно между узлами, вне `[0, 1]` — край.
+pub fn between_q(xi: f64) -> f64 {{
+    let n = Q.len() - 1;
+    let f = xi.clamp(0.0, 1.0) * n as f64;
+    let i = (f as usize).min(n - 1);
+    Q[i] + (f - i as f64) * (Q[i + 1] - Q[i])
+}}
+
+/// Среднее `q` по ξ (трапеции по узлам).
+pub fn mean() -> f64 {{
+    let n = Q.len() - 1;
+    Q.windows(2).map(|w| 0.5 * (w[0] + w[1])).sum::<f64>() / n as f64
+}}
+
+/// Узлы таблицы (для тестов).
+pub fn nodes() -> &'static [f64] {{
+    &Q
+}}
+"""
+    tmp = DEST_Q.with_suffix(".rs.tmp")
+    tmp.write_text(txt)
+    os.replace(tmp, DEST_Q)
+    print(f"{DEST_Q}: {len(q)} узлов", flush=True)
+
+
 def load_done() -> dict[str, float]:
     done: dict[str, float] = {}
     for p in sorted(PARTIAL.parent.glob(PARTIAL.name + "*")):
@@ -93,6 +136,9 @@ def main() -> int:
     """Без аргументов — счёт и сборка файла; `--part k/n` — только счёт доли k из n (параллельные запуски, у каждой
     доли свой файл out/kbar_table.partial.k); `--assemble` — только сборка bubble_kbar.rs из готовых долей."""
     args = sys.argv[1:]
+    if "--q" in args:
+        write_q_rust()
+        return 0
     part = (0, 1)
     if "--part" in args:
         k, n = args[args.index("--part") + 1].split("/")

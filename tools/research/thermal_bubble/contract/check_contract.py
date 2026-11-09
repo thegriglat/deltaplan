@@ -4,7 +4,7 @@
 python3 check_contract.py tb1            — шаблон bubble.py
 python3 check_contract.py tb2            — порт нынешнего профиля current.py
 python3 check_contract.py <файл.json>... — сводки TB3 (по полю format)
-python3 check_contract.py tb4 [v2]       — имена стыка TB4 в rust/dp-air (v2 — с кешем и радиусом пузырей)
+python3 check_contract.py tb4 [v2|v3]    — имена стыка TB4 в rust/dp-air (v2 — с кешем и радиусом пузырей; v3 — без флага)
 Только numpy + stdlib. Код возврата 0 — всё прошло; иначе 1 и список нарушений.
 """
 from __future__ import annotations
@@ -89,7 +89,8 @@ def tb1() -> None:
     except Exception as e:  # noqa: BLE001
         check(False, f"tb1: import bubble: {e!r}")
         return
-    for name in ("PARAMS", "Env", "Source", "State", "state", "velocity", "from_game", "from_strength", "kbar"):
+    for name in ("PARAMS", "Env", "Source", "State", "state", "velocity", "from_game", "from_strength", "kbar",
+                 "from_game_strength", "between_q"):
         check(hasattr(bm, name), f"tb1: bubble.{name} есть")
     if FAIL:
         return
@@ -256,6 +257,19 @@ def tb1_v3(bm, env, src) -> None:
     # 13. kbar
     kb = bm.kbar(zl, tau, env, 2.5)
     check(isinstance(kb, float) and math.isfinite(kb) and kb > 0, f"tb1 v4: kbar(1400, 690, w0=2,5) = {kb!r} > 0")
+    # 14. from_game_strength (v5)
+    w0 = 1.2436 * 2.56
+    sg = bm.from_game_strength(0.0, 0.0, 0.0, w0, 1400.0, 690.0, env)
+    f_exp = 0.371 * 2.56 ** 3 * 1400.0 / 8.5
+    rel = abs(sg.F0 - f_exp) / f_exp
+    cff = bm.PARAMS["core_flux_fraction"]["value"]
+    rel_c = abs(sg.F0 - cff * 2.56 ** 3 * 1400.0 / 8.5) / sg.F0
+    check(rel_c <= 1e-12, f"tb1 v5: from_game_strength F0 = core_flux_fraction·w*³·z_l/8,5, отн. {rel_c:.1e} ≤ 1e-12")
+    check(rel <= 2e-3 and sg.tau == 690.0, f"tb1 v5: F0 = 0,371·2,56³·1400/8,5 (число 0,371 округлено: отн. {rel:.1e} ≤ 2e-3), tau = 690")
+    # 15. between_q (v5)
+    q = np.array([bm.between_q(i / 20.0) for i in range(21)])
+    mean = float(np.sum(q[1:] + q[:-1]) * 0.5 / 20.0)
+    check(q.size == 21 and np.isfinite(q).all() and abs(mean - 1.0) <= 1e-6, f"tb1 v5: between_q 21 узел, среднее {mean:.9f} (|−1| ≤ 1e-6), конечно")
 
 
 # ---------------------------------------------------------------- TB4
@@ -269,6 +283,22 @@ def tb4() -> None:
         for n in needles:
             check(n in txt, f"tb4: {rel}: {n!r}")
 
+    v3 = "v3" in sys.argv[1:]
+    if v3:
+        # v3 (круг 3): шаблон по умолчанию, флага нет
+        txt = (air / "src/terms/thermal/cfg.rs").read_text()
+        check("bubble_template" not in txt, "tb4 v3: флага bubble_template в cfg.rs нет")
+        has("src/terms/thermal/cfg.rs", "bubble_radius_m", "/thermal/bubble_radius_m")
+        has("tests/thermal_bubble_embed.rs", "fn port_vs_python", "fn table_accuracy", "table_max_rel=", "fn bubble_cache_budget",
+            "build_ms_per_s=", "fn bubble_sum", "fn no_table_profile", "fn cloud_suck", "fn between_q_used",
+            "fn bubble_on_core_axis", "core_axis_dx_over_r=")
+        txt = (air / "tests/thermal_bubble_embed.rs").read_text()
+        check("fn flag_off_bitwise" not in txt, "tb4 v3: flag_off_bitwise удалён")
+        check(not (air / "tests" / "data" / "thermal_bubble_off.json").exists(), "tb4 v3: tests/data/thermal_bubble_off.json удалён")
+        has("src/terms/slots.rs", "pub uh: [f64; 2]")
+        has("src/terms/thermal/mod.rs", "pub mod bubble;")
+        has("src/terms/thermal/bubble.rs", "BubbleTable")
+        return
     has("src/terms/thermal/cfg.rs", "bubble_template", "/thermal/bubble_template")
     has("src/terms/slots.rs", "pub uh: [f64; 2]")
     has("src/terms/thermal/mod.rs", "pub mod bubble;")
@@ -396,7 +426,7 @@ def main(argv: list[str]) -> int:
             tb2()
         elif a == "tb4":
             tb4()
-        elif a == "v2":
+        elif a in ("v2", "v3"):
             pass
         else:
             tb3(Path(a))

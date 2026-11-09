@@ -1,12 +1,12 @@
-//! Шаблон пузыря-термика (TB4 v2): порт `tools/research/thermal_bubble/bubble.py` v4 (TB1: ядро по измерениям,
-//! оболочка ψ головы `hill_shell` 0,2R, `from_strength`) и таблицы `(u_ρ, w)` на пузырь для опроса.
+//! Шаблон пузыря-термика (TB4 v3, по умолчанию): порт `tools/research/thermal_bubble/bubble.py` v5 (TB1: ядро по
+//! измерениям, оболочка ψ головы `hill_shell` 0,2R, `from_game_strength` — F0 из бюджета потока) и таблицы `(u_ρ, w)` на пузырь для опроса.
 //!
 //! Аналитика (голова Хилла со сглаженным краем, шлейф MTT с виртуальным источником, линия стоков квадратурой
 //! Гаусса, образы земли и крышки) нужна только для сборки таблиц и тестов; опрос игры — билинейная выборка из
 //! [`BubbleTable`]. Ось прототипа — x, y горизонталь, z вверх; здесь пузырь сразу в своей осесимметричной
 //! системе: центр `(0, 0)`, точка `(ρ, z над землёй)`.
 //!
-//! Соответствие термику игры — в одном месте, [`source_of`]: `from_strength(w0 = strength, zl, tau)`.
+//! Соответствие термику игры — в одном месте, [`source_of`]: `from_game_strength(strength, zl, tau)`.
 use super::life::AtmoThermal;
 use rayon::prelude::*;
 use std::f64::consts::PI;
@@ -26,8 +26,11 @@ const GL_N: usize = 8;
 const PANEL_TABLE: f64 = 1.2;
 const GL_N_TABLE: usize = 4;
 const END_FRAC: f64 = 0.02;
-/// Отношение пиковой скорости термика игры к `w*`: `w0 = 1,24 w*` (`from_strength`, t_decay = 1,24·z_l/w0).
+/// Отношение пиковой скорости термика игры к `w*`: `w0 = 1,24 w*` (`from_strength`, t_decay = 1,24·z_l/w0); только для
+/// `from_strength` (справка, в игре не используется).
 const W0_OVER_WSTAR: f64 = 1.24;
+/// Сила ядра термика игры / `w*` клетки (v5): `strength = K_ALLEN·w*` — то же, что `thermal_air::K_ALLEN` (e·0,4575).
+pub const K_ALLEN: f64 = crate::terms::thermal_air::K_ALLEN;
 /// Радиус шлейфа у земли / z_l (Аллен 2006: r₂(ζ = 0,1)/z_l = 0,0461).
 fn b0_frac() -> f64 {
     0.102 * 0.1f64.powf(1.0 / 3.0) * (1.0 - 0.25 * 0.1)
@@ -154,7 +157,13 @@ impl Source {
         }
     }
 
-    /// `bubble.from_strength` (без кеша): F0 подобран так, что максимум w на оси за жизнь = `w0` (секущая по
+    /// `bubble.from_game_strength` (v5): источник термика игры из бюджета потока (TB-10): `w* клетки = strength/K_ALLEN`,
+    /// `F0 = core_flux_fraction·w*³·z_l/8,5`, `tau` — термика. Пик на оси ≈ 1,25·`strength` (2,5·U Хилла).
+    pub fn from_game_strength(t0: f64, strength: f64, zl: f64, tau: f64) -> Source {
+        Source::from_game(t0, strength / K_ALLEN, zl, tau)
+    }
+
+    /// `bubble.from_strength` (без кеша, справка: в игре не используется): F0 подобран так, что максимум w на оси за жизнь = `w0` (секущая по
     /// log F0, не более 15 вычислений, останов при |ln(wmax/w0)| < 0,3 %). Остальное — как `from_game` с
     /// w* = w0/1,24 (`t_decay = 1,24·z_l/w0`). Крышка — `zi = zl`.
     pub fn from_strength(t0: f64, w0: f64, zl: f64, tau: f64) -> Source {
@@ -867,11 +876,11 @@ pub fn axis_wmax_full(src: &Source, zi: f64) -> f64 {
         .reduce(|| 0.0, f64::max)
 }
 
-/// Средний по жизни и по столбу `0…zl` поток вверх `∫max(w,0)dA`, м³/с, пузыря `from_strength(w0, zl, tau)`
+/// Средний по жизни и по столбу `0…zl` поток вверх `∫max(w,0)dA`, м³/с, пузыря `from_game_strength(w0, zl, tau)`
 /// (`bubble.mean_up_flux`: сечения — середины 28 слоёв, моменты `15, 45, … < t_end`, ρ до 900 м, 90 узлов
 /// трапеций). Только для сверки таблицы K̄ ([`super::bubble_kbar`]); дорого (секунды).
 pub fn mean_up_flux(w0: f64, zl: f64, tau: f64) -> f64 {
-    let src = Source::from_strength(0.0, w0, zl, tau);
+    let src = Source::from_game_strength(0.0, w0, zl, tau);
     let tr = Traj::new(&src, zl);
     let nz = 28usize;
     let zs: Vec<f64> = (0..nz).map(|i| (i as f64 + 0.5) * zl / nz as f64).collect();
@@ -1188,7 +1197,9 @@ impl BubbleTable {
 /// источника и подъём оторвавшегося низа шлейфа): там кадры чаще — 15 с (измерено `table_accuracy`: через 30 с
 /// ошибка 0,12 пика, через 15 с — 0,03); в спокойной зрелости и распаде — 30 с.
 pub fn keyframe_dt(tp: f64, tau: f64) -> f64 {
-    if tp < KF_ONSET_S || (tp > tau - 30.0 && tp < tau + KF_DETACH_S) {
+    if tp < KF_BIRTH_S {
+        KEYFRAME_BIRTH_S
+    } else if tp < KF_ONSET_S || (tp > tau - 30.0 && tp < tau + KF_DETACH_S) {
         KEYFRAME_FAST_S
     } else {
         KEYFRAME_SLOW_S
@@ -1199,6 +1210,10 @@ pub fn keyframe_dt(tp: f64, tau: f64) -> f64 {
 pub const KEYFRAME_FAST_S: f64 = 15.0;
 pub const KEYFRAME_SLOW_S: f64 = 30.0;
 pub const KF_ONSET_S: f64 = 90.0;
+/// Первая минута после рождения (v5: F0 из потока, голова сильнее, 2,5·U = 1,55 w*): кадры каждые 10 с — через 15 с
+/// ошибка смеси 0,07 пика сцены против допуска 0,05 (`table_accuracy`).
+pub const KEYFRAME_BIRTH_S: f64 = 10.0;
+pub const KF_BIRTH_S: f64 = 60.0;
 pub const KF_DETACH_S: f64 = 240.0;
 
 /// Ключевые кадры `tp` термика до конца жизни пузыря (включая первый после конца: он нужен смеси).
@@ -1300,11 +1315,11 @@ pub fn bubble_inputs(th: &AtmoThermal) -> Option<(f64, f64, f64)> {
     Some((th.strength, zi, th.t_grow + th.t_mature))
 }
 
-/// Источник пузыря термика игры: `from_strength(w0 = strength, zl = zi, tau = t_grow + t_mature)`, t0 = `t_birth`.
-/// Дорого (секущая по F0) — в игре кешируется по `id` в [`BubbleCache`].
+/// Источник пузыря термика игры: `from_game_strength(strength, zl = zi, tau = t_grow + t_mature)`, t0 = `t_birth`.
+/// Дёшево (F0 по формуле, без подбора); траектория и таблицы кешируются по `id` в [`BubbleCache`].
 pub fn source_of(th: &AtmoThermal) -> Option<(Source, f64)> {
     let (w0, zi, tau) = bubble_inputs(th)?;
-    Some((Source::from_strength(th.t_birth, w0, zi, tau), zi))
+    Some((Source::from_game_strength(th.t_birth, w0, zi, tau), zi))
 }
 
 /// Таблица ключевого кадра на момент `tk`; `None` — пузыря в этот момент нет или радиус влияния 0.

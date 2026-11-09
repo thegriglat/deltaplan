@@ -1,4 +1,4 @@
-"""TB-12 (круг 3, п. 5): профиль q(xi) «между» по высоте под шаблон пузыря.
+"""TB-12/TB-15 (круг 3): v5 — пузырь from_game_strength (F0 из потока); профиль q(xi) «между» по высоте под шаблон пузыря.
 
 В игре «между» = w_conv - доля * expected_net(p), expected_net = carried * q(xi)/q_mean (rust thermal_air/expected.rs).
 Сумма «пузыри + между» совпадает с w_conv на уровне xi, только если q(xi) = профиль среднего потока вверх самого
@@ -23,7 +23,7 @@ import bubble as bb  # noqa: E402
 OUT = ROOT / "out" / "round3_between.json"
 FIG = HERE / "between_profile.png"
 ZL, WSTAR, TAU = 1400.0, 2.56, 690.0
-W0_TYP, W0_CAP = 1.24 * WSTAR, 2.5 * WSTAR
+W0_TYP, W0_CAP = bb.K_ALLEN * WSTAR, 2.5 * WSTAR
 PHI = 0.35 * 0.45 * WSTAR          # м/с: доля площади подъёма x средний подъём (L&S 1980, Stull 1988)
 NA = 8.5 / ZL ** 2                 # Аллен 2006
 GAME_LIFE_S = 990.0                # жизнь термика игры (docs/research/thermal_bubble.md, круг 2 п. 5.1)
@@ -58,8 +58,8 @@ def target():
 
 
 def level_flux(w0, tmax=None, dt=30.0):
-    """Средний по жизни поток вверх int max(w,0) dA пузыря from_strength(w0), м^3/с, на уровнях z = xi*z_l (21 уровень)."""
-    src = bb.from_strength(0.0, 0.0, 0.0, w0, ZL, TAU, ENV)
+    """Средний по жизни поток вверх int max(w,0) dA пузыря from_game_strength(w0) (v5), м^3/с, на уровнях z = xi*z_l (21 уровень)."""
+    src = bb.from_game_strength(0.0, 0.0, 0.0, w0, ZL, TAU, ENV)
     tr = bb._traj(src, ENV)
     rho = np.unique(np.concatenate([np.linspace(0.0, 150.0, 46), np.linspace(150.0, 900.0, 45)[1:]]))
     P = np.zeros((XI.size, rho.size, 3))
@@ -124,7 +124,7 @@ def compute():
     m = res["metrics"]
     neg_t, neg_n = m["levels_between_negative_template"], m["levels_between_negative_now"]
     res["recommendation"] = (
-        "Заменить q(xi) в Shape (expected.rs) при флаге шаблона на таблицу q_template (21 значение, среднее 1): сумма «пузыри + между» "
+        "q(xi) в Shape (expected.rs) = таблица q_template (bubble.between_q, v5) (21 значение, среднее 1): сумма «пузыри + между» "
         f"тогда совпадает с w_conv на каждом уровне (ошибка по высоте 0 вместо {m['max_abs_sum_error_now_m_s']:.3f} м/с = "
         f"{100 * m['max_abs_sum_error_now_over_phi']:.0f} % Phi). Пик q_template при xi={m['xi_peak_template']:.2f}, прежнего {m['xi_peak_now']:.2f}, "
         f"целевого {m['xi_peak_target']:.2f}. Уровней с отрицательным «между» при целевом профиле: {neg_t} (шаблон) против {neg_n} (прежний). "
@@ -139,6 +139,7 @@ def main(argv):
         old = json.load(open(OUT))
         for k in ("q_template", "q_now", "target", "between_if_q_template"):
             assert np.allclose(old[k], res[k], atol=1e-6, rtol=1e-6), k
+        assert np.allclose(res["q_template"], bb.between_q_nodes(), atol=1e-6, rtol=1e-6), "bubble.between_q не совпадает с q_template"
         assert len(res["xi"]) == 21 and abs(trap_mean(np.array(res["q_template"])) - 1) < 1e-9
         assert np.isfinite(np.array(res["q_template"])).all() and res["recommendation"]
         print("check ok")
