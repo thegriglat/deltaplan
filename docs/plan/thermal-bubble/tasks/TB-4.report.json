@@ -1,0 +1,54 @@
+{
+  "status": "done",
+  "summary": "Ревью 2: восстановлена шапка таблицы compare.md п.6 (шапка + один разделитель из 7 колонок, проверка table6 PASS); время сборки таблицы пересчитано 0,17 -> 0,055 с на пузырь (≈19 с·ядро на 341; 0,22/0,6 с при шаге 5/3 м) в thermal_bubble.md и bench.md. findings.md >40 КБ — не по задаче, передано координатору.",
+  "commits": [
+    "79e738188 thermal-bubble/TB-4: правки ревью 2 — шапка таблицы com"
+  ],
+  "checks": [
+    {
+      "name": "md_docs",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "sections",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "sources",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "findings",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "size",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "table6",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [
+    "findings.md 50 КБ > 40 КБ — разбить на файлы-разделы отдельной задачей"
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TB-4",
+  "uncertain": [],
+  "dp_feedback": "",
+  "t": "2026-11-09T09:50:08",
+  "by": "executor"
+}

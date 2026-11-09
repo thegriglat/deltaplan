@@ -1,0 +1,44 @@
+{
+  "verdict": "accept",
+  "summary": "Оба замечания ревью №2 исправлены и присутствуют в коммите 79e738188 (git show --stat HEAD: compare.md, bench.md, thermal_bubble.md): шапка таблицы п.6 восстановлена дословно, под ней один разделитель из 7 «---», строка base следом; время сборки таблицы пересчитано 0,17 → 0,055 с на пузырь (6,5 тыс. × 8,3 мкс), производные 19 с·ядро, 0,22/0,6 с при шаге 5/3 м, память 210/580 КБ — арифметика сходится, помечено «оценка/пересчёт, замером не проверено». Числа документа и findings выборочно сверены с out/compare.json (0,120; 0,84; 0,81; 0,45; −0,88; 0,136; p99 7,5e-7) и out/bench.json (3,14 пузыря/точку; 357/250 = 1,43). Рабочее дерево чистое, скоуп соблюдён. findings.md > 40 КБ — не по задаче, передано координатору.",
+  "issues": [],
+  "rerun": [
+    {
+      "name": "table6 (accept --dry)",
+      "value": "PASS, sep=7, строка base следом",
+      "pass": true
+    },
+    {
+      "name": "md_docs (accept --dry)",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "sections (accept --dry)",
+      "value": "PASS exit 0",
+      "pass": true
+    },
+    {
+      "name": "size (accept --dry)",
+      "value": "kb=25.5 <= 40",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "6 файлов в границах, dont_touch не затронут",
+      "pass": true
+    },
+    {
+      "name": "арифметика цены",
+      "value": "6547×8,3 мкс=0,054 с; ×341=18,5 с·ядро; ×4/×11 → 0,22/0,6 с; 52 КБ×4/×11 → 210/576 КБ",
+      "pass": true
+    },
+    {
+      "name": "числа vs compare.json/bench.json",
+      "value": "core_radius_over_zi 0,120; inflow 0,813; outflow 0,45; ring −0,88; area 0,136; div p99 7,46e-7; bubbles_per_point 3,14",
+      "pass": true
+    }
+  ],
+  "t": "2026-11-09T09:51:19",
+  "by": "reviewer"
+}

@@ -25,7 +25,8 @@
     "docs/registry/findings.md",
     "docs/INDEX.md",
     "tools/research/thermal_bubble/compare.md",
-    "tools/research/thermal_bubble/README.md"
+    "tools/research/thermal_bubble/README.md",
+    "tools/research/thermal_bubble/bench.md"
   ],
   "dont_touch": [
     "tools/research/thermal_bubble/out/",
@@ -34,8 +35,7 @@
     "docs/contracts/",
     "docs/guide/",
     "tools/research/thermal_bubble/bubble.py",
-    "tools/research/thermal_bubble/compare.py",
-    "tools/research/thermal_bubble/bench.md"
+    "tools/research/thermal_bubble/compare.py"
   ],
   "accept": [
     {
@@ -62,9 +62,15 @@
       "name": "size",
       "cmd": "python3 -c \"import os;print('kb=%.1f'%(os.path.getsize('docs/research/thermal_bubble.md')/1024))\"",
       "expect": "num:kb=([0-9.]+) <=40"
+    },
+    {
+      "name": "table6",
+      "cmd": "python3 -c \"L=open('tools/research/thermal_bubble/compare.md').read().splitlines();i=[k for k,s in enumerate(L) if s.startswith('| вариант | b0')];assert len(i)==1,'нет шапки';n=L[i[0]+1].count('---');print('sep='+str(n));assert n==7 and L[i[0]+2].startswith('| base')\"",
+      "expect": "exit=0"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-11-09T09:39:42"
+  "created": "2026-11-09T09:39:42",
+  "edited": "2026-11-09T09:48:45"
 }
