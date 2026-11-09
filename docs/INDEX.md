@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-11-09"
+updated: "2026-11-10"
 summary: "Точка входа: модули docs/ по подпроектам, прочие документы по типам."
 related: []
 generated: true
@@ -155,8 +155,16 @@ generated: true
 - **wind-forecast** — Ветер меню — как в прогнозе (10 м над открытой местностью): убрать подгонку под старт и два прохода k; показ «на старте X м/с». [closed 2026-11-08] — [план](plan/wind-forecast.md) · [контракты](contracts/wind-forecast.md) · [решения](plan/wind-forecast/decisions.md) · [сводка](plan/wind-forecast/summary.md) · полный журнал: `archive/wind-forecast`
   - [tools/research/wind_forecast/README.md](../tools/research/wind_forecast/README.md) — Аудит привязки ветра к старту: места файл:строка, U над стартом start/inflow на 8 стартах, загрузка, кеш, wind_ref.
 - **picard-terrain** — Мелкий рельеф в Пикар на той же сетке: срезанные клетки и ограниченный 2-й порядок; разгон Askervein/Каянча, ротор Perdigão. [active 2026-11-09] — [план](plan/picard-terrain.md) · [контракты](contracts/picard-terrain.md)
-  - [docs/research/picard_terrain.md](research/picard_terrain.md) — picard-terrain: срезанные клетки (FAVOR) и ограниченный 2-й порядок переноса в Пикаре на сетке 50/100 м — возврат разгона к эталону, сходимость и цена, ротор Perdigão; варианты для решения. [closed]
+  - [docs/research/picard_terrain.md](research/picard_terrain.md) — picard-terrain: срезанные клетки и 2-й порядок в Пикаре (сетка 50/100 м) — возврат разгона, цена, ротор Perdigão, варианты. [closed]
+  - [docs/research/picard_terrain_game.md](research/picard_terrain_game.md) — picard-terrain, этап 2: карта пути срезанных клеток в поле игры (dp-air) и разбиение встраивания PT-9…PT-12.
+  - [tools/research/picard_terrain/PT-11b/README.md](../tools/research/picard_terrain/PT-11b/README.md) — PT-11b: разгон на гребне и ротор в окнах 100/50 м до/после срезанных клеток; потеря S — от опоры, |U| гребня ×1,19. [closed]
+  - [tools/research/picard_terrain/PT-14/README.md](../tools/research/picard_terrain/PT-14/README.md) — PT-14: бисекция тестов и разложение поля — подветренная болтанка слабее из-за поля PT-9; снимок расходится из-за PT-10. [closed]
   - [tools/research/picard_terrain/README.md](../tools/research/picard_terrain/README.md) — picard-terrain: срезанные клетки и ограниченный 2-й порядок в picard_rs на той же сетке — случаи, прогоны, таблицы.
+  - [tools/research/picard_terrain/out/PT-11/README.md](../tools/research/picard_terrain/out/PT-11/README.md) — PT-11: время поля и присутствие рельефа до/после срезанных клеток на dp-stand (формула, 4 места).
+  - [tools/research/picard_terrain/out/PT-5/README.md](../tools/research/picard_terrain/out/PT-5/README.md) — PT-5: воспроизведение замера ротора Perdigão и мачт. [closed]
+  - [tools/research/picard_terrain/out/PT-7/README.md](../tools/research/picard_terrain/out/PT-7/README.md) — PT-7: данные разведки пути срезанных клеток в поле игры (dp-air); вывод — docs/research/picard_terrain_game.md. [closed]
+  - [tools/research/picard_terrain/out/PT-1/summary.md](../tools/research/picard_terrain/out/PT-1/summary.md) — PT-1: вывод — порт picard_rs совпадает с air3d f64, недобор 1-го порядка на Askervein и Каянче. [closed]
+  - [tools/research/picard_terrain/out/PT-5/summary.md](../tools/research/picard_terrain/out/PT-5/summary.md) — PT-5: итог — ротор Perdigão NE/SW и мачты по вариантам Пикара. [closed]
 - **sw-ground** — Панели 3D у земли: лее и долина (главный блокер), нить ротора по геометрии на реальном рельефе, время на сетках окон игры. [closed 2026-11-09] — [план](plan/sw-ground.md) · [контракты](contracts/sw-ground.md) · [решения](plan/sw-ground/decisions.md) · [сводка](plan/sw-ground/summary.md) · полный журнал: `archive/sw-ground`
   - [docs/research/sw_ground.md](research/sw_ground.md) — Итог sw-ground: слой у земли панелей 3D не заменяет Пикар в лее и долине; по мачтам лучший вариант не отличим от базы. [closed]
   - [tools/research/sw_ground/README.md](../tools/research/sw_ground/README.md) — Код и данные sw-ground: слой у земли панелей 3D, нить ротора на рельефе, время поля на окнах игры.
