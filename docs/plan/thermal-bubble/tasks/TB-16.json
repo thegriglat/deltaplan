@@ -1,0 +1,98 @@
+{
+  "id": "TB-16",
+  "module": "thermal-bubble",
+  "type": "dp-engineer",
+  "title": "Круг 3: повтор полётного замера — шаблон по умолчанию против прежних термиков",
+  "goal": "Инструментом TB-14 снять сводки TB5 v2 r3_old (до TB-15) и r3_new (после) в одной сессии и показать в игре: термики есть, приток у земли, подъём в ядре на оси, нет разрывов, время кадра не хуже.",
+  "plan_ref": "Задачи, круг 3 п. 8",
+  "contracts": [
+    {
+      "name": "TB5",
+      "version": "2",
+      "ref": "docs/contracts/thermal-bubble.md"
+    },
+    {
+      "name": "TB4",
+      "version": "4",
+      "ref": "docs/contracts/thermal-bubble.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/thermal-bubble-TB-16",
+  "branch": "thermal-bubble/TB-16",
+  "base": "feature/thermal-bubble",
+  "scope": [
+    "tools/research/thermal_bubble/flight/",
+    "tools/research/thermal_bubble/out/flight_r3_old.json",
+    "tools/research/thermal_bubble/out/flight_r3_new.json"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "rust/",
+    "data/",
+    "tests/",
+    "tools/bench/",
+    "tools/profile/",
+    "project.godot",
+    "tools/research/thermal_bubble/bubble.py",
+    "tools/research/thermal_bubble/round3/",
+    "docs/",
+    "tools/research/thermal_bubble/out/flight_r2_old.json",
+    "tools/research/thermal_bubble/out/flight_r2_new.json"
+  ],
+  "accept": [
+    {
+      "name": "untouched",
+      "cmd": "git diff --quiet feature/thermal-bubble -- scripts configs rust data tests tools/bench tools/profile project.godot",
+      "expect": "exit=0"
+    },
+    {
+      "name": "schema",
+      "cmd": "python3 -c \"import json;o=json.load(open('tools/research/thermal_bubble/out/flight_r3_old.json'));n=json.load(open('tools/research/thermal_bubble/out/flight_r3_new.json'));assert o['schema']==n['schema']=='tb5/2' and o['bubble'] is False and n['bubble'] is True;assert all(o[x]==n[x] for x in ['location','weather']);print('ok')\"",
+      "expect": "exit=0"
+    },
+    {
+      "name": "inflow_new",
+      "cmd": "python3 -c \"import json;o=json.load(open('tools/research/thermal_bubble/out/flight_r3_old.json'));n=json.load(open('tools/research/thermal_bubble/out/flight_r3_new.json'));print('inflow_new=%.4f'%(n['inflow']['ur_in_10m_median_ms']))\"",
+      "expect": "num:inflow_new=([0-9.eE+-]+) >=0.1"
+    },
+    {
+      "name": "lift_ratio",
+      "cmd": "python3 -c \"import json;o=json.load(open('tools/research/thermal_bubble/out/flight_r3_old.json'));n=json.load(open('tools/research/thermal_bubble/out/flight_r3_new.json'));print('lift_ratio=%.4f'%(n['presence']['cores_lifting_frac']/max(o['presence']['cores_lifting_frac'],1e-9)))\"",
+      "expect": "num:lift_ratio=([0-9.eE+-]+) >=0.8"
+    },
+    {
+      "name": "cover",
+      "cmd": "python3 -c \"import json;o=json.load(open('tools/research/thermal_bubble/out/flight_r3_old.json'));n=json.load(open('tools/research/thermal_bubble/out/flight_r3_new.json'));print('cover=%.4f'%(n['presence']['bubble_cover']))\"",
+      "expect": "num:cover=([0-9.eE+-]+) >=0.7"
+    },
+    {
+      "name": "axis_dx",
+      "cmd": "python3 -c \"import json;o=json.load(open('tools/research/thermal_bubble/out/flight_r3_old.json'));n=json.load(open('tools/research/thermal_bubble/out/flight_r3_new.json'));print('axis_dx=%.4f'%(n['core']['axis_dx_over_r_median']))\"",
+      "expect": "num:axis_dx=([0-9.eE+-]+) <=0.35"
+    },
+    {
+      "name": "core_w",
+      "cmd": "python3 -c \"import json;o=json.load(open('tools/research/thermal_bubble/out/flight_r3_old.json'));n=json.load(open('tools/research/thermal_bubble/out/flight_r3_new.json'));print('core_w=%.4f'%(n['core']['w_axis_over_strength_median']))\"",
+      "expect": "num:core_w=([0-9.eE+-]+) >=0.6"
+    },
+    {
+      "name": "dv_max_ratio",
+      "cmd": "python3 -c \"import json;o=json.load(open('tools/research/thermal_bubble/out/flight_r3_old.json'));n=json.load(open('tools/research/thermal_bubble/out/flight_r3_new.json'));print('dv_max_ratio=%.4f'%(n['continuity']['dv_frame_max_ms']/max(o['continuity']['dv_frame_max_ms'],1e-9)))\"",
+      "expect": "num:dv_max_ratio=([0-9.eE+-]+) <=1.5"
+    },
+    {
+      "name": "frame_ratio",
+      "cmd": "python3 -c \"import json;o=json.load(open('tools/research/thermal_bubble/out/flight_r3_old.json'));n=json.load(open('tools/research/thermal_bubble/out/flight_r3_new.json'));print('frame_ratio=%.4f'%(n['frame']['ms_mean']/o['frame']['ms_mean']))\"",
+      "expect": "num:frame_ratio=([0-9.eE+-]+) <=1.15"
+    },
+    {
+      "name": "gd_check",
+      "cmd": "python3 tools/check_gd.py $(ls tools/research/thermal_bubble/flight/*.gd)",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T19:47:24"
+}
