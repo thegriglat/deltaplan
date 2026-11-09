@@ -180,6 +180,8 @@ fn window_a(inp: &Dump, w: &Value) -> (AirWindowCase, AirWindowCase) {
         dz: num(w, "dz"),
         z_bot: num(w, "z_bot"),
         hc: inp.f64s(&format!("{tag}_hc")),
+        hc_type: inp.f64s(&format!("{tag}_hc")),
+        cut: None,
         gam: inp.f64s(&format!("{tag}_gam")),
         z_i: num(w, "z_i"),
         z_i_col: inp.f32s(&format!("{tag}_z_i_col")),
@@ -356,7 +358,10 @@ fn b_chain_matches_game() {
         let dom = window_domain(num(w, "dx"), cx, cy, N_WINDOW);
         assert_eq!(dom, domain_of(w), "{tag}: угол окна");
         let fw = field_weather(&cond, &place, &wc, &configs, &clim, hour, &dom).unwrap();
-        let di = build_window_input(&place, &wc.sh, &zi, &dom, &fw.day, Some(&pz)).unwrap();
+        let mut di = build_window_input(&place, &wc.sh, &zi, &dom, &fw.day, Some(&pz)).unwrap();
+        // дамп GPU снят на пути без долей: регрессия переноса — вход без срезанных клеток
+        di.cut = None;
+        di.hc_type = di.hc.clone();
         // сетка по высоте
         assert_eq!(di.nz, num(w, "nz") as usize, "{tag}: nz");
         assert_eq!(di.dz, num(w, "dz"), "{tag}: dz");
@@ -812,18 +817,18 @@ fn flux_correction_zeroes_the_sum() {
     let mut v: Vec<f32> = (0..n).map(|_| rnd()).collect();
     let mut w: Vec<f32> = (0..n).map(|_| rnd()).collect();
     let nyx = pl.nx_h * pl.ny_h;
-    let (net, area) = boundary_flux((pl.dx, pl.dz), nyx, &b.tc, [&u, &v, &w]).unwrap();
+    let (net, area) = boundary_flux((pl.dx, pl.dz), nyx, &b.tc, [&u, &v, &w], None).unwrap();
     assert!(
         net.abs() > 1e-3 * area,
         "случайный поток должен быть несбалансирован"
     );
     let corr = apply_flux_correction(nyx, &b.tc, [&mut u, &mut v, &mut w], net, area).unwrap();
     assert!(corr != 0.0);
-    let (net2, area2) = boundary_flux((pl.dx, pl.dz), nyx, &b.tc, [&u, &v, &w]).unwrap();
+    let (net2, area2) = boundary_flux((pl.dx, pl.dz), nyx, &b.tc, [&u, &v, &w], None).unwrap();
     assert_eq!(area, area2);
     assert!(net2.abs() <= 1e-6 * area * 10.0, "остаток {net2} при {net}");
     // длины
-    assert!(boundary_flux((pl.dx, pl.dz), nyx, &b.tc[1..], [&u, &v, &w]).is_err());
+    assert!(boundary_flux((pl.dx, pl.dz), nyx, &b.tc[1..], [&u, &v, &w], None).is_err());
 }
 
 #[test]

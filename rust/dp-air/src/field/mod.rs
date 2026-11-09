@@ -2,6 +2,7 @@
 pub mod case_build;
 pub mod case_prepare;
 pub mod clipmap;
+pub mod cut_input;
 pub mod field_cache;
 pub mod field_set;
 pub mod phase;

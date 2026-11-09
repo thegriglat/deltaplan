@@ -597,7 +597,9 @@ fn empty_window_levels_means_no_windows_and_the_area_only_path() {
         .fold(0xcbf2_9ce4_8422_2325u64, |h, b| {
             (h ^ u64::from(b)).wrapping_mul(0x0100_0000_01b3)
         });
-    assert_eq!(h, 0xa5ec_66d9_9d17_2394, "behaviour of RW-6t: {h:016x}");
+    // PT-9 (срезанные клетки в игре, побитность прежнего поля не нужна): было 0xa5ec_66d9_9d17_2394
+    // PT-10 (k1 по типам, воздух фаз по hc_type): было 0x2ab1_352c_e909_2843
+    assert_eq!(h, 0x7c7d_485b_e0a6_1c75, "behaviour of RW-6t: {h:016x}");
 }
 
 // ---------------------------------------------------------------- (7) детерминизм
@@ -762,6 +764,8 @@ fn window_heat(inp: &Dump, w: &Value) -> AirWindowCase {
         dz: num(w, "dz"),
         z_bot: num(w, "z_bot"),
         hc: inp.f64s(&format!("{tag}_hc")),
+        hc_type: inp.f64s(&format!("{tag}_hc")),
+        cut: None,
         gam: inp.f64s(&format!("{tag}_gam")),
         z_i: num(w, "z_i"),
         z_i_col: inp.f32s(&format!("{tag}_z_i_col")),

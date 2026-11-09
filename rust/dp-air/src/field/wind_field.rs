@@ -14,8 +14,13 @@
 //! (NaN — рельеф сетки). Опрос не выделяет памяти; пачка (`*_many`) идёт `rayon::par_chunks`.
 //! Нечисловая точка не проверяется — вызывающий отдаёт конечные числа (фасад W4 сам обнуляет).
 //!
+//! Первая воздушная клетка столбца `k1` — по типам клеток решения (`from_mac`, PT7 v2: срезанная
+//! клетка может лежать ниже блочного среднего `hc`), из файла поля — как записана, без неё —
+//! от `hc` (первая клетка с центром не ниже `hc`).
+//!
 //! Приземный слой: по четырём соседним столбцам линейно по высоте между центрами клеток; ниже
-//! центра первой воздушной клетки столбца — логарифмический профиль к нулю на `z0`; затем
+//! якоря (центр `k1`; если он ниже `hc` — `hc + dz/2`, значение — интерполяцией по клеткам)
+//! — логарифмический профиль к нулю на `z0` над `hc`; затем
 //! билинейно по столбцам. Столбец читается на высоте `z_c = y + (hc_c − h)·exp(−agl/dx)`
 //! (`h` — настоящая земля под точкой, `agl = y − h`): у земли — та же высота над землёй сетки,
 //! что у наблюдателя над настоящей, выше подсеточные неровности гаснут на масштабе клетки.
@@ -136,6 +141,10 @@ pub struct Field {
     theta: Vec<f32>,
     hc: Vec<f32>,
     k1: Vec<u32>,
+    /// Эффективная земля лог-профиля столбца, м (`hc`; с долями первой клетки — вариант B).
+    hg: Vec<f64>,
+    /// Дробный индекс якоря лог-профиля (`k1`, если центр `k1` не ниже земли `hg`; иначе выше).
+    kfa: Vec<f64>,
     z0c: Vec<f64>,
     inv_log1: Vec<f32>,
     ustar: Vec<f32>,
@@ -237,7 +246,15 @@ impl Field {
                     }
                 }
             });
-        Self::from_arrays(grid, cu, cv, cw, cc, ct, hc.to_vec(), meta, limits)
+        // первая воздушная клетка столбца — по типам (PT7 v2: граница воздуха не `hc`)
+        let mut k1 = vec![nz as u32; plane];
+        k1.par_iter_mut().enumerate().for_each(|(c, o)| {
+            let (j, i) = (c / nx, c % nx);
+            if let Some(k) = (0..nz).find(|&k| cell[((k + 1) * hy + j + 1) * hx + i + 1] != 0.0) {
+                *o = k as u32;
+            }
+        });
+        Self::from_arrays_k1(grid, cu, cv, cw, cc, ct, hc.to_vec(), Some(k1), meta, limits)
     }
 
     /// Поле из массивов в центрах клеток (`WindField.from_arrays`): `nz·ny·nx`, `hc` — `ny·nx`.
@@ -245,12 +262,30 @@ impl Field {
     #[allow(clippy::too_many_arguments)]
     pub fn from_arrays(
         grid: &FieldGrid,
+        u: Vec<f32>,
+        v: Vec<f32>,
+        w_mech: Vec<f32>,
+        w_conv: Vec<f32>,
+        theta: Vec<f32>,
+        hc: Vec<f32>,
+        meta: FieldMeta,
+        limits: Limits,
+    ) -> Result<Field, Error> {
+        Self::from_arrays_k1(grid, u, v, w_mech, w_conv, theta, hc, None, meta, limits)
+    }
+
+    /// То же, с первой воздушной клеткой столбца `k1` (`ny·nx`, `nz` — столбец в земле) из типов
+    /// клеток; `None` — от `hc`: первая клетка с центром не ниже `hc` (поле без срезанных клеток).
+    #[allow(clippy::too_many_arguments)]
+    pub fn from_arrays_k1(
+        grid: &FieldGrid,
         mut u: Vec<f32>,
         mut v: Vec<f32>,
         mut w_mech: Vec<f32>,
         mut w_conv: Vec<f32>,
         mut theta: Vec<f32>,
         hc: Vec<f32>,
+        k1_in: Option<Vec<u32>>,
         meta: FieldMeta,
         limits: Limits,
     ) -> Result<Field, Error> {
@@ -260,6 +295,11 @@ impl Field {
         }
         let nxy = nx * ny;
         let n = nxy * nz;
+        if let Some(k) = &k1_in
+            && (k.len() != nxy || k.iter().any(|&q| q as usize > nz))
+        {
+            return Err(Error::bad_input("Field: неверный массив k1"));
+        }
         for (name, a) in [
             ("u", &u),
             ("v", &v),
@@ -302,6 +342,8 @@ impl Field {
             theta,
             hc,
             k1: vec![0; nxy],
+            hg: vec![0.0; nxy],
+            kfa: vec![0.0; nxy],
             z0c,
             inv_log1: vec![0.0; nxy],
             ustar: vec![0.0; nxy],
@@ -325,29 +367,46 @@ impl Field {
         if f.z_i_col.len() != nxy {
             f.z_i_col = Vec::new();
         }
-        f.build_columns();
+        f.build_columns(k1_in);
         f.apply_limits(limits);
         f.build_boundary_layer();
         f.build_convective();
         Ok(f)
     }
 
-    fn build_columns(&mut self) {
+    /// Столбцы приземного слоя: `k1` (из типов или от `hc`), земля лог-профиля `hg` и его якорь.
+    /// Якорь — центр `k1`; если он ниже земли (срезанная клетка: первая воздушная клетка лежит
+    /// ниже блочного среднего `hc`), — `hg + dz/2` (как у `u*`: клетка ближе `dz/2` к земле сидит
+    /// в «углу» ступеньки), а значение в нём интерполируется по клеткам.
+    fn build_columns(&mut self, k1_in: Option<Vec<u32>>) {
         let g = self.grid;
         let (inv_dz, nz) = (self.inv_dz, g.nz);
-        let hc = &self.hc;
-        let z0c = &self.z0c;
+        let (hc, z0c) = (&self.hc, &self.z0c);
+        let k1_in = &k1_in;
         self.k1
             .par_iter_mut()
+            .zip(self.hg.par_iter_mut())
+            .zip(self.kfa.par_iter_mut())
             .zip(self.inv_log1.par_iter_mut())
             .enumerate()
-            .for_each(|(c, (k1, il))| {
+            .for_each(|(c, (((k1, hg), kfa), il))| {
                 let h = hc[c] as f64;
-                // под землёй — центр ниже hc: первая воздушная — наименьшая k с центром ≥ hc
-                let kk = (((h - g.z_bot) * inv_dz - 0.5).ceil().max(0.0) as usize).min(nz);
+                let kk = match k1_in {
+                    Some(v) => v[c] as usize,
+                    // под землёй — центр ниже hc: первая воздушная — наименьшая k с центром ≥ hc
+                    None => (((h - g.z_bot) * inv_dz - 0.5).ceil().max(0.0) as usize).min(nz),
+                };
                 *k1 = kk as u32;
                 let zc0 = z0c[c];
-                let a1 = (g.z_bot + (kk as f64 + 0.5) * g.dz - h).max(2.0 * zc0);
+                *hg = h;
+                let zc = g.z_bot + (kk as f64 + 0.5) * g.dz;
+                let za = if zc >= h { zc } else { h + 0.5 * g.dz };
+                *kfa = if zc >= h {
+                    kk as f64
+                } else {
+                    (za - g.z_bot) * inv_dz - 0.5
+                };
+                let a1 = (za - h).max(2.0 * zc0);
                 *il = (1.0 / (a1 / zc0).ln()) as f32;
             });
     }
@@ -380,6 +439,7 @@ impl Field {
         let g = self.grid;
         let nz = g.nz;
         let nxy = self.nxy;
+        let inv_dz = self.inv_dz;
         let (k1v, hc, z0c) = (&self.k1, &self.hc, &self.z0c);
         let (u, v, w) = (&self.u, &self.v, &self.w_mech);
         self.ustar
@@ -398,15 +458,34 @@ impl Field {
                     return;
                 }
                 let hcc = hc[c] as f64;
-                let mut kr = k1;
-                let mut ar = g.z_bot + (k1 as f64 + 0.5) * g.dz - hcc;
-                if ar < 0.5 * g.dz && k1 + 1 < nz {
-                    kr = k1 + 1;
-                    ar += g.dz;
+                // столбец без среза (k1 от hc, как у GD) — первая клетка с центром не ниже dz/2 над
+                // hc; срезанная k1 лежит ниже hc, её центр сидит в «углу» ступеньки маски: u для
+                // u* — на hc + dz/2 интерполяцией по клеткам (якорь выборки)
+                let k_hc = (((hcc - g.z_bot) * inv_dz - 0.5).ceil().max(0.0) as usize).min(nz);
+                let (su, sv, ar);
+                if k1 == k_hc {
+                    let mut kr = k1;
+                    let mut a = g.z_bot + (k1 as f64 + 0.5) * g.dz - hcc;
+                    while a < 0.5 * g.dz && kr + 1 < nz {
+                        kr += 1;
+                        a += g.dz;
+                    }
+                    ar = a;
+                    su = u[kr * nxy + c] as f64;
+                    sv = v[kr * nxy + c] as f64;
+                } else {
+                    let kf = ((hcc + 0.5 * g.dz - g.z_bot) * inv_dz - 0.5)
+                        .max(k1 as f64)
+                        .min(nz as f64 - 1.0);
+                    let kc = (kf as usize).min(nz.saturating_sub(2));
+                    let t = if nz < 2 { 0.0 } else { kf - kc as f64 };
+                    ar = g.z_bot + (kf + 0.5) * g.dz - hcc;
+                    let (i, i2) = (kc * nxy + c, (kc + (nz > 1) as usize) * nxy + c);
+                    su = u[i] as f64 + (u[i2] as f64 - u[i] as f64) * t;
+                    sv = v[i] as f64 + (v[i2] as f64 - v[i] as f64) * t;
                 }
-                let i = kr * nxy + c;
                 let zc0 = z0c[c];
-                let sp = (u[i] as f64).hypot(v[i] as f64);
+                let sp = su.hypot(sv);
                 *us = (KAPPA * sp / (ar.max(2.0 * zc0) / zc0).ln()) as f32;
                 let mut u_max = 0.0f64;
                 let mut a_max = ar;
@@ -642,6 +721,19 @@ impl Field {
             .for_each(|((o, p), g)| scalar_chunk(self, ch, o, p, g));
     }
 
+    /// Значение `at(i)` между клетками `k` и `k + 1` столбца `c` по дробному индексу `kf ≥ k1`.
+    #[inline]
+    fn kf_cell(&self, c: usize, kf: f64) -> (usize, f64) {
+        let nz = self.grid.nz;
+        let mut k = kf as usize;
+        let mut t = kf - k as f64;
+        if k >= nz - 1 {
+            k = nz - 2;
+            t = 1.0;
+        }
+        (k * self.nxy + c, t)
+    }
+
     /// (u, v, w_mech) столбца `c` на высоте `y` (со сдвигом `(e, h)`).
     fn col_vel(&self, c: usize, y: f64, e: f64, h: f64) -> [f64; 3] {
         let k1 = self.k1[c] as usize;
@@ -653,28 +745,30 @@ impl Field {
         let z = y + (hcol - h) * e;
         let kf = (z - self.grid.z_bot) * self.inv_dz - 0.5;
         let at = |i: usize| [self.u[i] as f64, self.v[i] as f64, self.w_mech[i] as f64];
-        if kf >= k1 as f64 {
-            let mut k = kf as usize;
-            let mut t = kf - k as f64;
-            if k >= nz - 1 {
-                k = nz - 2;
-                t = 1.0;
-            }
-            let i = k * self.nxy + c;
+        let between = |kf: f64| {
+            let (i, t) = self.kf_cell(c, kf);
             let (p, q) = (at(i), at(i + self.nxy));
-            return [
+            [
                 p[0] + (q[0] - p[0]) * t,
                 p[1] + (q[1] - p[1]) * t,
                 p[2] + (q[2] - p[2]) * t,
-            ];
+            ]
+        };
+        let kfa = self.kfa[c];
+        if kf >= kfa {
+            return between(kf);
         }
-        // ниже центра первой воздушной клетки: лог-профиль к нулю на z0 над землёй сетки
-        let agl = z - hcol;
+        // ниже якоря: лог-профиль к нулю на z0 над землёй hg
+        let agl = z - self.hg[c];
         let zc0 = self.z0c[c];
         if agl <= zc0 {
             return [0.0; 3];
         }
-        let p = at(k1 * self.nxy + c);
+        let p = if kfa == k1 as f64 {
+            at(k1 * self.nxy + c)
+        } else {
+            between(kfa)
+        };
         let f = ((agl / zc0).ln() * self.inv_log1[c] as f64).min(1.0);
         [p[0] * f, p[1] * f, p[2] * f]
     }
@@ -688,22 +782,24 @@ impl Field {
         let hcol = self.hc[c] as f64;
         let z = y + (hcol - h) * e;
         let kf = (z - self.grid.z_bot) * self.inv_dz - 0.5;
-        if kf >= k1 as f64 {
-            let mut k = kf as usize;
-            let mut t = kf - k as f64;
-            if k >= nz - 1 {
-                k = nz - 2;
-                t = 1.0;
-            }
-            let i = k * self.nxy + c;
+        let between = |kf: f64| {
+            let (i, t) = self.kf_cell(c, kf);
             let (a, b) = (arr[i] as f64, arr[i + self.nxy] as f64);
-            return a + (b - a) * t;
+            a + (b - a) * t
+        };
+        let kfa = self.kfa[c];
+        if kf >= kfa {
+            return between(kf);
         }
-        let v1 = arr[k1 * self.nxy + c] as f64;
+        let v1 = if kfa == k1 as f64 {
+            arr[k1 * self.nxy + c] as f64
+        } else {
+            between(kfa)
+        };
         if !log_prof {
             return v1;
         }
-        let agl = z - hcol;
+        let agl = z - self.hg[c];
         let zc0 = self.z0c[c];
         if agl <= zc0 {
             return 0.0;
@@ -766,14 +862,19 @@ impl Field {
             let g1 = self.gam[k + 1] as f64;
             n2 = G / THETA0 * (g0 + (g1 - g0) * t + dth);
         }
-        if kf >= k1 as f64 {
+        if kf >= self.kfa[c] {
             let du = (self.u[i2] as f64 - self.u[i] as f64)
                 .hypot(self.v[i2] as f64 - self.v[i] as f64)
                 * self.inv_dz;
             return (du, n2);
         }
-        let a = (z - hcol).max(self.z0c[c]);
-        let u1 = (self.u[i] as f64).hypot(self.v[i] as f64);
+        let a = (z - self.hg[c]).max(self.z0c[c]);
+        // |U| в якоре — как у выборки (col_vel): сдвиг лог-профиля совпадает с его производной
+        let kfa = self.kfa[c];
+        let (ia, ta) = self.kf_cell(c, kfa);
+        let ua = self.u[ia] as f64 + (self.u[ia + self.nxy] as f64 - self.u[ia] as f64) * ta;
+        let va = self.v[ia] as f64 + (self.v[ia + self.nxy] as f64 - self.v[ia] as f64) * ta;
+        let u1 = ua.hypot(va);
         (u1 * self.inv_log1[c] as f64 / a, n2)
     }
 

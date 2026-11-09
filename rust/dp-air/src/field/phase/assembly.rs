@@ -175,13 +175,14 @@ fn dims(p: &Prepared) -> [usize; 3] {
     [nxh, nyh, p.big_n / (nxh * nyh)]
 }
 
-/// Высота земли в столбцах с ореолом (`hc` с зажимом на край), `NY·NX`.
+/// Граница воздуха в столбцах с ореолом (`hc_type` с зажимом на край), `NY·NX`: клетка — воздух
+/// (тип 1), если её центр не ниже неё. Настоящая земля `hc` — только для высоты над землёй.
 fn halo_hc(p: &Prepared, d: [usize; 3]) -> Vec<f64> {
     let mut h = vec![0.0; d[0] * d[1]];
     h.par_chunks_mut(d[0]).enumerate().for_each(|(jh, row)| {
         let j = jh.saturating_sub(1).min(p.ny - 1);
         for (ih, o) in row.iter_mut().enumerate() {
-            *o = p.cols.hc[j * p.nx + ih.saturating_sub(1).min(p.nx - 1)];
+            *o = p.cols.hc_type[j * p.nx + ih.saturating_sub(1).min(p.nx - 1)];
         }
     });
     h
@@ -214,7 +215,8 @@ fn cell(f: &Fill, c: usize, zmsl: f64) -> [f64; 4] {
     let n2 = p.n2;
     let a = &p.prm;
     let col = &p.cols;
-    let zagl = zmsl - col.hc[c];
+    // клетка воздуха может лежать ниже блочного среднего `hc` (срезанная клетка): над землёй ≥ 0
+    let zagl = (zmsl - col.hc[c]).max(0.0);
     let m = mech_at(p, mf, c, zmsl);
     let mn = super::calm::mix(w, n2, c, &m);
     let (mut u, mut v) = (mn[0], mn[1]);
@@ -314,7 +316,7 @@ fn fill_state(
             let z = zc(k);
             for ih in 0..nxh {
                 let c = j * p.nx + ih.saturating_sub(1).min(p.nx - 1);
-                if z < p.cols.hc[c] {
+                if z < p.cols.hc_type[c] {
                     continue;
                 }
                 let r = cell(&fl, c, z);

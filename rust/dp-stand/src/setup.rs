@@ -97,6 +97,12 @@ pub fn open(a: &OpenArgs) -> Result<Session, String> {
     })
 }
 
+/// Конкретная `Formula` (детерминированная) по случаю: для подкоманд, которым нужен её журнал.
+pub fn open_formula(a: &OpenArgs) -> Result<(Formula, Case), String> {
+    let (model, case, _, _) = prepare(a, Box::new(Formula::new().with_deterministic(true)))?;
+    Ok((*model, case))
+}
+
 /// Подготовка модели `m` по случаю (configure → load_place → … → set_focuses); отдаёт модель, случай,
 /// конфиги и второй экземпляр места (для потребителей, которым нужны рельеф и ctx слагаемых).
 pub fn prepare<M: AirModel + ?Sized>(
@@ -148,7 +154,7 @@ pub fn go_to_model<M: AirModel + ?Sized>(
 }
 
 impl Session {
-    /// `start_at(t)` и ожидание Ready (опрос `status`, таймаут — ключом).
+    /// `start_at(t)` и ожидание Ready (таймаут — ключом).
     pub fn go_to(&mut self, t: f64) -> Result<(), String> {
         go_to_model(self.model.as_mut(), t, self.timeout)
     }

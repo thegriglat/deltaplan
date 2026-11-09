@@ -59,6 +59,12 @@ cargo run -q --manifest-path rust/Cargo.toml -p dp-stand -- <подкоманд�
   `PASS`/`FAIL`. Выход: 0 — всё в допуске, 1 — есть вне допуска, 2 — ошибка (файлы, формат, таймаут).
   - `--terms` — ещё и слагаемые по `terms` случая (`decompose`); нет слагаемого в разложении — нарушение;
   - `--noise-replaced` — `SAMPLE_FULL` не сравнивается (шум заменён, W8).
+- `timing [--threads N]` — только `--model formula`. На каждый момент (все или `--time`) одна json-строка с журналом
+  задачи поля (`JobReport`): `t`, `kind` (`load` — первый момент, `recalc` — остальные), `source`, `wall_s`,
+  `passes` (все поля `PassReport`: `secs` = подготовка/грубый шаг/решения/сборка, `iters`, `coarse_iters`, `phase_s`,
+  `win_s`, окна…), `windows`, `windows_error`, `notes`, `threads`. Кеш полей на диске стенд не включает
+  (`set_cache_dir` не вызывается), `source` всегда `Computed` — это время расчёта. `--threads` задаёт пул rayon.
+  Пример: `dp-stand timing --case tests/fixtures/wind/cases/synthetic_strong.json --model formula --timeout 600`.
 
 Допуски — одна таблица `compare::tol` (W8 v1): MEAN, FULL и детерминированные слагаемые `|Δv| ≤ 0,05 + 2 %|v_ref|`
 по компоненте; слагаемое `field` `0,1 + 3 %`; σ `0,02 + 5 %`; ядра — место `max(25 м, 2 % radius)`,

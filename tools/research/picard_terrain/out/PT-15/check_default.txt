@@ -1,0 +1,7 @@
+base=606ab0c36e7b90d92e28090b2036ddf435da7b99
+agnesi.json: identical iters 780->780 u_rel 5.161e-07->5.161e-07 ms/it 24.7->27.4
+flat_wind.json: identical iters 30->30 u_rel 5.687e-07->5.687e-07 ms/it 13.9->13.3
+heated_slope.json: identical iters 60->60 u_rel 4.223e-07->4.223e-07 ms/it 26.3->24.9
+saddle.json: identical iters 470->470 u_rel 4.985e-07->4.985e-07 ms/it 22.7->15.9
+identical=4/4
+identical=4/4

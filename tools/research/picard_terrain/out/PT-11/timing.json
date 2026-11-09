@@ -1,0 +1,207 @@
+{
+ "load_ratio_by_place_t8": {
+  "ongudai|t8|m0": 1.1480522205702945,
+  "synthetic|t8|m0": 1.0845076668613869,
+  "training_island|t8|m0": 0.9885770790648479,
+  "volcano_island|t8|m0": 0.9450762249035953
+ },
+ "load_ratio_max": 1.1480522205702945,
+ "ratios": {
+  "ongudai|t8|m0": {
+   "kind": "load",
+   "wall_ratio": 1.1480522205702945,
+   "prep_after": 0.696727876,
+   "prep_before": 0.315955519,
+   "iters_after": 140.0,
+   "iters_before": 130.0
+  },
+  "ongudai|t8|m1": {
+   "kind": "recalc",
+   "wall_ratio": 0.9495548489764796,
+   "prep_after": 0.445336037,
+   "prep_before": 0.222717806,
+   "iters_after": 20.0,
+   "iters_before": 20.0
+  },
+  "ongudai|t8|m2": {
+   "kind": "recalc",
+   "wall_ratio": 0.9117198362830988,
+   "prep_after": 0.490437006,
+   "prep_before": 0.219762793,
+   "iters_after": 140.0,
+   "iters_before": 140.0
+  },
+  "ongudai|t2|m0": {
+   "kind": "load",
+   "wall_ratio": 2.2225919863665586,
+   "prep_after": 0.710452309,
+   "prep_before": 0.204308024,
+   "iters_after": 140.0,
+   "iters_before": 130.0
+  },
+  "ongudai|t2|m1": {
+   "kind": "recalc",
+   "wall_ratio": 1.8023388771532165,
+   "prep_after": 0.685121252,
+   "prep_before": 0.160610423,
+   "iters_after": 20.0,
+   "iters_before": 20.0
+  },
+  "ongudai|t2|m2": {
+   "kind": "recalc",
+   "wall_ratio": 1.1067198378905436,
+   "prep_after": 0.614671338,
+   "prep_before": 0.141125335,
+   "iters_after": 140.0,
+   "iters_before": 140.0
+  },
+  "synthetic|t8|m0": {
+   "kind": "load",
+   "wall_ratio": 1.0845076668613869,
+   "prep_after": 0.080851464,
+   "prep_before": 0.032496562,
+   "iters_after": 100.0,
+   "iters_before": 140.0
+  },
+  "synthetic|t8|m1": {
+   "kind": "recalc",
+   "wall_ratio": 1.211859074161574,
+   "prep_after": 0.05433545,
+   "prep_before": 0.03062919,
+   "iters_after": 60.0,
+   "iters_before": 90.0
+  },
+  "synthetic|t8|m2": {
+   "kind": "recalc",
+   "wall_ratio": 0.9748041897698558,
+   "prep_after": 0.070657615,
+   "prep_before": 0.026797708,
+   "iters_after": 80.0,
+   "iters_before": 110.0
+  },
+  "synthetic|t2|m0": {
+   "kind": "load",
+   "wall_ratio": 0.7813759874981583,
+   "prep_after": 0.055786183,
+   "prep_before": 0.041885966,
+   "iters_after": 100.0,
+   "iters_before": 140.0
+  },
+  "synthetic|t2|m1": {
+   "kind": "recalc",
+   "wall_ratio": 0.6009395641225159,
+   "prep_after": 0.045582134,
+   "prep_before": 0.049429776,
+   "iters_after": 60.0,
+   "iters_before": 90.0
+  },
+  "synthetic|t2|m2": {
+   "kind": "recalc",
+   "wall_ratio": 0.887841578793342,
+   "prep_after": 0.048288145,
+   "prep_before": 0.029351352,
+   "iters_after": 80.0,
+   "iters_before": 110.0
+  },
+  "training_island|t8|m0": {
+   "kind": "load",
+   "wall_ratio": 0.9885770790648479,
+   "prep_after": 0.590020041,
+   "prep_before": 0.271513556,
+   "iters_after": 60.0,
+   "iters_before": 60.0
+  },
+  "training_island|t8|m1": {
+   "kind": "recalc",
+   "wall_ratio": 0.919904757428956,
+   "prep_after": 0.454236794,
+   "prep_before": 0.180007671,
+   "iters_after": 20.0,
+   "iters_before": 20.0
+  },
+  "training_island|t8|m2": {
+   "kind": "recalc",
+   "wall_ratio": 0.8188717780466545,
+   "prep_after": 0.338256501,
+   "prep_before": 0.196028557,
+   "iters_after": 20.0,
+   "iters_before": 20.0
+  },
+  "training_island|t2|m0": {
+   "kind": "load",
+   "wall_ratio": 1.596998523222967,
+   "prep_after": 0.767396451,
+   "prep_before": 0.221184762,
+   "iters_after": 60.0,
+   "iters_before": 60.0
+  },
+  "training_island|t2|m1": {
+   "kind": "recalc",
+   "wall_ratio": 1.6325925007385456,
+   "prep_after": 0.558078478,
+   "prep_before": 0.154509544,
+   "iters_after": 20.0,
+   "iters_before": 20.0
+  },
+  "training_island|t2|m2": {
+   "kind": "recalc",
+   "wall_ratio": 0.8148769497353074,
+   "prep_after": 0.498471086,
+   "prep_before": 0.116627422,
+   "iters_after": 20.0,
+   "iters_before": 20.0
+  },
+  "volcano_island|t8|m0": {
+   "kind": "load",
+   "wall_ratio": 0.9450762249035953,
+   "prep_after": 0.603434999,
+   "prep_before": 0.223786018,
+   "iters_after": 120.0,
+   "iters_before": 120.0
+  },
+  "volcano_island|t8|m1": {
+   "kind": "recalc",
+   "wall_ratio": 0.843636763697328,
+   "prep_after": 0.341916753,
+   "prep_before": 0.17104837,
+   "iters_after": 20.0,
+   "iters_before": 20.0
+  },
+  "volcano_island|t8|m2": {
+   "kind": "recalc",
+   "wall_ratio": 0.9731136438178386,
+   "prep_after": 0.333771322,
+   "prep_before": 0.153548625,
+   "iters_after": 40.0,
+   "iters_before": 40.0
+  },
+  "volcano_island|t2|m0": {
+   "kind": "load",
+   "wall_ratio": 0.8664495145037588,
+   "prep_after": 0.446767167,
+   "prep_before": 0.192064002,
+   "iters_after": 120.0,
+   "iters_before": 120.0
+  },
+  "volcano_island|t2|m1": {
+   "kind": "recalc",
+   "wall_ratio": 0.5456847105914214,
+   "prep_after": 0.307157033,
+   "prep_before": 0.157114347,
+   "iters_after": 20.0,
+   "iters_before": 20.0
+  },
+  "volcano_island|t2|m2": {
+   "kind": "recalc",
+   "wall_ratio": 0.7326250922432344,
+   "prep_after": 0.281139941,
+   "prep_before": 0.195737944,
+   "iters_after": 40.0,
+   "iters_before": 40.0
+  }
+ },
+ "nan_timing": {
+  "base": 0,
+  "after": 0
+ }
+}

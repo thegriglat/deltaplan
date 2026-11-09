@@ -140,8 +140,10 @@ func test_lee_turbulence_stronger() -> void:
 			"advance": 0.01,
 		}
 	)
-	var lee := _variance_w(a, 350.0, 40.0)
-	var wind_side := _variance_w(a, -600.0, 40.0)
+	# PT-14: сетка поля 400 м — за гребнем отрыв (признак lee поля ≥ 0,9) начинается с x ≈ 450 м; точка 350 м
+	# сидит между столбцом гребня и первым подветренным столбцом, наветренная -600 м — в зоне торможения у подножия
+	var lee := _variance_w(a, 500.0, 40.0)
+	var wind_side := _variance_w(a, -900.0, 40.0)
 	check(lee > wind_side * 1.3, "за гребнем болтает сильнее: σ² %.3f > %.3f" % [lee, wind_side])
 	a.free()
 

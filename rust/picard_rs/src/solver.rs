@@ -2,6 +2,7 @@
 //! criterion, finalize — reference `Air.outer_step`, `project`, `residuals`, `solve`,
 //! `finalize` (`air.py`) with the second-order advection correction off.
 
+use crate::adv2::{self, Adv2};
 use crate::api::{Fallback, FrozenField};
 use crate::case::{Consts, Criterion};
 use crate::kernels::{HeatIn, MomIn, Vel, apply_bc, build_all_mom, build_heat, kloc};
@@ -350,6 +351,8 @@ pub struct Picard {
     pub prep_cut: bool,
     /// Fallback rules (W11 v3); `None` = the plain iteration.
     pub fb: Option<FbCtx>,
+    /// PT3: second-order advection correction buffers; `None` = the plain first-order iteration.
+    pub a2: Option<Adv2>,
     /// OB1: soft outflow; `None` = the hard condition (bit-identical to before).
     pub soft: Option<crate::outflow::SoftOutflow>,
 }
@@ -378,10 +381,15 @@ impl Picard {
     pub fn new_cancel(k: Consts, cancel: Option<&Arc<AtomicBool>>) -> Self {
         let n = k.n3();
         let stop = || cancel.is_some_and(|c| c.load(Ordering::Relaxed));
+        // PT2: the projection conductances times the face fractions (all levels from them).
+        let (mkx, mky, mkz) = match &k.cut {
+            Some(c) => (&c.kmg[0], &c.kmg[1], &c.kmg[2]),
+            None => (&k.kx, &k.ky, &k.kz),
+        };
         let mg = Mg::new_until(
-            &k.kx,
-            &k.ky,
-            &k.kz,
+            mkx,
+            mky,
+            mkz,
             &k.fluid,
             (k.nzh, k.nyh, k.nxh),
             k.dx,
@@ -419,6 +427,7 @@ impl Picard {
             prep_cancel: false,
             prep_cut: false,
             fb: None,
+            a2: k.adv2.map(|l| Adv2::new(l, n)),
             soft: None,
             k,
         }
@@ -441,6 +450,21 @@ impl Picard {
             let (v0, v1) = (&v[g0..g0 + nx], &v[g0 + nxh..g0 + nxh + nx]);
             let (w0, w1) = (&w[g0..g0 + nx], &w[g0 + nxh * nyh..g0 + nxh * nyh + nx]);
             let fl = &k.fluid[g0..g0 + nx];
+            if let Some(c) = &k.cut {
+                // PT2: sum(+-af * u / h) per unit of the full cell volume.
+                let (au, av, aw) = (&c.af[0], &c.af[1], &c.af[2]);
+                let a = |x: &[f32], q: usize| f64::from(x[q]);
+                for i in 0..nx {
+                    let q = g0 + i;
+                    let du = (f64::from(u1[i]) * a(au, q + 1) - f64::from(u0[i]) * a(au, q)) / dx;
+                    let dv = (f64::from(v1[i]) * a(av, q + nxh) - f64::from(v0[i]) * a(av, q)) / dx;
+                    let dw = (f64::from(w1[i]) * a(aw, q + nxh * nyh)
+                        - f64::from(w0[i]) * a(aw, q))
+                        / dz;
+                    o[i] = ((du + dv + dw) * f64::from(fl[i])) as f32;
+                }
+                return;
+            }
             for i in 0..nx {
                 // f64 differences: with f32 the cancellation error of a nearly divergence-free
                 // field (|u| / dx * 6e-8) is comparable to the divergence itself.
@@ -569,6 +593,36 @@ impl Picard {
             nuh: &f.nuh,
         };
         build_all_mom(&self.k, &m, &mut self.cu, &mut self.cv, &mut self.cw);
+        if let Some(a) = self.a2.as_mut() {
+            let vel = Vel {
+                u: &f.u,
+                v: &f.v,
+                w: &f.w,
+            };
+            for (comp, rows) in [&mut self.cu, &mut self.cv, &mut self.cw]
+                .into_iter()
+                .enumerate()
+            {
+                adv2::adv2_mom(&self.k, a.lim, &vel, comp, &mut a.cm[comp]);
+                adv2::sub_rhs(rows, &a.cm[comp]);
+            }
+        }
+    }
+
+    /// PT3: heat corrections of `theta'` and `theta'_d` from the current state (kernel
+    /// `adv2_heat`); call before [`Self::build_heat_d`]. `theta'_d` stays zero without heating.
+    pub fn adv2_heat(&mut self) {
+        let Some(a) = self.a2.as_mut() else { return };
+        let f = &self.f;
+        let vel = Vel {
+            u: &f.u,
+            v: &f.v,
+            w: &f.w,
+        };
+        adv2::adv2_heat(&self.k, a.lim, &vel, &f.th, &mut a.ct);
+        if !self.k.no_thd {
+            adv2::adv2_heat(&self.k, a.lim, &vel, &f.thd, &mut a.ctd);
+        }
     }
 
     /// Heat template for theta'_d from the current state.
@@ -590,6 +644,9 @@ impl Picard {
             bg: self.k.nest.as_ref().map(|n| n.thbd.as_slice()),
         };
         build_heat(&self.k, &h, &mut self.ctd);
+        if let Some(a) = &self.a2 {
+            adv2::sub_rhs(&mut self.ctd, &a.ctd);
+        }
     }
 
     /// Heat template for the full theta' (source `Q - theta'_d / tau`).
@@ -612,6 +669,9 @@ impl Picard {
             bg: k.nest.as_ref().map(|n| n.thb.as_slice()),
         };
         build_heat(k, &h, &mut self.ct);
+        if let Some(a) = &self.a2 {
+            adv2::sub_rhs(&mut self.ct, &a.ct);
+        }
     }
 
     /// Frozen points of the momentum templates become the identity `x = xf` (`K_FIXROW`).
@@ -880,6 +940,7 @@ impl Picard {
     /// and sweeps. The theta'_d pass is skipped when there is no heating.
     pub fn heat_step(&mut self) {
         let shape = self.shape();
+        self.adv2_heat();
         if !self.k.no_thd {
             self.build_heat_d();
             if let Some(z) = &self.freeze {
@@ -1014,6 +1075,7 @@ impl Picard {
             mom_max = if mx.is_nan() { mx } else { mom_max.max(mx) };
             mom_sq += s2 / cnt;
         }
+        self.adv2_heat();
         self.build_heat_d();
         self.build_heat_t();
         let nf = self
