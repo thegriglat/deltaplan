@@ -1,0 +1,83 @@
+{
+  "status": "done",
+  "summary": "Приток шаблона 0,58 w* (точка z=10 м) в метрике LES (ячейка 50 м, узлы сетки) равен 0,40 w* (x1,12 к 0,36); трение у стенки даёт 0,27-0,33. При равной силе события (w композита 2,0 w*) приток шаблона 0,57-0,65 (x1,6-1,8), т.е. подтверждения нет: композит LES - более сильный и широкий объект. Правка (удлинить L_b до 130 м даёт 0,36) портит профиль w(z) у земли против Lenschow-Stephens - основания нет, шаблон не менять.",
+  "commits": [
+    "see git log thermal-bubble/TB-11"
+  ],
+  "checks": [
+    {
+      "name": "untouched",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "tb1",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "json",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "repro",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "refs",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "md_docs",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "accept --dry",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "inflow_v4_like_les_wstar",
+      "value": "0.40",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Рис. 18 S&S не оцифрован; сигма разброса оси неизвестна (перебор)"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept TB-11",
+  "uncertain": [
+    {
+      "where": "round3/inflow.py E5 (трение)",
+      "why": "логарифмический фактор 0,74-0,83 - грубая верхняя оценка",
+      "checked": "три z_ref"
+    },
+    {
+      "where": "round3/inflow.py E8",
+      "why": "подгонка силы по F0 даёт множители 3-18, нефизично; композит LES не шаблонный объект",
+      "checked": "три sigma"
+    }
+  ],
+  "dp_feedback": "План: раздел «Задачи, круг 3» не находится по имени; accept --dry долго (tb1 250 с) без прогресса; фоновые команды шумят уведомлениями.",
+  "extra": {
+    "point_z10": 0.58,
+    "like_les_grid": 0.4,
+    "equal_w2": [
+      0.59,
+      0.57,
+      0.65
+    ],
+    "wall_range": [
+      0.27,
+      0.33
+    ],
+    "Lb_for_0.36": 130
+  },
+  "t": "2026-11-09T16:05:47",
+  "by": "executor"
+}
