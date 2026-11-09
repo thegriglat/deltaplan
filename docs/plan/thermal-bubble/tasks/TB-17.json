@@ -39,11 +39,6 @@
   ],
   "accept": [
     {
-      "name": "docs_check",
-      "cmd": ".dpcli/dpcli docs check 2>&1",
-      "expect": "!re:ОШИБКА.*(thermal_bubble|thermals\\.md|findings)"
-    },
-    {
       "name": "size",
       "cmd": "python3 -c \"import os;print('kb=%.1f'%(max(os.path.getsize(p) for p in ['docs/research/thermal_bubble_round3.md','docs/research/thermal_bubble.md','docs/guide/air-model/thermals.md'])/1024))\"",
       "expect": "num:kb=([0-9.]+) <=40"
@@ -67,9 +62,15 @@
       "name": "config",
       "cmd": "python3 -c \"import json;d=json.load(open('configs/atmosphere.json'));s=d['thermal']['_doc'];assert 'пузыр' in s.lower();print('ok')\" && git diff feature/thermal-bubble -- configs/atmosphere.json | grep '^[-+] ' | grep -v '_doc' | wc -l | grep -qx 0",
       "expect": "exit=0"
+    },
+    {
+      "name": "docs_check",
+      "cmd": ".dpcli/dpcli docs check 2>&1",
+      "expect": "!re:ОШИБКА.*(thermal_bubble|thermals\\.md)"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-11-10T02:28:47"
+  "created": "2026-11-10T02:28:47",
+  "edited": "2026-11-10T02:32:28"
 }

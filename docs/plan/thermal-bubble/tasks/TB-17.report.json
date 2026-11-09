@@ -1,0 +1,67 @@
+{
+  "status": "partial",
+  "summary": "Написан docs/research/thermal_bubble_round3.md (что поменялось, сверка, замер flight_r4, цена, Чего не умеет, вопросы), обновлены thermal_bubble.md (указатель, устаревшие §4-6 круга 2), guide термиков (раздел про шаблон), строка findings, _doc термиков в atmosphere.json, INDEX. Гейт docs_check не проходит: docs/registry/findings.md уже 50 КБ > 40 КБ на базе (50361 байт) - разбить файл в скоуп не входит.",
+  "commits": [
+    "см. git log thermal-bubble/TB-17"
+  ],
+  "checks": [
+    {
+      "name": "docs_check",
+      "value": "FAIL: ОШИБКА findings.md 50 КБ > 40 КБ (было 50,4 КБ до моих правок; мои файлы без ошибок)",
+      "pass": false
+    },
+    {
+      "name": "size",
+      "value": "kb=40 (thermal_bubble.md 39,6-ish)",
+      "pass": true
+    },
+    {
+      "name": "round3",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "guide",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "findings",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "config",
+      "value": "exit 0, только _doc",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "6 файлов в границах",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Размер findings.md: нужно вынести разделы в docs/registry/findings/<модуль>.md (вне скоупа) либо ослабить regex docs_check."
+  ],
+  "questions": [
+    "Разрешить вынос секции thermal-bubble (и/или других) из findings.md в docs/registry/findings/ или изменить гейт docs_check?"
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TB-17 --dry",
+  "uncertain": [
+    {
+      "where": "docs/research/thermal_bubble_round3.md: таблица замера",
+      "why": "колонки r2/r3 собраны из отчётов TB-14/16 с разными определениями подъёма (0,5 z_l против 0,05-0,9 z_l)",
+      "checked": "в таблице помечено, mid-метрика приведена отдельно"
+    },
+    {
+      "where": "docs/research/thermal_bubble_round3.md §Цена",
+      "why": "числа опроса зависят от нагрузки машины, взяты тихие значения TB-19",
+      "checked": "указан диапазон при нагрузке"
+    }
+  ],
+  "dp_feedback": "docs check блокирует приёмку по чужой ошибке размера findings.md: гейт с regex на имя файла не отличает старую ошибку от новой.",
+  "t": "2026-11-10T02:32:16",
+  "by": "executor"
+}
