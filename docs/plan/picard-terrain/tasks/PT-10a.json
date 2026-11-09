@@ -31,17 +31,17 @@
     },
     {
       "name": "timing",
-      "cmd": "rust/target/release/dp-stand timing --case tests/fixtures/wind/cases/synthetic_strong.json --model formula --timeout 600",
+      "cmd": "rust/target/release/dp-stand timing --case tests/fixtures/wind/cases/synth_strong.json --model formula --timeout 600",
       "expect": "re:\"wall_s\": ?[0-9]"
     },
     {
       "name": "passes",
-      "cmd": "rust/target/release/dp-stand timing --case tests/fixtures/wind/cases/synthetic_strong.json --model formula --timeout 600",
+      "cmd": "rust/target/release/dp-stand timing --case tests/fixtures/wind/cases/synth_strong.json --model formula --timeout 600",
       "expect": "re:\"passes\": ?\\[\\{"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-11-09T16:06:05",
-  "edited": "2026-11-09T16:06:25"
+  "edited": "2026-11-09T17:39:32"
 }
