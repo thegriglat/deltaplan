@@ -75,3 +75,4 @@
 {"t": "2026-11-09T09:30:11", "by": "coordinator", "task": "TB-2b", "ev": "accepted", "note": "по ревью (fable): 2 minor (тексты); замечание для TB-4 — излом производной на границе Хилла"}
 {"t": "2026-11-09T09:30:13", "by": "coordinator", "task": "TB-2b", "ev": "accepted", "commits": ["68bb4e21a"], "note": "4/4 contract_tb3=ok:exit 0; div=ok:7.45939e-07; figures=ok:5; md_docs=ok:exit 1"}
 {"t": "2026-11-09T09:30:13", "by": "coordinator", "task": "TB-2b", "ev": "merged"}
+{"t": "2026-11-09T09:30:30", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: состояние — TB-1, TB-1b, TB-2a, TB-2b слиты; TB-3 (бенч Rust) в работе, копия ~/worktrees/deltaplan/thermal-bubble-TB-3; дальше — приёмка TB-3, затем карточка TB-4 (вывод docs/research/thermal_bubble.md) и шлюз «итог пользователю». Обратная связь: task show обрезает заметки координатора (видно только в --full); r-<ID>.json исполнители кладут в корень копии → scope FAIL."}
