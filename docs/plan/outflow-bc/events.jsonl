@@ -104,3 +104,4 @@
 {"t": "2026-11-09T16:17:19", "by": "coordinator", "task": "OBC-9", "ev": "accepted", "commits": ["c840f9a90"], "note": "5/5 docs=ok:exit 0; closed=ok:status: \"closed; stage2=ok:1; open=ok:1; findings=ok:1"}
 {"t": "2026-11-09T16:17:20", "by": "coordinator", "task": "OBC-9", "ev": "merged", "commits": ["c840f9a90"]}
 {"t": "2026-11-09T16:17:27", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: модуль закрыт — OBC-1…6, 9 accepted+merged, OBC-7 cancelled (этап 2 отменён пользователем 2026-11-09), OBC-8 не заводился; итог в docs/research/outflow_bc.md (closed), findings; обратная связь: docs index трогает registry/contracts.md и research.md вне скоупа (нужен --only INDEX); accept scope ловит неотслеживаемый r-<ID>.json исполнителя"}
+{"t": "2026-11-09T17:24:05", "by": "main", "task": null, "ev": "delivered", "commits": ["dade19074"], "note": "squash в main: dade19074"}
