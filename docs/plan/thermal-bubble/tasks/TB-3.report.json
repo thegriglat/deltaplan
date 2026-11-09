@@ -1,0 +1,77 @@
+{
+  "status": "done",
+  "summary": "Бенч criterion с портом bubble.velocity на Rust: аналитика 26 мкс/точку (×104 к sample 250 нс), таблица 357 нс (×1,43), 52 КБ на пузырь, порт против Python 2e-13. Итог в out/bench.json и bench.md.",
+  "commits": [
+    "294cd337a thermal-bubble/TB-3: бенч цены опроса пузыря"
+  ],
+  "checks": [
+    {
+      "name": "bench_test",
+      "value": "exit=0",
+      "pass": true
+    },
+    {
+      "name": "contract_tb3",
+      "value": "exit=0",
+      "pass": true
+    },
+    {
+      "name": "port_err",
+      "value": "err=2.13306e-13",
+      "pass": true
+    },
+    {
+      "name": "src_same",
+      "value": "exit=0",
+      "pass": true
+    },
+    {
+      "name": "md_docs",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Боты: сколько опросов воздуха делают — не нашёл (net_bots.gd зовёт pilots.sample, не воздух)."
+  ],
+  "questions": [
+    "Точность таблицы шаг 10 м: до 8,5 % пика (rms 0,025 м/с); шаг 3-5 м не мерил — нужен ли TB-4?"
+  ],
+  "how_to_check": ".dpcli/dpcli accept TB-3",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/benches/thermal_bubble.rs: build_scene",
+      "why": "радиус влияния (1 % глобального пика, сетка 20x50 м) даёт 160-820 м и 3,1 пузыря на точку; население — 27 возрастов 0-2700 с, жизнь пузыря длиннее периода клетки игры, оценка сверху",
+      "checked": "радиусы и пик в bench.json extra.scene"
+    },
+    {
+      "where": "bench.md: оценка на кадр",
+      "why": "точки за кадр взяты из docs/plan/rust-ext.md и конфигов (18x60 Гц пилот + текстура травы), без ботов; не измерено в игре",
+      "checked": "ссылки на файлы в bench.md"
+    },
+    {
+      "where": "bench.md: время сборки таблицы",
+      "why": "0,17 с на пузырь выведено из ns analytic и числа узлов, отдельно не замерено (все 27 таблиц + развёртка: 0,21 с на 18 потоках)",
+      "checked": "setup_s в bench.json"
+    },
+    {
+      "where": "запуск --test",
+      "why": "замок cpu ждал ~25 мин за заданием OBC-3 (18 слотов, занят 1)",
+      "checked": "прогон прошёл"
+    }
+  ],
+  "dp_feedback": "Вес замка cpu 18 слотов: легко блокируется долгим одно-слотовым заданием соседа; для --test и мелких бенчей нужен малый вес. Дублирующие запуски в очереди видны только в lock status.",
+  "extra": {
+    "ns_per_point": {
+      "current_contribution": 97.7,
+      "current_sample": 250.1,
+      "bubble_analytic": 25991,
+      "bubble_table": 357.4
+    },
+    "bubbles_per_point": 3.14,
+    "table_bytes": 52376,
+    "table_rel_err_scene_to_peak": 0.0845
+  },
+  "t": "2026-11-09T09:36:10",
+  "by": "executor"
+}
