@@ -33,7 +33,18 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicU32};
 use std::time::{Duration, Instant};
 
+pub use crate::outflow::OutflowDiag;
 pub use crate::solver::StopReason;
+
+/// OB1 v1: condition on the lateral faces of type 2 where the wind leaves the domain.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum Outflow {
+    /// Fixed to the background (`fixed_u/v`), as always; bit-identical to before OB1.
+    #[default]
+    Hard,
+    /// Zero gradient of the normal and tangential components plus a net-flux correction.
+    Soft,
+}
 
 /// Default iteration limit (as the CLI).
 pub const DEFAULT_MAX_ITERS: usize = 2000;
@@ -123,6 +134,9 @@ pub struct SolveOpts {
     /// W11 v10: the solver writes the number of iterations done (`Relaxed`) after every
     /// iteration and at the end; `None` = bit-identical to v9, the result does not depend on it.
     pub progress: Option<Arc<AtomicU32>>,
+    /// OB1 v1: outflow condition; `Hard` (default) = bit-identical to before. `Soft` is an error
+    /// for a case with a `nest`.
+    pub outflow: Outflow,
 }
 
 impl Default for SolveOpts {
@@ -139,6 +153,7 @@ impl Default for SolveOpts {
             fallback: None,
             init_cycles: None,
             progress: None,
+            outflow: Outflow::Hard,
         }
     }
 }
@@ -172,6 +187,8 @@ pub struct Solved {
     pub nonconv_frac: f32,
     /// Solver with the final fields (`picard.f`), after `finalize`.
     pub picard: Picard,
+    /// OB1 v1: diagnostics of the soft outflow; `None` with `Outflow::Hard`.
+    pub outflow: Option<OutflowDiag>,
     /// The pool of this call (for further work on `picard` with the same threads).
     pub pool: rayon::ThreadPool,
 }
@@ -246,6 +263,9 @@ pub fn solve(case: &Case, opts: &SolveOpts) -> Result<Solved> {
         if let Some(fb) = &opts.fallback {
             s.set_fallback(fb)?;
         }
+        if opts.outflow == Outflow::Soft {
+            s.enable_soft_outflow()?;
+        }
         if let Some(st) = &opts.init {
             match opts.init_cycles {
                 Some(n) => s.init_parent(st, n as usize)?,
@@ -301,6 +321,7 @@ pub fn solve(case: &Case, opts: &SolveOpts) -> Result<Solved> {
     let last = *o.history.last().expect("solve always ends with a check");
     let k = &s.k;
     let state = State::capture(k, &case.name, &case.path, o.iters, &s.f, Some(&last));
+    let outflow = s.soft.as_ref().map(|o| o.diag(&s.f.u, &s.f.v));
     let snapshots = std::mem::take(&mut o.snapshots)
         .iter()
         .map(|r| State::capture(k, &case.name, &case.path, r.it, &r.f, r.res.as_ref()))
@@ -319,6 +340,7 @@ pub fn solve(case: &Case, opts: &SolveOpts) -> Result<Solved> {
         timing,
         dev,
         picard: s,
+        outflow,
         pool: pl,
     })
 }
