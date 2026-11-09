@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Сводка TB5 v1 (tb5/2) из сырых json flight_probe.gd и flight_frame.gd.
+"""Сводка TB5 v3 (tb5/3) из сырых json flight_probe.gd и flight_frame.gd.
 
     flight_summary.py <tag> <probe.json> <frame.json> <out.json>
 
@@ -19,7 +19,7 @@ def main() -> int:
         ["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True
     ).stdout.strip()
     out = {
-        "schema": "tb5/2",
+        "schema": "tb5/3",
         "tag": tag,
         "commit": commit,
         "location": probe["location"],

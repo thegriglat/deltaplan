@@ -37,7 +37,8 @@ var _dumped := 0
 var _peak_by_core := {}  # диагностика: max w на оси по всей толщине столба / сила
 var _near_sum := 0.0
 var _near_n := 0
-var _lift_cores := 0
+var _lift_cores := 0  ## w > LIFT_W на 0,5 z_l (прежнее, TB5 v3: cores_lifting_frac_mid)
+var _lift_any_cores := 0  ## w > LIFT_W где-либо на 0,05…0,9 z_l (TB5 v3: cores_lifting_frac)
 var _all_cores := 0
 var _thermal_idx := -1
 var _terrain: Terrain
@@ -250,6 +251,15 @@ func _observe(p: Vector3, sec: int) -> void:
 		_all_cores += 1
 		if w > LIFT_W:
 			_lift_cores += 1
+		var any_lift := w > LIFT_W
+		var zq := 0.05
+		while not any_lift and zq <= 0.9001:
+			var yy := ysrc + zq * zl
+			var aa := _axis(c, j, yy)
+			any_lift = _thermal_vel(Vector3(aa.x, yy, aa.y)).y > LIFT_W
+			zq += 0.05
+		if any_lift:
+			_lift_any_cores += 1
 		var strength := c[j + Atmosphere.CORE_W]
 		if sec % OBS_EVERY_S == 0 and strength >= MIN_STRENGTH:
 			_cover_all += 1
@@ -413,7 +423,8 @@ func _summary(
 		"presence":
 		{
 			"cores_near_mean": snappedf(_near_sum / maxf(_near_n, 1), 0.0001),
-			"cores_lifting_frac": snappedf(float(_lift_cores) / maxf(_all_cores, 1), 0.0001),
+			"cores_lifting_frac": snappedf(float(_lift_any_cores) / maxf(_all_cores, 1), 0.0001),
+			"cores_lifting_frac_mid": snappedf(float(_lift_cores) / maxf(_all_cores, 1), 0.0001),
 			"n_observed": _all_cores,
 			"bubble_cover": snappedf(float(_cover_has) / maxf(_cover_all, 1), 0.0001),
 		},
