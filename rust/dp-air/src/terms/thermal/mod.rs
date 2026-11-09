@@ -553,7 +553,7 @@ impl Thermal for ThermalSlot {
     fn sample(&self, c: &Ctx) -> Option<ThermalOut> {
         let b = self.built.as_ref()?;
         let hooks = self.hooks_of(self.cloud.as_ref());
-        let (mut o, uh) = b.state.sample_bubble(&b.setup, hooks, c.pos, c.t);
+        let (mut o, uh) = b.state.sample_bubble_agl(&b.setup, hooks, c.pos, c.t, c.agl);
         if let Some(a) = &b.air {
             o = a.1.src.with_between(c.fs, c.pos, o);
         }
