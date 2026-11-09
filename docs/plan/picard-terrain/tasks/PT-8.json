@@ -1,0 +1,71 @@
+{
+  "id": "PT-8",
+  "module": "picard-terrain",
+  "type": "dp-engineer",
+  "title": "Построитель долей срезанных клеток в picard_rs (PT6)",
+  "goal": "picard_rs::cut_build по контракту PT6 v1 — перенос cut.py (доли, высота типов, полная клетка и пол грани) на Rust; совпадение с cut.py на случаях опыта и CLI picard cut-build для проверки.",
+  "plan_ref": "Задачи / Этап 2",
+  "contracts": [
+    {
+      "name": "PT6",
+      "version": "1",
+      "ref": "docs/contracts/picard-terrain.md"
+    },
+    {
+      "name": "PT2",
+      "version": "1",
+      "ref": "docs/contracts/picard-terrain.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/picard-terrain-PT-8",
+  "branch": "picard-terrain/PT-8",
+  "base": "feature/picard-terrain",
+  "scope": [
+    "rust/picard_rs/src/cut_build.rs",
+    "rust/picard_rs/src/lib.rs",
+    "rust/picard_rs/src/main.rs",
+    "rust/picard_rs/tests/cut_build.rs",
+    "tools/research/picard_terrain/contract/check_cut_build.py",
+    "tools/research/picard_terrain/out/PT-8"
+  ],
+  "dont_touch": [
+    "rust/picard_rs/src/solver.rs",
+    "rust/picard_rs/src/cut.rs",
+    "rust/picard_rs/src/kernels.rs",
+    "rust/picard_rs/src/case.rs",
+    "rust/dp-air",
+    "tools/research/picard_terrain/cut.py",
+    "tools/research/picard_terrain/sample.py",
+    "docs/contracts"
+  ],
+  "accept": [
+    {
+      "name": "unit",
+      "cmd": "cd rust && cargo test --release -p picard_rs --test cut_build",
+      "expect": "exit=0"
+    },
+    {
+      "name": "parity-dvf",
+      "cmd": "tools/research/sw_charges_3d/py tools/research/picard_terrain/contract/check_cut_build.py",
+      "expect": "num:max_dvf=([0-9.eE+-]+) <=1e-6"
+    },
+    {
+      "name": "parity-daf",
+      "cmd": "tools/research/sw_charges_3d/py tools/research/picard_terrain/contract/check_cut_build.py",
+      "expect": "num:max_daf=([0-9.eE+-]+) <=1e-6"
+    },
+    {
+      "name": "parity-exact",
+      "cmd": "tools/research/sw_charges_3d/py tools/research/picard_terrain/contract/check_cut_build.py",
+      "expect": "re:hc_type_mismatch=0 counts_mismatch=0 cases=5"
+    },
+    {
+      "name": "solver-default",
+      "cmd": "bash tools/research/picard_terrain/contract/check_default.sh",
+      "expect": "re:identical=4/4"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T15:39:07"
+}

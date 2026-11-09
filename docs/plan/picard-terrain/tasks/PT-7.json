@@ -1,0 +1,55 @@
+{
+  "id": "PT-7",
+  "module": "picard-terrain",
+  "type": "dp-researcher",
+  "title": "Разведка: путь срезанных клеток в поле игры (dp-air)",
+  "goal": "Документ-карта: где dp-air (и scripts/) строит типы клеток из рельефа и где поле читается у земли; что меняет каждое место при срезанных клетках PT2 по умолчанию; разбиение встраивания на задачи по файлам без пересечений.",
+  "plan_ref": "Задачи / Этап 2",
+  "contracts": [
+    {
+      "name": "PT2",
+      "version": "1",
+      "ref": "docs/contracts/picard-terrain.md"
+    },
+    {
+      "name": "PT6",
+      "version": "1",
+      "ref": "docs/contracts/picard-terrain.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/picard-terrain-PT-7",
+  "branch": "picard-terrain/PT-7",
+  "base": "feature/picard-terrain",
+  "scope": [
+    "docs/research/picard_terrain_game.md",
+    "tools/research/picard_terrain/out/PT-7"
+  ],
+  "dont_touch": [
+    "rust",
+    "scripts",
+    "docs/contracts",
+    "docs/plan",
+    "docs/guide",
+    "configs"
+  ],
+  "accept": [
+    {
+      "name": "sections",
+      "cmd": "grep -c '^## ' docs/research/picard_terrain_game.md",
+      "expect": "num:(\\d+) >=5"
+    },
+    {
+      "name": "split",
+      "cmd": "grep -c 'PT-9\\|PT-10' docs/research/picard_terrain_game.md",
+      "expect": "num:(\\d+) >=2"
+    },
+    {
+      "name": "docs-check",
+      "cmd": ".dpcli/dpcli docs check docs/research/picard_terrain_game.md",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T15:38:27"
+}
