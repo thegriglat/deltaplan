@@ -15,7 +15,7 @@ tmp=$(mktemp -d "${TMPDIR:-/tmp}/pt-lee-XXXXXX")
 wt="$tmp/wt"
 xdg="$HOME/.cache/dp-xdg/pt-lee-$name"
 export CARGO_TARGET_DIR="$HOME/.cache/dp-pt-lee-target/$name"
-paths="rust/dp-air/src/terms/turb configs/atmosphere.json tests/contracts rust/dp-stand/src/lee.rs"
+paths="rust/dp-air/src/terms/turb configs/atmosphere.json tests/contracts"
 fail() { echo "PT lee tests: ERROR $1"; cleanup; exit 1; }
 cleanup() {
 	if [ "${PT_KEEP:-0}" != 1 ]; then
