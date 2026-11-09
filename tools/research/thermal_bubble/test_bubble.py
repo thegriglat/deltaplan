@@ -55,12 +55,59 @@ def test_plume_flux_5_3():
 
 
 def test_plume_interior_w_matches_mtt():
+    # w на оси шлейфа против MTT w_p(z + z_v): внешнее решение из стоков занижает на 4–15 % (README), не больше
     src, st = _plume_state()
-    s = 300.0
-    # точка на оси плюма на расстоянии s; ветра нет — ось вертикальна
-    p = np.array([[0.0, 0.0, s]])
-    w = bm.velocity(p, [dataclasses.replace(st, U=0.0)], ENV, ground=False, lid=False)[0, 2]
-    assert abs(w / bm.plume_w(src.F0, s) - 1) < 1e-2
+    st = dataclasses.replace(st, U=0.0, Uh=0.0)
+    for z, tol in ((200.0, 0.08), (300.0, 0.12)):
+        w = bm.velocity(np.array([[st.xc, st.yc, z]]), [st], ENV, ground=False, lid=False)[0, 2]
+        assert abs(w / bm.plume_w(src.F0, z + bm._zv(src.b0)) - 1) < tol, z
+
+
+def test_axis_vertical_and_drift():
+    env = bm.Env(wind=(3.0, -1.0), zi=1400.0)
+    src = bm.from_game(100, 50, 10, 2.5, 1400, env)
+    for tp in (30.0, 300.0, 900.0, 1500.0):
+        s = bm.state(src, env, src.t0 + tp)
+        assert s.xs == s.xc and s.ys == s.yc
+        assert abs(s.xc - (src.x + 3.0 * tp)) < 1e-9 and abs(s.yc - (src.y - tp)) < 1e-9
+    # поле симметрично вокруг вертикальной оси: v(x0 + dx, y0, z) и v(x0 − dx, y0, z) — зеркальные
+    s = bm.state(src, env, src.t0 + 400.0)
+    a = bm.velocity(np.array([[s.xc + 120.0, s.yc, 600.0]]), [s], env)[0]
+    c = bm.velocity(np.array([[s.xc, s.yc + 120.0, 600.0]]), [s], env)[0]
+    assert abs(a[0] - c[1]) < 1e-9 and abs(a[2] - c[2]) < 1e-9 and abs(a[1]) < 1e-9
+
+
+def test_virtual_source_finite_near_ground():
+    src, st = _plume_state()
+    zv = bm._zv(src.b0)
+    assert abs(zv - 5 * src.b0 / (6 * bm.PARAMS["alpha_plume"]["value"])) < 1e-9
+    assert abs(1.2 * bm.PARAMS["alpha_plume"]["value"] * zv - src.b0) < 1e-9  # b(0) = b0
+    z = np.linspace(0.5, 100.0, 30)
+    P = np.stack([np.full_like(z, st.xc), np.full_like(z, st.yc), z], -1)
+    w = bm.velocity(P, [st], ENV)[:, 2]
+    assert np.all(np.isfinite(w)) and np.max(np.abs(w)) <= 2.0 * 2.5
+    assert abs(bm.velocity(np.array([[st.xc, st.yc, 0.0]]), [st], ENV)[0, 2]) < 1e-9
+
+
+def test_time_continuity_around_transitions():
+    env = bm.Env(wind=(3.0, 0.0), zi=1400.0)
+    src = bm.from_game(0, 0, 0, 2.5, 1400, env)
+    t_end = bm._traj(src, env).t_end
+    gx = np.arange(-600.0, 601.0, 60.0)
+    gz = np.arange(1.0, 1400.0, 60.0)
+    GX, GZ = np.meshgrid(gx, gz, indexing="ij")
+    vmax, jump = 0.0, 0.0
+    for t0, t1 in ((2, 40), (src.tau - 40, src.tau + 80), (900, 960), (t_end - 60, t_end - 2)):
+        prev = None
+        for t in np.arange(t0, t1 + 1e-9, 2.0):
+            s = bm.state(src, env, t)
+            v = bm.velocity(np.stack([GX + 3.0 * t, np.zeros_like(GX), GZ], -1), [s], env)
+            vmax = max(vmax, float(np.max(np.linalg.norm(v, axis=-1))))
+            if prev is not None:
+                jump = max(jump, float(np.max(np.linalg.norm(v - prev, axis=-1))))
+            prev = v
+    assert jump <= 0.25 * vmax, (jump, vmax)
+    assert bm.state(src, env, t_end + 1.0) is None
 
 
 def test_similarity_after_detach():
@@ -82,13 +129,14 @@ def test_U_continuous_at_detach():
 def test_plume_dies_when_caught():
     src = bm.from_game(0, 0, 0, 2.5, 1400, ENV)
     s = bm.state(src, BIG, 3 * src.tau)
-    assert s.F0 == 0.0 and s.Q == 0.0 and s.zb == s.zc
+    assert s.F0 == 0.0 and s.Q == 0.0 and s.zb <= s.zc - s.R + 1e-9
 
 
 def test_lid_stop_and_end():
     src = bm.from_game(0, 0, 0, 2.5, 1400, ENV)
-    s = bm.state(src, ENV, src.tau * 1.1)
-    assert s.U == 0.0 and s.zc + s.R <= ENV.zi + 1e-6
+    s = bm.state(src, ENV, src.tau * 2.0)
+    assert s.U < 0.05 and s.zc + s.R < ENV.zi          # остановка плавная, крышку не пересекает
+    assert s.Uh > s.U                                   # вихрь головы ещё живёт, гаснет по t_decay
     assert bm.state(src, ENV, src.tau * 20) is None
 
 
