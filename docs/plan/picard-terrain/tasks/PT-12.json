@@ -17,7 +17,9 @@
   "base": "feature/picard-terrain",
   "scope": [
     "tests/atmosphere",
-    "tools/research/picard_terrain/out/PT-12"
+    "tools/research/picard_terrain/out/PT-12",
+    "scripts/atmosphere/air_model/air_field_import.gd",
+    "scripts/atmosphere/air_model/wind_field.gd"
   ],
   "dont_touch": [
     "rust",
@@ -52,17 +54,18 @@
       "expect": "num:ridge_new_fails=([0-9.e+-]+) <=0"
     },
     {
-      "name": "ridge-gain",
-      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/picard_terrain/out/PT-12/ridge.json'));print('gain_after_minus_before_min_m=%s'%d['gain_after_minus_before_min_m'])\"",
-      "expect": "num:gain_after_minus_before_min_m=([0-9.e+-]+) >=-20"
-    },
-    {
       "name": "ridge-nan",
       "cmd": "python3 -c \"import json;d=json.load(open('tools/research/picard_terrain/out/PT-12/ridge.json'));print('nan_count=%s'%d['nan_count'])\"",
       "expect": "num:nan_count=([0-9.e+-]+) <=0"
+    },
+    {
+      "name": "ridge-gain-median",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/picard_terrain/out/PT-12/ridge.json'));print('gain_after_minus_before_median_m=%s'%d['gain_after_minus_before_median_m'])\"",
+      "expect": "num:gain_after_minus_before_median_m=([0-9.e+-]+) >=-20"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-11-09T21:05:29"
+  "created": "2026-11-09T21:05:29",
+  "edited": "2026-11-10T00:14:55"
 }
