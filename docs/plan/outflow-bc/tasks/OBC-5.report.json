@@ -1,0 +1,71 @@
+{
+  "status": "done",
+  "summary": "Критерий (г) проверен на res_hist 720 записей OBC-3 без новых прогонов (выбрано W=100, eps=0,1; сетка 3x3 в stop.csv). На max останавливает 258/259 на медиане k=290 (-69 % от 1000), но 92 % остановок - блуждание >0,1*U10; conv по экстраполяции r_inf у max ложен (99); на ok даёт экономию только у 62 записей с >=110 итерациями, 18 из 58 ранних - ложное плато.",
+  "commits": [
+    "7373bf52b outflow-bc OBC-5: критерий остановки (г) по историям невязок корпуса OBC-3"
+  ],
+  "checks": [
+    {
+      "name": "repro",
+      "value": "SAME, 265 с",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "пороги игры восстановлены",
+      "value": "mom 1e-4, th 2.5e-6, div 5e-6 (case_build.rs x tol_scale 5; сверка по ok: max 9.9995e-5 / 2.50e-6 / 1.4e-6)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Отклонение поля в момент остановки и ложные остановки по полю не измерены - полей по итерациям в корпусе нет (этап 2, OB4 err_hist)",
+    "Истории SY-12 в репозитории не найдены - проверка только на корпусе OBC-3",
+    "Класса PR-8 (плато невязки ниже порога, поле далеко) в корпусе нет: на max mom >=1,37 порога на последних 100 итерациях, U10 min 0,5, штиля нет"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept OBC-5; tools/research/outflow_bc/stopfit/README.md",
+  "uncertain": [
+    {
+      "where": "tools/research/outflow_bc/stopfit/stopfit.py:fit_window",
+      "why": "подгонка на 6-21 точках, rho часто упирается в границу 0,999 (47 из 99 conv у max) - r_inf плохо определён",
+      "checked": "три окна W, три eps; доля ложных conv посчитана; защита r(k)<=3*порога оставляет 12 из 40 ранних conv у ok"
+    },
+    {
+      "where": "README.md: ok-ранние conv",
+      "why": "conv-остановки у ok - прогноз, не факт; ошибка поля при них неизвестна",
+      "checked": "r_at_stop/порог: медиана 4,4 (0,94-52)"
+    }
+  ],
+  "dp_feedback": "Фоновый запуск 'cmd &' в Bash с цепочкой && теряет вывод; удобнее было бы job start сразу. accept --dry на repro 4,5 мин блокирует Bash - полезен флаг прогресса.",
+  "extra": {
+    "W": 100,
+    "eps": 0.1,
+    "ok": {
+      "n": 461,
+      "applicable_iters_ge_110": 62,
+      "early": 58,
+      "early_conv": 40,
+      "early_plateau_false": 18,
+      "iters_saved": 9540,
+      "iters_total": 29390
+    },
+    "max": {
+      "n": 259,
+      "stopped": 258,
+      "conv_false": 99,
+      "plateau": 159,
+      "k_med": 290,
+      "saved_frac": 0.69,
+      "spread_gt_0.1U10": 239,
+      "mom_over_thr_median_at_stop": 74
+    },
+    "rank_corr_rstop_vs_spread_rel": 0.36
+  },
+  "t": "2026-11-09T15:42:29",
+  "by": "executor"
+}

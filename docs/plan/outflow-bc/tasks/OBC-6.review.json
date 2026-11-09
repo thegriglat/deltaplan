@@ -1,0 +1,41 @@
+{
+  "verdict": "accept",
+  "summary": "Стенд по OB4 v1: старты повторяют coarse_start (RtCfg.from_configs: max_iters, tol_scale, без fallback/freeze; level_of+prolong_to), chain/chain_phase и phase — как в контракте; в src только видимость двух функций; скоуп соблюдён; пилот 10 записей invalid=0, est=27.6 подтверждены. Замечания мелкие: тест на побитное равенство сверяет стенд с ним же, а оценка est грубая.",
+  "issues": [
+    {
+      "file": "rust/dp-air/examples/outflow_stage2.rs",
+      "line": 1160,
+      "severity": "minor",
+      "what": "Тест coarse3_init_equals_runtime_continuation строит грубый уровень тем же build_lvl стенда и повторяет solve руками, т.е. проверяет make_start против самого себя, а не против runtime::build_level/coarse_start (LevelCase.planes_h). Расхождение build_lvl и build_level (k, inflow_mode, погода) он не поймает; в отчёте подано как «побитно = путь runtime».",
+      "fix": "В отчёте/stage2.md назвать точно: равенство prolong_to(Пикар 1200 м по build_lvl). Если стыковку с runtime нужно доказать, это отдельная задача (видимость build_level/JobIn), не повод возвращать."
+    },
+    {
+      "file": "tools/research/outflow_bc/check_stage2.py",
+      "line": 237,
+      "severity": "minor",
+      "what": "est_full_h для mech-случаев берёт скорость с пилота hill U10 6 (сходится за 20–40 итераций, грубые ступени ~1 с). Для слабого ветра без нагрева грубые ступени, скорее всего, тоже упрутся в 3000 итераций (как у ongudai heat: t_start 166 с), так что mech-доля недооценена. Кроме того, оценка дана на один вариант (пилот только hard); если OBC-7 считает hard/soft/soft_ns, время вырастет примерно втрое. Порог 500 ч остаётся с запасом.",
+      "fix": "Учесть при планировании OBC-7 (координатор): est — на один вариант, mech-часть по сильному ветру; переделывать не обязательно."
+    },
+    {
+      "file": "rust/dp-air/examples/outflow_stage2/analysis.rs",
+      "line": 92,
+      "severity": "minor",
+      "what": "Имена полей late_spread_<h>_p90 (late_spread_50_p90) — это прочтение шаблона контракта late_spread_h_p90; оно не записано в OB4 явно. eN_h_* совпадают с примером контракта (e100_50_int_p99).",
+      "fix": "Координатору: закрепить в OB4 (v1 уточнение) имя late_spread_<h>_p90, чтобы OBC-8 читал те же ключи."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "pilot (accept --only pilot --dry)",
+      "value": "OB4: records=10 invalid=0",
+      "pass": true
+    },
+    {
+      "name": "est (accept --only est --dry)",
+      "value": "est_full_h=27.6",
+      "pass": true
+    }
+  ],
+  "t": "2026-11-09T15:47:56",
+  "by": "reviewer"
+}

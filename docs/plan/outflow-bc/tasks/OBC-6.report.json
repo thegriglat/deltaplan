@@ -1,0 +1,168 @@
+{
+  "status": "done",
+  "summary": "Пример dp-air outflow_stage2 (старты bg/coarse3/chain/phase/chain_phase, снимки каждые 10 итераций, R, eN_*, err_hist, inc_hist, рез) + check_stage2.py + спецификации корпуса и пилота + stage2.md; в src только видимость prolong_to/level_of. Пилот: 10 записей, invalid=0, est_full_h=27.6.",
+  "commits": [
+    "48d294cef outflow-bc: OBC-6 стенд этапа 2 — старты Пикара, снимки, метрики OB4, check_stage2.py"
+  ],
+  "checks": [
+    {
+      "name": "unit",
+      "value": "22 теста, в т.ч. coarse3 init побитно = prolong_to(Пикар 1200 м), сборка фаз на 1600 м, спецификации (90 / 2 случая)",
+      "pass": true
+    },
+    {
+      "name": "corpus1",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "lib",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "pilot",
+      "value": "OB4: records=10 invalid=0",
+      "pass": true
+    },
+    {
+      "name": "est",
+      "value": "est_full_h=27.6 (est_split_h=20.7)",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "7 файлов в границах",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept OBC-6",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/examples/outflow_stage2.rs: make_start (coarse3/chain)",
+      "why": "Грубые ступени идут с max_iters игры (RtCfg.max_iters = MAX_OUTER = 3000), как coarse_start. В слабый ветер грубая ступень (1200 м, 1600 м, 800 м) упирается в 3000 итераций: t_start у coarse3 ~167 с, chain ~53 с. Это поведение игры, не выбор стенда. Для soft/soft_ns грубые ступени тоже мягкие (в игре грубая ступень жёсткая) — контракт молчит, выбрано для совместимости старта с решением 400 м; при hard тождественно игре.",
+      "checked": "unit: init coarse3 побитно равен prolong_to той же грубой ступени; пилот: start_iters [3000] у ongudai coarse3, [90, 3000] chain, [110, 3000] chain_phase."
+    },
+    {
+      "where": "rust/dp-air/examples/outflow_stage2.rs: phase_warm",
+      "why": "В игре warm фаз Пикару стартом не служит (только freeze/nonconv); стенд использует его как init по заданию п. 6. Фазы по случаю с нагревом, warm_mech берётся из них же (как phases_of). Для mech-варианта плоскости heat-случая готовятся отдельно (+1 prepare). Размеры warm проверяются против case.",
+      "checked": "unit phase_warm_and_chain_dims: dims warm = dims case на 400 м и на 1600 м; chain_phase реализован (сборка фаз на 1600 м строится без правки src)."
+    },
+    {
+      "where": "пилот, t_solve_s первых записей",
+      "why": "Машина была сильно загружена (load average 13–25 при 20 ядрах): ongudai bg/coarse3 дали t_iter 98–101 с на 300 итераций, остальные старты того же случая 15–24 с. Повторный замер bg дал 75 с при load 25 — значит, время шумит в разы, est_full_h (27.6 ч) — порядок, а не точное число; разница между стартами по t_solve в пилоте частично нагрузка.",
+      "checked": "t_setup/iter/check/snap разложены по записям; повторный запуск bg (75 с вместо 115 с)."
+    },
+    {
+      "where": "tools/research/outflow_bc/check_stage2.py: estimate",
+      "why": "est_full_h по контракту — (t_start+t_solve)/iters × ожидаемые итерации; в пилоте mech-случай (U10 6) сошёлся за 20–40 итераций, так что на нём накладные t_start распределяются на мало итераций (завышение). est_split_h (t_start раз на случай + t_solve/iters × ожидаемые итерации) = 20.7 ч — рядом, не заменяет.",
+      "checked": "оба числа в одной строке вывода; регэксп приёмки берёт est_full_h."
+    },
+    {
+      "where": "outflow_stage2/analysis.rs: имена полей",
+      "why": "Контракт: late_spread_h_p90 и eN_h_*: принято late_spread_<h>_p90 (late_spread_50_p90), e<N>_<h>_start_max|int_rms|int_p99|int_max (e100_50_int_p99), h ∈ 10/50/300. Эталон R при 'max' — среднее снимков late_from…предел (в пилоте 150, 200, 250, 300), при 'ok' — итоговое поле.",
+      "checked": "check_stage2 сверяет eN_* с err_hist и нули после остановки при ok."
+    }
+  ],
+  "dp_feedback": "Вес замка cpu задаётся регэкспом по строке команды: job start с готовым бинарником (target/release/examples/...) получил 1 слот и CPUQuota=100% вместо 8 — 8 нитей встали на одно ядро; пришлось перезапустить через `cargo run --release`. Хотелось бы предупреждения или явной опции слотов для job --lock. /usr/bin/time в системе нет — пиковую память меряю python-обёрткой с getrusage; было бы полезно job start --mem.",
+  "extra": {
+    "peak_rss_mb": 1304,
+    "peak_rss_note": "ru_maxrss процесса пилота (ongudai heat, 300 итераций, 30 снимков, 5 стартов подряд, hard, 8 нитей): 1 335 384 КБ; ≤ 6 ГБ — укладывается; при 1000 итераций (100 снимков) снимки State растут линейно — ожидается до ~3–4 ГБ (оценка по размеру State, не измерено)",
+    "snapshot_cost": "t_snap_s / t_solve_s: ongudai 10.4–12.6 % (12.2 с из 114.8; 12.4 из 117.0; 2.2 из 17.8), ~0.04–0.08 с на снимок на 8 нитях; hill mech 17–19 % (на коротких решениях доля выше)",
+    "pilot_per_start": {
+      "ongudai_d000_u010_h (heat, 300 итераций, все max)": {
+        "bg": {
+          "t_start_s": 0.0,
+          "t_solve_s": 114.8,
+          "iters": 300,
+          "start_iters": []
+        },
+        "coarse3": {
+          "t_start_s": 166.6,
+          "t_solve_s": 117.0,
+          "iters": 300,
+          "start_iters": [
+            3000
+          ]
+        },
+        "chain": {
+          "t_start_s": 53.3,
+          "t_solve_s": 17.8,
+          "iters": 300,
+          "start_iters": [
+            90,
+            3000
+          ]
+        },
+        "phase": {
+          "t_start_s": 0.2,
+          "t_solve_s": 19.3,
+          "iters": 300,
+          "start_iters": []
+        },
+        "chain_phase": {
+          "t_start_s": 50.2,
+          "t_solve_s": 28.0,
+          "iters": 300,
+          "start_iters": [
+            110,
+            3000
+          ]
+        }
+      },
+      "hill_h300_d270_u060_m (mech, сошёлся — итерации до сходимости)": {
+        "bg": {
+          "t_start_s": 0.0,
+          "t_solve_s": 6.0,
+          "iters": 40,
+          "start_iters": []
+        },
+        "coarse3": {
+          "t_start_s": 0.8,
+          "t_solve_s": 5.4,
+          "iters": 30,
+          "start_iters": [
+            20
+          ]
+        },
+        "chain": {
+          "t_start_s": 1.4,
+          "t_solve_s": 3.3,
+          "iters": 20,
+          "start_iters": [
+            20,
+            20
+          ]
+        },
+        "phase": {
+          "t_start_s": 0.3,
+          "t_solve_s": 6.7,
+          "iters": 40,
+          "start_iters": []
+        },
+        "chain_phase": {
+          "t_start_s": 1.1,
+          "t_solve_s": 2.3,
+          "iters": 20,
+          "start_iters": [
+            30,
+            20
+          ]
+        }
+      }
+    },
+    "pilot_iters_to_convergence": "ongudai heat U10 1: ни один из пяти стартов не сошёлся за 300 итераций (status max); hill mech U10 6: bg 40, coarse3 30, chain 20, phase 40, chain_phase 20",
+    "pilot_quality_ongudai_heat": "late_spread_50_p90 0.285–0.349 м/с (scale 2.35); e50_50_int_p99 (поле после 50 итераций против позднего среднего): bg 0.79, coarse3 0.83, chain 0.72, phase 1.14, chain_phase 0.74 м/с; e200_50_int_p99: 0.43, 0.38, 0.52, 0.36, 0.52; estart_max@300: 0.41, 0.18, 0.06, 0.08, 0.08 — только пилот одного случая, выводов не делаю",
+    "est_full_h": 27.6,
+    "est_split_h": 20.7,
+    "full_corpus_cases": 90,
+    "not_done_starts": "нет: chain_phase реализован (сборка фаз на 1600 м строится без правки логики src); в pilot 10 записей",
+    "src_changes": "rust/dp-air/src/field/runtime.rs: fn prolong_to -> pub fn, pub(crate) fn level_of -> pub fn (только видимость)",
+    "extra_record_keys": "t_setup_s, t_iter_s, t_check_s, t_snap_s (сверх OB4, только чтение); check_stage2 их требует у записей не-start_failed"
+  },
+  "t": "2026-11-09T15:43:26",
+  "by": "executor"
+}
