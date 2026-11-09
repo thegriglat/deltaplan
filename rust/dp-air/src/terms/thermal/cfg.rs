@@ -57,6 +57,9 @@ pub struct ThermalCfg {
     pub sun_azimuth_deg: f64,
     /// `thermal.bubble_template`: вертикаль и горизонталь термика — по шаблону пузыря (TB4), а не по профилю.
     pub bubble_template: bool,
+    /// `thermal.bubble_radius_m`: таблицы пузырей строятся для динамических термиков, чей круг влияния задевает круг
+    /// этого радиуса вокруг фокуса; дальше — профиль, как без флага (TB4 v2).
+    pub bubble_radius_m: f64,
 }
 
 impl Default for ThermalCfg {
@@ -106,6 +109,7 @@ impl Default for ThermalCfg {
             sun_elevation_deg: 52.0,
             sun_azimuth_deg: 200.0,
             bubble_template: false,
+            bubble_radius_m: 2000.0,
         }
     }
 }
@@ -181,6 +185,7 @@ impl ThermalCfg {
                 .pointer("/thermal/bubble_template")
                 .and_then(Value::as_bool)
                 .unwrap_or(d.bubble_template),
+            bubble_radius_m: g("/thermal/bubble_radius_m", d.bubble_radius_m),
         }
     }
 
