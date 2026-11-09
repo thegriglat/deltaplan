@@ -1,0 +1,74 @@
+{
+  "id": "LT-9",
+  "module": "lee-turb",
+  "type": "dp-engineer",
+  "title": "dp-air: оживить слой смешения на пути с полем и снять механику стенки в зоне отрыва (LTM v1)",
+  "goal": "Встроить LTM v1 (docs/contracts/lee-turb.md): r из GroundField.relief_at и при доле поля a ≥ 1, σ слоя смешения 0,166/0,130/0,153·ΔU, снятие члена l·|∂U/∂z| в зоне отрыва без разрешённого пузыря; контрактные тесты; тесты подветренной зоны на поле со срезанными клетками.",
+  "plan_ref": "Задачи (уточняет координатор) п.3",
+  "contracts": [
+    {
+      "name": "LTM",
+      "version": "1",
+      "ref": "docs/contracts/lee-turb.md"
+    },
+    {
+      "name": "C4",
+      "version": "5",
+      "ref": "docs/contracts/lee-turb.md"
+    },
+    {
+      "name": "LTS",
+      "version": "1",
+      "ref": "docs/contracts/lee-turb.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/lee-turb-LT-9",
+  "branch": "lee-turb/LT-9",
+  "base": "feature/lee-turb",
+  "scope": [
+    "rust/dp-air/src/terms/turb/",
+    "rust/dp-air/tests/",
+    "configs/atmosphere.json",
+    "tests/contracts/test_air_field_contracts.gd",
+    "rust/dp-stand/src/lee.rs",
+    "tools/research/lee_turb/pt_check/"
+  ],
+  "dont_touch": [
+    "rust/dp-air/src/field/",
+    "rust/picard_rs/",
+    "rust/dp-air/src/terms/analytic/",
+    "scripts/",
+    "docs/",
+    "tests/fixtures/",
+    "tests/atmosphere/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "lee",
+      "tests": "lee"
+    },
+    {
+      "name": "test_c4",
+      "tests": "test_c4"
+    },
+    {
+      "name": "dp_air",
+      "cmd": "cargo test -q --release --manifest-path rust/Cargo.toml -p dp-air --lib --tests",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dp_stand",
+      "cmd": "cargo test -q --release --manifest-path rust/Cargo.toml -p dp-stand",
+      "expect": "exit=0"
+    },
+    {
+      "name": "pt_lee",
+      "cmd": "sh tools/research/lee_turb/pt_check/run.sh",
+      "expect": "re:PT lee tests: 0 failed"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-10T00:39:56"
+}
