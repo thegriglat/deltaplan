@@ -1,12 +1,13 @@
 extends Node
-## Полётный замер термиков в игре (TB-14, контракт TB5 v1): автопилот-бот (BotPilot, как в xc_run)
+## Полётный замер термиков в игре (TB-14/TB-16, контракт TB5 v2): автопилот-бот (BotPilot, как в xc_run)
 ## летит по воздуху игры (фасад Atmosphere, крейт dp-air), пока считаются сводки присутствия, притока,
 ## ядра и разрывов у пилота. Время кадра — отдельным прогоном flight_frame.gd (нужен дисплей).
 ##
 ##   godot --headless --path . res://tools/research/thermal_bubble/flight/flight_probe.tscn -- \
 ##     --bubble=0|1 --out=<json> [--location=ongudai] [--seed=1] [--sim-s=1200] [--wing=sport]
 ##
-## --bubble=1 пишет в конфиг атмосферы thermal.bubble_template = true (флаг шаблона пузыря, TB4 v2).
+## --bubble=0|1 пишет в конфиг атмосферы thermal.bubble_template (флаг был до TB-15; после него ключ не читается —
+## в новой копии --bubble=1 лишь метка прогона: шаблон всегда включён).
 ## Погода — прогноз по умолчанию меню (FlightSettings.defaults(), ветер 3 м/с с запада), как у
 ## flight_frame.gd; час старта 13. Сид мира — --seed=N, как у игры.
 ## Сырой json (не TB5): flight_summary.py склеивает его с кадрами в сводку tb5/1.
@@ -28,6 +29,9 @@ const Z_FRACS := [0.2, 0.35, 0.5, 0.65, 0.8]
 var _inflow_by_core := {}
 var _core_by_core := {}
 var _dx_by_core := {}
+var _axisdx_by_core := {}  # TB5 v2: |смещение максимума w у оси cores на высоте пилота| / R, по ядру
+var _cover_has := 0  # TB5 v2: ядра рядом с пилотом, у которых есть таблица пузыря
+var _cover_all := 0
 var _dump := false
 var _dumped := 0
 var _peak_by_core := {}  # диагностика: max w на оси по всей толщине столба / сила
@@ -247,6 +251,11 @@ func _observe(p: Vector3, sec: int) -> void:
 		if w > LIFT_W:
 			_lift_cores += 1
 		var strength := c[j + Atmosphere.CORE_W]
+		if sec % OBS_EVERY_S == 0 and strength >= MIN_STRENGTH:
+			_cover_all += 1
+			if _has_bubble(c, j, ysrc, zl):
+				_cover_has += 1
+			_push(_axisdx_by_core, int(c[j + Atmosphere.CORE_ID]), absf(_axis_dx(c, j, ysrc, zl, p.y)))
 		if sec % OBS_EVERY_S != 0 or strength < MIN_STRENGTH:
 			continue
 		var id := int(c[j + Atmosphere.CORE_ID])
@@ -313,6 +322,42 @@ func _observe(p: Vector3, sec: int) -> void:
 		_push(_inflow_by_core, id, sum / cnt)
 
 
+## Есть ли у ядра таблица пузыря. API про таблицу не говорит; признак — горизонталь самого слагаемого термика:
+## профиль Гедеона её не даёт вовсе (ровно 0), пузырь — всегда (приток у низа, растекание у верха).
+## Точки: 3 радиуса (0,5; 1; 1,5 R) x 4 азимута на высотах 0,15 / 0,5 / 0,85 z_l; порог 1e-3 м/с.
+## Чужой пузырь в тех же точках даёт тот же признак (ядра рядом) — допущение замера.
+func _has_bubble(c: PackedFloat32Array, j: int, ysrc: float, zl: float) -> bool:
+	var r0 := c[j + Atmosphere.CORE_RADIUS]
+	for zf: float in [0.15, 0.5, 0.85]:
+		var y := ysrc + zf * zl
+		var a := _axis(c, j, y)
+		for rf: float in [0.5, 1.0, 1.5]:
+			for k in 4:
+				var phi := TAU * k / 4.0
+				var q := a + Vector2(cos(phi), sin(phi)) * rf * r0
+				var v := _thermal_vel(Vector3(q.x, y, q.y))
+				if Vector2(v.x, v.z).length() > 1e-3:
+					return true
+	return false
+
+
+## Смещение (по x, в R) максимума w термика в круге ±2 R вокруг оси cores на высоте пилота
+## (высота зажата в 0,2…0,8 z_l столба, если пилот вне его) — как тест bubble_on_core_axis (TB4 v4).
+func _axis_dx(c: PackedFloat32Array, j: int, ysrc: float, zl: float, pilot_y: float) -> float:
+	var y := clampf(pilot_y, ysrc + 0.2 * zl, ysrc + 0.8 * zl)
+	var a := _axis(c, j, y)
+	var r0 := c[j + Atmosphere.CORE_RADIUS]
+	var best := -INF
+	var bdx := 0.0
+	for dxf: float in [-2.0, -1.5, -1.0, -0.75, -0.5, -0.25, 0.0, 0.25, 0.5, 0.75, 1.0, 1.5, 2.0]:
+		for dzf: float in [-1.0, 0.0, 1.0]:
+			var w := _thermal_vel(Vector3(a.x + dxf * r0, y, a.y + dzf * r0)).y
+			if w > best:
+				best = w
+				bdx = dxf
+	return bdx
+
+
 static func _push(d: Dictionary, id: int, v: float) -> void:
 	if not d.has(id):
 		d[id] = [0.0, 0]
@@ -329,6 +374,25 @@ static func _median_of(d: Dictionary) -> float:
 	a.sort()
 	var m := a.size() / 2
 	return float(a[m]) if a.size() % 2 == 1 else 0.5 * (float(a[m - 1]) + float(a[m]))
+
+
+## Квантиль q (0…1) средних по ядрам значений словаря _push (диагностика разброса медианы).
+static func _quant_of(d: Dictionary, q: float) -> float:
+	var a: Array = []
+	for id in d:
+		a.append(float(d[id][0]) / int(d[id][1]))
+	if a.is_empty():
+		return 0.0
+	a.sort()
+	return float(a[clampi(int(ceil(q * a.size())) - 1, 0, a.size() - 1)])
+
+
+static func _frac_above(d: Dictionary, thr: float) -> float:
+	var n := 0
+	for id in d:
+		if absf(float(d[id][0]) / int(d[id][1])) > thr:
+			n += 1
+	return float(n) / maxf(d.size(), 1)
 
 
 static func _pct(sorted: PackedFloat32Array, q: float) -> float:
@@ -351,10 +415,15 @@ func _summary(
 			"cores_near_mean": snappedf(_near_sum / maxf(_near_n, 1), 0.0001),
 			"cores_lifting_frac": snappedf(float(_lift_cores) / maxf(_all_cores, 1), 0.0001),
 			"n_observed": _all_cores,
+			"bubble_cover": snappedf(float(_cover_has) / maxf(_cover_all, 1), 0.0001),
 		},
 		"inflow": {"ur_in_10m_median_ms": snappedf(_median_of(_inflow_by_core), 0.0001), "n": _inflow_by_core.size()},
 		"core":
-		{"w_axis_over_strength_median": snappedf(_median_of(_core_by_core), 0.0001), "n": _core_by_core.size()},
+		{
+			"w_axis_over_strength_median": snappedf(_median_of(_core_by_core), 0.0001),
+			"axis_dx_over_r_median": snappedf(_median_of(_axisdx_by_core), 0.0001),
+			"n": _core_by_core.size(),
+		},
 		"continuity":
 		{
 			"dv_frame_p999_ms": snappedf(_pct(diffs, 0.999), 0.0001),
@@ -366,6 +435,12 @@ func _summary(
 		{
 			"w_peak_near_over_strength_median": snappedf(_median_of(_peak_by_core), 0.0001),
 			"peak_dx_over_R_median": snappedf(_median_of(_dx_by_core), 0.01),
+			"inflow_p75_ms": snappedf(_quant_of(_inflow_by_core, 0.75), 0.0001),
+			"inflow_p90_ms": snappedf(_quant_of(_inflow_by_core, 0.9), 0.0001),
+			"inflow_nonzero_frac": snappedf(_frac_above(_inflow_by_core, 0.01), 0.0001),
+			"core_w_p25": snappedf(_quant_of(_core_by_core, 0.25), 0.0001),
+			"core_w_p75": snappedf(_quant_of(_core_by_core, 0.75), 0.0001),
+			"axis_dx_p75": snappedf(_quant_of(_axisdx_by_core, 0.75), 0.0001),
 		},
 	}
 
