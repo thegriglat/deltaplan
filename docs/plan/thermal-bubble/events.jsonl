@@ -148,3 +148,5 @@
 {"t": "2026-11-09T11:38:31", "by": "coordinator", "task": "TB-5", "ev": "checked", "note": "7/7 contract_tb1=ok:exit 0; contract_tb3=ok:exit 0; unit=ok:exit 0; div=ok:4.07259e-07; core_in_lit=ok:exit 0; balance=ok:ok; md_docs=ok:exit 1"}
 {"t": "2026-11-09T11:42:08", "by": "reviewer", "task": "TB-5", "ev": "reviewed", "note": "Доработка 1 выполнена по заданию: hill_shell 0,2 (метрика инв. 10 ≈ 1,02 ≤ 1,2 — порог поднят через контракт TB1 v4, не самовольно), kbar(zl, tau, env, w0) по …", "verdict": "accept", "issues": {"minor": 1}, "review": "docs/plan/thermal-bubble/tasks/TB-5.review.json"}
 {"t": "2026-11-09T11:42:27", "by": "coordinator", "task": "TB-5", "ev": "accepted", "note": "по ревью (fable, accept после доработки 1; minor — note в compare.py, в TB-9)"}
+{"t": "2026-11-09T11:45:23", "by": "coordinator", "task": "TB-5", "ev": "accepted", "commits": ["605c18bd6"], "note": "7/7 contract_tb1=ok:exit 0; contract_tb3=ok:exit 0; unit=ok:exit 0; div=ok:4.07259e-07; core_in_lit=ok:exit 0; balance=ok:ok; md_docs=ok:exit 1"}
+{"t": "2026-11-09T11:45:23", "by": "coordinator", "task": "TB-5", "ev": "merged"}
