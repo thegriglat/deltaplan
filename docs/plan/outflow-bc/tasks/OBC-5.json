@@ -1,0 +1,42 @@
+{
+  "id": "OBC-5",
+  "module": "outflow-bc",
+  "type": "dp-researcher",
+  "title": "Критерий остановки (г) по истории невязок корпуса OBC-3",
+  "goal": "Без новых прогонов проверить вариант (г) п. 9 плана на res_hist 720 записей OBC-3: подгонка log r(k) ≈ log(r_∞ + A·ρ^k) в скользящем окне, итерация остановки против фактической (ok) и предела (max), экономия итераций и классы подозрительных остановок; предварительный вывод до этапа 2.",
+  "plan_ref": "Этап 2",
+  "contracts": [
+    {
+      "name": "OB2",
+      "version": "1",
+      "ref": "docs/contracts/outflow-bc.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/outflow-bc-OBC-5",
+  "branch": "outflow-bc/OBC-5",
+  "base": "feature/outflow-bc",
+  "scope": [
+    "tools/research/outflow_bc/stopfit"
+  ],
+  "dont_touch": [
+    "rust",
+    "tools/research/outflow_bc/out",
+    "tools/research/outflow_bc/README.md",
+    "docs"
+  ],
+  "accept": [
+    {
+      "name": "repro",
+      "cmd": "mkdir -p build/obc && uv run --no-project --with numpy --with scipy python tools/research/outflow_bc/stopfit/stopfit.py --cases tools/research/outflow_bc/out/cases.jsonl.gz --out build/obc/OBC-5_stop.csv && cmp build/obc/OBC-5_stop.csv tools/research/outflow_bc/stopfit/stop.csv && echo SAME",
+      "expect": "re:SAME"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check tools/research/outflow_bc/stopfit",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T15:14:30"
+}

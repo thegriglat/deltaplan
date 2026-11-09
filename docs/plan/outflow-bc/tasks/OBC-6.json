@@ -1,0 +1,80 @@
+{
+  "id": "OBC-6",
+  "module": "outflow-bc",
+  "type": "dp-engineer",
+  "title": "Стенд этапа 2: старты Пикара и снимки (OB4)",
+  "goal": "Пример dp-air outflow_stage2 по контракту OB4: старты bg/coarse3/chain/phase/chain_phase для решения на 400 м, снимки каждые 10 итераций, эталон R, метрики eN_*, err_hist, inc_hist, резы; спецификации корпуса этапа 2 и проверка check_stage2.py; пилот с оценкой времени полного корпуса.",
+  "plan_ref": "Этап 2",
+  "contracts": [
+    {
+      "name": "OB4",
+      "version": "1",
+      "ref": "docs/contracts/outflow-bc.md"
+    },
+    {
+      "name": "OB2",
+      "version": "1",
+      "ref": "docs/contracts/outflow-bc.md"
+    },
+    {
+      "name": "OB3",
+      "version": "1",
+      "ref": "docs/contracts/outflow-bc.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/outflow-bc-OBC-6",
+  "branch": "outflow-bc/OBC-6",
+  "base": "feature/outflow-bc",
+  "scope": [
+    "rust/dp-air/examples/outflow_stage2.rs",
+    "rust/dp-air/examples/outflow_stage2",
+    "rust/dp-air/examples/outflow_corpus",
+    "rust/dp-air/examples/outflow_corpus.rs",
+    "rust/dp-air/src/field/runtime.rs",
+    "rust/dp-air/src/level.rs",
+    "rust/dp-air/src/field/phase",
+    "tools/research/outflow_bc/corpus_stage2.json",
+    "tools/research/outflow_bc/corpus_stage2_pilot.json",
+    "tools/research/outflow_bc/check_stage2.py",
+    "tools/research/outflow_bc/stage2.md"
+  ],
+  "dont_touch": [
+    "rust/picard_rs",
+    "rust/dp-gd",
+    "tools/research/outflow_bc/corpus.json",
+    "tools/research/outflow_bc/check_records.py",
+    "tools/research/outflow_bc/out",
+    "tools/research/outflow_bc/README.md",
+    "docs"
+  ],
+  "accept": [
+    {
+      "name": "unit",
+      "cmd": "cargo test --release --manifest-path rust/Cargo.toml -p dp-air --example outflow_stage2",
+      "expect": "exit=0"
+    },
+    {
+      "name": "corpus1",
+      "cmd": "cargo test --release --manifest-path rust/Cargo.toml -p dp-air --example outflow_corpus",
+      "expect": "exit=0"
+    },
+    {
+      "name": "lib",
+      "cmd": "cargo test --release --manifest-path rust/Cargo.toml -p dp-air --lib",
+      "expect": "exit=0"
+    },
+    {
+      "name": "pilot",
+      "cmd": "python3 tools/research/outflow_bc/check_stage2.py build/obc/OBC-6_pilot.jsonl --spec tools/research/outflow_bc/corpus_stage2_pilot.json --slices build/obc/OBC-6_raw/stage2/slices",
+      "expect": "re:OB4: records=(10|8) invalid=0"
+    },
+    {
+      "name": "est",
+      "cmd": "python3 tools/research/outflow_bc/check_stage2.py build/obc/OBC-6_pilot.jsonl --spec tools/research/outflow_bc/corpus_stage2_pilot.json --slices build/obc/OBC-6_raw/stage2/slices --full-spec tools/research/outflow_bc/corpus_stage2.json",
+      "expect": "num:est_full_h=([0-9.]+) <=500"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T15:14:49"
+}

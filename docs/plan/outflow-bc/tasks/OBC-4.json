@@ -1,0 +1,54 @@
+{
+  "id": "OBC-4",
+  "module": "outflow-bc",
+  "type": "dp-researcher",
+  "title": "Анализ этапа 1: жёсткий против мягкого выхода (вопросы 1–5)",
+  "goal": "По корпусу OBC-3 (720 записей hard/soft/soft_ns) ответить на вопросы 1–5 плана числами: сводка summary.csv по OB2, таблицы, рисунки, документ вывода «да/нет/частично» и рекомендация границы для этапа 2 по правилу из карточки.",
+  "plan_ref": "Вопросы опыта",
+  "contracts": [
+    {
+      "name": "OB2",
+      "version": "1",
+      "ref": "docs/contracts/outflow-bc.md"
+    },
+    {
+      "name": "OB3",
+      "version": "1",
+      "ref": "docs/contracts/outflow-bc.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/outflow-bc-OBC-4",
+  "branch": "outflow-bc/OBC-4",
+  "base": "feature/outflow-bc",
+  "scope": [
+    "tools/research/outflow_bc/analyze_stage1.py",
+    "tools/research/outflow_bc/out/summary.csv",
+    "tools/research/outflow_bc/out/stage1",
+    "tools/research/outflow_bc/README.md",
+    "docs/research/outflow_bc.md"
+  ],
+  "dont_touch": [
+    "rust",
+    "tools/research/outflow_bc/out/cases.jsonl.gz",
+    "tools/research/outflow_bc/corpus.json",
+    "tools/research/outflow_bc/check_records.py",
+    "docs/contracts",
+    "docs/plan",
+    "docs/INDEX.md"
+  ],
+  "accept": [
+    {
+      "name": "summary",
+      "cmd": "mkdir -p build/obc && uv run --no-project --with numpy --with h5py --with matplotlib --with scipy python tools/research/outflow_bc/analyze_stage1.py --cases tools/research/outflow_bc/out/cases.jsonl.gz --summary-only build/obc/OBC-4_summary.csv && cmp build/obc/OBC-4_summary.csv tools/research/outflow_bc/out/summary.csv && head -1 tools/research/outflow_bc/out/summary.csv",
+      "expect": "re:variant,u10_bin,fr_bin,heat,n,conv_frac,iters_med,iters_p90,spread_med,spread_p90"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check docs/research/outflow_bc.md tools/research/outflow_bc/README.md",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T15:13:39"
+}
