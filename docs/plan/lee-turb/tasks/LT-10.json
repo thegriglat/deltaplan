@@ -1,0 +1,50 @@
+{
+  "id": "LT-10",
+  "module": "lee-turb",
+  "type": "dp-engineer",
+  "title": "Слияние main (picard-terrain, thermal-bubble) в ветку модуля: конфликт dp-stand",
+  "goal": "Влить main (6255f1fad и новее) в ветку задачи от feature/lee-turb, свести конфликт rust/dp-stand/src/main.rs и setup.rs (подкоманда lee с lee-turb и timing с picard-terrain — обе сохранить), сборка и тесты зелёные.",
+  "plan_ref": "Связь с picard-terrain",
+  "contracts": [
+    {
+      "name": "LTS",
+      "version": "1",
+      "ref": "docs/contracts/lee-turb.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/lee-turb-LT-10",
+  "branch": "lee-turb/LT-10",
+  "base": "feature/lee-turb",
+  "scope": [
+    "."
+  ],
+  "dont_touch": [
+    "docs/plan/",
+    "tests/fixtures/"
+  ],
+  "accept": [
+    {
+      "name": "dp_stand",
+      "cmd": "cargo test -q --release --manifest-path rust/Cargo.toml -p dp-stand",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dp_air",
+      "cmd": "cargo test -q --release --manifest-path rust/Cargo.toml -p dp-air --lib --tests",
+      "expect": "exit=0"
+    },
+    {
+      "name": "main_in",
+      "cmd": "sh -c 'git merge-base --is-ancestor main HEAD && echo main-in'",
+      "expect": "re:main-in"
+    },
+    {
+      "name": "lee_cmd",
+      "cmd": "sh -c 'cargo run -q --release --manifest-path rust/Cargo.toml -p dp-stand -- lee --case tests/fixtures/wind/cases/ongudai_strong.json --from 0,0 --to 200,0 --ys 900,1100 --step 50 > /tmp/lt10.lts.csv 2>/dev/null; python3 tools/research/lee_turb/contract/check_contract.py /tmp/lt10.lts.csv'",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-10T04:50:03"
+}
