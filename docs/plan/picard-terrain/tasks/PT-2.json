@@ -1,0 +1,87 @@
+{
+  "id": "PT-2",
+  "module": "picard-terrain",
+  "type": "dp-engineer",
+  "title": "Срезанные клетки (FAVOR) в picard_rs за флагом",
+  "goal": "Доли открытой площади граней и объёма клеток из рельефа 30 м (случаи <site>_d<dx>_cut, PT2) и решатель picard_rs с --cut-cells: поток через грань = скорость × открытая площадь, давление и трение по реальной площади и наклону, масса точно; без флага путь побитно прежний. Строки PT4 на Askervein и Каянче 50/100 м: сколько из −18 % ступенчатого рельефа вернулось.",
+  "plan_ref": "Задачи 2",
+  "contracts": [
+    {
+      "name": "PT1",
+      "version": "1",
+      "ref": "docs/contracts/picard-terrain.md"
+    },
+    {
+      "name": "PT2",
+      "version": "1",
+      "ref": "docs/contracts/picard-terrain.md"
+    },
+    {
+      "name": "PT4",
+      "version": "1",
+      "ref": "docs/contracts/picard-terrain.md"
+    },
+    {
+      "name": "PT5",
+      "version": "1",
+      "ref": "docs/contracts/picard-terrain.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/picard-terrain-PT-2",
+  "branch": "picard-terrain/PT-2",
+  "base": "feature/picard-terrain",
+  "scope": [
+    "rust/picard_rs/src",
+    "rust/picard_rs/tests/cut_cells.rs",
+    "rust/picard_rs/README.md",
+    "tools/research/picard_terrain/cut.py",
+    "tools/research/picard_terrain/run_cut.py",
+    "tools/research/picard_terrain/out/PT-2"
+  ],
+  "dont_touch": [
+    "tools/research/air3d",
+    "tools/research/cases",
+    "rust/dp-air",
+    "scripts",
+    "tools/research/picard_terrain/contract",
+    "docs/contracts",
+    "tools/research/picard_terrain/make_cases.py",
+    "tools/research/picard_terrain/sample.py",
+    "tests/atmosphere/fixtures"
+  ],
+  "accept": [
+    {
+      "name": "default-bitwise",
+      "cmd": "tools/research/picard_terrain/contract/check_default.sh",
+      "expect": "re:identical=4/4"
+    },
+    {
+      "name": "cargo-test",
+      "cmd": "cargo test --release --manifest-path rust/picard_rs/Cargo.toml",
+      "expect": "exit=0"
+    },
+    {
+      "name": "contract-cut",
+      "cmd": "python3 tools/research/picard_terrain/contract/check_contract.py cases $HOME/data/picard_terrain/cases/askervein_d50_cut.json $HOME/data/picard_terrain/cases/askervein_d100_cut.json $HOME/data/picard_terrain/cases/kayancha_d50_cut.json $HOME/data/picard_terrain/cases/kayancha_d100_cut.json",
+      "expect": "exit=0"
+    },
+    {
+      "name": "contract-rows",
+      "cmd": "python3 tools/research/picard_terrain/contract/check_contract.py rows tools/research/picard_terrain/out/PT-2/rows.jsonl",
+      "expect": "exit=0"
+    },
+    {
+      "name": "cut-ok",
+      "cmd": "python3 -c \"import json;r=[json.loads(l) for l in open('tools/research/picard_terrain/out/PT-2/rows.jsonl') if l.strip()];print('cut_ok=%d'%len({x['case'] for x in r if x['cut_cells'] and not x['adv2'] and x['status']=='ok' and x['time']['locked']}))\"",
+      "expect": "num:cut_ok=(\\d+) >=4"
+    },
+    {
+      "name": "mass",
+      "cmd": "python3 -c \"import json,os;D=os.path.expanduser(os.environ.get('PICARD_TERRAIN_DATA','~/data/picard_terrain'));r=[json.loads(l) for l in open('tools/research/picard_terrain/out/PT-2/rows.jsonl') if l.strip()];print('div_ratio_max=%.3g'%max(x['final']['div_rms']/json.load(open(D+'/cases/'+x['case']+'.json'))['criterion']['tol_div_rms'] for x in r if x['cut_cells'] and x['status']=='ok'))\"",
+      "expect": "num:div_ratio_max=([0-9.e+-]+) <=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T08:25:07"
+}

@@ -1,0 +1,71 @@
+{
+  "id": "PT-1",
+  "module": "picard-terrain",
+  "type": "dp-researcher",
+  "title": "Случаи опыта, выборка и база picard_rs (Askervein, Каянча, Perdigão)",
+  "goal": "Случаи PT1 (R1 + pt) для Askervein и Каянчи на 50/100 м и Perdigão NE/SW на 30 м, растры 30 м, выборка PT5; база picard_rs 1-го порядка и эталон air3d 12,5–25 м 2-го порядка — строки PT4 и таблица разгона как в primer §8.2.",
+  "plan_ref": "Задачи 1",
+  "contracts": [
+    {
+      "name": "PT1",
+      "version": "1",
+      "ref": "docs/contracts/picard-terrain.md"
+    },
+    {
+      "name": "PT4",
+      "version": "1",
+      "ref": "docs/contracts/picard-terrain.md"
+    },
+    {
+      "name": "PT5",
+      "version": "1",
+      "ref": "docs/contracts/picard-terrain.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/picard-terrain-PT-1",
+  "branch": "picard-terrain/PT-1",
+  "base": "feature/picard-terrain",
+  "scope": [
+    "tools/research/picard_terrain/make_cases.py",
+    "tools/research/picard_terrain/sample.py",
+    "tools/research/picard_terrain/air3d_state.py",
+    "tools/research/picard_terrain/run_base.py",
+    "tools/research/picard_terrain/out/PT-1",
+    "tools/research/picard_terrain/README.md"
+  ],
+  "dont_touch": [
+    "rust",
+    "tools/research/air3d",
+    "tools/research/cases",
+    "tools/research/sw_charges_3d",
+    "tools/research/picard_terrain/contract",
+    "scripts",
+    "project.godot",
+    "docs/contracts"
+  ],
+  "accept": [
+    {
+      "name": "contract-cases",
+      "cmd": "python3 tools/research/picard_terrain/contract/check_contract.py cases $HOME/data/picard_terrain/cases/askervein_d50.json $HOME/data/picard_terrain/cases/askervein_d100.json $HOME/data/picard_terrain/cases/kayancha_d50.json $HOME/data/picard_terrain/cases/kayancha_d100.json $HOME/data/picard_terrain/cases/perdigao_ne_d30.json $HOME/data/picard_terrain/cases/perdigao_sw_d30.json",
+      "expect": "exit=0"
+    },
+    {
+      "name": "contract-rows",
+      "cmd": "python3 tools/research/picard_terrain/contract/check_contract.py rows tools/research/picard_terrain/out/PT-1/rows.jsonl",
+      "expect": "exit=0"
+    },
+    {
+      "name": "base-ok",
+      "cmd": "python3 -c \"import json;r=[json.loads(l) for l in open('tools/research/picard_terrain/out/PT-1/rows.jsonl') if l.strip()];print('base_ok=%d'%len({x['case'] for x in r if x['solver']=='picard_rs' and not x['cut_cells'] and not x['adv2'] and x['status']=='ok' and x['time']['locked']}))\"",
+      "expect": "num:base_ok=(\\d+) >=6"
+    },
+    {
+      "name": "refs",
+      "cmd": "python3 -c \"import json;r=[json.loads(l) for l in open('tools/research/picard_terrain/out/PT-1/rows.jsonl') if l.strip()];print('refs=%d'%len({x['case'] for x in r if x['solver']=='air3d' and x['adv2'] and x['dx']<=25}))\"",
+      "expect": "num:refs=(\\d+) >=3"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T08:24:08"
+}
