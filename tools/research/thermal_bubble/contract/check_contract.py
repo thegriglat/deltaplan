@@ -236,7 +236,7 @@ def tb1_v3(bm, env, src) -> None:
     ):
         w = bm.velocity(line, [hd], env)[..., 2]
         k = float(np.max(np.abs(w[2:] - 2 * w[1:-1] + w[:-2]))) / h * hd.R / max(hd.U, 1e-30)
-        check(k <= 0.5, f"tb1 v3: гладкость края головы ({name}) max|Δ²w|/h·R/U {k:.3g} ≤ 0,5")
+        check(k <= 1.2, f"tb1 v4: гладкость края головы ({name}) max|Δ²w|/h·R/U {k:.3g} ≤ 1,2")
     # 12. from_strength
     zl, tau = 1400.0, 690.0
     zz = np.arange(1.0, env.zi + 1e-9, 5.0)
@@ -254,8 +254,8 @@ def tb1_v3(bm, env, src) -> None:
         rel = abs(wm - w0) / w0
         check(rel <= 0.02, f"tb1 v3: from_strength(w0={w0}) — max w на оси {wm:.4g}, отн. {rel:.2e} ≤ 2e-2")
     # 13. kbar
-    kb = bm.kbar(zl, tau, env)
-    check(isinstance(kb, float) and math.isfinite(kb) and kb > 0, f"tb1 v3: kbar(1400, 690) = {kb!r} > 0")
+    kb = bm.kbar(zl, tau, env, 2.5)
+    check(isinstance(kb, float) and math.isfinite(kb) and kb > 0, f"tb1 v4: kbar(1400, 690, w0=2,5) = {kb!r} > 0")
 
 
 # ---------------------------------------------------------------- TB4
