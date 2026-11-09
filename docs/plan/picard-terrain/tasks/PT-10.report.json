@@ -1,9 +1,8 @@
 {
   "status": "done",
-  "summary": "k1 поля по типам, k1 в файле (VERSION 2, v1 читается), воздух фаз по hc_type, u* по первой клетке не ниже dz/2 над hc (цикл) — выброс устранён (ustar_max_ratio 1.0), якорь выборки hc+dz/2 (вариант A); хеш clipmap обновлён.",
+  "summary": "Доработка после ревью: col_grad в ветке ниже якоря берёт |U| в якоре kfa (как col_vel); u* срезанных столбцов — по u на hc+dz/2 интерполяцией по клеткам; CACHE_FORMAT 3→4 с тестом отказа от записи старого формата.",
   "commits": [
-    "ee12ec58d PT-10: k1 поля по типам клеток, k1 в файле поля (версия 2), воздух фаз по hc_type, тест cut_consumers",
-    "c94b564ec PT-10: u* по первой клетке не ниже dz/2 над hc (цикл), хеш clipmap, проверка ustar_max_ratio"
+    "7db6669a6 PT-10: col_grad с якорем выборки, u* срезанных столбцов на hc+dz/2, CACHE_FORMAT 4, тест старого кеша"
   ],
   "checks": [
     {
@@ -13,7 +12,7 @@
     },
     {
       "name": "regress",
-      "value": "exit 0 (хеш clipmap 0x2ab1_352c_e909_2843 → 0x7c7d_485b_e0a6_1c75)",
+      "value": "exit 0",
       "pass": true
     },
     {
@@ -33,72 +32,31 @@
     },
     {
       "name": "ustar-max",
-      "value": "1.0000",
-      "pass": true
-    },
-    {
-      "name": "scope",
-      "value": "в границах (r-файл вынесен)",
+      "value": "1.0477",
       "pass": true
     }
   ],
-  "not_done": [
-    "Термики (terms/thermal_air, k1 — начало W̄) проверены только числом сдвига k1, не расчётом AirThermals."
-  ],
+  "not_done": [],
   "questions": [],
-  "how_to_check": ".dpcli/dpcli accept PT-10 (regress станет PASS после правки хеша в clipmap.rs)",
+  "how_to_check": ".dpcli/dpcli accept PT-10",
   "uncertain": [
     {
-      "where": "rust/dp-air/src/field/wind_field.rs:build_columns",
-      "why": "Выбор A/B. Якорь лог-профиля для срезанной клетки (центр k1 ниже hc) — hc + dz/2 (как у u*), значение в якоре интерполируется по клеткам. Путь k1 от hc (центр ≥ hc) побитно прежний.",
-      "checked": "Онгудай 400 м, strong 12 ч, 1000 точек (25 линий по ветру через самые крутые столбцы × 40), z_agl 1…200 м шагом 1. Вариант A (земля = hc): max скачок вектора скорости на 1 м 2.22 (с 2 м), 0.584 (со 6 м); доля наветренных точек (432) с неубывающим |U_h| на 1…50 м — 0.9954; NaN 0. Вариант B (земля = низ открытой части первой клетки: z_низ + (1−vf)·dz): скачок 6.47, доля 0.9954 — хуже (B уводит землю от hc, а столбец читается на высоте y+(hc−h)·e, отсчёт идёт от hc: слабое согласование). Выбран A. Для B доли vf в Field и в файл не добавлены (A выбран). Опорный вариант «k1 от hc, те же массивы»: 2.24 / 0.588 / доля 1.0000."
+      "where": "rust/dp-air/src/field/wind_field.rs:build_boundary_layer",
+      "why": "Интерполяция u на hc+dz/2 для ВСЕХ столбцов ломала дампы GD (wind_field: turb[2]=u* 0.086 против 0.183, col_ustar 0.155; 5 тестов), хотя карточка велит не трогать числа дампов. Поэтому интерполяция применена только к срезанным столбцам (k1 != k1 от hc); у несрезанных остаётся прежнее правило GD (первая клетка с центром не ниже dz/2 над hc). Правило u* различается между срезанными и несрезанными столбцами.",
+      "checked": "regress (wind_field, field_export, formula_facade, phase_assembly, terms_thermal_air, cut_game, runtime, clipmap) PASS; ustar_max_ratio 1.0477; если нужна интерполяция везде — потребуется перегенерация дампов GD (вне скоупа)."
     },
     {
-      "where": "rust/dp-air/tests/cut_consumers.rs:frozen_columns_have_no_zero_air_cells",
-      "why": "Заморозка колонн на Онгудае есть только в сценах weak 12 ч (все 9216 колонн, оба варианта) и weak 4 ч (4774, с нагревом); strong/medium 12 ч и medium 4 ч — заморозки нет. frozen_zero_frac агрегирован по этим 5 сценам × 2 вариантам. Остаток нулей (735 из 388416 в weak 12 ч без нагрева, у ступенек) — клетки воздуха без воздуха слева, снизу и сзади (грани нулевые) при θ′ = 0 в варианте без нагрева; 0.000754 близко к порогу 0.001.",
-      "checked": "до: weak 12 ч с нагревом 6958/388416, без нагрева 7758/388416, weak 4 ч 3646/197400; после: 0, 735, 0."
+      "where": "rust/dp-air/src/field/wind_field.rs:col_grad",
+      "why": "Якорь kfa берётся через kf_cell(kfa); при kfa==k1 даёт t=0 и клетку k1 — совпадает с col_vel.",
+      "checked": "тесты регресса и max_jump без изменений (0.584)."
     },
     {
-      "where": "rust/dp-air/src/field/phase/assembly.rs:fill/cell",
-      "why": "Для клеток воздуха, лежащих ниже hc, высота над землёй зажата снизу нулём (zagl.max(0)) — иначе анабатика exp(−zagl/dl) растёт экспоненциально при отрицательном zagl. Профиль D (layers.rs wind_d) и сток (drainage.rs, classifier, bubble, convection) по-прежнему считают от hc без зажима; в wind_d u_prof сам зажимает z снизу. Остальные места фаз с cols.hc (classifier.rs:49, bubble.rs:13, convection.rs:60, drainage.rs) не менял — это настоящая земля.",
-      "checked": "phase_assembly и terms_* регрессии проходят; фазы на Онгудае строятся без NaN (nan_found не проверял отдельно)."
-    },
-    {
-      "where": "rust/dp-air/src/field/solved.rs:VERSION",
-      "why": "VERSION 1 → 2: запись пишет k1 как f32 (точен до 2^24); разбор принимает 1 и 2. Новый файл старым читателем (GDScript/прежний Rust) не читается; тест fixtures с терминами читают версию 1 — ок.",
-      "checked": "field_export, terms_thermal_air, terms_* через parse_solved проходят."
-    },
-    {
-      "where": "wind_field.rs:build_boundary_layer",
-      "why": "Правило u*: первая клетка с центром не ниже dz/2 над hc ищется циклом (раньше один шаг). Для k1 от hc результат прежний.",
-      "checked": "ustar_max_ratio=1.0; regress и дампы GDScript зелёные"
+      "where": "rust/dp-air/tests/cut_consumers.rs:cache_entry_of_old_format_is_rejected",
+      "why": "Новый тест: запись с cache=3 в заголовке отвергается и удаляется (Miss::Rejected).",
+      "checked": "проходит в consumers (--include-ignored)."
     }
   ],
-  "dp_feedback": "accept прогоняет regress до первого упавшего тест-бинарника — остальные после него не видны (clipmap последний, повезло). Хотелось бы --keep-going. Правка теста вне scope (хеш clipmap) — скоуп карточки мог сразу включать tests/clipmap.rs: хеш поля по всей игре меняется любой правкой потребителей.",
-  "extra": {
-    "k1_vs_hc_rule_columns_lower": 6843,
-    "k1_vs_hc_rule_equal": 2373,
-    "jump_all_A": 2.2202,
-    "jump_6m_A": 0.584,
-    "jump_all_B": 6.4714,
-    "mono_A": 0.9954,
-    "mono_B": 0.9954,
-    "frozen_zero_before": 0.018848,
-    "frozen_zero_after": 0.000754,
-    "ustar_p10_p50_p90_max_before": [
-      0.202,
-      0.395,
-      0.641,
-      1.008
-    ],
-    "ustar_p10_p50_p90_max_after": [
-      0.188,
-      0.397,
-      0.699,
-      4.903
-    ],
-    "new_clipmap_hash": "0x7c7d_485b_e0a6_1c75"
-  },
-  "t": "2026-11-09T20:32:00",
+  "dp_feedback": "job wait сам уходит в фон после 180 с и отдаёт вывод только по уведомлению; удобно было бы иметь accept --dry --wait с печатью итоговых строк.",
+  "t": "2026-11-09T20:58:18",
   "by": "executor"
 }
