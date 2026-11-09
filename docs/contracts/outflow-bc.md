@@ -3,10 +3,10 @@ type: "contract"
 status: "active"
 module: "outflow-bc"
 area: "air"
-updated: "2026-11-08"
-summary: "Стыки outflow-bc: мягкий выход в picard_rs (OB1, флаг SolveOpts.outflow), корпус и записи прогона (OB2), рез полей (OB3)."
+updated: "2026-11-09"
+summary: "Стыки outflow-bc: мягкий выход picard_rs (OB1), записи корпуса (OB2), рез полей (OB3), старты и снимки этапа 2 (OB4)."
 related: ["docs/plan/outflow-bc.md", "docs/contracts/rust-wind/solver.md", "tools/research/air3d/reference.md", "rust/picard_rs/README.md"]
-contracts: [{"id": "OB1", "version": 1}, {"id": "OB2", "version": 1}, {"id": "OB3", "version": 1}]
+contracts: [{"id": "OB1", "version": 1}, {"id": "OB2", "version": 1}, {"id": "OB3", "version": 1}, {"id": "OB4", "version": 1}]
 ---
 
 # Контракты модуля outflow-bc
@@ -98,3 +98,58 @@ flux_net_max_rel, backflow_faces}` пишется **только** при soft (
 области без ореола, индекс `j*nx+i`, и `<…>.json`: `{version: 1, nx, ny, dx_m, agl_m: [10, 50, 300], comps: ["u","v","w"],
 case_id, variant, status, iters}`. Запись — во временный файл и переименование. Сырьё вне git (`$OBC_RAW`, по умолчанию
 `~/data/outflow_bc`); в репозиторий — только выбранные для рисунков, упакованные в HDF5 (float16, сжатие) OBC-3.
+
+## OB4 v1 — этап 2: старты Пикара и снимки (п. 6–9 плана)
+Владелец — OBC-6 (стенд этапа 2); потребители — OBC-7 (прогон), OBC-8 (анализ п. 6–9). Пример `dp-air`
+`outflow_stage2` (отдельно от `outflow_corpus`; общая сборка случая — та же, что OB2: место → … → `build_solver_case`,
+чистый Пикар, `tol_scale` игры). Код игры (`rust/dp-air/src`, `picard_rs`) по логике не меняется.
+
+**Спецификация** `tools/research/outflow_bc/corpus_stage2.json` — ключи OB2 (`places`, `u10_ms`, `heat`, `hour`, `t_max_c`,
+`sky`, `k`, `max_iters`, `threads`) плюс `starts: [..]` и `snap: {every: 10, n_eval: [50, 100, 200, 300], late_from: 500,
+late_step: 50, edge_cells: 5}`. Полный корпус: ongudai, training_island, volcano_island × `dirs_deg` [0, 225]; hill_h300,
+hill_h1000, ridge_h600 × [270] (как OB2); `u10_ms` [0.5, 1, 2, 3, 6]; heat [false, true]; `max_iters` 1000 → 90 случаев.
+`case_id` — как OB2. Пилот `corpus_stage2_pilot.json`: 2 случая (ongudai d0 U10 1 heat; hill_h300 d270 U10 6 mech),
+`max_iters` 300, `snap.late_from` 150, `n_eval` [50, 100, 200].
+
+**Старты** (`--starts`, по умолчанию все из спецификации); старт задаёт `SolveOpts.init` решения на 400 м:
+- `bg` — холодный (фон, как OB2);
+- `coarse3` — как игра (`air_model.picard_start = coarse`, `picard_coarse_factor` 3): Пикар на `coarse_domain(fine, 3)`
+  (32×32, 1200 м) тем же путём, что `runtime.rs` `coarse_start` (критерии, max_iters, mech/heat — как в игре), `prolong_to`
+  на 400 м;
+- `chain` — `coarse_domain(fine, 4)` (24×24, 1600 м) → `coarse_domain(fine, 2)` (48×48, 800 м) → 400 м: каждая ступень —
+  Пикар с правилами грубой ступени игры, старт ступени — `prolong_to` предыдущей (первая — холодный);
+- `phase` — тёплый старт сборки фаз, как игра (`phase::assembly`: `warm` для heat, `warm_mech` для mech);
+- `chain_phase` — `chain`, у которого первая ступень (1600 м) стартует с поля сборки фаз на этой сетке; если сборка фаз
+  на 1600 м не строится без правки логики `src` — старт не реализуется (стенд отвергает его с сообщением), в отчёте.
+Отказ старта (ступень разошлась, сборка фаз отказала) — запись со `status: "start_failed"` и `start_err`.
+
+**Записи** — `<raw>/stage2/stage2.jsonl` (строка на тройку случай × вариант × старт; `--variants` как OB2; повторный запуск
+пропускает готовые `case_id`+`variant`+`start`; построчно с flush). Поля (null — не определено):
+- `case_id, place, kind, shape, h_m, dir_deg, u10_in, heat, variant, start, git, threads`;
+- `status` (`ok`|`max`|`diverged`|`cancelled`|`start_failed`), `start_err`, `iters`, `t_solve_s` (только решение 400 м),
+  `t_start_s` (всё до него: грубые ступени, продолжение, сборка фаз; у `bg` — 0), `start_iters` (итерации ступеней от грубой;
+  у `bg`, `phase` — []);
+- `u10, fr, n_bv, relief_m` — как OB2; `wstar` — `wstar_max` `case_prepare` по области (м/с; без нагрева — 0); `scale` = max(u10, wstar);
+- `res_hist` — как OB2;
+- снимки `snapshot_at` = every, 2·every, …, max_iters (финализированные, как у игры при остановке); при остановке раньше —
+  снимки после остановки равны итоговому полю. Слои h ∈ {10, 50, 300} м над рельефом, |Δ(u,v)| центров клеток (линейно по
+  высоте, как OB2), «область» — без `edge_cells` у края, точки стартов — как OB2 `d_start`;
+- эталон R: `ref_kind` = `converged` (статус `ok` — итоговое поле) | `late_mean` (иначе — среднее снимков late_from,
+  late_from+late_step, …, max_iters); `late_spread_h_p90` (h ∈ 10/50/300) — как OB2 `late_spread60_p90` на высоте h (0 при `ok`);
+- для N ∈ n_eval: `eN_h_start_max`, `eN_h_int_rms`, `eN_h_int_p99`, `eN_h_int_max` — снимок N против R, м/с
+  (напр. `e100_50_int_p99`);
+- `err_hist` — на каждый снимок `[it, e10_p99, e50_p99, e300_p99, e10_max, e50_max, e300_max, estart_max]` (против R; `estart_max` —
+  max по точкам стартов и трём высотам);
+- `inc_hist` — на каждый снимок со второго `[it, inc3d_rms, inc10_p99, inc50_p99, inc300_p99, inc_int_max]`: приращение
+  против предыдущего снимка (it − every); `inc3d_rms` — RMS |Δ(u,v,w)| по воздушным клеткам области (3D, без полосы у края),
+  `inc_h_p99` — 99-й процентиль |Δ(u,v)| слоя h по области, `inc_int_max` — max по трём слоям.
+
+**Рез** (`--save-slices`): `<raw>/stage2/slices/<case_id>__<variant>__<start>.bin` — f32 LE `[поля: ref, n<N>… по n_eval][3 высоты]
+[u, v, w][ny][nx]`, раскладка OB3, и `.json` `{version: 1, nx, ny, dx_m, agl_m, comps, fields: ["ref", "n50", …], case_id,
+variant, start, status, iters, ref_kind}`; временный файл и переименование. Сырьё — `$OBC_RAW` (по умолчанию `~/data/outflow_bc`).
+
+**Проверка** `tools/research/outflow_bc/check_stage2.py <jsonl> --spec <json> [--slices <dir>]` → строка
+`OB4: records=<n> invalid=<k> est_full_h=<x>`: ключи и типы, длины `err_hist`/`inc_hist` (= iters_max/every и на 1 меньше),
+согласие `eN_*` с `err_hist`, `e*` = 0 и `late_spread*` = 0 при `ok` для снимков после остановки, рез (размер, json);
+`est_full_h` — оценка полного корпуса (один процесс, `threads` нитей) по пилоту: (t_start_s + t_solve_s)/итерацию по
+старту и `heat` × ожидаемые итерации по U10 (≤ 2 — 1000, 3 — 700, 6 — 200) × случаи / 3600.
