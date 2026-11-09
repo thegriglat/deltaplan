@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-11-09"
 summary: "Стыки picard-terrain: случаи опыта PT1, срезанные клетки PT2, 2-й порядок PT3, строки замеров PT4, выборка PT5, построитель долей PT6, поле игры PT7."
 related: ["docs/plan/picard-terrain.md", "docs/contracts/picard-rs.md", "docs/contracts/air-cascade.md", "docs/contracts/sw-charges-3d.md", "tools/research/air3d/reference.md"]
-contracts: [{"id": "PT1", "version": 2}, {"id": "PT2", "version": 1}, {"id": "PT3", "version": 2}, {"id": "PT4", "version": 1}, {"id": "PT5", "version": 1}, {"id": "PT6", "version": 1}, {"id": "PT7", "version": 1}]
+contracts: [{"id": "PT1", "version": 2}, {"id": "PT2", "version": 1}, {"id": "PT3", "version": 2}, {"id": "PT4", "version": 1}, {"id": "PT5", "version": 1}, {"id": "PT6", "version": 1}, {"id": "PT7", "version": 2}]
 ---
 
 # Контракты модуля picard-terrain
@@ -119,7 +119,8 @@ v2 (2026-11-09, PT-4): `picard bench --solve` принимает те же фл�
   Проверка — `T/contract/check_cut_build.py` (CLI `picard cut-build`, см. карточку PT-8).
 - Время — без лишних проходов: слой, целиком над/под рельефом столбца, можно не перебирать по точкам (результат тот же).
 
-## PT7 v1 — поле игры со срезанными клетками (dp-air, этап 2)
+## PT7 v2 — поле игры со срезанными клетками (dp-air, этап 2)
+v2 (2026-11-09, PT-9): баланс массы окна — по открытым площадям с потоком верха.
 Владелец — координатор; производители — PT-9 (случаи), PT-10 (потребители); потребители — PT-11, PT-12, игра.
 Карта мест — `docs/research/picard_terrain_game.md` (PT-7), разделы 2–4.
 - Все уровни Пикара игры — грубый старт 1200 м, область 400 м, окна 100/50 м — решаются с `params.cut_cells = true`;
@@ -132,6 +133,8 @@ v2 (2026-11-09, PT-4): `picard bench --solve` принимает те же фл�
 - Решения mech и heat одного уровня — одни доли (побитно). `Kx, Ky, Kz` — без умножения на доли (PT2 v1).
 - Путь без долей (`Option::None`) — только в тестах dp-air для сверки с дампами GDScript/GPU (вход `hc_type = hc`);
   из `build_level`/`window_case`/`runtime` недостижим.
+- Окна (`Case.nest`): `boundary_flux`/`corr` (`window.rs`) — по открытым площадям граней (`af`); `picard_rs::cut::Cut::rebalance`
+  при `nest` включает поток верха окна (`ubw`) в баланс: Σ боковых `af·u·A` + поток верха = 0. Без `nest` — как PT2 v1.
 - Кеш полей: ключ задачи `format: 2` (`runtime.rs`, бывший `format: 1`); запись с другим `format` — промах.
 - Файл поля (`solved.rs`, PT-10): необязательный массив `k1` (u16 или f32 по выбору PT-10, на столбец `[j·nx + i]`,
   первая клетка `cell = 1`); `VERSION` +1; нет массива — `k1` от `hc` (старый файл читается). `Field::from_mac` —

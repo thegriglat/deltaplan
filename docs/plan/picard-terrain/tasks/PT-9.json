@@ -13,7 +13,7 @@
     },
     {
       "name": "PT7",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/picard-terrain.md"
     },
     {
@@ -103,5 +103,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-11-09T16:12:19",
-  "edited": "2026-11-09T19:40:07"
+  "edited": "2026-11-09T19:40:19"
 }
