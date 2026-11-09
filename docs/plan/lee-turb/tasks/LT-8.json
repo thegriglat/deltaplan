@@ -1,0 +1,72 @@
+{
+  "id": "LT-8",
+  "module": "lee-turb",
+  "type": "dp-researcher",
+  "title": "Сверка на поле игры: Perdigão и Askervein, прежняя и новая модель, поле со срезанными клетками",
+  "goal": "Прогнать стендом (LTS) поле игры на Perdigão NE/SW и Askervein — нынешнее поле и со срезанными клетками (feature/picard-terrain) — и сравнить с мачтами LTO прежнюю болтанку и модель слоя (прототип LT-7 с центром слоя по полю): где максимум, ТКЭ/u_ref², пузырь; закрыть major ревью LT-7.",
+  "plan_ref": "Связь с picard-terrain; Задачи (уточняет координатор) п.4",
+  "contracts": [
+    {
+      "name": "LTL",
+      "version": "1",
+      "ref": "docs/contracts/lee-turb.md"
+    },
+    {
+      "name": "LTO",
+      "version": "1",
+      "ref": "docs/contracts/lee-turb.md"
+    },
+    {
+      "name": "LTS",
+      "version": "1",
+      "ref": "docs/contracts/lee-turb.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/lee-turb-LT-8",
+  "branch": "lee-turb/LT-8",
+  "base": "feature/lee-turb",
+  "scope": [
+    "tools/research/lee_turb/fieldcheck/",
+    "docs/research/lee_turb/fieldcheck.md",
+    "tools/research/lee_turb/model/",
+    "docs/research/lee_turb/model.md",
+    "docs/research/lee_turb/model_obs.md"
+  ],
+  "dont_touch": [
+    "rust/",
+    "configs/",
+    "field/",
+    "docs/guide/",
+    "docs/contracts/",
+    "tools/research/lee_turb/lit/",
+    "tools/research/lee_turb/obs/",
+    "tools/research/lee_turb/stand/",
+    "tools/research/lee_turb/places/",
+    "tools/research/picard_terrain/"
+  ],
+  "accept": [
+    {
+      "name": "lts",
+      "cmd": "sh -c 'python3 tools/research/lee_turb/contract/check_contract.py $HOME/data/lee_turb/lts_fieldcheck/*.lts.csv'",
+      "expect": "exit=0"
+    },
+    {
+      "name": "masts",
+      "cmd": "python3 -c \"import csv;print('n',sum(1 for _ in csv.DictReader(open('tools/research/lee_turb/fieldcheck/out/mast_compare.csv'))))\"",
+      "expect": "num:n (\\d+) >=80"
+    },
+    {
+      "name": "proto",
+      "cmd": "python3 tools/research/lee_turb/model/proto.py --selftest",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check docs/research/lee_turb/fieldcheck.md docs/research/lee_turb/model.md docs/research/lee_turb/model_obs.md",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T22:46:08"
+}
