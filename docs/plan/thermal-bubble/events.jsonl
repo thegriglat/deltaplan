@@ -131,3 +131,5 @@
 {"t": "2026-11-09T10:24:27", "by": "executor", "task": "TB-6", "ev": "reported", "commits": ["a0c2af90d"], "note": "partial: Найден открытый полный текст Schmidt & Schumann 1989 (JFM, DLR elib): условный композит LES даёт приток 0,36 w* (0,33-0…", "dp_feedback": "WebFetch не читает PDF (сырой поток): спасло только pdftotext по сохранённому в tool-results файлу — стоит подсказка в шаблоне задачи. check_contract.py не знает формат tb-les из карточки."}
 {"t": "2026-11-09T10:24:39", "by": "coordinator", "task": "TB-6", "ev": "checked", "note": "2/2 les_rows=ok:2; les_md=ok:exit 1"}
 {"t": "2026-11-09T10:24:39", "by": "coordinator", "task": "TB-6", "ev": "accepted", "note": "по ревью (fable, accept; 2 minor исправлены, проверены accept)"}
+{"t": "2026-11-09T10:24:46", "by": "coordinator", "task": "TB-6", "ev": "accepted", "commits": ["309c83922"], "note": "2/2 les_rows=ok:2; les_md=ok:exit 1"}
+{"t": "2026-11-09T10:24:47", "by": "coordinator", "task": "TB-6", "ev": "merged"}
