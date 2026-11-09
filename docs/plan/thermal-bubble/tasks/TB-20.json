@@ -8,7 +8,7 @@
   "contracts": [
     {
       "name": "TB4",
-      "version": "5",
+      "version": "6",
       "ref": "docs/contracts/thermal-bubble.md"
     }
   ],
@@ -55,16 +55,6 @@
       "expect": "num:terrain_median_ur=([0-9.eE+-]+) >=0.05"
     },
     {
-      "name": "blend",
-      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --release --test thermal_bubble_terrain bubble_agl_blend_smooth -- --nocapture",
-      "expect": "num:agl_blend_max_dv_per_m=([0-9.eE+-]+) <=0.1"
-    },
-    {
-      "name": "cost",
-      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --release --test thermal_bubble_cost bubble_sample_cost -- --nocapture",
-      "expect": "num:sample_ns_bubble=([0-9.eE+-]+) <=1300"
-    },
-    {
       "name": "table_acc",
       "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --release --test thermal_bubble_embed table_accuracy -- --nocapture",
       "expect": "num:table_max_rel=([0-9.eE+-]+) <=0.05"
@@ -73,6 +63,21 @@
       "name": "workspace",
       "cmd": "cargo check --manifest-path rust/Cargo.toml --workspace --all-targets",
       "expect": "exit=0"
+    },
+    {
+      "name": "blend_ratio",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --release --test thermal_bubble_terrain bubble_agl_blend_smooth -- --nocapture",
+      "expect": "num:agl_blend_ratio=([0-9.eE+-]+) <=1.6"
+    },
+    {
+      "name": "sum_agl",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --release --test thermal_bubble_terrain sum_uses_agl",
+      "expect": "exit=0"
+    },
+    {
+      "name": "cost",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --release --test thermal_bubble_cost bubble_sample_cost -- --nocapture",
+      "expect": "num:sample_ns_bubble=([0-9.eE+-]+) <=1500"
     }
   ],
   "report_extra": [
@@ -81,5 +86,6 @@
     "high_field_unchanged"
   ],
   "notes": "",
-  "created": "2026-11-09T23:41:23"
+  "created": "2026-11-09T23:41:23",
+  "edited": "2026-11-10T00:38:33"
 }

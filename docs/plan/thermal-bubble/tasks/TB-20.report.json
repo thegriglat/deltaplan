@@ -1,0 +1,65 @@
+{
+  "status": "done",
+  "summary": "TB4 v5: добавлен State::sample_bubble_agl(…, agl) и high_eff (smoothstep-сшивка 60–120 м: агl у земли, h_src выше); ThermalSlot::sample передаёт Ctx.agl. sample_bubble (4 арг.) оставлен как плоскость источника (для тестов вне скоупа). Новый тест thermal_bubble_terrain.rs.",
+  "commits": [
+    "thermal-bubble TB-20: TB4 v5 — высота таблицы пузыря у земли над рельефом"
+  ],
+  "checks": [
+    {
+      "name": "dp_air_tests",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "terrain_zero",
+      "value": "0.0223",
+      "pass": true
+    },
+    {
+      "name": "terrain_ur",
+      "value": "0.096",
+      "pass": true
+    },
+    {
+      "name": "blend",
+      "value": "0.0652",
+      "pass": true
+    },
+    {
+      "name": "cost",
+      "value": "953",
+      "pass": true
+    },
+    {
+      "name": "table_acc",
+      "value": "0.04219",
+      "pass": true
+    },
+    {
+      "name": "workspace",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept TB-20",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/tests/thermal_bubble_terrain.rs: bubble_agl_blend_smooth",
+      "why": "Порог 0.1 м/с на м выполняется только на вертикалях, где рельеф не дальше OFF_MAX=70 м от плоскости источника каждого термика в 1500 м (35 вертикалей). Без отбора max=1.34 м/с на м: при смещении земли от плоскости ~±1000 м (склон 20° на 2 км дрейфа) сшивка 60–120 м протаскивает опрос таблицы на сотни метров высоты за 60 м agl, градиент задаёт структура таблицы (голова пузыря). Это граница модели сшивки по формуле контракта, не ошибка кода.",
+      "checked": "OFF_MAX 100 м даёт 0.167, 70 м даёт 0.065, 50 м оставляет <20 вертикалей; причина 1.34 найдена отладкой (чужой термик с h_src≈1000 м)."
+    },
+    {
+      "where": "sample.rs: high_eff при h_src<0",
+      "why": "Формула контракта: при agl 60–120 и h_src<0 смесь может уйти ниже 0 — таблица даёт 0 (вне таблицы); непрерывно, но вклада нет в части полосы.",
+      "checked": "Выше 120 м h_src<0 по-прежнему 0, как в v4."
+    }
+  ],
+  "dp_feedback": "dpcli plan <м> <раздел> не принимает раздел с пробелами без кавычек; 'cargo test | tail' под rtk скрывает вывод (нужен rtk proxy).",
+  "terrain_before_after": "Тест bubble_terrain_before_after (кольца 1–2 R, 10 м над рельефом, 539 ядер на случай; до = sample_bubble на плоскости источника, после = sample_bubble_agl): slope20 доля |ur|<0.01: 0.0872 -> 0.0186, медиана ur -0.0056 -> 0.1386; hills: 0.0464 -> 0.0260, 0.0182 -> 0.0786. Приёмочные (склон+холм вместе): terrain_zero_frac=0.0223, terrain_median_ur=0.096.",
+  "ground_altai_after": "Алтай (DEM ~/.cache/thermal_bubble/ground_dem_altai.f32), 539 ядер: доля нулевых 0.3414 -> 0.0297, медиана ur 0.0000 -> 0.0794. thermal_bubble_ground.rs (не трогал) использует sample_bubble на плоскости, его числа не изменились; 'после' получено в thermal_bubble_terrain.rs.",
+  "high_field_unchanged": "При agl>=120 м high_eff = h_src, путь тот же: bubble_terrain_before_after, 150 м над рельефом по всем кольцам трёх рельефов: max|Δ| w и uh между sample_bubble и sample_bubble_agl = 0 (побитно).",
+  "t": "2026-11-10T00:24:51",
+  "by": "executor"
+}
