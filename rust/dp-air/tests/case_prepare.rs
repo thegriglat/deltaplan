@@ -404,7 +404,10 @@ fn check(place_name: &str, dx: u32) {
         let clim = climate(&sc["climate"]);
         let hour = hour_at(&cond, 0.0);
         let fw = field_weather(&cond, &place, &wc, &configs, &clim, hour, &dom).unwrap();
-        let inp_b = build_domain_input(&place, &wc.sh, &zi, &dom, &fw.day).unwrap();
+        let mut inp_b = build_domain_input(&place, &wc.sh, &zi, &dom, &fw.day).unwrap();
+        // дамп снят на пути без долей: регрессия переноса — вход без срезанных клеток
+        inp_b.cut = None;
+        inp_b.hc_type = inp_b.hc.clone();
         for s in sc["sets"].as_array().unwrap() {
             // дамп снят и с приточным множителем k < 1 (подбор по ветру у старта, снят в WF-2):
             // такие наборы не проверяются — ветер условий теперь всегда набегающий поток (k = 1)
