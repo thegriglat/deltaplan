@@ -1,0 +1,17 @@
+Initialize godot-rust (API v4.7.stable.official, runtime v4.7.2.stable.official, safeguards balanced)
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+steam: inactive (no_feature)
+dp_air: расширение загружено, api_version=6
+dp_air: подготовка места начата, место t
+dp_air: 0.0 с, этап prepare, итераций 0
+dp_air: 0.0 с, этап phases, итераций 0
+dp_air: 0.0 с, этап coarse, итераций 0
+dp_air: 0.1 с, этап solve_mech, итераций 0
+dp_air: 0.2 с, этап solve_heat, итераций 0
+dp_air: 0.3 с, этап windows, итераций 0
+dp_air: READY за 0.4 с, поле подано, last_error=
+  ok   test_air_field_import.gd::test_load_bytes_of_crate_snapshot
+
+1 тестов, 0 упало, 0 пропущено
+exit=0
