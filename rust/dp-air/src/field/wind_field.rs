@@ -439,6 +439,7 @@ impl Field {
         let g = self.grid;
         let nz = g.nz;
         let nxy = self.nxy;
+        let inv_dz = self.inv_dz;
         let (k1v, hc, z0c) = (&self.k1, &self.hc, &self.z0c);
         let (u, v, w) = (&self.u, &self.v, &self.w_mech);
         self.ustar
@@ -457,17 +458,34 @@ impl Field {
                     return;
                 }
                 let hcc = hc[c] as f64;
-                // первая клетка с центром не ниже dz/2 над hc (срезанная k1 может лежать ниже hc
-                // на несколько клеток; от hc — не более одного шага, как раньше)
-                let mut kr = k1;
-                let mut ar = g.z_bot + (k1 as f64 + 0.5) * g.dz - hcc;
-                while ar < 0.5 * g.dz && kr + 1 < nz {
-                    kr += 1;
-                    ar += g.dz;
+                // столбец без среза (k1 от hc, как у GD) — первая клетка с центром не ниже dz/2 над
+                // hc; срезанная k1 лежит ниже hc, её центр сидит в «углу» ступеньки маски: u для
+                // u* — на hc + dz/2 интерполяцией по клеткам (якорь выборки)
+                let k_hc = (((hcc - g.z_bot) * inv_dz - 0.5).ceil().max(0.0) as usize).min(nz);
+                let (su, sv, ar);
+                if k1 == k_hc {
+                    let mut kr = k1;
+                    let mut a = g.z_bot + (k1 as f64 + 0.5) * g.dz - hcc;
+                    while a < 0.5 * g.dz && kr + 1 < nz {
+                        kr += 1;
+                        a += g.dz;
+                    }
+                    ar = a;
+                    su = u[kr * nxy + c] as f64;
+                    sv = v[kr * nxy + c] as f64;
+                } else {
+                    let kf = ((hcc + 0.5 * g.dz - g.z_bot) * inv_dz - 0.5)
+                        .max(k1 as f64)
+                        .min(nz as f64 - 1.0);
+                    let kc = (kf as usize).min(nz.saturating_sub(2));
+                    let t = if nz < 2 { 0.0 } else { kf - kc as f64 };
+                    ar = g.z_bot + (kf + 0.5) * g.dz - hcc;
+                    let (i, i2) = (kc * nxy + c, (kc + (nz > 1) as usize) * nxy + c);
+                    su = u[i] as f64 + (u[i2] as f64 - u[i] as f64) * t;
+                    sv = v[i] as f64 + (v[i2] as f64 - v[i] as f64) * t;
                 }
-                let i = kr * nxy + c;
                 let zc0 = z0c[c];
-                let sp = (u[i] as f64).hypot(v[i] as f64);
+                let sp = su.hypot(sv);
                 *us = (KAPPA * sp / (ar.max(2.0 * zc0) / zc0).ln()) as f32;
                 let mut u_max = 0.0f64;
                 let mut a_max = ar;
@@ -851,7 +869,12 @@ impl Field {
             return (du, n2);
         }
         let a = (z - self.hg[c]).max(self.z0c[c]);
-        let u1 = (self.u[i] as f64).hypot(self.v[i] as f64);
+        // |U| в якоре — как у выборки (col_vel): сдвиг лог-профиля совпадает с его производной
+        let kfa = self.kfa[c];
+        let (ia, ta) = self.kf_cell(c, kfa);
+        let ua = self.u[ia] as f64 + (self.u[ia + self.nxy] as f64 - self.u[ia] as f64) * ta;
+        let va = self.v[ia] as f64 + (self.v[ia + self.nxy] as f64 - self.v[ia] as f64) * ta;
+        let u1 = ua.hypot(va);
         (u1 * self.inv_log1[c] as f64 / a, n2)
     }
 

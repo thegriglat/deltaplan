@@ -241,6 +241,47 @@ fn field_file_keeps_k1_and_reads_old_format() {
     assert!(diff > 0);
 }
 
+/// Запись кеша до PT-10 (`cache: 3`) не принимается и удаляется.
+#[test]
+#[ignore = "Онгудай, release: --include-ignored"]
+fn cache_entry_of_old_format_is_rejected() {
+    use dp_air::field::field_cache::{CACHE_FORMAT, FieldCache, Miss};
+    let f = fix();
+    let key = json!({"k": 7});
+    let sf = SolvedField {
+        location: "ongudai".into(),
+        site: "s".into(),
+        model_hash: "h".into(),
+        key: key.clone(),
+        levels: vec![(*f.field).clone()],
+        names: vec!["dx400".into()],
+        level_meta: vec![Map::new()],
+    };
+    let dir = std::env::temp_dir().join(format!("dp_pt10_cache_{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    let cache = FieldCache::new(&dir);
+    cache.put(&key, "h", &sf, &Map::new()).unwrap();
+    assert!(cache.get(&key, "h").is_ok(), "запись текущего формата читается");
+    let path = cache.path_of(&key);
+    let raw = std::fs::read(&path).unwrap();
+    let hl = u64::from_le_bytes(raw[8..16].try_into().unwrap()) as usize;
+    let head = std::str::from_utf8(&raw[16..16 + hl]).unwrap();
+    let cur = format!("\"cache\":{CACHE_FORMAT}");
+    assert!(head.contains(&cur), "заголовок: {head:.200}");
+    let old = head.replacen(&cur, &format!("\"cache\":{}", CACHE_FORMAT - 1), 1);
+    let mut bytes = raw[..8].to_vec();
+    bytes.extend_from_slice(&(old.len() as u64).to_le_bytes());
+    bytes.extend_from_slice(old.as_bytes());
+    bytes.extend_from_slice(&raw[16 + hl..]);
+    std::fs::write(&path, bytes).unwrap();
+    match cache.get(&key, "h") {
+        Err(Miss::Rejected(_)) => {}
+        other => panic!("старый формат должен отвергаться: {:?}", other.map(|_| "hit")),
+    }
+    assert!(!path.exists(), "отвергнутая запись удалена");
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
 // ---------------------------------------------------------------- (в) выборка у земли
 
 struct Probe {
