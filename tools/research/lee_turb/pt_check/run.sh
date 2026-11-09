@@ -2,7 +2,8 @@
 # LT-9: тесты «lee» на поле со срезанными клетками (feature/picard-terrain) с изменениями текущей
 # ветки (LTM v1). Временная отсоединённая копия: ветки и коммиты в чужие ветки не создаются.
 # Последняя строка вывода — «PT lee tests: <N> failed» (N из итога run_tests «M тестов, N упало»).
-# Запуск из копии задачи: sh tools/research/lee_turb/pt_check/run.sh   (HEAD с коммитом изменений)
+# Сборка и подготовка — без lock; тесты Godot берут lock cpu сами (вес по строке команды с godot).
+# Запуск из копии задачи, БЕЗ внешнего lock: sh tools/research/lee_turb/pt_check/run.sh   (HEAD с коммитом изменений)
 # Переменные: PT_BASE (по умолчанию feature/picard-terrain), PT_FILTER (фильтры через запятую),
 # PT_KEEP=1 — не удалять копию (для разбора).
 set -u
@@ -46,7 +47,7 @@ out="$tmp/tests.log"
 run_one() { # фильтр [доп. аргументы]
 	flt=$1
 	shift
-	(cd "$wt" && XDG_DATA_HOME="$(mktemp -d)" godot --headless --path . res://tests/run_tests.tscn -- --filter="$flt" "$@") >"$tmp/one.log" 2>&1
+	(cd "$wt" && XDG_DATA_HOME="$(mktemp -d)" "$root/.dpcli/dpcli" lock cpu "lt-pt-$name" -- godot --headless --path . res://tests/run_tests.tscn -- --filter="$flt" "$@") >"$tmp/one.log" 2>&1
 	cat "$tmp/one.log" >>"$out"
 	k=$(grep -Eo "[0-9]+ тестов, [0-9]+ упало" "$tmp/one.log" | tail -1 | sed -E 's/.*, ([0-9]+) упало/\1/')
 	if [ -z "$k" ]; then
