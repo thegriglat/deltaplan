@@ -82,3 +82,5 @@
 {"t": "2026-11-09T15:53:23", "by": "coordinator", "task": "OBC-5", "ev": "accepted", "commits": ["559bee346"], "note": "2/2 repro=ok:SAME; docs=ok:exit 0"}
 {"t": "2026-11-09T15:53:23", "by": "coordinator", "task": "OBC-5", "ev": "merged"}
 {"t": "2026-11-09T15:53:48", "by": "coordinator", "task": "OBC-6", "ev": "accepted", "note": "по ревью; замечания: тест coarse3 сверяет стенд с prolong_to той же сборки (не с runtime); est_full_h вероятно занижен; имя late_spread_<h>_p90 закрепить в OB4"}
+{"t": "2026-11-09T15:58:01", "by": "coordinator", "task": "OBC-6", "ev": "checked", "commits": ["389d580bd"], "note": "3/5 unit=ok:exit 0; corpus1=ok:exit 0; lib=ok:exit 0; pilot=FAIL:нет совпадения; est=FAIL:число не найдено"}
+{"t": "2026-11-09T15:58:23", "by": "coordinator", "task": "OBC-6", "ev": "merged", "note": "в ветке модуля unit/corpus1/lib PASS; pilot/est — файлы пилота только в копии задачи (build/), ожидаемо"}

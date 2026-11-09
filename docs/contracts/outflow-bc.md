@@ -135,7 +135,7 @@ hill_h1000, ridge_h600 × [270] (как OB2); `u10_ms` [0.5, 1, 2, 3, 6]; heat [
   снимки после остановки равны итоговому полю. Слои h ∈ {10, 50, 300} м над рельефом, |Δ(u,v)| центров клеток (линейно по
   высоте, как OB2), «область» — без `edge_cells` у края, точки стартов — как OB2 `d_start`;
 - эталон R: `ref_kind` = `converged` (статус `ok` — итоговое поле) | `late_mean` (иначе — среднее снимков late_from,
-  late_from+late_step, …, max_iters); `late_spread_h_p90` (h ∈ 10/50/300) — как OB2 `late_spread60_p90` на высоте h (0 при `ok`);
+  late_from+late_step, …, max_iters); `late_spread_<h>_p90` (h ∈ 10/50/300, напр. `late_spread_50_p90`) — как OB2 `late_spread60_p90` на высоте h (0 при `ok`);
 - для N ∈ n_eval: `eN_h_start_max`, `eN_h_int_rms`, `eN_h_int_p99`, `eN_h_int_max` — снимок N против R, м/с
   (напр. `e100_50_int_p99`);
 - `err_hist` — на каждый снимок `[it, e10_p99, e50_p99, e300_p99, e10_max, e50_max, e300_max, estart_max]` (против R; `estart_max` —
