@@ -1,0 +1,3 @@
+out/*.lts.csv
+out/.*
+__pycache__/

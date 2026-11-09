@@ -2,7 +2,7 @@
 //! set_focuses → start_at(t) и ожидание Ready.
 use crate::sha1::sha1_hex;
 use dp_air::fixtures::{Case, read_case, read_place};
-use dp_air::{AirModel, Calm, Configs, Formula, State};
+use dp_air::{AirModel, Calm, Configs, Formula, Place, State};
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 
@@ -88,22 +88,7 @@ fn s<T, E: std::fmt::Display>(r: Result<T, E>) -> Result<T, String> {
 }
 
 pub fn open(a: &OpenArgs) -> Result<Session, String> {
-    let case = s(read_case(a.case))?;
-    let place_path = a
-        .place
-        .map(Path::to_path_buf)
-        .unwrap_or_else(|| case.place_path(a.case));
-    let place = s(read_place(&place_path))?;
-    let cfg = load_configs(a.configs)?;
-    for w in config_warnings(&case, &cfg) {
-        eprintln!("warning: {w}");
-    }
-    let mut model = make_model(a.model)?;
-    s(model.configure(&cfg, case.seed))?;
-    s(model.load_place(place))?;
-    s(model.set_conditions(&case.conditions))?;
-    s(model.set_static_thermals(&case.static_thermals, case.static_mode))?;
-    s(model.set_focuses(&case.focuses))?;
+    let (model, case, _, _) = prepare(a, make_model(a.model)?)?;
     Ok(Session {
         model,
         case,
@@ -112,25 +97,59 @@ pub fn open(a: &OpenArgs) -> Result<Session, String> {
     })
 }
 
+/// Подготовка модели `m` по случаю (configure → load_place → … → set_focuses); отдаёт модель, случай,
+/// конфиги и второй экземпляр места (для потребителей, которым нужны рельеф и ctx слагаемых).
+pub fn prepare<M: AirModel + ?Sized>(
+    a: &OpenArgs,
+    mut model: Box<M>,
+) -> Result<(Box<M>, Case, Configs, Place), String> {
+    let case = s(read_case(a.case))?;
+    let place_path = a
+        .place
+        .map(Path::to_path_buf)
+        .unwrap_or_else(|| case.place_path(a.case));
+    let place = s(read_place(&place_path))?;
+    let place2 = s(read_place(&place_path))?;
+    let cfg = load_configs(a.configs)?;
+    for w in config_warnings(&case, &cfg) {
+        eprintln!("warning: {w}");
+    }
+    s(model.configure(&cfg, case.seed))?;
+    s(model.load_place(place))?;
+    s(model.set_conditions(&case.conditions))?;
+    s(model.set_static_thermals(&case.static_thermals, case.static_mode))?;
+    s(model.set_focuses(&case.focuses))?;
+    Ok((model, case, cfg, place2))
+}
+
+/// `start_at(t)` и ожидание Ready (опрос `status`).
+pub fn go_to_model<M: AirModel + ?Sized>(
+    model: &mut M,
+    t: f64,
+    timeout: Duration,
+) -> Result<(), String> {
+    s(model.start_at(t))?;
+    let t0 = Instant::now();
+    loop {
+        let st = model.status();
+        match st.state {
+            State::Ready => return Ok(()),
+            State::Failed => return Err(format!("model failed: {}", st.reason)),
+            _ => {}
+        }
+        if t0.elapsed() > timeout {
+            return Err(format!(
+                "timeout waiting for Ready at t={t} (progress {:.2})",
+                st.progress
+            ));
+        }
+        std::thread::sleep(Duration::from_millis(1));
+    }
+}
+
 impl Session {
     /// `start_at(t)` и ожидание Ready (опрос `status`, таймаут — ключом).
     pub fn go_to(&mut self, t: f64) -> Result<(), String> {
-        s(self.model.start_at(t))?;
-        let t0 = Instant::now();
-        loop {
-            let st = self.model.status();
-            match st.state {
-                State::Ready => return Ok(()),
-                State::Failed => return Err(format!("model failed: {}", st.reason)),
-                _ => {}
-            }
-            if t0.elapsed() > self.timeout {
-                return Err(format!(
-                    "timeout waiting for Ready at t={t} (progress {:.2})",
-                    st.progress
-                ));
-            }
-            std::thread::sleep(Duration::from_millis(1));
-        }
+        go_to_model(self.model.as_mut(), t, self.timeout)
     }
 }
