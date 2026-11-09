@@ -114,3 +114,5 @@
 {"t": "2026-11-09T11:33:01", "by": "coordinator", "task": "PT-4", "ev": "checked", "note": "5/5 default-bitwise=ok:identical=4/4; cargo-test=ok:exit 0; contract-rows=ok:exit 0; combo-rows=ok:12; bench-rows=ok:36"}
 {"t": "2026-11-09T11:35:45", "by": "reviewer", "task": "PT-4", "ev": "reviewed", "note": "Комбинация cut+adv2 сделана как просил координатор: вес поправки = вес потока 1-го порядка той же грани (mw/cw, индексы сторон совпадают с mom_cell/build_heat_…", "verdict": "accept", "issues": {"minor": 3}, "review": "docs/plan/picard-terrain/tasks/PT-4.review.json"}
 {"t": "2026-11-09T11:36:02", "by": "coordinator", "task": "PT-4", "ev": "accepted", "note": "по ревью (fable), 3 minor — в итоговый документ"}
+{"t": "2026-11-09T11:38:23", "by": "coordinator", "task": "PT-4", "ev": "accepted", "commits": ["c9b2f9747"], "note": "5/5 default-bitwise=ok:identical=4/4; cargo-test=ok:exit 0; contract-rows=ok:exit 0; combo-rows=ok:12; bench-rows=ok:36"}
+{"t": "2026-11-09T11:38:23", "by": "coordinator", "task": "PT-4", "ev": "merged"}
