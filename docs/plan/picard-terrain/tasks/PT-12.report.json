@@ -1,0 +1,76 @@
+{
+  "status": "partial",
+  "summary": "Применены патчи PT-14 (GD-зеркало k1/якорь hc+dz/2; тесты lee по средней w, старый полётный test_flying_into_lee_loses_height заменён test_lee_mean_sink_behind_crest). Снимок крейта и все тесты atmosphere/wind_field/air_field проходят, кроме test_storm_preset_makes_cb (падает и в базе). Автопилот у склона: медиана после−до = −1.07 м.",
+  "commits": [
+    "dae6a1d52 замер автопилота до/после, тест-отчёт RIDGE20",
+    "(HEAD) GD-зеркало k1, тесты lee, ridge.json с медианой"
+  ],
+  "checks": [
+    {
+      "name": "atmosphere",
+      "value": "124/125, падает только test_storm_preset_makes_cb (и в базе)",
+      "pass": false
+    },
+    {
+      "name": "wind_field",
+      "value": "9/9",
+      "pass": true
+    },
+    {
+      "name": "air_field",
+      "value": "19/19 (снимок max|Δ| вернулся в допуск)",
+      "pass": true
+    },
+    {
+      "name": "ridge-gain-median",
+      "value": -1.07,
+      "pass": true
+    },
+    {
+      "name": "ridge-new-fails-excl-q2",
+      "value": 0,
+      "pass": true
+    },
+    {
+      "name": "ridge-new-fails",
+      "value": 1,
+      "pass": false
+    },
+    {
+      "name": "ridge-nan",
+      "value": 0,
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "ridge-new-fails=1: test_lee_zone_all_starts aushkul/aushtau_south (1.48 > 1.57), ждёт Q2 (до lee-turb)",
+    "test_storm_preset_makes_cb — падение в базе, не регрессия"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept PT-12",
+  "uncertain": [
+    {
+      "where": "scripts/atmosphere/air_model/wind_field.gd",
+      "why": "патч PT-14 применён как есть; с rust Field::col_vel построчно не сверял, подтверждение — тест снимка 19/19",
+      "checked": "air_field и wind_field тесты проходят"
+    },
+    {
+      "where": "tools/research/picard_terrain/out/PT-12/ridge.json",
+      "why": "полёт хаотичен: разброс по зёрнам на старте 100–250 м; min дельты −101.8 м (aushtau_east), среднее −23.0, медиана −1.07. Полёты не используют GD-зеркало, поэтому «после» совпало с замером до патча",
+      "checked": "4 зерна (4242,1,2,3) до и после, NaN в логах нет"
+    },
+    {
+      "where": "tests/atmosphere/test_lee_rotor.gd",
+      "why": "полётный тест заменён тестом средней w (обоснование в diagnosis PT-14), не подгонка порога",
+      "checked": "новый тест проходит"
+    }
+  ],
+  "dp_feedback": "lock cpu и job возвращаются сразу, ожидание ручное; run_tests --filter по имени файла; нужен libdp_air_tune.so; tools/build_rust.sh не учитывает CARGO_TARGET_DIR.",
+  "extra": {
+    "gain_after_minus_before_min_m": -101.81,
+    "gain_after_minus_before_mean_m": -22.98,
+    "gain_after_minus_before_median_m": -1.07
+  },
+  "t": "2026-11-10T00:57:49",
+  "by": "executor"
+}

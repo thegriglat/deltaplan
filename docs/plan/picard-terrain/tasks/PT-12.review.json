@@ -1,0 +1,41 @@
+{
+  "verdict": "accept",
+  "summary": "GD-зеркало (k1 из файла, якорь hc+dz/2, _col_between/_col_scalar_between) построчно совпадает с rust Field::build_columns/col_vel/kf_cell; air_field 19/19 перезапущен. Правки тестов lee — по патчу PT-14 и указанию координатора; скоуп 6 файлов, project.godot не тронут. Два FAIL accept — известные (Q2, storm_cb в базе).",
+  "issues": [
+    {
+      "file": "tools/research/picard_terrain/out/PT-12/ridge.json",
+      "line": 1,
+      "severity": "major",
+      "what": "Медиана −1 м проходит, но 3 из 10 стартов теряют много: aushtau_east −102, biyagoda_south_west −88, kayancha_south −53 (mean −23). Разброс по 4 зёрнам 100–250 м, так что это может быть шум, но у kayancha_south 3 из 4 зёрен ниже до. Отдельного разбора нет.",
+      "fix": "Задачу не переделывать. Координатору: записать эти три старта как известное ослабление в PT-13; если потребуется — догнать зёрна (≥8) на этих трёх стартах."
+    },
+    {
+      "file": "tests/atmosphere/test_ridge_starts.gd",
+      "line": 340,
+      "severity": "minor",
+      "what": "В тестах остался замерный test_ridge_gain_20kmh_report: проверяет только is_finite и в обычном прогоне добавляет 5-минутный полёт. Ещё добавлены флаги --seed и --gain-only. По дополнению карточки замерное нужно было не коммитить или вынести в out/PT-12.",
+      "fix": "При следующей правке файла вынести замер в tools/research или оставить его только под --ridge-full."
+    },
+    {
+      "file": "tests/atmosphere/test_lee_rotor.gd",
+      "line": 107,
+      "severity": "minor",
+      "what": "Патч PT-14 добавлял тест средней w рядом с полётным, а исполнитель удалил test_flying_into_lee_loses_height. Это согласуется с дополнением координатора («вместо полёта»), но полётное покрытие подветренной зоны в этом файле пропало.",
+      "fix": "Решение за координатором: при желании вернуть полётный тест после lee-turb (Q2)."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "air_field",
+      "value": "19/19",
+      "pass": true
+    },
+    {
+      "name": "ridge-gain-median",
+      "value": "-1.07 (пересчёт из per_seed: median −1.07, min −101.8, mean −22.98 — совпадает)",
+      "pass": true
+    }
+  ],
+  "t": "2026-11-10T01:06:52",
+  "by": "reviewer"
+}
