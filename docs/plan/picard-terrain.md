@@ -4,7 +4,7 @@ status: "active"
 module: "picard-terrain"
 area: "air"
 updated: "2026-11-09"
-summary: "Как подать мелкий рельеф в Пикар без новой сетки: срезанные клетки (доли граней и объёма) и ограниченный 2-й порядок переноса; небольшой опыт на Askervein, Каянче, затем ротор Perdigão."
+summary: "Мелкий рельеф в Пикар на той же сетке: срезанные клетки и ограниченный 2-й порядок; разгон Askervein/Каянча, ротор Perdigão."
 related: ["docs/research/air_physics_primer.md", "docs/guide/air-model/limits.md", "docs/research/sw_ground.md", "tools/research/cases/README.md", "docs/plan/picard-rs.md"]
 ---
 # План picard-terrain (код задач PT)
