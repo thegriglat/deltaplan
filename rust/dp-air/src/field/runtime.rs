@@ -490,7 +490,7 @@ fn cache_key(job: &JobIn) -> Value {
     let rec = &job.rec;
     json!({
         "kind": "formula-field",
-        "format": 1,
+        "format": 2,
         "location": h.loc.id,
         "center": [h.loc.center_lat, h.loc.center_lon],
         "month": h.loc.month,
@@ -915,6 +915,7 @@ fn phases_of(cfg: &PhaseCfg, lc: &LevelCase) -> Result<PhaseResult, String> {
             u10: h.u10,
             z_i: h.z_i,
             hc: &h.hc,
+            hc_type: &h.hc_type,
             gam: &h.gam,
             heat: &h.heat,
             heat_used: &pl.heat_used,

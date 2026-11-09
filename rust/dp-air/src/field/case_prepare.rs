@@ -29,12 +29,14 @@
 //! набегающий поток (приток `k = 1`, WF-К1); нагрев — `FieldWeather::heat` (RW-6c)
 //! или внешний массив; профиль притока степенной с насыщением (`max_profile`), фон — ветер у
 //! границ `fixed_scale`-балансом площадей, без поправки на устойчивость по высоте.
+use super::cut_input::CutFrac;
 use super::place_input::DomainInput;
 use super::weather_core::{Domain, FieldWeather, log_mean};
 use super::wind_profile::{self, CaseProfile, F_COR, KAPPA, NEUTRAL_BL_K, WindProfileCfg};
 use crate::Error;
 use rayon::prelude::*;
 use std::f64::consts::PI;
+use std::sync::Arc;
 
 pub const G: f64 = 9.81;
 pub const THETA0: f64 = 300.0;
@@ -117,6 +119,12 @@ pub struct AirCaseRs {
     pub dz: f64,
     pub z_bot: f64,
     pub hc: Vec<f64>,
+    /// Граница воздуха столбца (PT7 v1): низ первой клетки с долей объёма ≥ `VF_MIN`; `kf` — от неё.
+    /// `hc` — настоящая земля (фон, AGL, `z_i`, источники).
+    pub hc_type: Vec<f64>,
+    /// Доли срезанных клеток (общие для случаев с нагревом и без); `None` — путь без долей, только
+    /// для тестов-дампов GDScript/GPU (вход `hc_type = hc`).
+    pub cut: Option<Arc<CutFrac>>,
     /// `nz + 2` значений dθ̄/dz в центрах уровней, К/м.
     pub gam: Vec<f64>,
     pub z_i: f64,
@@ -166,7 +174,7 @@ pub fn build_case_with(
 ) -> Result<AirCaseRs, Error> {
     let n = inp.dom.nx * inp.dom.ny;
     let bad = |m: &str| Error::bad_input(format!("case: {m}"));
-    if inp.hc.len() != n || inp.gam.len() != inp.nz + 2 {
+    if inp.hc.len() != n || inp.hc_type.len() != n || inp.gam.len() != inp.nz + 2 {
         return Err(bad("input sizes"));
     }
     if heat.is_some_and(|h| h.len() != n) {
@@ -187,6 +195,8 @@ pub fn build_case_with(
         dz: inp.dz,
         z_bot: inp.z_bot,
         hc: inp.hc.clone(),
+        hc_type: inp.hc_type.clone(),
+        cut: inp.cut.clone(),
         gam: inp.gam.clone(),
         z_i: inp.z_i,
         z_i_col: inp.z_i_col.clone(),
@@ -220,6 +230,8 @@ pub struct PreparedPlanes {
     pub prm: [f32; NPRM],
     /// Первая клетка воздуха столбца, `ny_h·nx_h`.
     pub kf: Vec<i32>,
+    /// Доли срезанных клеток (те же `Arc`, что в случае); `None` — без долей.
+    pub cut: Option<Arc<CutFrac>>,
     /// Неизвестные: грани u, v, w типа 1 и клетки воздуха.
     pub n_unk: [u64; 4],
     pub n_fluid: u64,
@@ -259,26 +271,12 @@ impl PreparedPlanes {
     /// Тип клетки `(k, j, i)` по `air_picard.glsl:cellt`: 0 земля, 2 внешняя (ореол, верх), 1 воздух.
     pub fn cell_type(&self, k: usize, j: usize, i: usize) -> u8 {
         let kf = self.col_plane(1)[j * self.nx_h + i];
-        if k == 0 || (k as f32) < kf {
-            return 0;
-        }
-        if i == 0 || i == self.nx_h - 1 || j == 0 || j == self.ny_h - 1 || k == self.nz_h - 1 {
-            return 2;
-        }
-        1
+        cell_code(kf, k, j, i, (self.nx_h, self.ny_h, self.nz_h))
     }
 
     /// Тип грани по типам двух клеток (`air_picard.glsl:ftype`): 0 стенка, 1 неизвестная, 2 жёсткая.
     fn face_type(a: u8, b: u8) -> u8 {
-        if a == 0 || b == 0 {
-            0
-        } else if a == 1 && b == 1 {
-            1
-        } else if (a == 1 && b == 2) || (a == 2 && b == 1) {
-            2
-        } else {
-            3
-        }
+        face_type(a, b)
     }
 
     /// Значение жёсткой грани: приток — фон, выход — фон × баланс площадей.
@@ -355,6 +353,78 @@ impl PreparedPlanes {
     }
 }
 
+/// Тип клетки по `kf` её столбца (`cellt`): 0 земля, 2 внешняя (ореол, верх), 1 воздух.
+#[inline]
+pub(crate) fn cell_code(kf: f32, k: usize, j: usize, i: usize, (nx_h, ny_h, nz_h): (usize, usize, usize)) -> u8 {
+    if k == 0 || (k as f32) < kf {
+        return 0;
+    }
+    if i == 0 || i == nx_h - 1 || j == 0 || j == ny_h - 1 || k == nz_h - 1 {
+        return 2;
+    }
+    1
+}
+
+/// Тип грани по типам двух клеток (`ftype`): 0 стенка, 1 неизвестная, 2 жёсткая, 3 ореол–ореол.
+#[inline]
+pub(crate) fn face_type(a: u8, b: u8) -> u8 {
+    if a == 0 || b == 0 {
+        0
+    } else if a == 1 && b == 1 {
+        1
+    } else if (a == 1 && b == 2) || (a == 2 && b == 1) {
+        2
+    } else {
+        3
+    }
+}
+
+/// `kf` (ореольный индекс первой клетки воздуха) по границе воздуха `hc_type`: низ клетки `k` —
+/// `z_bot + (k − 1)·dz`, поэтому `k = round((hc_type − z_bot)/dz) + 1` (не `ceil` по равенству f64).
+/// Массив с ореолом `ny_h·nx_h`, ореол — копия ближайшего внутреннего столбца.
+pub(crate) fn kf_of_type(hc_type: &[f64], dom: (usize, usize), z_bot: f64, dz: f64, nz_h: usize) -> Vec<i32> {
+    let (nx, ny) = dom;
+    let nx_h = nx + 2;
+    let mut kf = vec![0i32; nx_h * (ny + 2)];
+    kf.par_chunks_mut(nx_h).enumerate().for_each(|(j, row)| {
+        let jj = j.saturating_sub(1).min(ny - 1);
+        for (i, o) in row.iter_mut().enumerate() {
+            let h = hc_type[jj * nx + i.saturating_sub(1).min(nx - 1)];
+            let k = (((h - z_bot) / dz).round() as i64 + 1).clamp(1, nz_h as i64);
+            *o = k as i32;
+        }
+    });
+    kf
+}
+
+/// Типы клеток и граней `cell, tu, tv, tw` (раскладка `(k·ny_h + j)·nx_h + i`) по `kf` столбцов с
+/// ореолом — тот же код, что `PreparedPlanes::cell_type`/`face_type` (вход `finish` долей).
+pub(crate) fn types_of_kf(kf: &[i32], dims: (usize, usize, usize)) -> [Vec<u8>; 4] {
+    let (nx_h, ny_h, nz_h) = dims;
+    let nyx = nx_h * ny_h;
+    let n = nyx * nz_h;
+    let (mut cell, mut tu, mut tv, mut tw) = (vec![0u8; n], vec![0u8; n], vec![0u8; n], vec![0u8; n]);
+    let ct = |k: usize, j: usize, i: usize| cell_code(kf[j * nx_h + i] as f32, k, j, i, dims);
+    cell.par_chunks_mut(nyx)
+        .zip(tu.par_chunks_mut(nyx))
+        .zip(tv.par_chunks_mut(nyx))
+        .zip(tw.par_chunks_mut(nyx))
+        .enumerate()
+        .for_each(|(k, (((pc, pu), pv), pw))| {
+            for j in 0..ny_h {
+                for i in 0..nx_h {
+                    let c = ct(k, j, i);
+                    let q = j * nx_h + i;
+                    pc[q] = c;
+                    pu[q] = if i == 0 { 3 } else { face_type(ct(k, j, i - 1), c) };
+                    pv[q] = if j == 0 { 3 } else { face_type(ct(k, j - 1, i), c) };
+                    pw[q] = if k == 0 { 0 } else { face_type(ct(k - 1, j, i), c) };
+                }
+            }
+        });
+    [cell, tu, tv, tw]
+}
+
 fn prof(agl: f64, z0: f64, z_sat: f64, alpha: f64) -> f64 {
     (agl.max(z0) / z_sat).powf(alpha).min(1.0)
 }
@@ -428,7 +498,7 @@ impl AirCaseRs {
         let dz = self.dz;
         let p = &self.p;
         let bad = |m: &str| Error::bad_input(format!("AirCase: {m}"));
-        if nx < 4 || ny < 4 || nz < 2 || self.hc.len() != nx * ny || self.gam.len() != nz_h {
+        if nx < 4 || ny < 4 || nz < 2 || self.hc.len() != nx * ny || self.hc_type.len() != nx * ny || self.gam.len() != nz_h {
             return Err(bad("input sizes"));
         }
         if !self.heat.is_empty() && self.heat.len() != nx * ny {
@@ -449,18 +519,28 @@ impl AirCaseRs {
                 *o = self.hc[jj * nx + i.saturating_sub(1).min(nx - 1)];
             }
         });
-        let mut kf = vec![0i32; nyx];
-        kf.par_iter_mut().zip(hp.par_iter()).for_each(|(o, &h)| {
-            let c = ((h - self.z_bot) / dz + 0.5).ceil();
-            let mut k = (c.max(1.0).min(nz_h as f64)) as usize;
-            while k > 1 && zc(k - 1) >= h {
-                k -= 1;
-            }
-            while k < nz_h && zc(k) < h {
-                k += 1;
-            }
-            *o = k as i32;
-        });
+        let kf = if self.cut.is_some() {
+            kf_of_type(&self.hc_type, (nx, ny), self.z_bot, dz, nz_h)
+        } else {
+            // путь без долей (тесты-дампы): наименьшее `k ≥ 1`, у которого `zc(k) ≥ hc_type`
+            let mut kf = vec![0i32; nyx];
+            kf.par_chunks_mut(nx_h).enumerate().for_each(|(j, row)| {
+                let jj = j.saturating_sub(1).min(ny - 1);
+                for (i, o) in row.iter_mut().enumerate() {
+                    let h = self.hc_type[jj * nx + i.saturating_sub(1).min(nx - 1)];
+                    let c = ((h - self.z_bot) / dz + 0.5).ceil();
+                    let mut k = (c.max(1.0).min(nz_h as f64)) as usize;
+                    while k > 1 && zc(k - 1) >= h {
+                        k -= 1;
+                    }
+                    while k < nz_h && zc(k) < h {
+                        k += 1;
+                    }
+                    *o = k as i32;
+                }
+            });
+            kf
+        };
         let (n_unk, n_fluid) = count_unknowns(&kf, nx_h, ny_h, nz_h);
 
         // фон: ветер
@@ -785,6 +865,7 @@ impl AirCaseRs {
             lev,
             prm,
             kf,
+            cut: self.cut.clone(),
             n_unk,
             n_fluid,
             cd,

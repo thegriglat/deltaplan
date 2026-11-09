@@ -50,6 +50,7 @@
 //! `Vec` в горячем пути (кроме выходных массивов).
 use super::case_build::{SolverCfg, build_solver_case};
 use super::case_prepare::{AirCaseRs, CaseParams, NLEV, P_NEST, PreparedPlanes, build_case_with};
+use super::cut_input::cut_level;
 use super::place_input::{DomainInput, ZiCfg, zi_columns};
 use super::surface_heat::SurfaceHeatCfg;
 use super::weather_core::{Day, Domain, block_mean, cell_surface, cell_z0};
@@ -197,12 +198,15 @@ pub fn build_window_input(
     }
     let cells = cell_surface(place, dom, sh)?;
     let z0_map = cell_z0(&cells, sh);
+    let (hc_type, cut) = cut_level(place, dom, nz, dz, z_bot)?;
     let mut inp = DomainInput {
         dom: *dom,
         nz,
         dz,
         z_bot,
         hc,
+        hc_type,
+        cut: Some(cut),
         gam: Vec::new(),
         z_i,
         z_i_col,

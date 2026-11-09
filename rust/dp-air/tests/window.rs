@@ -180,6 +180,8 @@ fn window_a(inp: &Dump, w: &Value) -> (AirWindowCase, AirWindowCase) {
         dz: num(w, "dz"),
         z_bot: num(w, "z_bot"),
         hc: inp.f64s(&format!("{tag}_hc")),
+        hc_type: inp.f64s(&format!("{tag}_hc")),
+        cut: None,
         gam: inp.f64s(&format!("{tag}_gam")),
         z_i: num(w, "z_i"),
         z_i_col: inp.f32s(&format!("{tag}_z_i_col")),
