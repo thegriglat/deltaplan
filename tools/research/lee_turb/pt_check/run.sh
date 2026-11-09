@@ -12,7 +12,11 @@ base=${PT_BASE:-feature/picard-terrain}
 filter=${PT_FILTER:-lee}
 name=$(basename "$root")
 tmp=$(mktemp -d "${TMPDIR:-/tmp}/pt-lee-XXXXXX")
-wt="$tmp/wt"
+# стабильный путь копии — кеш cargo не пересобирает крейты рабочей области на каждый запуск
+wt="$HOME/.cache/dp-pt-lee-wt/$name"
+mkdir -p "$(dirname "$wt")"
+git worktree remove --force "$wt" >/dev/null 2>&1
+rm -rf "$wt"
 xdg="$HOME/.cache/dp-xdg/pt-lee-$name"
 export CARGO_TARGET_DIR="$HOME/.cache/dp-pt-lee-target/$name"
 paths="rust/dp-air/src/terms/turb configs/atmosphere.json tests/contracts"
