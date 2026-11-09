@@ -1,0 +1,57 @@
+{
+  "id": "PT-5",
+  "module": "picard-terrain",
+  "type": "dp-researcher",
+  "title": "Ротор Perdigão (NE, SW) и мачты: варианты против базы и Menke 2019",
+  "goal": "По критерию SWD5 на разрезах SWD1 — есть ли ротор и его L в поле Пикара на Perdigão NE/SW для базы, срезанных клеток, 2-го порядка (ван Лир, minmod) и (после PT-4) их сочетаний, против базы и Menke 2019 (420–680 м); RMSE s_norm по мачтам SWD1.",
+  "plan_ref": "Задачи 4",
+  "contracts": [
+    {
+      "name": "PT1",
+      "version": "2",
+      "ref": "docs/contracts/picard-terrain.md"
+    },
+    {
+      "name": "PT4",
+      "version": "1",
+      "ref": "docs/contracts/picard-terrain.md"
+    },
+    {
+      "name": "PT5",
+      "version": "1",
+      "ref": "docs/contracts/picard-terrain.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/picard-terrain-PT-5",
+  "branch": "picard-terrain/PT-5",
+  "base": "feature/picard-terrain",
+  "scope": [
+    "tools/research/picard_terrain/rotor.py",
+    "tools/research/picard_terrain/out/PT-5"
+  ],
+  "dont_touch": [
+    "rust",
+    "tools/research/air3d",
+    "tools/research/cases",
+    "tools/research/sw_charges_3d",
+    "tools/research/picard_terrain/contract",
+    "tools/research/picard_terrain/sample.py",
+    "docs/contracts",
+    "scripts"
+  ],
+  "accept": [
+    {
+      "name": "contract-rows",
+      "cmd": "python3 tools/research/picard_terrain/contract/check_contract.py rows tools/research/picard_terrain/out/PT-5/rows.jsonl",
+      "expect": "exit=0"
+    },
+    {
+      "name": "rotor-rows",
+      "cmd": "python3 -c \"import json;r=[json.loads(l) for l in open('tools/research/picard_terrain/out/PT-5/rows.jsonl') if l.strip()];print('rotor=%d'%len({(x['case'],x['cut_cells'],x['limiter']) for x in r if x['site'].startswith('perdigao') and x['rotor'] is not None and x['masts_rmse'] is not None}))\"",
+      "expect": "num:rotor=(\\d+) >=8"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T10:15:33"
+}

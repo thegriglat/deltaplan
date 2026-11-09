@@ -1,0 +1,91 @@
+{
+  "id": "PT-4",
+  "module": "picard-terrain",
+  "type": "dp-engineer",
+  "title": "Срезанные клетки вместе со 2-м порядком; замер времени всех вариантов",
+  "goal": "Поправка 2-го порядка (adv2) в пути срезанных клеток с теми же весами граней, флаги варианта у bench (PT3 v2); прогоны cut+ван Лир и cut+minmod на 6 случаях PT1 и замер времени bench всех 6 вариантов × 6 случаев одной пачкой; полная таблица разложения и стоимости.",
+  "plan_ref": "Задачи 3",
+  "contracts": [
+    {
+      "name": "PT1",
+      "version": "2",
+      "ref": "docs/contracts/picard-terrain.md"
+    },
+    {
+      "name": "PT2",
+      "version": "1",
+      "ref": "docs/contracts/picard-terrain.md"
+    },
+    {
+      "name": "PT3",
+      "version": "2",
+      "ref": "docs/contracts/picard-terrain.md"
+    },
+    {
+      "name": "PT4",
+      "version": "1",
+      "ref": "docs/contracts/picard-terrain.md"
+    },
+    {
+      "name": "PT5",
+      "version": "1",
+      "ref": "docs/contracts/picard-terrain.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/picard-terrain-PT-4",
+  "branch": "picard-terrain/PT-4",
+  "base": "feature/picard-terrain",
+  "scope": [
+    "rust/picard_rs/src",
+    "rust/picard_rs/tests/combo.rs",
+    "rust/picard_rs/README.md",
+    "tools/research/picard_terrain/run_combo.py",
+    "tools/research/picard_terrain/run_bench.py",
+    "tools/research/picard_terrain/out/PT-4"
+  ],
+  "dont_touch": [
+    "tools/research/air3d",
+    "tools/research/cases",
+    "rust/dp-air",
+    "scripts",
+    "tools/research/picard_terrain/contract",
+    "docs/contracts",
+    "tools/research/picard_terrain/make_cases.py",
+    "tools/research/picard_terrain/sample.py",
+    "tools/research/picard_terrain/cut.py",
+    "tests/atmosphere/fixtures",
+    "tools/research/picard_terrain/out/PT-1",
+    "tools/research/picard_terrain/out/PT-2",
+    "tools/research/picard_terrain/out/PT-3"
+  ],
+  "accept": [
+    {
+      "name": "default-bitwise",
+      "cmd": "tools/research/picard_terrain/contract/check_default.sh",
+      "expect": "re:identical=4/4"
+    },
+    {
+      "name": "cargo-test",
+      "cmd": "cargo test --release --manifest-path rust/picard_rs/Cargo.toml",
+      "expect": "exit=0"
+    },
+    {
+      "name": "contract-rows",
+      "cmd": "python3 tools/research/picard_terrain/contract/check_contract.py rows tools/research/picard_terrain/out/PT-4/rows.jsonl",
+      "expect": "exit=0"
+    },
+    {
+      "name": "combo-rows",
+      "cmd": "python3 -c \"import json;r=[json.loads(l) for l in open('tools/research/picard_terrain/out/PT-4/rows.jsonl') if l.strip()];print('combo=%d'%len({(x['case'],x['limiter']) for x in r if x['adv2'] and x['cut_cells'] and x['solver']=='picard_rs'}))\"",
+      "expect": "num:combo=(\\d+) >=12"
+    },
+    {
+      "name": "bench-rows",
+      "cmd": "python3 -c \"import json;r=[json.loads(l) for l in open('tools/research/picard_terrain/out/PT-4/rows.jsonl') if l.strip()];print('bench=%d'%len({(x['case'],x['cut_cells'],x['limiter']) for x in r if x['solver']=='picard_rs' and x['time']['locked'] and x['time']['threads']==8}))\"",
+      "expect": "num:bench=(\\d+) >=36"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T10:14:26"
+}
