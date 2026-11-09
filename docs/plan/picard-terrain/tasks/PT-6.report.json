@@ -1,0 +1,49 @@
+{
+  "status": "done",
+  "summary": "Документ docs/research/picard_terrain.md, 5 строк findings, ссылка в README, frontmatter у трёх файлов out/; accept --dry PASS.",
+  "commits": [
+    "eb3e9a025 picard-terrain PT-6: итоговый документ опыта, findings, ссылка в README",
+    "frontmatter у PT-1/PT-5 summary и README"
+  ],
+  "checks": [
+    {
+      "name": "sections",
+      "value": "8",
+      "pass": true
+    },
+    {
+      "name": "findings",
+      "value": "5",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "4 файла в границах",
+      "pass": true
+    },
+    {
+      "name": "docs-check",
+      "value": "exit 0 (по путям модуля)",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept PT-6 --dry",
+  "uncertain": [
+    {
+      "where": "docs/research/picard_terrain.md:раздел 7",
+      "why": "ответ про мельче сетку у земли: опыт не отвечает, формулировка осторожная",
+      "checked": "сверено с PT-1 (d12p5 10 м 0,57 против 0,82) и оговорками (а), (и)"
+    },
+    {
+      "where": "docs/research/picard_terrain.md:раздел 4",
+      "why": "диапазоны x времени округлены по d50/Perdigão/Каянче, d100 исключён как выброс",
+      "checked": "PT-4 table.md"
+    }
+  ],
+  "dp_feedback": "docs index правит registry/contracts.md и research.md вне скоупа задачи - пришлось откатывать вручную; docs check валит приёмку из-за чужих ошибок, стоит проверять только файлы скоупа.",
+  "extra": {},
+  "t": "2026-11-09T11:42:17",
+  "by": "executor"
+}

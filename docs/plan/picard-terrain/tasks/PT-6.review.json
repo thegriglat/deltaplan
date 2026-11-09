@@ -1,0 +1,53 @@
+{
+  "verdict": "accept",
+  "summary": "Документ сверен с PT-1/PT-4/PT-5 table.md: таблицы разложения, стоимости и ротора совпадают, все оговорки (а)–(ж) координатора есть, вывод — варианты без рекомендации кода. Скоуп соблюдён (7 файлов), dont_touch не задет; accept --dry 3/3 перезапущен. Замечания — только мелкие неточности диапазонов в сводной таблице раздела 7 и тексте.",
+  "issues": [
+    {
+      "file": "docs/research/picard_terrain.md",
+      "line": 132,
+      "severity": "minor",
+      "what": "Сводная таблица раздела 7: «2-й порядок (ван Лир), Каянча d50 20–50 м: 75–77 %» — по PT-4 на 30 м возврат 65 %, диапазон 65–77 %.",
+      "fix": "Заменить на 65–77 %."
+    },
+    {
+      "file": "docs/research/picard_terrain.md",
+      "line": 139,
+      "severity": "minor",
+      "what": "Вариант 4 «ничего»: «недобор 50 % на 30–60 м на Askervein» — на d50 недобор к d12,5 на 30 м 50 %, на 60 м 33 % (0,255 против 0,383).",
+      "fix": "Писать «50 % на 30 м, 33 % на 60 м» или «33–50 % на 30–60 м»."
+    },
+    {
+      "file": "docs/research/picard_terrain.md",
+      "line": 97,
+      "severity": "minor",
+      "what": "«2-й порядок: … плюс 10–40 итераций» — на Perdigão NE ван Лир 211 против 161 (+50).",
+      "fix": "Указать 0–50 итераций (на Askervein число не меняется)."
+    },
+    {
+      "file": "docs/research/picard_terrain.md",
+      "line": 117,
+      "severity": "minor",
+      "what": "SW «недобор в 3–20 раз»: 617/187 = 3,3, 617/27 = 23 — верхняя граница занижена (то же в findings.md).",
+      "fix": "Писать «в 3–23 раза» или «более чем в 3 раза»."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "accept PT-6 --dry (sections/findings/docs-check/scope)",
+      "value": "3/3 PASS; sections 8, findings 5, docs-check exit 0, scope 7 файлов",
+      "pass": true
+    },
+    {
+      "name": "diff --stat feature/picard-terrain...picard-terrain/PT-6 против scope/dont_touch",
+      "value": "7 файлов, все в scope; rust/, docs/contracts, docs/plan, out/PT-2..4, rows.jsonl не тронуты",
+      "pass": true
+    },
+    {
+      "name": "сверка чисел разделов 3–5 с out/PT-4/table.md и out/PT-5/table.md",
+      "value": "таблицы ΔS/S, возврат, итер./мс/×, L/RMSE/bias — совпадают",
+      "pass": true
+    }
+  ],
+  "t": "2026-11-09T11:43:47",
+  "by": "reviewer"
+}
