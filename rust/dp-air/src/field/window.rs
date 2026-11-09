@@ -396,14 +396,20 @@ pub struct NestBc {
 
 /// Поток через граничные грани окна (тип 2) и их площадь (`K_FLUX` и две редукции): на грани
 /// `s·u·A`, `s = −1`, если клетка — воздух (внешняя нормаль грани смотрит против оси), иначе
-/// `+1`; `A = dx·dz` для `u`, `v` и `dx²` для `w`. Возвращает `(net, area)`.
+/// `+1`; `A = dx·dz` для `u`, `v` и `dx²` для `w`. С долями граней `af` (срезанные клетки, PT7 v2)
+/// площадь грани — открытая: `A·af`; без них — полная. Возвращает `(net, area)`.
 pub fn boundary_flux(
     (dx, dz): (f64, f64),
     nyx: usize,
     tc: &[u8],
     ub: [&[f32]; 3],
+    af: Option<[&[f32]; 3]>,
 ) -> Result<(f64, f64), Error> {
-    if nyx == 0 || !tc.len().is_multiple_of(nyx) || ub.iter().any(|a| a.len() != tc.len()) {
+    if nyx == 0
+        || !tc.len().is_multiple_of(nyx)
+        || ub.iter().any(|a| a.len() != tc.len())
+        || af.is_some_and(|f| f.iter().any(|a| a.len() != tc.len()))
+    {
         return Err(Error::bad_input("window flux: длины не совпадают"));
     }
     let a_side = (dx as f32) * (dz as f32);
@@ -417,17 +423,21 @@ pub fn boundary_flux(
                 let g = k * nyx + q;
                 let s = if t & 3 == 1 { -1.0f32 } else { 1.0 };
                 let (mut fc, mut ac) = (0.0f32, 0.0f32);
+                let open = |d: usize, a: f32| af.map_or(a, |f| a * f[d][g]);
                 if (t >> 2) & 3 == 2 {
-                    fc += s * ub[0][g] * a_side;
-                    ac += a_side;
+                    let a = open(0, a_side);
+                    fc += s * ub[0][g] * a;
+                    ac += a;
                 }
                 if (t >> 4) & 3 == 2 {
-                    fc += s * ub[1][g] * a_side;
-                    ac += a_side;
+                    let a = open(1, a_side);
+                    fc += s * ub[1][g] * a;
+                    ac += a;
                 }
                 if (t >> 6) & 3 == 2 {
-                    fc += s * ub[2][g] * a_top;
-                    ac += a_top;
+                    let a = open(2, a_top);
+                    fc += s * ub[2][g] * a;
+                    ac += a;
                 }
                 f += f64::from(fc);
                 a += f64::from(ac);
@@ -508,7 +518,8 @@ pub fn window_boundary(
         },
     )?;
     let nyx = win.nx * win.ny;
-    let (net, area) = boundary_flux((pl.dx, pl.dz), nyx, tc, [&bc.ubu, &bc.ubv, &bc.ubw])?;
+    let af = pl.cut.as_ref().map(|c| [&c.0.af_u[..], &c.0.af_v[..], &c.0.af_w[..]]);
+    let (net, area) = boundary_flux((pl.dx, pl.dz), nyx, tc, [&bc.ubu, &bc.ubv, &bc.ubw], af)?;
     bc.net = net;
     bc.area = area;
     bc.corr = apply_flux_correction(nyx, tc, [&mut bc.ubu, &mut bc.ubv, &mut bc.ubw], net, area)?;

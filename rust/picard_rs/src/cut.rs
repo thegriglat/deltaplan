@@ -32,6 +32,24 @@ use anyhow::{Result, bail};
 
 const KAPPA: f64 = 0.4;
 
+/// Outward flux through the top boundary faces of a window (type 2 `w` faces), in units of
+/// `dx*dz`: the faces carry `Case.nest.ubw`, sign `-1` when the cell of the face is air.
+fn nest_top(c: &Case, cell: &[u8], tw: &[u8], af_w: &[f32]) -> f64 {
+    let Some(nb) = &c.nest else { return 0.0 };
+    if nb.ubw.len() != af_w.len() || tw.len() != af_w.len() {
+        return 0.0;
+    }
+    let r = f64::from(c.dx) / f64::from(c.dz);
+    let mut t = 0.0f64;
+    for q in 0..af_w.len() {
+        if tw[q] == 2 {
+            let s = if cell[q] == 1 { -1.0 } else { 1.0 };
+            t += s * f64::from(nb.ubw[q]) * f64::from(af_w[q]) * r;
+        }
+    }
+    t
+}
+
 /// Fractions and the derived per-face constants of the cut-cell scheme.
 pub struct Cut {
     /// Open volume fraction of the cells.
@@ -51,6 +69,9 @@ pub struct Cut {
     pub mw: [Vec<[f32; 6]>; 3],
     /// Flux weights `af / vf` of the six faces of each cell (heat).
     pub cw: Vec<[f32; 6]>,
+    /// Window (`Case.nest`): outward volume flux through the type 2 `w` faces (top) in units
+    /// of the side-face area `dx*dz`, `sum s * ubw * af_w * dx / dz`; 0 without a window.
+    pub nest_top: f64,
 }
 
 impl Cut {
@@ -152,6 +173,7 @@ impl Cut {
                 n_drag[comp] += 1;
             }
         }
+        let nest_top_flux = nest_top(c, cell, tt[2], &af[2]);
         let mut cut = Self {
             vf,
             af,
@@ -160,6 +182,7 @@ impl Cut {
             n_drag,
             mw: [Vec::new(), Vec::new(), Vec::new()],
             cw: Vec::new(),
+            nest_top: nest_top_flux,
         };
         // Weights of faces and cells inside the halo ring only (the stencils never read others).
         let lo = st[0] + st[1] + st[2];
@@ -247,7 +270,13 @@ impl Cut {
                 }
             }
         }
-        let r = fin / fout;
+        // A window carries the flux of its top (`nest.ubw`): the sides balance against it.
+        let top = self.nest_top;
+        let r = if top == 0.0 {
+            fin / fout
+        } else {
+            (fin + (-top).max(0.0) - top.max(0.0)) / fout
+        };
         // Already balanced to the f32 round-off of the case (all fractions 1): keep the values.
         if !(r.is_finite() && r > 0.0) || (r - 1.0).abs() < 1e-6 {
             return;

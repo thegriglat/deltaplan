@@ -817,18 +817,18 @@ fn flux_correction_zeroes_the_sum() {
     let mut v: Vec<f32> = (0..n).map(|_| rnd()).collect();
     let mut w: Vec<f32> = (0..n).map(|_| rnd()).collect();
     let nyx = pl.nx_h * pl.ny_h;
-    let (net, area) = boundary_flux((pl.dx, pl.dz), nyx, &b.tc, [&u, &v, &w]).unwrap();
+    let (net, area) = boundary_flux((pl.dx, pl.dz), nyx, &b.tc, [&u, &v, &w], None).unwrap();
     assert!(
         net.abs() > 1e-3 * area,
         "случайный поток должен быть несбалансирован"
     );
     let corr = apply_flux_correction(nyx, &b.tc, [&mut u, &mut v, &mut w], net, area).unwrap();
     assert!(corr != 0.0);
-    let (net2, area2) = boundary_flux((pl.dx, pl.dz), nyx, &b.tc, [&u, &v, &w]).unwrap();
+    let (net2, area2) = boundary_flux((pl.dx, pl.dz), nyx, &b.tc, [&u, &v, &w], None).unwrap();
     assert_eq!(area, area2);
     assert!(net2.abs() <= 1e-6 * area * 10.0, "остаток {net2} при {net}");
     // длины
-    assert!(boundary_flux((pl.dx, pl.dz), nyx, &b.tc[1..], [&u, &v, &w]).is_err());
+    assert!(boundary_flux((pl.dx, pl.dz), nyx, &b.tc[1..], [&u, &v, &w], None).is_err());
 }
 
 #[test]

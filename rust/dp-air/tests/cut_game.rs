@@ -412,11 +412,8 @@ fn cache_key_format_2_rejects_format_1() {
 /// Загрузка Онгудая с окнами 100/50 м (`run_job`, окна включены): оба решения области сошлись,
 /// окна посчитаны, NaN/∞ в `Field` нет. Печатает итерации и время (отчёт PT-9).
 ///
-/// Окна: до PT-10 (поток границы окна по открытым площадям, `window.rs:396-513`) `rebalance`
-/// решателя при `cut_cells` сбивает баланс граней окна с `Case.nest.ubw`, и окна не сходятся
-/// (`MaxIters`, `div_rms` ~ 4e-5…7e-5 против 5e-6; на базе без долей — 30 итераций, сошлись).
-/// Здесь для окон проверяется, что они посчитаны, конечны и `div_rms` конечен; потолок итераций
-/// 400 держит тест в пределах минут. Строгая проверка окон `div_rms ≤ tol·scale` — в PT-10.
+/// Окна: `Cut::rebalance` учитывает поток верха окна, `boundary_flux` — открытые площади (PT7 v2);
+/// окна сходятся за ≤ 3× итераций базы без долей (30/30).
 #[test]
 #[ignore = "Онгудай, release: cargo test --release -p dp-air --test cut_game -- --include-ignored --nocapture"]
 fn ongudai_load_with_windows_converges() {
@@ -434,7 +431,6 @@ fn ongudai_load_with_windows_converges() {
     let mut ji = job_in(&cfg, pl, &cond("strong"), Some(focus));
     let mut rc = (*ji.cfg).clone();
     rc.faults.no_windows = false;
-    rc.max_iters = 400;
     ji.cfg = Arc::new(rc);
     let t0 = Instant::now();
     let out = run_job(ji).unwrap();
@@ -468,7 +464,9 @@ fn ongudai_load_with_windows_converges() {
     }
     assert_eq!(r.windows.iter().map(|w| w.dx).collect::<Vec<_>>(), [100.0, 50.0]);
     for w in &r.windows {
-        assert!(w.div_rms.iter().all(|d| d.is_finite()), "window div_rms {:?}", w.div_rms);
+        assert!(w.stop.iter().all(|s| *s == Stop::Converged), "window {} m: stop {:?}", w.dx, w.stop);
+        assert!(w.div_rms.iter().all(|&d| d <= tol), "window {} m: div_rms {:?}", w.dx, w.div_rms);
+        assert!(w.iters.iter().all(|&n| n <= 90), "window {} m: iters {:?} > 3 x 30", w.dx, w.iters);
     }
     assert_eq!(out.levels.len(), 3, "50 m, 100 m windows and the area");
     for (i, f) in out.levels.iter().enumerate() {
