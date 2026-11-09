@@ -37,9 +37,13 @@ pub struct TurbCfg {
     pub ex1: f64,
     /// `lee.field_descent_slope`.
     pub desc: f64,
-    /// `lee.field_sigma_u_per_du` / `field_sigma_w_per_du`.
+    /// `lee.field_sigma_u_per_du` / `field_sigma_v_per_du` / `field_sigma_w_per_du`.
     pub sep_su: f64,
+    pub sep_sv: f64,
     pub sep_sw: f64,
+    /// `lee.field_wall_shear_off_agl_per_relief`: вес снятия члена l·|∂U/∂z| падает от 1 до 0 на
+    /// agl/r от `.0` до `.1` (LTM v1 п.3).
+    pub wall_off: (f64, f64),
     /// `lee.field_reverse_per_uh`.
     pub reverse: f64,
     /// `lee.field_burst_per_du`.
@@ -79,10 +83,12 @@ impl Default for TurbCfg {
             ex0: 0.3,
             ex1: 0.7,
             desc: 0.05,
-            sep_su: 0.18,
-            sep_sw: 0.14,
+            sep_su: 0.166,
+            sep_sv: 0.130,
+            sep_sw: 0.153,
+            wall_off: (0.75, 1.0),
             reverse: 0.22,
-            burst_per_du: 0.42,
+            burst_per_du: 0.46,
             bubble_len: 2.8,
             resolved_n0: 4.0,
             resolved_n1: 8.0,
@@ -121,7 +127,16 @@ impl TurbCfg {
             ex1: g("/lee/field_deficit_separated", d.ex1),
             desc: g("/lee/field_descent_slope", d.desc),
             sep_su: g("/lee/field_sigma_u_per_du", d.sep_su),
+            sep_sv: g("/lee/field_sigma_v_per_du", d.sep_sv),
             sep_sw: g("/lee/field_sigma_w_per_du", d.sep_sw),
+            wall_off: (
+                atm.pointer("/lee/field_wall_shear_off_agl_per_relief/0")
+                    .and_then(Value::as_f64)
+                    .unwrap_or(d.wall_off.0),
+                atm.pointer("/lee/field_wall_shear_off_agl_per_relief/1")
+                    .and_then(Value::as_f64)
+                    .unwrap_or(d.wall_off.1),
+            ),
             reverse: g("/lee/field_reverse_per_uh", d.reverse),
             burst_per_du: g("/lee/field_burst_per_du", d.burst_per_du),
             bubble_len: g("/lee/field_bubble_length_per_relief", d.bubble_len),
@@ -219,7 +234,8 @@ pub fn conv_norm() -> f64 {
 /// `FieldTurbulence.sigma`. `tb` — величины поля (`FieldSet::sample_turb`, 8 каналов);
 /// `conv_analytic` — `(σ_u, σ_w)` конвективной болтанки аналитики (берётся, если в поле нет данных
 /// о нагреве, `T_HMIX = 0`); `u_pt` — модуль среднего ветра поля в точке (≥ 0): ниже
-/// `SURFACE_FRAC·h` u* берётся согласованным с ним — `κ·U/ln(z/z0)`; < 0 — не учитывать.
+/// `SURFACE_FRAC·h` u* берётся согласованным с ним — `κ·U/ln(z/z0)`; < 0 — не учитывать. `w_sep` 0..1 — вес зоны отрыва без разрешённого пузыря
+/// (LTM v1): член `l·|∂U/∂z|` входит с множителем `1 − w_sep`.
 pub fn sigma(
     cfg: &TurbCfg,
     z0: f64,
@@ -227,6 +243,7 @@ pub fn sigma(
     tb: &[f32],
     conv_analytic: [f64; 2],
     u_pt: f64,
+    w_sep: f64,
 ) -> Sigma {
     let z = agl.max(1.0);
     let h_mix = f64::from(tb[T_HMIX]);
@@ -250,7 +267,7 @@ pub fn sigma(
         let sl = smoothstep(0.5, 1.0, z / (SURFACE_FRAC * h_bl).max(1.0));
         u_wall = lerp(u_loc, u_wall, sl);
     }
-    let mut u_m = u_wall.max(l_mix * shear);
+    let mut u_m = u_wall.max((1.0 - w_sep) * l_mix * shear);
     // устойчивость: u*_loc ∝ √F(Ri), F = 1/(1 + 5Ri)²
     let n2 = f64::from(tb[T_N2]);
     let mut n_bv = 0.0;

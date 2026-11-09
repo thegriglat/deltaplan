@@ -32,6 +32,21 @@ fn atmosphere() -> Configs {
     Configs::new(vec![("atmosphere".into(), t)])
 }
 
+/// Конфиг слоя смешения до LTM v1 (0,18 / 0,18 / 0,14, рывки 0,42): эталоны GD записаны с ним;
+/// поведение ветви слоя смешения по Delville — в `lee_turb_ltm.rs`.
+fn legacy_atmosphere() -> Configs {
+    let mut v: Value = serde_json::from_str(
+        &std::fs::read_to_string(repo().join("configs/atmosphere.json")).unwrap(),
+    )
+    .unwrap();
+    let l = &mut v["lee"];
+    l["field_sigma_u_per_du"] = 0.18.into();
+    l["field_sigma_v_per_du"] = 0.18.into();
+    l["field_sigma_w_per_du"] = 0.14.into();
+    l["field_burst_per_du"] = 0.42.into();
+    Configs::new(vec![("atmosphere".into(), v.to_string())])
+}
+
 fn f64s(path: &Path) -> Vec<f64> {
     std::fs::read(path)
         .unwrap_or_else(|e| panic!("{}: {e}", path.display()))
@@ -238,7 +253,7 @@ fn gust_spectrum_bitwise_with_godot() {
 #[test]
 fn sigma_lee_sep_scales_match_godot() {
     let d = Dump::load();
-    let cfg = TurbCfg::from_configs(&atmosphere());
+    let cfg = TurbCfg::from_configs(&legacy_atmosphere());
     let (inp, out) = (d.get("sig_in"), d.get("sig_out"));
     let (lin, lout) = (d.get("lee_in"), d.get("lee_out"));
     let mut worst = 0.0f64;
@@ -251,7 +266,7 @@ fn sigma_lee_sep_scales_match_godot() {
     for i in 0..3000 {
         let r = &inp[i * 13..i * 13 + 13];
         let tb: Vec<f32> = r[5..13].iter().map(|v| *v as f32).collect();
-        let s = sigma::sigma(&cfg, r[4], r[0], &tb, [r[1], r[2]], r[3]);
+        let s = sigma::sigma(&cfg, r[4], r[0], &tb, [r[1], r[2]], r[3], 0.0);
         let o = &out[i * 8..i * 8 + 8];
         for (k, (g, w)) in [
             ("s_u", (s.s_u, o[0])),
@@ -273,7 +288,7 @@ fn sigma_lee_sep_scales_match_godot() {
         chk("lee", i, sep::lee(&cfg, r[4], l[0], r[0], &tb), q[0]);
         let ss = sep::sep_sigma(&cfg, l[1]);
         chk("sep_u", i, ss[0], q[1]);
-        chk("sep_w", i, ss[1], q[2]);
+        chk("sep_w", i, ss[2], q[2]);
         chk("unres", i, sep::reverse_unresolved(&cfg, l[2], l[3]), q[3]);
         chk("taylor", i, sigma::taylor_stretch(l[4], l[5], r[0]), q[4]);
         chk("mil_lw", i, sigma::mil_lw(r[0]), q[5]);
@@ -389,6 +404,7 @@ fn replay(ft: &FieldTurb, z0: f64, r: &[f64]) -> (FieldState, dp_air::terms::Tur
         danger: r[rec::DANGER],
         u_h: r[rec::U_H],
         du: r[rec::DU],
+        w_sep: 0.0,
     };
     let p = PointIn {
         pos: [r[0] as f32, r[1] as f32, r[2] as f32],
@@ -421,7 +437,7 @@ fn cases_with_dump() -> Vec<(&'static str, Vec<f64>)> {
 fn ongudai_replay_matches_air_velocity_field() {
     let cases = cases_with_dump();
     assert!(cases.len() >= 4, "дампы ongudai_*: {}", cases.len());
-    let ft = FieldTurb::new(&atmosphere(), 606);
+    let ft = FieldTurb::new(&legacy_atmosphere(), 606);
     let (mut n_all, mut n_noise, mut n_burst, mut n_rev) = (0, 0, 0, 0);
     let mut worst = [0.0f64; 5];
     for (name, buf) in &cases {
@@ -435,7 +451,7 @@ fn ongudai_replay_matches_air_velocity_field() {
             let ftc = if seed == 606 {
                 &ft
             } else {
-                &FieldTurb::new(&atmosphere(), seed)
+                &FieldTurb::new(&legacy_atmosphere(), seed)
             };
             let (st, o) = replay(ftc, z0, r);
             n_all += 1;
@@ -522,7 +538,7 @@ fn ongudai_sigma_turb_within_w8() {
             .unwrap();
         let z0 = fit_z0(buf);
         let seed = case.seed;
-        let ft = FieldTurb::new(&atmosphere(), seed);
+        let ft = FieldTurb::new(&legacy_atmosphere(), seed);
         let mut want = Vec::new();
         for t in 0..data.n_t {
             want.extend(data.slab(t, k_turb).map(|v| f64::from(v[3])));
@@ -690,7 +706,7 @@ fn t3_mil_scales_and_anisotropy() {
     };
     let prev_w = 0.0;
     for z in [3.0f64, 10.0, 30.0, 100.0] {
-        let s = sigma::sigma(&cfg, 0.1, z, &tb(z), [0.0, 0.0], 8.0);
+        let s = sigma::sigma(&cfg, 0.1, z, &tb(z), [0.0, 0.0], 8.0, 0.0);
         println!(
             "z = {z}: σ_u {:.3} σ_v {:.3} σ_w {:.3} (σ_u/σ_w {:.2})",
             s.s_u,
@@ -708,14 +724,14 @@ fn t3_mil_scales_and_anisotropy() {
         assert!(s.s_w > 0.0 && s.s_w.is_finite());
         let _ = prev_w;
     }
-    let hi = sigma::sigma(&cfg, 0.1, 400.0, &tb(400.0), [0.0, 0.0], -1.0);
+    let hi = sigma::sigma(&cfg, 0.1, 400.0, &tb(400.0), [0.0, 0.0], -1.0, 0.0);
     assert!(
         (hi.s_u - hi.s_w).abs() < 1e-6 * hi.s_u.max(1.0)
             && (hi.s_v - hi.s_w).abs() < 1e-6 * hi.s_u.max(1.0),
         "изотропия выше 1000 футов"
     );
     // за пределами слоя (z > h) механическая σ гаснет
-    let top = sigma::sigma(&cfg, 0.1, 1500.0, &tb(1500.0), [0.0, 0.0], -1.0);
+    let top = sigma::sigma(&cfg, 0.1, 1500.0, &tb(1500.0), [0.0, 0.0], -1.0, 0.0);
     assert!(
         top.s_u < hi.s_u,
         "выше слоя σ меньше: {} против {}",
@@ -748,6 +764,7 @@ fn separation_zone(du: f64) -> (FieldState, [f32; 8]) {
         danger: 1.0,
         u_h: 0.5 + du,
         du,
+        w_sep: 0.0,
     };
     (st, tb)
 }
@@ -757,7 +774,7 @@ fn separation_zone(du: f64) -> (FieldState, [f32; 8]) {
 /// 0,22·U_H·lee·ядро есть только на грубой сетке (400 м), на мелкой (25 м) пузырь даёт поле.
 #[test]
 fn separation_zone_bursts_sigma_and_reverse_flow() {
-    let c = atmosphere();
+    let c = legacy_atmosphere();
     let ft = FieldTurb::new(&c, 606);
     let cfg = *ft.cfg();
     let du = 6.0;

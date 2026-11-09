@@ -54,6 +54,8 @@ pub struct FieldState {
     pub u_h: f64,
     /// Скачок скорости слоя смешения ΔU (× признак отрыва).
     pub du: f64,
+    /// Вес снятия механики стенки в зоне отрыва без разрешённого пузыря (LTM v1 п.3).
+    pub w_sep: f64,
 }
 
 impl FieldTurb {
@@ -112,10 +114,12 @@ impl FieldTurb {
             let w = &c.terms.wind;
             danger = sep::lee_danger(cfg, w.speed_ref * w.altitude_factor(f64::from(c.pos[1])));
         }
-        // превышение гребня — из аналитики (RW-9); без неё неизвестно: 0
+        // превышение гребня: из аналитики (RW-9), иначе опросом земли против ветра, как у неё
+        // (LTM v1 п.1; на пути с полем a ≥ 1 аналитика не считается)
         if relief < 0.0 {
-            relief = 0.0;
+            relief = crate::terms::analytic::relief_at(c).max(0.0);
         }
+        let w_sep = sep::wall_shear_off(cfg, lee_f, relief, c.agl, c.fs.sample_dx(c.pos));
         let mut u_h = uf;
         if lee_f > 0.0 && relief > c.agl {
             let p = [c.pos[0], c.ground + relief as f32, c.pos[2]];
@@ -133,6 +137,7 @@ impl FieldTurb {
             danger,
             u_h,
             du,
+            w_sep,
         }
     }
 
@@ -277,6 +282,7 @@ impl FieldTurb {
             &st.tb,
             [p.conv_a, p.conv_a * cfg.vertical_ratio],
             st.uf,
+            st.w_sep,
         );
         let mut sep_s = sep::sep_sigma(cfg, st.du);
         // рывки вниз слоя смешения (нулевое среднее): их доля в σ_w вычитается из гауссовой
@@ -290,11 +296,11 @@ impl FieldTurb {
                     -amp_b * (sep::burst_g(cfg, &self.gusts, p.pos, p.t, p.dir, p.u) - g_mean);
             }
             let s_b = amp_b * g_std;
-            sep_s[1] = (sep_s[1] * sep_s[1] - s_b * s_b).max(0.0).sqrt();
+            sep_s[2] = (sep_s[2] * sep_s[2] - s_b * s_b).max(0.0).sqrt();
         }
         let s_u = sg.s_u.max(sep_s[0]);
-        let s_v = sg.s_v.max(sep_s[0]);
-        let s_w = sg.s_w.max(sep_s[1]);
+        let s_v = sg.s_v.max(sep_s[1]);
+        let s_w = sg.s_w.max(sep_s[2]);
         let mut n = [0.0; 3];
         if p.full {
             let ml = (p.mh[0] * p.mh[0] + p.mh[1] * p.mh[1]).sqrt();
@@ -317,7 +323,7 @@ impl FieldTurb {
             s_u,
             s_v,
             s_w,
-            sep: sep_s,
+            sep: [sep_s[0], sep_s[2]],
             n,
             w_burst,
         }
