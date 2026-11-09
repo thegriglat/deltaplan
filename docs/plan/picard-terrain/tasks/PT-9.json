@@ -46,10 +46,19 @@
     "rust/dp-air/tests/phase_classifier.rs",
     "rust/dp-air/tests/freeze_thd_v11.rs",
     "rust/dp-air/tests/runtime.rs",
-    "rust/dp-air/tests/cut_game.rs"
+    "rust/dp-air/tests/cut_game.rs",
+    "rust/picard_rs/src/cut.rs",
+    "rust/picard_rs/tests/cut_nest.rs",
+    "rust/dp-air/tests/step_cost_same.rs",
+    "rust/dp-air/tests/data/RW-15/ref.json",
+    "rust/dp-air/tests/data/RW-15/manifest.json"
   ],
   "dont_touch": [
-    "rust/picard_rs",
+    "rust/picard_rs/src/solver.rs",
+    "rust/picard_rs/src/kernels.rs",
+    "rust/picard_rs/src/case.rs",
+    "rust/picard_rs/src/cut_build.rs",
+    "rust/picard_rs/src/adv2.rs",
     "rust/dp-air/src/field/wind_field.rs",
     "rust/dp-air/src/field/solved.rs",
     "rust/dp-air/src/field/field_cache.rs",
@@ -93,5 +102,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-11-09T16:12:19"
+  "created": "2026-11-09T16:12:19",
+  "edited": "2026-11-09T19:40:07"
 }
