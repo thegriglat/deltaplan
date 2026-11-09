@@ -376,10 +376,15 @@ impl Picard {
     pub fn new_cancel(k: Consts, cancel: Option<&Arc<AtomicBool>>) -> Self {
         let n = k.n3();
         let stop = || cancel.is_some_and(|c| c.load(Ordering::Relaxed));
+        // PT2: the projection conductances times the face fractions (all levels from them).
+        let (mkx, mky, mkz) = match &k.cut {
+            Some(c) => (&c.kmg[0], &c.kmg[1], &c.kmg[2]),
+            None => (&k.kx, &k.ky, &k.kz),
+        };
         let mg = Mg::new_until(
-            &k.kx,
-            &k.ky,
-            &k.kz,
+            mkx,
+            mky,
+            mkz,
             &k.fluid,
             (k.nzh, k.nyh, k.nxh),
             k.dx,
@@ -438,6 +443,21 @@ impl Picard {
             let (v0, v1) = (&v[g0..g0 + nx], &v[g0 + nxh..g0 + nxh + nx]);
             let (w0, w1) = (&w[g0..g0 + nx], &w[g0 + nxh * nyh..g0 + nxh * nyh + nx]);
             let fl = &k.fluid[g0..g0 + nx];
+            if let Some(c) = &k.cut {
+                // PT2: sum(+-af * u / h) per unit of the full cell volume.
+                let (au, av, aw) = (&c.af[0], &c.af[1], &c.af[2]);
+                let a = |x: &[f32], q: usize| f64::from(x[q]);
+                for i in 0..nx {
+                    let q = g0 + i;
+                    let du = (f64::from(u1[i]) * a(au, q + 1) - f64::from(u0[i]) * a(au, q)) / dx;
+                    let dv = (f64::from(v1[i]) * a(av, q + nxh) - f64::from(v0[i]) * a(av, q)) / dx;
+                    let dw = (f64::from(w1[i]) * a(aw, q + nxh * nyh)
+                        - f64::from(w0[i]) * a(aw, q))
+                        / dz;
+                    o[i] = ((du + dv + dw) * f64::from(fl[i])) as f32;
+                }
+                return;
+            }
             for i in 0..nx {
                 // f64 differences: with f32 the cancellation error of a nearly divergence-free
                 // field (|u| / dx * 6e-8) is comparable to the divergence itself.

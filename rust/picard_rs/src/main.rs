@@ -58,6 +58,9 @@ enum Cmd {
         /// Write the delivered field as an R4 snapshot.
         #[arg(long)]
         save_state: Option<PathBuf>,
+        /// PT2: cut cells (sets `params.cut_cells = true`; the case must carry `vf`, `af_*`).
+        #[arg(long)]
+        cut_cells: bool,
     },
     /// Print the code branch (multiversion dispatch) selected on this CPU.
     Isa,
@@ -75,6 +78,9 @@ enum Cmd {
         solve: bool,
         #[arg(long, default_value_t = 2000)]
         max_iters: usize,
+        /// PT2: cut cells (sets `params.cut_cells = true`; the case must carry `vf`, `af_*`).
+        #[arg(long)]
+        cut_cells: bool,
     },
 }
 
@@ -222,8 +228,12 @@ fn main() -> Result<()> {
             snap_at,
             snap_dir,
             save_state,
+            cut_cells,
         } => {
-            let c = Case::load(&case)?;
+            let mut c = Case::load(&case)?;
+            if cut_cells {
+                c.params.cut_cells = true;
+            }
             let a = SolveArgs {
                 max_iters,
                 tol_scale,
@@ -243,8 +253,12 @@ fn main() -> Result<()> {
             out_dir,
             solve,
             max_iters,
+            cut_cells,
         } => {
-            let c = Case::load(&case)?;
+            let mut c = Case::load(&case)?;
+            if cut_cells {
+                c.params.cut_cells = true;
+            }
             for &n in &threads {
                 let n = api::resolve_threads(n);
                 if solve {

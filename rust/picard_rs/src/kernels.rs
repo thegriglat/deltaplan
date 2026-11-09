@@ -200,7 +200,7 @@ impl<'a> MomGeo<'a> {
 /// Momentum stencil row (`C`, `b`) of component `COMP` (0 u, 1 v, 2 w) in cell `idx` — reference
 /// kernel `build_mom` (first-order upwind, frozen transport velocity).
 #[inline(always)]
-fn mom_cell<const COMP: usize>(
+fn mom_cell<const COMP: usize, const CUT: bool>(
     k: &Consts,
     m: &MomIn,
     geo: &MomGeo,
@@ -232,6 +232,14 @@ fn mom_cell<const COMP: usize>(
     let bgv = bg.map_or(0.0, |b| b[idx]);
     let mut rhs = f[comp][idx] * inv_dtau + sp[idx] * bgv;
     let mut cc = [0.0f32; 7];
+    // PT2: flux weights A_open / V_open of the six sides (CUT only; the plain path has none).
+    let wts = if CUT {
+        k.cut
+            .as_ref()
+            .map_or([1.0; 7], |c| c.mom_weights(comp, idx, st))
+    } else {
+        [1.0; 7]
+    };
     for d in 0..3 {
         let ih = 1.0 / h[d];
         let a = a3[d];
@@ -246,9 +254,12 @@ fn mom_cell<const COMP: usize>(
             } else {
                 0.25 * (kk_arr[c0] + kk_arr[c1] + kk_arr[c0 - st[d]] + kk_arr[c1 - st[d]])
             };
-            let vis = kf * ih * ih;
+            let (vis, aa) = if CUT {
+                (kf * ih * ih * wts[o], a.abs() * wts[o])
+            } else {
+                (kf * ih * ih, a.abs())
+            };
             let up = (s == 0 && a > 0.0) || (s == 1 && a < 0.0);
-            let aa = a.abs();
             if tt[q] == 0 {
                 if d == comp {
                     diag += vis;
@@ -268,7 +279,26 @@ fn mom_cell<const COMP: usize>(
         }
     }
     rhs -= (m.p[c1] - m.p[c0]) / h[comp];
-    if comp < 2 {
+    if CUT && let Some(cut) = k.cut.as_ref() {
+        // PT2 wall friction along the wall: C_d |u_t| u_t |W| / V, implicit in the own component.
+        let [cd, wv, n0, n1, n2] = cut.drag[comp][idx];
+        if cd != 0.0 {
+            let n = [n0, n1, n2];
+            let an = a3[0] * n0 + a3[1] * n1 + a3[2] * n2;
+            let t = [a3[0] - an * n0, a3[1] - an * n1, a3[2] - an * n2];
+            let ut = (t[0] * t[0] + t[1] * t[1] + t[2] * t[2]).sqrt();
+            let nc = n[comp];
+            let cross = an - a3[comp] * nc;
+            let g = cd * ut / k.dz * wv;
+            diag += g * (1.0 - nc * nc);
+            rhs += g * nc * cross;
+        }
+        if comp == 2 {
+            rhs += G_OVER_T0 * 0.5 * (m.th[c0] + m.th[c1]);
+            diag += k.cplz[kk];
+            rhs += k.cplz[kk] * f[2][idx];
+        }
+    } else if comp < 2 {
         if tt[idx - st[2]] == 0 {
             let sp2 = a3[0] * a3[0] + a3[1] * a3[1];
             let cd = k.cd_col.as_ref().map_or(k.cd, |c| c[idx % (nx * ny)]);
@@ -299,6 +329,7 @@ fn build_all_mom_chunk(
     let inv_dtau = 1.0 / k.dtau_u;
     let (gu, gv, gw) = (MomGeo::new(k, 0), MomGeo::new(k, 1), MomGeo::new(k, 2));
     let (nx, ny) = (k.nxh, k.nyh);
+    let cut = k.cut.is_some();
     let mut pos = Pos::at(start, nx, ny);
     for (di, ((ru, rv), rw)) in cu
         .iter_mut()
@@ -308,9 +339,15 @@ fn build_all_mom_chunk(
     {
         let at = (start + di, pos.k);
         pos.advance(nx, ny);
-        *ru = mom_cell::<0>(k, m, &gu, inv_dtau, at);
-        *rv = mom_cell::<1>(k, m, &gv, inv_dtau, at);
-        *rw = mom_cell::<2>(k, m, &gw, inv_dtau, at);
+        if cut {
+            *ru = mom_cell::<0, true>(k, m, &gu, inv_dtau, at);
+            *rv = mom_cell::<1, true>(k, m, &gv, inv_dtau, at);
+            *rw = mom_cell::<2, true>(k, m, &gw, inv_dtau, at);
+        } else {
+            *ru = mom_cell::<0, false>(k, m, &gu, inv_dtau, at);
+            *rv = mom_cell::<1, false>(k, m, &gv, inv_dtau, at);
+            *rw = mom_cell::<2, false>(k, m, &gw, inv_dtau, at);
+        }
     }
 }
 
@@ -369,6 +406,8 @@ fn build_heat_chunk(k: &Consts, hin: &HeatIn, start: usize, out: &mut [Row]) {
                 rhs += k.spc[idx] * b[idx];
             }
             let mut cc = [0.0f32; 7];
+            // PT2: face weights af / vf (cut cells only).
+            let wts = k.cut.as_ref().map(|c| c.cell_weights(idx, st));
             for d in 0..3 {
                 let ih = 1.0 / h[d];
                 let kk_arr = if d == 2 { hin.nu } else { hin.nuh };
@@ -380,13 +419,18 @@ fn build_heat_chunk(k: &Consts, hin: &HeatIn, start: usize, out: &mut [Row]) {
                     };
                     let q = if s == 1 { idx + st[d] } else { idx - st[d] };
                     let mut cn = 0.0;
+                    let wo = wts.map_or(1.0, |w| w[1 + 2 * d + s]);
+                    let vo = if wts.is_some() { vo * wo } else { vo };
                     if vo > 0.0 {
                         diag += vo * ih;
                     } else {
                         cn += vo * ih;
                     }
                     if k.cell[q] != 0 {
-                        let dif = 0.5 * (kk_arr[idx] + kk_arr[q]) * ih * ih * k.inv_prt;
+                        let mut dif = 0.5 * (kk_arr[idx] + kk_arr[q]) * ih * ih * k.inv_prt;
+                        if wts.is_some() {
+                            dif *= wo;
+                        }
                         diag += dif;
                         cn -= dif;
                     }

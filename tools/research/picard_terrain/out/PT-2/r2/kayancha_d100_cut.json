@@ -1,0 +1,141 @@
+{
+  "case": "kayancha_d100_cut",
+  "dev": {
+    "div_rms": null,
+    "div_rms_ref": null,
+    "p_rel": null,
+    "th_abs": null,
+    "u0": null,
+    "u_rel": null
+  },
+  "dev_crop": null,
+  "dtype": "f32",
+  "format": "picard-rs-result",
+  "history": [
+    {
+      "div_rms": 0.000010280972950958244,
+      "it": 10,
+      "mom_max": 0.4834296405315399,
+      "mom_rms": 0.012407932174847444,
+      "t_s": 0.143472459,
+      "th_rms": 0.0,
+      "thd_rms": 0.0
+    },
+    {
+      "div_rms": 1.5854624908731472e-6,
+      "it": 20,
+      "mom_max": 0.1813817024230957,
+      "mom_rms": 0.003931912761814001,
+      "t_s": 0.286271589,
+      "th_rms": 0.0,
+      "thd_rms": 0.0
+    },
+    {
+      "div_rms": 3.6155655794553893e-7,
+      "it": 30,
+      "mom_max": 0.06611001491546631,
+      "mom_rms": 0.0015212208235424805,
+      "t_s": 0.430887835,
+      "th_rms": 0.0,
+      "thd_rms": 0.0
+    },
+    {
+      "div_rms": 9.488962179341003e-8,
+      "it": 40,
+      "mom_max": 0.02994382381439209,
+      "mom_rms": 0.0006389532720122352,
+      "t_s": 0.565014851,
+      "th_rms": 0.0,
+      "thd_rms": 0.0
+    },
+    {
+      "div_rms": 3.824925423117939e-8,
+      "it": 50,
+      "mom_max": 0.013469696044921875,
+      "mom_rms": 0.0002877582183149957,
+      "t_s": 0.714076972,
+      "th_rms": 0.0,
+      "thd_rms": 0.0
+    },
+    {
+      "div_rms": 1.3525844482885173e-8,
+      "it": 60,
+      "mom_max": 0.006286792457103729,
+      "mom_rms": 0.00013643547306159515,
+      "t_s": 0.857293161,
+      "th_rms": 0.0,
+      "thd_rms": 0.0
+    },
+    {
+      "div_rms": 8.180277899334165e-9,
+      "it": 70,
+      "mom_max": 0.003106415271759033,
+      "mom_rms": 0.00006905665208899227,
+      "t_s": 1.002940069,
+      "th_rms": 0.0,
+      "thd_rms": 0.0
+    },
+    {
+      "div_rms": 6.54058483656133e-9,
+      "it": 80,
+      "mom_max": 0.0016775727272033691,
+      "mom_rms": 0.00003602285643481787,
+      "t_s": 1.146345145,
+      "th_rms": 0.0,
+      "thd_rms": 0.0
+    },
+    {
+      "div_rms": 5.652633505262455e-9,
+      "it": 90,
+      "mom_max": 0.000824660062789917,
+      "mom_rms": 0.000018642678138983277,
+      "t_s": 1.294516477,
+      "th_rms": 0.0,
+      "thd_rms": 0.0
+    }
+  ],
+  "history_ref": null,
+  "host": {
+    "cpu": "Intel(R) Xeon(R) CPU E5-2666 v3 @ 2.90GHz",
+    "git": "3916c985c",
+    "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
+  },
+  "init": null,
+  "input": "/home/greg/data/picard_terrain/cases/kayancha_d100_cut.json",
+  "iters": 90,
+  "iters_ref": null,
+  "profile": "release",
+  "residuals": {
+    "div_rms": 5.652633505262455e-9,
+    "it": 90,
+    "mom_max": 0.000824660062789917,
+    "mom_rms": 0.000018642678138983277,
+    "t_s": 1.294516477,
+    "th_rms": 0.0,
+    "thd_rms": 0.0
+  },
+  "snapshots": [],
+  "status": "ok",
+  "stop": "converged",
+  "threads": 8,
+  "time": {
+    "check_ms": 5.648829999999999,
+    "ms_per_iter": 13.817957811111118,
+    "n_cells": 64000,
+    "ns_per_cell_iter": 215.9055907986112,
+    "phase_ms": {
+      "heat": 2.9083360777777774,
+      "kupd": 0.6872546555555558,
+      "mom": 6.107504311111112,
+      "other": 0.31157050000000613,
+      "proj": 3.803292266666666
+    },
+    "pool_threads": 8,
+    "process_cpu_s": 10.2,
+    "setup_s": 0.114860646,
+    "total_s": 1.440240897
+  },
+  "time_budget_s": null,
+  "tol_scale": 1.0,
+  "version": 3
+}
