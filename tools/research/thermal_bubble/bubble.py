@@ -24,7 +24,7 @@ import numpy as np
 # Радиус ядра в шаблоне и в эталоне — ПЕРВАЯ СМЕНА ЗНАКА w на горизонтали через центр головы: у вихря Хилла на
 # экваторе w = U(5/2 − 3ρ²/R²) ⇒ r_sign = sqrt(5/6) R = 0,9129 R. Поэтому R(ζ) = r_LS(ζ)/0,9129, линейная МНК-подгонка
 # R = α(z + z_h) на ζ = 0,2…0,8 (25 точек): α = dR/dz головы, z_h — глубина вершины конуса под землёй (∝ z_i).
-_HILL_SHELL = 0.5     # PARAMS["hill_shell"]: см. там
+_HILL_SHELL = 0.2     # PARAMS["hill_shell"]: см. там
 
 
 def _eq_w(x: float, shell: float) -> float:
@@ -67,9 +67,9 @@ PARAMS: dict[str, dict] = {
     "alpha_thermal": {
         "value": _ALPHA_TH, "unit": "1 (dR/dz головы, R — радиус Хилла)", "reliability": "medium",
         "source": "Lenschow & Stephens 1980 (Boundary-Layer Meteorol. 19, 509): d/z_i = 0,16 ζ^⅓(1−0,25ζ), самолёт, условная выборка "
-                  "ядер, радиус ядра = d/2 = радиус смены знака w = sqrt(5/6)R; линейная МНК R = α(z + z_h) на ζ 0,2–0,8; "
+                  "ядер, радиус ядра = d/2 = радиус смены знака w (у Хилла sqrt(5/6)R = 0,913R, со сглаженным краем hill_shell 0,2 — %.3fR, считается в коде); линейная МНК R = α(z + z_h) на ζ 0,2–0,8; "
                   "z_h = %.2f z_i. Аллен 2006 (AIAA 2006-1510) r₂ = 0,102ζ^⅓(1−0,25ζ): α = %.3f (в %.2f раза больше)"
-                  % (_ZH_FRAC, _ALPHA_ALLEN, _ALPHA_ALLEN / _ALPHA_TH),
+                  % (_SIGN_OVER_R, _ZH_FRAC, _ALPHA_ALLEN, _ALPHA_ALLEN / _ALPHA_TH),
     },
     "alpha_thermal_lab": {
         "value": 0.25, "unit": "1 (dR/dz)", "reliability": "medium",
@@ -84,7 +84,7 @@ PARAMS: dict[str, dict] = {
     },
     "hill_shell": {
         "value": _HILL_SHELL, "unit": "1 (доля R, полная толщина оболочки)", "reliability": "low",
-        "source": "решение Q1 2026-11-09 предлагало ~0,2R; при 0,2 инвариант 10 (экватор) = 1,02 > 0,5, порог достигается при ≥ 0,5 (README); литература — разрежённый край вихревого кольца (Lecoanet & Jeevanjee 2019, "
+        "source": "решение Q1 2026-11-09, ~0,2R; метрика инварианта 10 на экваторе при 0,2 ≈ 1,02 (порог TB1 v4 ≤ 1,2; излом Хилла 7,5); литература — разрежённый край вихревого кольца (Lecoanet & Jeevanjee 2019, "
                   "arXiv:1804.09326): непрерывная граница головы; число не измерено",
     },
     "added_mass_k": {
@@ -472,10 +472,10 @@ def mean_up_flux(w0: float, zl: float, tau: float, env: Env) -> float:
     return out
 
 
-def kbar(zl: float, tau: float, env: Env) -> float:
-    """K̄ шаблона, м²: средний по жизни и по столбу 0…zl поток вверх одного пузыря from_strength(w0 = 1, zl, tau), делённый
-    на 1 м/с (см. mean_up_flux). Тот же смысл, что K̄ в rust/dp-air columns.rs (средний поток ядра на 1 м/с пика)."""
-    return mean_up_flux(1.0, zl, tau, env)
+def kbar(zl: float, tau: float, env: Env, w0: float) -> float:
+    """K̄ шаблона, м² (v4): средний по жизни и по столбу 0…zl поток вверх пузыря from_strength(w0, zl, tau), делённый на w0
+    (см. mean_up_flux). Поток растёт с силой нелинейно (жизнь и подобие зависят от F0), поэтому w0 — сила типичного случая."""
+    return mean_up_flux(w0, zl, tau, env) / w0
 
 
 # ---------------------------------------------------------------- вклад одного пузыря

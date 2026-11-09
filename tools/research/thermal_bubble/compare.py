@@ -130,7 +130,9 @@ def balance(src: bb.Source) -> dict:
     w0 = min(2,5 w*, Φ/(n_A K̄)) (поток водосбора / поток одного пузыря), несомый ядрами поток = n_A K̄ w0, «между» = Φ − несомое."""
     nA = 8.5 / ZL ** 2
     ck = current_kbar()
-    kb_b = bb.kbar(ZL, src.tau, ENV0)
+    w0_typ = 1.24 * WSTAR                                  # сила типичного случая: w0 = k·w*, k = 1,24 (thermals.md «Законы»)
+    kb_b = bb.kbar(ZL, src.tau, ENV0, w0_typ)
+    kb_b1 = bb.kbar(ZL, src.tau, ENV0, 1.0)               # v3: при w0 = 1 м/с (для сравнения)
     kb_c = ck["numeric"]
 
     def share(kbar_, phi):
@@ -156,7 +158,7 @@ def balance(src: bb.Source) -> dict:
                  "phi_over_wstar": PHI_UP_FRAC,
                  "phi_definition": "Φ типичный = доля площади подъёма 0,35 × средний подъём ŵ_max 0,45 w* (Lenschow–Stephens 1980; Stull 1988): "
                                    "восходящий массовый поток на единицу площади, м/с; НЕ F̄ + W̄ поля игры (оно зависит от места)"},
-        "kbar_bubble": kb_b, "kbar_current": kb_c, "kbar_current_formula": ck["formula_columns_rs"],
+        "kbar_bubble": kb_b, "kbar_bubble_w0_1": kb_b1, "kbar_w0_typical_m_s": w0_typ, "kbar_current": kb_c, "kbar_current_formula": ck["formula_columns_rs"],
         "kbar_current_detail": ck,
         "w0_rule_bubble_m_s": w0_b, "w0_rule_current_m_s": w0_c,
         "core_share_phi_bubble": car_b / phi, "core_share_phi_current": car_c / phi,

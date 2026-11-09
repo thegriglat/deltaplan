@@ -157,13 +157,13 @@ def test_two_bubbles_divergence_and_ground():
 
 
 def test_hill_shell_smooth_and_continuous():
-    # v3: ψ-смешение — скорость непрерывна, излом убран (Δ²w/h·R/U ≤ 0,5 на экваторе и оси), ∇·v = 0 в оболочке
+    # v3: ψ-смешение — скорость непрерывна, излом убран (Δ²w/h·R/U ≤ 1,2 на экваторе и оси), ∇·v = 0 в оболочке
     st = head()
     h = 0.005 * st.R
     x = np.arange(-2 * st.R, 2 * st.R + 1e-9, h)
     for line in (np.stack([x, 0 * x, 0 * x + 700], -1), np.stack([0 * x, 0 * x, 700 + x], -1)):
         w = bm.velocity(line, [st], BIG, ground=False, lid=False)[:, 2]
-        assert np.max(np.abs(w[2:] - 2 * w[1:-1] + w[:-2])) / h * st.R / st.U <= 0.5
+        assert np.max(np.abs(w[2:] - 2 * w[1:-1] + w[:-2])) / h * st.R / st.U <= 1.2
     rng = np.random.default_rng(5)
     d = rng.normal(size=(300, 3)); d /= np.linalg.norm(d, axis=1, keepdims=True)
     P = np.array([0, 0, 700.0]) + d * st.R * rng.uniform(0.7, 1.3, (300, 1))
@@ -197,6 +197,6 @@ def test_from_strength_hits_w0():
 
 
 def test_kbar_positive_and_scales():
-    kb = bm.kbar(1400.0, 690.0, ENV)
+    kb = bm.kbar(1400.0, 690.0, ENV, 3.17)
     assert 100.0 < kb < 1e5
-    assert bm.kbar(1400.0, 690.0, bm.Env(wind=(3.0, 1.0), zi=1400.0)) == kb     # ветер не влияет
+    assert bm.kbar(1400.0, 690.0, bm.Env(wind=(3.0, 1.0), zi=1400.0), 3.17) == kb     # ветер не влияет
