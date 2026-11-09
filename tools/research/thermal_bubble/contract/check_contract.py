@@ -127,7 +127,8 @@ def tb1() -> None:
         for s, t in zip(sts, ts)
     )
     check(drift <= 1e-6, f"tb1: снос головы по ветру, ошибка {drift:.2e} м ≤ 1e-6")
-    check(all(s.xs == src.x and s.ys == src.y for s in sts), "tb1: низ шлейфа — точка источника")
+    check(all(abs(s.xs - s.xc) <= 1e-9 and abs(s.ys - s.yc) <= 1e-9 for s in sts),
+          "tb1 v2: ось вертикальна — xs = xc, ys = yc")
     a = sts[1]
     b = dataclasses.replace(sts[1], xs=a.xs + 3 * a.R, xc=a.xc + 3 * a.R, yc=a.yc + a.R, ys=a.ys + a.R)
     box = _box([a], env, 4.0)
@@ -174,6 +175,46 @@ def tb1() -> None:
     far = np.array([[hd.xc + 20 * hd.R, hd.yc, hd.zc], [hd.xc, hd.yc - 20 * hd.R, hd.zc]])
     vf = float(np.max(np.linalg.norm(bm.velocity(far, [hd], env), axis=-1)))
     check(vf <= 1e-2 * max(hd.U, 1e-30), f"tb1: |v| на 20R {vf:.2e} ≤ 1e-2·U ({hd.U:.3g})")
+    # 8–9. v2: непрерывность во времени и конец жизни
+    dt = 2.0
+    t_cap = src.t0 + 4 * src.tau + 3600.0
+    life = []
+    t = src.t0 + dt
+    while t <= t_cap:
+        st = bm.state(src, env, t)
+        if st is None:
+            break
+        life.append((t, st))
+        t += dt
+    ended = bm.state(src, env, t) is None
+    check(ended and len(life) > 1, f"tb1 v2: конец жизни (None) к t0+{t - src.t0:.0f} с ≤ t0+4·tau+3600")
+    if len(life) < 2:
+        return
+    rmax = max(st.R for _, st in life)
+    gx = np.arange(-3 * rmax, 3 * rmax + 1e-9, 0.25 * rmax)
+    gz = np.arange(1.0, env.zi - 1.0 + 1e-9, 0.25 * rmax)
+    GX, GZ = np.meshgrid(gx, gz, indexing="ij")
+    vmax = 0.0
+    jump = 0.0
+    t_jump = None
+    prev = None
+    last = None
+    for t, st in life:
+        ox = src.x + env.wind[0] * (t - src.t0)
+        oy = src.y + env.wind[1] * (t - src.t0)
+        G = np.stack([GX + ox, np.full_like(GX, oy), GZ], -1)
+        v = bm.velocity(G, [st], env)
+        m = float(np.max(np.linalg.norm(v, axis=-1)))
+        vmax = max(vmax, m)
+        if prev is not None:
+            d = float(np.max(np.linalg.norm(v - prev, axis=-1)))
+            if d > jump:
+                jump, t_jump = d, t
+        prev = v
+        last = m
+    check(jump <= 0.25 * vmax,
+          f"tb1 v2: скачок за 2 с {jump:.3g} ≤ 0,25·max|v| {0.25 * vmax:.3g} (худший при t0+{(t_jump or 0) - src.t0:.0f} с)")
+    check(last <= 0.05 * vmax, f"tb1 v2: перед концом max|v| {last:.3g} ≤ 0,05·max|v| {0.05 * vmax:.3g}")
 
 
 # ---------------------------------------------------------------- TB2
