@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-11-09"
 summary: "Стыки thermal-bubble: шаблон пузыря bubble.py (TB1), профиль для сверки (TB2), сводки (TB3), шаблон в dp-air за флагом (TB4)."
 related: ["docs/plan/thermal-bubble.md", "docs/guide/air-model/thermals.md"]
-contracts: [{"id": "TB1", "version": 4}, {"id": "TB2", "version": 1}, {"id": "TB3", "version": 2}, {"id": "TB4", "version": 2}, {"id": "TB5", "version": 1}]
+contracts: [{"id": "TB1", "version": 5}, {"id": "TB2", "version": 1}, {"id": "TB3", "version": 2}, {"id": "TB4", "version": 3}, {"id": "TB5", "version": 1}]
 ---
 # Контракты модуля thermal-bubble
 
@@ -21,7 +21,7 @@ contracts: [{"id": "TB1", "version": 4}, {"id": "TB2", "version": 1}, {"id": "TB
 (в игре ось y вверх; перевод осей — забота стенда TB-3). Поле термика — Буссинеск,
 несжимаемое: ∇·v = 0 (поле игры — то же приближение у слоя термиков).
 
-## TB1 v4 — шаблон пузыря `tools/research/thermal_bubble/bubble.py`
+## TB1 v5 — шаблон пузыря `tools/research/thermal_bubble/bubble.py`
 Владелец — TB-1; потребители — TB-2 (сверка, разрезы), TB-3 (порт в Rust, цена), TB-4 (вывод). Только numpy.
 
 ```python
@@ -118,6 +118,18 @@ def kbar(zl: float, tau: float, env: Env, w0: float) -> float   # v4: + w0
    шагом 10 с до конца жизни) — w0 с отн. ошибкой ≤ 2 %.
 13. v4, `kbar(1400, 690, env, 2.5)` > 0 и конечно.
 
+**TB1 v5 (круг 3, 2026-11-09; пишет TB-15):**
+- Соответствие «термик игры → пузырь» — из бюджета потока (TB-10, `round3/life.md`), не подбор по пику: w* клетки
+  = `strength / K_ALLEN` (K_ALLEN = 1,2436), `F0 = core_flux_fraction · (w*_клетки)³ · zl / 8,5` — то же, что
+  `from_game(x, y, t0, strength / K_ALLEN, zl, env)` с `tau` термика. Новая функция
+  `from_game_strength(x, y, t0, strength, zl, tau, env) -> Source` — ровно это. `from_strength` (подбор по пику)
+  остаётся для справки и тестов, в игре не используется.
+- `kbar(zl, tau, env, w0)` v5: пузырь — `from_game_strength(…, w0, zl, tau)` (а не `from_strength`); остальное определение прежнее.
+- Новое: `between_q(xi) -> float` — профиль «между» q(ξ), ξ = z/zl ∈ [0, 1], среднее по ξ = 1, из распределения потока
+  вверх пузырей v5 по высоте (TB-12, `round3/between.py`, пересчёт под v5); узлы — 21 точка ξ = 0…1, линейно между узлами.
+- Инварианты 1–11, 13 — прежние; 12 (from_strength) — прежний; новый 14: `from_game_strength(0, 0, 0, w0, 1400, 690, env)`
+  при w0 = 1,2436·2,56 — F0 = 0,371·2,56³·1400/8,5 (отн. 1e-12); новый 15: `between_q` — 21 узел, среднее 1 (отн. 1e-6), конечно.
+
 ## TB2 v1 — нынешний профиль `tools/research/thermal_bubble/current.py`
 Владелец — TB-2; потребители — TB-2, TB-4. Порт `rust/dp-air/src/terms/thermal/profile.rs::contribution`
 (только w; без облачного подсоса и оторвавшегося низа — `suck = [0, 0]`, `ph.cut_h = −∞`, `ph.env = 1`):
@@ -153,7 +165,7 @@ v2: `les.json` (пишет TB-6; читатели — сверка и итог) 
 "reliability": "high"|"medium"|"low"}`; обязательные quantity: `inflow_ground_over_wstar`, `outflow_top_over_wstar`,
 `ring_sink_min_over_wstar`, `rise_speed_over_wstar`. Нет числа — null и причина в note.
 
-## TB4 v2 — шаблон пузыря в `dp-air` за флагом
+## TB4 v3 — шаблон пузыря в `dp-air` (по умолчанию с круга 3)
 Владелец — координатор; пишут TB-7 (инфраструктура, порт TB1 v2), TB-8 (порт TB1 v3, K̄); потребители — сумма ветра
 (`rust/dp-air/src/terms/sum.rs`), «между» (`terms/thermal_air`, TB-8). В игру по умолчанию не включается (Q1 п. 2).
 
@@ -202,6 +214,23 @@ v2: `les.json` (пишет TB-6; читатели — сверка и итог) 
   `no_table_no_w` (динамический без таблицы внутри радиуса — w = 0, uh = 0; статичный — как без флага),
   `port_vs_python` — против фикстуры v4 `tools/research/thermal_bubble/out/embed_fixture.json` (пишет `embed_fixture.py`; `bench_fixture.json` — v2 для бенча, не менять).
 - K̄ шаблона в Rust — таблица констант по (zl, w*) `rust/dp-air/src/terms/thermal/bubble_kbar.rs`, сгенерирована из `bubble.kbar` скриптом `tools/research/thermal_bubble/kbar_table.py` (tau — среднее grow_s + mature_s `ThermalCfg::default`); билинейно, вне таблицы — край.
+**TB4 v3 (круг 3, решение пользователя 2026-11-09: шаблон по умолчанию; пишет TB-15):**
+- Флага нет: `ThermalCfg.bubble_template` и ключ `/thermal/bubble_template` удалены; побитность со старым не нужна,
+  тест `flag_off_bitwise` и фикстура `tests/data/thermal_bubble_off.json` удаляются. `/thermal/bubble_radius_m` — остаётся (2000 м, TB-13).
+- Динамический термик внутри радиуса пузырей: w и `uh` — из таблицы пузыря (F0 по TB1 v5 `from_game_strength`).
+  Нет таблицы (не собрана, нет состояния, `r_max = 0`) или столб `zl < 100 м` — профиль Гедеона, как за радиусом (TB-13:
+  не терять подъём низких столбов; прежнее «нет таблицы — нет вклада» отменено).
+- За радиусом, статичные термики — профиль Гедеона (как прежде). `mask`, `sigma` — из профиля, как прежде.
+- Облачный подсос сохраняется: у термика с таблицей выше `top` (до `top + cloud_depth`) w — как у профиля Гедеона
+  (продолжение столба в облако); ниже `top` — только таблица. Шов по высоте на `top` — граница модели.
+- «Между»: K̄ — `bubble_kbar.rs` по TB1 v5 (перегенерировать `kbar_table.py`); q(ξ) в `Shape` (`thermal_air/expected.rs`)
+  — таблица `between_q` TB1 v5 (сгенерированный файл констант), отрицательное «между» ограничено нулём (TB-12).
+- Первая сборка таблиц не синхронна в кадре игры: в фоне (как обновления); пока таблицы нет — профиль Гедеона (п. выше).
+- Тесты v3 (`tests/thermal_bubble_embed.rs`): `port_vs_python` (фикстура v5 `out/embed_fixture.json`), `table_accuracy`
+  (≤ 5 %), `bubble_cache_budget` (`build_ms_per_s=` ≤ 100, один фокус), `bubble_sum` (бывший `flag_on_sum`: приток к оси у
+  земли, растекание у верха, конечность), `no_table_profile` (нет таблицы / столб < 100 м / статичный — w профиля Гедеона),
+  `cloud_suck` (у термика с таблицей и облаком w > 0 выше `top`), `between_q_used` (q(ξ) «между» = `between_q`, отн. 1e-6).
+  Тесты игры и `dp-air` с числами старой модели — перезаписать; в отчёте — список и почему новые числа верны.
 
 ## TB5 v1 — полётный замер `tools/research/thermal_bubble/out/flight_<tag>.json`
 Владелец — координатор; пишет TB-14 (теги `r2_old` — флаг выкл, `r2_new` — флаг вкл, код круга 2), TB-16 (`r3_main` — `main`,
