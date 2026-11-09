@@ -1,0 +1,64 @@
+{
+  "status": "partial",
+  "summary": "lee_obs.csv (LTO v1): 152 строки, 92 за гребнем, ТКЭ Perdigão NE/SW (ISFS, A) и Askervein TU03B; accept --dry 4/4 PASS. Максимум ТКЭ/U2 ~0.05 на 100 м над дном долины (x/H 3-5.5) и 0.06-0.066 на 10 м за Askervein (x/H 0.9-1.7). σ по компонентам Perdigão и Bolund не получены.",
+  "commits": [
+    "ef24b339c lee-turb LT-3: измерения ТКЭ за гребнем (Perdigão NE/SW, Askervein)"
+  ],
+  "checks": [
+    {
+      "name": "contract",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "sites",
+      "value": "2 (perdigao, askervein)",
+      "pass": true
+    },
+    {
+      "name": "lee_rows",
+      "value": "92 (>=20)",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "σ_u, σ_v, σ_w Perdigão: THREDDS windsptds.fe.up.pt не отвечал (curl таймаут 2026-11-09); готовы dl_isfs.py и sigma_perdigao.py (selftest ok, на реальных NetCDF не запускался), build_lee_obs.py сам подставит sigma_perdigao.csv",
+    "Bolund: источник 403, пропущен по указанию координатора",
+    "x_game/z_game, uw, L_u, xr пусты (xr на случай нет у Menke 2019)"
+  ],
+  "questions": [
+    "Когда THREDDS оживёт: запустить dl_isfs.py + sigma_perdigao.py + build_lee_obs.py (3 команды в README), вернуть меня или сделает координатор?"
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept LT-3",
+  "uncertain": [
+    {
+      "where": "tools/research/lee_turb/obs/build_lee_obs.py: case TU03B",
+      "why": "Zenodo-таблица имя прогона не называет; TU03B выбран по 210 град и S_RS=8.9 м/с",
+      "checked": "TKE* = tke/S_RS^2 совпадает с таблицей"
+    },
+    {
+      "where": "lee_obs.csv perdigao H_m",
+      "why": "H = гребень минус дно tse09 по ground_asl (148/168 м), у Menke ~200 м",
+      "checked": "высоты из masts.csv"
+    },
+    {
+      "where": "lee_obs.csv perdigao x_m",
+      "why": "ось ветра = dir на 100 м гребневой мачты; поперечное смещение до 500 м допущено; на SW ветер в долине 130-170 град",
+      "checked": "смещения в note; ориентация кадра сверена по tse04-tse13"
+    },
+    {
+      "where": "tools/research/lee_turb/obs/sigma_perdigao.py",
+      "why": "не запускался на реальных данных, имена переменных u_v__ и т.п. взяты из extract_profiles.py и описания",
+      "checked": "selftest поворота осей"
+    }
+  ],
+  "dp_feedback": "accept docs-проверка summary > 140 символов выявилась только после написания; хорошо бы лимит в шаблоне карточки/README подсказки.",
+  "t": "2026-11-09T21:29:23",
+  "by": "executor"
+}
