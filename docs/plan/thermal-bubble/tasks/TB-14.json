@@ -1,0 +1,78 @@
+{
+  "id": "TB-14",
+  "module": "thermal-bubble",
+  "type": "dp-engineer",
+  "title": "Круг 3: полётный замер в игре — шаблон (флаг вкл) против старого (выкл), время кадра",
+  "goal": "Инструментом в игре (Godot, автопилот в термиках) снять сводки TB5 v1 для флага выкл (r2_old) и вкл (r2_new) на одном месте, погоде, сиде и маршруте: присутствие термиков, приток у земли, подъём в ядре, разрывы у пилота, время кадра.",
+  "plan_ref": "Задачи, круг 3 п. 6",
+  "contracts": [
+    {
+      "name": "TB5",
+      "version": "1",
+      "ref": "docs/contracts/thermal-bubble.md"
+    },
+    {
+      "name": "TB4",
+      "version": "2",
+      "ref": "docs/contracts/thermal-bubble.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/thermal-bubble-TB-14",
+  "branch": "thermal-bubble/TB-14",
+  "base": "feature/thermal-bubble",
+  "scope": [
+    "tools/research/thermal_bubble/flight/",
+    "tools/research/thermal_bubble/out/flight_r2_old.json",
+    "tools/research/thermal_bubble/out/flight_r2_new.json"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "rust/",
+    "data/",
+    "tests/",
+    "tools/bench/",
+    "tools/profile/",
+    "project.godot",
+    "tools/research/thermal_bubble/bubble.py",
+    "tools/research/thermal_bubble/round3/",
+    "docs/contracts/",
+    "docs/research/"
+  ],
+  "accept": [
+    {
+      "name": "untouched",
+      "cmd": "git diff --quiet feature/thermal-bubble -- scripts configs rust data tests tools/bench tools/profile project.godot",
+      "expect": "exit=0"
+    },
+    {
+      "name": "schema",
+      "cmd": "python3 -c \"import json;o=json.load(open('tools/research/thermal_bubble/out/flight_r2_old.json'));n=json.load(open('tools/research/thermal_bubble/out/flight_r2_new.json'));k=['presence','inflow','core','continuity','frame'];assert o['schema']==n['schema']=='tb5/1' and o['bubble'] is False and n['bubble'] is True;assert all(o[x]==n[x] for x in ['location','weather']);assert all(o[x] and n[x] for x in k);print('ok')\"",
+      "expect": "exit=0"
+    },
+    {
+      "name": "inflow",
+      "cmd": "python3 -c \"import json;o=json.load(open('tools/research/thermal_bubble/out/flight_r2_old.json'));n=json.load(open('tools/research/thermal_bubble/out/flight_r2_new.json'));print('dinflow=%.4f'%(n['inflow']['ur_in_10m_median_ms']-o['inflow']['ur_in_10m_median_ms']))\"",
+      "expect": "num:dinflow=([0-9.eE+-]+) >=0.1"
+    },
+    {
+      "name": "presence",
+      "cmd": "python3 -c \"import json;o=json.load(open('tools/research/thermal_bubble/out/flight_r2_old.json'));n=json.load(open('tools/research/thermal_bubble/out/flight_r2_new.json'));print('lift_ratio=%.3f'%(n['presence']['cores_lifting_frac']/max(o['presence']['cores_lifting_frac'],1e-9)))\"",
+      "expect": "num:lift_ratio=([0-9.eE+-]+) >=0.8"
+    },
+    {
+      "name": "frame",
+      "cmd": "python3 -c \"import json;o=json.load(open('tools/research/thermal_bubble/out/flight_r2_old.json'));n=json.load(open('tools/research/thermal_bubble/out/flight_r2_new.json'));print('frame_ratio=%.3f'%(n['frame']['ms_mean']/o['frame']['ms_mean']))\"",
+      "expect": "num:frame_ratio=([0-9.eE+-]+) <=1.5"
+    },
+    {
+      "name": "gd_check",
+      "cmd": "python3 tools/check_gd.py $(ls tools/research/thermal_bubble/flight/*.gd)",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T15:41:06",
+  "edited": "2026-11-09T15:41:36"
+}

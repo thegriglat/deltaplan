@@ -1,0 +1,81 @@
+{
+  "id": "TB-12",
+  "module": "thermal-bubble",
+  "type": "dp-researcher",
+  "title": "Круг 3: профиль «между» q(ξ) по высоте под шаблон",
+  "goal": "Вывести профиль «между» по высоте q(ξ), с которым «пузыри шаблона + между» дают целевой профиль подъёма по высоте (а не только по среднему потоку), и сверить целевой профиль с литературой.",
+  "plan_ref": "Задачи, круг 3 п. 5",
+  "contracts": [
+    {
+      "name": "TB1",
+      "version": "4",
+      "ref": "docs/contracts/thermal-bubble.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/thermal-bubble-TB-12",
+  "branch": "thermal-bubble/TB-12",
+  "base": "feature/thermal-bubble",
+  "scope": [
+    "tools/research/thermal_bubble/round3/between.py",
+    "tools/research/thermal_bubble/round3/between.md",
+    "tools/research/thermal_bubble/out/round3_between.json",
+    "tools/research/thermal_bubble/round3/between_*.png"
+  ],
+  "dont_touch": [
+    "tools/research/thermal_bubble/bubble.py",
+    "tools/research/thermal_bubble/current.py",
+    "tools/research/thermal_bubble/compare.py",
+    "tools/research/thermal_bubble/contract/",
+    "tools/research/thermal_bubble/out/compare.json",
+    "tools/research/thermal_bubble/out/embed_fixture.json",
+    "tools/research/thermal_bubble/out/bench_fixture.json",
+    "rust/dp-air/src/",
+    "configs/",
+    "scripts/",
+    "data/",
+    "docs/contracts/",
+    "docs/research/thermal_bubble.md",
+    "docs/guide/",
+    "tools/research/thermal_bubble/round3/life.py",
+    "tools/research/thermal_bubble/round3/inflow.py",
+    "tools/research/thermal_bubble/round3/radius.py",
+    "tools/research/thermal_bubble/round3/life.md",
+    "tools/research/thermal_bubble/round3/inflow.md",
+    "tools/research/thermal_bubble/round3/radius.md"
+  ],
+  "accept": [
+    {
+      "name": "untouched",
+      "cmd": "git diff --quiet feature/thermal-bubble -- tools/research/thermal_bubble/bubble.py rust/dp-air/src configs scripts data",
+      "expect": "exit=0"
+    },
+    {
+      "name": "tb1",
+      "cmd": "python3 tools/research/thermal_bubble/contract/check_contract.py tb1",
+      "expect": "exit=0"
+    },
+    {
+      "name": "json",
+      "cmd": "tools/research/thermal_bubble/py -c \"import json;d=json.load(open('tools/research/thermal_bubble/out/round3_between.json'));assert d['recommendation'] and len(d['xi'])==21 and len(d['q_template'])==21 and len(d['q_now'])==21 and len(d['target'])==21;print('ok')\"",
+      "expect": "exit=0"
+    },
+    {
+      "name": "repro",
+      "cmd": "tools/research/thermal_bubble/py tools/research/thermal_bubble/round3/between.py --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "refs",
+      "cmd": "python3 -c \"import re;s=open('tools/research/thermal_bubble/round3/between.md').read();print('refs=%d'%len(set(re.findall(r'[A-ZА-Я][a-zа-яё]+[^,;()]{0,40}(?:19|20)[0-9][0-9]',s))))\"",
+      "expect": "num:refs=(\\d+) >=4"
+    },
+    {
+      "name": "md_docs",
+      "cmd": "grep -q '^## Рекомендация' tools/research/thermal_bubble/round3/between.md && .dpcli/dpcli docs check 2>&1",
+      "expect": "!re:ОШИБКА.*round3"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T15:40:20"
+}
