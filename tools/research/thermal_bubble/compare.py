@@ -1,7 +1,7 @@
-"""TB-2b: сверка шаблона пузыря (bubble.py) с литературой (literature.md) и нынешним профилем (current.py).
+"""TB-5 (шаблон v3; круг 1 — TB-2b): сверка шаблона пузыря (bubble.py) с литературой (literature.md) и нынешним профилем (current.py).
 
-Пишет out/compare.json (TB3 tb-compare), разрезы PNG в build/screenshots/thermal-bubble/tb2b_*.png и compare.md.
-Запуск: tools/research/thermal_bubble/py tools/research/thermal_bubble/compare.py   (~2-4 мин, один процесс)
+Пишет out/compare.json (TB3 tb-compare), разрезы PNG в build/screenshots/thermal-bubble/tb5_*.png (старые tb2b_* не трогаем); compare.md пишется вручную по out/compare.json.
+Запуск: tools/research/thermal_bubble/py tools/research/thermal_bubble/compare.py   (~6-10 мин, один процесс; под .dpcli/dpcli lock cpu tb5 --)
 Все оси: x, y — горизонталь, z вверх, земля z = 0. Поле пузыря осесимметрично и сносится ветром целиком, поэтому
 горизонтальные величины считаются в системе воздуха (Env(wind=0)); ветер поля нужен только для проверки дивергенции суммы.
 """
@@ -80,6 +80,97 @@ def disk_mean(rho, w, r0):
     m = rho <= r0
     return float(np.trapezoid(w[m] * rho[m], rho[m]) * 2 / r0 ** 2) if r0 and r0 > 0 else None
 
+
+
+# ---------------------------------------------------------------- баланс Φ (v3)
+PHI_UP_FRAC = 0.35 * 0.45     # Φ типичный, в w*: доля площади подъёма (L&S 1980, Stull 1988) × средний подъём ŵ_max (L&S 1980) = 0,1575
+CAP_W0 = 2.5                  # сила ядра не выше 2,5 w* (thermals.md, AM-07)
+
+
+def _smooth(x):
+    x = np.clip(x, 0.0, 1.0)
+    return x * x * (3.0 - 2.0 * x)
+
+
+def current_kbar() -> dict:
+    """K̄ нынешней модели, м²: (а) численно тем же определением, что у шаблона (средний по жизни и по столбу 0…z_l поток вверх
+    ∫max(w,0)dA на 1 м/с, current_w(allen_core), 28 слоёв), огибающая жизни — grow/mature/decay ThermalCfg::default (середины
+    180/510/225 с, smoothstep), жизнь БЕЗ паузы gap; (б) формула columns.rs: CORE_FLUX·π·r_c²·shape.mean(z_l)·life_mean
+    (life_mean включает паузу gap = 180 с и duty = 1)."""
+    g, m, d, gap = 180.0, 510.0, 225.0, 180.0
+    t = np.linspace(0.0, g + m + d, 20001)
+    env = np.where(t < g, _smooth(t / g), np.where(t < g + m, 1.0, 1.0 - _smooth((t - g - m) / d)))
+    env_mean = float(np.trapezoid(env, t) / (g + m + d))
+    nz = 28
+    zs = (np.arange(nz) + 0.5) * ZL / nz
+    rho = np.unique(np.concatenate([np.linspace(0, 150, 151), np.linspace(150, 1500, 271)]))
+    w = cur_w_ray(zs, rho, top=ZL, R=RA, w0=1.0)
+    area = np.trapezoid(np.maximum(w, 0.0) * 2 * np.pi * rho[None, :], rho, axis=1)
+    shape_num = float(area.mean())                                     # м² на 1 м/с пика, без жизни
+    # формула columns.rs
+    nq = 33
+    q = []
+    for n in range(nq):
+        xi = n / (nq - 1)
+        rf = max(0.45, xi ** (1 / 3) * (1 - 0.25 * xi) / 0.75)
+        dh = xi * ZL
+        vert = min(1.0, (dh / 150.0) ** (1 / 3)) if dh > 0 else 0.0
+        tp = float(cur.smoothstep(0.0, 120.0, ZL - dh))
+        q.append(rf * rf * vert * tp)
+    q_mean = float((np.sum(q) - 0.5 * (q[0] + q[-1])) / (nq - 1))
+    life_mean = (0.5 * g + m + 0.5 * d) / (g + m + d + gap)
+    shape_f = float(np.exp(-1.0) * np.pi * RA ** 2 * q_mean)           # CORE_FLUX π r_c² shape.mean
+    return {"numeric": shape_num * env_mean, "numeric_shape_no_life_m2": shape_num, "env_mean_no_gap": env_mean,
+            "formula_columns_rs": shape_f * life_mean, "formula_shape_m2": shape_f, "life_mean_with_gap": life_mean,
+            "shape_ratio_numeric_over_formula": shape_num / shape_f, "r_c_m": RA, "q_mean": q_mean}
+
+
+def balance(src: bb.Source) -> dict:
+    """Баланс Φ (типичный случай w* 2,56, z_i = z_l = 1400): n_A = 8,5/z_l² живых ядер, сила по правилу игры
+    w0 = min(2,5 w*, Φ/(n_A K̄)) (поток водосбора / поток одного пузыря), несомый ядрами поток = n_A K̄ w0, «между» = Φ − несомое."""
+    nA = 8.5 / ZL ** 2
+    ck = current_kbar()
+    w0_typ = 1.24 * WSTAR                                  # сила типичного случая: w0 = k·w*, k = 1,24 (thermals.md «Законы»)
+    kb_b = bb.kbar(ZL, src.tau, ENV0, w0_typ)
+    kb_b1 = bb.kbar(ZL, src.tau, ENV0, 1.0)               # v3: при w0 = 1 м/с (для сравнения)
+    kb_c = ck["numeric"]
+
+    def share(kbar_, phi):
+        w0 = min(CAP_W0 * WSTAR, phi / (nA * kbar_))
+        carried = nA * kbar_ * w0
+        return w0, carried
+
+    phi = PHI_UP_FRAC * WSTAR
+    w0_b, car_b = share(kb_b, phi)
+    w0_c, car_c = share(kb_c, phi)
+    w0_cf, car_cf = share(ck["formula_columns_rs"], phi)
+    # шаблон напрямую: поток при реальной силе w0_b (K̄ шаблона зависит от силы: жизнь ∝ 1/w0), не масштабом K̄·w0
+    flux_direct = bb.mean_up_flux(w0_b, ZL, src.tau, ENV0)
+    car_b_dir = nA * flux_direct
+    sens = []
+    for f in (0.1, PHI_UP_FRAC, 0.25):
+        p_ = f * WSTAR
+        sens.append({"phi_over_wstar": f, "share_bubble": share(kb_b, p_)[1] / p_, "share_current": share(kb_c, p_)[1] / p_,
+                     "between_bubble_over_wstar": (p_ - share(kb_b, p_)[1]) / WSTAR,
+                     "between_current_over_wstar": (p_ - share(kb_c, p_)[1]) / WSTAR})
+    return {
+        "case": {"wstar": WSTAR, "zi": ZI, "zl": ZL, "n_A_per_m2": nA, "cap_w0_over_wstar": CAP_W0, "phi_m_s": phi,
+                 "phi_over_wstar": PHI_UP_FRAC,
+                 "phi_definition": "Φ типичный = доля площади подъёма 0,35 × средний подъём ŵ_max 0,45 w* (Lenschow–Stephens 1980; Stull 1988): "
+                                   "восходящий массовый поток на единицу площади, м/с; НЕ F̄ + W̄ поля игры (оно зависит от места)"},
+        "kbar_bubble": kb_b, "kbar_bubble_w0_1": kb_b1, "kbar_w0_typical_m_s": w0_typ, "kbar_current": kb_c, "kbar_current_formula": ck["formula_columns_rs"],
+        "kbar_current_detail": ck,
+        "w0_rule_bubble_m_s": w0_b, "w0_rule_current_m_s": w0_c,
+        "core_share_phi_bubble": car_b / phi, "core_share_phi_current": car_c / phi,
+        "core_share_phi_current_formula_kbar": car_cf / phi,
+        "core_share_phi_bubble_direct": car_b_dir / phi, "flux_direct_bubble_m3_s": flux_direct,
+        "core_share_phi_measured": bb.PARAMS["core_flux_fraction"]["value"],
+        "between_bubble_over_wstar": (phi - car_b) / WSTAR, "between_current_over_wstar": (phi - car_c) / WSTAR,
+        "between_bubble_direct_over_wstar": (phi - car_b_dir) / WSTAR,
+        "between_measured_over_wstar": phi * (1 - bb.PARAMS["core_flux_fraction"]["value"]) / WSTAR,
+        "sensitivity_phi": sens,
+        "note": "K̄ шаблона по контракту = при w0 = 1 м/с, жизнь долгая (до крышки и дальше), поэтому K̄_b·w0 занижает поток сильного пузыря; "
+                "*_direct — поток при реальной силе. Капа 2,5 w* достигнута у обоих при типичном Φ."}
 
 # ---------------------------------------------------------------- один термик: временной скан
 def scan_single(src: bb.Source, ts, zeta_core, z_ground, zeta_top, zeta_ring, rho=RHO):
@@ -218,6 +309,17 @@ def main() -> int:
     stw = bb.state(SRC, ENVW, 300.0)
     Pq = np.array([[stw.xc + 80.0, 0.0, 30.0]]); Pq0 = np.array([[st.xc + 80.0, 0.0, 30.0]])
     sanity_wind = float(np.abs(bb.velocity(Pq, [stw], ENVW) - bb.velocity(Pq0, [st], ENV0)).max())
+    # подгонка ядра по измерениям (v3): радиус смены знака w шаблона на уровнях против L&S и Аллена
+    fit = {"alpha_thermal": bb.PARAMS["alpha_thermal"]["value"], "z_h_over_zi": bb._ZH_FRAC, "sign_over_R": bb._SIGN_OVER_R,
+           "alpha_allen_alt": bb._ALPHA_ALLEN, "z_h_over_zi_allen_alt": bb._ZH_FRAC_ALLEN, "levels": {}}
+    for zt in (0.2, 0.25, 0.5, 0.75, 0.8):
+        r_ls = 0.08 * zt ** (1 / 3) * (1 - 0.25 * zt)
+        r_al = 0.102 * zt ** (1 / 3) * (1 - 0.25 * zt)
+        r_tp = bb._SIGN_OVER_R * bb._AL_T * (zt * ZI + bb._ZH_FRAC * ZL) / ZI
+        fit["levels"][str(zt)] = {"lenschow_stephens": r_ls, "allen": r_al, "template_formula": r_tp,
+                                  "current": 0.0765 * ZL * max(0.45, zt ** (1 / 3) * (1 - 0.25 * zt) / 0.75) / ZI}
+    details["core_fit"] = fit
+    details["balance"] = balance(SRC)
     details["sanity"] = {"axisym_rel_spread_ur_80m": sanity_axisym, "wind_shift_invariance_abs": sanity_wind}
 
     # ------------------------------------------------ 1. один термик, скан
@@ -380,7 +482,8 @@ def main() -> int:
 
     sens = []
     variants = [("base", SRC)] + [(f"zeta_b0={z}", dataclasses.replace(SRC, b0=zb(z))) for z in (0.05, 0.2)] + \
-               [(f"tau x{f}", dataclasses.replace(SRC, tau=SRC.tau * f)) for f in (0.6, 1.4)]
+               [(f"tau x{f}", dataclasses.replace(SRC, tau=SRC.tau * f)) for f in (0.6, 1.4)] + \
+               [("F0 = весь поток водосбора (v2, без доли ядра)", dataclasses.replace(SRC, F0=SRC.F0 / bb.PARAMS["core_flux_fraction"]["value"]))]
     for name, s_ in variants:
         te = life_end(s_)
         ts = np.arange(30.0, te - 1.0, 30.0)
@@ -564,9 +667,9 @@ def main() -> int:
          "note": row_core_note},
         {"quantity": "core_radius_over_zi", "unit": "z_i", "bubble": r0_b / ZI, "current": r0_c / ZI,
          "literature": 0.0555, "lit_range": [0.036, 0.09],
-         "source": "Lenschow & Stephens 1980: d/z_i = 0,16 ζ^⅓(1−0,25ζ) ⇒ радиус 0,0555 z_i при ζ = 0,5 (high); Allen 2006 r₂ = 0,071 z_i; Ansmann et al. 2010 (лидар) 0,08–0,09 z_i",
+         "source": "Lenschow & Stephens 1980: d/z_i = 0,16 ζ^⅓(1−0,25ζ) ⇒ радиус 0,0555 z_i при ζ = 0,5 (high); Allen 2006 r₂ = 0,071 z_i; Ansmann et al. 2010 (лидар) 0,08–0,09 z_i. v3: α_thermal шаблона подогнан к L&S МНК на ζ 0,2–0,8 (привязка к измерению, не подгонка под этот ряд)",
          "note": f"Радиус первой смены знака w (+ → −) на ζ = 0,5 в момент, когда центр головы на этом уровне (t = {prof[0.5]['t_head']:.0f} с, R головы = {prof[0.5]['R_head']:.0f} м); "
-                 f"нынешняя: x = 1 гауссианы Гедеона на ζ = 0,5 (r = R·rf). Определение одинаково для обеих и для литературы (радиус ядра, а не полуширина). "
+                 f"нынешняя: x = 1 гауссианы Гедеона на ζ = 0,5 (r = R·rf). Определение одинаково для обеих и для литературы (радиус ядра = полуширина d/2 условной выборки ≈ радиус смены знака w; у шаблона — на экваторе головы). "
                  f"ζ = 0,25: шаблон {prof[0.25]['r0_bubble']/ZI:.3f}, нынешняя {prof[0.25]['r0_current']/ZI:.3f}; ζ = 0,75: шаблон {prof[0.75]['r0_bubble']/ZI:.3f}, нынешняя {prof[0.75]['r0_current']/ZI:.3f} z_i."},
         {"quantity": "rise_speed_over_wstar", "unit": "w*", "bubble": rise_05, "current": None, "literature": None,
          "lit_range": None, "source": "числа нет: Scorer 1957 / Turner 1973 — теория, но не измерение в CBL; Ansmann 2010: w воздуха в апдрафте 0,4–0,5 м/с (100–200 м), ~1,5 м/с (>600 м) — не скорость вершины",
@@ -623,7 +726,7 @@ def main() -> int:
     axs[0].set_ylabel("высота z, м")
     fig.colorbar(im, ax=axs, shrink=0.8, label="w, м/с (стрелки — (u, w))")
     fig.suptitle(f"Шаблон пузыря: разрез x–z через ось, w* = {WSTAR} м/с, z_i = {ZI:.0f} м")
-    p = FIGDIR / "tb2b_1_template_xz.png"; fig.savefig(p, dpi=110); plt.close(fig); figures.append(str(p))
+    p = FIGDIR / "tb5_1_template_xz.png"; fig.savefig(p, dpi=110); plt.close(fig); figures.append(str(p))
 
     # 2. нынешняя модель: столб растёт вслед за шаблоном (top = верх головы шаблона в тот же момент)
     fig, axs = plt.subplots(1, 4, figsize=(16, 5.2), sharey=True)
@@ -639,7 +742,7 @@ def main() -> int:
     axs[0].set_ylabel("высота z, м")
     fig.colorbar(im, ax=axs, shrink=0.8, label="w, м/с (та же шкала)")
     fig.suptitle("Нынешняя модель (Гедеон/Аллен): столб, верх = верх головы шаблона в тот же момент; горизонтальной скорости нет")
-    p = FIGDIR / "tb2b_2_current_xz.png"; fig.savefig(p, dpi=110); plt.close(fig); figures.append(str(p))
+    p = FIGDIR / "tb5_2_current_xz.png"; fig.savefig(p, dpi=110); plt.close(fig); figures.append(str(p))
 
     # 3. горизонтальные: z = 30 м в момент максимума притока; ζ = 0.9 в момент максимума растекания
     XY = np.linspace(-700, 700, 71)
@@ -657,7 +760,7 @@ def main() -> int:
         ax.set_title(ttl + f"\nmax |(u, v)| = {uh_:.2f} м/с")
         fig.colorbar(im, ax=ax, shrink=0.8, label="w, м/с")
     fig.suptitle("Шаблон: горизонтальные сечения, цвет w, стрелки (u, v) — к оси у земли, от оси у верха")
-    p = FIGDIR / "tb2b_3_template_horizontal.png"; fig.savefig(p, dpi=110); plt.close(fig); figures.append(str(p))
+    p = FIGDIR / "tb5_3_template_horizontal.png"; fig.savefig(p, dpi=110); plt.close(fig); figures.append(str(p))
 
     # 4. несколько термиков (6, непериодично): x–z через ряд y=0 и y=h; горизонталь ζ=0.5 и z=30 м
     Xm = np.linspace(-500, 2 * d_sp + 500, 160); Zm = np.linspace(2, 1398, 120)
@@ -685,7 +788,7 @@ def main() -> int:
         ax.plot(sites[:, 0], sites[:, 1], "k^"); ax.set_aspect("equal"); ax.set_title(ttl + "; цвет w, стрелки (u, v)")
         ax.set_xlabel("x, м"); ax.set_ylabel("y, м"); fig.colorbar(im, ax=ax, shrink=0.8, label="w, м/с")
     fig.suptitle(f"Шесть термиков на решётке n_A = 8,5/z_l² (шаг {d_sp:.0f} м), фазы по возрасту, момент «все живы»")
-    p = FIGDIR / "tb2b_4_multi.png"; fig.savefig(p, dpi=105); plt.close(fig); figures.append(str(p))
+    p = FIGDIR / "tb5_4_multi.png"; fig.savefig(p, dpi=105); plt.close(fig); figures.append(str(p))
 
     # 5. профили w(r) на ζ = 0.25/0.5/0.75 шаблон vs нынешняя; поток массы через ζ=0.5 во времени
     fig, axs = plt.subplots(1, 4, figsize=(17, 4.4))
@@ -702,7 +805,7 @@ def main() -> int:
     axs[3].axhline(flux["0.5"]["current"]["down"], color="C1", ls="--", label="вниз (нынешняя)")
     axs[3].set_xlabel("t, с"); axs[3].set_ylabel("поток через ζ = 0,5, м³/с"); axs[3].legend(fontsize=7)
     fig.suptitle("Профиль w(ρ) в ядре и поток массы через уровень (один термик)")
-    p = FIGDIR / "tb2b_5_profiles_flux.png"; fig.tight_layout(); fig.savefig(p, dpi=110); plt.close(fig); figures.append(str(p))
+    p = FIGDIR / "tb5_5_profiles_flux.png"; fig.tight_layout(); fig.savefig(p, dpi=110); plt.close(fig); figures.append(str(p))
 
     # ------------------------------------------------ вывод
     result = {"format": "tb-compare", "version": 1, "case": case, "rows": rows,

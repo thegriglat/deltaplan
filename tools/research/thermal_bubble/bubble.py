@@ -1,10 +1,11 @@
-"""Шаблон пузыря-термика (TB1): голова Хилла + шлейф Тёрнера + отражения, функция тока Стокса.
+"""Шаблон пузыря-термика (TB1 v3): голова Хилла + шлейф Тёрнера + отражения, функция тока Стокса.
 
 Только numpy. Контракт: docs/contracts/thermal-bubble.md, раздел TB1. Ось z вверх, земля z = 0.
 
 Поле каждого пузыря — сумма осесимметричных вкладов, каждый выражен через функцию тока Стокса
 psi(rho, s): u_rho = -(1/rho) d psi/ds, u_s = (1/rho) d psi/d rho  =>  div v = 0 тождественно.
-  * голова — сферический вихрь Хилла (вертикальная ось через центр головы);
+  * голова — сферический вихрь Хилла (вертикальная ось через центр головы); v3: край r = R сглажен в оболочке
+    толщиной hill_shell·R смешиванием функций тока ψ = (1 − s)ψ_in + s ψ_out (s — квинтика), а не скоростей;
   * шлейф — трубка (rho < b) с потоком Q(s), снаружи — потенциальный приток вовлечения
     (линия стоков плотности -dQ/ds на оси), сшивка гладким весом chi(rho/b) на [b, 1.5 b];
   * земля и крышка — метод изображений (зеркальные образы, ряд по обеим плоскостям).
@@ -18,13 +19,73 @@ from typing import Sequence
 import numpy as np
 
 # ---------------------------------------------------------------- числа из литературы
-_ALPHA_TH = 0.25
+# --- ядро по измерениям (Q1 п. 1, 2026-11-09): радиус головы растёт с высотой, как измеренный радиус ядра в слое конвекции.
+# Lenschow & Stephens 1980: диаметр ядра d/z_i = 0,16 ζ^⅓(1 − 0,25ζ) (самолёт, условная выборка), радиус ядра r = d/2.
+# Радиус ядра в шаблоне и в эталоне — ПЕРВАЯ СМЕНА ЗНАКА w на горизонтали через центр головы: у вихря Хилла на
+# экваторе w = U(5/2 − 3ρ²/R²) ⇒ r_sign = sqrt(5/6) R = 0,9129 R. Поэтому R(ζ) = r_LS(ζ)/0,9129, линейная МНК-подгонка
+# R = α(z + z_h) на ζ = 0,2…0,8 (25 точек): α = dR/dz головы, z_h — глубина вершины конуса под землёй (∝ z_i).
+_HILL_SHELL = 0.2     # PARAMS["hill_shell"]: см. там
+
+
+def _eq_w(x: float, shell: float) -> float:
+    """w/U на экваторе головы (R = 1, U = 1) при ρ = x: w = 2g + ρ g'(r)·ρ/r с r = ρ (s_z = 0)."""
+    r1, r2 = 1.0 - 0.5 * shell, 1.0 + 0.5 * shell
+    u = min(max((x - r1) / (r2 - r1), 0.0), 1.0)
+    sm = u ** 3 * (10.0 - 15.0 * u + 6.0 * u * u)
+    dsm = 30.0 * u ** 2 * (1.0 - u) ** 2 / (r2 - r1)
+    xs = max(x, r1)
+    g_in, g_out = 1.25 - 0.75 * x * x, 0.5 / xs ** 3
+    dgr = (1.0 - sm) * (-1.5) + sm * (-1.5 / xs ** 5) + dsm * (g_out - g_in) / xs
+    return 2.0 * ((1.0 - sm) * g_in + sm * g_out) + x * x * dgr
+
+
+def _sign_over_r(shell: float) -> float:
+    """Радиус смены знака w на экваторе / R (бисекция). Хилл без оболочки: sqrt(5/6) = 0,9129."""
+    lo, hi = 0.5, 1.5
+    for _ in range(60):
+        mid = 0.5 * (lo + hi)
+        lo, hi = (mid, hi) if _eq_w(mid, shell) > 0.0 else (lo, mid)
+    return 0.5 * (lo + hi)
+
+
+_SIGN_OVER_R = _sign_over_r(_HILL_SHELL)
+
+
+def _fit_core(c_d: float = 0.16) -> tuple[float, float]:
+    zeta = np.linspace(0.2, 0.8, 25)
+    r = 0.5 * c_d * zeta ** (1.0 / 3.0) * (1.0 - 0.25 * zeta) / _SIGN_OVER_R      # R/z_i по LS
+    slope, icpt = np.polyfit(zeta, r, 1)
+    return float(slope), float(icpt / slope)
+
+
+_ALPHA_TH, _ZH_FRAC = _fit_core()                  # α = dR/dz (≈ 0,027), z_h/z_i (≈ 1,6)
+_ALPHA_ALLEN, _ZH_FRAC_ALLEN = _fit_core(0.204)    # Аллен 2006: r₂ = 0,102 ζ^⅓(1 − 0,25ζ) z_l (справка, чувствительность)
 _K_ADDED = 0.5
+_A_CORE, _A_UP = 0.13, 0.35                        # доли площади: ядра Аллена; воздух подъёма (L&S 1980, Stull 1988)
+_CORE_FLUX_FRAC = _A_CORE / _A_UP                  # 0,371
 PARAMS: dict[str, dict] = {
     "alpha_thermal": {
-        "value": _ALPHA_TH, "unit": "1 (dR/dz)", "reliability": "medium",
-        "source": "Scorer 1957 (J. Fluid Mech. 2, 583); Morton, Taylor & Turner 1956 (Proc. R. Soc. A 234, 1); "
-                  "Turner 1969 (Ann. Rev. Fluid Mech. 1, 29); лаборатория 0,25–0,34 (по обзору в arXiv:astro-ph/0008099)",
+        "value": _ALPHA_TH, "unit": "1 (dR/dz головы, R — радиус Хилла)", "reliability": "medium",
+        "source": "Lenschow & Stephens 1980 (Boundary-Layer Meteorol. 19, 509): d/z_i = 0,16 ζ^⅓(1−0,25ζ), самолёт, условная выборка "
+                  "ядер, радиус ядра = d/2 = радиус смены знака w (у Хилла sqrt(5/6)R = 0,913R, со сглаженным краем hill_shell 0,2 — %.3fR, считается в коде); линейная МНК R = α(z + z_h) на ζ 0,2–0,8; "
+                  "z_h = %.2f z_i. Аллен 2006 (AIAA 2006-1510) r₂ = 0,102ζ^⅓(1−0,25ζ): α = %.3f (в %.2f раза больше)"
+                  % (_SIGN_OVER_R, _ZH_FRAC, _ALPHA_ALLEN, _ALPHA_ALLEN / _ALPHA_TH),
+    },
+    "alpha_thermal_lab": {
+        "value": 0.25, "unit": "1 (dR/dz)", "reliability": "medium",
+        "source": "справка, в расчёте не участвует: Scorer 1957 (J. Fluid Mech. 2, 583); Morton, Taylor & Turner 1956 (Proc. R. Soc. A 234, 1); "
+                  "Turner 1969 (Ann. Rev. Fluid Mech. 1, 29); лаборатория 0,25–0,34 (обзор arXiv:astro-ph/0008099)",
+    },
+    "core_flux_fraction": {
+        "value": _CORE_FLUX_FRAC, "unit": "1 (доля потока плавучести водосбора, несомая ядром)", "reliability": "low",
+        "source": "вывод без прямого измерения: доля площади ядер Аллена 2006 (0,13) / доля площади подъёма Lenschow & Stephens 1980, "
+                  "Stull 1988 гл. 4 (0,35) = 0,37 при равном среднем w·θ′ ядра и остального подъёма; сильнее среднего — больше "
+                  "(ядро вдвое сильнее ⇒ 0,70); совпадает с 37–45 % Φ днём в AM-07б; выкладка — README",
+    },
+    "hill_shell": {
+        "value": _HILL_SHELL, "unit": "1 (доля R, полная толщина оболочки)", "reliability": "low",
+        "source": "решение Q1 2026-11-09, ~0,2R; метрика инварианта 10 на экваторе при 0,2 ≈ 1,02 (порог TB1 v4 ≤ 1,2; излом Хилла 7,5); литература — разрежённый край вихревого кольца (Lecoanet & Jeevanjee 2019, "
+                  "arXiv:1804.09326): непрерывная граница головы; число не измерено",
     },
     "added_mass_k": {
         "value": _K_ADDED, "unit": "1", "reliability": "high",
@@ -33,9 +94,10 @@ PARAMS: dict[str, dict] = {
     },
     "C_thermal": {
         "value": 1.0 / np.sqrt(2.0 * (1.0 + _K_ADDED) * _ALPHA_TH), "unit": "1 (U = C sqrt(g' R))",
-        "reliability": "medium",
-        "source": "вывод из импульса (1+k) d(V U)/dt = B при R = alpha z, B = g'V = const (Scorer 1957; "
-                  "Turner 1964, 1969): U = C sqrt(g'R), C = [2(1+k) alpha]^(-1/2) = 1,155; НЕ подогнано",
+        "reliability": "low",
+        "source": "вывод из импульса (1+k) d(V U)/dt = B при R = alpha (z + z_h), B = g'V = const (Scorer 1957; "
+                  "Turner 1964, 1969): U = C sqrt(g'R), C = [2(1+k) alpha]^(-1/2); со сниженным измеренным α подобие Скорера "
+                  "применено вне лабораторного диапазона; в динамике не участвует (K берётся из U при отрыве), только thermal_B; НЕ подогнано",
     },
     "alpha_plume": {
         "value": 0.12, "unit": "1 (db/dz, плоский профиль)", "reliability": "medium",
@@ -49,8 +111,8 @@ PARAMS: dict[str, dict] = {
     },
     "alpha_head": {
         "value": 0.15, "unit": "1 (R / z центра)", "reliability": "low",
-        "source": "Turner 1962 (J. Fluid Mech. 13, 356): шляпа стартового факела расширяется чуть больше чем на "
-                  "половину угла термика (0,5·0,25); число — оценка по этой фразе, оригинал не сверен",
+        "source": "справка v2, в v3 не участвует (радиус головы везде по измеренному alpha_thermal): Turner 1962 (J. Fluid Mech. 13, 356): "
+                  "шляпа стартового факела расширяется чуть больше чем на половину угла термика; число — оценка по фразе",
     },
     "plume_top_hat": {
         "value": 1.0, "unit": "1 (флаг: MTT с плоским профилем)", "reliability": "high",
@@ -60,10 +122,11 @@ PARAMS: dict[str, dict] = {
 }
 
 _AL_P = PARAMS["alpha_plume"]["value"]
-_AL_H = PARAMS["alpha_head"]["value"]
 _AL_T = PARAMS["alpha_thermal"]["value"]
 _C_T = PARAMS["C_thermal"]["value"]
 _PHI = PARAMS["front_fraction"]["value"]
+_CFF = PARAMS["core_flux_fraction"]["value"]
+_SHELL = PARAMS["hill_shell"]["value"]
 
 # численные константы шаблона (не физика)
 _S0 = 3.0          # м, сглаживание корня s²+s0² (при виртуальном источнике s ≥ z_v ≫ s0 — не влияет)
@@ -92,6 +155,7 @@ class Source:
     tau: float
     b0: float = _B0_DEF   # м, радиус шлейфа у земли (площадной источник; виртуальный источник z_v = 5 b0/(6 α_p))
     t_decay: float = 560.0  # с, время гашения головы у крышки (конвективное время z_i/w*)
+    zh: float = _ZH_FRAC * 1400.0   # м, вершина конуса головы под землёй: R = α(z + z_h), z_h = _ZH_FRAC·z_l
 
 
 @dataclass(frozen=True)
@@ -145,44 +209,48 @@ def _dss(x):
 
 
 # ---------------------------------------------------------------- траектория
-def _s0(zv: float) -> float:
-    """Начало жизни: голова радиуса R = α_h s_c, посаженная на землю (z_c = R), s_c = z_v/(1 − α_h);
-    верх головы (фронт) на s_f = (1 + α_h) z_v/(1 − α_h) (при α_h = 0,15, b0 = 65 м: z_f = 158 м)."""
-    return (1.0 + _AL_H) * zv / (1.0 - _AL_H)
+def _s0(zv: float, zh: float) -> float:
+    """Начало жизни (s = z + z_v): голова радиуса R = α(z_c + z_h), посаженная на землю (z_c = R = α z_h/(1 − α)),
+    верх головы (фронт) z_f = z_c + R."""
+    zc0 = _AL_T * zh / (1.0 - _AL_T)
+    return 2.0 * zc0 + zv
 
 
-def _front(F0: float, zv: float, tp: float) -> tuple[float, float]:
+def _front(F0: float, zv: float, zh: float, tp: float) -> tuple[float, float]:
     """Фронт стартового факела (Turner 1962) от виртуального источника: s^{4/3} = s_0^{4/3} + (4/3) φ kp t,
     s = z + z_v; возвращает (s_f, ds_f/dt)."""
     kp = _kp(F0)
-    s = (_s0(zv) ** (4.0 / 3.0) + 4.0 / 3.0 * _PHI * kp * tp) ** 0.75
+    s = (_s0(zv, zh) ** (4.0 / 3.0) + 4.0 / 3.0 * _PHI * kp * tp) ** 0.75
     return s, _PHI * kp * s ** (-1.0 / 3.0)
 
 
+def _head_from_front(zf: float, vf: float, zh: float) -> tuple[float, float, float]:
+    """(zc, R, U) головы по фронту: верх головы z_f = z_c + R, R = α(z_c + z_h) ⇒ z_c = (z_f − α z_h)/(1 + α)."""
+    zc = (zf - _AL_T * zh) / (1.0 + _AL_T)
+    return zc, _AL_T * (zc + zh), vf / (1.0 + _AL_T)
+
+
 def _raw(src: Source, tp: float) -> tuple[float, float, float]:
-    """(zc, R, U) без крышки; tp = t − t0 ≥ 0. Пока источник включён — голова на фронте шлейфа,
-    R = α_h (z_c + z_v) (конус от виртуального источника); после — свободный термик R = α_th (z − z_v')."""
+    """(zc, R, U) без крышки; tp = t − t0 ≥ 0. Радиус головы всегда R = α(z_c + z_h) (измеренный рост ядра, v3).
+    Пока источник включён — голова на фронте шлейфа; после — свободный термик, U (z_c + z_h) = K (подобие Скорера)."""
     zv = _zv(src.b0)
-    k = 1.0 + _AL_H
     if tp <= src.tau:
-        sf, vf = _front(src.F0, zv, tp)
-        sc = sf / k
-        return sc - zv, _AL_H * sc, vf / k
-    sf, vf = _front(src.F0, zv, src.tau)
-    sc0 = sf / k
-    zc0, R0 = sc0 - zv, _AL_H * sc0
-    zvt = zc0 - R0 / _AL_T
-    K = (vf / k) * (R0 / _AL_T)  # непрерывность U при отрыве; B_head = thermal_B(): см. README
-    d = np.sqrt((R0 / _AL_T) ** 2 + 2.0 * K * (tp - src.tau))
-    return zvt + d, _AL_T * d, K / d
+        sf, vf = _front(src.F0, zv, src.zh, tp)
+        return _head_from_front(sf - zv, vf, src.zh)
+    sf, vf = _front(src.F0, zv, src.zh, src.tau)
+    zc0, R0, U0 = _head_from_front(sf - zv, vf, src.zh)
+    d0 = zc0 + src.zh
+    K = U0 * d0     # непрерывность U при отрыве; B_head = thermal_B(): см. README
+    d = np.sqrt(d0 ** 2 + 2.0 * K * (tp - src.tau))
+    return d - src.zh, _AL_T * d, K / d
 
 
 def thermal_B(src: Source) -> float:
     """Плавучесть головы после отрыва, м⁴/с²: из непрерывности U (U = C sqrt(3B/4pi)/(alpha_th d), K = U d);
     доля от F0·tau — сколько несёт голова, остальное осталось в шлейфе и следе."""
-    sf, vf = _front(src.F0, _zv(src.b0), src.tau)
-    k = 1.0 + _AL_H
-    K = (vf / k) * (_AL_H * sf / k / _AL_T)
+    sf, vf = _front(src.F0, _zv(src.b0), src.zh, src.tau)
+    zc0, R0, U0 = _head_from_front(sf - _zv(src.b0), vf, src.zh)
+    K = U0 * (zc0 + src.zh)
     return 4.0 * np.pi / 3.0 * (K * _AL_T / _C_T) ** 2
 
 
@@ -302,33 +370,138 @@ def state(src: Source, env: Env, t: float) -> State | None:
 
 
 def from_game(x: float, y: float, t0: float, wstar: float, zl: float, env: Env) -> Source:
-    """F0 = (w*^3/z_l) / n_A, n_A = 8,5/z_l^2 (Дирдорф 1970; Аллен 2006): F0 = w*^3 z_l / 8,5.
+    """v3: F0 = core_flux_fraction · (w*^3/z_l) · z_l²/8,5 = core_flux_fraction · w*^3 z_l / 8,5
+    (Дирдорф 1970: (g/θ0)H_kin = w*^3/z_l; Аллен 2006: n_A = 8,5/z_l² ядер на м²; ядро несёт измеренную долю потока водосбора).
     tau — время работы источника: ДОПУЩЕНИЕ (не вывод из баланса): рост + зрелость термика игры
     (ThermalCfg::default: grow_s 120–240, mature_s 300–720, середины 180 + 510 = 690 с).
     b0 — радиус шлейфа у земли = радиус ядра Аллена r₂(ζ = 0,1) = 0,0461 z_l (Allen 2006).
-    t_decay — время гашения головы у крышки: конвективное время z_l/w* (Lenschow–Stephens: жизнь термика ~ z_i/w*)."""
-    F0 = wstar ** 3 * zl / 8.5
-    return Source(x=x, y=y, t0=t0, F0=F0, tau=_T_GROW + _T_MATURE, b0=_B0_FRAC * zl, t_decay=zl / wstar)
+    t_decay — время гашения головы у крышки: конвективное время z_l/w* (Lenschow–Stephens: жизнь термика ~ z_i/w*).
+    zh — вершина конуса головы: z_h = _ZH_FRAC·z_l (подгонка L&S, см. PARAMS)."""
+    F0 = _CFF * wstar ** 3 * zl / 8.5
+    return Source(x=x, y=y, t0=t0, F0=F0, tau=_T_GROW + _T_MATURE, b0=_B0_FRAC * zl, t_decay=zl / wstar,
+                  zh=_ZH_FRAC * zl)
+
+
+def _axis_wmax(src: Source, env: Env, dt: float = 10.0, dz: float = 5.0) -> float:
+    """Максимум w на оси за жизнь: моменты шагом dt до конца жизни, ось z = 1…z_i шагом dz (как в контрактном тесте)."""
+    tr = _traj(src, env)
+    z = np.arange(1.0, env.zi + 1e-9, dz)
+    best = 0.0
+    for t in np.arange(src.t0 + dt, src.t0 + tr.t_end, dt):
+        st = state(src, env, float(t))
+        if st is None:
+            break
+        P = np.stack([np.full_like(z, st.xc), np.full_like(z, st.yc), z], -1)
+        best = max(best, float(velocity(P, [st], env)[:, 2].max()))
+    return best
+
+
+def from_strength(x: float, y: float, t0: float, w0: float, zl: float, tau: float, env: Env) -> Source:
+    """Источник по силе термика игры: F0 подобран так, что максимум w на оси за жизнь = w0 (отн. ошибка ≤ 2 %, сходимость ≤ 0,3 %).
+    Шлейф ∝ F0^⅓, голова иначе (U — из фронта, ∝ F0^⅓ тоже, но Хилл + крышка + шлейф-голова нелинейны) — точной степени нет;
+    max w монотонен по F0: секущая по log F0 (старт — степень ⅓ от from_game), затем бисекция по скобке.
+    Остальное — как from_game (b0, zh — по zl; t_decay = 1,24·z_l/w0 — в игре w0 = 1,24 w*)."""
+    import dataclasses
+
+    base = from_game(x, y, t0, w0 / 1.24, zl, env)
+    base = dataclasses.replace(base, tau=tau)
+    key = (x, y, t0, round(w0, 12), zl, tau, env)
+    hit = _FS_CACHE.get(key)
+    if hit is not None:
+        return hit
+
+    def f(lf: float) -> float:
+        return np.log(_axis_wmax(dataclasses.replace(base, F0=float(np.exp(lf))), env) / w0)
+
+    lf = float(np.log(base.F0))
+    e = f(lf)
+    pts = [(lf, e)]
+    for _ in range(14):
+        if abs(e) < 0.003:
+            break
+        step = 3.0 * (-e) if len(pts) == 1 else None
+        if len(pts) == 1:
+            nl = lf + step                          # w ∝ F0^⅓ ⇒ Δlog F0 = 3 Δlog w
+        else:
+            (la, ea), (lb, eb) = pts[-2], pts[-1]
+            nl = lb - eb * (lb - la) / (eb - ea) if abs(eb - ea) > 1e-12 else lb - 3.0 * eb
+            nl = float(np.clip(nl, lb - 2.0, lb + 2.0))
+        lf, e = nl, f(nl)
+        pts.append((lf, e))
+    best = min(pts, key=lambda p: abs(p[1]))
+    out = dataclasses.replace(base, F0=float(np.exp(best[0])))
+    _FS_CACHE[key] = out
+    return out
+
+
+_FS_CACHE: dict = {}
+_KBAR_CACHE: dict = {}
+
+
+def mean_up_flux(w0: float, zl: float, tau: float, env: Env) -> float:
+    """Средний по жизни (t0…конец) и по столбу 0…zl поток вверх ∫max(w,0)dA, м³/с, одного пузыря from_strength(w0, zl, tau).
+    Сечения z — середины 28 слоёв, t — шаг 30 с, ρ до 900 м (положительная область головы и шлейфа; дальше w ≤ 0),
+    91 узел трапеций, плотнее у оси. Ветер сносит всё целиком — считаем без него."""
+    import dataclasses
+
+    envn = dataclasses.replace(env, wind=(0.0, 0.0))
+    key = (round(w0, 12), zl, tau, envn)
+    hit = _KBAR_CACHE.get(key)
+    if hit is not None:
+        return hit
+    src = from_strength(0.0, 0.0, 0.0, w0, zl, tau, envn)
+    tr = _traj(src, envn)
+    nz = 28
+    zs = (np.arange(nz) + 0.5) * zl / nz
+    rho = np.unique(np.concatenate([np.linspace(0.0, 150.0, 46), np.linspace(150.0, 900.0, 45)[1:]]))
+    P = np.zeros((nz, rho.size, 3))
+    P[..., 0] = rho[None, :]
+    P[..., 2] = zs[:, None]
+    ts = np.arange(15.0, tr.t_end, 30.0)
+    acc = []
+    for t in ts:
+        st = state(src, envn, float(t))
+        if st is None:
+            acc.append(0.0)
+            continue
+        w = velocity(P, [st], envn)[..., 2]
+        f = np.trapezoid(np.maximum(w, 0.0) * 2.0 * np.pi * rho[None, :], rho, axis=1)
+        acc.append(float(f.mean()))
+    out = float(np.mean(acc))        # равномерная сетка по жизни t0…t_end
+    _KBAR_CACHE[key] = out
+    return out
+
+
+def kbar(zl: float, tau: float, env: Env, w0: float) -> float:
+    """K̄ шаблона, м² (v4): средний по жизни и по столбу 0…zl поток вверх пузыря from_strength(w0, zl, tau), делённый на w0
+    (см. mean_up_flux). Поток растёт с силой нелинейно (жизнь и подобие зависят от F0), поэтому w0 — сила типичного случая."""
+    return mean_up_flux(w0, zl, tau, env) / w0
 
 
 # ---------------------------------------------------------------- вклад одного пузыря
 def _hill(P, st: State) -> np.ndarray:
-    dx, dy, s = P[:, 0] - st.xc, P[:, 1] - st.yc, P[:, 2] - st.zc
-    r2 = dx * dx + dy * dy + s * s
+    """Голова: ψ = ρ² g(r), g = (1 − s) g_in + s g_out; r ∈ [R(1 − δ/2), R(1 + δ/2)] — оболочка сглаживания (δ = hill_shell),
+    s — квинтика 6x⁵ − 15x⁴ + 10x³ (C²). g_in = U(5/4 − 3r²/4R²), g_out = (U/2)R³/r³ (Хилл). w = 2g + ρ² g'/r,
+    u_ρ = −ρ s_z g'/r ⇒ ∇·v = 0 тождественно; вне оболочки — Хилл как есть."""
+    dx, dy, sz = P[:, 0] - st.xc, P[:, 1] - st.yc, P[:, 2] - st.zc
     rho2 = dx * dx + dy * dy
+    r2 = rho2 + sz * sz
     U, R = (st.U if st.Uh < 0.0 else st.Uh), st.R
-    inside = r2 < R * R
-    r = np.sqrt(np.where(inside, 1.0, r2))
-    r5 = r ** 5
-    kin = 1.5 * U * s / (R * R)
-    kout = 1.5 * U * R ** 3 * s / r5
-    k = np.where(inside, kin, kout)
-    w_in = U + 1.5 * U * (1.0 - r2 / (R * R)) - 1.5 * U * rho2 / (R * R)
-    w_out = U * R ** 3 / r ** 3 - 1.5 * U * R ** 3 * rho2 / r5
+    r1, r2o = R * (1.0 - 0.5 * _SHELL), R * (1.0 + 0.5 * _SHELL)
+    r = np.sqrt(r2)
+    rs = np.maximum(r, r1)                 # g_out нужна только при r ≥ r1 (s = 0 ниже); без деления на ноль в центре
+    x = np.clip((r - r1) / (r2o - r1), 0.0, 1.0)
+    sm = x ** 3 * (10.0 - 15.0 * x + 6.0 * x * x)
+    dsm = 30.0 * x ** 2 * (1.0 - x) ** 2 / (r2o - r1)
+    g_in = U * (1.25 - 0.75 * r2 / (R * R))
+    g_out = 0.5 * U * R ** 3 / rs ** 3
+    g = (1.0 - sm) * g_in + sm * g_out
+    # g'(r)/r: внутри g_in'/r = −1,5U/R²; g_out'/r = −1,5U R³/r⁵; s' (g_out − g_in)/r — только в оболочке (r ≥ r1 > 0)
+    dgr = (1.0 - sm) * (-1.5 * U / (R * R)) + sm * (-1.5 * U * R ** 3 / rs ** 5) + dsm * (g_out - g_in) / rs
     out = np.empty_like(P)
-    out[:, 0] = k * dx
-    out[:, 1] = k * dy
-    out[:, 2] = np.where(inside, w_in, w_out)
+    out[:, 0] = -sz * dgr * dx
+    out[:, 1] = -sz * dgr * dy
+    out[:, 2] = 2.0 * g + rho2 * dgr
     return out
 
 
