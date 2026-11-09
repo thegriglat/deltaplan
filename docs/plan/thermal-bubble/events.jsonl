@@ -30,3 +30,7 @@
 {"t": "2026-11-09T08:33:50", "by": "coordinator", "task": "TB-2a", "ev": "accepted", "note": "по отчёту: литературный обзор, пробелы inflow/outflow — null с причиной; 2 доработки исчерпаны"}
 {"t": "2026-11-09T08:33:57", "by": "coordinator", "task": "TB-2a", "ev": "accepted", "commits": ["4e09ffd66"], "note": "4/4 contract_tb2=ok:exit 0; unit=ok:exit 0; lit_rows=ok:exit 0; lit_docs=ok:exit 1"}
 {"t": "2026-11-09T08:33:57", "by": "coordinator", "task": "TB-2a", "ev": "merged"}
+{"t": "2026-11-09T08:40:58", "by": "executor", "task": "TB-1", "ev": "reported", "commits": ["2df44bd65"], "note": "done: bubble.py по TB1: голова Хилла + шлейф MTT (трубка + потенциальный приток линией стоков, сшивка ψ) + образы земли/крышк…", "dp_feedback": "task show --full даёт 31 КБ в одном выводе с обрезкой; дополнения координатора лучше выводить отдельной командой."}
+{"t": "2026-11-09T08:41:25", "by": "coordinator", "task": "TB-1", "ev": "checked", "note": "3/3 contract_tb1=ok:exit 0; unit=ok:exit 0; readme_docs=ok:exit 1; scope=FAIL:вне scope: r-TB-1.json"}
+{"t": "2026-11-09T08:41:51", "by": "coordinator", "task": "TB-1", "ev": "checked", "note": "3/3 contract_tb1=ok:exit 0; unit=ok:exit 0; readme_docs=ok:exit 1"}
+{"t": "2026-11-09T08:42:01", "by": "coordinator", "task": "TB-1", "ev": "note", "note": "ревью fable: B головы ≠ F0·tau (0,134), шлейф у земли 7 м/с"}
