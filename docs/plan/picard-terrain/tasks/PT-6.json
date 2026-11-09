@@ -1,0 +1,56 @@
+{
+  "id": "PT-6",
+  "module": "picard-terrain",
+  "type": "dp-writer",
+  "title": "Итог опыта: docs/research/picard_terrain.md и findings",
+  "goal": "Итоговый документ опыта picard-terrain по фактам PT-1..PT-5: разложение возврата разгона, сходимость и стоимость, ротор Perdigão, вывод что встраивать и нужна ли мельче сетка у земли; строки в registry/findings.md.",
+  "plan_ref": "Приёмка",
+  "contracts": [
+    {
+      "name": "PT4",
+      "version": "1",
+      "ref": "docs/contracts/picard-terrain.md"
+    },
+    {
+      "name": "PT5",
+      "version": "1",
+      "ref": "docs/contracts/picard-terrain.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/picard-terrain-PT-6",
+  "branch": "picard-terrain/PT-6",
+  "base": "feature/picard-terrain",
+  "scope": [
+    "docs/research/picard_terrain.md",
+    "docs/registry/findings.md",
+    "docs/INDEX.md",
+    "tools/research/picard_terrain/README.md"
+  ],
+  "dont_touch": [
+    "tools/research/picard_terrain/out",
+    "rust",
+    "docs/contracts",
+    "docs/plan",
+    "docs/guide"
+  ],
+  "accept": [
+    {
+      "name": "docs-check",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "sections",
+      "cmd": "grep -c '^## ' docs/research/picard_terrain.md",
+      "expect": "num:(\\d+) >=6"
+    },
+    {
+      "name": "findings",
+      "cmd": "grep -c 'research/picard_terrain.md#' docs/registry/findings.md",
+      "expect": "num:(\\d+) >=3"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T11:38:45"
+}
