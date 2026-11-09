@@ -86,6 +86,9 @@ enum Cmd {
         /// PT2: cut cells (sets `params.cut_cells = true`; the case must carry `vf`, `af_*`).
         #[arg(long)]
         cut_cells: bool,
+        /// Second-order advection correction (PT3), as for `solve`.
+        #[arg(long)]
+        adv2: Option<String>,
     },
 }
 
@@ -240,14 +243,7 @@ fn main() -> Result<()> {
             if cut_cells {
                 c.params.cut_cells = true;
             }
-            if let Some(name) = adv2 {
-                if name == "off" {
-                    c.params.adv2 = false;
-                } else {
-                    c.params.limiter = Limiter::from_name(&name)? as i64;
-                    c.params.adv2 = true;
-                }
-            }
+            apply_adv2(&mut c, adv2)?;
             let a = SolveArgs {
                 max_iters,
                 tol_scale,
@@ -268,11 +264,13 @@ fn main() -> Result<()> {
             solve,
             max_iters,
             cut_cells,
+            adv2,
         } => {
             let mut c = Case::load(&case)?;
             if cut_cells {
                 c.params.cut_cells = true;
             }
+            apply_adv2(&mut c, adv2)?;
             for &n in &threads {
                 let n = api::resolve_threads(n);
                 if solve {
@@ -328,6 +326,19 @@ fn main() -> Result<()> {
                     iter_s / iters as f64 * 1e3
                 );
             }
+        }
+    }
+    Ok(())
+}
+
+/// `--adv2 <off|linear|vanleer|vanalbada|minmod>` overrides `params.adv2`/`params.limiter`.
+fn apply_adv2(c: &mut Case, adv2: Option<String>) -> Result<()> {
+    if let Some(name) = adv2 {
+        if name == "off" {
+            c.params.adv2 = false;
+        } else {
+            c.params.limiter = Limiter::from_name(&name)? as i64;
+            c.params.adv2 = true;
         }
     }
     Ok(())

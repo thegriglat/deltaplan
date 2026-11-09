@@ -416,9 +416,6 @@ impl Consts {
             .as_ref()
             .is_none_or(|n| n.thbd.iter().all(|&x| x == 0.0));
         let p = &c.params;
-        if p.cut_cells && p.adv2 {
-            bail!("params.cut_cells with params.adv2: the combination is not implemented (separate task)");
-        }
         let kx = c.arr("Kx")?.clone();
         let ky = c.arr("Ky")?.clone();
         let kz = c.arr("Kz")?.clone();
