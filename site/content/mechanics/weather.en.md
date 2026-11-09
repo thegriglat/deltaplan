@@ -104,16 +104,17 @@ evening, so in a humid place the haze is thicker in the morning and evening.
 ## Forecast wind is open-terrain wind {#forecast-wind}
 
 The wind number in the "Flight…" window is understood by the model as the **open-terrain wind at a height of
-10 m**: the wind that blows over a flat field, which neither mountains nor forest reach. Above the launch the
+10 m**: the wind that blows over a flat field, which neither mountains nor forest reach. Above the valley level of the place (10th percentile of heights within 10 km) the
 wind grows by `gain_per_km` per kilometre of height (a factor from 0.5 to 2; the growth is taken from the
-climate of the place, from the ratio of the 700 hPa wind to the surface wind), and below it the wind is weaker.
-The air field is computed from the terrain, so at a particular launch the wind may differ from the forecast.
+climate of the place, from the ratio of the 700 hPa wind to the surface wind).
+The air field is computed from the terrain out of this wind at the edge of the area (inflow factor always 1, one pass);
+the field at the launch is not fitted to the forecast number, so at a particular launch the wind differs from the forecast.
+The launch hint shows the result: "At launch X m/s" (a number from the finished field).
 
 - **A launch on a windward slope or ridge.** The flow accelerates and the wind over the launch comes out
-  stronger than the forecast. In this case the model slightly weakens the inflow at the edge of the area so that
-  the launch gets the set number.
+  stronger than the forecast: on the training island at ridge_west a 6 m/s forecast gives 7.4 m/s at the launch, at Ongudai (151°) 7.7 m/s.
 - **A launch in the lee shadow (behind a mountain, behind a ridge).** Here the wind is honestly weaker than
-  the forecast: the inflow at the edge of the area is not boosted (the inflow factor is at most 1).
+  the forecast: in the lee_bowl hollow a 8.5 m/s forecast gives 1.2 m/s at the launch.
 
 What remains imprecise. At 100–200 m above the ground the wind at island launches stays 1.9–2.1 times above the
 forecast: this is the growth of wind with height and the acceleration over the island, not a model correction. It

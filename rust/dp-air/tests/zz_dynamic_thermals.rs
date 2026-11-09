@@ -91,7 +91,7 @@ fn formula(det: bool, preset: &str, sp: f64) -> Formula {
     // климат стенда: Tmax 24 °C, амплитуда 12 К (сетка HH5), остальное - запасные значения
     m.set_weather(common::const_hh5_weather(24, 12));
     let c = format!(
-        r#"{{"preset":{preset},"start_hour":12,"speed":1,"blend_s":null,"rebuild":false,"inflow_mode":"inflow"}}"#
+        r#"{{"preset":{preset},"start_hour":12,"speed":1,"blend_s":null,"rebuild":false}}"#
     );
     m.set_conditions(&Conditions::from_json(&c).unwrap())
         .unwrap();

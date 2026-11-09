@@ -19,7 +19,7 @@ related: ["docs/guide/air-model-gpu.md"]
 | `air_gpu_job.gd` (`AirGpuJob`) | каркас расчёта порциями: `start / poll / is_done / release`, `failed` |
 | `air_poisson_job.gd` (`AirPoissonJob`) | пример наследника: давление V-циклами до невязки |
 | `air_vec.glsl` | поэлементные: fill, copy, scale, axpy, xpay, axpby, mul |
-| `air_reduce.glsl` | сумма, max\|x\|, Σx·y — деревом, два прохода, без атомиков |
+| `air_reduce.glsl` | сумма, max\|x\|, Σx·y — деревом, в два шага, без атомиков |
 | `air_stencil.glsl` | 7-точечный шаблон: r = b − C·x, y = C·x |
 | `air_line.glsl` | прогонки по линиям в разделяемой памяти; упакованные системы; грубый уровень одной группой |
 | `air_line_mp.glsl` | многопроходная прогонка для линий > 1024 |

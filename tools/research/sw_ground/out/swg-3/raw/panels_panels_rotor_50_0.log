@@ -1,0 +1,5 @@
+/home/greg/worktrees/deltaplan/sw-ground-SWG-3/tools/research/sw_charges_3d/rotor3d/rotor.py:113: RuntimeWarning: Mean of empty slice
+  return float(np.linalg.lstsq(A, v, rcond=None)[0][0]) if len(v) >= 4 else float(v.mean())
+/home/greg/.cache/sw_charges_3d/venv/lib/python3.12/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+50 panels_rotor 0 N 18404 cold 600.7 wc 385.6 {'gpu_init': 0.37, 'terrain': 0.12, 'mesh': 0.13, 'assemble': 6.52, 'lu': 19.12, 'bg': 0.0, 'solve': 0.23, 'rotor': 42.55, 'query_jh': 531.45}

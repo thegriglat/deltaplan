@@ -1,0 +1,63 @@
+{
+  "id": "SWC-16",
+  "module": "sw-charges",
+  "type": "dp-researcher",
+  "title": "Круг 2 на 2D: причины недобора ΔS трубы и эталон Пикара у 10 м по центрам клеток",
+  "goal": "Разделить причины недобора разгона ΔS у потенциальных панелей против трубы Lubitz–White (профиль α, сглаживание фона, форма хребта, высота сравнения) сканом с таблицей вкладов, и пересчитать эталон Пикара у земли по центрам клеток (без степенной поправки) с оценкой его погрешности; обновить таблицу SW7.",
+  "plan_ref": "Этапы и задачи (уточняет координатор)",
+  "contracts": [
+    {
+      "name": "SW6",
+      "version": "2",
+      "ref": "docs/contracts/sw-charges.md"
+    },
+    {
+      "name": "SW7",
+      "version": "1",
+      "ref": "docs/contracts/sw-charges.md"
+    },
+    {
+      "name": "cascade-2d.F1",
+      "version": "1",
+      "ref": "docs/contracts/cascade-2d.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sw-charges-SWC-16",
+  "branch": "sw-charges/SWC-16",
+  "base": "feature/sw-charges",
+  "scope": [
+    "tools/research/sw_charges/panels_exp/",
+    "tools/research/sw_charges/out/panels2d/",
+    "docs/research/sw_charges/stage2-2d-tunnel.md",
+    "docs/INDEX.md",
+    "docs/registry/research.md"
+  ],
+  "dont_touch": [
+    "tools/research/sw_charges/panels2d/",
+    "docs/research/sw_charges/stage2-2d.md",
+    "docs/contracts/",
+    "tools/research/sw_charges/contract/",
+    "tools/research/cascade_2d/"
+  ],
+  "accept": [
+    {
+      "name": "contract",
+      "cmd": "python3 tools/research/sw_charges/contract/check_contract.py tools/research/sw_charges/out/panels2d",
+      "expect": "re:FAIL 0"
+    },
+    {
+      "name": "docs",
+      "cmd": "bash -c '.dpcli/dpcli docs check 2>&1 | grep -E \"ОШИБКА.*sw_charges\"; test ${PIPESTATUS[1]} -eq 1'",
+      "expect": "exit=0"
+    },
+    {
+      "name": "verdict",
+      "cmd": "grep -cE '^\\*\\*Вердикт' docs/research/sw_charges/stage2-2d-tunnel.md",
+      "expect": "num:(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "Решение пользователя Q3 (2026-11-08): ещё круг на 2D; эта задача — две части без пограничного слоя (его делает SWC-15 параллельно; panels2d не трогать). Исходное — SWC-12: код tools/research/sw_charges/panels_exp/ (common.py, run_case.py), таблица out/panels2d/points.{json,csv} (SW7), вывод docs/research/sw_charges/stage2-2d.md (только читать), ревью — .dpcli/dpcli review SWC-12 --show. Интерпретатор tools/research/sw_charges/py (OPENBLAS_NUM_THREADS=1); тяжёлый CPU — .dpcli/dpcli lock cpu swc16 -- <cmd>.\n(1) Труба Lubitz & White 2007 (docs/research/calibration_data/slope-flow.md §2.1–2.2; каталог docs/research/experimental_data.md раздел E): у SWC-12 ΔS гребня 0,37–0,72 против 0,61–1,08 (недобор 20–70 %), а линейная теория/потенциальный поток обычно завышают (таблица «Предсказ.» 1,06–1,33). Разделить вклады сканом по одному фактору (остальные — как в SWC-12): профиль притока — bg_uniform против bg_profile с α 0,10 / 0,15 / 0,25; сглаживание фона smooth_m 0 (если допустимо) / 50 / 250 / 1000 м; форма — cos², Agnesi, гаусс при том же H/L (и формы из статьи, если найдутся — сверить WebSearch); высота сравнения — z = 0,05H, 0,1H, на высоте максимума из таблицы; определение ΔS — u(z)/u_up(z) − 1 на той же высоте над землёй (как в трубе) против над уровнем подножия. Итог — таблица вкладов (что сдвигает ΔS и на сколько) и какой набор «как в трубе» даёт ΔS ближе к измеренному; объяснить знак расхождения (почему ниже, а не выше).\n(2) Эталон Пикара у земли: у SWC-12 Picard.sample на 10 м — интерполяция по клеткам dz 12,5 м со степенной поправкой (ревью: погрешность не оценена). Пересчитать без поправки — по центрам нижних клеток (z_agl = dz/2, 3dz/2 …, dz по полю F1 dx 50) и ставить точки SW7 на эти высоты (вместо 10 м — центр нижней клетки воздуха, записать z_agl); погрешность эталона оценить сравнением P50 и P25 там, где P25 есть (~/data/cascade_2d — восстановлены только dx 400…50, см. tools/research/sw_charges/out/cascade2d_refs.md; P25 нет — тогда P100 против P50 и сходимость по сетке из tools/research/cascade_2d/cases/convergence.md) — число в выводе. Обновить out/panels2d/points.{json,csv} (SW7; строки C1, C2, C4 с новым эталоном; LW — по лучшему набору из (1), прежние — оставить с пометкой variant как было, если формат позволяет; иначе заменить и записать в README). Вывод — docs/research/sw_charges/stage2-2d-tunnel.md (frontmatter type research, status active, module sw-charges, summary ≤ 140, ≤ 40 КБ): таблица вкладов, новый within_tol у Пикара по высотам, погрешность эталона, «**Вердикт:** …». Эталон — измерения прежде Пикара; Пикар ±15 %; не подгонять. r.json — вне копии (scratchpad, имя с SWC-16). Время работы — до ~2–3 ч.",
+  "created": "2026-11-08T04:13:12",
+  "edited": "2026-11-08T04:13:16"
+}

@@ -96,13 +96,13 @@ const OBJ_STRIDE := 22
 const WAVE_INFO_ENABLED := 0
 const WAVE_INFO_LENGTH := 1
 ## Ключи set_conditions (W5): общие, прогноз, эталон.
-const COND_KEYS_COMMON: Array[String] = ["start_hour", "speed", "blend_s", "rebuild", "inflow_mode"]
+const COND_KEYS_COMMON: Array[String] = ["start_hour", "speed", "blend_s", "rebuild"]
 const COND_KEYS_FORECAST: Array[String] = ["forecast", "quantum_h", "wind_ref", "overrides"]
 const COND_KEYS_PRESET: Array[String] = ["preset"]
 ## Шаг сдвига фокуса, после которого он уходит крейту, м.
 const FOCUS_STEP_M := 25.0
 const FIELD_SET_SCRIPT := "res://scripts/atmosphere/air_model/air_field_set.gd"
-const FIELD_LOAD_SCRIPT := "res://scripts/atmosphere/air_model/air_baked_field.gd"
+const FIELD_LOAD_SCRIPT := "res://scripts/atmosphere/air_model/air_field_import.gd"
 
 ## Журнал режима поля: последняя напечатанная строка (одна строка на смену режима, не на мир).
 static var _air_log_last := ""
@@ -1165,8 +1165,6 @@ func _check_numbers(cond: Dictionary) -> String:
 		return "quantum_h ≤ 0"
 	if cond.get("blend_s") != null and not _is_num(cond.blend_s):
 		return "blend_s: не число"
-	if cond.has("inflow_mode") and not (String(cond.inflow_mode) in ["start", "inflow"]):
-		return "inflow_mode: start | inflow"
 	return ""
 
 

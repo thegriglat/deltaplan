@@ -1,0 +1,54 @@
+{
+  "id": "SWC-5",
+  "module": "sw-charges",
+  "type": "dp-researcher",
+  "title": "Этап 3 (а): варианты единого описания трёх масштабов ветра",
+  "goal": "2–3 варианта постановки, где среднее поле, термики и болтанка связаны (общие сохраняющиеся величины, обратное влияние на масштаб 1) в «электрической» аналогии; литература, сверка с нынешними моделями масштабов 2–3, и спецификации 1–2 прототипов на 2D-разрезе.",
+  "plan_ref": "Этапы и задачи (уточняет координатор)",
+  "contracts": [
+    {
+      "name": "SW1",
+      "version": "1",
+      "ref": "docs/contracts/sw-charges.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sw-charges-SWC-5",
+  "branch": "sw-charges/SWC-5",
+  "base": "feature/sw-charges",
+  "scope": [
+    "docs/research/sw_charges/unified-scales.md",
+    "docs/INDEX.md",
+    "docs/registry/research.md"
+  ],
+  "dont_touch": [
+    "docs/contracts/",
+    "docs/plan/sw-charges.md",
+    "docs/research/sw_charges/literature.md",
+    "docs/guide/"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": "bash -c '.dpcli/dpcli docs check 2>&1 | grep -E \"ОШИБКА.*sw_charges\"; test ${PIPESTATUS[1]} -eq 1'",
+      "expect": "exit=0"
+    },
+    {
+      "name": "sections",
+      "cmd": "grep -c '^## ' docs/research/sw_charges/unified-scales.md",
+      "expect": "num:(\\d+) >=7"
+    },
+    {
+      "name": "refs",
+      "cmd": "grep -cE '^- \\[[0-9]+\\]' docs/research/sw_charges/unified-scales.md",
+      "expect": "num:(\\d+) >=10"
+    },
+    {
+      "name": "protos",
+      "cmd": "grep -c '^### Прототип' docs/research/sw_charges/unified-scales.md",
+      "expect": "num:(\\d+) >=2"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-08T00:57:10"
+}

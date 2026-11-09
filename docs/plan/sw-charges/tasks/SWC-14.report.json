@@ -1,0 +1,49 @@
+{
+  "status": "done",
+  "summary": "В docs/research/sw_charges.md добавлены разделы 5 (этап 2 на 2D: паритет с Пикаром по случаям и высотам, труба Lubitz–White, мачты и ротор Perdigão, время), 6 (прототип A над рельефом), 7 (открытые вопросы из отчётов и ревью), обновлены таблица задач (SWC-11–13), «Итог», варианты продолжения, frontmatter; в findings +3 строки (8), в README оглавление panels_exp.",
+  "commits": [
+    "sw-charges SWC-14: итог этапа 2 на 2D и шага 3 прототипа A"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "findings",
+      "value": "8 (>=7)",
+      "pass": true
+    },
+    {
+      "name": "stage2",
+      "value": "1",
+      "pass": true
+    },
+    {
+      "name": "размер sw_charges.md",
+      "value": "≈40 КБ после сжатия разделов этапа 1 (числа сохранены)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "docs/INDEX.md и docs/registry/research.md не менялись: записи на stage2-2d, proto-a-terrain, panels_exp уже есть; описание sw_charges.md в них осталось прежним (генерируется из frontmatter)"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept SWC-14",
+  "uncertain": [
+    {
+      "where": "docs/research/sw_charges.md раздел 3-4",
+      "why": "для лимита 40 КБ сжаты тексты этапа 1 (убраны step_up, часть пояснений прототипов A/C); числа таблиц сохранены",
+      "checked": "сверка с исходным текстом до правки"
+    },
+    {
+      "where": "docs/research/sw_charges.md раздел 10",
+      "why": "вариантов продолжения 4, рекомендации взяты только из SWC-6 и SWC-12, своих нет",
+      "checked": "отчёты и ревью SWC-11–13"
+    }
+  ],
+  "dp_feedback": "Лимит 40 КБ считается в байтах (кириллица 2 байта) - заметил после трёх итераций; стоит писать в сообщении docs check счётчик байт и лимит.",
+  "t": "2026-11-08T04:09:29",
+  "by": "executor"
+}

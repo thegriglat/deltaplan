@@ -49,7 +49,7 @@ The island's real terrain (open data, unedited).
 | Thermals | finding and centering thermals over the island slopes at hot midday | Height gain 300 m |
 | Plateau landing | short approach and landing in the circle on the plateau | Landing in a 25 m circle |
 
-On the volcanic island the weather set at every start has wind from 110° (trade wind); at "Cliffs" and "Crater" it is 6 m/s. More about the islands is on the page [Training islands](/mechanics/training-islands/).
+On the volcanic island the weather set at every start has wind from 110° (trade wind); at "Cliffs" and "Crater" it is 6 m/s. This is the forecast wind at 10 m over open terrain: the field gives its own value right at the launch (launch hint: "At launch X m/s"). More about the islands is on the page [Training islands](/mechanics/training-islands/).
 
 ## In flight {#training-flight}
 

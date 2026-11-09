@@ -1,0 +1,64 @@
+{
+  "id": "SWC-17",
+  "module": "sw-charges",
+  "type": "dp-researcher",
+  "title": "Круг 2 на 2D: панели с пограничным слоем и отрывом Хеда против измерений и Пикара (SW7 v2)",
+  "goal": "Пересчитать сравнение этапа 2 на 2D с вариантами potential_bl и vortex_bl (velocity_bl, отрыв Хеда, shed=auto) против трубы Lubitz–White, мачт и ротора Perdigão (Menke 2019) и Пикара P50 с его погрешностью; вывод: есть ли паритет у земли (решение пользователя: паритет с Пикаром ±10–15 % — успех), исчез ли ложный ротор C4.",
+  "plan_ref": "Этапы и задачи (уточняет координатор)",
+  "contracts": [
+    {
+      "name": "SW6",
+      "version": "3",
+      "ref": "docs/contracts/sw-charges.md"
+    },
+    {
+      "name": "SW7",
+      "version": "2",
+      "ref": "docs/contracts/sw-charges.md"
+    },
+    {
+      "name": "cascade-2d.F1",
+      "version": "1",
+      "ref": "docs/contracts/cascade-2d.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sw-charges-SWC-17",
+  "branch": "sw-charges/SWC-17",
+  "base": "feature/sw-charges",
+  "scope": [
+    "tools/research/sw_charges/panels_exp/",
+    "tools/research/sw_charges/out/panels2d/",
+    "docs/research/sw_charges/stage2-2d-bl.md",
+    "docs/INDEX.md",
+    "docs/registry/research.md"
+  ],
+  "dont_touch": [
+    "tools/research/sw_charges/panels2d/",
+    "docs/research/sw_charges/stage2-2d.md",
+    "docs/research/sw_charges/stage2-2d-tunnel.md",
+    "docs/contracts/",
+    "tools/research/sw_charges/contract/",
+    "tools/research/cases/"
+  ],
+  "accept": [
+    {
+      "name": "contract",
+      "cmd": "python3 tools/research/sw_charges/contract/check_contract.py tools/research/sw_charges/out/panels2d",
+      "expect": "re:FAIL 0"
+    },
+    {
+      "name": "docs",
+      "cmd": "bash -c '.dpcli/dpcli docs check 2>&1 | grep -E \"ОШИБКА.*sw_charges\"; test ${PIPESTATUS[1]} -eq 1'",
+      "expect": "exit=0"
+    },
+    {
+      "name": "verdict",
+      "cmd": "grep -cE '^\\*\\*Вердикт' docs/research/sw_charges/stage2-2d-bl.md",
+      "expect": "num:(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "Решение пользователя Q3: ещё круг на 2D — физический критерий отрыва, пограничный слой, причины недобора ΔS, эталон 10 м по центрам клеток; 3D — только при паритете у земли. Библиотека panels2d — SW6 v3 (docs/contracts/sw-charges.md; README tools/research/sw_charges/README.md «Панели panels2d», раздел v3: surface_flow, boundary_layer, separation (Хед — основной, Стратфорд — справочно), velocity_bl, step с shed='auto'); не менять (ошибка — blocked). Исходное — panels_exp (SWC-12, SWC-16): run_case.py, run_cc.py (эталон Пикара по центрам клеток, ref_err.py — погрешность P50: 7–33 % в двух нижних клетках, 2–9 % на 50 м, ≤ 1,5 % на 300 м), выводы docs/research/sw_charges/stage2-2d.md и stage2-2d-tunnel.md (только читать). Интерпретатор tools/research/sw_charges/py (OPENBLAS_NUM_THREADS=1), тяжёлый CPU — .dpcli/dpcli lock cpu swc17 -- <cmd>.\nТаблица — SW7 v2: out/panels2d/points.{json,csv} переписать целиком в v2 (version 2, ref_err, within_tol_ref; все 4 варианта: potential, vortex — как в SWC-16, и новые potential_bl, vortex_bl). vortex_bl — step с shed='auto' (отрыв Хеда), без порога уклона; вихри + velocity_bl для скорости у земли (вне зоны отрыва). Параметры фона — по правилу без подгонки: smooth_m = 250 м (или 10·ds_min — как в SWC-12), α как у эталона; σ = 1000 м НЕ брать (подгонка по трубе, решение координатора). z0 — как у эталона (труба — по статье/README, Perdigão — z0_nominal() из tools/research/cases/perdigao.py, cascade-2d — 0,1 м).\nСлучаи и точки — те же, что в SWC-16 (C1, C2, C4 по центрам клеток P50; LW — 6 хребтов, однородный фон и профиль; PERD_NE, PERD_SW — мачты, rotor_ref по Menke 2019). Сравнения: (а) Пикар within_tol и within_tol_ref по высотам (нижняя клетка, ~50, ~300 м); (б) ΔS трубы — вырос ли с пограничным слоем (внутренний слой Jackson–Hunt — объяснение SWC-16) и насколько к измеренному; (в) Perdigão — RMSE u∥/S_ref против модели игры b1 (0,14 — из stage2-2d.md) и ротор L против Menke; (г) C4 — ротор исчез при отрыве Хеда (у Пикара его нет)? C2 — ротор 300 против 800 м у Пикара — изменился? Паритет (решение пользователя): within_tol_ref у Пикара ≥ 2/3 точек на высоте и на мачтах Perdigão не хуже модели игры более чем на 15 % — считать паритетом; таблица паритета по случаям и высотам.\nВывод — docs/research/sw_charges/stage2-2d-bl.md (frontmatter type research, status active, module sw-charges, summary ≤ 140, ≤ 40 КБ): что дал пограничный слой и отрыв Хеда, таблица паритета, время, чего не умеет, «**Вердикт:** паритет у земли есть/нет — …». r.json — вне копии (scratchpad, имя с SWC-17). Время — до ~3 ч; счёт > ~4 ч CPU — урезать и записать.",
+  "created": "2026-11-08T04:47:44",
+  "edited": "2026-11-08T04:47:49"
+}

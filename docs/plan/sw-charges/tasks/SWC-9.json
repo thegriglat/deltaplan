@@ -1,0 +1,73 @@
+{
+  "id": "SWC-9",
+  "module": "sw-charges",
+  "type": "dp-researcher",
+  "title": "Этап 1 (а): слой против Пикара на разрезах cascade-2d C0–C4 (SW5 v2)",
+  "goal": "Решателем swpy на сетке слоя 400 м (200 м — чувствительность) посчитать разрезы cascade-2d C0–C4 по правилу R1 и сравнить ветер слоя с Пикаром (dx 50 блочным средним, контроль dx 400) по метрикам SW5 v2; вывод: лучше ли слой «ровного ветра» на сильном ветре и что на слабом (C3).",
+  "plan_ref": "Этапы и задачи (уточняет координатор)",
+  "contracts": [
+    {
+      "name": "SW1",
+      "version": "1",
+      "ref": "docs/contracts/sw-charges.md"
+    },
+    {
+      "name": "SW2",
+      "version": "1",
+      "ref": "docs/contracts/sw-charges.md"
+    },
+    {
+      "name": "SW3",
+      "version": "1",
+      "ref": "docs/contracts/sw-charges.md"
+    },
+    {
+      "name": "SW5",
+      "version": "2",
+      "ref": "docs/contracts/sw-charges.md"
+    },
+    {
+      "name": "cascade-2d.F1",
+      "version": "1",
+      "ref": "docs/contracts/cascade-2d.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sw-charges-SWC-9",
+  "branch": "sw-charges/SWC-9",
+  "base": "feature/sw-charges",
+  "scope": [
+    "tools/research/sw_charges/sections/",
+    "tools/research/sw_charges/out/sections/",
+    "docs/research/sw_charges/stage1-sections.md",
+    "docs/INDEX.md",
+    "docs/registry/research.md"
+  ],
+  "dont_touch": [
+    "tools/research/sw_charges/swpy/",
+    "tools/research/cascade_2d/",
+    "docs/contracts/",
+    "tools/research/sw_charges/contract/",
+    "rust/"
+  ],
+  "accept": [
+    {
+      "name": "contract",
+      "cmd": "python3 tools/research/sw_charges/contract/check_contract.py tools/research/sw_charges/out/sections",
+      "expect": "re:FAIL 0"
+    },
+    {
+      "name": "docs",
+      "cmd": "bash -c '.dpcli/dpcli docs check 2>&1 | grep -E \"ОШИБКА.*sw_charges\"; test ${PIPESTATUS[1]} -eq 1'",
+      "expect": "exit=0"
+    },
+    {
+      "name": "verdict",
+      "cmd": "grep -cE '^\\*\\*Вердикт' docs/research/sw_charges/stage1-sections.md",
+      "expect": "num:(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "Решатель — пакет tools/research/sw_charges/swpy (библиотека run(case, out); README tools/research/sw_charges/README.md «Решатель swpy»), интерпретатор tools/research/sw_charges/py; swpy НЕ менять (ошибка — blocked). Эталон Пикара: $CASCADE2D_DATA = ~/data/cascade_2d (восстановлен SWC-3, описание tools/research/sw_charges/out/cascade2d_refs.md): поля F1 fields/<C>/picard_none_d50.json и _d400.json (формат — docs/contracts/cascade-2d.md F1; читатель read_f1 в tools/research/cascade_2d/contract/cascade2d_io.py — импортировать через sys.path, только читать), случаи R1 cases/<C>_d<dx>.json (рельеф, params, case_params у C4). Параметры случаев — docs/contracts/cascade-2d.md F0 и tools/research/cascade_2d/cases/README.md «Случаи» (C0 плоско 5 м/с; C1 Agnesi H 200 L 500, 5 м/с нейтраль; C2 Agnesi H 250 L 300, 8 м/с, N = 0,01; C3 как C1, 1 м/с, z_i 1500, солнце; C4 разрез Аскарово 5 м/с нейтраль). Правило перевода — docs/research/sw_charges/literature.md §7 R1 (docs section). Метрики, формат вывода — строго SW5 v2 (docs/contracts/sw-charges.md); проверка — python3 tools/research/sw_charges/contract/check_contract.py tools/research/sw_charges/out/sections.\nМасштабы (решение пользователя 2026-11-08): слой днём — сетка dx_sw = 400 м (основная) и 200 м (чувствительность); рельеф слоя — блочное среднее h разреза Пикара dx 50 по клетке слоя (DSM C4 этим же сглаживается); мельче не считать. Холмы C1, C2, C4 (L 275–500 м) уже/порядка клетки — это ожидаемо: проверяем, что слой даёт на масштабе 400 м; деталь — этап 2 (панели).\nВарианты ref (в строке SW5 — rule_b0 и h0): C2 (N = 0,01, сильный ветер — главный для шлюза) — h0 ∈ {1000; 2500} × rule_b0 ∈ {N2h0, N2delta} (δ = n_layer_m из docs/guide/air-model/limits.md); C1, C4, C0 (нейтраль, N = 0) — «крышка»: h0 = верх области Пикара (≈ 2500 м), b0 такой, что F0 = 0,1 (rule_b0 = null, пометить в notes строки/выводе); C3 — h0 = z_i = 1500, b0 по N2delta из cbl_gam(1500, 5,8 К/км) (над z_i), q_heat — поток солнца случая (как heated_slope, из params случая; если не выводится однозначно — 100–200 Вт/м² на освещённом склоне, записать), U0 по R1 п. 2. c_d — R1 п. 4 (z0 = 0,1 м), forcing balance, farfield + губка, dim 1; стационар или среднее (avg_from). C0 — проверка: E ≈ 0.\nШлюз-условие плана: на сильном ветре (C2, и C1/C4) E ≥ E0 (слой не лучше ровного ветра) во всех вариантах — записать это явно в выводе первой строкой после вердикта (координатор поднимет шлюз). Плюс для C3 качественно: направление и величина ū у склонов (подъём к прогретому склону) против Пикара.\nПрогоны лёгкие (1D, ≤ 64 клеток при 400 м) — одной пачкой под .dpcli/dpcli lock cpu swc9 -- <cmd>. Код — tools/research/sw_charges/sections/ (README с frontmatter type research: команды, время), таблица out/sections/sections.{json,csv}, сырые SW1–SW3 — ~/data/sw_charges/sections/ (путь в README), рисунки PNG ū_SW и ū_P по x (смотреть не нужно). Вывод — docs/research/sw_charges/stage1-sections.md (frontmatter type research, status active, module sw-charges, summary ≤ 140, ≤ 40 КБ; ключи conclusion/data/applied_in): таблица, чего не умеет, «**Вердикт:** …». r.json — вне копии (scratchpad, имя с SWC-9).",
+  "created": "2026-11-08T01:58:50",
+  "edited": "2026-11-08T01:58:53"
+}

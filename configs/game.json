@@ -8,7 +8,7 @@
   "default_temperature_c": null,
   "default_temperature_c_doc": "Температура днём по умолчанию (первый запуск), °C; null — обычная для даты по умолчанию (weather_model.json → typical_max_c).",
   "default_wind_speed_kmh": 10.8,
-  "default_wind_speed_kmh_doc": "Ветер на старте по умолчанию, км/ч (10,8 = 3 м/с; в меню — м/с).",
+  "default_wind_speed_kmh_doc": "Ветер прогноза по умолчанию (10 м над открытой местностью), км/ч (10,8 = 3 м/с; в меню — м/с).",
   "default_wind_into_launch": true,
   "default_wind_into_launch_doc": "true — встречный ветер на старте (удобно для первого полёта); false — с направления default_wind_from_deg.",
   "default_wind_from_deg": 270,

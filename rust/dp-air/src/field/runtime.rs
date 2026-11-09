@@ -1,5 +1,5 @@
 //! Оркестровка поля Пикара в крейте (RW-6j): перенос оркестровки — загрузка,
-//! грубый старт 1200 → 400 м, пара решений mech → heat, проходы подбора притока `k`, пересчёт на
+//! грубый старт 1200 → 400 м, пара решений mech → heat, пересчёт на
 //! сроке, тёплые состояния, откат прохода и таймаут. Без движка, без состояния: одна функция
 //! [`run_job`] делает одно «поле» (загрузку или пересчёт) и возвращает уровни и состояния;
 //! подмену, фон, отмену и опросы ведёт `Formula` (`formula.rs`).
@@ -8,16 +8,13 @@
 //! `field_weather` (6c) → `build_domain_input` (6b) → `build_case` (6d, с нагревом и
 //! `without_heat`) → `prepare` → `build_solver_case` (6e) → [грубый Пикар 1200 м: mech → heat,
 //! `prolong_state` (6f)] → `picard_rs::api::solve` mech, затем heat (каждое со своим стартом) →
-//! `Field::from_mac` (6i). Старт решений: прошлое поле пары (пересчёт в полёте, проход 2
-//! загрузки), иначе грубый старт (`air_model.picard_start = coarse`), иначе фон. Отказ грубого
+//! `Field::from_mac` (6i). Старт решений: прошлое поле пары (пересчёт в полёте), иначе грубый старт (`air_model.picard_start = coarse`), иначе фон. Отказ грубого
 //! шага — старт с фона без ошибки.
 //!
-//! ## Проходы `k` ([`run_job`], `_levels_done`/`_next_k`/`inflow_p`)
-//! Загрузка с точкой старта (первый фокус), ветром ≥ `U10_MIN`, режимом `Start` и непустыми
-//! `window_levels_m` — до `max_passes = 2` проходов: `U` над стартом на 10 м, `k₁ = k₀·(u10/U)^(1/p)`,
-//! `p` по таблице [`INFLOW_P`], `k ∈ [0,3; 1]`. Дальше второго — только при `|U/u10 − 1| > pass_tol`.
-//! Проход 1 упёрся в `MAX_OUTER` итераций или `k` не изменился — прохода 2 нет. Проход ≥ 2 не
-//! удался — подаётся поле прошлого прохода. Режим `Inflow` и пересчёт в полёте — один проход.
+//! ## Один проход ([`run_job`])
+//! Загрузка и пересчёт в полёте — один проход [`solve_pass`]: ветер условий — всегда набегающий
+//! поток на границах области (приток `k = 1`, WF-К1), подбора по ветру над стартом нет. Загрузка
+//! стартует с грубого шага или фона, пересчёт — с прошлого поля пары.
 //!
 //! ## Фазы (RW-6t, `_after_phases`/`_start_picard`)
 //! После сборки уровня на каждом проходе — [`assemble`] (фазы 1–3): маски и поля заморозки колонн
@@ -41,10 +38,9 @@
 //! не дольше `JOIN_LIMIT` (0,5 с) и отпускает её сменой поколения места.
 //!
 //! ## Границы модели
-//! - Окна 100/50 м (RW-6o, `field::clipmap`): после области каждого прохода считаются окна
-//!   `window_levels_m` с центром на старте (первый фокус; нет фокуса — нет окон), проход 2 и
-//!   пересчёт в полёте — на прежних местах с тёплого старта; `U` над стартом берётся с набора
-//!   уровней. Ошибка окон не отказ прохода: поле — только область, причина в
+//! - Окна 100/50 м (RW-6o, `field::clipmap`): после области прохода считаются окна
+//!   `window_levels_m` с центром на старте (первый фокус; нет фокуса — нет окон), пересчёт в
+//!   полёте — на прежних местах с тёплого старта. Ошибка окон не отказ прохода: поле — только область, причина в
 //!   `JobReport.windows_error`. Сдвиг окон за фокусом — отдельная задача (`clipmap::run_shift`).
 //! - Область — квадрат вокруг (0, 0), `domain_l_m` (по умолчанию 38,4 км); место меньше —
 //!   область сжимается до помещающейся (кратно `dx·coarse_factor`), меньше 12 клеток — отказ.
@@ -69,7 +65,7 @@ use super::wind_field::{Field, FieldGrid, FieldMeta, Limits, Z0};
 use super::window::tcode;
 use crate::level::{Level, prolong_state};
 use crate::weather::Weather;
-use crate::{Conditions, Configs, Error, InflowMode, Place, Raster};
+use crate::{Conditions, Configs, Error, Place, Raster};
 use picard_rs::api::{Fallback, Freeze, NonConv, SolveOpts, Solved, StopReason, solve};
 use picard_rs::case::Case;
 use picard_rs::state::State;
@@ -85,23 +81,12 @@ pub use picard_rs::api::StopReason as Stop;
 
 /// Шаг области, м (`DX`).
 pub const DX: f64 = 400.0;
-/// Пределы множителя притока `k` (`INFLOW_K_MIN`, `INFLOW_K_MAX`).
-pub const INFLOW_K_MIN: f64 = 0.3;
-pub const INFLOW_K_MAX: f64 = 1.0;
-/// `[u10, p]`: показатель закона `U ∝ k^p`, между точками линейно, за краями — край (`INFLOW_P`).
-pub const INFLOW_P: [[f64; 2]; 3] = [[3.0, 0.57], [6.0, 0.75], [10.0, 0.90]];
-/// Высота замера `U` над землёй старта, м (`START_AGL_M`).
-pub const START_AGL_M: f64 = 10.0;
-/// Порог заданного ветра, ниже которого подстройки нет (`WindProfile.U10_MIN`).
+/// Порог заданного ветра профиля (`WindProfile.U10_MIN`).
 pub const U10_MIN: f64 = 0.5;
 /// Допуски пересчёта: ветер, направление, температура (`WIND_TOL_MS`, `DIR_TOL_DEG`, `TMAX_TOL_C`).
 pub const WIND_TOL_MS: f64 = 0.05;
 pub const DIR_TOL_DEG: f64 = 1.0;
 pub const TMAX_TOL_C: f64 = 0.25;
-/// Проходов загрузки (`max_passes`) и остаток `|U/u10 − 1|`, при котором проходы сверх второго
-/// не нужны (`pass_tol`).
-pub const MAX_PASSES: usize = 2;
-pub const PASS_TOL: f64 = 0.03;
 /// Предел итераций решения (`AirPicardJob.max_outer`).
 pub const MAX_OUTER: usize = 3000;
 /// Меньше клеток по стороне (с учётом грубого шага) область не собирается.
@@ -159,11 +144,11 @@ impl Climate for PlaceClimate<'_> {
 pub struct Faults {
     /// Грубый шаг не удался: старт с фона.
     pub coarse: bool,
-    /// Решение прохода с этим номером (с 1) не удаётся (откат на прошлый проход).
+    /// Решение прохода с этим номером (с 1; проход один) не удаётся.
     pub fail_pass: Option<usize>,
     /// Фазы не считаются: Пикар без заморозки и `nonconv` (сравнение итераций в тестах).
     pub no_phase: bool,
-    /// Окна клипмапа не считаются при непустых `window_levels_m` (проходы `k` идут по области).
+    /// Окна клипмапа не считаются при непустых `window_levels_m` (только область).
     pub no_windows: bool,
 }
 
@@ -177,15 +162,11 @@ pub struct RtCfg {
     pub domain_l_m: f64,
     /// Множитель клетки грубого старта (1 — без него).
     pub coarse_factor: usize,
-    pub max_passes: usize,
-    pub pass_tol: f64,
     /// `window_levels_m` не пуст: эталон подстраивает приток по старту.
     pub windows_wanted: bool,
     pub step_min: f64,
     pub blend_s: f64,
     pub edge_blend_cells: f64,
-    /// Шаг сетки рельефа атмосферы (`atmosphere.ground.cell_m`, `GroundField`), м.
-    pub ground_cell_m: f64,
     pub limits: Limits,
     pub max_iters: usize,
     pub omega_after: usize,
@@ -297,13 +278,10 @@ impl RtCfg {
             tol_scale: num(&atm, "/air/tol_scale", 5.0),
             domain_l_m: num(&atm, "/air/domain_l_m", super::weather_core::DOMAIN_L),
             coarse_factor: if coarse { factor } else { 1 },
-            max_passes: MAX_PASSES,
-            pass_tol: PASS_TOL,
             windows_wanted: windows,
             step_min: am("recompute_game_min", 15.0),
             blend_s: am("blend_s", 60.0),
             edge_blend_cells: am("edge_blend_cells", 5.0),
-            ground_cell_m: num(&atm, "/ground/cell_m", 30.0).max(1.0),
             limits: Limits {
                 max_speed: am("max_speed_ms", 40.0),
                 max_w: am("max_w_ms", 10.0),
@@ -345,18 +323,16 @@ pub struct CondRec {
     pub wdir: f64,
     pub t_max: Option<f64>,
     pub sky: String,
-    pub inflow: InflowMode,
 }
 
 impl CondRec {
-    pub fn new(inputs: &WeatherInputs, cond: &Conditions, hour: f64) -> Self {
+    pub fn new(inputs: &WeatherInputs, hour: f64) -> Self {
         CondRec {
             hour,
             u10: inputs.u10,
             wdir: inputs.wdir,
             t_max: inputs.t_max,
             sky: inputs.sky.clone(),
-            inflow: cond.inflow_mode,
         }
     }
 }
@@ -398,9 +374,6 @@ pub fn needs_recompute(
     {
         return Some("смена ветра");
     }
-    if have.inflow != want.inflow {
-        return Some("смена ветра");
-    }
     let t_changed = match (have.t_max, want.t_max) {
         (None, None) => false,
         (Some(a), Some(b)) => (a - b).abs() > TMAX_TOL_C,
@@ -413,57 +386,6 @@ pub fn needs_recompute(
         return Some("срок");
     }
     None
-}
-
-/// Ключ направления для памяти `k` (`_dir_key`).
-pub fn dir_key(wdir: f64) -> i32 {
-    (wdir.round() as i64).rem_euclid(360) as i32
-}
-
-// ---------------------------------------------------------------- приток k
-
-/// Показатель закона `U ∝ k^p` для заданного ветра `u10` (`inflow_p`).
-pub fn inflow_p(u10: f64) -> f64 {
-    let t = &INFLOW_P;
-    if u10 <= t[0][0] {
-        return t[0][1];
-    }
-    for i in 1..t.len() {
-        if u10 <= t[i][0] {
-            let (a, b) = (t[i - 1], t[i]);
-            let f = (u10 - a[0]) / (b[0] - a[0]);
-            return a[1] + (b[1] - a[1]) * f;
-        }
-    }
-    t[t.len() - 1][1]
-}
-
-/// Запись прохода: `k` и `U` над стартом (`_pass_log`).
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct PassLog {
-    pub k: f64,
-    pub u: f64,
-}
-
-/// `k` следующего прохода (`_next_k`): `k·(u10/U)^(1/p)`; дальше второго — секущая по двум
-/// последним проходам; `U` не число или ≈ 0 — верхний предел.
-pub fn next_k(log: &[PassLog], u10: f64) -> f64 {
-    let Some(last) = log.last() else {
-        return INFLOW_K_MAX;
-    };
-    let (k, u) = (last.k, last.u);
-    if u.is_nan() || u <= 1.0e-3 {
-        return INFLOW_K_MAX;
-    }
-    let mut k1 = k * (u10 / u).powf(1.0 / inflow_p(u10));
-    if log.len() >= 2 {
-        let prev = log[log.len() - 2];
-        let (dk, du) = (k - prev.k, u - prev.u);
-        if dk.abs() > 1.0e-4 && du / dk > 1.0e-3 {
-            k1 = k + (u10 - u) * dk / du;
-        }
-    }
-    k1.clamp(INFLOW_K_MIN, INFLOW_K_MAX)
 }
 
 // ---------------------------------------------------------------- место
@@ -584,7 +506,6 @@ fn cache_key(job: &JobIn) -> Value {
         "wdir": rec.wdir,
         "t_max": rec.t_max,
         "sky": rec.sky,
-        "inflow": match rec.inflow { InflowMode::Start => "start", InflowMode::Inflow => "inflow" },
     })
 }
 
@@ -638,7 +559,6 @@ pub enum Start {
 /// Итог одного прохода.
 #[derive(Clone, Debug)]
 pub struct PassReport {
-    pub k: f64,
     /// Итерации решений `[mech, heat]`.
     pub iters: [usize; 2],
     /// Итерации грубых решений `[mech, heat]`, если грубый шаг был.
@@ -699,11 +619,8 @@ pub struct JobIn {
     pub place: Arc<Place>,
     pub cond: Conditions,
     pub rec: CondRec,
-    /// Загрузка (час как есть, проходы `k`) или пересчёт (один проход).
+    /// Загрузка (час как есть) или пересчёт (час — начало срока).
     pub loading: bool,
-    /// Память `k` по румбу (загрузка) и `k` текущего поля (пересчёт).
-    pub k_mem: Option<f64>,
-    pub inflow_k: f64,
     /// Точка старта (x, z мира): первый фокус.
     pub focus: Option<[f32; 2]>,
     /// Прошлое поле пары (пересчёт в полёте).
@@ -731,8 +648,6 @@ pub struct JobIn {
 pub struct JobOut {
     /// Уровни от мелкого к грубому (сейчас один).
     pub levels: Vec<Arc<Field>>,
-    /// `k` поданного поля.
-    pub k: f64,
     pub rec: CondRec,
     /// Состояния для тёплого старта следующего пересчёта (`None` — поле из файла или кеша).
     pub pair: Option<Arc<Pair>>,
@@ -749,13 +664,6 @@ pub struct JobOut {
 #[derive(Clone, Debug)]
 pub struct JobReport {
     pub passes: Vec<PassReport>,
-    /// Проходов, запланированных при старте (2 — подстройка `k`).
-    pub planned: usize,
-    pub log: Vec<PassLog>,
-    /// Проход ≥ 2 не удался: подано поле прошлого прохода.
-    pub pass_failed: Option<String>,
-    /// Проход 1 упёрся в предел итераций: без подстройки.
-    pub not_converged: bool,
     pub wall_s: f64,
     /// Откуда поле.
     pub source: Source,
@@ -897,10 +805,9 @@ impl StageCounter {
     }
 }
 
-fn set_progress(job: &JobIn, pass: usize, passes: usize, x: f32) {
-    let v = ((pass - 1) as f32 + x.clamp(0.0, 1.0)) / passes.max(1) as f32;
+fn set_progress(job: &JobIn, x: f32) {
     job.progress
-        .store(v.min(0.999).to_bits(), Ordering::Relaxed);
+        .store(x.clamp(0.0, 0.999).to_bits(), Ordering::Relaxed);
 }
 
 pub(crate) fn check_cancel(job: &JobIn) -> Result<(), JobErr> {
@@ -937,22 +844,14 @@ struct LevelCase {
     case_m: Case,
 }
 
-fn build_level(job: &JobIn, dom: &Domain, k: f64) -> Result<LevelCase, JobErr> {
+fn build_level(job: &JobIn, dom: &Domain) -> Result<LevelCase, JobErr> {
     let cfg = &job.cfg;
     check_cancel(job)?;
     let fw = weather_for(job, dom)?;
     check_cancel(job)?;
     let inp = build_domain_input(&job.place, &cfg.wc.sh, &cfg.zi, dom, &fw.day)?;
     check_cancel(job)?;
-    let heat = build_case(
-        &inp,
-        &fw,
-        &CaseOpts {
-            k,
-            inflow_mode: job.rec.inflow,
-            heat: true,
-        },
-    )?;
+    let heat = build_case(&inp, &fw, &CaseOpts { heat: true })?;
     check_cancel(job)?;
     let mech = heat.without_heat();
     let (ph, pm) = rayon::join(|| heat.prepare(), || mech.prepare());
@@ -971,18 +870,18 @@ fn build_level(job: &JobIn, dom: &Domain, k: f64) -> Result<LevelCase, JobErr> {
     })
 }
 
-/// Случаи решателя `[mech, heat]` тонкой области для `k` (для тестов и стенда: то, что решает
+/// Случаи решателя `[mech, heat]` тонкой области (для тестов и стенда: то, что решает
 /// проход, без решения).
-pub fn level_cases(job: &JobIn, k: f64) -> Result<[Case; 2], JobErr> {
+pub fn level_cases(job: &JobIn) -> Result<[Case; 2], JobErr> {
     let dom = domain_for(&job.place, &job.cfg)?;
-    let lc = build_level(job, &dom, k)?;
+    let lc = build_level(job, &dom)?;
     Ok([lc.case_m, lc.case_h])
 }
 
-/// Фазы поля тонкой области для `k` (для тестов и стенда).
-pub fn phase_result(job: &JobIn, k: f64) -> Result<PhaseResult, JobErr> {
+/// Фазы поля тонкой области (для тестов и стенда).
+pub fn phase_result(job: &JobIn) -> Result<PhaseResult, JobErr> {
     let dom = domain_for(&job.place, &job.cfg)?;
-    let lc = build_level(job, &dom, k)?;
+    let lc = build_level(job, &dom)?;
     phases_of(&job.cfg.phase, &lc).map_err(JobErr::Failed)
 }
 
@@ -1160,16 +1059,13 @@ fn coarse_start(
 
 fn solve_pass(
     job: &JobIn,
-    k: f64,
     prev: Option<&Pair>,
     prev_clip: Option<&Arc<ClipMap>>,
-    pass: usize,
-    passes: usize,
 ) -> Result<PassOut, JobErr> {
     let cfg = &job.cfg;
     let t0 = Instant::now();
     check_cancel(job)?;
-    set_progress(job, pass, passes, 0.0);
+    set_progress(job, 0.0);
     job.stage.enter("prepare");
     let fine_dom = domain_for(&job.place, cfg)?;
     let want_coarse = prev.is_none() && cfg.coarse_factor > 1;
@@ -1177,8 +1073,8 @@ fn solve_pass(
     let mut notes = Vec::new();
     let (fine, coarse) = if want_coarse {
         let (a, b) = rayon::join(
-            || build_level(job, &fine_dom, k),
-            || build_level(job, &coarse_dom, k),
+            || build_level(job, &fine_dom),
+            || build_level(job, &coarse_dom),
         );
         let b = match b {
             Ok(c) => Some(c),
@@ -1190,10 +1086,10 @@ fn solve_pass(
         };
         (a?, b)
     } else {
-        (build_level(job, &fine_dom, k)?, None)
+        (build_level(job, &fine_dom)?, None)
     };
     let t_prep = t0.elapsed().as_secs_f64();
-    set_progress(job, pass, passes, 0.15);
+    set_progress(job, 0.15);
     check_cancel(job)?;
     job.stage.enter("phases");
     let t_ph = Instant::now();
@@ -1246,8 +1142,7 @@ fn solve_pass(
     }
     let t1 = Instant::now();
     let do_coarse = start == Start::Cold && !all_mech && coarse.is_some() && !cfg.faults.coarse;
-    job.stage
-        .plan(2 + u32::from(do_coarse), passes.saturating_sub(pass));
+    job.stage.plan(2 + u32::from(do_coarse), 0);
     if start == Start::Cold
         && !all_mech
         && let Some(c) = &coarse
@@ -1274,10 +1169,10 @@ fn solve_pass(
     }
     drop(coarse);
     let t_coarse = t1.elapsed().as_secs_f64();
-    set_progress(job, pass, passes, 0.3);
+    set_progress(job, 0.3);
     let t2 = Instant::now();
-    if cfg.faults.fail_pass == Some(pass) {
-        return Err(JobErr::Failed(format!("pass {pass} failed (injected)")));
+    if cfg.faults.fail_pass == Some(1) {
+        return Err(JobErr::Failed("pass 1 failed (injected)".into()));
     }
     let spec = |freeze, nonconv| Spec {
         fallback: true,
@@ -1287,10 +1182,10 @@ fn solve_pass(
     };
     job.stage.enter("solve_mech");
     let sm = solve_one(job, &fine.case_m, init_m, spec(fr_m, nonconv.clone()))?;
-    set_progress(job, pass, passes, 0.6);
+    set_progress(job, 0.6);
     job.stage.enter("solve_heat");
     let sh = solve_one(job, &fine.case_h, init_h, spec(fr_h, nonconv))?;
-    set_progress(job, pass, passes, 0.9);
+    set_progress(job, 0.9);
     let t_solve = t2.elapsed().as_secs_f64();
     let t3 = Instant::now();
     let field = build_field(
@@ -1320,39 +1215,18 @@ fn solve_pass(
                 keep: Vec::new(),
                 prev: old.wins.clone(),
             };
-            windows_of(
-                job,
-                &fine,
-                &fine_dom,
-                &pair,
-                &area_field,
-                k,
-                plan,
-                pass,
-                passes,
-            )?
+            windows_of(job, &fine, &fine_dom, &pair, &area_field, plan)?
         }
         None => match job.focus {
             Some(f) => {
                 let plan = Plan::fresh(&cfg.window_dx, [f[0] as f64, -(f[1] as f64)]);
-                windows_of(
-                    job,
-                    &fine,
-                    &fine_dom,
-                    &pair,
-                    &area_field,
-                    k,
-                    plan,
-                    pass,
-                    passes,
-                )?
+                windows_of(job, &fine, &fine_dom, &pair, &area_field, plan)?
             }
             None => (vec![area_field.clone()], None, Vec::new(), None),
         },
     };
     let win_s = t4.elapsed().as_secs_f64();
     let report = PassReport {
-        k,
         iters: [sm.iters, sh.iters],
         coarse_iters,
         start,
@@ -1371,7 +1245,7 @@ fn solve_pass(
         win_error,
         win_s,
     };
-    set_progress(job, pass, passes, 1.0);
+    set_progress(job, 1.0);
     Ok(PassOut {
         levels,
         clip,
@@ -1390,10 +1264,7 @@ fn windows_of(
     fine_dom: &Domain,
     pair: &Arc<Pair>,
     area_field: &Arc<Field>,
-    k: f64,
     plan: Plan,
-    pass: usize,
-    passes: usize,
 ) -> Result<
     (
         Vec<Arc<Field>>,
@@ -1422,8 +1293,8 @@ fn windows_of(
     });
     let corners = plan.corners.clone();
     job.stage.enter("windows");
-    let progress = |x: f32| set_progress(job, pass, passes, 0.9 + 0.1 * x);
-    match solve_windows(job, &area, area_field, k, plan, &progress) {
+    let progress = |x: f32| set_progress(job, 0.9 + 0.1 * x);
+    match solve_windows(job, &area, area_field, plan, &progress) {
         Ok(w) => Ok((w.clip.levels(), Some(w.clip), w.reports, None)),
         Err(JobErr::Cancelled) => Err(JobErr::Cancelled),
         Err(JobErr::Failed(m)) => {
@@ -1434,7 +1305,6 @@ fn windows_of(
                 area_field.clone(),
                 job.cond.clone(),
                 job.rec.clone(),
-                k,
             );
             Ok((
                 vec![area_field.clone()],
@@ -1488,79 +1358,6 @@ pub(crate) fn build_field(
     Ok(field)
 }
 
-/// `U` над стартом на 10 м (`start_speed`): горизонталь поля на `START_AGL_M` над землёй точки
-/// с весом края, непокрытая доля — заданный ветер `u10` по направлению `wdir`. `NaN` — нет точки.
-pub fn start_speed(f: &Field, place: &Place, p: Option<[f32; 2]>, u10: f64, wdir: f64) -> f64 {
-    let Some(p) = p else {
-        return f64::NAN;
-    };
-    let h = ground_height(place, p[0], p[1]);
-    let pos = [p[0], h + START_AGL_M as f32, p[1]];
-    let w = f.edge_weight(pos);
-    let s = if w > 0.0 { f.sample(pos, h) } else { [0.0; 3] };
-    let (vx, vz) = (s[0] as f64 * w, s[2] as f64 * w);
-    let rest = u10 * (1.0 - w);
-    let a = wdir.to_radians();
-    (vx - a.sin() * rest).hypot(vz + a.cos() * rest)
-}
-
-/// Земля для выборки поля, как у атмосферы (`GroundField.sample().x`): рельеф в узлах сетки
-/// `cell` м (узлы — кратные `cell` координаты мира), между узлами — билинейно. У гребня и в
-/// ложбине она на 0,3–2 м отличается от рельефа; `U` над стартом `start_speed` эталона берётся над ней.
-pub fn ground_height_grid(place: &Place, x: f32, z: f32, cell: f64) -> f32 {
-    let (fx, fz) = (x as f64 / cell, z as f64 / cell);
-    let (ix, iz) = (fx.floor(), fz.floor());
-    let (tx, tz) = ((fx - ix) as f32, (fz - iz) as f32);
-    let node = |i: f64, j: f64| ground_height(place, (i * cell) as f32, (j * cell) as f32);
-    let (h00, h10) = (node(ix, iz), node(ix + 1.0, iz));
-    let (h01, h11) = (node(ix, iz + 1.0), node(ix + 1.0, iz + 1.0));
-    h00 * (1.0 - tx) * (1.0 - tz) + h10 * tx * (1.0 - tz) + h01 * (1.0 - tx) * tz + h11 * tx * tz
-}
-
-/// `U` над стартом по набору уровней (`start_speed` эталона с окнами): горизонталь на `START_AGL_M`
-/// над землёй точки (высота — рельеф, земля выборки — сетка `ground_cell_m`, [`ground_height_grid`])
-/// с весами краёв уровней (мелкий первым), непокрытая доля — заданный ветер.
-pub fn start_speed_levels(
-    levels: &[Arc<Field>],
-    place: &Place,
-    ground_cell_m: f64,
-    p: Option<[f32; 2]>,
-    u10: f64,
-    wdir: f64,
-) -> f64 {
-    let Some(p) = p else {
-        return f64::NAN;
-    };
-    if levels.is_empty() {
-        return f64::NAN;
-    }
-    let h = ground_height(place, p[0], p[1]);
-    let gh = ground_height_grid(place, p[0], p[1], ground_cell_m);
-    let pos = [p[0], h + START_AGL_M as f32, p[1]];
-    let (mut vx, mut vz, mut rem) = (0.0f64, 0.0f64, 1.0f64);
-    for f in levels {
-        let w = f.edge_weight(pos);
-        if w <= 0.0 {
-            continue;
-        }
-        let s = f.sample(pos, gh);
-        vx += s[0] as f64 * (rem * w);
-        vz += s[2] as f64 * (rem * w);
-        rem *= 1.0 - w;
-        if rem <= 0.0 {
-            break;
-        }
-    }
-    let rest = u10 * rem;
-    let a = wdir.to_radians();
-    (vx - a.sin() * rest).hypot(vz + a.cos() * rest)
-}
-
-/// Проход упёрся в предел итераций (`_hit_iter_limit`).
-fn hit_iter_limit(r: &PassReport) -> bool {
-    r.iters.iter().any(|&n| n >= MAX_OUTER)
-}
-
 /// Поле из файла (решённое или кеш): Ready без Пикара.
 fn from_file(
     job: JobIn,
@@ -1572,16 +1369,11 @@ fn from_file(
     job.progress.store(1.0f32.to_bits(), Ordering::Relaxed);
     JobOut {
         levels: FieldSet::prepare(b.levels, job.cfg.limits, job.cfg.edge_blend_cells),
-        k: b.inflow_k,
         rec: job.rec,
         pair: None,
         clip: None,
         report: JobReport {
             passes: Vec::new(),
-            planned: 0,
-            log: Vec::new(),
-            pass_failed: None,
-            not_converged: false,
             wall_s: t0.elapsed().as_secs_f64(),
             source,
             notes,
@@ -1592,10 +1384,9 @@ fn from_file(
     }
 }
 
-/// Одно поле: загрузка (решённое → кеш → проходы `k`) или пересчёт (один проход, тёплый старт).
+/// Одно поле: загрузка (решённое → кеш → проход) или пересчёт (один проход, тёплый старт).
 pub fn run_job(job: JobIn) -> Result<JobOut, JobErr> {
     let t0 = Instant::now();
-    let cfg = job.cfg.clone();
     let mut notes = Vec::new();
     let mut ckey = None;
     job.stage.enter("lookup");
@@ -1614,94 +1405,16 @@ pub fn run_job(job: JobIn) -> Result<JobOut, JobErr> {
         }
         check_cancel(&job)?;
     }
-    let inflow = job.rec.inflow == InflowMode::Inflow;
-    let u10 = job.rec.u10;
-    let (passes, mut k) = if job.loading {
-        let two = job.focus.is_some()
-            && u10 >= U10_MIN
-            && cfg.max_passes >= 2
-            && !inflow
-            && cfg.windows_wanted;
-        if two {
-            (cfg.max_passes, job.k_mem.unwrap_or(1.0))
-        } else {
-            (1, 1.0)
-        }
-    } else {
-        (1, if inflow { 1.0 } else { job.inflow_k })
-    };
-    let mut report = JobReport {
-        passes: Vec::new(),
-        planned: passes,
-        log: Vec::new(),
-        pass_failed: None,
-        not_converged: false,
+    let out = solve_pass(&job, job.warm.as_deref(), job.clip.as_ref())?;
+    let report = JobReport {
+        passes: vec![out.report.clone()],
         wall_s: 0.0,
         source: Source::Computed,
         notes,
         windows: Vec::new(),
         windows_error: None,
     };
-    let mut pass = 1usize;
-    let mut warm: Option<Arc<Pair>> = job.warm.clone();
-    // окна прошлого поля (пересчёт) или прохода 1 (проход 2 загрузки — на тех же местах)
-    let mut clip: Option<Arc<ClipMap>> = job.clip.clone();
-    let mut prev_ok: Option<PassOut> = None;
-    loop {
-        let r = solve_pass(
-            &job,
-            k,
-            warm.as_deref(),
-            clip.as_ref(),
-            pass,
-            passes.max(pass),
-        );
-        let out = match r {
-            Ok(o) => o,
-            Err(JobErr::Cancelled) => return Err(JobErr::Cancelled),
-            Err(JobErr::Failed(m)) => {
-                // загрузка: проход ≥ 2 не удался — поле прошлого прохода (`_use_previous_pass`)
-                if let (true, Some(p)) = (job.loading && pass > 1, prev_ok.take()) {
-                    report.pass_failed = Some(format!("pass {pass}: {m}"));
-                    return Ok(finish(job, p, report, t0, ckey));
-                }
-                return Err(JobErr::Failed(m));
-            }
-        };
-        let u = start_speed_levels(
-            &out.levels,
-            &job.place,
-            job.cfg.ground_cell_m,
-            job.focus,
-            u10,
-            job.rec.wdir,
-        );
-        report.log.push(PassLog { k, u });
-        report.passes.push(out.report.clone());
-        let mut more = pass < passes;
-        if more && pass >= 2 {
-            // сверх контрактных двух — только если остаток больше pass_tol
-            more = !u.is_nan() && (u / u10 - 1.0).abs() > cfg.pass_tol;
-        }
-        if more && pass == 1 && hit_iter_limit(&out.report) {
-            // слабый ветер: решение не сошлось — подстройка по нему бессмысленна
-            more = false;
-            report.not_converged = true;
-        }
-        let k1 = if more { next_k(&report.log, u10) } else { k };
-        if more && (k1 - k).abs() < 1.0e-6 {
-            // k упёрся в предел: проход 2 дал бы то же поле
-            more = false;
-        }
-        if !more {
-            return Ok(finish(job, out, report, t0, ckey));
-        }
-        warm = Some(out.pair.clone());
-        clip = out.clip.clone();
-        prev_ok = Some(out);
-        pass += 1;
-        k = k1;
-    }
+    Ok(finish(job, out, report, t0, ckey))
 }
 
 fn finish(
@@ -1713,7 +1426,6 @@ fn finish(
 ) -> JobOut {
     report.wall_s = t0.elapsed().as_secs_f64();
     job.progress.store(1.0f32.to_bits(), Ordering::Relaxed);
-    let k = p.report.k;
     let levels = p.levels;
     report.windows = p.report.windows.clone();
     report.windows_error = p.report.win_error.clone();
@@ -1723,19 +1435,9 @@ fn finish(
         job.cache.clone().filter(|_| report.windows_error.is_none()),
     ) {
         (Some(key), Some(cache)) => {
-            let status = if report.pass_failed.is_some() {
-                "previous_pass"
-            } else if report.not_converged {
-                "not_converged"
-            } else {
-                "ok"
-            };
             let mut extra = Map::new();
-            extra.insert("status".into(), json!(status));
-            extra.insert("inflow_k".into(), json!(k));
+            extra.insert("status".into(), json!("ok"));
             extra.insert("wall_s".into(), json!(report.wall_s));
-            let mut meta = Map::new();
-            meta.insert("inflow_k".into(), json!(k));
             Some(CachePut {
                 cache: FieldCache {
                     max_bytes: job.cfg.cache_max_bytes,
@@ -1750,8 +1452,7 @@ fn finish(
                     key: Value::Null,
                     levels: levels.iter().map(|l| (**l).clone()).collect(),
                     names: Vec::new(),
-                    level_meta: vec![meta],
-                    inflow_k: k,
+                    level_meta: vec![Map::new()],
                 },
                 extra,
             })
@@ -1760,7 +1461,6 @@ fn finish(
     };
     JobOut {
         levels,
-        k,
         rec: job.rec,
         pair: Some(p.pair),
         clip: p.clip,

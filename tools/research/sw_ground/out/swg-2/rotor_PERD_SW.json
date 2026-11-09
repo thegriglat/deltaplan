@@ -1,0 +1,308 @@
+{
+ "format": "swg-rotor",
+ "version": 1,
+ "git": "82a337317",
+ "created": "2026-11-08T21:56:06",
+ "task": "swg-2",
+ "params": {
+  "closure": "reattach",
+  "R_rule": 0.25,
+  "gate": "slope",
+  "slope_min": 0.27,
+  "sigma_m": 40.0,
+  "ds_min": 25.0,
+  "z0": "медиана растра",
+  "bg": "log"
+ },
+ "criterion": "u∥ < -0,5 м/с на z_agl 15 м, отрезок > 50 м вдоль разреза SWD1 (compare/core.py rotor_scan, как SWD5); u∥ панелей масштабирована к U данных в опорной точке norm; глубина — max z_agl связной области",
+ "rows": [
+  {
+   "case": "PERD_SW",
+   "transect": "sec-500",
+   "variant": "rotor_jh",
+   "present": true,
+   "L_m": 440.0,
+   "depth_m": 210.0,
+   "u_min_over_U": -0.6582060973866343,
+   "L_menke": null,
+   "L_picard_nom": 0.0,
+   "L_picard_adv1": 60.0
+  },
+  {
+   "case": "PERD_SW",
+   "transect": "sec+0",
+   "variant": "rotor_jh",
+   "present": true,
+   "L_m": 550.0,
+   "depth_m": 225.0,
+   "u_min_over_U": -0.6703630122798934,
+   "L_menke": null,
+   "L_picard_nom": 0.0,
+   "L_picard_adv1": 0.0
+  },
+  {
+   "case": "PERD_SW",
+   "transect": "sec+500",
+   "variant": "rotor_jh",
+   "present": true,
+   "L_m": 550.0,
+   "depth_m": 225.0,
+   "u_min_over_U": -0.6671417193423443,
+   "L_menke": null,
+   "L_picard_nom": 0.0,
+   "L_picard_adv1": 0.0
+  },
+  {
+   "case": "PERD_SW",
+   "transect": "mast_line",
+   "variant": "rotor_jh",
+   "present": true,
+   "L_m": 570.0,
+   "depth_m": 225.0,
+   "u_min_over_U": -0.6353199247155809,
+   "L_menke": null,
+   "L_picard_nom": 0.0,
+   "L_picard_adv1": 0.0
+  },
+  {
+   "case": "PERD_SW",
+   "transect": "menke_T1",
+   "variant": "rotor_jh",
+   "present": true,
+   "L_m": 440.0,
+   "depth_m": 210.0,
+   "u_min_over_U": -0.6582060973866343,
+   "L_menke": 680.0,
+   "L_picard_nom": 0.0,
+   "L_picard_adv1": 60.0
+  },
+  {
+   "case": "PERD_SW",
+   "transect": "menke_T2",
+   "variant": "rotor_jh",
+   "present": true,
+   "L_m": 550.0,
+   "depth_m": 225.0,
+   "u_min_over_U": -0.6703630122798934,
+   "L_menke": 670.0,
+   "L_picard_nom": 0.0,
+   "L_picard_adv1": 0.0
+  },
+  {
+   "case": "PERD_SW",
+   "transect": "menke_T3",
+   "variant": "rotor_jh",
+   "present": true,
+   "L_m": 550.0,
+   "depth_m": 225.0,
+   "u_min_over_U": -0.6671417193423443,
+   "L_menke": 500.0,
+   "L_picard_nom": 0.0,
+   "L_picard_adv1": 0.0
+  }
+ ],
+ "ridges": [
+  {
+   "case": "PERD_SW",
+   "ridge": 0,
+   "slope_max": 0.5340309234660723,
+   "gate_pass": true,
+   "placed": true,
+   "converged": true,
+   "Gamma": 4246.285612726923,
+   "R": 87.5,
+   "x_c": -3108.8037509291407,
+   "x_r": -2758.8037509291407,
+   "reverse_15m": true,
+   "picard_reverse": false,
+   "menke_rotor_nearby": false,
+   "false_rotor": true,
+   "window_m": 525.0,
+   "reverse_field_15m": true,
+   "margin_to_gate": 0.26403092346607226,
+   "x_y_c": [
+    -2781.925171010996,
+    -1809.400407190948
+   ]
+  },
+  {
+   "case": "PERD_SW",
+   "ridge": 1,
+   "slope_max": 0.1788589054434908,
+   "gate_pass": false,
+   "placed": false,
+   "converged": false,
+   "Gamma": null,
+   "R": null,
+   "x_c": -1249.3745180149676,
+   "x_r": null,
+   "reverse_15m": false,
+   "picard_reverse": false,
+   "menke_rotor_nearby": false,
+   "false_rotor": false,
+   "window_m": 600.0,
+   "reverse_field_15m": false,
+   "margin_to_gate": -0.0911410945565092,
+   "x_y_c": [
+    516.8543208804812,
+    -1935.9254007542795
+   ]
+  },
+  {
+   "case": "PERD_SW",
+   "ridge": 2,
+   "slope_max": 0.2779941171540116,
+   "gate_pass": true,
+   "placed": true,
+   "converged": true,
+   "Gamma": 4753.299214958626,
+   "R": 165.0,
+   "x_c": -1005.6118068719828,
+   "x_r": -345.6118068719827,
+   "reverse_15m": true,
+   "picard_reverse": false,
+   "menke_rotor_nearby": false,
+   "false_rotor": true,
+   "window_m": 990.0000000000002,
+   "reverse_field_15m": true,
+   "margin_to_gate": 0.007994117154011604,
+   "x_y_c": [
+    1265.9908620170336,
+    -2186.6553018960876
+   ]
+  },
+  {
+   "case": "PERD_SW",
+   "ridge": 3,
+   "slope_max": 0.4143872006928547,
+   "gate_pass": true,
+   "placed": true,
+   "converged": true,
+   "Gamma": 7543.320081025089,
+   "R": 173.75,
+   "x_c": -610.0058166199934,
+   "x_r": 104.99418338000666,
+   "reverse_15m": true,
+   "picard_reverse": true,
+   "menke_rotor_nearby": true,
+   "false_rotor": false,
+   "window_m": 1072.5000000000002,
+   "reverse_field_15m": true,
+   "margin_to_gate": 0.14438720069285466,
+   "x_y_c": [
+    -725.0036999017057,
+    -222.59045837646747
+   ]
+  },
+  {
+   "case": "PERD_SW",
+   "ridge": 4,
+   "slope_max": 0.4497667134305203,
+   "gate_pass": true,
+   "placed": false,
+   "converged": false,
+   "Gamma": null,
+   "R": 162.5,
+   "x_c": -519.2316568944527,
+   "x_r": 130.76834310554727,
+   "reverse_15m": false,
+   "picard_reverse": false,
+   "menke_rotor_nearby": false,
+   "false_rotor": false,
+   "window_m": 975.0,
+   "reverse_field_15m": false,
+   "margin_to_gate": 0.1797667134305203,
+   "x_y_c": [
+    2457.1621044607537,
+    -2462.479273186959
+   ]
+  },
+  {
+   "case": "PERD_SW",
+   "ridge": 5,
+   "slope_max": 0.44854910278968985,
+   "gate_pass": true,
+   "placed": true,
+   "converged": true,
+   "Gamma": 10558.578827604073,
+   "R": 133.75,
+   "x_c": 27.89157484493012,
+   "x_r": 572.8915748449303,
+   "reverse_15m": true,
+   "picard_reverse": true,
+   "menke_rotor_nearby": false,
+   "false_rotor": false,
+   "window_m": 817.5000000000003,
+   "reverse_field_15m": true,
+   "margin_to_gate": 0.17854910278968983,
+   "x_y_c": [
+    -1779.4829014894328,
+    1350.3734775377359
+   ]
+  },
+  {
+   "case": "PERD_SW",
+   "ridge": 6,
+   "slope_max": 0.4180226483427731,
+   "gate_pass": true,
+   "placed": true,
+   "converged": true,
+   "Gamma": 11559.82303441734,
+   "R": 82.5,
+   "x_c": 307.1237707512098,
+   "x_r": 647.1237707512099,
+   "reverse_15m": true,
+   "picard_reverse": true,
+   "menke_rotor_nearby": false,
+   "false_rotor": false,
+   "window_m": 510.0000000000001,
+   "reverse_field_15m": true,
+   "margin_to_gate": 0.14802264834277307,
+   "x_y_c": [
+    -1874.3004955014317,
+    1767.7447040090958
+   ]
+  },
+  {
+   "case": "PERD_SW",
+   "ridge": 7,
+   "slope_max": 0.4691012607142966,
+   "gate_pass": true,
+   "placed": true,
+   "converged": true,
+   "Gamma": 9107.20998725552,
+   "R": 225.0,
+   "x_c": 687.8004653767591,
+   "x_r": 1577.8004653767591,
+   "reverse_15m": true,
+   "picard_reverse": true,
+   "menke_rotor_nearby": true,
+   "false_rotor": false,
+   "window_m": 1335.0000000000002,
+   "reverse_field_15m": true,
+   "margin_to_gate": 0.19910126071429657,
+   "x_y_c": [
+    610.6559170916711,
+    403.88426665276717
+   ]
+  }
+ ],
+ "timing": [
+  {
+   "case": "PERD_SW",
+   "t_s": 20.36487054824829,
+   "n_solves": 9,
+   "t_mesh_s": 0.12650346755981445,
+   "t_rotor_vortex_s": 11.251486778259277,
+   "N": 12656,
+   "t_wall_s": 124.45828247070312
+  }
+ ],
+ "case_info": {
+  "PERD_SW": {
+   "n_ridges": 8,
+   "n_rejected": 1,
+   "n_unconverged": 1
+  }
+ }
+}

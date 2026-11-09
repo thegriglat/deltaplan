@@ -66,6 +66,20 @@ static func start_hint_keys_text() -> String:
 	)
 
 
+## Строка ветра у старта (WF-К2 v2). wind = Vector2(скорость на 10 м, м/с; откуда дует, °); скорость NAN — поле
+## ещё считается. Ветер меню — прогноз (forecast_ms), у старта — результат расчёта поля.
+static func start_hint_wind_text(wind: Vector2, forecast_ms: float) -> String:
+	if is_nan(wind.x):
+		return TranslationServer.translate("start_hint_wind_pending")
+	if is_nan(wind.y):
+		return TranslationServer.translate("start_hint_wind_calm") % [wind.x, forecast_ms]
+	var keys: PackedStringArray = [
+		"compass_n", "compass_ne", "compass_e", "compass_se", "compass_s", "compass_sw", "compass_w", "compass_nw"
+	]
+	var dir := TranslationServer.translate(keys[roundi(wind.y / 45.0) % 8])
+	return TranslationServer.translate("start_hint_wind") % [wind.x, dir, forecast_ms]
+
+
 ## Правая часть: мышь.
 static func start_hint_mouse_text() -> String:
 	var k: Dictionary = Config.get_config("controls").get("keys", {})

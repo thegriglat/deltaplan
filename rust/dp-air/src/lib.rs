@@ -24,7 +24,7 @@ mod types;
 pub mod weather;
 
 pub use calm::Calm;
-pub use conditions::{Conditions, Forecast, InflowMode, Source, WindRef};
+pub use conditions::{Conditions, Forecast, Source, WindRef};
 pub use error::{Code, Error};
 pub use formula::{Formula, join_background};
 pub use level::{

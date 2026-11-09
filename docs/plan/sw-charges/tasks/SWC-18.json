@@ -1,0 +1,45 @@
+{
+  "id": "SWC-18",
+  "module": "sw-charges",
+  "type": "dp-engineer",
+  "title": "panels2d v4: внутренний слой Jackson–Hunt и отрыв только с подветренной стороны",
+  "goal": "Дополнить panels2d по SW6 v4: crests (гребни и L), separation с lee_only, velocity_jh (внутренний слой Jackson–Hunt поверх потенциального разгона), step shed=auto с lee_only; тесты инвариантов v4, прежние тесты v1–v3 проходят.",
+  "plan_ref": "Этапы и задачи (уточняет координатор)",
+  "contracts": [
+    {
+      "name": "SW6",
+      "version": "4",
+      "ref": "docs/contracts/sw-charges.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/sw-charges-SWC-18",
+  "branch": "sw-charges/SWC-18",
+  "base": "feature/sw-charges",
+  "scope": [
+    "tools/research/sw_charges/panels2d/",
+    "tools/research/sw_charges/README.md"
+  ],
+  "dont_touch": [
+    "tools/research/sw_charges/panels_exp/",
+    "docs/contracts/",
+    "tools/research/sw_charges/contract/",
+    "tools/research/sw_charges/swpy/",
+    "tools/research/sw_charges/proto_a/"
+  ],
+  "accept": [
+    {
+      "name": "pytest",
+      "cmd": "tools/research/sw_charges/py -m pytest -q tools/research/sw_charges/panels2d/tests",
+      "expect": "!re:(failed|error)"
+    },
+    {
+      "name": "pytest-pass",
+      "cmd": "tools/research/sw_charges/py -m pytest -q tools/research/sw_charges/panels2d/tests",
+      "expect": "num:(\\d+) passed >=21"
+    }
+  ],
+  "report_extra": [],
+  "notes": "Решение пользователя Q4: последний круг правок 2D — внутренний слой Jackson–Hunt вместо log-множителя, отрыв только на подветренной стороне. Интерфейс — строго SW6 v4 (docs/contracts/sw-charges.md: пункты «v4» и «Инварианты v4»); v1–v3 по поведению не менять, кроме separation (lee_only=True по умолчанию) и step shed='auto' (берёт separation с lee_only). Пакет tools/research/sw_charges/panels2d/, тесты tests/ (pytest, OPENBLAS_NUM_THREADS=1), интерпретатор tools/research/sw_charges/py, только NumPy; тяжёлый CPU — .dpcli/dpcli lock cpu swc18 -- <cmd>.\nJackson–Hunt: Jackson & Hunt 1975 QJRMS 101:929; Hunt, Leibovich & Richards 1988 QJRMS 114:1435; обзор — Taylor, Mason & Bradley 1987 BLM 39:107; ориентиры чисел — docs/research/calibration_data/slope-flow.md §2.1 (Taylor & Lee 1984: ΔS_max ≈ B·H/L, B = 2 для 2D-хребта; высота максимума ~ l). Формулы l (l·ln(l/z0) = 2κ²L), h_m и сшивку между l и h_m — сверить по источникам (WebSearch недоступен — по памяти нельзя: если формулы h_m и сшивки нет в доступных документах репозитория (.dpcli/dpcli docs find Jackson), взять простейшую гладкую: ΔS(z) = ΔS_pot(max(z, l)) для z ≤ h_m, линейная по ln z сшивка u к velocity на [h_m, 2h_m], h_m = L/√(ln(L/z0)) — и пометить «допущение» в README). crests — по SW6 v4 (сглаживание 2·ds_min, перепад ≥ 2·ds_min, L — наветренная полуширина на половине высоты).\nТесты (≥ 4 новых; итого ≥ 21): ровная земля — velocity_jh = log-профиль ± 1 % на 2–300 м; Agnesi H/L = 0,1 — ΔS(z = l) в ±25 % от 2·H/L; Agnesi H/L = 0,5 — separation(lee_only) только за гребнем, наветренные точки в rejected; crests на двойной гряде (две Agnesi) — 2 гребня с правильными L; step shed='auto' — Γ сохраняется. README tools/research/sw_charges/README.md «Панели panels2d» — раздел v4: формулы со ссылками и пометками «допущение», таблица ΔS(z) на Agnesi H/L 0,1/0,3/0,5 (z = 2, 5, 10, l, 50 м) против 2·H/L, точки отрыва lee_only на Agnesi H/L 0,3/0,5/0,7. r.json — вне копии (scratchpad, имя с SWC-18).",
+  "created": "2026-11-08T05:18:32",
+  "edited": "2026-11-08T05:18:36"
+}

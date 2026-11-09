@@ -1,0 +1,108 @@
+{
+  "status": "done",
+  "summary": "Круг 3 на 2D: варианты potential_bl и vortex_bl (SW6 v3: слой Хеда, отрыв Хеда, shed=auto) посчитаны на C1/C2/C4, Perdigão NE/SW, 6 хребтах Lubitz-White; SW7 v2 переписан (4 варианта, ref_err, within_tol_ref). Вердикт: паритета у земли нет; ложный ротор C4 исчез, но вместе с реальными (C2, Perdigão); ΔS трубы слой не приближает.",
+  "commits": [
+    "2a2c88df8 SWC-17: панели с пограничным слоем и отрывом Хеда против Пикара, трубы, Perdigão (SW7 v2)",
+    "2305cbe06 SWC-17: summary ≤ 140"
+  ],
+  "checks": [
+    {
+      "name": "contract",
+      "value": "FAIL 0, points.json version 2",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "verdict",
+      "value": "1",
+      "pass": true
+    },
+    {
+      "name": "Пикар within_tol_ref, нижняя клетка / k0+1 / ~50 м / ~300 м (из 15)",
+      "value": "potential 2/4/6/14; vortex 2/4/8/14; potential_bl 5/5/6/14; vortex_bl 6/7/8/10 (порог 2/3 = 10)",
+      "pass": false
+    },
+    {
+      "name": "Perdigão RMSE u∥/S_ref пан./игра (паритет <= 1,15)",
+      "value": "NE 0,483/0,144 (3,35) для pot_bl и vortex_bl; SW 0,277/0,140 (1,97)",
+      "pass": false
+    },
+    {
+      "name": "ложный ротор C4",
+      "value": "исчез (L 0 м у pot_bl и vortex_bl; SWC-12 вихри 200 м)",
+      "pass": true
+    },
+    {
+      "name": "ротор C2 (Пикар 800 м) / Perdigão NE 530, SW 675",
+      "value": "нет ни у одного _bl (SWC-12 вихри: 300 / 750 / 375)",
+      "pass": false
+    },
+    {
+      "name": "ΔS трубы на гребне (труба): UCD 0,68, H5 0,70, GI 0,61, H8 0,35, H3 1,08",
+      "value": "potential_bl 0,06 / 0,07 / 0,06 / 0,06 / 1,60 (H3 и MD завышены артефактом отрыва на наветренном склоне)",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "Стратфорд справочно не гонялся: на гладких формах отрыва не даёт (SWC-15).",
+    "Время 3D и сходимость vortex_bl по dt не проверялись (один прогон на вариант)."
+  ],
+  "questions": [
+    "Нужны ли правки SW6 v3 (отрыв только на подветренной стороне; внутренний слой вместо log-множителя) — отдельной задачей? Без них паритет, судя по механизму, не достижим."
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SWC-17; воспроизведение — tools/research/sw_charges/panels_exp/README.md раздел SWC-17",
+  "uncertain": [
+    {
+      "where": "tools/research/sw_charges/panels_exp/run_bl.py: case_lw_bl",
+      "why": "труба масштабирована до H = 21,1 м, чтобы z0/H трубы совпало с библиотечным δ0 = 500*z0; это допущение исполнителя, α 0,15 у не-UCD, форма H3/H5/H8 = cos^2",
+      "checked": "чувствительность H = 50 и 150 м: ΔS H3 1,15 и 0,87, UCD 0,13 и 0,23 — вывод 'слой не приближает' не меняется, но у H3/MD мешает отрыв на наветренном склоне"
+    },
+    {
+      "where": "tools/research/sw_charges/panels_exp/merge3.py: within_tol_ref",
+      "why": "ref_err = 1,5*|P100r-P50|/max(|u|,0,3U10); 8 клеток без оценки приравнены к within_tol",
+      "checked": "без учёта ref_err вывод тот же (5/15 у земли вместо 6/15)"
+    },
+    {
+      "where": "Perdigão: z0 слоя 0,645 м (z0_nominal) при z0 фона bg_profile 0,1 м",
+      "why": "несогласованность библиотеки",
+      "checked": "z0 = 0,1 м: отрыв там же (-1002 / -1928 м), RMSE/игра 3,35 и 1,97 — результат тот же"
+    },
+    {
+      "where": "C2 vortex_bl",
+      "why": "отрыв гасится собственными вихрями, в окне 0 точек отрыва при 173 вихрях; не проверял, колебательный ли режим",
+      "checked": "дрейф u между половинами окна < 0,01 м/с"
+    }
+  ],
+  "dp_feedback": "job wait / команды обрываются в фон через 180 с — удобнее ждать через Monitor; docs index трогает registry/contracts.md вне скоупа (откатывал вручную); accept --dry для docs-проверки не показывает, какое именно ограничение (summary <= 140) нарушено, без чтения лога.",
+  "extra": {
+    "parity_picard_pooled_tol_ref_of_15": {
+      "vortex_bl": [
+        6,
+        7,
+        8,
+        10
+      ],
+      "potential_bl": [
+        5,
+        5,
+        6,
+        14
+      ],
+      "vortex_swc16": [
+        2,
+        4,
+        8,
+        14
+      ]
+    },
+    "separation_head": "подветренный физичный только у C2 (x=205 м, 230 м за гребнем); остальные - наветренный склон / далеко выше по потоку (Perdigão -1008, -1929)",
+    "cpu_total_min": 33
+  },
+  "t": "2026-11-08T05:12:01",
+  "by": "executor"
+}

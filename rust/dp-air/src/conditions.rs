@@ -33,14 +33,6 @@ pub enum Source {
     Preset(Value),
 }
 
-/// Как начинается воздух при загрузке места (W5 v2): `Start` (по умолчанию) или `Inflow`.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub enum InflowMode {
-    #[default]
-    Start,
-    Inflow,
-}
-
 #[derive(Clone, Debug, PartialEq)]
 pub struct Conditions {
     pub source: Source,
@@ -48,7 +40,6 @@ pub struct Conditions {
     pub speed: f64,
     pub blend_s: Option<f64>,
     pub rebuild: bool,
-    pub inflow_mode: InflowMode,
 }
 
 #[derive(Deserialize)]
@@ -64,7 +55,6 @@ struct Raw {
     blend_s: Option<f64>,
     #[serde(default)]
     rebuild: bool,
-    inflow_mode: Option<String>,
 }
 
 impl Conditions {
@@ -87,11 +77,6 @@ impl Conditions {
         {
             return Err(bad("blend_s must be >= 0".into()));
         }
-        let inflow_mode = match raw.inflow_mode.as_deref() {
-            None | Some("start") => InflowMode::Start,
-            Some("inflow") => InflowMode::Inflow,
-            Some(other) => return Err(bad(format!("inflow_mode '{other}' must be start|inflow"))),
-        };
         let source = match (raw.forecast, raw.preset) {
             (Some(_), Some(_)) => return Err(bad("both 'forecast' and 'preset'".into())),
             (None, None) => return Err(bad("neither 'forecast' nor 'preset'".into())),
@@ -138,7 +123,6 @@ impl Conditions {
             speed,
             blend_s: raw.blend_s,
             rebuild: raw.rebuild,
-            inflow_mode,
         })
     }
 }

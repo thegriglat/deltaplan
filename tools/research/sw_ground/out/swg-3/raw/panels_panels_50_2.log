@@ -1,0 +1,57 @@
+Traceback (most recent call last):
+  File "/home/greg/worktrees/deltaplan/sw-ground-SWG-3/tools/research/sw_ground/timing/panels_timing.py", line 173, in <module>
+    main()
+  File "/home/greg/worktrees/deltaplan/sw-ground-SWG-3/tools/research/sw_ground/timing/panels_timing.py", line 155, in main
+    pr, pure, info = stage(U10_COLD, DIR_COLD_DEG)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greg/worktrees/deltaplan/sw-ground-SWG-3/tools/research/sw_ground/timing/panels_timing.py", line 139, in stage
+    u, v, w = P.velocity_jh(panels, sigma, bg, *pts, z0, infl=infl)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greg/worktrees/deltaplan/sw-ground-SWG-3/tools/research/sw_charges_3d/panels3d/jh.py", line 172, in velocity_jh
+    uv, vv, wv = _inf.velocity(panels, sig_bg, bg, xf, yf, zf, None, be)   # потенциал + фон (без extra)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greg/worktrees/deltaplan/sw-ground-SWG-3/tools/research/sw_charges_3d/panels3d/influence.py", line 237, in velocity
+    pv = panel_velocity(panels, sigma, P, backend)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greg/worktrees/deltaplan/sw-ground-SWG-3/tools/research/sw_charges_3d/panels3d/influence.py", line 222, in panel_velocity
+    V = _influence(xp, Px[sl], g, slice(None), si)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greg/worktrees/deltaplan/sw-ground-SWG-3/tools/research/sw_charges_3d/panels3d/influence.py", line 69, in _influence
+    out = out + le[..., None] * m[None, :, k, :]
+          ~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  File "cupy/_core/core.pyx", line 1566, in cupy._core.core._ndarray_base.__add__
+  File "cupy/_core/_kernel.pyx", line 1374, in cupy._core._kernel.ufunc.__call__
+  File "cupy/_core/_kernel.pyx", line 657, in cupy._core._kernel._get_out_args_from_optionals
+  File "cupy/_core/core.pyx", line 3342, in cupy._core.core._ndarray_init
+  File "cupy/_core/core.pyx", line 300, in cupy._core.core._ndarray_base._init_fast
+  File "cupy/cuda/memory.pyx", line 904, in cupy.cuda.memory.alloc
+  File "cupy/cuda/memory.pyx", line 1614, in cupy.cuda.memory.MemoryPool.malloc
+  File "cupy/cuda/memory.pyx", line 1635, in cupy.cuda.memory.MemoryPool.malloc
+  File "cupy/cuda/memory.pyx", line 1350, in cupy.cuda.memory.SingleDeviceMemoryPool.malloc
+  File "cupy/cuda/memory.pyx", line 1376, in cupy.cuda.memory.SingleDeviceMemoryPool._malloc
+  File "cupy/cuda/memory.pyx", line 1560, in cupy.cuda.memory.SingleDeviceMemoryPool._try_malloc
+cupy.cuda.memory.OutOfMemoryError: Out of memory allocating 71,996,928 bytes (allocated so far: 6,150,981,120 bytes).
+Traceback (most recent call last):
+  File "/home/greg/worktrees/deltaplan/sw-ground-SWG-3/tools/research/sw_ground/timing/panels_timing.py", line 173, in <module>
+    main()
+  File "/home/greg/worktrees/deltaplan/sw-ground-SWG-3/tools/research/sw_ground/timing/panels_timing.py", line 90, in main
+    infl = P.assemble(panels, "cupy")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greg/worktrees/deltaplan/sw-ground-SWG-3/tools/research/sw_charges_3d/panels3d/api.py", line 9, in assemble
+    return _inf.assemble(panels, backend)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/greg/worktrees/deltaplan/sw-ground-SWG-3/tools/research/sw_charges_3d/panels3d/influence.py", line 107, in assemble
+    A = xp.empty((N, N))
+        ^^^^^^^^^^^^^^^^
+  File "/home/greg/.cache/sw_charges_3d/venv/lib/python3.12/site-packages/cupy/_creation/basic.py", line 34, in empty
+    return cupy.ndarray(shape, dtype, order=order)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "cupy/_core/core.pyx", line 176, in cupy._core.core.ndarray.__new__
+  File "cupy/_core/core.pyx", line 282, in cupy._core.core._ndarray_base._init
+  File "cupy/cuda/memory.pyx", line 904, in cupy.cuda.memory.alloc
+  File "cupy/cuda/memory.pyx", line 1614, in cupy.cuda.memory.MemoryPool.malloc
+  File "cupy/cuda/memory.pyx", line 1635, in cupy.cuda.memory.MemoryPool.malloc
+  File "cupy/cuda/memory.pyx", line 1350, in cupy.cuda.memory.SingleDeviceMemoryPool.malloc
+  File "cupy/cuda/memory.pyx", line 1376, in cupy.cuda.memory.SingleDeviceMemoryPool._malloc
+  File "cupy/cuda/memory.pyx", line 1560, in cupy.cuda.memory.SingleDeviceMemoryPool._try_malloc
+cupy.cuda.memory.OutOfMemoryError: Out of memory allocating 2,709,658,112 bytes (allocated so far: 4,124,160 bytes).

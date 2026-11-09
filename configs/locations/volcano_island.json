@@ -71,7 +71,6 @@
         "start_hour": 12.0,
         "temperature_c": 27.0,
         "wind_from_deg": 110.0,
-        "wind_ref": "start",
         "wind_speed_ms": 6.0
       }
     },
@@ -89,7 +88,6 @@
         "start_hour": 12.0,
         "temperature_c": 27.0,
         "wind_from_deg": 110.0,
-        "wind_ref": "inflow",
         "wind_speed_ms": 6.0
       }
     },
@@ -107,7 +105,6 @@
         "start_hour": 15.0,
         "temperature_c": 28.0,
         "wind_from_deg": 110.0,
-        "wind_ref": "start",
         "wind_speed_ms": 3.0
       }
     },
@@ -125,7 +122,6 @@
         "start_hour": 9.0,
         "temperature_c": 27.0,
         "wind_from_deg": 110.0,
-        "wind_ref": "start",
         "wind_speed_ms": 2.0
       }
     }

@@ -197,7 +197,7 @@ fn job_in_at(
     cfg.faults = NO_WIN;
     mutate(&mut cfg);
     let inputs = WeatherInputs::from_conditions(c, cfgs).unwrap();
-    let rec = CondRec::new(&inputs, c, hour_at(c, 0.0));
+    let rec = CondRec::new(&inputs, hour_at(c, 0.0));
     JobIn {
         weather: Some(common::real_weather()),
         cfg: Arc::new(cfg),
@@ -206,8 +206,6 @@ fn job_in_at(
         cond: c.clone(),
         rec,
         loading,
-        k_mem: None,
-        inflow_k: 1.0,
         focus,
         warm,
         cancel: Arc::new(AtomicBool::new(false)),
@@ -425,7 +423,7 @@ fn t4_divergence_and_ground_impermeability() {
         let tol_scale = j.cfg.tol_scale;
         let out = run_job(j).unwrap();
         let j2 = job_in(&cfg, |_| {}, place("synthetic"), &c, true, None);
-        let cases = level_cases(&j2, out.k).unwrap();
+        let cases = level_cases(&j2).unwrap();
         let pair = out.pair.as_ref().unwrap();
         let p = out.report.passes.last().unwrap();
         for (name, case, st, stop) in [
@@ -472,8 +470,8 @@ fn t4_frozen_columns_equal_the_mechanism_field() {
     let cfg = configs_with(cheap);
     let c = cond_u10(0.3, 12.0);
     let j = job_in(&cfg, |_| {}, place("synthetic"), &c, true, None);
-    let ph = phase_result(&j, 1.0).unwrap();
-    let cases = level_cases(&j, 1.0).unwrap();
+    let ph = phase_result(&j).unwrap();
+    let cases = level_cases(&j).unwrap();
     let out = run_job(j).unwrap();
     let p = out.report.passes.last().unwrap();
     assert_eq!(p.stop, [Stop::AllFrozen; 2]);
@@ -750,7 +748,7 @@ fn cancelled_before_the_first_iteration_leaves_no_nan_in_reports() {
     }
     // сам решатель: отмена до первой итерации — 0 итераций, история может нести NaN
     let j = job_in(&cfg, |_| {}, place("synthetic"), &c, true, None);
-    let cases = level_cases(&j, 1.0).unwrap();
+    let cases = level_cases(&j).unwrap();
     let cancel = Arc::new(AtomicBool::new(true));
     let s = solve(
         &cases[0],
@@ -831,7 +829,7 @@ fn t8_windows_same_field_at_2_4_20_threads() {
             }
         }
         let c = Conditions::from_json(
-            r#"{"preset":"medium","start_hour":12,"speed":1,"blend_s":null,"rebuild":false,"inflow_mode":"inflow"}"#,
+            r#"{"preset":"medium","start_hour":12,"speed":1,"blend_s":null,"rebuild":false}"#,
         )
         .unwrap();
         let mut m = Formula::new();
@@ -893,16 +891,14 @@ fn measure_ongudai_load_matrix() {
                 let wall = t0.elapsed().as_secs_f64();
                 let r = m.report().unwrap();
                 eprintln!(
-                    "MEAS загрузка Онгудай: потоков {threads}, окна {windows}, tol_scale {tol}: стена {wall:.1} с, проходов {}, k {:.3}",
-                    r.passes.len(),
-                    m.inflow_k()
+                    "MEAS загрузка Онгудай: потоков {threads}, окна {windows}, tol_scale {tol}: стена {wall:.1} с, проходов {}",
+                    r.passes.len()
                 );
                 for (i, p) in r.passes.iter().enumerate() {
                     let pass_s = p.secs.iter().sum::<f64>();
                     eprintln!(
-                        "MEAS   проход {}: k {:.3}, старт {:?}, грубые {:?}, тонкие {:?}, stop {:?}, секунды [вход, грубый, решения, поле] {:.1?}, фазы {:.2} с, сумма {pass_s:.1} с, запас до 180 с: {:.1} с",
+                        "MEAS   проход {}: старт {:?}, грубые {:?}, тонкие {:?}, stop {:?}, секунды [вход, грубый, решения, поле] {:.1?}, фазы {:.2} с, сумма {pass_s:.1} с, запас до 180 с: {:.1} с",
                         i + 1,
-                        p.k,
                         p.start,
                         p.coarse_iters,
                         p.iters,
@@ -951,7 +947,7 @@ fn measure_ongudai_input_prep() {
             let t_bm = t.elapsed().as_secs_f64();
             let j = job_in(&cfg, |_| {}, place("ongudai"), &cond_preset("medium"), true, None);
             let t = Instant::now();
-            let _ = level_cases(&j, 1.0).unwrap();
+            let _ = level_cases(&j).unwrap();
             let t_lc = t.elapsed().as_secs_f64();
             eprintln!(
                 "MEAS вход Онгудая, {threads} потоков: block_mean {t_bm:.3} с ({} клеток), level_cases (вход + погода + случаи + плоскости) {t_lc:.2} с",

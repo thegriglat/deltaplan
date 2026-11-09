@@ -1,0 +1,156 @@
+{
+  "cold": {
+    "notes": [],
+    "passes": [
+      {
+        "coarse_iters": [
+          50,
+          60
+        ],
+        "frozen_frac": [
+          0.0,
+          0.0
+        ],
+        "iters": [
+          70,
+          70
+        ],
+        "phase_s": 0.139898515,
+        "phases": true,
+        "secs": [
+          0.03903772,
+          1.281847068,
+          8.271167415,
+          0.003710677
+        ],
+        "start": "Coarse",
+        "stop": [
+          "Converged",
+          "Converged"
+        ],
+        "win_s": 9.257320041
+      }
+    ],
+    "report_wall_s": 18.998041339,
+    "source": "Computed",
+    "wall_s": 19.129729219,
+    "windows": [
+      {
+        "dx": 100.0,
+        "iters": [
+          40,
+          40
+        ],
+        "secs": [
+          0.000843112,
+          0.024829072,
+          3.031296896,
+          0.002027901
+        ],
+        "stop": "[Converged, Converged]",
+        "t_s": 3.058996981,
+        "warm": false,
+        "x0": 4025.0,
+        "y0": -3525.0
+      },
+      {
+        "dx": 50.0,
+        "iters": [
+          40,
+          50
+        ],
+        "secs": [
+          0.000843112,
+          0.048231269,
+          6.138961585,
+          0.003582222
+        ],
+        "stop": "[Converged, Converged]",
+        "t_s": 6.191618188,
+        "warm": false,
+        "x0": 5625.0,
+        "y0": -1925.0
+      }
+    ],
+    "windows_error": null
+  },
+  "from_deg": 151.0,
+  "threads": 8,
+  "tol_scale": 5.0,
+  "u10": 7.5,
+  "wind_change": {
+    "cur": {
+      "u10": 9.0,
+      "wdir": 181.0
+    },
+    "passes": [
+      {
+        "coarse_iters": null,
+        "frozen_frac": [
+          0.0,
+          0.0
+        ],
+        "iters": [
+          70,
+          70
+        ],
+        "phase_s": 0.117575208,
+        "phases": true,
+        "secs": [
+          0.034214173,
+          2.5e-7,
+          7.843244142,
+          0.004143038
+        ],
+        "start": "Warm",
+        "stop": [
+          "Converged",
+          "Converged"
+        ],
+        "win_s": 16.251078189
+      }
+    ],
+    "report_wall_s": 24.259112939,
+    "source": "Computed",
+    "wall_s": 24.386973528,
+    "windows": [
+      {
+        "dx": 100.0,
+        "iters": [
+          50,
+          50
+        ],
+        "secs": [
+          0.001121776,
+          0.028929517,
+          3.254443497,
+          0.008310966
+        ],
+        "stop": "[Converged, Converged]",
+        "t_s": 3.292805756,
+        "warm": true,
+        "x0": 4025.0,
+        "y0": -3525.0
+      },
+      {
+        "dx": 50.0,
+        "iters": [
+          90,
+          130
+        ],
+        "secs": [
+          0.001121776,
+          0.049368144,
+          12.901377626,
+          0.003576309
+        ],
+        "stop": "[Converged, Converged]",
+        "t_s": 12.955443855,
+        "warm": true,
+        "x0": 5625.0,
+        "y0": -1925.0
+      }
+    ],
+    "windows_error": null
+  }
+}
