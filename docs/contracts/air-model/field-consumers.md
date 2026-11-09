@@ -3,10 +3,10 @@ type: "contract"
 status: "closed"
 module: "air-model"
 area: "air"
-updated: "2026-10-15"
+updated: "2026-11-10"
 summary: "Модель воздуха, стыки C4–C8: WindField/AirFieldSet → атмосфера, термики, сеть, часы старта, клипмапы, пересчёт."
 related: ["docs/contracts/air-model.md"]
-contracts: [{"id": "C4", "version": 4}, {"id": "C5", "version": 1}, {"id": "C6", "version": 1}, {"id": "C7", "version": 4}, {"id": "C8", "version": 2}]
+contracts: [{"id": "C4", "version": 5}, {"id": "C5", "version": 1}, {"id": "C6", "version": 1}, {"id": "C7", "version": 4}, {"id": "C8", "version": 2}]
 ---
 
 # Модель воздуха: C4–C8: WindField и его потребители
@@ -95,6 +95,12 @@ F3 (`wind_field_debug.gd`) и `dump_slices.gd` — `air_velocity_at` / `WindFiel
 - **Ключи `lee` (v4):** `field_burst_per_du` (0,42 = 3·σ_w/ΔU), `field_reverse_per_uh` (0,22, Menke 2019;
   заменяет `field_reverse_per_wind`), `field_bubble_length_per_relief` (2,8, Menke 2019 L/H),
   `field_resolved_cells` ([4, 8]), у каждого `_doc`. Аналитические ключи `lee` не меняются.
+- **C4 v5 (lee-turb, LTM v1, `docs/contracts/lee-turb.md`):** на пути с полем r берётся из `GroundField.relief_at`
+  и при доле поля a ≥ 1 (до v5 там r = 0 и ветвь слоя смешения не работала); σ слоя смешения
+  σ_u : σ_v : σ_w = 0,166 : 0,130 : 0,153 ·ΔU (`field_sigma_u_per_du`, новый `field_sigma_v_per_du`,
+  `field_sigma_w_per_du`), `field_burst_per_du` 0,46; в зоне отрыва без разрешённого пузыря ниже уровня гребня
+  член механики по сдвигу поля снимается (новый `field_wall_shear_off_agl_per_relief` [0,75, 1,0]).
+  Тест `test_c4_lee_keys` (v5).
 
 ## C5 v1 — источники термиков → сеть (AM-07)
 **Владелец:** AM-07. **Потребители:** сеть (`net_zone.gd`, `net_flight.gd`, сервер Go), AM-11.
