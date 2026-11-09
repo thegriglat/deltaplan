@@ -1,0 +1,97 @@
+{
+  "id": "PT-9",
+  "module": "picard-terrain",
+  "type": "dp-engineer",
+  "title": "Встраивание срезанных клеток в случаи игры (dp-air: 1200/400/100/50 м)",
+  "goal": "Все уровни Пикара игры решаются со срезанными клетками по PT7 v1: доли из растра места через picard_rs::cut_build, типы по hc_type, cut_cells всегда; путь маски из игры убран; ключ кеша format 2.",
+  "plan_ref": "Задачи / Этап 2",
+  "contracts": [
+    {
+      "name": "PT6",
+      "version": "1",
+      "ref": "docs/contracts/picard-terrain.md"
+    },
+    {
+      "name": "PT7",
+      "version": "1",
+      "ref": "docs/contracts/picard-terrain.md"
+    },
+    {
+      "name": "PT2",
+      "version": "1",
+      "ref": "docs/contracts/picard-terrain.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/picard-terrain-PT-9",
+  "branch": "picard-terrain/PT-9",
+  "base": "feature/picard-terrain",
+  "scope": [
+    "rust/dp-air/src/field/place_input.rs",
+    "rust/dp-air/src/field/case_prepare.rs",
+    "rust/dp-air/src/field/case_build.rs",
+    "rust/dp-air/src/field/window.rs",
+    "rust/dp-air/src/field/runtime.rs",
+    "rust/dp-air/src/field/clipmap.rs",
+    "rust/dp-air/src/field/mod.rs",
+    "rust/dp-air/src/field/cut_input.rs",
+    "rust/dp-air/src/field/phase/prepare.rs",
+    "rust/dp-air/tests/case_prepare.rs",
+    "rust/dp-air/tests/case_build.rs",
+    "rust/dp-air/tests/window.rs",
+    "rust/dp-air/tests/field_input.rs",
+    "rust/dp-air/tests/clipmap.rs",
+    "rust/dp-air/tests/phase_assembly.rs",
+    "rust/dp-air/tests/phase_mech.rs",
+    "rust/dp-air/tests/phase_f_base_wind.rs",
+    "rust/dp-air/tests/phase_classifier.rs",
+    "rust/dp-air/tests/freeze_thd_v11.rs",
+    "rust/dp-air/tests/runtime.rs",
+    "rust/dp-air/tests/cut_game.rs"
+  ],
+  "dont_touch": [
+    "rust/picard_rs",
+    "rust/dp-air/src/field/wind_field.rs",
+    "rust/dp-air/src/field/solved.rs",
+    "rust/dp-air/src/field/field_cache.rs",
+    "rust/dp-air/src/field/field_set.rs",
+    "rust/dp-air/src/field/phase/assembly.rs",
+    "rust/dp-air/src/field/phase/layers.rs",
+    "rust/dp-air/src/terms",
+    "rust/dp-stand",
+    "rust/dp-gd",
+    "scripts",
+    "configs",
+    "docs/contracts",
+    "tests/fixtures"
+  ],
+  "accept": [
+    {
+      "name": "check",
+      "cmd": "cd rust && cargo check --offline -p dp-air --all-targets",
+      "expect": "exit=0"
+    },
+    {
+      "name": "lib",
+      "cmd": "cd rust && cargo test --offline --release -p dp-air --lib",
+      "expect": "exit=0"
+    },
+    {
+      "name": "regress",
+      "cmd": "cd rust && cargo test --offline --release -p dp-air --test case_prepare --test case_build --test window --test field_input --test clipmap --test phase_assembly --test phase_mech --test phase_f_base_wind --test phase_classifier --test freeze_thd_v11 --test step_cost_same --test runtime",
+      "expect": "exit=0"
+    },
+    {
+      "name": "cut-game",
+      "cmd": "cd rust && cargo test --offline --release -p dp-air --test cut_game -- --include-ignored",
+      "expect": "exit=0"
+    },
+    {
+      "name": "solver-default",
+      "cmd": "bash tools/research/picard_terrain/contract/check_default.sh",
+      "expect": "re:identical=4/4"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T16:12:19"
+}
