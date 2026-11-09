@@ -1,0 +1,116 @@
+{
+  "status": "done",
+  "summary": "compare.py считает поле одного и шести термиков (bubble.py), сверяет семь величин TB3 с литературой и current.py; compare.json, compare.md, 5 разрезов в build/screenshots/thermal-bubble/tb2b_*.png. Шаблон бездивергентен и замкнут по массе; ядро шире и сильнее литературы; нынешний профиль массу не замыкает.",
+  "commits": [
+    "83974f017 thermal-bubble TB-2b: сверка шаблона пузыря"
+  ],
+  "checks": [
+    {
+      "name": "div p99_rel (ветер постоянный/сдвиг, 1 и 6 термиков)",
+      "value": "7.5e-7 (порог 1e-3)",
+      "pass": true
+    },
+    {
+      "name": "div flux_rel (по возмущению)",
+      "value": "3.8e-9",
+      "pass": true
+    },
+    {
+      "name": "линейность суммы шести",
+      "value": "2e-16",
+      "pass": true
+    },
+    {
+      "name": "accept --dry",
+      "value": "4/4 PASS",
+      "pass": true
+    },
+    {
+      "name": "contract_tb3",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "div",
+      "value": "7.45939e-07",
+      "pass": true
+    },
+    {
+      "name": "figures",
+      "value": "5",
+      "pass": true
+    },
+    {
+      "name": "md_docs",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Четыре величины (rise, inflow, outflow, ring) без литературного числа: literature null с причиной (AMS закрыт 403).",
+    "Проверка по картинкам не делалась (только числа), как велено."
+  ],
+  "questions": [
+    "Шаблон в 1,3–2,2 раза шире ядра L&S/Allen и вдвое сильнее по среднему w (0,84 против 0,45 w*): подгонять α_th/b0 или оставить Скорера как есть (TB-4)?"
+  ],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/thermal-bubble/tb2b_1_template_xz.png",
+    "/home/greg/deltaplan/build/screenshots/thermal-bubble/tb2b_2_current_xz.png",
+    "/home/greg/deltaplan/build/screenshots/thermal-bubble/tb2b_3_template_horizontal.png",
+    "/home/greg/deltaplan/build/screenshots/thermal-bubble/tb2b_4_multi.png",
+    "/home/greg/deltaplan/build/screenshots/thermal-bubble/tb2b_5_profiles_flux.png"
+  ],
+  "how_to_check": "tools/research/thermal_bubble/py tools/research/thermal_bubble/compare.py (2,7 мин); .dpcli/dpcli accept TB-2b",
+  "uncertain": [
+    {
+      "where": "compare.md п.2 (w_core_max)",
+      "why": "литературный пик ядра 1-2 w* из пересказа, оригиналы закрыты; L&S 0,45 - среднее, другая величина",
+      "checked": "дал оба определения: пик и среднее по диску w>0"
+    },
+    {
+      "where": "compare.py updraft_area_fraction",
+      "why": "доля w>0 зависит от крошечных хвостов старших термиков; порог меняет 0,136 до 0,088; непериодический кусок из шести даёт 0,30",
+      "checked": "периодическая ячейка 3x3 образа, 120 перестановок возрастов, пороги 0/0,02/0,05/0,1 w*"
+    },
+    {
+      "where": "compare.md п.4 (баланс 0,11 w* против 0,06)",
+      "why": "грубая оценка через n_A живых пузырей, перемножение двух чисел L&S",
+      "checked": "только порядок величины"
+    }
+  ],
+  "dp_feedback": "task show обрезает длинные дополнения многоточием; пришлось читать через --full.",
+  "extra": {
+    "w_core_max_over_wstar": {
+      "bubble": 1.83,
+      "current": 1.24,
+      "mean_disk_bubble": 0.84,
+      "mean_disk_current": 0.46
+    },
+    "core_radius_over_zi": {
+      "bubble": 0.12,
+      "current": 0.0707,
+      "lit": 0.0555
+    },
+    "rise_speed_over_wstar": 0.59,
+    "inflow_ground_over_wstar": 0.81,
+    "outflow_top_over_wstar": 0.45,
+    "ring_sink_min_over_wstar": {
+      "bubble": -0.88,
+      "current": -0.27
+    },
+    "updraft_area_fraction": {
+      "bubble": 0.136,
+      "current": 0.129,
+      "lit": "0.3-0.4"
+    },
+    "mass_flux_zeta05_m3s": {
+      "bubble_up": 193000.0,
+      "bubble_down": -193000.0,
+      "current_up": 36000.0,
+      "current_down": -56000.0
+    },
+    "sensitivity": "b0 52-79 м: приток/ядро +-7%, max|v| у земли +-10% (2,16 w* при zeta_b0=0,05); tau не влияет на пик"
+  },
+  "t": "2026-11-09T09:27:54",
+  "by": "executor"
+}
