@@ -3,14 +3,16 @@ type: "research"
 status: "closed"
 module: "thermal-bubble"
 area: "air"
-updated: "2026-11-09"
+updated: "2026-11-10"
 summary: "thermal-bubble: шаблон пузыря замкнут по массе, даёт приток; круг 2 — ядро по измерениям, dp-air за флагом (37 мс/с), границы."
-related: ["tools/research/thermal_bubble/compare.md", "tools/research/thermal_bubble/bench.md", "tools/research/thermal_bubble/README.md", "tools/research/thermal_bubble/literature.md", "docs/guide/air-model/thermals.md", "docs/plan/thermal-bubble.md"]
-conclusion: "Круг 2 (v4): ядро по Lenschow-Stephens (R/z_i 0,059, пик 1,54 w*), приток 0,58 w* против LES 0,36; поле замкнуто по массе (p99 4e-7); в dp-air за флагом bubble_template: сборка 37 мс на 1 с игры, таблица до 3,2 % пика; голова не доходит до крышки за жизнь термика игры. По умолчанию выкл."
+related: ["docs/research/thermal_bubble_round3.md", "tools/research/thermal_bubble/compare.md", "tools/research/thermal_bubble/bench.md", "tools/research/thermal_bubble/README.md", "tools/research/thermal_bubble/literature.md", "docs/guide/air-model/thermals.md", "docs/plan/thermal-bubble.md"]
+conclusion: "Круг 3: шаблон по умолчанию, см. thermal_bubble_round3.md. Круг 2 (v4): ядро по Lenschow-Stephens (R/z_i 0,059, пик 1,54 w*), приток 0,58 w* против LES 0,36; поле замкнуто по массе (p99 4e-7); в dp-air за флагом bubble_template: сборка 37 мс на 1 с игры, таблица до 3,2 % пика; голова не доходит до крышки за жизнь термика игры. В круге 2 по умолчанию выкл."
 data: "tools/research/thermal_bubble/out/compare.json"
 applied_in: []
 ---
 # thermal-bubble — итог: что даёт шаблон пузыря пилоту
+
+> **Круг 3 ([thermal_bubble_round3.md](thermal_bubble_round3.md))**: шаблон встроен по умолчанию, флага `bubble_template` нет; разделы «Круг 2» §4–§6 (флаг, границы 1–3, вопросы) устарели.
 
 > **Круг 2 заменил числа круга 1.** Разделы до «Круг 2» описывают шаблон v2 (лабораторное ядро α = 0,25, весь поток в ядро); их числа — история. Актуальные — в разделе [Круг 2](#круг-2-ядро-по-измерениям-и-встраивание-за-флагом) (шаблон v4, TB1 v4).
 
