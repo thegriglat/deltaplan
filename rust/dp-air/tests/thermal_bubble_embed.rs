@@ -742,9 +742,9 @@ fn bubble_cache_budget() {
 #[test]
 #[cfg_attr(
     debug_assertions,
-    ignore = "цена меряется в release: cargo test --release … bubble_cache_budget_4f"
+    ignore = "цена меряется в release: cargo test --release … cache_budget_4f"
 )]
-fn bubble_cache_budget_4f() {
+fn cache_budget_4f() {
     let ms = run_budget(4);
     println!("build_ms_per_s_4f={ms:.1}");
     assert!(ms <= 400.0, "цена сборки при 4 фокусах {ms} мс/с");
