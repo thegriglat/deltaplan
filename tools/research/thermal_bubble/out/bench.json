@@ -1,0 +1,139 @@
+{
+  "bubbles_per_point": 3.1403,
+  "extra": {
+    "bubble": {
+      "bubbles_per_point": 3.1403,
+      "mean_bucket_list_len": 8.88585,
+      "points_with_nonempty_bucket_frac": 1.0
+    },
+    "current": {
+      "active": 341,
+      "contributing_thermals_per_point": 0.7799,
+      "points_nonzero_frac": 0.51865,
+      "thermals": 341,
+      "w_rms_ms": 0.4679369204703461
+    },
+    "port_cases": [
+      {
+        "case": "t30",
+        "max_abs_err": 3.567263439905365e-15,
+        "max_ref": 3.9786579326416684,
+        "rel": 8.965996826816538e-16
+      },
+      {
+        "case": "t120",
+        "max_abs_err": 2.2663054499571482e-14,
+        "max_ref": 4.641456460587498,
+        "rel": 4.882746330168716e-15
+      },
+      {
+        "case": "t400",
+        "max_abs_err": 1.757783305925249e-14,
+        "max_ref": 3.9166428333977588,
+        "rel": 4.487984686620863e-15
+      },
+      {
+        "case": "t690",
+        "max_abs_err": 9.900483340669135e-13,
+        "max_ref": 3.6763536745453766,
+        "rel": 2.6930171080162584e-13
+      },
+      {
+        "case": "t800",
+        "max_abs_err": 7.589901590432904e-14,
+        "max_ref": 3.1482725210707065,
+        "rel": 2.410814673645733e-14
+      },
+      {
+        "case": "t1000",
+        "max_abs_err": 9.292938109463748e-16,
+        "max_ref": 1.6269780193429701,
+        "rel": 5.711778523729876e-16
+      },
+      {
+        "case": "t1700",
+        "max_abs_err": 3.251669631848525e-16,
+        "max_ref": 0.4822116002744838,
+        "rel": 6.743242240538416e-16
+      },
+      {
+        "case": "pair",
+        "max_abs_err": 6.666583549331799e-14,
+        "max_ref": 4.305349108418676,
+        "rel": 1.5484420383694242e-14
+      }
+    ],
+    "scene": {
+      "bubbles": 341,
+      "r_inf_m": [
+        340.0,
+        460.0,
+        540.0,
+        600.0,
+        660.0,
+        720.0,
+        820.0,
+        820.0,
+        780.0,
+        580.0,
+        540.0,
+        520.0,
+        480.0,
+        460.0,
+        420.0,
+        400.0,
+        380.0,
+        340.0,
+        320.0,
+        300.0,
+        280.0,
+        260.0,
+        240.0,
+        220.0,
+        180.0,
+        180.0,
+        160.0
+      ],
+      "r_inf_max_m": 820.0,
+      "setup_s": 0.213213024,
+      "table_bytes_max": 95424,
+      "table_bytes_mean_inst": 52375.92961876833,
+      "table_bytes_mean_pop": 52760.88888888889,
+      "v_cut_ms": 0.0508175213434911,
+      "v_peak_ms": 5.08175213434911
+    },
+    "setup": {
+      "bucket_m": 500.0,
+      "cut_frac": 0.01,
+      "density_per_m2": 4.336734693877551e-6,
+      "disc_r_m": 5000.0,
+      "n_points": 20000,
+      "point_r_m": 4000.0,
+      "w0_ms": 2.5,
+      "zl_m": 1400.0
+    },
+    "table": {
+      "rel_err_fixture_max": 0.11321981985530531,
+      "scene_max_abs_err_ms": 0.40580468221940524,
+      "scene_rel_err_to_peak": 0.08453649274030094,
+      "scene_rms_err_ms": 0.02494133538632814,
+      "step_m": 10.0,
+      "v_cut_ms": 0.0508175213434911
+    }
+  },
+  "format": "tb-bench",
+  "machine": {
+    "cpu": "Intel(R) Xeon(R) CPU E5-2666 v3 @ 2.90GHz",
+    "threads": 18
+  },
+  "ns_per_point": {
+    "bubble_analytic": 25991.303649902344,
+    "bubble_table": 357.4318141015179,
+    "current_contribution": 97.68745479844192,
+    "current_sample": 250.08816867191115
+  },
+  "port_max_rel_err": 2.1330553081211e-13,
+  "profile": "release",
+  "table_bytes": 52376,
+  "version": 1
+}

@@ -36,3 +36,7 @@ harness = false
 [[bench]]
 name = "formula"
 harness = false
+
+[[bench]]
+name = "thermal_bubble"
+harness = false
