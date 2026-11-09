@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "note": "Полный корпус этапа 2 outflow-bc (OB4): слабый ветер, 90 случаев x 5 стартов; решение 400 м, снимки каждые 10 итераций.",
+  "places": [
+    {"id": "ongudai", "kind": "real", "file": "tests/fixtures/wind/places/ongudai.json", "dirs_deg": [0, 225]},
+    {"id": "training_island", "kind": "real", "file": "tests/fixtures/wind/places/training_island.json", "dirs_deg": [0, 225]},
+    {"id": "volcano_island", "kind": "real", "file": "tests/fixtures/wind/places/volcano_island.json", "dirs_deg": [0, 225]},
+    {"id": "hill_h300", "kind": "ideal", "shape": "hill", "h_m": 300, "sigma_m": 3000, "dirs_deg": [270]},
+    {"id": "hill_h1000", "kind": "ideal", "shape": "hill", "h_m": 1000, "sigma_m": 3000, "dirs_deg": [270]},
+    {"id": "ridge_h600", "kind": "ideal", "shape": "ridge", "h_m": 600, "sigma_m": 3000, "dirs_deg": [270]}
+  ],
+  "u10_ms": [0.5, 1, 2, 3, 6],
+  "heat": [false, true],
+  "hour": 13,
+  "t_max_c": 22,
+  "sky": "clear",
+  "k": 1.0,
+  "max_iters": 1000,
+  "starts": ["bg", "coarse3", "chain", "phase", "chain_phase"],
+  "snap": {"every": 10, "n_eval": [50, 100, 200, 300], "late_from": 500, "late_step": 50, "edge_cells": 5},
+  "threads": 8
+}
