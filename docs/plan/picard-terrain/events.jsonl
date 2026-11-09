@@ -189,3 +189,4 @@
 {"t": "2026-11-09T17:55:31", "by": "coordinator", "task": "PT-10a", "ev": "checked", "note": "3/3 build=ok:exit 0; timing=ok:\"wall_s\":7; passes=ok:\"passes\":[{"}
 {"t": "2026-11-09T17:55:49", "by": "coordinator", "task": "PT-10a", "ev": "accepted", "note": "по отчёту: инструмент стенда"}
 {"t": "2026-11-09T17:55:50", "by": "coordinator", "task": "PT-10a", "ev": "merged", "note": "4d60d6fa2"}
+{"t": "2026-11-09T18:04:43", "by": "coordinator", "task": "PT-10a", "ev": "accepted", "commits": ["4d60d6fa2"], "note": "3/3 build=ok:exit 0; timing=ok:\"wall_s\":7; passes=ok:\"passes\":[{"}
