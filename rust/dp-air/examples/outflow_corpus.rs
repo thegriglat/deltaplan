@@ -47,7 +47,7 @@ use dp_air::field::place_input::build_domain_input;
 use dp_air::field::runtime::{RtCfg, domain_for};
 use dp_air::field::weather_core::{field_weather, hour_at};
 use dp_air::fixtures::read_place;
-use dp_air::{Conditions, Configs, InflowMode, Place};
+use dp_air::{Conditions, Configs, Place};
 use metrics::{AGL_M, Geo, SPREAD_AGL_M};
 use picard_rs::api::{Outflow, SolveOpts, StopReason, solve};
 use picard_rs::case::Case;
@@ -372,8 +372,6 @@ fn build(env: &Env, place: &Place, dir: f64, u10: f64, heat: bool) -> R<Built> {
         &inp,
         &fw,
         &CaseOpts {
-            k: env.spec.k,
-            inflow_mode: InflowMode::Start,
             heat: true,
         },
     )
