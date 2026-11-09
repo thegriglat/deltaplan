@@ -1,0 +1,106 @@
+{
+  "status": "done",
+  "summary": "Шаблон пузыря встроен в dp-air за флагом thermal.bubble_template (по умолчанию выкл, биты прежние — фикстура записана до правок): thermal/bubble.rs (порт bubble.py v2 с state/траекторией, BubbleTable (u_rho, w) f32, шаг 4 м у оси), State::sample_bubble (w пузырей + uh), ThermalOut.uh и сумма ветра. accept --dry: все 5 проверок PASS, table_max_rel = 0,0285.",
+  "commits": [
+    "537456b98 фикстура флага выкл (до правок src) и тест flag_off_bitwise",
+    "d17b87b19 шаблон пузыря в dp-air за флагом thermal.bubble_template"
+  ],
+  "checks": [
+    {
+      "name": "contract_tb4",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "dp_air_tests",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "table_acc",
+      "value": "0.02851 (порог 0,05; шаг 4 м; при 5 м было 0,037, при 3 м 0,018)",
+      "pass": true
+    },
+    {
+      "name": "port_vs_python",
+      "value": "velocity: 2.7e-13, state: 2.1e-16 (порог 1e-5)",
+      "pass": true
+    },
+    {
+      "name": "flag_off_bitwise",
+      "value": "3 момента x 1020 точек, State::sample (u64) и sum (u32) побитно",
+      "pass": true
+    },
+    {
+      "name": "flag_on_sum",
+      "value": "приток к оси у земли: радиальная uh = -0,65 м/с (R=131, tp=200 с); растекание под крышкой +0,55 м/с (tp=900 с); за радиусом таблицы 0; сумма конечна, thermal.vel = fade*uh на 540 точках",
+      "pass": true
+    },
+    {
+      "name": "workspace",
+      "value": "cargo check --workspace --all-targets exit 0",
+      "pass": true
+    },
+    {
+      "name": "game_untouched",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Цена сборки таблиц не снижена: ~0,17 с стенного времени на пузырь на 4 ядрах (профиль tune, -O2), ~0,2 с на -O0; на сотнях активных термиков и обновлении раз в 1 с флаг в игре нереален без кеша/ленивой сборки (решать в TB-8/после)."
+  ],
+  "questions": [
+    "Радиус влияния таблицы: порог 1 % от силы термика w* (не от пика самого пузыря) — иначе слабый поздний пузырь получил бы огромный радиус. Если нужен 1 % пика пузыря — одна константа INFLUENCE_FRAC и аргумент cut в bubble::prepare."
+  ],
+  "how_to_check": ".dpcli/dpcli accept TB-7",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/src/terms/thermal/sample.rs: State::build / bubble_tables",
+      "why": "при флаге активность решается с запасом R_CAP_M=3000 м (радиус таблицы ещё неизвестен), потом повторяется та же проверка с настоящим радиусом; логика near продублирована из основного цикла build",
+      "checked": "флаг выкл — основной цикл не менялся, flag_off_bitwise побитно; флаг вкл — flag_on_sum и workspace"
+    },
+    {
+      "where": "rust/dp-air/src/terms/thermal/bubble.rs: source_of, BubbleTable::eval",
+      "why": "соответствие термику игры временное: F0 = w*^3*zi/8,5, tau = t_grow+t_mature, b0 = 0,0461*zi, t_decay = zi/w*; наклон lean игнорируется (ось вертикальна, центр = src + drift); статичные термики и термики без пузыря в момент сборки дают w профиля; w облачного подсоса/кольца опускания профиля при флаге у пузырей нет",
+      "checked": "знаки и конечность в flag_on_sum; физика сверки — задача других TB"
+    },
+    {
+      "where": "rust/dp-air/src/terms/thermal/bubble.rs: BubbleTable.eval",
+      "why": "сдвиг таблицы по вертикали на U*(t - t_сборки) — только голова; шлейф и форма за 1 с не пересчитываются; горизонталь сноса — src + phase(t).drift, как велел контракт",
+      "checked": "не измерено отдельно (margin = refresh_interval_s = 1 с)"
+    },
+    {
+      "where": "rust/dp-air/tests/thermal_bubble_embed.rs: table_accuracy",
+      "why": "table_max_rel считается по пику сцены (7 стадий жизни фикстуры), вклад обрезки на r_max (до 1 % w*) включён; на слабых поздних стадиях относительно собственного пика ошибка больше (t1700: 0,019 м/с от 0,525)",
+      "checked": "печатается по каждой стадии"
+    }
+  ],
+  "dp_feedback": "dpcli lock cpu выводит только PID и лог и сразу уходит в tmux — удобно было бы флаг --wait, чтобы вывод cargo шёл в stdout; job wait по имени с суффиксом (tb7.6a35be) приходится вычитывать из первой строки.",
+  "extra": {
+    "table_max_rel": 0.02851,
+    "table_rms_ms": 0.00347,
+    "bytes_per_bubble": 391022,
+    "build_ms_per_bubble_tune_4cores": 165.8,
+    "build_ms_per_bubble_o0_4cores": 204,
+    "step_axis_m": 4.0,
+    "rho_grid": "шаг 4 м до 1,5R+150 м, дальше +4 % от расстояния за этим краем; z — равномерно, шаг <= 4 м, узел ровно на zi",
+    "r_max_m_by_stage_t30_t120_t400_t690_t800_t1000_t1700": [
+      360,
+      560,
+      840,
+      1040,
+      1040,
+      720,
+      480
+    ],
+    "table_max_rel_by_step": {
+      "5m": 0.0369,
+      "4m": 0.0285,
+      "3m": 0.0176
+    },
+    "port_max_rel": 2.7e-13
+  },
+  "t": "2026-11-09T10:47:33",
+  "by": "executor"
+}

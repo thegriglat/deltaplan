@@ -8,7 +8,7 @@
   "contracts": [
     {
       "name": "TB1",
-      "version": "3",
+      "version": "4",
       "ref": "docs/contracts/thermal-bubble.md"
     },
     {
@@ -83,5 +83,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-11-09T10:10:12"
+  "created": "2026-11-09T10:10:12",
+  "edited": "2026-11-09T10:48:07"
 }
