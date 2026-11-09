@@ -358,7 +358,10 @@ fn b_chain_matches_game() {
         let dom = window_domain(num(w, "dx"), cx, cy, N_WINDOW);
         assert_eq!(dom, domain_of(w), "{tag}: угол окна");
         let fw = field_weather(&cond, &place, &wc, &configs, &clim, hour, &dom).unwrap();
-        let di = build_window_input(&place, &wc.sh, &zi, &dom, &fw.day, Some(&pz)).unwrap();
+        let mut di = build_window_input(&place, &wc.sh, &zi, &dom, &fw.day, Some(&pz)).unwrap();
+        // дамп GPU снят на пути без долей: регрессия переноса — вход без срезанных клеток
+        di.cut = None;
+        di.hc_type = di.hc.clone();
         // сетка по высоте
         assert_eq!(di.nz, num(w, "nz") as usize, "{tag}: nz");
         assert_eq!(di.dz, num(w, "dz"), "{tag}: dz");
