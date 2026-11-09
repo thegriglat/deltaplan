@@ -1,0 +1,63 @@
+{
+  "id": "PT-15",
+  "module": "picard-terrain",
+  "type": "dp-engineer",
+  "title": "Ветка после слияния main: тесты dp-air/picard_rs и Godot атмосферы зелёные",
+  "goal": "На объединённой ветке (main влит: outflow-bc, thermal-bubble) все тесты cargo dp-air и picard_rs проходят, тесты Godot atmosphere/wind_field/air_field — без падений, кроме двух известных; падения от срезанных клеток исправлены по физике, без подгонки порогов.",
+  "plan_ref": "Задачи / Этап 2",
+  "contracts": [
+    {
+      "name": "PT2",
+      "version": "1",
+      "ref": "docs/contracts/picard-terrain.md"
+    },
+    {
+      "name": "PT7",
+      "version": "2",
+      "ref": "docs/contracts/picard-terrain.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/picard-terrain-PT-15",
+  "branch": "picard-terrain/PT-15",
+  "base": "feature/picard-terrain",
+  "scope": [
+    "rust/dp-air",
+    "rust/picard_rs",
+    "tests/atmosphere",
+    "scripts/atmosphere/air_model",
+    "tools/research/picard_terrain/out/PT-15"
+  ],
+  "dont_touch": [
+    "configs",
+    "project.godot",
+    "docs",
+    "CHANGELOG.md",
+    "tests/fixtures",
+    "scripts/atmosphere/terms"
+  ],
+  "accept": [
+    {
+      "name": "cargo",
+      "cmd": "cd rust && cargo test --release --no-fail-fast -p dp-air -p picard_rs",
+      "expect": "exit=0"
+    },
+    {
+      "name": "atmosphere",
+      "cmd": "out=$(godot --headless --path . res://tests/run_tests.tscn -- --filter=atmosphere 2>&1); echo \"$out\" | grep -q \"тестов, \" || { echo \"нет итога run_tests\"; exit 1; }; echo \"$out\" | grep \"^  FAIL \" ; n=$(echo \"$out\" | grep \"^  FAIL \" | grep -v -e test_storm_preset_makes_cb -e test_lee_zone_all_starts | wc -l); echo new_fails=$n",
+      "expect": "num:new_fails=([0-9]+) <=0"
+    },
+    {
+      "name": "wind_field",
+      "cmd": "out=$(godot --headless --path . res://tests/run_tests.tscn -- --filter=wind_field 2>&1); echo \"$out\" | grep -q \"тестов, \" || { echo \"нет итога run_tests\"; exit 1; }; echo \"$out\" | grep \"^  FAIL \" ; n=$(echo \"$out\" | grep \"^  FAIL \" | grep -v -e test_storm_preset_makes_cb -e test_lee_zone_all_starts | wc -l); echo new_fails=$n",
+      "expect": "num:new_fails=([0-9]+) <=0"
+    },
+    {
+      "name": "air_field",
+      "cmd": "out=$(godot --headless --path . res://tests/run_tests.tscn -- --filter=air_field 2>&1); echo \"$out\" | grep -q \"тестов, \" || { echo \"нет итога run_tests\"; exit 1; }; echo \"$out\" | grep \"^  FAIL \" ; n=$(echo \"$out\" | grep \"^  FAIL \" | grep -v -e test_storm_preset_makes_cb -e test_lee_zone_all_starts | wc -l); echo new_fails=$n",
+      "expect": "num:new_fails=([0-9]+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-10T03:00:10"
+}
