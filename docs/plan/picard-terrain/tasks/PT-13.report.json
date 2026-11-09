@@ -1,0 +1,32 @@
+{
+  "status": "done",
+  "summary": "Документы и CHANGELOG по срезанным клеткам; разгон объяснён опорой (|U| гребня x1,11/x1,19, опоры x1,62), ротор слабее, а не пропал; ключи кеша (format 2 в runtime.rs, CACHE_FORMAT 4 в field_cache.rs) сверены по коду.",
+  "commits": [
+    "PT-13: разгон — от опоры, ротор слабее; ключи кеша по коду"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "2 ошибки (чужие)",
+      "pass": true
+    },
+    {
+      "name": "changelog",
+      "value": "1",
+      "pass": true
+    },
+    {
+      "name": "no-mask",
+      "value": "mask=0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept PT-13",
+  "uncertain": [],
+  "dp_feedback": "inbox отдаёт одну строку; дополнение читал из events.jsonl.",
+  "t": "2026-11-10T02:27:00",
+  "by": "executor"
+}
