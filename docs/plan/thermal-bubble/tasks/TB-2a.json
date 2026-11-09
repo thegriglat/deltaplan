@@ -1,0 +1,61 @@
+{
+  "id": "TB-2a",
+  "module": "thermal-bubble",
+  "type": "dp-researcher",
+  "title": "Эталоны сверки: литература по термикам + порт нынешнего профиля",
+  "goal": "Таблица литературных эталонов для семи величин сверки TB3 (числа, диапазоны, источники, надёжность) и current.py — порт нынешнего профиля термика по контракту TB2; это эталон и база для сверки шаблона пузыря в TB-2b.",
+  "plan_ref": "Задачи (уточняет координатор) п. 2",
+  "contracts": [
+    {
+      "name": "TB2",
+      "version": "1",
+      "ref": "docs/contracts/thermal-bubble.md"
+    },
+    {
+      "name": "TB3",
+      "version": "1",
+      "ref": "docs/contracts/thermal-bubble.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/thermal-bubble-TB-2a",
+  "branch": "thermal-bubble/TB-2a",
+  "base": "feature/thermal-bubble",
+  "scope": [
+    "tools/research/thermal_bubble/current.py",
+    "tools/research/thermal_bubble/test_current.py",
+    "tools/research/thermal_bubble/literature.md"
+  ],
+  "dont_touch": [
+    "tools/research/thermal_bubble/contract/",
+    "tools/research/thermal_bubble/bubble.py",
+    "tools/research/thermal_bubble/README.md",
+    "rust/",
+    "scripts/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "contract_tb2",
+      "cmd": "python3 tools/research/thermal_bubble/contract/check_contract.py tb2",
+      "expect": "exit=0"
+    },
+    {
+      "name": "unit",
+      "cmd": "python3 -m pytest -q tools/research/thermal_bubble/test_current.py 2>&1 || python3 tools/research/thermal_bubble/test_current.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "lit_rows",
+      "cmd": "for q in w_core_max_over_wstar core_radius_over_zi rise_speed_over_wstar inflow_ground_over_wstar outflow_top_over_wstar ring_sink_min_over_wstar updraft_area_fraction; do grep -q \"$q\" tools/research/thermal_bubble/literature.md || { echo нет $q; exit 1; }; done",
+      "expect": "exit=0"
+    },
+    {
+      "name": "lit_docs",
+      "cmd": "test -s tools/research/thermal_bubble/literature.md && .dpcli/dpcli docs check 2>&1",
+      "expect": "!re:ОШИБКА.*thermal_bubble"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T08:28:24"
+}

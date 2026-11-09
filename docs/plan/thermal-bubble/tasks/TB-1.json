@@ -1,0 +1,53 @@
+{
+  "id": "TB-1",
+  "module": "thermal-bubble",
+  "type": "dp-researcher",
+  "title": "Шаблон пузыря: аналитика (Хилл + шлейф Тёрнера + отражения), числа из литературы",
+  "goal": "Модуль bubble.py по контракту TB1: поле одного термика (голова — вихрь Хилла, шлейф стартового факела, отражения от земли и крышки) через функцию тока Стокса, траектория по законам вовлечения; все числа — из литературы со ссылкой и надёжностью.",
+  "plan_ref": "Задачи (уточняет координатор) п. 1",
+  "contracts": [
+    {
+      "name": "TB1",
+      "version": "1",
+      "ref": "docs/contracts/thermal-bubble.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/thermal-bubble-TB-1",
+  "branch": "thermal-bubble/TB-1",
+  "base": "feature/thermal-bubble",
+  "scope": [
+    "tools/research/thermal_bubble/bubble.py",
+    "tools/research/thermal_bubble/test_bubble.py",
+    "tools/research/thermal_bubble/README.md",
+    "tools/research/thermal_bubble/py",
+    "tools/research/thermal_bubble/requirements.txt",
+    "tools/research/thermal_bubble/.gitignore"
+  ],
+  "dont_touch": [
+    "tools/research/thermal_bubble/contract/",
+    "rust/",
+    "scripts/",
+    "docs/contracts/",
+    "tools/research/thermal_bubble/current.py"
+  ],
+  "accept": [
+    {
+      "name": "contract_tb1",
+      "cmd": "python3 tools/research/thermal_bubble/contract/check_contract.py tb1",
+      "expect": "exit=0"
+    },
+    {
+      "name": "unit",
+      "cmd": "tools/research/thermal_bubble/py -m pytest -q tools/research/thermal_bubble/test_bubble.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "readme_docs",
+      "cmd": "test -s tools/research/thermal_bubble/README.md && .dpcli/dpcli docs check 2>&1",
+      "expect": "!re:ОШИБКА.*thermal_bubble"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T08:27:32"
+}
