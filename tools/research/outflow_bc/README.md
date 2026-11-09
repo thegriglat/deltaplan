@@ -96,3 +96,8 @@ uv run --no-project --with numpy --with h5py --with matplotlib --with scipy pyth
 `fig3_d_int50_rel.png`, `fig4_maps_dsoft_hard_50m.png`, `slices_sel.h5` (float16, gzip; резы OB3 для карт). Резы
 `~/data/outflow_bc/slices` (вне git) нужны только для рисунка 4 и `slices_sel.h5`. Лицензии данных: свои расчёты,
 исходные места — фикстуры репозитория.
+
+## Статус
+
+Этап 1 завершён (вывод: граница hard), этап 2: стенд есть (`stage2.md`), прогон корпуса не делался — остановлен 2026-11-09.
+Итог и открытые вопросы — `docs/research/outflow_bc.md`.

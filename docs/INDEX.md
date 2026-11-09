@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-11-05"
+updated: "2026-11-09"
 summary: "Точка входа: модули docs/ по подпроектам, прочие документы по типам."
 related: []
 generated: true
@@ -115,6 +115,11 @@ generated: true
   - [tools/research/cascade_2d/cascade_rs/README.md](../tools/research/cascade_2d/cascade_rs/README.md) — cascade_rs: каскад 400 → 25 м делением граней, V0–V3 и V3h, баланс массы точный; всё поле и опрос точки совпадают побитно
   - [tools/research/cascade_2d/cases/README.md](../tools/research/cascade_2d/cases/README.md) — cascade-2d CSD-1: квази-2D случаи R1 C0–C4 (400…25 м), решения picard_rs, F1/F2, сходимость эталона по сетке.
   - [tools/research/cascade_2d/metrics/README.md](../tools/research/cascade_2d/metrics/README.md) — Метрики M1 (E_u, E_w, dS, r_w, L_rec, баланс, термик, σ), базовые линии B_k и картинки поле-против-эталона для cascade-2d.
+- **outflow-bc** — Исследование: мягкий выход против жёсткого (U_b × c) на боковых гранях области — сходимость Пикара в слабый ветер. [active 2026-11-08] — [план](plan/outflow-bc.md) · [контракты](contracts/outflow-bc.md)
+  - [docs/research/outflow_bc.md](research/outflow_bc.md) — Мягкий выход Пикара на слабом ветре почти не помогает (+5 из 180, p=0,40), поле внутри меняется; граница игры — hard. [closed]
+  - [tools/research/outflow_bc/README.md](../tools/research/outflow_bc/README.md) — Стенд корпуса outflow-bc: пример dp-air outflow_corpus (hard/soft/soft_ns, область 400 м), записи OB2, резы OB3, оценка времени
+  - [tools/research/outflow_bc/stopfit/README.md](../tools/research/outflow_bc/stopfit/README.md) — OBC-5: критерий остановки (г) п. 9 — подгонка асимптоты log r = log(r_inf + A·rho^k) по res_hist 720 записей OBC-3; без новых прогонов
+  - [tools/research/outflow_bc/stopfit/summary.md](../tools/research/outflow_bc/stopfit/summary.md) — OBC-5: краткий вывод по критерию остановки (г) на историях невязок OBC-3
 
 ## flight
 
