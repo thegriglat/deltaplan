@@ -1,0 +1,143 @@
+{
+  "status": "partial",
+  "summary": "Инструмент TB-16 переведён на TB5 v3 (schema tb5/3, cores_lifting_frac по 0,05…0,9 z_l, прежнее в cores_lifting_frac_mid); сняты r4_old (805c24a6f, до TB-15) и r4_new (после TB-20) на ongudai, seed 1, одна сессия. Проходят 8 из 9 порогов; приток у земли 0,0182 м/с при пороге 0,05 не пройден.",
+  "commits": [
+    "5a817db2e thermal-bubble TB-21: финальный полётный замер r4_old/r4_new (TB5 v3)"
+  ],
+  "checks": [
+    {
+      "name": "untouched",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "schema",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "inflow_new",
+      "value": "0.0182 м/с (порог >=0.05); old 0.0; p75 0.035, p90 0.051, ненулевых (>0.01) ядер 66% против 23% в r3_new и 6% в r4_old",
+      "pass": false
+    },
+    {
+      "name": "lift_ratio",
+      "value": "0.979 (0.8041 / 0.8211; mid: 0.416 / 0.746 = 0.56)",
+      "pass": true
+    },
+    {
+      "name": "cover",
+      "value": "0.912",
+      "pass": true
+    },
+    {
+      "name": "axis_dx",
+      "value": "0.208 R",
+      "pass": true
+    },
+    {
+      "name": "core_w",
+      "value": "0.799 (old 1.001; p25 0.56, p75 0.90)",
+      "pass": true
+    },
+    {
+      "name": "dv_max_ratio",
+      "value": "1.063 (1.1445 / 1.0766 м/с)",
+      "pass": true
+    },
+    {
+      "name": "frame_ratio",
+      "value": "0.972 (среднее двух пар old/new/old/new)",
+      "pass": true
+    },
+    {
+      "name": "gd_check",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Порог inflow_new (>=0,05 м/с) не выполнен; инструмент и метрика не менялись, причина ниже."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept TB-21 --dry (сводки в tools/research/thermal_bubble/out/flight_r4_*.json)",
+  "uncertain": [
+    {
+      "where": "приток 10 м (inflow_new)",
+      "why": "медиана 0,018 м/с по 47 ядрам: приток вырос с 0,0008 (r3_new), доля ядер с притоком >0,01 м/с — с 23% до 66%, но медиана по-прежнему ниже порога. Прежняя метрика (TB-18, не менять): кольцо r=1…2 радиуса ядра на 10 м над рельефом; по TB-18/TB4 v5 причина малости — рельеф (колонна вдали от земли у ядер на склонах), модель правилась в TB-20.",
+      "checked": "диагностика diag из probe (p75, p90, nonzero_frac); сравнение с r3_new. Причину по рельефу заново не мерил."
+    },
+    {
+      "where": "шум замера",
+      "why": "детерминизм крейта выключен: probe не повторялся (один прогон на сторону), число ядер 47 против 48. Кадры по два прогона на сторону, чередование old/new/old/new.",
+      "checked": "кадры: old 15.68/14.66 мс, new 14.52/14.97 мс (оба числа в extra); в сводку взято среднее двух."
+    },
+    {
+      "where": "запуск probe",
+      "why": "оба probe шли параллельно под lock cpu (по 1 слоту) — на wall-время не влияет, sim-шаг фиксирован; первый запуск упал по timeout 2400 с в сборке поля при load 48 — повторён с air_cache, скопированным из профиля TB-16.",
+      "checked": "bubble_cover old 0.0, new 0.91; relaunches 0 в обоих."
+    },
+    {
+      "where": "cores_lifting_frac (новое)",
+      "why": "в probe опрос по 19 высотам 0,05…0,9 z_l шагом 0,05 вместо непрерывного максимума; w берётся на оси cores (_axis) на каждой высоте.",
+      "checked": "old 0.821, new 0.804; mid-поле совпадает со старым определением (r3_new 0.4286 -> 0.4159 в шуме)."
+    }
+  ],
+  "dp_feedback": "job start с относительным путём к скрипту и cwd чужой копии падает с кодом 1 без сообщения в логе (пришлось bash -c cd). Таймаут job при долгой первой сборке поля при высокой нагрузке убивает прогон без выхода данных; хотелось бы видеть прогресс в job status.",
+  "extra": {
+    "r4_old": {
+      "commit": "805c24a6f",
+      "lift": 0.8211,
+      "lift_mid": 0.7455,
+      "core_w": 1.0014,
+      "inflow": 0.0,
+      "dv_max": 1.0766,
+      "frame_ms_mean": 15.168,
+      "n_cores": 48
+    },
+    "r4_new": {
+      "lift": 0.8041,
+      "lift_mid": 0.4159,
+      "core_w": 0.7994,
+      "inflow": 0.0182,
+      "cover": 0.9117,
+      "axis_dx": 0.2083,
+      "dv_max": 1.1445,
+      "frame_ms_mean": 14.747,
+      "n_cores": 47
+    },
+    "frame_pairs": {
+      "old_a": 15.677,
+      "new_a": 14.524,
+      "old_b": 14.657,
+      "new_b": 14.969,
+      "p99_old": [
+        34.942,
+        33.062
+      ],
+      "p99_new": [
+        35.218,
+        33.025
+      ],
+      "hitch_old": [
+        15,
+        10
+      ],
+      "hitch_new": [
+        15,
+        14
+      ]
+    },
+    "diag_new": {
+      "w_peak_near_over_strength_median": 0.9227,
+      "inflow_p75": 0.0353,
+      "inflow_p90": 0.0506,
+      "inflow_nonzero_frac": 0.6596,
+      "core_w_p25": 0.5584,
+      "core_w_p75": 0.899,
+      "axis_dx_p75": 1.1429
+    }
+  },
+  "t": "2026-11-10T02:28:09",
+  "by": "executor"
+}

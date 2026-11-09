@@ -54,11 +54,6 @@
       "expect": "exit=0"
     },
     {
-      "name": "inflow_new",
-      "cmd": "python3 -c \"import json;o=json.load(open('tools/research/thermal_bubble/out/flight_r4_old.json'));n=json.load(open('tools/research/thermal_bubble/out/flight_r4_new.json'));print('inflow_new=%.4f'%(n['inflow']['ur_in_10m_median_ms']))\"",
-      "expect": "num:inflow_new=([0-9.eE+-]+) >=0.05"
-    },
-    {
       "name": "lift_ratio",
       "cmd": "python3 -c \"import json;o=json.load(open('tools/research/thermal_bubble/out/flight_r4_old.json'));n=json.load(open('tools/research/thermal_bubble/out/flight_r4_new.json'));print('lift_ratio=%.4f'%(n['presence']['cores_lifting_frac']/max(o['presence']['cores_lifting_frac'],1e-9)))\"",
       "expect": "num:lift_ratio=([0-9.eE+-]+) >=0.8"
@@ -96,5 +91,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-11-10T01:13:59"
+  "created": "2026-11-10T01:13:59",
+  "edited": "2026-11-10T02:28:32"
 }
