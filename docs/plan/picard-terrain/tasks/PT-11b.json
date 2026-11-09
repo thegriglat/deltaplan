@@ -47,9 +47,20 @@
       "name": "nan",
       "cmd": "python3 -c \"import json;d=json.load(open('tools/research/picard_terrain/out/PT-11b/summary.json'));print('nan_count=%s'%d['nan_count'])\"",
       "expect": "num:nan_count=([0-9.e+-]+) <=0"
+    },
+    {
+      "name": "crest-U",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/picard_terrain/out/PT-11b/summary.json'));print('crest_U_after_over_before_median=%s'%d['crest_U_after_over_before_median'])\"",
+      "expect": "num:crest_U_after_over_before_median=([0-9.e+-]+) >=0"
+    },
+    {
+      "name": "ref-U",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/picard_terrain/out/PT-11b/summary.json'));print('ref_U_after_over_before_median=%s'%d['ref_U_after_over_before_median'])\"",
+      "expect": "num:ref_U_after_over_before_median=([0-9.e+-]+) >=0"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-11-10T01:20:45"
+  "created": "2026-11-10T01:20:45",
+  "edited": "2026-11-10T02:18:45"
 }
