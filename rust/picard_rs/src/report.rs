@@ -48,9 +48,22 @@ pub fn div_rms_f64(s: &Picard, u: &[f32], v: &[f32], w: &[f32]) -> f64 {
                 if k.cell[g] != 1 {
                     continue;
                 }
-                let d = (f64::from(u[g + 1]) - f64::from(u[g])) / f64::from(k.dx)
-                    + (f64::from(v[g + k.nxh]) - f64::from(v[g])) / f64::from(k.dx)
-                    + (f64::from(w[g + k.nxh * k.nyh]) - f64::from(w[g])) / f64::from(k.dz);
+                let d = match &k.cut {
+                    // PT2: open-area weighted faces, per unit of the full cell volume.
+                    Some(c) => {
+                        let f = |x: &[f32], a: &[f32], q: usize| f64::from(x[q]) * f64::from(a[q]);
+                        let (au, av, aw) = (&c.af[0], &c.af[1], &c.af[2]);
+                        let sz = k.nxh * k.nyh;
+                        (f(u, au, g + 1) - f(u, au, g)) / f64::from(k.dx)
+                            + (f(v, av, g + k.nxh) - f(v, av, g)) / f64::from(k.dx)
+                            + (f(w, aw, g + sz) - f(w, aw, g)) / f64::from(k.dz)
+                    }
+                    None => {
+                        (f64::from(u[g + 1]) - f64::from(u[g])) / f64::from(k.dx)
+                            + (f64::from(v[g + k.nxh]) - f64::from(v[g])) / f64::from(k.dx)
+                            + (f64::from(w[g + k.nxh * k.nyh]) - f64::from(w[g])) / f64::from(k.dz)
+                    }
+                };
                 sum += d * d;
                 n += 1;
             }

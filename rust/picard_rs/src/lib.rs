@@ -9,6 +9,7 @@ pub mod adv2;
 pub mod api;
 pub mod blocks;
 pub mod case;
+pub mod cut;
 pub mod kernels;
 pub mod lines;
 pub mod mg;

@@ -63,6 +63,9 @@ enum Cmd {
         /// overrides `params.adv2`/`params.limiter` of the case.
         #[arg(long)]
         adv2: Option<String>,
+        /// PT2: cut cells (sets `params.cut_cells = true`; the case must carry `vf`, `af_*`).
+        #[arg(long)]
+        cut_cells: bool,
     },
     /// Print the code branch (multiversion dispatch) selected on this CPU.
     Isa,
@@ -80,6 +83,9 @@ enum Cmd {
         solve: bool,
         #[arg(long, default_value_t = 2000)]
         max_iters: usize,
+        /// PT2: cut cells (sets `params.cut_cells = true`; the case must carry `vf`, `af_*`).
+        #[arg(long)]
+        cut_cells: bool,
     },
 }
 
@@ -228,8 +234,12 @@ fn main() -> Result<()> {
             snap_dir,
             save_state,
             adv2,
+            cut_cells,
         } => {
             let mut c = Case::load(&case)?;
+            if cut_cells {
+                c.params.cut_cells = true;
+            }
             if let Some(name) = adv2 {
                 if name == "off" {
                     c.params.adv2 = false;
@@ -257,8 +267,12 @@ fn main() -> Result<()> {
             out_dir,
             solve,
             max_iters,
+            cut_cells,
         } => {
-            let c = Case::load(&case)?;
+            let mut c = Case::load(&case)?;
+            if cut_cells {
+                c.params.cut_cells = true;
+            }
             for &n in &threads {
                 let n = api::resolve_threads(n);
                 if solve {

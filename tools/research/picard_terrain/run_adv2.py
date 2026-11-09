@@ -24,7 +24,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
 D = Path(os.environ.get("PICARD_TERRAIN_DATA", Path.home() / "data/picard_terrain"))
-BIN = ROOT / "rust/picard_rs/target/release/picard"
+BIN = ROOT / "rust/target/release/picard"
 OUT = HERE / "out/PT-3"
 CASES = ["askervein_d50", "askervein_d100", "kayancha_d50", "kayancha_d100", "perdigao_ne_d30", "perdigao_sw_d30"]
 LIMS = {1: "vanleer", 3: "minmod"}
