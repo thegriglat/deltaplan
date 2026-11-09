@@ -1,0 +1,69 @@
+{
+  "id": "LT-7",
+  "module": "lee-turb",
+  "type": "dp-researcher",
+  "title": "Модель слоя по Q1: линия слоя по центру слоя поля, иначе по глубине пузыря; B под линией",
+  "goal": "Прототип и спецификация по решению Q1: линия слоя y_c — по центру слоя сдвига поля (z½), где поле его даёт, иначе по глубине пузыря из литературы (Menke 2019); вариант B только под линией слоя; замечания ревью LT-6; пересчёт на разрезах Онгудая и мачтах (без поля — по запасному правилу).",
+  "plan_ref": "Задачи (уточняет координатор) п.2",
+  "contracts": [
+    {
+      "name": "LTL",
+      "version": "1",
+      "ref": "docs/contracts/lee-turb.md"
+    },
+    {
+      "name": "LTO",
+      "version": "1",
+      "ref": "docs/contracts/lee-turb.md"
+    },
+    {
+      "name": "LTS",
+      "version": "1",
+      "ref": "docs/contracts/lee-turb.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/lee-turb-LT-7",
+  "branch": "lee-turb/LT-7",
+  "base": "feature/lee-turb",
+  "scope": [
+    "tools/research/lee_turb/model/",
+    "docs/research/lee_turb/model.md",
+    "docs/research/lee_turb/model_obs.md"
+  ],
+  "dont_touch": [
+    "rust/",
+    "configs/",
+    "docs/guide/",
+    "docs/contracts/",
+    "tools/research/lee_turb/lit/",
+    "tools/research/lee_turb/obs/",
+    "tools/research/lee_turb/stand/",
+    "tools/research/lee_turb/places/",
+    "docs/research/lee_turb.md"
+  ],
+  "accept": [
+    {
+      "name": "spec",
+      "cmd": "python3 -c \"import json,csv;ids={r['id'] for r in csv.DictReader(open('tools/research/lee_turb/lit/lit_numbers.csv'))};s=json.load(open('tools/research/lee_turb/model/spec.json'));assert s['format']=='ltm-spec' and s['version']==1;bad=[c['name'] for c in s['constants'] if not (c.get('derived') or (c.get('ltl') and set(c['ltl'])<=ids) or c.get('assumption'))];print('constants',len(s['constants']),'bad',len(bad),bad)\"",
+      "expect": "num:bad (\\d+) <=0"
+    },
+    {
+      "name": "proto",
+      "cmd": "python3 tools/research/lee_turb/model/proto.py --selftest",
+      "expect": "exit=0"
+    },
+    {
+      "name": "obs_rows",
+      "cmd": "python3 -c \"import csv;print('n',sum(1 for _ in csv.DictReader(open('tools/research/lee_turb/model/out/obs_compare.csv'))))\"",
+      "expect": "num:n (\\d+) >=50"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check docs/research/lee_turb/model.md docs/research/lee_turb/model_obs.md",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T22:22:40"
+}
