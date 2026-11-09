@@ -128,7 +128,7 @@ def kbar(zl: float, tau: float, env: Env, w0: float) -> float   # v4: + w0
 - Новое: `between_q(xi) -> float` — профиль «между» q(ξ), ξ = z/zl ∈ [0, 1], среднее по ξ = 1, из распределения потока
   вверх пузырей v5 по высоте (TB-12, `round3/between.py`, пересчёт под v5); узлы — 21 точка ξ = 0…1, линейно между узлами.
 - Инварианты 1–11, 13 — прежние; 12 (from_strength) — прежний; новый 14: `from_game_strength(0, 0, 0, w0, 1400, 690, env)`
-  при w0 = 1,2436·2,56 — F0 = 0,371·2,56³·1400/8,5 (отн. 1e-12); новый 15: `between_q` — 21 узел, среднее 1 (отн. 1e-6), конечно.
+  при w0 = 1,2436·2,56 — F0 = core_flux_fraction·2,56³·1400/8,5, core_flux_fraction = PARAMS (13/35 ≈ 0,3714) (отн. 1e-12); новый 15: `between_q` — 21 узел, среднее 1 (отн. 1e-6), конечно.
 
 ## TB2 v1 — нынешний профиль `tools/research/thermal_bubble/current.py`
 Владелец — TB-2; потребители — TB-2, TB-4. Порт `rust/dp-air/src/terms/thermal/profile.rs::contribution`
