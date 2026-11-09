@@ -4,9 +4,9 @@
 Каждый случай × ограничитель: `picard solve <case> --adv2 <имя> --threads 8 --max-iters 4000 --out
 out/PT-3/r2/<case>_l<L>.json --save-state D/states/<case>_adv2_l<L>.json`, затем строка PT4 в
 out/PT-3/rows.jsonl (sample.py PT-1 → пробы S, dS) и итог out/PT-3/table.md (база — out/PT-1/rows.jsonl).
-Под замком cpu (время сравнимо только при locked): запускать как
+Только solve (8 слотов замка cpu); время замеряет отдельная задача через bench, здесь locked=false:
 
-    .dpcli/dpcli lock cpu PT-3 --no-tmux -- python3 tools/research/picard_terrain/run_adv2.py --locked
+    python3 tools/research/picard_terrain/run_adv2.py      # каждый solve — под `dpcli lock cpu` (8 слотов)
     python3 tools/research/picard_terrain/run_adv2.py --table-only        # только пересобрать table.md
 
 Статус: ok (критерий достигнут), diverged, max (предел итераций), stalled — предел, и невязка импульса не
@@ -45,12 +45,39 @@ def stalled(hist: list[dict], iters: int):
     return False, None
 
 
+def get_probes(case: str, st: Path):
+    cj = D / "cases" / f"{case}.json"
+    try:
+        sys.path.insert(0, str(HERE))
+        import sample  # PT-1 (numpy, h5py: интерпретатор sw_charges_3d/py)
+    except ImportError as e:
+        return [], f"; sample.py не импортируется ({e}) — пробы пусты"
+    probes = sample.probe_values(str(cj), str(st))
+    pair = {p["name"]: p["pair"] for p in json.loads(cj.read_text())["pt"]["probes"]}
+    sv = {p["name"]: p["S"] for p in probes}
+    for p in probes:
+        if "dS" not in p:
+            q = pair.get(p["name"])
+            p["dS"] = (p["S"] / sv[q] - 1.0) if q else None
+    return [{k: p.get(k) for k in ("name", "z_agl", "S", "dS")} for p in probes], ""
+
+
+def resample():
+    rows = load_rows(OUT / "rows.jsonl")
+    for r in rows:
+        r["probes"], extra = get_probes(r["case"], D / r["state"])
+        r["note"] = r["note"].split("; sample.py")[0] + extra
+    with open(OUT / "rows.jsonl", "w") as fh:
+        for r in rows:
+            fh.write(json.dumps(r, ensure_ascii=False) + "\n")
+
+
 def run_one(case: str, lim: int, locked: bool) -> dict:
     name = f"{case}_l{lim}"
     r2p = OUT / "r2" / f"{name}.json"
     st = D / "states" / f"{case}_adv2_l{lim}.json"
     cj = D / "cases" / f"{case}.json"
-    cmd = [str(BIN), "solve", str(cj), "--adv2", LIMS[lim], "--threads", str(THREADS), "--max-iters", str(MAX_ITERS),
+    cmd = [str(ROOT / ".dpcli/dpcli"), "lock", "cpu", "PT-3", "--no-tmux", "--", str(BIN), "solve", str(cj), "--adv2", LIMS[lim], "--threads", str(THREADS), "--max-iters", str(MAX_ITERS),
            "--out", str(r2p), "--save-state", str(st)]
     print("$", " ".join(cmd), flush=True)
     subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL)
@@ -64,21 +91,8 @@ def run_one(case: str, lim: int, locked: bool) -> dict:
         if s:
             status = "stalled"
             note += f"; невязка импульса стоит на {lvl:.2e} м/с²"
-    probes = []
-    try:
-        sys.path.insert(0, str(HERE))
-        import sample  # PT-1
-        probes = sample.probe_values(str(cj), str(st))
-        cp = json.loads(cj.read_text())["pt"]["probes"]
-        pair = {p["name"]: p["pair"] for p in cp}
-        sv = {p["name"]: p["S"] for p in probes}
-        for p in probes:
-            if "dS" not in p:
-                q = pair.get(p["name"])
-                p["dS"] = (p["S"] / sv[q] - 1.0) if q else None
-        probes = [{k: p.get(k) for k in ("name", "z_agl", "S", "dS")} for p in probes]
-    except ImportError:
-        note += "; sample.py не найден — пробы пусты"
+    probes, extra = get_probes(case, st)
+    note += extra
     t = r2["time"]
     return {
         "format": "pt-row", "version": 1, "task": "PT-3", "case": case, "site": case.rsplit("_d", 1)[0],
@@ -87,7 +101,7 @@ def run_one(case: str, lim: int, locked: bool) -> dict:
         "status": status, "iters": r2["iters"], "max_iters": MAX_ITERS,
         "final": {"mom_rms": res["mom_rms"], "th_rms": res["th_rms"], "div_rms": res["div_rms"]},
         "time": {"total_s": t["total_s"], "ms_per_iter": t["ms_per_iter"], "threads": THREADS, "locked": locked},
-        "r2": str(r2p.relative_to(ROOT)), "state": str(st), "probes": probes, "rotor": None, "masts_rmse": None,
+        "r2": str(r2p.relative_to(ROOT)), "state": f"states/{case}_adv2_l{lim}.json", "probes": probes, "rotor": None, "masts_rmse": None,
         "note": note,
     }
 
@@ -98,32 +112,61 @@ def load_rows(p: Path):
 
 def table():
     rows = load_rows(OUT / "rows.jsonl")
-    base = {r["case"]: r for r in load_rows(HERE / "out/PT-1/rows.jsonl")
-            if r.get("solver") == "picard_rs" and not r["adv2"] and not r["cut_cells"]}
-    ref = {r["case"]: r for r in load_rows(HERE / "out/PT-1/rows.jsonl") if r.get("solver") == "air3d"}
+    pt1 = load_rows(HERE / "out/PT-1/rows.jsonl")
+    base = {r["case"]: r for r in pt1 if r["solver"] == "picard_rs" and not r["adv2"] and not r["cut_cells"]}
+    ref = {r["case"]: r for r in pt1 if r["solver"] == "air3d" and r["adv2"]}
+    lname = {1: "ван Лир", 3: "minmod"}
 
-    def pv(r, name):
-        for p in (r or {}).get("probes", []):
+    def pv(r, name, key):
+        for p in r["probes"]:
             if p["name"] == name:
-                return p
+                return p[key]
         return None
 
     def f(x, fmt):
         return "—" if x is None else format(x, fmt)
 
-    L = ["# PT-3: ограниченный 2-й порядок переноса, picard_rs (f32, 8 потоков, под замком cpu)", "",
-         "ΔS = S(HT)/S(RS) − 1 (Askervein), S — скорость над стартом (Каянча); база — 1-й порядок picard_rs на той же сетке "
-         "(out/PT-1), эталон — air3d f64 (2-й порядок, сетка 12,5–25 м, строки PT-1). «—» — нет строки базы/эталона.", "",
-         "| случай | ограничитель | статус | итер. | мс/итер | невязка имп. | ΔS HT10 | HT30 | S старт 30 м | база итер. | база мс/итер |",
-         "|---|---|---|---|---|---|---|---|---|---|---|"]
-    for r in sorted(rows, key=lambda r: (r["case"], r["limiter"])):
-        b = base.get(r["case"])
-        h10, h30 = pv(r, "HT_10"), pv(r, "HT_30")
-        st = next((p for p in r["probes"] if p["name"].startswith("start") and p["z_agl"] == 30), None)
-        L.append(f"| {r['case']} | {LIMS[r['limiter']]} | {r['status']} | {r['iters']} | {r['time']['ms_per_iter']:.0f} | "
-                 f"{r['final']['mom_rms']:.1e} | {f(h10 and h10['dS'], '+.3f')} | {f(h30 and h30['dS'], '+.3f')} | "
-                 f"{f(st and st['S'], '.2f')} | {f(b and b['iters'], 'd')} | {f(b and b['time']['ms_per_iter'], '.0f')} |")
-    L += ["", "Эталон air3d (2-й порядок): " + (", ".join(sorted(ref)) or "строк в out/PT-1 нет") + "."]
+    def line(label, r, names, key, fmt, tail=""):
+        return f"| {label} | " + " | ".join(f(pv(r, n, key), fmt) for n in names) + f" |{tail}"
+
+    L = ["# PT-3: ограниченный 2-й порядок переноса в picard_rs", "",
+         "picard_rs f32, `solve` 8 слотов замка (locked = false), до 4000 итераций, критерий случая. Выборка — sample.py PT-1 "
+         "(на d50/d100 «10 м» = значение нижней клетки воздуха, она выше 10 м). **мс/итер. здесь не для сравнения** "
+         "(соседние задачи на машине; время — отдельный замер bench). Итер. — проверка (раз в 10), на которой сработал критерий.", ""]
+    ask = ["HT_10", "HT_30", "HT_60", "HT_100"]
+    L += ["## Askervein: ΔS = S(HT)/S(RS) − 1 на той же высоте над землёй", "",
+          "| вариант | 10 м | 30 м | 60 м | 100 м | итер. | статус | невязка имп. |", "|---|---|---|---|---|---|---|---|"]
+    for c in ("askervein_d100", "askervein_d50"):
+        d = c.split("_")[1]
+        if c in base:
+            b = base[c]
+            L.append(line(f"{d} 1-й порядок (база)", b, ask, "dS", "+.2f", f" {b['iters']} | {b['status']} | {b['final']['mom_rms']:.1e} |"))
+        for r in sorted((r for r in rows if r["case"] == c), key=lambda r: r["limiter"]):
+            L.append(line(f"{d} 2-й, {lname[r['limiter']]}", r, ask, "dS", "+.2f", f" {r['iters']} | {r['status']} | {r['final']['mom_rms']:.1e} |"))
+    for c in ("askervein_d25", "askervein_d12p5"):
+        if c in ref:
+            r = ref[c]
+            L.append(line(f"{c.split('_')[1]} air3d f64, 2-й (эталон)", r, ask, "dS", "+.2f", f" {r['iters']} | {r['status']} | |"))
+    st = ["START_20", "START_30", "START_50", "START_100"]
+    L += ["", "## Каянча: S над стартом, м/с", "", "| вариант | 20 м | 30 м | 50 м | 100 м | итер. | статус | невязка имп. |", "|---|---|---|---|---|---|---|---|"]
+    for c in ("kayancha_d100", "kayancha_d50"):
+        d = c.split("_")[1]
+        if c in base:
+            b = base[c]
+            L.append(line(f"{d} 1-й порядок (база)", b, st, "S", ".2f", f" {b['iters']} | {b['status']} | {b['final']['mom_rms']:.1e} |"))
+        for r in sorted((r for r in rows if r["case"] == c), key=lambda r: r["limiter"]):
+            L.append(line(f"{d} 2-й, {lname[r['limiter']]}", r, st, "S", ".2f", f" {r['iters']} | {r['status']} | {r['final']['mom_rms']:.1e} |"))
+    if "kayancha_d25" in ref:
+        r = ref["kayancha_d25"]
+        L.append(line("d25 air3d f64, 2-й (эталон)", r, st, "S", ".2f", f" {r['iters']} | {r['status']} | |"))
+    L += ["", "## Сходимость на крутом (Perdigão 30 м), итерации и невязка импульса", "",
+          "| случай | вариант | статус | итер. | невязка имп. | мс/итер. (справочно) |", "|---|---|---|---|---|---|"]
+    for c in ("perdigao_ne_d30", "perdigao_sw_d30"):
+        if c in base:
+            b = base[c]
+            L.append(f"| {c} | 1-й (база) | {b['status']} | {b['iters']} | {b['final']['mom_rms']:.1e} | {b['time']['ms_per_iter']:.0f} |")
+        for r in sorted((r for r in rows if r["case"] == c), key=lambda r: r["limiter"]):
+            L.append(f"| {c} | 2-й, {lname[r['limiter']]} | {r['status']} | {r['iters']} | {r['final']['mom_rms']:.1e} | {r['time']['ms_per_iter']:.0f} |")
     (OUT / "table.md").write_text("\n".join(L) + "\n")
 
 
@@ -131,11 +174,14 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--locked", action="store_true", help="запуск под замком cpu (пишется в time.locked)")
     ap.add_argument("--table-only", action="store_true")
+    ap.add_argument("--resample", action="store_true", help="пересчитать пробы строк по сохранённым состояниям")
     ap.add_argument("--cases", nargs="*", default=CASES)
     ap.add_argument("--lims", nargs="*", type=int, default=[1, 3])
     a = ap.parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
-    if not a.table_only:
+    if a.resample:
+        resample()
+    elif not a.table_only:
         subprocess.run(["cargo", "build", "-q", "--release", "--manifest-path", str(ROOT / "rust/picard_rs/Cargo.toml")], check=True)
         rows = {(r["case"], r["limiter"]): r for r in load_rows(OUT / "rows.jsonl")}
         for case in a.cases:
