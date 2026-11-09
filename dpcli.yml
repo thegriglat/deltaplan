@@ -76,8 +76,11 @@ jobs:
     - match: "dpcli accept|tools/build\\.sh|tests_vs_base\\.sh|godot|run_tests|xvfb-run|tools/shots/|gpu_tests\\.sh|gpu_validate\\.sh"
       slots: 6
     # Замер Rust-Пикара на 1/4/8/16 потоках (air-cascade) — вся машина, чтобы время не шумело.
-    - match: "picard_rs/target/release/picard (bench|solve)"
+    - match: "target/release/picard bench"
       slots: 18
+    # Расчёты Пикара (не замер) — 8 ядер, идут рядом с соседями (решение пользователя 2026-11-09).
+    - match: "target/release/picard solve"
+      slots: 8
     # Rust (rust-wind, решение пользователя 2026-10-26: агенты не должны зря стоять в очереди). Под cgroup слот = ядро.
     # Формат и разбор — одно ядро.
     - match: "cargo (fmt|metadata|tree)|rustfmt"
