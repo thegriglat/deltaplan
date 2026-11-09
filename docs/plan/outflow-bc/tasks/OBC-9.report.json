@@ -1,0 +1,47 @@
+{
+  "status": "done",
+  "summary": "docs/research/outflow_bc.md: добавлены разделы Итог модуля, Этап 2 — предварительно, Открытые вопросы; status closed; строка в findings (## outflow-bc); статус в README стенда; INDEX обновлён.",
+  "commits": [
+    "04f9ac087"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "closed",
+      "value": "status closed",
+      "pass": true
+    },
+    {
+      "name": "stage2",
+      "value": "1",
+      "pass": true
+    },
+    {
+      "name": "open",
+      "value": "1",
+      "pass": true
+    },
+    {
+      "name": "findings",
+      "value": "1",
+      "pass": true
+    },
+    {
+      "name": "accept dry",
+      "value": "5/5",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept OBC-9",
+  "uncertain": [],
+  "dp_feedback": "docs index переписывает registry/contracts.md и research.md вне скоупа задачи — пришлось откатывать git checkout; хотелось бы docs index --only INDEX.",
+  "t": "2026-11-09T16:16:57",
+  "by": "executor"
+}
