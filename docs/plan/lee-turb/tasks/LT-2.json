@@ -1,0 +1,63 @@
+{
+  "id": "LT-2",
+  "module": "lee-turb",
+  "type": "dp-researcher",
+  "title": "Поле и нынешняя болтанка за гребнем: разрезы стендом (LTS)",
+  "goal": "Подкоманда dp-stand lee (LTS v1) и разрезы за гребнями Онгудая: какая ветвь даёт болтанку, где её максимум, и что поле само показывает о слое (отрыв, присоединение, линия и толщина слоя сдвига) при разной клетке.",
+  "plan_ref": "Задачи (уточняет координатор) п.2, п.4",
+  "contracts": [
+    {
+      "name": "LTS",
+      "version": "1",
+      "ref": "docs/contracts/lee-turb.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/lee-turb-LT-2",
+  "branch": "lee-turb/LT-2",
+  "base": "feature/lee-turb",
+  "scope": [
+    "rust/dp-stand/",
+    "rust/dp-air/src/terms/turb/mod.rs",
+    "tools/research/lee_turb/stand/",
+    "docs/research/lee_turb/baseline.md"
+  ],
+  "dont_touch": [
+    "rust/dp-air/src/field/",
+    "rust/picard_rs/",
+    "configs/",
+    "docs/guide/",
+    "docs/contracts/",
+    "scripts/",
+    "docs/research/lee_turb.md"
+  ],
+  "accept": [
+    {
+      "name": "contract",
+      "cmd": "sh -c 'python3 tools/research/lee_turb/contract/check_contract.py tools/research/lee_turb/stand/out/*.lts.csv'",
+      "expect": "exit=0"
+    },
+    {
+      "name": "slices",
+      "cmd": "sh -c 'ls tools/research/lee_turb/stand/out/*.lts.csv | wc -l | sed s/^/n=/'",
+      "expect": "num:n=(\\d+) >=6"
+    },
+    {
+      "name": "stand_tests",
+      "cmd": "cargo test -q --release --manifest-path rust/Cargo.toml -p dp-stand",
+      "expect": "exit=0"
+    },
+    {
+      "name": "air_tests",
+      "cmd": "cargo test -q --release --manifest-path rust/Cargo.toml -p dp-air",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check docs/research/lee_turb/baseline.md",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T20:08:16"
+}

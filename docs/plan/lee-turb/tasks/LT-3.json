@@ -1,0 +1,56 @@
+{
+  "id": "LT-3",
+  "module": "lee-turb",
+  "type": "dp-researcher",
+  "title": "Измерения болтанки за гребнем: Perdigão, Bolund, Askervein (LTO)",
+  "goal": "Таблица LTO v1 измеренных σ_u, σ_v, σ_w (ТКЭ, масштаб где есть) за гребнем по x/H и z/H для сверки модели: Perdigão NE/SW по мачтам ISFS, Bolund и Askervein по опубликованным данным.",
+  "plan_ref": "Задачи (уточняет координатор) п.4",
+  "contracts": [
+    {
+      "name": "LTO",
+      "version": "1",
+      "ref": "docs/contracts/lee-turb.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/lee-turb-LT-3",
+  "branch": "lee-turb/LT-3",
+  "base": "feature/lee-turb",
+  "scope": [
+    "tools/research/lee_turb/obs/",
+    "docs/research/lee_turb/obs.md"
+  ],
+  "dont_touch": [
+    "rust/",
+    "configs/",
+    "docs/guide/",
+    "docs/contracts/",
+    "tools/research/data/",
+    "tools/research/cases/",
+    "docs/research/lee_turb.md"
+  ],
+  "accept": [
+    {
+      "name": "contract",
+      "cmd": "python3 tools/research/lee_turb/contract/check_contract.py tools/research/lee_turb/obs/lee_obs.csv",
+      "expect": "exit=0"
+    },
+    {
+      "name": "sites",
+      "cmd": "python3 -c \"import csv;print('sites',len({r['site'] for r in csv.DictReader(open('tools/research/lee_turb/obs/lee_obs.csv'))}))\"",
+      "expect": "num:sites (\\d+) >=2"
+    },
+    {
+      "name": "lee_rows",
+      "cmd": "python3 -c \"import csv;print('lee',sum(1 for r in csv.DictReader(open('tools/research/lee_turb/obs/lee_obs.csv')) if float(r['x_m'])>0 and r['sigma_w_ms']))\"",
+      "expect": "num:lee (\\d+) >=20"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check docs/research/lee_turb/obs.md tools/research/lee_turb/obs/README.md",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T20:08:53"
+}

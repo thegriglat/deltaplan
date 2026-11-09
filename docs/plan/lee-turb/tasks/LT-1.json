@@ -1,0 +1,56 @@
+{
+  "id": "LT-1",
+  "module": "lee-turb",
+  "type": "dp-researcher",
+  "title": "Литература: слой смешения за отрывом и болтанка у присоединения",
+  "goal": "Собрать числа с надёжностью для модели слоя смешения за гребнем: рост толщины, профиль σ поперёк слоя, линия слоя и длина пузыря, где и на какой высоте максимум болтанки, масштабы вихрей, скорость переноса, критерий отрыва; итог — таблица LTL и раздел в docs/research/lee_turb.md.",
+  "plan_ref": "Задачи (уточняет координатор) п.1",
+  "contracts": [
+    {
+      "name": "LTL",
+      "version": "1",
+      "ref": "docs/contracts/lee-turb.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/lee-turb-LT-1",
+  "branch": "lee-turb/LT-1",
+  "base": "feature/lee-turb",
+  "scope": [
+    "tools/research/lee_turb/lit/",
+    "docs/research/lee_turb.md"
+  ],
+  "dont_touch": [
+    "rust/",
+    "configs/",
+    "docs/guide/",
+    "docs/contracts/",
+    "field/",
+    "scripts/"
+  ],
+  "accept": [
+    {
+      "name": "contract",
+      "cmd": "python3 tools/research/lee_turb/contract/check_contract.py tools/research/lee_turb/lit/lit_numbers.csv",
+      "expect": "exit=0"
+    },
+    {
+      "name": "rows",
+      "cmd": "python3 -c \"import csv;print('rows',sum(1 for _ in csv.DictReader(open('tools/research/lee_turb/lit/lit_numbers.csv'))))\"",
+      "expect": "num:rows (\\d+) >=30"
+    },
+    {
+      "name": "flows",
+      "cmd": "python3 -c \"import csv;print('flows',len({r['flow'] for r in csv.DictReader(open('tools/research/lee_turb/lit/lit_numbers.csv'))}))\"",
+      "expect": "num:flows (\\d+) >=5"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check docs/research/lee_turb.md",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T20:07:15",
+  "edited": "2026-11-09T20:07:43"
+}
