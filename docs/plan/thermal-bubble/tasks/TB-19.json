@@ -1,0 +1,78 @@
+{
+  "id": "TB-19",
+  "module": "thermal-bubble",
+  "type": "dp-engineer",
+  "title": "Круг 3: цена опроса шаблона — с 3140 до ≤ 1200 нс на точку без изменения поля",
+  "goal": "Ускорить опрос ветра с шаблоном пузыря (sample: 456 нс/точка без пузырей, 3140 с пузырями, кадр игры ×1,13–1,25) до ≤ 1200 нс/точка на сцене бюджета, не меняя поле (отн. ≤ 1e-6 к записи до правок).",
+  "plan_ref": "Задачи, круг 3 п. 8",
+  "contracts": [
+    {
+      "name": "TB4",
+      "version": "4",
+      "ref": "docs/contracts/thermal-bubble.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/thermal-bubble-TB-19",
+  "branch": "thermal-bubble/TB-19",
+  "base": "feature/thermal-bubble",
+  "scope": [
+    "rust/dp-air/src/terms/thermal/bubble.rs",
+    "rust/dp-air/src/terms/thermal/sample.rs",
+    "rust/dp-air/src/terms/thermal/mod.rs",
+    "rust/dp-air/src/terms/sum.rs",
+    "rust/dp-air/tests/thermal_bubble_embed.rs",
+    "rust/dp-air/tests/thermal_bubble_cost.rs",
+    "rust/dp-air/tests/data/thermal_bubble_sample_v5.json"
+  ],
+  "dont_touch": [
+    "rust/dp-air/src/terms/thermal/profile.rs",
+    "rust/dp-air/src/terms/thermal/life.rs",
+    "rust/dp-air/src/terms/thermal/cells.rs",
+    "rust/dp-air/src/terms/thermal_air/",
+    "tools/research/thermal_bubble/",
+    "scripts/",
+    "configs/",
+    "data/",
+    "docs/",
+    "rust/Cargo.toml"
+  ],
+  "accept": [
+    {
+      "name": "dp_air_tests",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air",
+      "expect": "exit=0"
+    },
+    {
+      "name": "same_field",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --release --test thermal_bubble_cost sample_same_as_before -- --nocapture",
+      "expect": "num:max_rel_diff=([0-9.eE+-]+) <=1e-6"
+    },
+    {
+      "name": "cost",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --release --test thermal_bubble_cost bubble_sample_cost -- --nocapture",
+      "expect": "num:sample_ns_bubble=([0-9.eE+-]+) <=1200"
+    },
+    {
+      "name": "table_acc",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test thermal_bubble_embed table_accuracy -- --nocapture",
+      "expect": "num:table_max_rel=([0-9.eE+-]+) <=0.05"
+    },
+    {
+      "name": "budget",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --release --test thermal_bubble_embed bubble_cache_budget -- --nocapture",
+      "expect": "num:build_ms_per_s=([0-9.eE+-]+) <=100"
+    },
+    {
+      "name": "workspace",
+      "cmd": "cargo check --manifest-path rust/Cargo.toml --workspace --all-targets",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [
+    "sample_ns_before_after",
+    "hot_spots",
+    "consumers_per_frame"
+  ],
+  "notes": "",
+  "created": "2026-11-09T21:04:51"
+}

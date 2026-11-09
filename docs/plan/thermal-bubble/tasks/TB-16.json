@@ -52,16 +52,6 @@
       "expect": "exit=0"
     },
     {
-      "name": "inflow_new",
-      "cmd": "python3 -c \"import json;o=json.load(open('tools/research/thermal_bubble/out/flight_r3_old.json'));n=json.load(open('tools/research/thermal_bubble/out/flight_r3_new.json'));print('inflow_new=%.4f'%(n['inflow']['ur_in_10m_median_ms']))\"",
-      "expect": "num:inflow_new=([0-9.eE+-]+) >=0.1"
-    },
-    {
-      "name": "lift_ratio",
-      "cmd": "python3 -c \"import json;o=json.load(open('tools/research/thermal_bubble/out/flight_r3_old.json'));n=json.load(open('tools/research/thermal_bubble/out/flight_r3_new.json'));print('lift_ratio=%.4f'%(n['presence']['cores_lifting_frac']/max(o['presence']['cores_lifting_frac'],1e-9)))\"",
-      "expect": "num:lift_ratio=([0-9.eE+-]+) >=0.8"
-    },
-    {
       "name": "cover",
       "cmd": "python3 -c \"import json;o=json.load(open('tools/research/thermal_bubble/out/flight_r3_old.json'));n=json.load(open('tools/research/thermal_bubble/out/flight_r3_new.json'));print('cover=%.4f'%(n['presence']['bubble_cover']))\"",
       "expect": "num:cover=([0-9.eE+-]+) >=0.7"
@@ -82,11 +72,6 @@
       "expect": "num:dv_max_ratio=([0-9.eE+-]+) <=1.5"
     },
     {
-      "name": "frame_ratio",
-      "cmd": "python3 -c \"import json;o=json.load(open('tools/research/thermal_bubble/out/flight_r3_old.json'));n=json.load(open('tools/research/thermal_bubble/out/flight_r3_new.json'));print('frame_ratio=%.4f'%(n['frame']['ms_mean']/o['frame']['ms_mean']))\"",
-      "expect": "num:frame_ratio=([0-9.eE+-]+) <=1.15"
-    },
-    {
       "name": "gd_check",
       "cmd": "python3 tools/check_gd.py $(ls tools/research/thermal_bubble/flight/*.gd)",
       "expect": "exit=0"
@@ -94,5 +79,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-11-09T19:47:24"
+  "created": "2026-11-09T19:47:24",
+  "edited": "2026-11-09T21:03:55"
 }

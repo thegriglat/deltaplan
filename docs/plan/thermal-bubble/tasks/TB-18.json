@@ -1,0 +1,59 @@
+{
+  "id": "TB-18",
+  "module": "thermal-bubble",
+  "type": "dp-researcher",
+  "title": "Круг 3: почему в игре нет притока у земли — разбор по стадии, рельефу, радиусу, таблицам",
+  "goal": "Объяснить, почему в игре у 77 % ядер приток на 10 м над землёй < 0,01 м/с при шаблоне, где он есть (0,58 w* на плоскости), разложив долю «нулевых» ядер по причинам, и предложить правку модели и/или метрики с физическим основанием и числами после.",
+  "plan_ref": "Задачи, круг 3 п. 8",
+  "contracts": [
+    {
+      "name": "TB4",
+      "version": "4",
+      "ref": "docs/contracts/thermal-bubble.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/thermal-bubble-TB-18",
+  "branch": "thermal-bubble/TB-18",
+  "base": "feature/thermal-bubble",
+  "scope": [
+    "tools/research/thermal_bubble/round3/ground_inflow.py",
+    "tools/research/thermal_bubble/round3/ground_inflow.md",
+    "tools/research/thermal_bubble/round3/ground_inflow_*.png",
+    "tools/research/thermal_bubble/out/round3_ground_inflow.json",
+    "rust/dp-air/tests/thermal_bubble_ground.rs"
+  ],
+  "dont_touch": [
+    "rust/dp-air/src/",
+    "scripts/",
+    "configs/",
+    "data/",
+    "tools/research/thermal_bubble/bubble.py",
+    "tools/research/thermal_bubble/flight/",
+    "docs/"
+  ],
+  "accept": [
+    {
+      "name": "untouched",
+      "cmd": "git diff --quiet feature/thermal-bubble -- rust/dp-air/src scripts configs data tools/research/thermal_bubble/bubble.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "ground_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --release --test thermal_bubble_ground -- --nocapture",
+      "expect": "num:zero_frac_explained=([0-9.eE+-]+) >=0.8"
+    },
+    {
+      "name": "json",
+      "cmd": "tools/research/thermal_bubble/py -c \"import json;d=json.load(open('tools/research/thermal_bubble/out/round3_ground_inflow.json'));assert d['recommendation'] and len(d['causes'])>=2 and 0<=d['zero_frac']<=1;print('ok')\"",
+      "expect": "exit=0"
+    },
+    {
+      "name": "md_docs",
+      "cmd": "grep -q '^## Рекомендация' tools/research/thermal_bubble/round3/ground_inflow.md && .dpcli/dpcli docs check 2>&1",
+      "expect": "!re:ОШИБКА.*round3"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T21:04:46"
+}
