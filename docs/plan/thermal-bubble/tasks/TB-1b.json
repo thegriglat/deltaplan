@@ -1,0 +1,56 @@
+{
+  "id": "TB-1b",
+  "module": "thermal-bubble",
+  "type": "dp-researcher",
+  "title": "Шаблон v2: вертикальная ось в системе воздуха, жизнь без скачков, виртуальный источник",
+  "goal": "Довести bubble.py до контракта TB1 v2 по ревью TB-1: пузырь со шлейфом — вертикальная осесимметричная структура, сносимая ветром; жизнь (рост, упор в крышку с растеканием, отключение источника, угасание) непрерывна во времени; шлейф от виртуального источника без завышения скорости у земли.",
+  "plan_ref": "Задачи (уточняет координатор) п. 1",
+  "contracts": [
+    {
+      "name": "TB1",
+      "version": "2",
+      "ref": "docs/contracts/thermal-bubble.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/thermal-bubble-TB-1b",
+  "branch": "thermal-bubble/TB-1b",
+  "base": "feature/thermal-bubble",
+  "scope": [
+    "tools/research/thermal_bubble/bubble.py",
+    "tools/research/thermal_bubble/test_bubble.py",
+    "tools/research/thermal_bubble/README.md"
+  ],
+  "dont_touch": [
+    "tools/research/thermal_bubble/contract/",
+    "tools/research/thermal_bubble/current.py",
+    "tools/research/thermal_bubble/literature.md",
+    "rust/",
+    "scripts/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "contract_tb1",
+      "cmd": "python3 tools/research/thermal_bubble/contract/check_contract.py tb1",
+      "expect": "exit=0"
+    },
+    {
+      "name": "unit",
+      "cmd": "tools/research/thermal_bubble/py -m pytest -q tools/research/thermal_bubble/test_bubble.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "near_ground",
+      "cmd": "python3 -c \"import sys;sys.path.insert(0,'tools/research/thermal_bubble');import numpy as np,bubble as b;e=b.Env(wind=(3.0,0.0),zi=1400.0);s=b.from_game(0,0,0,2.5,1400.0,e);sts=[b.state(s,e,s.t0+f*s.tau) for f in (0.1,0.3,0.6,1.0)];X,Z=np.meshgrid(np.linspace(-300,300,61),np.linspace(1,140,40),indexing='ij');print('wmax_low='+str(max(float(np.max(np.abs(b.velocity(np.stack([X+st.xc,np.full_like(X,st.yc),Z],-1),[st],e)))) for st in sts if st is not None)))\"",
+      "expect": "num:wmax_low=([0-9.eE+-]+) <=5.0"
+    },
+    {
+      "name": "readme_docs",
+      "cmd": "test -s tools/research/thermal_bubble/README.md && .dpcli/dpcli docs check 2>&1",
+      "expect": "!re:ОШИБКА.*thermal_bubble"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T08:50:26"
+}
