@@ -1,0 +1,49 @@
+{
+  "verdict": "accept",
+  "summary": "Стенд lee воспроизводит путь sum.rs (тот же Ctx, analytic.mean → turb.mean → turb.sigma), контракт LTS v1 соблюдён, скоуп чист (setup.rs — чистый рефакторинг, dp-air не тронут). Главный вывод (relief=0, du=0, src=mix нигде при a=1) проверен независимо по extra.csv и разрезу strong/a50_focus (24519 точек) и подтверждается кодом analytic/mod.rs:330 + turb/mod.rs:110. Замечания — мелкие.",
+  "issues": [
+    {
+      "file": "rust/dp-stand/src/lee.rs",
+      "line": 249,
+      "severity": "minor",
+      "what": "l_u/l_w считаются по taylor_stretch от v = поле + аналитика (без storm/wave/cloud из extra.flow), тогда как в sum.rs mh берётся из mid.v после _extra_flow. В storm масштабы в csv чуть отличаются от игровых; в strong/medium совпадают.",
+      "fix": "Либо вызвать s.extra.flow(&c, v) перед расчётом stretch, либо оговорить в README стенда/baseline.md (выводы по storm и так не делаются)."
+    },
+    {
+      "file": "docs/research/lee_turb/baseline.md",
+      "line": 46,
+      "severity": "minor",
+      "what": "Карточка: «с литературой не сравнивать — это LT-1», а в п.1.4 и таблицах есть «литература: 2,8 H ⇒ в 4–5 раз длиннее».",
+      "fix": "Оставить как есть с пометкой «ориентир до LT-1» или убрать при сверке LT-5; правки не требуется."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "contract",
+      "value": "exit 0 (18 файлов)",
+      "pass": true
+    },
+    {
+      "name": "slices",
+      "value": "18",
+      "pass": true
+    },
+    {
+      "name": "stand_tests",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "relief/share/lee_a по extra.csv",
+      "value": "24519 точек: relief>0 — 0, share<1 — 0, lee_a>0 — 0",
+      "pass": true
+    },
+    {
+      "name": "du/src=mix в strong_a50_focus.lts.csv",
+      "value": "24519 строк: du_max=0, mix=0",
+      "pass": true
+    }
+  ],
+  "t": "2026-11-09T21:24:20",
+  "by": "reviewer"
+}
