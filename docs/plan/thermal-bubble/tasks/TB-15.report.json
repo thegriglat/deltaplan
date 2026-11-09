@@ -1,0 +1,133 @@
+{
+  "status": "done",
+  "summary": "Шаблон пузыря v5 встроен по умолчанию (флага нет): F0 из бюджета потока (from_game_strength), q(ξ) и K̄ шаблона для «между», профиль Гедеона за радиусом/у статичных/без таблицы/у столбов < 100 м, облачный подсос выше top сохранён, первая синхронная сборка (start_at) без таблиц; TB4 v4: uh без fade, центр пузыря на оси cores (axis_at(zc)). Тесты со старыми числами GD перезаписаны.",
+  "commits": [
+    "dabbde342 thermal-bubble TB-15: шаблон пузыря по умолчанию (TB1 v5, TB4 v3/v4)",
+    "тест цены 4 фокусов переименован (cache_budget_4f)"
+  ],
+  "checks": [
+    {
+      "name": "contract_tb1",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "contract_tb4",
+      "value": "PASS (v3 + needles v4)",
+      "pass": true
+    },
+    {
+      "name": "pytest",
+      "value": "26 passed",
+      "pass": true
+    },
+    {
+      "name": "life_repro",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "between_repro",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "dp_air_tests",
+      "value": "все тесты dp-air",
+      "pass": true
+    },
+    {
+      "name": "table_acc",
+      "value": "0.04219",
+      "pass": true
+    },
+    {
+      "name": "budget",
+      "value": "34.4 мс/с",
+      "pass": true
+    },
+    {
+      "name": "workspace",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "no_flag",
+      "value": "нет совпадений",
+      "pass": true
+    },
+    {
+      "name": "profile_kept",
+      "value": "profile.rs/life.rs/cells.rs без изменений",
+      "pass": true
+    },
+    {
+      "name": "core_axis",
+      "value": "core_axis_dx_over_r=0.000",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept TB-15",
+  "uncertain": [
+    {
+      "where": "tools/research/thermal_bubble/bubble.py (from_game_strength), round3/between.md",
+      "why": "Пик w на оси за жизнь = 1,35·strength (life.md ждал +25 %). Ядра несут 0,56 Φ против 0,30 Φ в v4 (K̄ 8163 м² против 4376 при w0 3,18). Цена выбора F0 по потоку.",
+      "checked": "between.py/kbar пересчитаны; Монте-Карло потока ядер = потоку поля в пределах ±20 % (тест проходит)"
+    },
+    {
+      "where": "rust/dp-air/src/terms/thermal/sample.rs (шов на top)",
+      "why": "Ниже top только таблица: у верха столба при жизни игры 990 с голова не доходит (0,9 z_i за ≈1095 с), подъём под основанием ≈ 0, выше top — профиль с подсосом. Сверки с GD-профилем под основанием облака (terms_thermal_cloud) ослаблены там.",
+      "checked": "cloud_suck; суммы покрытия облаков 0,5–2× от GD, фактически 0,9–1,1×"
+    },
+    {
+      "where": "rust/dp-air/tests/terms_clouds.rs, terms_thermal_cloud.rs, terms_thermal_field.rs, terms_thermal_air.rs",
+      "why": "Паритет с дампами GD (старый профиль Гедеона и K̄) невозможен: допуски ослаблены, добавлены проверки присутствия. Это не доказательство точности новой модели.",
+      "checked": "значения расхождений печатаются; суммы покрытия, порядок carried (0,4–2,1× GD, медиана 0,62), org = net/carried совпадает с GD"
+    },
+    {
+      "where": "bubble.py K_ALLEN = 1,2436 против Rust e·0,4575",
+      "why": "7e-6 расхождение, t_decay допуск 5e-5",
+      "checked": "port_vs_python"
+    },
+    {
+      "where": "контракт TB1 п. 14",
+      "why": "core_flux_fraction = 13/35 = 0,37143, а в тексте 0,371; тест сверяет по PARAMS (1e-12) и по 0,371 (2e-3)",
+      "checked": "check_contract tb1"
+    },
+    {
+      "where": "table_accuracy",
+      "why": "устаревшая таблица до 8 % от своего пика у слабых термиков (3 % от пика сцены); добавлены кадры по 10 с на первой минуте (v5 голова сильнее)",
+      "checked": "table_max_rel 0,042 ≤ 0,05"
+    }
+  ],
+  "dp_feedback": "job --lock cpu ставит задачу в FIFO за большими запросами (мой 1-слотовый ждал >15 мин при 2 свободных слотах); job с таймаутом 3600 убился на 280/420 узлах — хотелось бы продолжать. Выход accept --dry не показывает причину FAIL проверки (только строку FAIL budget).",
+  "extra": {
+    "kbar_v5_zl1400_w0_3_17_m2": 8061,
+    "kbar_v4_m2": 4376,
+    "core_share_phi": 0.56,
+    "q_template_peak_xi": 0.55,
+    "build_ms_per_s_scene": "281 термик (1 фокус), 793 (4 фокуса)",
+    "keyframe_birth": "кадры 10 с при tp<60 с"
+  },
+  "build_ms_per_s": 34.3,
+  "build_ms_per_s_4f": 112.5,
+  "sample_ns_old_new": [
+    456,
+    3140
+  ],
+  "t_rise_09_s": 1095,
+  "peak_axis_over_strength": 1.346,
+  "rerecorded_tests": [
+    "terms_clouds: TOL (cover 0,4, depth 1500, stage 4, act 1), фон 0,02/250 м, плюс проверка суммы покрытия 0,5–2× GD; sample/density/shade, suck, visible_clouds — только допустимые значения: источники облаков теперь K̄ и q шаблона",
+    "terms_thermal: start_at_equals_run_from_zero — прыжок start_at(899)+advance(900): start_at без таблиц",
+    "terms_thermal_air: net/carried вместо carried и net, carried шаблон/GD в границах, shape_area = π/e, carried_flux 0,3–3× GD",
+    "terms_thermal_cloud: suck_points — под основанием облака не сверяется (таблица), выше — допуск +1 м/с",
+    "terms_thermal_field: допуск +1 м/с в теле столба; монте-карло потока по sample_bubble",
+    "thermal_bubble_embed: flag_off_bitwise удалён, фикстура thermal_bubble_off.json удалена; port_vs_python на фикстуре v5 с between_q и K̄; no_table_no_w → no_table_profile; flag_on_sum → bubble_sum; новые cloud_suck, between_q_used, bubble_on_core_axis, between_kbar, sample_cost, cache_budget_4f",
+    "thermal_bubble_radius: без флага"
+  ],
+  "t": "2026-11-09T19:25:51",
+  "by": "executor"
+}
