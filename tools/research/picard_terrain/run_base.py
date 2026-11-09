@@ -24,7 +24,7 @@ import sample as SM  # noqa: E402
 
 D = SM.data_dir()
 OUT = HERE / "out" / "PT-1"
-BIN = ROOT / "rust/picard_rs/target/release/picard"
+BIN = ROOT / "rust/target/release/picard"
 THREADS = 8
 MAX_ITERS = 4000
 BASE = ["askervein_d100", "askervein_d50", "kayancha_d100", "kayancha_d50", "perdigao_ne_d30", "perdigao_sw_d30"]
@@ -45,6 +45,17 @@ def run_solve(case, variant="base", extra=(), out_dir=OUT / "r2", threads=THREAD
     return r2, st
 
 
+def run_bench(case, variant="base", extra=(), threads=THREADS):
+    """Время: `picard bench --solve` (вес замка - вся машина) -> out/PT-1/bench/<case>_<variant>/…json (R2 с time)."""
+    d = OUT / "bench" / f"{case}_{variant}"
+    d.mkdir(parents=True, exist_ok=True)
+    cmd = [str(ROOT / ".dpcli/dpcli"), "lock", "cpu", "PT-1", "--no-tmux", "--", str(BIN.relative_to(ROOT)), "bench",
+           str(D / "cases" / f"{case}.json"), "--threads", str(threads), "--solve", "--max-iters", str(MAX_ITERS),
+           "--out-dir", str(d.relative_to(ROOT)), *extra]
+    subprocess.run(cmd, cwd=ROOT, check=True)
+    return next(d.glob("*.json"))
+
+
 def stalled(hist, crit, status):
     """PT4: критерий не достигнут и невязка не убывает (меньше чем в 2 раза за последние 50 % итераций).
     Мера - max(mom_rms/tol_mom, div_rms/tol_div) в проверке; сравниваются проверки на it/2 и it."""
@@ -63,7 +74,7 @@ def probes_rows(case_json, state_json):
     return [dict(name=v["name"], z_agl=v["z_agl"], S=v["S"], dS=d[v["name"]]) for v in vals]
 
 
-def row_picard(task, case, r2_path, state_path, cut_cells=False, adv2=False, limiter=None, note="", locked=True):
+def row_picard(task, case, r2_path, state_path, cut_cells=False, adv2=False, limiter=None, note="", bench_path=None):
     """Строка PT4 из R2 (picard_rs) и снимка R4."""
     r2 = json.loads(Path(r2_path).read_text())
     cj = D / "cases" / f"{case}.json"
@@ -74,10 +85,12 @@ def row_picard(task, case, r2_path, state_path, cut_cells=False, adv2=False, lim
     if status == "max" and stalled(hist, meta["criterion"], status):
         status = "stalled"
     f = lambda k: last.get(k)
+    tm = json.loads(Path(bench_path).read_text())["time"] if bench_path else r2["time"]
+    locked = bool(bench_path)
     return dict(format="pt-row", version=1, task=task, case=case, site=meta["pt"]["site"], dx=meta["dx"], solver="picard_rs",
                 dtype="f32", cut_cells=cut_cells, adv2=adv2, limiter=limiter, status=status, iters=r2["iters"],
                 max_iters=MAX_ITERS, final=dict(mom_rms=f("mom_rms"), th_rms=f("th_rms"), div_rms=f("div_rms")),
-                time=dict(total_s=r2["time"]["total_s"], ms_per_iter=r2["time"]["ms_per_iter"], threads=r2["threads"], locked=locked),
+                time=dict(total_s=tm["total_s"], ms_per_iter=tm["ms_per_iter"], threads=r2["threads"], locked=locked),
                 r2=str(Path(r2_path).relative_to(ROOT)), state=str(Path(state_path).relative_to(D)),
                 probes=probes_rows(cj, state_path), rotor=None, masts_rmse=None,
                 note=note or (f"u_rel против air3d f64 1-й порядок: {r2['dev']['u_rel']:.2e}" if r2["dev"]["u_rel"] is not None else ""))
@@ -101,12 +114,19 @@ def cmd_solve(names):
         print("done", c, r2, flush=True)
 
 
+def cmd_bench(names):
+    for c in names or BASE:
+        print("bench", c, run_bench(c), flush=True)
+
+
 def cmd_rows():
     rows = []
     for c in BASE:
         r2 = OUT / "r2" / f"{c}_base.json"
         if r2.exists():
-            rows.append(row_picard("PT-1", c, r2, D / "states" / f"{c}_base.json"))
+            bd = OUT / "bench" / f"{c}_base"
+            b = next(bd.glob("*.json"), None) if bd.exists() else None
+            rows.append(row_picard("PT-1", c, r2, D / "states" / f"{c}_base.json", bench_path=b))
     for c in AIR3D_ALL:
         if (OUT / "air3d_runs" / f"{c}.json").exists():
             rows.append(row_air3d("PT-1", c))
@@ -202,4 +222,4 @@ def cmd_table():
 
 if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else ""
-    {"solve": lambda: cmd_solve(sys.argv[2:]), "rows": cmd_rows, "table": cmd_table}.get(cmd, lambda: sys.exit(__doc__))()
+    {"solve": lambda: cmd_solve(sys.argv[2:]), "bench": lambda: cmd_bench(sys.argv[2:]), "rows": cmd_rows, "table": cmd_table}.get(cmd, lambda: sys.exit(__doc__))()
