@@ -4,9 +4,9 @@ status: "active"
 module: "picard-terrain"
 area: "air"
 updated: "2026-11-09"
-summary: "Стыки picard-terrain: случаи опыта PT1, срезанные клетки PT2, 2-й порядок PT3, строки замеров PT4, выборка в точках PT5."
+summary: "Стыки picard-terrain: случаи опыта PT1, срезанные клетки PT2, 2-й порядок PT3, строки замеров PT4, выборка PT5, построитель долей PT6."
 related: ["docs/plan/picard-terrain.md", "docs/contracts/picard-rs.md", "docs/contracts/air-cascade.md", "docs/contracts/sw-charges-3d.md", "tools/research/air3d/reference.md"]
-contracts: [{"id": "PT1", "version": 2}, {"id": "PT2", "version": 1}, {"id": "PT3", "version": 2}, {"id": "PT4", "version": 1}, {"id": "PT5", "version": 1}]
+contracts: [{"id": "PT1", "version": 2}, {"id": "PT2", "version": 1}, {"id": "PT3", "version": 2}, {"id": "PT4", "version": 1}, {"id": "PT5", "version": 1}, {"id": "PT6", "version": 1}]
 ---
 
 # Контракты модуля picard-terrain
@@ -95,3 +95,27 @@ v2 (2026-11-09, PT-4): `picard bench --solve` принимает те же фл�
   h(x_i, y_j). Значение колонны на z_agl — линейно по z_agl, ниже центра нижней такой клетки — её значение.
   В точке — билинейно по 4 колоннам на заданном z_agl. Одно правило для базы и всех вариантов.
 - Ротор Perdigão — критерий и разрезы SWD5 v7 / SWD1 (`tools/research/sw_charges_3d`), u∥ по тому же правилу.
+
+## PT6 v1 — построитель долей в Rust (этап 2)
+Владелец — PT-8 (`P/src/cut_build.rs`, `pub mod cut_build` в `P/src/lib.rs`); потребители — PT-9 (`dp-air`), PT-11.
+Перенос `T/cut.py` (`fractions`, `type_height`, правила полной клетки и пола грани из `build`) без изменения правил.
+- Константы: `VF_MIN = 0.05`, `SAMPLES = 17` (точек на ребро клетки, концы включены), `AF_FLOOR = 1e-3`.
+- `Raster { h: &[f32], nx, ny, x0: f64, y0: f64, dx: f64 }` — узлы `x0 + i·dx`, `y0 + j·dx`, индекс `[j·nx + i]`
+  (j — север), м над уровнем моря; `sample(x, y) -> f64` — билинейно, за краем — как `sample.Raster`
+  (`clip((x − x0)/dx, 0, nx − 1.000001)`), арифметика f64.
+- `CutGrid { nx, ny, nz, x0, y0, dx, dz, z_bot }` — внутренние размеры; клетка с ореольным индексом (i, j, k)
+  занимает `[x0 + (i − 1)·dx, x0 + i·dx] × [y0 + (j − 1)·dx, …] × [z_bot + (k − 1)·dz, z_bot + k·dz]`
+  (центр `x0 + (i − ½)·dx`, как `dp-air::case_prepare` и R1).
+- `fractions(&Raster, &CutGrid, n) -> Fractions { vf, af_u, af_v, af_w: Vec<f32> }` — раскладка R1 с ореолом
+  `(nz + 2, ny + 2, nx + 2)`, индекс `(k·NY + j)·NX + i`; правила, решётка точек, веса трапеций и ореол — как
+  `cut.fractions`; счёт в f64, хранение f32.
+- `type_height(&CutGrid, &[f32] vf, vf_min) -> Result<Vec<f64>>` — `(ny, nx)` внутренние, `[j·nx + i]`: низ первой
+  клетки столбца (k ≥ 1) с `vf ≥ vf_min`; столбец без открытой клетки или немонотонный по k `vf` — ошибка (как
+  `cut.type_height`). Подготовка случая строит типы по этой высоте, фон ветра — по настоящему рельефу (как `cut.build`).
+- `finish(&mut Fractions, cell: &[u8], tu, tv, tw: &[u8]) -> FinishStats { n_snap_full, n_face_floor, n_cut_cells }`
+  — после типов: сначала полная клетка (`cell == 1 && vf ≥ 1 − 1e-6` → vf и 6 граней = 1), потом пол грани
+  (тип 1 и доля ≤ 0 → `AF_FLOOR`); порядок и счётчики — как `cut.build`.
+- Инвариант: на тех же входах совпадение с `cut.py` — `|Δvf|, |Δaf| ≤ 1e-6`, `hc_type` и счётчики — точно.
+  Проверка — `T/contract/check_cut_build.py` (CLI `picard cut-build`, см. карточку PT-8).
+- Время — без лишних проходов: слой, целиком над/под рельефом столбца, можно не перебирать по точкам (результат тот же).
+
