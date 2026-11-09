@@ -1,0 +1,87 @@
+{
+  "id": "TB-5",
+  "module": "thermal-bubble",
+  "type": "dp-researcher",
+  "title": "Шаблон v3: ядро по измерениям, сглаживание края головы, from_strength и kbar; пересчёт сверки и баланса Φ",
+  "goal": "bubble.py по контракту TB1 v3: α_th и доля потока ядра — из измерений ядер слоя конвекции (не лабораторные, не под нынешнюю модель), край головы Хилла сглажен через ψ, from_strength/kbar для игры; compare.py пересчитан: семь величин, K̄, «между» и доля Φ, которую несут ядра, — шаблон против нынешней модели и измерений.",
+  "plan_ref": "Задачи (уточняет координатор) п. 1–2; ответ на Q1 пп. 1, 6",
+  "contracts": [
+    {
+      "name": "TB1",
+      "version": "3",
+      "ref": "docs/contracts/thermal-bubble.md"
+    },
+    {
+      "name": "TB2",
+      "version": "1",
+      "ref": "docs/contracts/thermal-bubble.md"
+    },
+    {
+      "name": "TB3",
+      "version": "1",
+      "ref": "docs/contracts/thermal-bubble.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/thermal-bubble-TB-5",
+  "branch": "thermal-bubble/TB-5",
+  "base": "feature/thermal-bubble",
+  "scope": [
+    "tools/research/thermal_bubble/bubble.py",
+    "tools/research/thermal_bubble/test_bubble.py",
+    "tools/research/thermal_bubble/README.md",
+    "tools/research/thermal_bubble/compare.py",
+    "tools/research/thermal_bubble/compare.md",
+    "tools/research/thermal_bubble/out/compare.json"
+  ],
+  "dont_touch": [
+    "tools/research/thermal_bubble/contract/",
+    "tools/research/thermal_bubble/current.py",
+    "tools/research/thermal_bubble/literature.md",
+    "tools/research/thermal_bubble/bench_fixture.py",
+    "tools/research/thermal_bubble/out/bench_fixture.json",
+    "tools/research/thermal_bubble/out/bench.json",
+    "rust/",
+    "scripts/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "contract_tb1",
+      "cmd": "python3 tools/research/thermal_bubble/contract/check_contract.py tb1",
+      "expect": "exit=0"
+    },
+    {
+      "name": "contract_tb3",
+      "cmd": "python3 tools/research/thermal_bubble/contract/check_contract.py tools/research/thermal_bubble/out/compare.json",
+      "expect": "exit=0"
+    },
+    {
+      "name": "unit",
+      "cmd": "tools/research/thermal_bubble/py -m pytest -q tools/research/thermal_bubble/test_bubble.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "div",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/thermal_bubble/out/compare.json'));print('div='+str(max(d['div']['p99_rel'],d['div']['flux_rel'])))\"",
+      "expect": "num:div=([0-9.eE+-]+) <=0.001"
+    },
+    {
+      "name": "core_in_lit",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/thermal_bubble/out/compare.json'));r={x['quantity']:x for x in d['rows']};bad=[q for q in ('core_radius_over_zi','w_core_max_over_wstar') if not (r[q]['lit_range'] and r[q]['lit_range'][0]<=r[q]['bubble']<=r[q]['lit_range'][1])];print('вне диапазона измерений:',bad);assert not bad\"",
+      "expect": "exit=0"
+    },
+    {
+      "name": "balance",
+      "cmd": "python3 -c \"import json;b=json.load(open('tools/research/thermal_bubble/out/compare.json'))['details']['balance'];[float(b[k]) for k in ('kbar_bubble','kbar_current','core_share_phi_bubble','core_share_phi_current','between_bubble_over_wstar','between_current_over_wstar')];print('ok')\"",
+      "expect": "re:^ok"
+    },
+    {
+      "name": "md_docs",
+      "cmd": "test -s tools/research/thermal_bubble/compare.md && test -s tools/research/thermal_bubble/README.md && .dpcli/dpcli docs check 2>&1",
+      "expect": "!re:ОШИБКА.*thermal_bubble"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T10:10:12"
+}

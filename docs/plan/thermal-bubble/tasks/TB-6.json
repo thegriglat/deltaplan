@@ -1,0 +1,48 @@
+{
+  "id": "TB-6",
+  "module": "thermal-bubble",
+  "type": "dp-researcher",
+  "title": "Числа LES и измерений: приток у земли, растекание у верха, кольцо опускания, скорость подъёма термика",
+  "goal": "Короткий поиск открытых источников (LES сухого слоя конвекции и измерения) с числами для четырёх величин сверки, которых не было в круге 1: приток у земли, растекание под инверсией, минимум опускания у кольца, скорость подъёма термика — в долях w*; итог — out/les.json (строки формата TB3) и раздел literature.md.",
+  "plan_ref": "Задачи (уточняет координатор) п. 2; ответ на Q1 п. 3",
+  "contracts": [
+    {
+      "name": "TB3",
+      "version": "1",
+      "ref": "docs/contracts/thermal-bubble.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/thermal-bubble-TB-6",
+  "branch": "thermal-bubble/TB-6",
+  "base": "feature/thermal-bubble",
+  "scope": [
+    "tools/research/thermal_bubble/literature.md",
+    "tools/research/thermal_bubble/out/les.json"
+  ],
+  "dont_touch": [
+    "tools/research/thermal_bubble/bubble.py",
+    "tools/research/thermal_bubble/compare.py",
+    "tools/research/thermal_bubble/compare.md",
+    "tools/research/thermal_bubble/out/compare.json",
+    "tools/research/thermal_bubble/contract/",
+    "tools/research/thermal_bubble/README.md",
+    "rust/",
+    "scripts/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "les_rows",
+      "cmd": "python3 -c \"import json,math;d=json.load(open('tools/research/thermal_bubble/out/les.json'));assert d['format']=='tb-les' and d['version']==1;r={x['quantity']:x for x in d['rows']};need=('inflow_ground_over_wstar','outflow_top_over_wstar','ring_sink_min_over_wstar','rise_speed_over_wstar');miss=[q for q in need if q not in r];assert not miss,miss;bad=[q for q in need if not all(k in r[q] for k in ('unit','literature','lit_range','source','note','reliability'))];assert not bad,bad;print('found='+str(sum(1 for q in need if r[q]['literature'] is not None and math.isfinite(r[q]['literature']))))\"",
+      "expect": "num:found=(\\d+) >=2"
+    },
+    {
+      "name": "les_md",
+      "cmd": "grep -q '^## .*LES' tools/research/thermal_bubble/literature.md && .dpcli/dpcli docs check 2>&1",
+      "expect": "!re:ОШИБКА.*thermal_bubble"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T10:11:06"
+}
