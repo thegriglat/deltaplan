@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-11-09"
 summary: "Эталоны сверки TB3 для семи величин термика: числа, диапазоны, источники, надёжность; без источника — пусто, без выдумок."
 related: ["docs/plan/thermal-bubble.md", "docs/contracts/thermal-bubble.md", "docs/research/calibration_data/thermals.md", "docs/guide/air-model/thermals.md"]
-conclusion: "Из литературы с числом в руках: профиль Lenschow–Stephens (макс. ŵ 0,45 w*), диаметр, доля ядер; приток, растекание, кольцо и скорость подъёма пузыря — нет подтверждённых чисел."
+conclusion: "Из литературы с числом: профиль Lenschow–Stephens (макс. ŵ 0,45 w*), диаметр, доля ядер; LES-композит Schmidt & Schumann 1989: приток у земли 0,36 w*, кольцо опускания −0,10 w* (композит апдрафта, средний даундрафт −0,96 w*); растекание у верха и скорость подъёма пузыря — чисел нет (null)."
 data: "tools/research/thermal_bubble/current.py"
 applied_in: []
 ---

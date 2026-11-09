@@ -27,12 +27,9 @@
    "quantity": "ring_sink_min_over_wstar",
    "unit": "w*",
    "literature": -0.1,
-   "lit_range": [
-    -0.96,
-    -0.1
-   ],
+   "lit_range": null,
    "source": "Schmidt & Schumann 1989, J. Fluid Mech. 200:511-562, doi:10.1017/S0022112089000753, §3.5 and Fig. 18 (p.540, 543); PDF https://elib.dlr.de/53323/1/Schmidt_Schumann.pdf (open access, text layer read)",
-   "note": "Fig. 18a(ii) caption: conditionally averaged updraught w field has min -0.1 w* (max 2.0 w*) = surrounding sink in the composite at zc=0.5 zi; composite averaging smears the ring (instantaneous ring is deeper). -0.96 w* is the centre of the downdraught composite (separate events, radius 0.5 zi), the other end of the range, not the ring. Text also: radius of updraught 0.33 zi, ratio updraught/downdraught speed 2.1 (cf. 1.5 Greenhut & Khalsa 1987). Instantaneous section (Fig. 13-14) shows a ring of downward motion at the inversion around penetrating thermals, no number.",
+   "note": "Range null: single composite value. Fig. 18a(ii) caption: conditionally averaged updraught w field has min -0.1 w* (max 2.0 w*) = surrounding sink in the composite at zc=0.5 zi; composite averaging smears the ring (instantaneous ring is deeper). -0.96 w* is the centre of the downdraught composite (separate events, radius 0.5 zi), the other end of the range, not the ring. Text also: radius of updraught 0.33 zi, ratio updraught/downdraught speed 2.1 (cf. 1.5 Greenhut & Khalsa 1987). Instantaneous section (Fig. 13-14) shows a ring of downward motion at the inversion around penetrating thermals, no number.",
    "reliability": "medium"
   },
   {
