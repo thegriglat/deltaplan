@@ -38,11 +38,6 @@
   ],
   "accept": [
     {
-      "name": "dp_air_tests",
-      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air",
-      "expect": "exit=0"
-    },
-    {
       "name": "same_field",
       "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --release --test thermal_bubble_cost sample_same_as_before -- --nocapture",
       "expect": "num:max_rel_diff=([0-9.eE+-]+) <=1e-6"
@@ -66,6 +61,11 @@
       "name": "workspace",
       "cmd": "cargo check --manifest-path rust/Cargo.toml --workspace --all-targets",
       "expect": "exit=0"
+    },
+    {
+      "name": "dp_air_tests",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --release",
+      "expect": "exit=0"
     }
   ],
   "report_extra": [
@@ -74,5 +74,6 @@
     "consumers_per_frame"
   ],
   "notes": "",
-  "created": "2026-11-09T21:04:51"
+  "created": "2026-11-09T21:04:51",
+  "edited": "2026-11-09T23:31:37"
 }
