@@ -408,10 +408,11 @@ impl State {
                     let high = f64::from(pos[1]) - f64::from(th.src[1]);
                     let dx = f64::from(pos[0]) - (f64::from(th.src[0]) + f64::from(ph.drift[0]));
                     let dz = f64::from(pos[2]) - (f64::from(th.src[2]) + f64::from(ph.drift[1]));
+                    // огибающая термика игры: плавный распад, к концу жизни вклад 0 (пузырь живёт дольше термика)
                     let (wb, h) = mv.eval(high, dx, dz, t);
-                    w += wb;
-                    uh[0] += h[0];
-                    uh[1] += h[1];
+                    w += wb * ph.env;
+                    uh[0] += h[0] * ph.env;
+                    uh[1] += h[1] * ph.env;
                 }
                 Some(Mode::NoTable) => {}
                 Some(Mode::Profile) | None => {

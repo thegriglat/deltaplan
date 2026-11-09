@@ -1078,3 +1078,63 @@ fn between_kbar_flag() {
         ratio[ratio.len() - 1]
     );
 }
+
+/// Огибающая игры на вкладе пузыря: от начала распада до конца термика шаг 1 с, скачок |Δv| за 1 с не больше 5 % пика
+/// (w и горизонталь uh), в момент конца жизни вклад равен 0; до распада вклад — таблица без множителя.
+#[test]
+fn life_fade() {
+    use dp_air::terms::thermal::bubble::BubbleCache;
+    let setup = setup_on();
+    let h = Arc::new(lone_thermal());
+    let cache = BubbleCache::default();
+    let (t_a, t_e) = (h.t_decay_start(), h.t_end());
+    let probes = [(0.0, 250.0, 0.0), (60.0, 400.0, 30.0)];
+    let mut series: Vec<Vec<[f64; 3]>> = vec![Vec::new(); probes.len()];
+    let mut tm = t_a - 10.0;
+    while tm <= t_e + 1e-9 {
+        let c = axis_xz(&h, tm);
+        let st = dp_air::terms::thermal::State::build_cached(
+            &setup,
+            vec![h.clone()],
+            tm,
+            &[c],
+            1.0,
+            0,
+            &cache,
+        );
+        for (k, p) in probes.iter().enumerate() {
+            let q = [(c[0] + p.0) as f32, p.1 as f32, (c[1] + p.2) as f32];
+            let (o, uh) = st.sample_bubble(&setup, &NoClouds, q, tm);
+            series[k].push([o[0], uh[0], uh[1]]);
+        }
+        tm += 1.0;
+    }
+    for (k, s) in series.iter().enumerate() {
+        let peak = s
+            .iter()
+            .map(|v| v.iter().fold(0.0f64, |m, x| m.max(x.abs())))
+            .fold(0.0, f64::max);
+        let jump = s
+            .windows(2)
+            .map(|w| {
+                (0..3)
+                    .map(|i| (w[1][i] - w[0][i]).abs())
+                    .fold(0.0, f64::max)
+            })
+            .fold(0.0, f64::max);
+        let last = s[s.len() - 1];
+        println!(
+            "life_fade точка {k}: пик {peak:.3}, макс. скачок за 1 с {jump:.4} ({:.3} пика), v(t_end) = {last:?}",
+            jump / peak
+        );
+        assert!(peak > 0.3, "точка {k}: вклада нет (пик {peak})");
+        assert!(
+            jump <= 0.05 * peak,
+            "точка {k}: скачок {jump} > 5 % пика {peak}"
+        );
+        assert!(
+            last.iter().all(|x| *x == 0.0),
+            "точка {k}: v(t_end) = {last:?}"
+        );
+    }
+}
