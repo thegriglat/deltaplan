@@ -73,12 +73,14 @@ pub trait Analytic: Send + Sync {
     }
 }
 
-/// Термик в точке: `w` (с учётом фона — см. `bg_sink` в `sum`), маска 0..1, σ края.
+/// Термик в точке: `w` (с учётом фона — см. `bg_sink` в `sum`), маска 0..1, σ края, горизонталь `uh`.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct ThermalOut {
     pub w: f64,
     pub mask: f64,
     pub sigma: f64,
+    /// Горизонтальная скорость термика в осях игры (x, z), м/с (шаблон пузыря, TB4); без флага — `[0, 0]`.
+    pub uh: [f64; 2],
 }
 
 pub trait Thermal: Send + Sync {

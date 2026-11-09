@@ -55,6 +55,8 @@ pub struct ThermalCfg {
     /// `clouds.sun_elevation_deg`, `clouds.sun_azimuth_deg`: солнце «по умолчанию».
     pub sun_elevation_deg: f64,
     pub sun_azimuth_deg: f64,
+    /// `thermal.bubble_template`: вертикаль и горизонталь термика — по шаблону пузыря (TB4), а не по профилю.
+    pub bubble_template: bool,
 }
 
 impl Default for ThermalCfg {
@@ -103,6 +105,7 @@ impl Default for ThermalCfg {
             edge_width: 0.45,
             sun_elevation_deg: 52.0,
             sun_azimuth_deg: 200.0,
+            bubble_template: false,
         }
     }
 }
@@ -174,6 +177,10 @@ impl ThermalCfg {
             edge_width: g("/turbulence/edge_width", d.edge_width),
             sun_elevation_deg: g("/clouds/sun_elevation_deg", d.sun_elevation_deg),
             sun_azimuth_deg: g("/clouds/sun_azimuth_deg", d.sun_azimuth_deg),
+            bubble_template: atm
+                .pointer("/thermal/bubble_template")
+                .and_then(Value::as_bool)
+                .unwrap_or(d.bubble_template),
         }
     }
 

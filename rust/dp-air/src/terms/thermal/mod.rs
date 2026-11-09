@@ -18,6 +18,7 @@
 //! Подключение места: `Terms::set_thermal_ground(Arc<dyn GroundSource>)` (до этого — плоская
 //! земля без источников, термиков нет).
 pub mod air;
+pub mod bubble;
 pub mod cells;
 pub mod cfg;
 pub mod cores;
@@ -538,9 +539,12 @@ fn focus_points(terms: &Terms) -> Vec<[f64; 2]> {
 impl Thermal for ThermalSlot {
     fn sample(&self, c: &Ctx) -> Option<ThermalOut> {
         let b = self.built.as_ref()?;
-        let mut o = b
-            .state
-            .sample(&b.setup, self.hooks_of(self.cloud.as_ref()), c.pos, c.t);
+        let hooks = self.hooks_of(self.cloud.as_ref());
+        let (mut o, uh) = if b.setup.cfg.bubble_template {
+            b.state.sample_bubble(&b.setup, hooks, c.pos, c.t)
+        } else {
+            (b.state.sample(&b.setup, hooks, c.pos, c.t), [0.0; 2])
+        };
         if let Some(a) = &b.air {
             o = a.1.src.with_between(c.fs, c.pos, o);
         }
@@ -548,6 +552,7 @@ impl Thermal for ThermalSlot {
             w: o[0],
             mask: o[1],
             sigma: o[2],
+            uh,
         })
     }
 
