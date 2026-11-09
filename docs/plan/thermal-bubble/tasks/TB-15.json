@@ -1,0 +1,136 @@
+{
+  "id": "TB-15",
+  "module": "thermal-bubble",
+  "type": "dp-engineer",
+  "title": "Круг 3: встраивание шаблона по умолчанию — v5 (F0 из потока, q(ξ) шаблона), без флага, подсос и низкие столбы на профиле",
+  "goal": "Довести шаблон до контрактов TB1 v5 и TB4 v3: F0 термика из бюджета потока (TB-10), «между» с K̄ и q(ξ) шаблона v5 (TB-12), шаблон в игре всегда (флага нет), профиль Гедеона — за радиусом, у статичных, без таблицы и у столбов < 100 м, облачный подсос сохранён; первая сборка таблиц не блокирует кадр; тесты со старыми числами перезаписаны с обоснованием.",
+  "plan_ref": "Задачи, круг 3 п. 7",
+  "contracts": [
+    {
+      "name": "TB1",
+      "version": "5",
+      "ref": "docs/contracts/thermal-bubble.md"
+    },
+    {
+      "name": "TB4",
+      "version": "3",
+      "ref": "docs/contracts/thermal-bubble.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/thermal-bubble-TB-15",
+  "branch": "thermal-bubble/TB-15",
+  "base": "feature/thermal-bubble",
+  "scope": [
+    "tools/research/thermal_bubble/bubble.py",
+    "tools/research/thermal_bubble/test_bubble.py",
+    "tools/research/thermal_bubble/kbar_table.py",
+    "tools/research/thermal_bubble/embed_fixture.py",
+    "tools/research/thermal_bubble/out/embed_fixture.json",
+    "tools/research/thermal_bubble/round3/between.py",
+    "tools/research/thermal_bubble/round3/between.md",
+    "tools/research/thermal_bubble/round3/between_profile.png",
+    "tools/research/thermal_bubble/out/round3_between.json",
+    "tools/research/thermal_bubble/contract/check_contract.py",
+    "tools/research/thermal_bubble/README.md",
+    "rust/dp-air/src/terms/thermal/bubble.rs",
+    "rust/dp-air/src/terms/thermal/bubble_kbar.rs",
+    "rust/dp-air/src/terms/thermal/bubble_q.rs",
+    "rust/dp-air/src/terms/thermal/mod.rs",
+    "rust/dp-air/src/terms/thermal/sample.rs",
+    "rust/dp-air/src/terms/thermal/cfg.rs",
+    "rust/dp-air/src/terms/thermal/air.rs",
+    "rust/dp-air/src/terms/thermal_air/",
+    "rust/dp-air/src/terms/sum.rs",
+    "rust/dp-air/tests/",
+    "tests/atmosphere/",
+    "configs/atmosphere.json",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "rust/dp-air/src/terms/thermal/profile.rs",
+    "rust/dp-air/src/terms/thermal/life.rs",
+    "rust/dp-air/src/terms/thermal/cells.rs",
+    "rust/dp-air/src/terms/thermal/statics.rs",
+    "rust/dp-air/benches/",
+    "tools/research/thermal_bubble/out/bench_fixture.json",
+    "tools/research/thermal_bubble/round3/life.py",
+    "tools/research/thermal_bubble/round3/inflow.py",
+    "tools/research/thermal_bubble/round3/radius.py",
+    "tools/research/thermal_bubble/out/round3_life.json",
+    "tools/research/thermal_bubble/out/round3_inflow.json",
+    "tools/research/thermal_bubble/out/round3_radius.json",
+    "tools/research/thermal_bubble/flight/",
+    "scripts/",
+    "data/",
+    "docs/",
+    "rust/Cargo.toml",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "contract_tb1",
+      "cmd": "python3 tools/research/thermal_bubble/contract/check_contract.py tb1",
+      "expect": "exit=0"
+    },
+    {
+      "name": "contract_tb4",
+      "cmd": "python3 tools/research/thermal_bubble/contract/check_contract.py tb4 v3",
+      "expect": "exit=0"
+    },
+    {
+      "name": "pytest",
+      "cmd": "tools/research/thermal_bubble/py -m pytest -q tools/research/thermal_bubble",
+      "expect": "exit=0"
+    },
+    {
+      "name": "life_repro",
+      "cmd": "tools/research/thermal_bubble/py tools/research/thermal_bubble/round3/life.py --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "between_repro",
+      "cmd": "tools/research/thermal_bubble/py tools/research/thermal_bubble/round3/between.py --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dp_air_tests",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air",
+      "expect": "exit=0"
+    },
+    {
+      "name": "table_acc",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test thermal_bubble_embed table_accuracy -- --nocapture",
+      "expect": "num:table_max_rel=([0-9.eE+-]+) <=0.05"
+    },
+    {
+      "name": "budget",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --release --test thermal_bubble_embed bubble_cache_budget -- --nocapture",
+      "expect": "num:build_ms_per_s=([0-9.eE+-]+) <=100"
+    },
+    {
+      "name": "workspace",
+      "cmd": "cargo check --manifest-path rust/Cargo.toml --workspace --all-targets",
+      "expect": "exit=0"
+    },
+    {
+      "name": "no_flag",
+      "cmd": "! git grep -n bubble_template -- rust configs scripts data tests",
+      "expect": "exit=0"
+    },
+    {
+      "name": "profile_kept",
+      "cmd": "git diff --quiet feature/thermal-bubble -- rust/dp-air/src/terms/thermal/profile.rs rust/dp-air/src/terms/thermal/life.rs rust/dp-air/src/terms/thermal/cells.rs scripts data",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [
+    "build_ms_per_s",
+    "build_ms_per_s_4f",
+    "sample_ns_old_new",
+    "t_rise_09_s",
+    "peak_axis_over_strength",
+    "rerecorded_tests"
+  ],
+  "notes": "",
+  "created": "2026-11-09T16:14:16"
+}
