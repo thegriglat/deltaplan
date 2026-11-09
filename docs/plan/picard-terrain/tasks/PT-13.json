@@ -1,0 +1,57 @@
+{
+  "id": "PT-13",
+  "module": "picard-terrain",
+  "type": "dp-writer",
+  "title": "Документы и CHANGELOG: срезанные клетки в поле игры",
+  "goal": "Документация описывает поле игры со срезанными клетками (как устроено, какие законы и приближения, чего не умеет, замеры времени и присутствия); CHANGELOG «В работе» — функционально, по-русски.",
+  "plan_ref": "Задачи / Этап 2",
+  "contracts": [
+    {
+      "name": "PT7",
+      "version": "2",
+      "ref": "docs/contracts/picard-terrain.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/picard-terrain-PT-13",
+  "branch": "picard-terrain/PT-13",
+  "base": "feature/picard-terrain",
+  "scope": [
+    "docs/guide/air-model",
+    "docs/guide/atmosphere.md",
+    "docs/research/rust-wind-field-path.md",
+    "docs/research/picard_terrain.md",
+    "docs/research/picard_terrain_game.md",
+    "CHANGELOG.md",
+    "docs/INDEX.md"
+  ],
+  "dont_touch": [
+    "rust",
+    "scripts",
+    "tests",
+    "configs",
+    "docs/contracts",
+    "docs/plan",
+    "docs/guide/air-model/turbulence.md",
+    "docs/registry"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check 2>&1 | tail -1",
+      "expect": "num:ошибок (\\d+) <=2"
+    },
+    {
+      "name": "changelog",
+      "cmd": "sed -n '1,/^## [0-9]/p' CHANGELOG.md | grep -ci 'срезан'",
+      "expect": "num:^(\\d+) >=1"
+    },
+    {
+      "name": "no-mask",
+      "cmd": "grep -ciE 'MAC с маской|маска рельефа' docs/guide/air-model/field-cpu.md docs/guide/air-model/runtime.md | awk -F: '{s+=$2} END {print \"mask=\" s}'",
+      "expect": "num:mask=(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-10T02:23:13"
+}
