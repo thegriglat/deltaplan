@@ -47,7 +47,12 @@ out="$tmp/tests.log"
 run_one() { # фильтр [доп. аргументы]
 	flt=$1
 	shift
-	(cd "$wt" && XDG_DATA_HOME="$(mktemp -d)" "$root/.dpcli/dpcli" lock cpu "lt-pt-$name" -- godot --headless --path . res://tests/run_tests.tscn -- --filter="$flt" "$@") >"$tmp/one.log" 2>&1
+	# lock cpu запускает команду как job и возвращается: ждём job и берём его лог
+	(cd "$wt" && XDG_DATA_HOME="$(mktemp -d)" "$root/.dpcli/dpcli" lock cpu "lt-pt-$name" -- godot --headless --path . res://tests/run_tests.tscn -- --filter="$flt" "$@") >"$tmp/lock.log" 2>&1
+	job=$(grep -Eo "^[^ :]+: PID" "$tmp/lock.log" | tail -1 | sed 's/: PID//')
+	[ -n "$job" ] || { echo "PT lee tests: ERROR no job ($flt)"; cleanup; exit 1; }
+	"$root/.dpcli/dpcli" job wait "$job" 7200 >/dev/null 2>&1
+	cp "$HOME/.cache/dpcli/deltaplan/jobs/$job.log" "$tmp/one.log" 2>/dev/null
 	cat "$tmp/one.log" >>"$out"
 	k=$(grep -Eo "[0-9]+ тестов, [0-9]+ упало" "$tmp/one.log" | tail -1 | sed -E 's/.*, ([0-9]+) упало/\1/')
 	if [ -z "$k" ]; then
