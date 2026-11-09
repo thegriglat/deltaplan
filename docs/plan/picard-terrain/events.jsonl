@@ -48,3 +48,6 @@
 {"t": "2026-11-09T09:32:47", "by": "coordinator", "task": "PT-1", "ev": "checked", "note": "4/4 contract-cases=ok:exit 0; contract-rows=ok:exit 0; refs=ok:3; base-ok=ok:6; scope=FAIL:вне scope: r-PT-1.json"}
 {"t": "2026-11-09T09:32:59", "by": "coordinator", "task": "PT-1", "ev": "checked", "note": "4/4 contract-cases=ok:exit 0; contract-rows=ok:exit 0; refs=ok:3; base-ok=ok:6"}
 {"t": "2026-11-09T09:33:14", "by": "coordinator", "task": "PT-1", "ev": "note", "note": "accept PASS 4/4; ревью fable запущено"}
+{"t": "2026-11-09T09:35:14", "by": "reviewer", "task": "PT-1", "ev": "reviewed", "note": "Случаи PT1, растр, выборка PT5 и строки PT4 соответствуют контрактам; скоуп чист (23 файла), приёмка 4/4 перезапущена. Выборка sample.py совпадает с конвенцией…", "verdict": "accept", "issues": {"minor": 3}, "review": "docs/plan/picard-terrain/tasks/PT-1.review.json"}
+{"t": "2026-11-09T09:35:21", "by": "coordinator", "task": null, "ev": "note", "note": "замер базы: job pt-bench-base (picard bench --solve, 18 сл., 6 случаев PT1, бинарник копии PT-1 = код feature) → ~/data/picard_terrain/bench/base/<case>; варианты — отдельной задачей замера"}
+{"t": "2026-11-09T09:35:35", "by": "coordinator", "task": "PT-1", "ev": "accepted", "note": "по ревью (fable): accept, 3 minor — тексты о времени, U10 Perdigão (уточнение PT1 v2), метка 10 м на d50/d100 — в итоговый документ"}
