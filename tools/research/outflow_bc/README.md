@@ -80,3 +80,19 @@ pilot_s=<сумма t_solve_s>` и первые 5 нарушений: ключи
 (размер bin, json) на каждую запись. `est_full_h` — среднее `t_solve_s` на итерацию (по `heat`) × ожидаемые итерации по корзине
 U10 (≤ 2 м/с — 1000, 2,5–3 — 600, ≥ 6 — 200; пилот подправляет, если его итераций больше) × число пар полного корпуса / 3600
 для одного процесса на `threads` нитей.
+
+## Анализ этапа 1
+
+`analyze_stage1.py` — анализ корпуса OB2 (`out/cases.jsonl.gz`, 720 записей) по вопросам 1–5: hard против soft/soft_ns.
+Документ вывода — `docs/research/outflow_bc.md`.
+
+```
+uv run --no-project --with numpy --with h5py --with matplotlib --with scipy python tools/research/outflow_bc/analyze_stage1.py
+# только сводка (проверка побайтно): ... analyze_stage1.py --cases out/cases.jsonl.gz --summary-only <путь>
+```
+
+Выход: `out/summary.csv` (OB2), `out/stage1/` — таблицы `q1_*`…`q5_*`, `time` (md и csv), `q3_boundary_cases.txt`,
+`results.json` (правило рекомендации и главные числа), рисунки `fig1_conv_u10.png`, `fig2_iters_ratio.png`,
+`fig3_d_int50_rel.png`, `fig4_maps_dsoft_hard_50m.png`, `slices_sel.h5` (float16, gzip; резы OB3 для карт). Резы
+`~/data/outflow_bc/slices` (вне git) нужны только для рисунка 4 и `slices_sel.h5`. Лицензии данных: свои расчёты,
+исходные места — фикстуры репозитория.

@@ -1,0 +1,6 @@
+### Q5. Невязка потока мягкого выхода (OutflowDiag)
+
+| variant | n | faces_out_med | flux_net_max_rel_med | flux_net_max_rel_max |
+|---|---|---|---|---|
+| soft | 240 | 6720 | 4.33e-08 | 3.52e-07 |
+| soft_ns | 240 | 6720 | 4.38e-08 | 6.22e-07 |
