@@ -1,0 +1,70 @@
+{
+  "id": "TB-4",
+  "module": "thermal-bubble",
+  "type": "dp-writer",
+  "title": "Вывод: что даёт шаблон пузыря пилоту, что ломается, цена, рекомендация",
+  "goal": "Документ docs/research/thermal_bubble.md: итог модуля для пользователя — шаблон и источники, таблица сверки, цена опроса, что меняется для пилота, что ломается из сверенного, рекомендация встраивать/нет и вопросы на решение; строка в registry/findings.md.",
+  "plan_ref": "Задачи (уточняет координатор) п. 4",
+  "contracts": [
+    {
+      "name": "TB1",
+      "version": "2",
+      "ref": "docs/contracts/thermal-bubble.md"
+    },
+    {
+      "name": "TB3",
+      "version": "1",
+      "ref": "docs/contracts/thermal-bubble.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/thermal-bubble-TB-4",
+  "branch": "thermal-bubble/TB-4",
+  "base": "feature/thermal-bubble",
+  "scope": [
+    "docs/research/thermal_bubble.md",
+    "docs/registry/findings.md",
+    "docs/INDEX.md",
+    "tools/research/thermal_bubble/compare.md",
+    "tools/research/thermal_bubble/README.md"
+  ],
+  "dont_touch": [
+    "tools/research/thermal_bubble/out/",
+    "rust/",
+    "scripts/",
+    "docs/contracts/",
+    "docs/guide/",
+    "tools/research/thermal_bubble/bubble.py",
+    "tools/research/thermal_bubble/compare.py",
+    "tools/research/thermal_bubble/bench.md"
+  ],
+  "accept": [
+    {
+      "name": "md_docs",
+      "cmd": "test -s docs/research/thermal_bubble.md && .dpcli/dpcli docs check 2>&1",
+      "expect": "!re:ОШИБКА.*thermal_bubble"
+    },
+    {
+      "name": "sections",
+      "cmd": "for h in 'Шаблон' 'Сверка' 'Цена опроса' 'Что меняется для пилота' 'Что ломается' 'Чего не умеет' 'Рекомендация'; do grep -q \"^## .*$h\" docs/research/thermal_bubble.md || { echo \"нет раздела: $h\"; exit 1; }; done",
+      "expect": "exit=0"
+    },
+    {
+      "name": "sources",
+      "cmd": "grep -q 'out/compare.json' docs/research/thermal_bubble.md && grep -q 'out/bench.json' docs/research/thermal_bubble.md && grep -q 'build/screenshots/thermal-bubble' docs/research/thermal_bubble.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "findings",
+      "cmd": "grep -q 'research/thermal_bubble.md#' docs/registry/findings.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "size",
+      "cmd": "python3 -c \"import os;print('kb=%.1f'%(os.path.getsize('docs/research/thermal_bubble.md')/1024))\"",
+      "expect": "num:kb=([0-9.]+) <=40"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T09:39:42"
+}
