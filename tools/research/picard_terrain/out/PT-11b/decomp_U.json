@@ -1,0 +1,434 @@
+[
+ {
+  "name": "ongudai_strong_massif0",
+  "mode": "focus",
+  "z_agl": 10,
+  "crest_b": 7.718870496962642,
+  "crest_a": 11.863187828475658,
+  "ref_b": 1.917238578148488,
+  "ref_a": 3.25130150463343
+ },
+ {
+  "name": "ongudai_strong_massif0",
+  "mode": "focus",
+  "z_agl": 30,
+  "crest_b": 11.68985711658872,
+  "crest_a": 14.009726377411445,
+  "ref_b": 2.152380731929729,
+  "ref_a": 3.6054590506122093
+ },
+ {
+  "name": "ongudai_strong_massif0",
+  "mode": "focus",
+  "z_agl": 60,
+  "crest_b": 13.287173967740808,
+  "crest_a": 15.010990707894965,
+  "ref_b": 2.331303122517336,
+  "ref_a": 3.7689250174334368
+ },
+ {
+  "name": "ongudai_strong_massif0",
+  "mode": "focus",
+  "z_agl": 100,
+  "crest_b": 14.391857168150747,
+  "crest_a": 15.780978387183762,
+  "ref_b": 2.4861215773369194,
+  "ref_a": 3.924620878206799
+ },
+ {
+  "name": "ongudai_strong_massif0",
+  "mode": "nofocus",
+  "z_agl": 10,
+  "crest_b": 9.162193020683485,
+  "crest_a": 9.965866142442877,
+  "ref_b": 1.9014347261511255,
+  "ref_a": 2.9717517373537845
+ },
+ {
+  "name": "ongudai_strong_massif0",
+  "mode": "nofocus",
+  "z_agl": 30,
+  "crest_b": 12.169684475155304,
+  "crest_a": 13.373124814954394,
+  "ref_b": 2.1989983441649126,
+  "ref_a": 3.436546470231769
+ },
+ {
+  "name": "ongudai_strong_massif0",
+  "mode": "nofocus",
+  "z_agl": 60,
+  "crest_b": 13.352115335687078,
+  "crest_a": 14.763372903592254,
+  "ref_b": 2.3874031286908646,
+  "ref_a": 3.7183843076281495
+ },
+ {
+  "name": "ongudai_strong_massif0",
+  "mode": "nofocus",
+  "z_agl": 100,
+  "crest_b": 13.935398170394137,
+  "crest_a": 15.204292042095252,
+  "ref_b": 2.529481432340464,
+  "ref_a": 3.8949034539142504
+ },
+ {
+  "name": "ongudai_strong_massif1",
+  "mode": "focus",
+  "z_agl": 10,
+  "crest_b": 7.274595828013656,
+  "crest_a": 11.783110933611463,
+  "ref_b": 1.727060475607449,
+  "ref_a": 3.9898373650977006
+ },
+ {
+  "name": "ongudai_strong_massif1",
+  "mode": "focus",
+  "z_agl": 30,
+  "crest_b": 10.931980384723163,
+  "crest_a": 13.807554305732387,
+  "ref_b": 2.3506727236152973,
+  "ref_a": 5.161935374615402
+ },
+ {
+  "name": "ongudai_strong_massif1",
+  "mode": "focus",
+  "z_agl": 60,
+  "crest_b": 12.291338052017771,
+  "crest_a": 14.660348734629542,
+  "ref_b": 3.5566021965422365,
+  "ref_a": 6.285452668716026
+ },
+ {
+  "name": "ongudai_strong_massif1",
+  "mode": "focus",
+  "z_agl": 100,
+  "crest_b": 13.390786668498075,
+  "crest_a": 15.411335614952065,
+  "ref_b": 5.200527515338501,
+  "ref_a": 7.67982508825397
+ },
+ {
+  "name": "ongudai_strong_massif1",
+  "mode": "nofocus",
+  "z_agl": 10,
+  "crest_b": 9.924974600489112,
+  "crest_a": 10.852666379619803,
+  "ref_b": 2.4016410301221676,
+  "ref_a": 5.36420903187831
+ },
+ {
+  "name": "ongudai_strong_massif1",
+  "mode": "nofocus",
+  "z_agl": 30,
+  "crest_b": 12.685193553990672,
+  "crest_a": 13.996374066496294,
+  "ref_b": 3.0531248920399325,
+  "ref_a": 6.685539259895588
+ },
+ {
+  "name": "ongudai_strong_massif1",
+  "mode": "nofocus",
+  "z_agl": 60,
+  "crest_b": 13.269915490226708,
+  "crest_a": 14.723575204066233,
+  "ref_b": 4.094240364908961,
+  "ref_a": 7.46119312239698
+ },
+ {
+  "name": "ongudai_strong_massif1",
+  "mode": "nofocus",
+  "z_agl": 100,
+  "crest_b": 13.916376121908396,
+  "crest_a": 15.294585269664882,
+  "ref_b": 5.514479727623545,
+  "ref_a": 8.390451278603289
+ },
+ {
+  "name": "ongudai_strong_massif2",
+  "mode": "focus",
+  "z_agl": 10,
+  "crest_b": 11.175313506218881,
+  "crest_a": 13.755864618184264,
+  "ref_b": 1.3509788698345775,
+  "ref_a": 3.1456711577740224
+ },
+ {
+  "name": "ongudai_strong_massif2",
+  "mode": "focus",
+  "z_agl": 30,
+  "crest_b": 12.589781694028693,
+  "crest_a": 14.76875883175185,
+  "ref_b": 1.6167137291383684,
+  "ref_a": 3.7776060743788427
+ },
+ {
+  "name": "ongudai_strong_massif2",
+  "mode": "focus",
+  "z_agl": 60,
+  "crest_b": 13.747091663145078,
+  "crest_a": 15.276272508832252,
+  "ref_b": 1.8594141445037542,
+  "ref_a": 4.217280531917309
+ },
+ {
+  "name": "ongudai_strong_massif2",
+  "mode": "focus",
+  "z_agl": 100,
+  "crest_b": 14.628265918545301,
+  "crest_a": 15.767273914618245,
+  "ref_b": 2.7690425412373374,
+  "ref_a": 4.86138284693008
+ },
+ {
+  "name": "ongudai_strong_massif2",
+  "mode": "nofocus",
+  "z_agl": 10,
+  "crest_b": 9.30465706563251,
+  "crest_a": 11.8063047889617,
+  "ref_b": 1.3509788698345775,
+  "ref_a": 3.1456710306391957
+ },
+ {
+  "name": "ongudai_strong_massif2",
+  "mode": "nofocus",
+  "z_agl": 30,
+  "crest_b": 11.16444139646912,
+  "crest_a": 13.624505690939909,
+  "ref_b": 1.6167137291383684,
+  "ref_a": 3.7776060743788427
+ },
+ {
+  "name": "ongudai_strong_massif2",
+  "mode": "nofocus",
+  "z_agl": 60,
+  "crest_b": 12.81597527773027,
+  "crest_a": 14.857241692138988,
+  "ref_b": 1.8594141445037542,
+  "ref_a": 4.217280531917309
+ },
+ {
+  "name": "ongudai_strong_massif2",
+  "mode": "nofocus",
+  "z_agl": 100,
+  "crest_b": 14.411550830216191,
+  "crest_a": 15.641589068318218,
+  "ref_b": 2.7690425412373374,
+  "ref_a": 4.86138284693008
+ },
+ {
+  "name": "ongudai_strong_mod0",
+  "mode": "focus",
+  "z_agl": 10,
+  "crest_b": 9.823845693166868,
+  "crest_a": 12.011217627126749,
+  "ref_b": 2.877434317046024,
+  "ref_a": 4.9692958200100525
+ },
+ {
+  "name": "ongudai_strong_mod0",
+  "mode": "focus",
+  "z_agl": 30,
+  "crest_b": 11.664155733856758,
+  "crest_a": 13.685590315870357,
+  "ref_b": 3.4387134450174024,
+  "ref_a": 6.051104590075913
+ },
+ {
+  "name": "ongudai_strong_mod0",
+  "mode": "focus",
+  "z_agl": 60,
+  "crest_b": 12.919640423349481,
+  "crest_a": 14.55575989239498,
+  "ref_b": 4.311490764543374,
+  "ref_a": 6.72662673825683
+ },
+ {
+  "name": "ongudai_strong_mod0",
+  "mode": "focus",
+  "z_agl": 100,
+  "crest_b": 13.906555598909467,
+  "crest_a": 15.226807611470402,
+  "ref_b": 5.381467318052074,
+  "ref_a": 7.4268321816350475
+ },
+ {
+  "name": "ongudai_strong_mod0",
+  "mode": "nofocus",
+  "z_agl": 10,
+  "crest_b": 9.24734886189599,
+  "crest_a": 11.274464552857888,
+  "ref_b": 2.7624833897964236,
+  "ref_a": 5.692285259805412
+ },
+ {
+  "name": "ongudai_strong_mod0",
+  "mode": "nofocus",
+  "z_agl": 30,
+  "crest_b": 11.517660710331711,
+  "crest_a": 13.759629640069713,
+  "ref_b": 3.429530176715557,
+  "ref_a": 6.43928177953004
+ },
+ {
+  "name": "ongudai_strong_mod0",
+  "mode": "nofocus",
+  "z_agl": 60,
+  "crest_b": 12.944881622148964,
+  "crest_a": 15.00225805149652,
+  "ref_b": 4.111671862692363,
+  "ref_a": 7.120801930786721
+ },
+ {
+  "name": "ongudai_strong_mod0",
+  "mode": "nofocus",
+  "z_agl": 100,
+  "crest_b": 14.034831354101843,
+  "crest_a": 15.478734355214737,
+  "ref_b": 5.413360257516601,
+  "ref_a": 7.71510065725025
+ },
+ {
+  "name": "synth_strong_massif0",
+  "mode": "focus",
+  "z_agl": 10,
+  "crest_b": 12.01254932078571,
+  "crest_a": 17.67668841103203,
+  "ref_b": 8.975638565747285,
+  "ref_a": 10.93105032540453
+ },
+ {
+  "name": "synth_strong_massif0",
+  "mode": "focus",
+  "z_agl": 30,
+  "crest_b": 14.446158595125036,
+  "crest_a": 19.638391012012875,
+  "ref_b": 10.714986476657076,
+  "ref_a": 12.88783645062434
+ },
+ {
+  "name": "synth_strong_massif0",
+  "mode": "focus",
+  "z_agl": 60,
+  "crest_b": 16.793487628599962,
+  "crest_a": 21.04606337877509,
+  "ref_b": 11.9701028208672,
+  "ref_a": 14.307716536528847
+ },
+ {
+  "name": "synth_strong_massif0",
+  "mode": "focus",
+  "z_agl": 100,
+  "crest_b": 18.638448746970468,
+  "crest_a": 21.988641604273806,
+  "ref_b": 13.033441464444829,
+  "ref_a": 15.176511713053126
+ },
+ {
+  "name": "synth_strong_massif0",
+  "mode": "nofocus",
+  "z_agl": 10,
+  "crest_b": 14.911933637074737,
+  "crest_a": 16.655466329446114,
+  "ref_b": 8.975638565747285,
+  "ref_a": 10.93105032540453
+ },
+ {
+  "name": "synth_strong_massif0",
+  "mode": "nofocus",
+  "z_agl": 30,
+  "crest_b": 17.721997683148732,
+  "crest_a": 19.794091891029705,
+  "ref_b": 10.714986476657076,
+  "ref_a": 12.88783645062434
+ },
+ {
+  "name": "synth_strong_massif0",
+  "mode": "nofocus",
+  "z_agl": 60,
+  "crest_b": 19.487814758554126,
+  "crest_a": 21.72764326403989,
+  "ref_b": 11.9701028208672,
+  "ref_a": 14.307716536528847
+ },
+ {
+  "name": "synth_strong_massif0",
+  "mode": "nofocus",
+  "z_agl": 100,
+  "crest_b": 20.42284073848457,
+  "crest_a": 22.5566166165745,
+  "ref_b": 13.033441464444829,
+  "ref_a": 15.176511713053126
+ },
+ {
+  "name": "synth_strong_mod2",
+  "mode": "focus",
+  "z_agl": 10,
+  "crest_b": 14.289495727358085,
+  "crest_a": 18.595563512976018,
+  "ref_b": 7.3507277430974245,
+  "ref_a": 11.897422490159938
+ },
+ {
+  "name": "synth_strong_mod2",
+  "mode": "focus",
+  "z_agl": 30,
+  "crest_b": 16.235364028403243,
+  "crest_a": 20.211495497276918,
+  "ref_b": 8.769020424103463,
+  "ref_a": 13.972695458768218
+ },
+ {
+  "name": "synth_strong_mod2",
+  "mode": "focus",
+  "z_agl": 60,
+  "crest_b": 17.942375711328,
+  "crest_a": 21.29842657876877,
+  "ref_b": 10.174337106140191,
+  "ref_a": 14.616305579371144
+ },
+ {
+  "name": "synth_strong_mod2",
+  "mode": "focus",
+  "z_agl": 100,
+  "crest_b": 19.541764517414748,
+  "crest_a": 22.207790474874397,
+  "ref_b": 11.82810251418629,
+  "ref_a": 15.338412492493282
+ },
+ {
+  "name": "synth_strong_mod2",
+  "mode": "nofocus",
+  "z_agl": 10,
+  "crest_b": 16.32419365893538,
+  "crest_a": 18.070786003322045,
+  "ref_b": 6.358507354833145,
+  "ref_a": 10.947945340974488
+ },
+ {
+  "name": "synth_strong_mod2",
+  "mode": "nofocus",
+  "z_agl": 30,
+  "crest_b": 19.398594363564516,
+  "crest_a": 21.474106402289156,
+  "ref_b": 7.619291964485796,
+  "ref_a": 12.935741443880234
+ },
+ {
+  "name": "synth_strong_mod2",
+  "mode": "nofocus",
+  "z_agl": 60,
+  "crest_b": 20.58900011070681,
+  "crest_a": 22.619169028563206,
+  "ref_b": 8.603506114230552,
+  "ref_a": 14.2799346096076
+ },
+ {
+  "name": "synth_strong_mod2",
+  "mode": "nofocus",
+  "z_agl": 100,
+  "crest_b": 21.2578215743467,
+  "crest_a": 22.984716309111256,
+  "ref_b": 10.093865873966301,
+  "ref_a": 15.844087299200103
+ }
+]

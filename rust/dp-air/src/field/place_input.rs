@@ -15,10 +15,12 @@
 //!
 //! Границы модели: область целиком в растре места (иначе `BAD_INPUT`); растр места — 25 м
 //! с началом, кратным 25 м (снимок поверхности = растры `cls`/`moist`).
+use super::cut_input::{CutFrac, cut_level};
 use super::surface_heat::SurfaceHeatCfg;
 use super::weather_core::{Cells, Day, Domain, NODE_STEP, block_mean, cell_surface, cell_z0};
 use crate::{Configs, Error, Place};
 use rayon::prelude::*;
+use std::sync::Arc;
 
 pub use super::weather_core::DOMAIN_L;
 /// Высота области над самым высоким рельефом, м.
@@ -64,6 +66,10 @@ pub struct DomainInput {
     pub z_bot: f64,
     /// Рельеф клеток, м.
     pub hc: Vec<f64>,
+    /// Граница воздуха (PT7 v1): низ первой клетки с `vf ≥ VF_MIN`; `kf` случая — от неё.
+    pub hc_type: Vec<f64>,
+    /// Доли срезанных клеток; `None` — путь без долей (тесты-дампы).
+    pub cut: Option<Arc<CutFrac>>,
     /// `nz + 2` значений, центр уровня `k`: [`DomainInput::zc`].
     pub gam: Vec<f64>,
     pub z_i: f64,
@@ -229,12 +235,15 @@ pub fn build_domain_input(
     let z_i_col = zi_columns(&hc, dom.nx, dom.ny, dx, z_i, day.h_v * 1000.0, zi);
     let cells = cell_surface(place, dom, sh)?;
     let z0_map = cell_z0(&cells, sh);
+    let (hc_type, cut) = cut_level(place, dom, nz, dz, z_bot)?;
     let mut inp = DomainInput {
         dom: *dom,
         nz,
         dz,
         z_bot,
         hc,
+        hc_type,
+        cut: Some(cut),
         gam: Vec::new(),
         z_i,
         z_i_col,

@@ -1,0 +1,128 @@
+{
+  "case": "askervein_d50_cut",
+  "dev": {
+    "div_rms": null,
+    "div_rms_ref": null,
+    "p_rel": null,
+    "th_abs": null,
+    "u0": null,
+    "u_rel": null
+  },
+  "dev_crop": null,
+  "dtype": "f32",
+  "format": "picard-rs-result",
+  "history": [
+    {
+      "div_rms": 2.532251976848157e-6,
+      "it": 10,
+      "mom_max": 0.21387124061584473,
+      "mom_rms": 0.0027719553118431277,
+      "t_s": 0.456344025,
+      "th_rms": 0.0,
+      "thd_rms": 0.0
+    },
+    {
+      "div_rms": 4.7161664884750586e-7,
+      "it": 20,
+      "mom_max": 0.07382915914058685,
+      "mom_rms": 0.0008418821723418322,
+      "t_s": 0.89691706,
+      "th_rms": 0.0,
+      "thd_rms": 0.0
+    },
+    {
+      "div_rms": 1.7615524287176076e-7,
+      "it": 30,
+      "mom_max": 0.03692889213562012,
+      "mom_rms": 0.0003032192084671844,
+      "t_s": 1.298536165,
+      "th_rms": 0.0,
+      "thd_rms": 0.0
+    },
+    {
+      "div_rms": 3.201991288621565e-8,
+      "it": 40,
+      "mom_max": 0.016223430633544922,
+      "mom_rms": 0.00011947139076838471,
+      "t_s": 1.7077503809999999,
+      "th_rms": 0.0,
+      "thd_rms": 0.0
+    },
+    {
+      "div_rms": 1.0928415938509338e-8,
+      "it": 50,
+      "mom_max": 0.00606846809387207,
+      "mom_rms": 0.00005096500970626663,
+      "t_s": 2.108538522,
+      "th_rms": 0.0,
+      "thd_rms": 0.0
+    },
+    {
+      "div_rms": 1.0229872315869748e-8,
+      "it": 60,
+      "mom_max": 0.0026619434356689453,
+      "mom_rms": 0.00002247602216161188,
+      "t_s": 2.5070490640000003,
+      "th_rms": 0.0,
+      "thd_rms": 0.0
+    },
+    {
+      "div_rms": 1.0033613494932964e-8,
+      "it": 70,
+      "mom_max": 0.0012514293193817139,
+      "mom_rms": 0.000010047642601487647,
+      "t_s": 2.907619156,
+      "th_rms": 0.0,
+      "thd_rms": 0.0
+    }
+  ],
+  "history_ref": null,
+  "host": {
+    "cpu": "Intel(R) Xeon(R) CPU E5-2666 v3 @ 2.90GHz",
+    "git": "2739be989",
+    "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
+  },
+  "init": null,
+  "input": "/home/greg/data/picard_terrain/cases/askervein_d50_cut.json",
+  "iters": 70,
+  "iters_ref": null,
+  "profile": "release",
+  "residuals": {
+    "div_rms": 1.0033613494932964e-8,
+    "it": 70,
+    "mom_max": 0.0012514293193817139,
+    "mom_rms": 0.000010047642601487647,
+    "t_s": 2.907619156,
+    "th_rms": 0.0,
+    "thd_rms": 0.0
+  },
+  "snapshots": [],
+  "status": "ok",
+  "stop": "converged",
+  "threads": 8,
+  "time": {
+    "check_ms": 21.329118571428573,
+    "ms_per_iter": 39.40400722857144,
+    "n_cells": 268800,
+    "ns_per_cell_iter": 146.59228879676874,
+    "phase_ms": {
+      "heat": 8.14048627142857,
+      "kupd": 2.2070090857142852,
+      "mom": 22.12931111428571,
+      "other": 0.7021082714285903,
+      "proj": 6.225092485714284
+    },
+    "pool_threads": 8,
+    "process_cpu_s": 24.51,
+    "setup_s": 0.252047598,
+    "total_s": 3.2049183
+  },
+  "time_budget_s": null,
+  "tol_scale": 1.0,
+  "variant": {
+    "adv2": true,
+    "cut_cells": true,
+    "limiter": 3
+  },
+  "version": 3
+}

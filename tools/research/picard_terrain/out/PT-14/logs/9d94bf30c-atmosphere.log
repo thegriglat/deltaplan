@@ -1,0 +1,78 @@
+Initialize godot-rust (API v4.7.stable.official, runtime v4.7.2.stable.official, safeguards balanced)
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+steam: inactive (no_feature)
+dp_air: расширение загружено, api_version=6
+dp_air: подготовка места начата, место rig
+dp_air: 0.0 с, этап prepare, итераций 0
+dp_air: 0.0 с, этап phases, итераций 0
+dp_air: 0.0 с, этап solve_mech, итераций 0
+dp_air: 0.1 с, этап solve_heat, итераций 0
+dp_air: 0.2 с, этап windows, итераций 0
+dp_air: READY за 0.5 с, поле подано, last_error=
+  ok   test_atmosphere.gd::test_wing_asymmetry_at_edge
+dp_air: расширение загружено, api_version=6
+dp_air: подготовка места начата, место rig
+dp_air: 0.0 с, этап prepare, итераций 0
+dp_air: 0.0 с, этап phases, итераций 0
+dp_air: 0.0 с, этап coarse, итераций 0
+dp_air: 0.3 с, этап solve_mech, итераций 0
+dp_air: 0.4 с, этап solve_heat, итераций 0
+dp_air: 0.7 с, этап windows, итераций 0
+dp_air: READY за 1.1 с, поле подано, last_error=
+  ok   test_atmosphere.gd::test_wind_drift_and_lean
+  ok   test_atmosphere.gd::test_lifecycle_envelope
+dp_air: расширение загружено, api_version=6
+dp_air: подготовка места начата, место rig
+dp_air: 0.0 с, этап prepare, итераций 0
+dp_air: 0.0 с, этап phases, итераций 0
+dp_air: 0.0 с, этап solve_mech, итераций 0
+dp_air: 0.1 с, этап solve_heat, итераций 0
+dp_air: 0.1 с, этап windows, итераций 0
+dp_air: READY за 0.4 с, поле подано, last_error=
+  ok   test_atmosphere.gd::test_cloudbase_limits_climb_without_cloud
+dp_air: расширение загружено, api_version=6
+dp_air: подготовка места начата, место rig
+dp_air: 0.0 с, этап prepare, итераций 0
+dp_air: 0.0 с, этап phases, итераций 0
+dp_air: 0.0 с, этап coarse, итераций 0
+dp_air: 0.5 с, этап solve_mech, итераций 0
+dp_air: 1.0 с, этап solve_heat, итераций 0
+dp_air: 2.2 с, этап windows, итераций 0
+dp_air: READY за 2.5 с, поле подано, last_error=
+  FAIL test_atmosphere.gd::test_lee_turbulence_stronger
+         check failed: за гребнем болтает сильнее: σ² 0.145 > 0.328
+dp_air: расширение загружено, api_version=6
+dp_air: подготовка места начата, место rig
+dp_air: 0.0 с, этап prepare, итераций 0
+dp_air: 0.0 с, этап phases, итераций 0
+dp_air: 0.0 с, этап coarse, итераций 0
+dp_air: 0.2 с, этап solve_mech, итераций 0
+dp_air: 0.3 с, этап solve_heat, итераций 0
+dp_air: 0.6 с, этап windows, итераций 0
+dp_air: READY за 0.8 с, поле подано, last_error=
+dp_air: расширение загружено, api_version=6
+dp_air: подготовка места начата, место rig
+dp_air: 0.0 с, этап prepare, итераций 0
+dp_air: 0.0 с, этап phases, итераций 0
+dp_air: 0.0 с, этап coarse, итераций 0
+dp_air: 0.2 с, этап solve_mech, итераций 0
+dp_air: 0.2 с, этап solve_heat, итераций 0
+dp_air: 0.4 с, этап windows, итераций 0
+dp_air: READY за 0.7 с, поле подано, last_error=
+  ok   test_atmosphere.gd::test_deterministic_generation
+dp_air: расширение загружено, api_version=6
+dp_air: подготовка места начата, место rig
+dp_air: 0.0 с, этап prepare, итераций 0
+dp_air: 0.0 с, этап phases, итераций 0
+dp_air: 0.0 с, этап coarse, итераций 0
+dp_air: 0.2 с, этап solve_mech, итераций 0
+dp_air: 0.3 с, этап solve_heat, итераций 0
+dp_air: 0.4 с, этап windows, итераций 0
+dp_air: READY за 0.6 с, поле подано, last_error=
+         air_velocity_at: медиана 7.75 мкс/вызов (серии 5.8…17.1), ядер 15
+         advance_to: 19.4 мкс в среднем
+  ok   test_atmosphere.gd::test_performance
+
+7 тестов, 1 упало, 0 пропущено
+exit=1

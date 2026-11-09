@@ -82,6 +82,7 @@ fn planes_of(d: &Dump, c: &Value) -> PreparedPlanes {
         lev,
         prm,
         kf: Vec::new(),
+        cut: None,
         n_unk: [0; 4],
         n_fluid: 0,
         cd: f("cd"),

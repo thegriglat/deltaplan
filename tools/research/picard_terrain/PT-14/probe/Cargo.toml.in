@@ -1,0 +1,11 @@
+[package]
+name = "pt14-probe"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+dp-air = { path = "@DPAIR@" }
+serde_json = "1"
+
+[workspace]
