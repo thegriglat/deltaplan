@@ -1,0 +1,3 @@
+variant,n_both_max,spread_hard_med,spread_var_med,ratio_med,var_less_than_hard
+soft,69,0.4015,0.4337,1.048,30
+soft_ns,78,0.4366,1.4244,2.533,7

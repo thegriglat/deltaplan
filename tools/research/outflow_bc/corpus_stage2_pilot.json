@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "note": "Пилот OBC-6: 2 случая x 5 стартов (hard); те же места и условия, что в corpus_stage2.json; max_iters 300.",
+  "places": [
+    {"id": "ongudai", "kind": "real", "file": "tests/fixtures/wind/places/ongudai.json", "dirs_deg": [0, 225]},
+    {"id": "hill_h300", "kind": "ideal", "shape": "hill", "h_m": 300, "sigma_m": 3000, "dirs_deg": [270]}
+  ],
+  "u10_ms": [1, 6],
+  "heat": [false, true],
+  "hour": 13,
+  "t_max_c": 22,
+  "sky": "clear",
+  "k": 1.0,
+  "max_iters": 300,
+  "starts": ["bg", "coarse3", "chain", "phase", "chain_phase"],
+  "snap": {"every": 10, "n_eval": [50, 100, 200], "late_from": 150, "late_step": 50, "edge_cells": 5},
+  "threads": 8,
+  "cases": [
+    {"place": "ongudai", "dir_deg": 0, "u10_ms": 1, "heat": true},
+    {"place": "hill_h300", "dir_deg": 270, "u10_ms": 6, "heat": false}
+  ]
+}
