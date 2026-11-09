@@ -46,6 +46,11 @@ pub struct Cut {
     pub drag: [Vec<[f32; 5]>; 3],
     /// Number of faces with wall friction per component (report).
     pub n_drag: [usize; 3],
+    /// Flux weights `A_open / V_open` of the six sides of the momentum control volume of each
+    /// face (precomputed once: they are constants of the case; slot `2 d + s`, `s` = 0 low side).
+    pub mw: [Vec<[f32; 6]>; 3],
+    /// Flux weights `af / vf` of the six faces of each cell (heat).
+    pub cw: Vec<[f32; 6]>,
 }
 
 impl Cut {
@@ -86,7 +91,6 @@ impl Cut {
         let (nx, ny) = (c.nxh, c.nyh);
         let st = [1usize, nx, nx * ny];
         let (dx, dz) = (f64::from(c.dx), f64::from(c.dz));
-        let z0 = c.params.z0;
         // Wall vector of the cut part of each air cell, in units of dx^2 (x, y faces: dx*dz).
         let wall = |q: usize| -> [f64; 3] {
             let r = dz / dx;
@@ -102,6 +106,7 @@ impl Cut {
             vec![[0.0f32; 5]; n3],
         ];
         let mut n_drag = [0usize; 3];
+        let (cd0, cd_col) = (c.cd, c.cd_col.as_deref());
         for comp in 0..3 {
             let t = tt[comp];
             for idx in 0..n3 {
@@ -130,8 +135,13 @@ impl Cut {
                     continue;
                 }
                 let v = (0.5 * (f64::from(vf[c0]) + f64::from(vf[c1]))).max(1e-6);
-                let d = (0.5 * dz * v / wn).max(z0 * std::f64::consts::E);
-                let cd = (KAPPA / (d / z0).ln()).powi(2);
+                // Reference coefficient of the column (explicit `cd`, `cd_col` or from `z0`) is
+                // that of the half layer dz/2; its roughness z0e follows from the log law, and
+                // the cut cell uses the same law at d = V_open / (2 |W|):
+                // ln(d / z0e) = ln(2 d / dz) + kappa / sqrt(cd_ref), at least 1 (d >= e z0e).
+                let cd_ref = f64::from(cd_col.map_or(cd0, |m| m[idx % (nx * ny)]));
+                let l = (KAPPA / cd_ref.sqrt() + (v / wn).ln()).max(1.0);
+                let cd = (KAPPA / l).powi(2);
                 drag[comp][idx] = [
                     cd as f32,
                     (wn / v) as f32,
@@ -142,13 +152,39 @@ impl Cut {
                 n_drag[comp] += 1;
             }
         }
-        Ok(Self {
+        let mut cut = Self {
             vf,
             af,
             kmg,
             drag,
             n_drag,
-        })
+            mw: [Vec::new(), Vec::new(), Vec::new()],
+            cw: Vec::new(),
+        };
+        // Weights of faces and cells inside the halo ring only (the stencils never read others).
+        let lo = st[0] + st[1] + st[2];
+        let hi = n3.saturating_sub(lo);
+        for comp in 0..3 {
+            cut.mw[comp] = (0..n3)
+                .map(|q| {
+                    if q < lo || q >= hi || tt[comp][q] != 1 {
+                        return [0.0; 6];
+                    }
+                    let w = cut.mom_weights(comp, q, st);
+                    [w[1], w[2], w[3], w[4], w[5], w[6]]
+                })
+                .collect();
+        }
+        cut.cw = (0..n3)
+            .map(|q| {
+                if q < lo || q >= hi || cell[q] != 1 {
+                    return [0.0; 6];
+                }
+                let w = cut.cell_weights(q, st);
+                [w[1], w[2], w[3], w[4], w[5], w[6]]
+            })
+            .collect();
+        Ok(cut)
     }
 
     /// Flux weights `A_open / V_open` of the six sides (slots 1..=6 of a row) of the momentum

@@ -234,9 +234,10 @@ fn mom_cell<const COMP: usize, const CUT: bool>(
     let mut cc = [0.0f32; 7];
     // PT2: flux weights A_open / V_open of the six sides (CUT only; the plain path has none).
     let wts = if CUT {
-        k.cut
-            .as_ref()
-            .map_or([1.0; 7], |c| c.mom_weights(comp, idx, st))
+        k.cut.as_ref().map_or([1.0; 7], |c| {
+            let w = &c.mw[comp][idx];
+            [0.0, w[0], w[1], w[2], w[3], w[4], w[5]]
+        })
     } else {
         [1.0; 7]
     };
@@ -407,7 +408,10 @@ fn build_heat_chunk(k: &Consts, hin: &HeatIn, start: usize, out: &mut [Row]) {
             }
             let mut cc = [0.0f32; 7];
             // PT2: face weights af / vf (cut cells only).
-            let wts = k.cut.as_ref().map(|c| c.cell_weights(idx, st));
+            let wts = k.cut.as_ref().map(|c| {
+                let w = &c.cw[idx];
+                [0.0, w[0], w[1], w[2], w[3], w[4], w[5]]
+            });
             for d in 0..3 {
                 let ih = 1.0 / h[d];
                 let kk_arr = if d == 2 { hin.nu } else { hin.nuh };
