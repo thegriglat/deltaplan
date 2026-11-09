@@ -21,6 +21,9 @@ pub struct Params {
     pub local_k: bool,
     pub k_relax: f64,
     pub cs_h: f64,
+    /// PT2: cut cells (fractions `vf`, `af_*` of the case); no key = false.
+    #[serde(default)]
+    pub cut_cells: bool,
 }
 
 /// Case conditions needed beyond the arrays.
@@ -355,6 +358,8 @@ pub struct Consts {
     pub local_k: bool,
     pub k_relax: f32,
     pub csdx2: f32,
+    /// PT2 cut cells (`params.cut_cells`); `None` = the plain R1 iteration.
+    pub cut: Option<crate::cut::Cut>,
 }
 
 impl Consts {
@@ -403,6 +408,20 @@ impl Consts {
             .as_ref()
             .is_none_or(|n| n.thbd.iter().all(|&x| x == 0.0));
         let p = &c.params;
+        let kx = c.arr("Kx")?.clone();
+        let ky = c.arr("Ky")?.clone();
+        let kz = c.arr("Kz")?.clone();
+        let mut fixed_u = c.arr("fixed_u")?.clone();
+        let mut fixed_v = c.arr("fixed_v")?.clone();
+        let b_u: Vec<usize> = c.arr("b_u")?.iter().map(|&x| x as usize).collect();
+        let b_v: Vec<usize> = c.arr("b_v")?.iter().map(|&x| x as usize).collect();
+        let cut = if p.cut_cells {
+            let ct = crate::cut::Cut::from_case(c, &cell, [&tu, &tv, &tw], [&kx, &ky, &kz])?;
+            ct.rebalance((nxh, nyh), &b_u, &mut fixed_u, &b_v, &mut fixed_v);
+            Some(ct)
+        } else {
+            None
+        };
         Ok(Self {
             nxh,
             nyh,
@@ -440,19 +459,20 @@ impl Consts {
             hcp,
             lam: c.arr("lam")?.clone(),
             nu_bg: c.arr("nu_bg")?.clone(),
-            kx: c.arr("Kx")?.clone(),
-            ky: c.arr("Ky")?.clone(),
-            kz: c.arr("Kz")?.clone(),
-            fixed_u: c.arr("fixed_u")?.clone(),
-            fixed_v: c.arr("fixed_v")?.clone(),
-            b_u: c.arr("b_u")?.iter().map(|&x| x as usize).collect(),
-            b_v: c.arr("b_v")?.iter().map(|&x| x as usize).collect(),
+            kx,
+            ky,
+            kz,
+            fixed_u,
+            fixed_v,
+            b_u,
+            b_v,
             mom_sweeps: p.mom_sweeps,
             heat_sweeps: p.heat_sweeps,
             vcycles: p.vcycles,
             local_k: p.local_k,
             k_relax: p.k_relax as f32,
             csdx2: ((p.cs_h * f64::from(c.dx)) * (p.cs_h * f64::from(c.dx))) as f32,
+            cut,
         })
     }
 
