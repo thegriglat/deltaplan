@@ -368,6 +368,11 @@ fn phys(case: &picard_rs::case::Case, st: &picard_rs::state::State) -> Phys {
     let mut nl = 0usize;
     let mut u0 = 0.0f64;
     let strides = [1usize, nxh, nxh * nyh];
+    let af: [Option<&Vec<f32>>; 3] = if case.params.cut_cells {
+        ["af_u", "af_v", "af_w"].map(|k| case.arrays.get(k))
+    } else {
+        [None; 3]
+    };
     for kk in 0..case.nz {
         for j in 0..case.ny {
             for i in 0..case.nx {
@@ -385,9 +390,13 @@ fn phys(case: &picard_rs::case::Case, st: &picard_rs::state::State) -> Phys {
                 if cell[g] != 1 {
                     continue;
                 }
-                let d = (f64::from(st.u[g + 1]) - f64::from(st.u[g])) / f64::from(case.dx)
-                    + (f64::from(st.v[g + nxh]) - f64::from(st.v[g])) / f64::from(case.dx)
-                    + (f64::from(st.w[g + nxh * nyh]) - f64::from(st.w[g])) / f64::from(case.dz);
+                // срезанные клетки (PT2): потоки через открытую долю грани, как `div_rms_f64` решателя
+                let f = |a: usize, x: &[f32], q: usize| {
+                    f64::from(x[q]) * af[a].map_or(1.0, |t| f64::from(t[q]))
+                };
+                let d = (f(0, &st.u, g + 1) - f(0, &st.u, g)) / f64::from(case.dx)
+                    + (f(1, &st.v, g + nxh) - f(1, &st.v, g)) / f64::from(case.dx)
+                    + (f(2, &st.w, g + nxh * nyh) - f(2, &st.w, g)) / f64::from(case.dz);
                 sum += d * d;
                 n += 1;
             }

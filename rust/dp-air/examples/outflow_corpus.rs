@@ -411,6 +411,7 @@ fn build(env: &Env, place: &Place, dir: f64, u10: f64, heat: bool) -> R<Built> {
             u10: ac.u10,
             z_i: ac.z_i,
             hc: &ac.hc,
+            hc_type: &ac.hc_type,
             gam: &ac.gam,
             heat: &ac.heat,
             heat_used: &planes.heat_used,

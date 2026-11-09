@@ -453,6 +453,7 @@ fn phase_case<'a>(ac: &'a AirCaseRs, pl: &'a PreparedPlanes, d: &'a PcData) -> P
         u10: ac.u10,
         z_i: ac.z_i,
         hc: &ac.hc,
+            hc_type: &ac.hc_type,
         gam: &ac.gam,
         heat: &ac.heat,
         heat_used: &pl.heat_used,
