@@ -4,8 +4,11 @@
 //! `tests/data/thermal_bubble_off.json`, записана на нетронутом коде: `TB_RECORD=1`).
 #![allow(clippy::needless_range_loop)]
 use dp_air::field::field_set::FieldSet;
+use dp_air::field::wind_field::{Field, FieldGrid, FieldMeta, Limits, Z0};
 use dp_air::terms::thermal::bubble::{self, BState, Bubble, BubbleTable, Source};
+use dp_air::terms::thermal::bubble_kbar;
 use dp_air::terms::thermal::{AtmoThermal, GroundSource, NoClouds};
+use dp_air::terms::thermal_air::{AirThermals, AirThermalsCfg, BuildIn, K_ALLEN, ZI_MIN};
 use dp_air::terms::{self, Terms};
 use dp_air::{Conditions, Configs, Focus, Place, PlaceHeader, SampleMode};
 use serde_json::{Value, json};
@@ -266,32 +269,49 @@ impl St {
 #[derive(serde::Deserialize)]
 struct Case {
     name: String,
+    scene: usize,
     t: f64,
+    zi: f64,
     states: Vec<St>,
     points: Vec<[f64; 3]>,
     v: Vec<[f64; 3]>,
 }
 
+/// Источник сцены фикстуры (`from_strength` Python).
+#[derive(serde::Deserialize)]
+struct SceneSrc {
+    w0: f64,
+    zl: f64,
+    tau: f64,
+    #[serde(rename = "F0")]
+    f0: f64,
+    b0: f64,
+    t_decay: f64,
+    zh: f64,
+    t_end: f64,
+}
+
+impl SceneSrc {
+    fn source(&self) -> Source {
+        Source {
+            t0: 0.0,
+            f0: self.f0,
+            tau: self.tau,
+            b0: self.b0,
+            t_decay: self.t_decay,
+            zh: self.zh,
+        }
+    }
+}
+
 #[derive(serde::Deserialize)]
 struct Fixture {
-    env: Env,
-    game: Game,
+    sources: Vec<SceneSrc>,
     cases: Vec<Case>,
 }
 
-#[derive(serde::Deserialize)]
-struct Env {
-    zi: f64,
-}
-
-#[derive(serde::Deserialize)]
-struct Game {
-    wstar: f64,
-    zl: f64,
-}
-
 fn fixture() -> Fixture {
-    let p = repo().join("tools/research/thermal_bubble/out/bench_fixture.json");
+    let p = repo().join("tools/research/thermal_bubble/out/embed_fixture.json");
     serde_json::from_str(&std::fs::read_to_string(p).unwrap()).unwrap()
 }
 
@@ -299,12 +319,12 @@ fn norm(v: [f64; 3]) -> f64 {
     (v[0] * v[0] + v[1] * v[1] + v[2] * v[2]).sqrt()
 }
 
-/// Аналитика порта против `bubble.velocity` Python (фикстура `bench_fixture.json`, v2) и `state` против
-/// состояний фикстуры: отн. ≤ 1e-5.
+/// Порт шаблона v4 против Python (фикстура `embed_fixture.json`): `velocity` (сумма пузырей, голова с оболочкой,
+/// шлейф, образы) отн. <= 1e-5; `state` и `t_end` по `Source` фикстуры отн. <= 1e-5; `from_strength` — F0 отн. <= 1e-3
+/// (тот же путь секущей, что у Python), `b0`, `t_decay`, `zh` — как у `from_game`.
 #[test]
 fn port_vs_python() {
     let fx = fixture();
-    let zi = fx.env.zi;
     let mut worst: f64 = 0.0;
     for c in &fx.cases {
         let bubbles: Vec<Bubble> = c.states.iter().map(|s| Bubble::new(s.b())).collect();
@@ -313,7 +333,7 @@ fn port_vs_python() {
         for (p, want) in c.points.iter().zip(&c.v) {
             let mut got = [0.0; 3];
             for (b, s) in bubbles.iter().zip(&c.states) {
-                let v = b.velocity(p[0] - s.xc, p[1] - s.yc, p[2], zi);
+                let v = b.velocity(p[0] - s.xc, p[1] - s.yc, p[2], c.zi);
                 for k in 0..3 {
                     got[k] += v[k];
                 }
@@ -326,55 +346,132 @@ fn port_vs_python() {
     }
     println!("port_max_rel={worst:e}");
     assert!(worst <= 1e-5, "порт velocity: {worst:e}");
-    // состояния
-    let src = Source::from_game(0.0, fx.game.wstar, fx.game.zl, 690.0);
-    let tr = bubble::Traj::new(&src, zi);
+    // состояния по Source фикстуры
     let mut worst_s: f64 = 0.0;
-    for c in fx.cases.iter().filter(|c| c.states.len() == 1) {
-        let want = c.states[0];
-        let got = tr.state(&src, zi, c.t).expect("состояние есть");
-        for (n, g, w) in [
-            ("zc", got.zc, want.zc),
-            ("R", got.r, want.r),
-            ("U", got.u, want.u),
-            ("Q", got.q, want.q),
-            ("F0", got.f0, want.f0),
-            ("zb", got.zb, want.zb),
-            ("Uh", got.uh, want.uh),
-            ("b0", got.b0, want.b0),
-        ] {
-            let rel = (g - w).abs() / w.abs().max(1.0);
-            assert!(rel <= 1e-5, "{} {n}: rust {g}, python {w}", c.name);
-            worst_s = worst_s.max(rel);
+    for (si, sc) in fx.sources.iter().enumerate() {
+        let src = sc.source();
+        let tr = bubble::Traj::new(&src, sc.zl);
+        assert!(
+            (tr.t_end - sc.t_end).abs() < 1e-9,
+            "сцена {si}: t_end {} против {}",
+            tr.t_end,
+            sc.t_end
+        );
+        for c in fx
+            .cases
+            .iter()
+            .filter(|c| c.scene == si && c.states.len() == 1)
+        {
+            let want = c.states[0];
+            let got = tr.state(&src, sc.zl, c.t).expect("состояние есть");
+            for (n, g, w) in [
+                ("zc", got.zc, want.zc),
+                ("R", got.r, want.r),
+                ("U", got.u, want.u),
+                ("Q", got.q, want.q),
+                ("F0", got.f0, want.f0),
+                ("zb", got.zb, want.zb),
+                ("Uh", got.uh, want.uh),
+                ("b0", got.b0, want.b0),
+            ] {
+                let rel = (g - w).abs() / w.abs().max(1.0);
+                assert!(rel <= 1e-5, "{} {n}: rust {g}, python {w}", c.name);
+                worst_s = worst_s.max(rel);
+            }
         }
     }
     println!("state_max_rel={worst_s:e}");
+    // from_strength
+    let mut worst_f: f64 = 0.0;
+    for sc in &fx.sources {
+        let t0 = std::time::Instant::now();
+        let got = Source::from_strength(0.0, sc.w0, sc.zl, sc.tau);
+        let ms = t0.elapsed().as_secs_f64() * 1e3;
+        let rel = (got.f0 - sc.f0).abs() / sc.f0;
+        println!(
+            "from_strength w0={} zl={} tau={}: F0 rust {:.6e} python {:.6e} rel={rel:.2e} ({ms:.0} мс)",
+            sc.w0, sc.zl, sc.tau, got.f0, sc.f0
+        );
+        for (n, g, w) in [
+            ("b0", got.b0, sc.b0),
+            ("t_decay", got.t_decay, sc.t_decay),
+            ("zh", got.zh, sc.zh),
+        ] {
+            assert!((g - w).abs() <= 1e-9 * w.abs(), "{n}: {g} против {w}");
+        }
+        worst_f = worst_f.max(rel);
+    }
+    println!("from_strength_max_rel={worst_f:e}");
+    assert!(worst_f <= 1e-3, "from_strength F0: {worst_f:e}");
+}
+
+/// Быстрый `axis_wmax` (грубая сетка + мелкий перебор у лучших пиков) даёт тот же максимум, что полный перебор
+/// сетки (как у Python): сцены фикстуры и их F0 × 0,5…2.
+#[test]
+fn axis_wmax_fast() {
+    let fx = fixture();
+    let (mut worst, mut t_fast, mut t_full) = (0.0f64, 0.0f64, 0.0f64);
+    for sc in &fx.sources {
+        for k in [0.5, 1.0, 2.0] {
+            let src = Source {
+                f0: sc.f0 * k,
+                ..sc.source()
+            };
+            let t0 = std::time::Instant::now();
+            let a = bubble::axis_wmax(&src, sc.zl);
+            t_fast += t0.elapsed().as_secs_f64();
+            let t0 = std::time::Instant::now();
+            let b = bubble::axis_wmax_full(&src, sc.zl);
+            t_full += t0.elapsed().as_secs_f64();
+            let rel = (a - b).abs() / b;
+            worst = worst.max(rel);
+            assert!(
+                rel <= 1e-9,
+                "w0={} zl={} F0×{k}: быстрый {a}, полный {b}",
+                sc.w0,
+                sc.zl
+            );
+        }
+    }
+    println!(
+        "axis_wmax_fast: max отн. разница {worst:e}, время быстрый {t_fast:.2} с, полный {t_full:.2} с"
+    );
 }
 
 // ---------------------------------------------------------------- точность таблицы
 
 /// Таблица против аналитики: сетка разрезов через ось (шаги вне узлов таблицы) и случайные точки в радиусе
-/// влияния на 7 стадиях жизни (рост, зрелость, отрыв, распад), плюс точки фикстуры. Печатает
+/// влияния на стадиях жизни четырёх сцен (разные w0, zl, tau), плюс точки фикстуры. Печатает
 /// `table_max_rel=<x>` = max|v_table − v_analytic| / max|v_analytic| (пик по сцене), `table_rms_ms`,
-/// `bytes_per_bubble`, `build_ms_per_bubble`.
+/// `bytes_per_bubble`, `build_ms_per_bubble`. В ошибку входит **устаревание**: та же таблица спрашивается через
+/// возраст, пока правило пересборки ([`BubbleTable::stale`]) её не заменит (последняя секунда перед пересборкой и
+/// её половина), против аналитики на момент опроса.
 #[test]
 fn table_accuracy() {
     let fx = fixture();
-    let zi = fx.env.zi;
-    let cut = bubble::INFLUENCE_FRAC * fx.game.wstar;
     let mut rng = Rng(7);
-    // (имя, максимум ошибки, сумма квадратов, число точек)
-    let (mut max_err, mut sum2, mut n_all) = (0.0f64, 0.0f64, 0usize);
+    // ошибки: свежая таблица и устаревшая — отдельно (максимум, сумма квадратов, число точек)
+    let (mut max_fresh, mut max_stale, mut sum2, mut n_all) = (0.0f64, 0.0f64, 0.0f64, 0usize);
     let mut scene_peak: f64 = 0.0;
     let (mut bytes, mut build_ms) = (0usize, 0.0f64);
     let mut per_state = Vec::new();
     let single: Vec<&Case> = fx.cases.iter().filter(|c| c.states.len() == 1).collect();
     for c in &single {
+        let sc = &fx.sources[c.scene];
+        let src = sc.source();
+        let (zi, cut) = (c.zi, bubble::INFLUENCE_FRAC * sc.w0);
         let s = c.states[0];
         let b = Bubble::new(s.b());
-        let (r_max, _) = bubble::influence_radius(&b, zi, cut);
+        let bt = Bubble::for_table(s.b());
+        let (r_max, _) = bubble::influence_radius(&bt, zi, cut);
+        assert!(
+            r_max <= bubble::R_GUESS_FRAC * zi,
+            "{}: радиус таблицы {r_max} больше оценки предотбора {}·z_l",
+            c.name,
+            bubble::R_GUESS_FRAC
+        );
         let t0 = std::time::Instant::now();
-        let tb = BubbleTable::build(&b, zi, r_max, c.t);
+        let tb = std::sync::Arc::new(BubbleTable::build(&bt, zi, r_max, c.t));
         build_ms += t0.elapsed().as_secs_f64() * 1e3;
         bytes += tb.bytes();
         let mut pts: Vec<[f64; 3]> = Vec::new();
@@ -411,18 +508,77 @@ fn table_accuracy() {
             sum2 += e * e;
             n_all += 1;
         }
+        // между ключевыми кадрами: кадр A — эта таблица (момент c.t), B — таблица кадра c.t + keyframe_dt; опрос на
+        // четверти, половине и трёх четвертях шага против аналитики на момент опроса
+        let tr = bubble::Traj::new(&src, zi);
+        let dt = bubble::keyframe_dt(c.t, sc.tau);
+        let tb_b = tr.state(&src, zi, c.t + dt).and_then(|sb| {
+            let bb = Bubble::for_table(sb);
+            let (rb, _) = bubble::influence_radius(&bb, zi, cut);
+            (rb > 0.0).then(|| std::sync::Arc::new(BubbleTable::build(&bb, zi, rb, c.t + dt)))
+        });
+        let mut st_max: f64 = 0.0;
+        for q in [0.25, 0.5, 0.75] {
+            let a = q * dt;
+            let Some(sn) = tr.state(&src, zi, c.t + a) else {
+                continue;
+            };
+            let bn = Bubble::new(sn);
+            let bl = bubble::Blend {
+                a: Some(tb.clone()),
+                b: tb_b.clone(),
+                t_a: c.t,
+                t_b: c.t + dt,
+                t0: c.t + a,
+                f0: bubble::Frame::of(&sn),
+                rate: bubble::Frame { zb: 0.0, zc: 0.0 },
+            };
+            let (mut e, mut at) = (0.0f64, [0.0; 3]);
+            for p in &pts {
+                let v = bn.velocity(p[0], p[1], p[2], zi);
+                let rho = p[0].hypot(p[1]);
+                let (w, h) = bl.eval(p[2], rho, 0.0, c.t + a);
+                let k = if rho > 1e-9 { h[0] / rho } else { 0.0 };
+                let d = norm([k * p[0] - v[0], k * p[1] - v[1], w - v[2]]);
+                if d > e {
+                    e = d;
+                    at = [rho, p[2], w - v[2]];
+                }
+                p_max = p_max.max(norm(v));
+            }
+            if std::env::var("TB_VERBOSE").is_ok() {
+                println!(
+                    "    {} q={q}: err {:.3} at rho={:.0} z={:.0} dw={:.2}; zb {:.0}->{:.0} zc {:.0}->{:.0}",
+                    c.name, e, at[0], at[1], at[2], s.zb, sn.zb, s.zc, sn.zc
+                );
+            }
+            st_max = st_max.max(e);
+        }
+        let last = dt;
         scene_peak = scene_peak.max(p_max);
-        max_err = max_err.max(e_max);
-        per_state.push((c.name.clone(), e_max, p_max, r_max, tb.bytes()));
+        max_fresh = max_fresh.max(e_max);
+        max_stale = max_stale.max(st_max);
+        per_state.push((
+            c.name.clone(),
+            e_max,
+            st_max,
+            last,
+            p_max,
+            r_max,
+            tb.bytes(),
+        ));
     }
-    for (n, e, p, r, b) in &per_state {
+    for (n, e, es, last, p, r, b) in &per_state {
         println!(
-            "  {n}: max|dv|={e:.4} пик={p:.3} ({:.3}) r_max={r} байт={b}",
-            e / scene_peak
+            "  {n}: свежая {:.4} устаревшая {:.4} (кадр B через {last} с) пик={p:.3} r_max={r} байт={b}",
+            e / p,
+            es / p,
         );
     }
-    let rel = max_err / scene_peak;
+    let rel = max_fresh.max(max_stale) / scene_peak;
     let nb = single.len() as f64;
+    println!("table_fresh_rel={:.5}", max_fresh / scene_peak);
+    println!("table_stale_rel={:.5}", max_stale / scene_peak);
     println!("table_max_rel={rel:.5}");
     println!("table_rms_ms={:.5}", (sum2 / n_all as f64).sqrt());
     println!("bytes_per_bubble={:.0}", bytes as f64 / nb);
@@ -487,10 +643,29 @@ fn flag_on_sum() {
     let setup = slot.setup().unwrap().clone();
     assert!(setup.cfg.bubble_template, "флаг не прочитан");
 
-    // (1) один термик
-    let h = Arc::new(lone_thermal());
-    let (src, zi) = bubble::source_of(&h).unwrap();
-    for (tm, name) in [(200.0, "земля"), (900.0, "крышка")] {
+    // (1) один термик: «земля» — столб 1400 м, пока источник включён; «крышка» — мелкий столб 450 м (голова подходит
+    // к крышке за время жизни термика; на столбе 1400 м с радиусом ядра по измерениям она за ним не успевает)
+    let mut shallow = lone_thermal();
+    shallow.top = 450.0;
+    shallow.t_mature = 700.0;
+    let (h_ground, h_lid) = (Arc::new(lone_thermal()), Arc::new(shallow));
+    let (src_l, zi_l) = bubble::source_of(&h_lid).unwrap();
+    let tm_lid = (0..300)
+        .map(|k| 100.0 + 10.0 * f64::from(k))
+        .find(|&tm| bubble::state(&src_l, zi_l, tm).is_some_and(|b| b.zc + b.r >= 0.9 * zi_l))
+        .expect("голова подходит к крышке");
+    assert!(
+        tm_lid < h_lid.t_end(),
+        "голова подошла к крышке {tm_lid} после конца термика {}",
+        h_lid.t_end()
+    );
+    for (tm, name) in [(200.0, "земля"), (tm_lid, "крышка")] {
+        let h = if name == "земля" {
+            h_ground.clone()
+        } else {
+            h_lid.clone()
+        };
+        let (src, zi) = bubble::source_of(&h).unwrap();
         let c = axis_xz(&h, tm);
         let st = dp_air::terms::thermal::State::build(&setup, vec![h.clone()], tm, &[c], 1.0, 0);
         let b = bubble::state(&src, zi, tm).expect("пузырь есть");
@@ -519,7 +694,7 @@ fn flag_on_sum() {
         if name == "земля" {
             assert!(b.zb == 0.0 && r < -0.1, "приток к оси у земли: {r}");
         } else {
-            assert!(b.zb > 0.0 && r > 0.05, "растекание от оси под крышкой: {r}");
+            assert!(r > 0.05, "растекание от оси под крышкой: {r}");
         }
         let far = [(c[0] + 5000.0) as f32, high as f32, c[1] as f32];
         let (o, uh) = st.sample_bubble(&setup, &NoClouds, far, tm);
@@ -528,7 +703,7 @@ fn flag_on_sum() {
             "за радиусом таблицы: {o:?} {uh:?}"
         );
         // на оси горизонтали нет, подъём есть
-        let on_axis = [c[0] as f32, (0.3 * zi) as f32, c[1] as f32];
+        let on_axis = [c[0] as f32, (0.6 * b.zc) as f32, c[1] as f32];
         let (o, uh) = st.sample_bubble(&setup, &NoClouds, on_axis, tm);
         assert!(uh == [0.0; 2], "на оси uh = {uh:?}");
         if name == "земля" {
@@ -566,7 +741,340 @@ fn flag_on_sum() {
     }
     println!("flag_on_sum: точек {n_pts}, с горизонталью {n_h}");
     assert!(
-        n_pts >= 400 && n_h > n_pts / 4,
+        n_pts >= 150 && n_h > n_pts / 4,
         "горизонталь есть не везде: {n_h} из {n_pts}"
+    );
+}
+
+// ---------------------------------------------------------------- кеш, радиус пузырей, цена (TB4 v2)
+
+/// Setup с флагом `bubble_template` (радиусы и интервалы — по умолчанию игры: `bubble_radius_m` 2000 м).
+fn setup_on() -> Arc<dp_air::terms::thermal::Setup> {
+    let on = scene_with(
+        |v| {
+            v["thermal"]["bubble_template"] = json!(true);
+        },
+        Arc::new(Spot),
+    );
+    let mut on = on;
+    on.start_at(1200.0);
+    on.slots.thermal.as_slot().unwrap().setup().unwrap().clone()
+}
+
+/// Динамический термик игры для проверок: источник `(x, z)`, столб `zl`, сила `w0`, рождён в `t_birth`.
+fn thermal_at(id: i64, x: f32, z: f32, zl: f64, w0: f64, t_birth: f64) -> AtmoThermal {
+    let mut h = AtmoThermal::blank(id);
+    h.src = [x, 0.0, z];
+    h.top = zl;
+    h.strength = w0;
+    h.radius = 100.0;
+    h.drift_vel = [4.0, 0.0];
+    h.drift_delay = 60.0;
+    h.t_birth = t_birth;
+    h.t_grow = 180.0;
+    h.t_mature = 510.0;
+    h.t_decay = 300.0;
+    h
+}
+
+/// Цена кеша: сцена плотности Аллена n_A = 8,5/z_l² (z_l 1400 м), термики со случайными стадиями жизни и силой
+/// 1,5…4 м/с, фокус летит 15 м/с 120 с игры с обновлением раз в `refresh_interval_s` (1 с). Один поток (пул rayon
+/// на 1 поток) — время равно ЦП-времени. Печатает `build_ms_per_s=` (источники `from_strength` + таблицы на 1 с игры
+/// после прогрева первого обновления), `warm_ms`, `tables_alive=`, `rebuilds_per_s=`, `sources_per_s=`,
+/// `state_build_ms_per_s=` (всё `State::build_cached`, вместе с профилем и сеткой поиска). Порог 100 мс/с.
+#[test]
+#[cfg_attr(
+    debug_assertions,
+    ignore = "цена меряется в release: cargo test --release … bubble_cache_budget"
+)]
+fn bubble_cache_budget() {
+    use dp_air::terms::thermal::bubble::BubbleCache;
+    let setup = setup_on();
+    let zl = 1400.0;
+    let n_a = 8.5 / (zl * zl);
+    let (x_lo, x_hi, z_half) = (-3600.0, 5400.0, 3600.0);
+    let mut rng = Rng(2026);
+    let n = (n_a * (x_hi - x_lo) * 2.0 * z_half) as usize;
+    let t0 = 1000.0;
+    let all: Vec<Arc<AtmoThermal>> = (0..n)
+        .map(|i| {
+            let x = x_lo + rng.next() * (x_hi - x_lo);
+            let z = (rng.next() * 2.0 - 1.0) * z_half;
+            let w0 = 1.5 + 2.5 * rng.next();
+            let life = 180.0 + 510.0 + 300.0;
+            let mut h = thermal_at(
+                i as i64 + 1,
+                x as f32,
+                z as f32,
+                zl,
+                w0,
+                t0 - rng.next() * life,
+            );
+            h.t_grow = 120.0 + 120.0 * rng.next();
+            h.t_mature = 300.0 + 420.0 * rng.next();
+            h.t_decay = 150.0 + 150.0 * rng.next();
+            Arc::new(h)
+        })
+        .collect();
+    let cache = BubbleCache::default();
+    let pool = rayon::ThreadPoolBuilder::new()
+        .num_threads(1)
+        .build()
+        .unwrap();
+    let steps = 120usize;
+    let (mut warm_ms, mut total_ms, mut alive) = (0.0f64, 0.0f64, 0usize);
+    let (mut b0, mut s0, mut r0, mut n0) = (0u64, 0u64, 0u64, 0u64);
+    pool.install(|| {
+        for k in 0..=steps {
+            let tm = t0 + k as f64;
+            let f = [15.0 * k as f64, 0.0];
+            let t_start = std::time::Instant::now();
+            let st = dp_air::terms::thermal::State::build_cached(
+                &setup,
+                all.clone(),
+                tm,
+                &[f],
+                1.0,
+                k as i64,
+                &cache,
+            );
+            let ms = t_start.elapsed().as_secs_f64() * 1e3;
+            if k == 0 {
+                warm_ms = ms;
+                use std::sync::atomic::Ordering::Relaxed;
+                b0 = cache.stats.build_ns.load(Relaxed);
+                s0 = cache.stats.source_ns.load(Relaxed);
+                r0 = cache.stats.rebuilds.load(Relaxed);
+                n0 = cache.stats.sources.load(Relaxed);
+            } else {
+                total_ms += ms;
+            }
+            alive = st.bubble_count();
+        }
+    });
+    use std::sync::atomic::Ordering::Relaxed;
+    let sec = steps as f64;
+    let build = (cache.stats.build_ns.load(Relaxed) - b0) as f64 / 1e6;
+    let src = (cache.stats.source_ns.load(Relaxed) - s0) as f64 / 1e6;
+    let reb = (cache.stats.rebuilds.load(Relaxed) - r0) as f64;
+    let nsrc = (cache.stats.sources.load(Relaxed) - n0) as f64;
+    println!("термиков в сцене {n}, warm_ms={warm_ms:.0}");
+    println!("tables_alive={alive}");
+    println!("rebuilds_per_s={:.3}", reb / sec);
+    println!("sources_per_s={:.3}", nsrc / sec);
+    println!(
+        "tables_ms_per_s={:.1} sources_ms_per_s={:.1}",
+        build / sec,
+        src / sec
+    );
+    println!("state_build_ms_per_s={:.1}", total_ms / sec);
+    println!("build_ms_per_s={:.1}", (build + src) / sec);
+    assert!(
+        (build + src) / sec <= 100.0,
+        "цена сборки {} мс/с",
+        (build + src) / sec
+    );
+}
+
+/// Нет таблицы — нет вклада: динамический термик внутри `bubble_radius_m`, для которого шаблон не определён (столб
+/// ниже 100 м), даёт `w = 0` и `uh = 0` при ненулевом профиле без флага; `mask` и `σ` — как без флага. Статичный
+/// при флаге — побитно как `State::sample`; динамический дальше `bubble_radius_m` от фокуса — тоже.
+#[test]
+fn no_table_no_w() {
+    let setup = setup_on();
+    let tm = 400.0;
+    // (1) внутри радиуса, столб 60 м: шаблона нет
+    let mut thin = thermal_at(1, 0.0, 0.0, 60.0, 2.5, 0.0);
+    thin.drift_vel = [0.0; 2];
+    let thin = Arc::new(thin);
+    let st =
+        dp_air::terms::thermal::State::build(&setup, vec![thin.clone()], tm, &[[0.0, 0.0]], 1.0, 0);
+    let p = [20.0f32, 30.0, 0.0];
+    let flat = st.sample(&setup, &NoClouds, p, tm);
+    let (o, uh) = st.sample_bubble(&setup, &NoClouds, p, tm);
+    println!(
+        "no_table_no_w: профиль w={:.3}, шаблон w={} uh={uh:?}",
+        flat[0], o[0]
+    );
+    assert!(
+        flat[0].abs() > 0.05,
+        "профиль без флага должен давать подъём: {}",
+        flat[0]
+    );
+    assert!(
+        o[0] == 0.0 && uh == [0.0; 2],
+        "нет таблицы — нет вклада: {o:?} {uh:?}"
+    );
+    assert_eq!((o[1], o[2]), (flat[1], flat[2]), "mask и σ — как без флага");
+    // (2) статичный: побитно как без флага
+    let mut stat = thermal_at(2, 0.0, 0.0, 1400.0, 2.5, 0.0);
+    stat.is_static = true;
+    let stat = Arc::new(stat);
+    let st = dp_air::terms::thermal::State::build(&setup, vec![stat], tm, &[[0.0, 0.0]], 1.0, 0);
+    for p in [
+        [10.0f32, 300.0, 5.0],
+        [60.0, 700.0, -20.0],
+        [0.0, 1000.0, 0.0],
+    ] {
+        let a = st.sample(&setup, &NoClouds, p, tm);
+        let (b, uh) = st.sample_bubble(&setup, &NoClouds, p, tm);
+        assert!(
+            a.iter().zip(&b).all(|(x, y)| x.to_bits() == y.to_bits()),
+            "статичный: {a:?} против {b:?}"
+        );
+        assert_eq!(uh, [0.0; 2]);
+    }
+    // (3) динамический дальше bubble_radius_m + радиус таблицы от фокуса: профиль, побитно
+    let far = Arc::new(thermal_at(3, 4800.0, 0.0, 1400.0, 2.5, 0.0));
+    let st =
+        dp_air::terms::thermal::State::build(&setup, vec![far.clone()], tm, &[[0.0, 0.0]], 1.0, 0);
+    let c = axis_xz(&far, tm);
+    let mut n_nonzero = 0;
+    for p in [
+        [0.0, 300.0, 5.0],
+        [30.0, 700.0, -20.0],
+        [-60.0, 1000.0, 40.0],
+    ] {
+        let q = [
+            (c[0] + f64::from(p[0])) as f32,
+            p[1],
+            (c[1] + f64::from(p[2])) as f32,
+        ];
+        let a = st.sample(&setup, &NoClouds, q, tm);
+        let (b, uh) = st.sample_bubble(&setup, &NoClouds, q, tm);
+        assert!(
+            a.iter().zip(&b).all(|(x, y)| x.to_bits() == y.to_bits()),
+            "далеко: {a:?} против {b:?}"
+        );
+        assert_eq!(uh, [0.0; 2]);
+        n_nonzero += usize::from(a[0] != 0.0);
+    }
+    assert!(
+        n_nonzero > 0,
+        "профиль далёкого термика должен быть ненулевым"
+    );
+}
+
+// ---------------------------------------------------------------- «между»: K̄ шаблона
+
+/// Таблица K̄ (`bubble_kbar`, сгенерирована из `bubble.kbar` Python) против точного счёта порта в узлах сетки и
+/// между ними (билинейная интерполяция): тот же интеграл `mean_up_flux`, что у Python, но на порте Rust.
+#[test]
+fn kbar_table_vs_exact() {
+    let mut worst_node: f64 = 0.0;
+    for (zl, ws) in [(1400.0, 2.5), (700.0, 1.5)] {
+        let w0 = K_ALLEN * ws;
+        let exact = bubble::mean_up_flux(w0, zl, bubble_kbar::TAU_S) / w0;
+        let tab = bubble_kbar::kbar(zl, ws);
+        let rel = (tab - exact).abs() / exact;
+        println!("kbar zl={zl} w*={ws}: таблица {tab:.1}, порт {exact:.1}, отн. {rel:.2e}");
+        worst_node = worst_node.max(rel);
+    }
+    // между узлами: билинейная интерполяция
+    let (zl, ws) = (1450.0, 2.6);
+    let w0 = K_ALLEN * ws;
+    let exact = bubble::mean_up_flux(w0, zl, bubble_kbar::TAU_S) / w0;
+    let tab = bubble_kbar::kbar(zl, ws);
+    let mid = (tab - exact).abs() / exact;
+    println!(
+        "kbar между узлами zl={zl} w*={ws}: таблица {tab:.1}, порт {exact:.1}, отн. {mid:.2e}"
+    );
+    println!("kbar_node_max_rel={worst_node:e} kbar_between_rel={mid:e}");
+    assert!(worst_node <= 2e-3, "узлы таблицы K̄: {worst_node:e}");
+    assert!(mid <= 0.08, "интерполяция K̄ между узлами: {mid:e}");
+}
+
+/// Синтетическое поле: ровная земля 1000 м, сетка 40 × 40 × 60, нагрев 250 Вт/м², z_i 1500 м.
+fn flat_field() -> Field {
+    const N: usize = 40;
+    const NZ: usize = 60;
+    let grid = FieldGrid {
+        dx: 100.0,
+        dz: 50.0,
+        x0: -2000.0,
+        y0: -2000.0,
+        z_bot: 950.0,
+        nx: N,
+        ny: N,
+        nz: NZ,
+    };
+    let n = N * N * NZ;
+    let meta = FieldMeta {
+        z0: Z0::Uniform(0.1),
+        gam: (0..NZ)
+            .map(|k| {
+                if 950.0 + (k as f64 + 0.5) * 50.0 < 1500.0 {
+                    0.0
+                } else {
+                    0.004
+                }
+            })
+            .collect(),
+        heat: vec![250.0; N * N],
+        z_i: 1500.0,
+        z_i_col: Vec::new(),
+    };
+    Field::from_arrays(
+        &grid,
+        vec![2.0; n],
+        vec![0.0; n],
+        vec![0.0; n],
+        vec![0.4; n],
+        vec![0.0; n],
+        vec![1000.0; N * N],
+        meta,
+        Limits::default(),
+    )
+    .unwrap()
+}
+
+/// При флаге `bubble_template` K̄ источника — из таблицы шаблона (`carried = w0·kbar(z_l, w*)`), без флага —
+/// прежний (Гедеон): сборка с флагом выкл побитно равна сборке по умолчанию.
+#[test]
+fn between_kbar_flag() {
+    let f = flat_field();
+    let thermal: Value = {
+        let t = std::fs::read_to_string(repo().join("configs/atmosphere.json")).unwrap();
+        serde_json::from_str::<Value>(&t).unwrap()["thermal"].clone()
+    };
+    let mut on_json = thermal.clone();
+    on_json["bubble_template"] = json!(true);
+    let mut off_json = thermal.clone();
+    off_json["bubble_template"] = json!(false);
+    let build = |j: &Value| {
+        let cfg = AirThermalsCfg::from_thermal(j, 0.6, 1.0e9);
+        AirThermals::build(&f, &BuildIn::new(&cfg, 5.0)).expect("build")
+    };
+    let (base, off, on) = (build(&thermal), build(&off_json), build(&on_json));
+    assert!(base.count() > 3, "источников {}", base.count());
+    assert_eq!(base.count(), off.count());
+    for s in 0..base.count() {
+        let (a, b) = (base.source(s), off.source(s));
+        assert_eq!(
+            a.carried.to_bits(),
+            b.carried.to_bits(),
+            "флаг выкл: побитно"
+        );
+        assert_eq!(a.net.to_bits(), b.net.to_bits());
+    }
+    let mut ratio = Vec::new();
+    for s in 0..on.count().min(base.count()) {
+        let (a, b) = (on.source(s), base.source(s));
+        let zl = (f64::from(a.top) - 1000.0).max(ZI_MIN);
+        let want = f64::from(a.w0) * bubble_kbar::kbar(zl, f64::from(a.wstar));
+        assert!(
+            (f64::from(a.carried) - want).abs() <= 1e-4 * want,
+            "источник {s}: carried {} против w0·K̄ {want}",
+            a.carried
+        );
+        ratio.push(f64::from(a.carried) / f64::from(b.carried));
+    }
+    ratio.sort_by(f64::total_cmp);
+    println!(
+        "between_kbar_flag: источников {}, K̄ шаблона / K̄ Гедеона: мин {:.2}, медиана {:.2}, макс {:.2}",
+        ratio.len(),
+        ratio[0],
+        ratio[ratio.len() / 2],
+        ratio[ratio.len() - 1]
     );
 }

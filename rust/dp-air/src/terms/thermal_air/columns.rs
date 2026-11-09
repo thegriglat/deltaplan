@@ -4,6 +4,7 @@ use super::{
     CORE_FLUX, HB_B, RHO_CP, Shape, ZI_MIN, allen_density, allen_r2, gclamp, gmax, gmin, wstar,
 };
 use crate::field::wind_field::Field;
+use crate::terms::thermal::bubble_kbar;
 
 pub(super) struct ColsIn<'a> {
     pub f: &'a Field,
@@ -22,6 +23,8 @@ pub(super) struct ColsIn<'a> {
     pub col_w: &'a [f32],
     pub col_wm: &'a [f32],
     pub tau_s: f64,
+    /// Флаг шаблона пузыря: K̄ столба из `bubble_kbar` (TB4 v2).
+    pub bubble: bool,
 }
 
 /// Результат полосы: по столбцам полосы (порядок `j·nx + i`), кандидаты — глобальные номера.
@@ -147,12 +150,17 @@ pub(super) fn cols_band(c: &ColsIn, lo: usize, hi: usize) -> ColsOut {
             o.cand_r[l] = (c.cut * rc) as f32;
             if hk > 0.0 && o.phi[l] > 0.0 {
                 o.na[l] = allen_density(zl) as f32;
-                o.k[l] = (CORE_FLUX
-                    * std::f64::consts::PI
-                    * rc
-                    * rc
-                    * c.shape.mean(gmax(d_top, ZI_MIN))
-                    * c.shape.life_mean) as f32;
+                o.k[l] = if c.bubble {
+                    // K̄ шаблона пузыря по z_l и w* столба (граница: профиль q(ξ) по высоте остаётся прежним)
+                    bubble_kbar::kbar(zl, ws) as f32
+                } else {
+                    (CORE_FLUX
+                        * std::f64::consts::PI
+                        * rc
+                        * rc
+                        * c.shape.mean(gmax(d_top, ZI_MIN))
+                        * c.shape.life_mean) as f32
+                };
             }
             // Кандидат: греется (H > 0), поток есть, столб частицы ≥ ZI_MIN, внутри поля (вес края ≥ ½)
             if hk <= 0.0 || o.phi[l] <= 0.0 || d_top < ZI_MIN {

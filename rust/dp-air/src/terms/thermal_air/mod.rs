@@ -159,6 +159,9 @@ pub struct AirThermalsCfg {
     pub subsidence_smooth_m: f64,
     /// Кандидатов точки источника в столбце (`pick_in_column`).
     pub source_candidates: usize,
+    /// `thermal.bubble_template` (TB4 v2): K̄ столба и источника — шаблона пузыря ([`bubble_kbar::kbar`]), а не
+    /// профиля Гедеона. Флаг выкл — побитно прежнее.
+    pub bubble_template: bool,
 }
 
 impl Default for AirThermalsCfg {
@@ -178,6 +181,7 @@ impl Default for AirThermalsCfg {
             subsidence_tau_s: 10800.0,
             subsidence_smooth_m: 10000.0,
             source_candidates: 8,
+            bubble_template: false,
         }
     }
 }
@@ -215,6 +219,10 @@ impl AirThermalsCfg {
                 .get("source_candidates")
                 .and_then(Value::as_f64)
                 .map_or(d.source_candidates, |x| x as usize),
+            bubble_template: thermal
+                .get("bubble_template")
+                .and_then(Value::as_bool)
+                .unwrap_or(d.bubble_template),
         }
     }
 }
@@ -495,6 +503,7 @@ impl AirThermals {
             col_w: &col_w,
             col_wm: &col_wm,
             tau_s,
+            bubble: cfg.bubble_template,
         };
         let parts = run_bands(ny, inp.bands, |lo, hi| cols_band(&cin, lo, hi));
         let mut col_wstar = Vec::with_capacity(n_col);
@@ -635,6 +644,7 @@ impl AirThermals {
             a_i: &a_i,
             ring_int,
             height_fn: inp.height_fn,
+            bubble: cfg.bubble_template,
         };
         let sp = run_bands(ns, inp.bands, |lo, hi| sources::src_band(&sin, lo, hi));
         let mut t = AirThermals {

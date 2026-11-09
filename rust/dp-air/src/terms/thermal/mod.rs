@@ -19,6 +19,7 @@
 //! земля без источников, термиков нет).
 pub mod air;
 pub mod bubble;
+pub mod bubble_kbar;
 pub mod cells;
 pub mod cfg;
 pub mod cores;
@@ -127,6 +128,8 @@ struct Built {
     air: Option<(AirKey, AirSrc)>,
     /// Доля суши столбцов последней сборки (кеш на сетку места).
     land: LandCache,
+    /// Кеш таблиц шаблона пузыря (флаг `bubble_template`), общий для пересборок при том же окружении.
+    bubbles: Arc<bubble::BubbleCache>,
 }
 
 /// Результат фоновой пересборки.
@@ -367,7 +370,11 @@ impl ThermalSlot {
                 &mut all,
             );
         }
-        let state = State::build(&setup, all, t, &focuses, p.dt, p.slot);
+        let bubbles = match prev {
+            Some(b) if p.same => b.bubbles.clone(),
+            _ => Arc::new(bubble::BubbleCache::default()),
+        };
+        let state = State::build_cached(&setup, all, t, &focuses, p.dt, p.slot, &bubbles);
         Some(ThermalSlot {
             ground: self.ground.clone(),
             hooks: self.hooks.clone(),
@@ -384,6 +391,7 @@ impl ThermalSlot {
                 statics_mode: terms.statics_mode,
                 air,
                 land,
+                bubbles,
             }),
         })
     }
@@ -483,6 +491,7 @@ impl ThermalSlot {
                 statics_mode: b.statics_mode,
                 air: b.air.clone(),
                 land: b.land.clone(),
+                bubbles: b.bubbles.clone(),
             }),
         }
     }
@@ -505,6 +514,7 @@ impl ThermalSlot {
                 statics_mode: b.statics_mode,
                 air: b.air.clone(),
                 land: b.land.clone(),
+                bubbles: b.bubbles.clone(),
             }),
         }
     }

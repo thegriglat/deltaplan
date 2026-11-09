@@ -2,13 +2,24 @@
 //! `bucket_m`, в каждый вписана капсула оси термика с запасом на снос), результат
 //! `(w, маска, σ края)`; ядра в радиусе физики вокруг фокуса — «активные».
 use super::CloudHooks;
-use super::bubble::{self, BubbleTable};
+use super::bubble::{self, Blend, BubbleCache};
 use super::cells::Setup;
 use super::life::AtmoThermal;
 use super::profile::{Edge, contribution};
 use rayon::prelude::*;
 use std::collections::HashMap;
 use std::sync::Arc;
+
+/// Как термик `active` даёт подъём при флаге `bubble_template` (TB4 v2).
+#[derive(Clone, Debug)]
+enum Mode {
+    /// Профиль Гедеона, как без флага: статичный или дальше `bubble_radius_m` от фокусов.
+    Profile,
+    /// Динамический внутри `bubble_radius_m`, а пузыря нет (не родился, кончился, радиус 0): `w = 0`, `uh = 0`.
+    NoTable,
+    /// Таблицы ключевых кадров пузыря и его положение.
+    Table(Blend),
+}
 
 /// Набор термиков на момент обновления `t` (раз в `refresh_interval_s` атмосферы).
 pub struct State {
@@ -23,8 +34,8 @@ pub struct State {
     pub all: Vec<Arc<AtmoThermal>>,
     /// Термики в радиусе физики вокруг фокуса — те, что действуют на воздух и попадают в `cores`.
     pub active: Vec<Arc<AtmoThermal>>,
-    /// Таблицы шаблона пузыря (флаг `bubble_template`) параллельно `active`; без флага пусто.
-    bubbles: Vec<Option<Arc<BubbleTable>>>,
+    /// Шаблон пузыря (флаг `bubble_template`) параллельно `active`; без флага пусто.
+    bubbles: Vec<Mode>,
     buckets: HashMap<(i64, i64), Vec<u32>>,
     inv_bucket: f64,
 }
@@ -54,6 +65,27 @@ impl State {
         margin: f64,
         slot: i64,
     ) -> State {
+        Self::build_cached(
+            setup,
+            all,
+            t,
+            focuses,
+            margin,
+            slot,
+            &BubbleCache::default(),
+        )
+    }
+
+    /// [`State::build`] с кешем таблиц пузырей (переносится между обновлениями набора).
+    pub fn build_cached(
+        setup: &Setup,
+        all: Vec<Arc<AtmoThermal>>,
+        t: f64,
+        focuses: &[[f64; 2]],
+        margin: f64,
+        slot: i64,
+        cache: &BubbleCache,
+    ) -> State {
         let cfg = &setup.cfg;
         let bucket = cfg.bucket_m;
         let mut st = State {
@@ -70,7 +102,7 @@ impl State {
         let cut = cfg.profile_cutoff_radii;
         let tables = cfg
             .bubble_template
-            .then(|| Self::bubble_tables(&st.all, t, focuses, margin, cfg));
+            .then(|| Self::bubble_modes(&st.all, t, focuses, margin, cfg, cache));
         for th in st.all.clone() {
             if !(th.is_static || t <= th.t_end()) {
                 continue;
@@ -81,10 +113,12 @@ impl State {
             let mut p1 = th.axis_at(th.top + th.cloud_depth, ph.drift);
             let dv = [f64::from(th.drift_vel[0]), f64::from(th.drift_vel[1])];
             let mut pad = th.radius * cut + dv[0].hypot(dv[1]) * margin;
-            let table = tables.as_ref().and_then(|m| m.get(&th.id)).cloned();
-            if let Some(tb) = &table {
+            let mode = tables
+                .as_ref()
+                .map(|m| m.get(&th.id).cloned().unwrap_or(Mode::Profile));
+            if let Some(Mode::Table(mv)) = &mode {
                 // запас бакета не меньше радиуса таблицы
-                pad = pad.max(tb.r_max + dv[0].hypot(dv[1]) * margin);
+                pad = pad.max(mv.r_max() + dv[0].hypot(dv[1]) * margin);
             }
             if !th.is_static && t + margin > th.drift_start() {
                 p1[0] += dv[0] * margin;
@@ -98,8 +132,8 @@ impl State {
             if near {
                 let off = st.active.len() as u32;
                 st.active.push(th.clone());
-                if tables.is_some() {
-                    st.bubbles.push(table);
+                if let Some(m) = mode {
+                    st.bubbles.push(m);
                 }
                 st.insert_capsule(p0, p1, pad, off, bucket);
             }
@@ -107,18 +141,20 @@ impl State {
         st
     }
 
-    /// Таблицы пузырей для термиков, которые окажутся активными. Отбор в два шага: сначала с запасом
-    /// `R_CAP_M` (радиус таблицы ещё не известен) считаются пузырь и радиус влияния, затем та же проверка
-    /// «рядом с фокусом», что и в [`State::build`], но с настоящим радиусом; таблицы строятся только для
-    /// прошедших. Параллельно, порядок и биты не зависят от потоков.
-    fn bubble_tables(
+    /// Режимы термиков при флаге (кроме `Profile`, которого в карте нет). Динамический термик, чей круг влияния
+    /// (радиус таблицы + снос за `margin`) задевает круг `bubble_radius_m` вокруг фокуса, получает пузырь: таблица из
+    /// кеша по `id`, пересборка — когда она устарела ([`bubble::BubbleTable::stale`]). Радиус таблицы ещё не известен
+    /// — предотбор по `R_GUESS_FRAC·z_l`, потом та же проверка с настоящим радиусом. Параллельно, порядок и биты не зависят от
+    /// потоков.
+    fn bubble_modes(
         all: &[Arc<AtmoThermal>],
         t: f64,
         focuses: &[[f64; 2]],
         margin: f64,
         cfg: &super::ThermalCfg,
-    ) -> HashMap<i64, Arc<BubbleTable>> {
-        // та же геометрия, что в основном цикле `build`; `table_r` — радиус таблицы в запасе бакета
+        cache: &BubbleCache,
+    ) -> HashMap<i64, Mode> {
+        // круг влияния термика (капсула оси + запас) задевает круг `bubble_radius_m` вокруг фокуса
         let near = |th: &AtmoThermal, table_r: f64| -> bool {
             let ph = th.phase(t);
             let p0 = th.axis_at(f64::from(th.src[1]), ph.drift);
@@ -134,26 +170,150 @@ impl State {
             let half = (p0[0] - p1[0]).hypot(p0[1] - p1[1]) * 0.5;
             focuses
                 .iter()
-                .any(|f| (f[0] - mid[0]).hypot(f[1] - mid[1]) - half - pad <= cfg.physics_radius_m)
+                .any(|f| (f[0] - mid[0]).hypot(f[1] - mid[1]) - half - pad <= cfg.bubble_radius_m)
         };
+        // предотбор до расчёта источника: радиус таблицы ≤ `R_GUESS_FRAC·z_l` (проверяет `table_accuracy` на стадиях жизни)
         let cands: Vec<&Arc<AtmoThermal>> = all
             .iter()
-            .filter(|th| !th.is_static && t <= th.t_end() && near(th, bubble::R_CAP_M))
+            .filter(|th| {
+                let zl = th.top - f64::from(th.src[1]);
+                !th.is_static
+                    && t <= th.t_end()
+                    && near(th, (bubble::R_GUESS_FRAC * zl).min(bubble::R_CAP_M))
+            })
             .collect();
-        let prep: Vec<Option<(bubble::Bubble, f64, f64)>> =
-            cands.par_iter().map(|th| bubble::prepare(th, t)).collect();
-        let todo: Vec<(i64, &(bubble::Bubble, f64, f64))> = cands
-            .iter()
-            .zip(&prep)
-            .filter_map(|(th, p)| p.as_ref().map(|p| (th, p)))
-            .filter(|(th, p)| near(th, p.2))
-            .map(|(th, p)| (th.id, p))
-            .collect();
-        let built: Vec<Arc<BubbleTable>> = todo
+        let t_start = std::time::Instant::now();
+        // источники пузырей (дорого) — только новым термикам
+        let fresh: Vec<&Arc<AtmoThermal>> = {
+            let c = cache.lock();
+            cands
+                .iter()
+                .filter(|th| !c.contains_key(&th.id))
+                .copied()
+                .collect()
+        };
+        let made: Vec<(i64, bubble::CacheEntry)> = fresh
             .par_iter()
-            .map(|(_, (b, zi, r))| Arc::new(BubbleTable::build(b, *zi, *r, t)))
+            .map(|th| (th.id, bubble::CacheEntry::new(th)))
             .collect();
-        todo.iter().map(|x| x.0).zip(built).collect()
+        cache.stats.source_ns.fetch_add(
+            t_start.elapsed().as_nanos() as u64 * u64::from(!fresh.is_empty()),
+            std::sync::atomic::Ordering::Relaxed,
+        );
+        cache
+            .stats
+            .sources
+            .fetch_add(made.len() as u64, std::sync::atomic::Ordering::Relaxed);
+        let entries: Vec<bubble::CacheEntry> = {
+            let mut c = cache.lock();
+            for (id, e) in made {
+                c.insert(id, e);
+            }
+            // забыть ушедших
+            let alive: std::collections::HashSet<i64> = all.iter().map(|th| th.id).collect();
+            c.retain(|id, _| alive.contains(id));
+            cands.iter().map(|th| c[&th.id].clone()).collect()
+        };
+        // ключевые кадры: нужны два соседних (j и j + 1) интервала, содержащего `t`; чего нет в кеше — построить
+        let ivs: Vec<Option<usize>> = entries.iter().map(|e| e.interval(t)).collect();
+        let todo: Vec<(usize, usize)> = (0..cands.len())
+            .flat_map(|i| ivs[i].into_iter().flat_map(move |j| [(i, j), (i, j + 1)]))
+            .filter(|&(i, j)| j < entries[i].kf.len() && entries[i].frame(j).is_none())
+            .collect();
+        let rebuilt: Vec<(usize, usize, Option<Arc<bubble::BubbleTable>>)> = todo
+            .par_iter()
+            .map(|&(i, j)| {
+                let t0 = std::time::Instant::now();
+                let (src, zi) = entries[i].src.as_ref().expect("источник есть");
+                let traj = entries[i].traj.as_ref().expect("траектория есть");
+                let tb =
+                    bubble::build_keyframe(src, *zi, traj, cands[i].strength, entries[i].kf[j]);
+                let ns = t0.elapsed().as_nanos() as u64;
+                cache
+                    .stats
+                    .build_ns
+                    .fetch_add(ns, std::sync::atomic::Ordering::Relaxed);
+                (i, j, tb)
+            })
+            .collect();
+        cache
+            .stats
+            .rebuilds
+            .fetch_add(rebuilt.len() as u64, std::sync::atomic::Ordering::Relaxed);
+        let mut frames: Vec<[Option<Arc<bubble::BubbleTable>>; 2]> = (0..cands.len())
+            .map(|i| match ivs[i] {
+                Some(j) => [j, j + 1].map(|k| entries[i].frame(k).cloned().flatten()),
+                None => [None, None],
+            })
+            .collect();
+        {
+            let mut c = cache.lock();
+            for (i, j, tb) in rebuilt {
+                let j0 = ivs[i].expect("интервал есть");
+                frames[i][j - j0] = tb.clone();
+                if let Some(e) = c.get_mut(&cands[i].id) {
+                    e.frames.push((j, tb));
+                }
+            }
+            // держим три соседних кадра: прошлый, текущий интервал и следующий
+            for (i, th) in cands.iter().enumerate() {
+                if let (Some(j0), Some(e)) = (ivs[i], c.get_mut(&th.id)) {
+                    e.frames.retain(|f| f.0 + 1 >= j0 && f.0 <= j0 + 2);
+                }
+            }
+        }
+        let mut out = HashMap::new();
+        for (i, th) in cands.iter().enumerate() {
+            let [fa, fb] = &frames[i];
+            let st = entries[i].state_at(t);
+            let (Some(st), Some(j0), true) = (st, ivs[i], fa.is_some() || fb.is_some()) else {
+                // пузыря нет: внутри круга — вклада нет, снаружи — профиль
+                if near(th, 0.0) {
+                    out.insert(th.id, Mode::NoTable);
+                }
+                continue;
+            };
+            let bl_r = fa
+                .as_ref()
+                .map_or(0.0, |x| x.r_max)
+                .max(fb.as_ref().map_or(0.0, |x| x.r_max));
+            if !near(th, bl_r) {
+                continue;
+            }
+            let f0 = bubble::Frame::of(&st);
+            let dt = margin.max(0.1);
+            let f1 = entries[i]
+                .state_at(t + dt)
+                .map_or(f0, |s| bubble::Frame::of(&s));
+            let kf = &entries[i].kf;
+            out.insert(
+                th.id,
+                Mode::Table(Blend {
+                    a: fa.clone(),
+                    b: fb.clone(),
+                    t_a: kf[j0],
+                    t_b: kf
+                        .get(j0 + 1)
+                        .copied()
+                        .unwrap_or(kf[j0] + bubble::KEYFRAME_SLOW_S),
+                    t0: t,
+                    f0,
+                    rate: bubble::Frame {
+                        zb: (f1.zb - f0.zb) / dt,
+                        zc: (f1.zc - f0.zc) / dt,
+                    },
+                }),
+            );
+        }
+        out
+    }
+
+    /// Сколько активных термиков получили таблицы пузыря (тесты, отладка).
+    pub fn bubble_count(&self) -> usize {
+        self.bubbles
+            .iter()
+            .filter(|m| matches!(m, Mode::Table(_)))
+            .count()
     }
 
     /// Вписать отрезок `p0–p1` с запасом `pad` в ячейки поиска: по строкам z находим диапазон x.
@@ -212,8 +372,8 @@ impl State {
 
 impl State {
     /// [`State::sample`] при флаге `bubble_template`: `w` пузырей (термики с таблицей) вместо `w` профиля,
-    /// плюс горизонталь `uh` (x, z игры); `маска` и `σ` — из профиля, как без флага. Термики без таблицы
-    /// (статичные, пузыря нет) дают `w` профиля.
+    /// плюс горизонталь `uh` (x, z игры); `маска` и `σ` — из профиля, как без флага. Статичные термики и динамические
+    /// дальше `bubble_radius_m` дают `w` профиля; динамический внутри радиуса без пузыря — `w = 0`, `uh = 0`.
     pub fn sample_bubble(
         &self,
         setup: &Setup,
@@ -243,17 +403,18 @@ impl State {
                 mask = mask.max(c.mask);
                 edge2 += c.edge2;
             }
-            match self.bubbles.get(o as usize).and_then(Option::as_ref) {
-                Some(tb) => {
+            match self.bubbles.get(o as usize) {
+                Some(Mode::Table(mv)) => {
                     let high = f64::from(pos[1]) - f64::from(th.src[1]);
                     let dx = f64::from(pos[0]) - (f64::from(th.src[0]) + f64::from(ph.drift[0]));
                     let dz = f64::from(pos[2]) - (f64::from(th.src[2]) + f64::from(ph.drift[1]));
-                    let (wb, h) = tb.eval(high, dx, dz, t);
+                    let (wb, h) = mv.eval(high, dx, dz, t);
                     w += wb;
                     uh[0] += h[0];
                     uh[1] += h[1];
                 }
-                None => {
+                Some(Mode::NoTable) => {}
+                Some(Mode::Profile) | None => {
                     if let Some(c) = &c {
                         w += c.w;
                     }
