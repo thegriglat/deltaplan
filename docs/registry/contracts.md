@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-11-09"
+updated: "2026-11-10"
 summary: "Контракты стыков по модулям: id и версии из заголовков."
 related: []
 generated: true
@@ -102,6 +102,7 @@ generated: true
 - sw-charges-3d: SWD1 v2, SWD2 v5, SWD3 v4, SWD4 v4, SWD5 v7, SWD6 v6, SWD7 v2, SWD8 v1, SWD9 v5 — [docs/contracts/sw-charges-3d.md](../contracts/sw-charges-3d.md)
 - sw-charges: SW1 v1, SW2 v1, SW3 v1, SW4 v1, SW5 v2, SW6 v4, SW7 v3 — [docs/contracts/sw-charges.md](../contracts/sw-charges.md)
 - sw-ground: SWG1 v1, SWG2 v1, SWG3 v1, SWG4 v2 — [docs/contracts/sw-ground.md](../contracts/sw-ground.md)
+- thermal-bubble: TB1 v5, TB2 v1, TB3 v2, TB4 v6, TB5 v3 — [docs/contracts/thermal-bubble.md](../contracts/thermal-bubble.md)
 - tow: — — [docs/contracts/tow-models.md](../contracts/tow-models.md)
 - tow-trike: TT-К1 v1, TT-К2 v1, TT-К3 v6, TT-К4 v4, TT-К5 v1, TT-К6 v1 — [docs/contracts/tow-trike.md](../contracts/tow-trike.md)
 - tow: — — [docs/contracts/tow-wave1.md](../contracts/tow-wave1.md)

@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-11-09"
+updated: "2026-11-10"
 summary: "Исследования: вывод, данные, где применено."
 related: []
 generated: true
@@ -198,6 +198,8 @@ generated: true
 - [docs/research/terrain_statistics/peaks-and-saddles.md](../research/terrain_statistics/peaks-and-saddles.md) — Плотность сильно зависит от сетки (25 → 400 м сохраняет 50–75 % вершин ≥ 100 м и убирает 50–70 % вершин 30 м); типы различаются числом вершин ≥ 100 м (13–16 → 41–52 → 41); глубину седловины нельзя вы… (data: tools/research/air_synth/terrain_stats/out/ (stats_tables.md, compare_tables.md…; applied_in: в игре напрямую нет: вход генератора корпуса air-synth (docs/archive/rejected/a…)
 - [docs/research/terrain_statistics.md](../research/terrain_statistics.md) — Сумма форм (гребни, пупыри) описывает крупную структуру (30 форм — 92–96 % дисперсии на 400 м), но даёт в 3–7 раз меньше вершин и слишком гладкие склоны. Fastscape (SPL + диффузия + тепловая эрозия, … (data: tools/research/air_synth/terrain_stats/out/ (stats_tables.md, compare_tables.md…; applied_in: в игре напрямую нет; вход генератора корпуса fs1 (tools/research/air_synth/corp…)
 - [docs/research/terrain_tuning.md](../research/terrain_tuning.md) — Попытка 2 (пределы k0 5e-7, fourier_amp 1,5, tan_crit 0,35; T = 8 млн лет не настраивается; 160 точек × 4 зерна, 3,8 ядро-часа): медиана χ²/ndf 1,47 против 1,79 в попытке 1 (T свободно, прежние преде… (data: tools/research/air_synth/tune/out/ (ref_obs.json, ref_obs_pool.json, design.jso…; applied_in: не применено: облако θ — вход корпуса air-synth (run_corpus.py --theta-cloud ou…)
+- [docs/research/thermal_bubble.md](../research/thermal_bubble.md) — Круг 3: шаблон по умолчанию, см. thermal_bubble_round3.md. Круг 2 (v4): ядро по Lenschow-Stephens (R/z_i 0,059, пик 1,54 w*), приток 0,58 w* против LES 0,36; поле замкнуто по массе (p99 4e-7); в dp-a… (data: tools/research/thermal_bubble/out/compare.json; applied_in: [])
+- [docs/research/thermal_bubble_round3.md](../research/thermal_bubble_round3.md) — Круг 3: шаблон по умолчанию, флага нет; F0 из бюджета потока (подъём головы до 0,9 z_i 1473 → 1089 с при жизни игры 990 с), q(ξ) и K̄ «между» от шаблона, высота таблицы у земли по рельефу (TB4 v6). В… (data: tools/research/thermal_bubble/out/; applied_in: rust/dp-air/src/terms/thermal/, docs/guide/air-model/thermals.md)
 - [docs/research/thermals.md](../research/thermals.md) — Термик — профиль Gedeon с радиусом по Allen (∝ξ^⅓), наклон ветром, распад снизу; склон и ротор — по градиенту рельефа; детерминированно.
 - [docs/research/tow/code.md](../research/tow/code.md) — Силу троса добавлять в _substep до расчёта load_b (рук), иначе пилот «уедет» с нейтрали; равнину задавать через новый TowSite; старт — start_sites + launch_options. (data: []; applied_in: [])
 - [docs/research/tow/kinds-bhpa.md](../research/tow/kinds-bhpa.md) — BHPA даёт для лебёдки и аэробуксировки: слабые звенья по массе (Приложение C), уздечки (≥50 % тяги на пилота), трос аэробуксировки 50–105 м (новичок 80–100), площадка ≥300 м + 10 м на метр препятстви… (data: []; applied_in: [])
@@ -363,6 +365,7 @@ generated: true
 - [tools/research/sw_ground/vii2/README.md](../../tools/research/sw_ground/vii2/README.md) — tools/research/sw_ground/vii2/README.md (data: tools/research/sw_ground/out/swg-11/ground.json)
 - [tools/research/sw_ground/wake/README.md](../../tools/research/sw_ground/wake/README.md) — tools/research/sw_ground/wake/README.md (data: tools/research/sw_ground/out/swg-4/ground.json)
 - [tools/research/sw_ground/zone/README.md](../../tools/research/sw_ground/zone/README.md) — tools/research/sw_ground/zone/summary.md (data: tools/research/sw_ground/out/swg-8/ground.json)
+- [tools/research/thermal_bubble/README.md](../../tools/research/thermal_bubble/README.md) — thermal-bubble: шаблон термика v3 (Хилл со сглаженным краем, шлейф Тёрнера, ядро по измерениям): формулы, числа, допущения. (applied_in: [])
 - [tools/research/tow/README.md](../../tools/research/tow/README.md) — Статика и PendulumModel (трос лебёдки вперёд-вниз) сходятся по ходу пилота ±0,04 м; упор Q3 даёт рост скорости при удержании тангажа, а не момент троса. (data: ['tools/research/tow/out/statics_table.csv', 'tools/research/tow/out/compare.cs…; applied_in: [])
 - [tools/research/tow-trike/README.md](../../tools/research/tow-trike/README.md) — Скрипты и воспроизведение расчёта параметров буксировщика-дельталёта (TT-1)
 - [tools/research/trike-fix/README.md](../../tools/research/trike-fix/README.md) — Инструмент TKF-1 и TKF-2 (control_*): замер углов тележки к крылу дельталёта игрока (TKF-К1 v1), кадры «до»; воспроизведение (data: ['tools/research/trike-fix/out/control_summary.json'])

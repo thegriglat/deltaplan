@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-11-09"
+updated: "2026-11-10"
 summary: "Точка входа: модули docs/ по подпроектам, прочие документы по типам."
 related: []
 generated: true
@@ -179,6 +179,10 @@ generated: true
   - [tools/research/sw_ground/sheet/summary.md](../tools/research/sw_ground/sheet/summary.md) — SWG-7 вывод: вихревой лист над зоной снижает завышение лее с верным знаком, но мало; не встраивать, дальше — зона и толщина слоя.
   - [tools/research/sw_ground/timing/summary.md](../tools/research/sw_ground/timing/summary.md) — SWG-3: панели 3D на окнах игры 100/50 м медленнее Пикара крейта в 14–40 раз (8 потоков, tol 5); узкое место — опрос поля в FP64.
   - [tools/research/sw_ground/zone/summary.md](../tools/research/sw_ground/zone/summary.md) — SWG-8 вывод: скорость зоны и слой смешения снимают ошибку под оболочкой, но доля лее в ±15 % 0,08–0,17; дальше — высота зоны.
+- **thermal-bubble** — Термик как всплывающий пузырь-вихревое кольцо: шаблон в системе пузыря + снос, масса сохраняется; проверка идеи прототипом. [closed 2026-11-10] — [план](plan/thermal-bubble.md) · [контракты](contracts/thermal-bubble.md) · [решения](plan/thermal-bubble/decisions.md) · [сводка](plan/thermal-bubble/summary.md) · полный журнал: `archive/thermal-bubble`
+  - [docs/research/thermal_bubble.md](research/thermal_bubble.md) — thermal-bubble: шаблон пузыря замкнут по массе, даёт приток; круг 2 — ядро по измерениям, dp-air за флагом (37 мс/с), границы. [closed]
+  - [docs/research/thermal_bubble_round3.md](research/thermal_bubble_round3.md) — thermal-bubble, круг 3: шаблон пузыря v5 по умолчанию, F0 из потока, рельеф, замер в игре flight_r4, границы. [closed]
+  - [tools/research/thermal_bubble/README.md](../tools/research/thermal_bubble/README.md) — thermal-bubble: шаблон термика v3 (Хилл со сглаженным краем, шлейф Тёрнера, ядро по измерениям): формулы, числа, допущения.
 
 ## flight
 
