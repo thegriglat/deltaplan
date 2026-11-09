@@ -1,6 +1,7 @@
 use clap::{Args, Parser, Subcommand};
 use dp_stand::compare::{self, Options};
 use dp_stand::ops::{self, Plane, SliceSpec};
+mod timing;
 use dp_stand::setup::{OpenArgs, Session, open};
 use serde_json::json;
 use std::path::PathBuf;
@@ -111,6 +112,12 @@ enum Cmd {
         /// Сколько нарушений печатать
         #[arg(long, default_value_t = 20)]
         max_violations: usize,
+    },
+    /// Журнал задачи поля (JobReport) на каждый момент, json по строке; только --model formula
+    Timing {
+        /// Потоков rayon (по умолчанию - как у стенда)
+        #[arg(long)]
+        threads: Option<usize>,
     },
 }
 
@@ -244,6 +251,28 @@ fn run(cli: Cli) -> Result<ExitCode, String> {
                 "sigma": d.sigma, "total": d.total, "sum_vel": sum,
             });
             println!("{}", serde_json::to_string_pretty(&j).unwrap());
+        }
+        Cmd::Timing { threads } => {
+            if c.model != "formula" {
+                return Err("timing needs --model formula".into());
+            }
+            if let Some(n) = threads {
+                rayon::ThreadPoolBuilder::new()
+                    .num_threads(n)
+                    .build_global()
+                    .map_err(|e| e.to_string())?;
+            }
+            let case = c.case.as_deref().ok_or("--case is required")?;
+            timing::run(
+                &OpenArgs {
+                    case,
+                    place: c.place.as_deref(),
+                    model: &c.model,
+                    configs: &c.configs,
+                    timeout_s: c.timeout,
+                },
+                c.time,
+            )?;
         }
         Cmd::Compare {
             terms,
