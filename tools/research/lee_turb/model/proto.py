@@ -20,6 +20,13 @@ def smoothstep(a, b, x):
     return t * t * (3.0 - 2.0 * t)
 
 
+_erf = np.vectorize(math.erf, otypes=[float])
+
+
+def norm_cdf(x):
+    return 0.5 * (1.0 + _erf(np.asarray(x, float) / math.sqrt(2.0)))
+
+
 # ---------------------------------------------------------------- геометрия гребня
 def crest_params(g_at, x_p, k=K):
     """Гребень и параметры слоя для точки на расстоянии x_p от начала луча.
@@ -76,10 +83,70 @@ def pick_xr(H, bub, dx, k=K):
     return r * att + (1.0 - r) * xr_h, r
 
 
+# ---------------------------------------------------------------- линия слоя (LT-7, Q1)
+def yc_fallback(xp, g_x, geo, xr, k=K):
+    """Запасная линия слоя по глубине пузыря (Menke 2019): верх пузыря foot + H·(1-(x/x_r)^m), m из средней глубины 0,958 H;
+    не ниже g + yc_end·H·x/x_r. MSL."""
+    H, foot = geo["H"], geo["foot"]
+    r = np.minimum(np.asarray(xp, float) / xr, 1.0)
+    return np.maximum(foot + H * (1.0 - r ** k["yc_shape_exp"]), g_x + k["yc_end_over_h"] * H * r)
+
+
+def yc_lt5(xp, g_x, geo, xr, k=K):
+    """Линия LT-5 (оставлена для сверки): линейно h_гребня -> h(x_r), не ниже g + 0,3 H."""
+    H, h_c, h_xr = geo["H"], geo["h_c"], geo["h_at_xr"]
+    return np.maximum(h_c - (h_c - h_xr) * xp / xr, g_x + k["yc_end_over_h"] * H * np.minimum(xp / xr, 1.0))
+
+
+def field_center(u_at, geo, g_i, dy, k=K):
+    """Центр слоя z½ по столбцу поля: u(z½) = U2 + ½(U1-U2), U1 = u(h_гребня), U2 = u(g + u2_height_over_h·H).
+    u_at(y) - опрос u_par столбца (nan - нет данных). Деление пополам field_bisect_steps раз: 2 + n опросов.
+    Возвращает dict(q, z_half, dUf_over_u1, drop, n_q): q в [0,1] - гладкий признак «поле даёт слой»."""
+    H, h_c = geo["H"], geo["h_c"]
+    y0, y1 = g_i + k["u2_height_over_h"] * H, h_c
+    out = dict(q=0.0, z_half=float("nan"), dUf_over_u1=float("nan"), drop=float("nan"), n_q=2)
+    if not (y1 > y0):
+        return out
+    u1, u0 = u_at(y1), u_at(y0)
+    if not (np.isfinite(u1) and np.isfinite(u0)) or u1 <= 0.0:
+        return out
+    gate = float(smoothstep(k["u1_min_ms"], 2.0 * k["u1_min_ms"], u1))      # слой при U1 < u1_min выключен: признак гаснет гладко
+    frac = (u1 - u0) / u1
+    tgt = u0 + 0.5 * (u1 - u0)
+    lo, hi = y0, y1
+    pts = [(y0, u0), (y1, u1)]
+    for _ in range(int(k["field_bisect_steps"])):
+        mid = 0.5 * (lo + hi)
+        um = u_at(mid)
+        if not np.isfinite(um):
+            return out
+        pts.append((mid, um))
+        if um < tgt:
+            lo = mid
+        else:
+            hi = mid
+    z_half = 0.5 * (lo + hi)
+    pts.sort()
+    uu = np.array([p[1] for p in pts])
+    drop = float(np.max(np.maximum.accumulate(uu) - uu) / u1)
+    a, w = k["field_deficit_frac"], k["field_deficit_halfwidth"]
+    q = float(gate * smoothstep(a - w, a + w, frac)
+              * (1.0 - smoothstep(k["field_mono_tol"], 2.0 * k["field_mono_tol"], drop))
+              * smoothstep(k["field_interior_cells"] - 1.0, k["field_interior_cells"] + 1.0, (z_half - g_i) / dy))
+    return dict(q=q, z_half=float(z_half), dUf_over_u1=float(frac), drop=drop, n_q=2 + int(k["field_bisect_steps"]))
+
+
+def below_weight(x, xr, ramp, f_sep, eta, k=K):
+    """Вес B (механика стенки -> фон) только под линией слоя: f_sep·ramp·Φ(-η)·(1 - smoothstep(1-a, 1+a; x/x_r))."""
+    a = k["below_end_halfwidth_over_xr"]
+    return f_sep * ramp * norm_cdf(-eta) * (1.0 - smoothstep(1.0 - a, 1.0 + a, np.asarray(x, float) / xr)) * (np.asarray(x) > 0)
+
+
 # ---------------------------------------------------------------- слой
-def layer_state(x, y, g_x, geo, xr, u1, u2, k=K, f_sep_force=None, res=0.0):
+def layer_state(x, y, g_x, geo, xr, u1, u2, k=K, f_sep_force=None, res=0.0, yc_mode="fb", z_half=None, q_field=0.0):
     """Величины слоя в точках (x, y). x, y — массивы одной формы; g_x — высота земли в x; u1, u2 — массивы или числа.
-    Возвращает dict: dU, lam, delta, yc, eta, gx, ramp, w, sig{u,v,w}, L, f_sep."""
+    yc_mode: "fb" - запасная линия по глубине пузыря (LT-7), "lt5" - линейная LT-5, "field" - q·z½ поля + (1-q)·запасная
+    (z_half, q_field - массивы/числа). Возвращает dict: dU, lam, delta, yc, eta, gx, ramp, w, wB, sig{u,v,w}, L, f_sep."""
     H, h_c = geo["H"], geo["h_c"]
     x = np.asarray(x, float)
     y = np.asarray(y, float)
@@ -96,7 +163,14 @@ def layer_state(x, y, g_x, geo, xr, u1, u2, k=K, f_sep_force=None, res=0.0):
     xb = k["mix_slow_x_over_xr"] * xr
     delta = k["mix_delta0_over_h"] * H + k["mix_growth_per_lambda"] * lam * (
         np.minimum(xp, xb) + k["mix_slow_factor"] * np.maximum(xp - xb, 0.0))
-    yc = np.maximum(h_c - (h_c - h_xr) * xp / xr, g_x + k["yc_end_over_h"] * H * np.minimum(xp / xr, 1.0))
+    if yc_mode == "lt5":
+        yc = yc_lt5(xp, g_x, geo, xr, k)
+    else:
+        yc = yc_fallback(xp, g_x, geo, xr, k)
+        if yc_mode == "field":
+            q = np.broadcast_to(np.asarray(q_field, float), x.shape)
+            zh = np.broadcast_to(np.asarray(z_half, float), x.shape)
+            yc = q * np.clip(np.nan_to_num(zh, nan=0.0), g_x, h_c) + (1.0 - q) * yc
     ramp = 1.0 - np.exp(-xp / (xi * xr))              # xi: при постоянном dU (U2 не по полю) нарастание всё в g_x; при U2 по полю dU(x) растёт сам
     dec = np.exp(-np.maximum(xp - k["decay_x0_over_xr"] * xr, 0.0) / (k["decay_length_over_xr"] * xr))
     gx = ramp * dec
@@ -105,7 +179,8 @@ def layer_state(x, y, g_x, geo, xr, u1, u2, k=K, f_sep_force=None, res=0.0):
     G = np.exp(-0.5 * eta * eta)
     amp = np.where(on, f_sep * dU * gx * G, 0.0)
     w = np.where(on, f_sep * ramp * G, 0.0)
-    return dict(dU=dU, lam=lam, delta=delta, yc=yc, eta=eta, gx=gx, ramp=ramp, w=w, f_sep=f_sep, s_lee=s_lee,
+    wB = np.where(on, (1.0 - res) * below_weight(x, xr, ramp, f_sep, eta, k), 0.0)         # B - только при неразрешённом пузыре (res < 1)
+    return dict(dU=dU, lam=lam, delta=delta, yc=yc, eta=eta, gx=gx, ramp=ramp, w=w, wB=wB, f_sep=f_sep, s_lee=s_lee,
                 sig_u=k["sigma_u_over_du"] * amp, sig_v=k["sigma_v_over_du"] * amp, sig_w=k["sigma_w_over_du"] * amp,
                 L=k["eddy_scale_over_delta"] * delta, uc=0.5 * (u1 + u2), burst=k["burst_peak_sigmas"] * k["sigma_w_over_du"] * amp)
 
@@ -167,11 +242,17 @@ def col_interp(y_u, col, yq):
     return float(np.interp(yq, y_u[ok], col[ok]))
 
 
+VARS = ("old", "lt5", "A_fb", "A_new", "B_fb", "B_new")      # σ_w: поле (прежняя) / LT-5 / запасная линия A,B / линия по полю A,B
+
+
 def run_section(path, ridge, k=K, xr_fixed_over_h=None, power=None, u2_field=False):
-    """Один разрез -> dict метрик и массивы новой σ. ridge: {'name','H','zone'} из имени/справочника (только H для осей)."""
+    """Один разрез -> dict метрик и массивы σ_w по вариантам VARS. ridge: {'name','H','zone'} (zone - клетка поля, м).
+    lt5 - слой LT-5 (линия h_гребня -> h(x_r)), A_* - max(механика с l_эфф, слой), B_* - то же, механика под линией слоя заменена фоном
+    (фон = σ_w наветренных колонок x/H -2..-0,5 на той же высоте над землёй); *_fb - запасная линия везде, *_new - z½ поля там, где оно слой даёт."""
     head, s_u, y_u, g = load_lts(path)
     gnd = ground_of(g, y_u)
-    dx = float(ridge["zone"])          # клетка поля, м (50 / 100 / 400)
+    dx = float(ridge["zone"])
+    dy = float(np.median(np.diff(y_u)))
     kk = dict(k)
     if xr_fixed_over_h is not None:
         kk["ridge_xr_over_h"] = xr_fixed_over_h
@@ -179,19 +260,18 @@ def run_section(path, ridge, k=K, xr_fixed_over_h=None, power=None, u2_field=Fal
         kk["combine_rule_power"] = power
     ok_col = np.isfinite(gnd)
     g_at = lambda d: float(np.interp(d, s_u[ok_col], gnd[ok_col]))
-    # гребень секции: самый высокий в первой трети (линия идёт от -2H); параметры для x ниже по ветру — по лучу точки
     i_c = int(np.nanargmax(np.where(s_u < s_u[0] + 0.4 * (s_u[-1] - s_u[0]), gnd, -1e9)))
     s_c = float(s_u[i_c])
     geo_cache = {}
     ns, ny = g["agl"].shape
-    sig_new = {n: np.full((ns, ny), np.nan) for n in ("u", "v", "w")}
-    sig_old_w = g["sigma_w"].astype(float)
-    sig_old_u = g["sigma_u"].astype(float)
-    layer_sw = np.full((ns, ny), np.nan)
-    delta_c = np.full(ns, np.nan); yc_c = np.full(ns, np.nan); dU_c = np.full(ns, np.nan); u1_c = np.full(ns, np.nan); u2_c = np.full(ns, np.nan)
+    cols = {}
     nq = 0
+    nq_z = 0
     info = dict(H=None)
     main = None
+    nan_ns = lambda: np.full(ns, np.nan)
+    delta_c, yc_c, dU_c, u1_c, u2_c = nan_ns(), nan_ns(), nan_ns(), nan_ns(), nan_ns()
+    yc_lt5_c, yc_fb_c, q_c, zh_c, dufrac_c, drop_c = nan_ns(), nan_ns(), nan_ns(), nan_ns(), nan_ns(), nan_ns()
     for i in range(ns):
         if s_u[i] <= s_c:
             continue
@@ -201,7 +281,6 @@ def run_section(path, ridge, k=K, xr_fixed_over_h=None, power=None, u2_field=Fal
         nq = max(nq, cp["n_queries"])
         key = round(cp["d_c"], 1)
         if key not in geo_cache:
-            # пузырь по полю: колонки за гребнем, u_par на xr_search_u_agl_m над землёй
             u_low = np.array([_u_at_agl(g, j, kk["xr_search_u_agl_m"]) for j in range(ns)])
             bub = bubble_from_field(s_u, u_low, cp["d_c"], dx)
             xr, res = pick_xr(cp["H"], bub, dx, kk)
@@ -214,29 +293,64 @@ def run_section(path, ridge, k=K, xr_fixed_over_h=None, power=None, u2_field=Fal
         if main is None and s_u[i] - geo["d_c"] > 0.05 * geo["H"] and abs(geo["d_c"] - s_c) < 3 * k["crest_step_m"]:
             main = geo
         x = s_u[i] - geo["d_c"]
-        yy = y_u
         col_ok = np.isfinite(g["agl"][i])
-        u1 = col_interp(y_u, g["u_par"][i], geo["h_c"])
-        u2 = col_interp(y_u, g["u_par"][i], gnd[i] + kk["u2_height_over_h"] * geo["H"])
+        u_at = lambda yq, i=i: col_interp(y_u, g["u_par"][i], yq)
+        u1 = u_at(geo["h_c"])
+        u2 = u_at(gnd[i] + kk["u2_height_over_h"] * geo["H"])
         if not (np.isfinite(u1) and np.isfinite(u2)):
             continue
-        r = 1.0 if u2_field else geo["res"]      # u2_field - чувствительность: U2 всегда по полю
-        u2 = r * u2 + (1.0 - r) * kk["u2_unresolved_over_u1"] * max(u1, 0.0)    # след: поле при r<1 занижает
-        st = layer_state(np.full(ny, x), y_u, np.full(ny, gnd[i]), geo, geo["xr"], np.full(ny, u1), np.full(ny, u2), kk, res=geo["res"])
+        fc = field_center(u_at, geo, gnd[i], dy, kk)
+        nq_z = max(nq_z, fc["n_q"])
+        r = 1.0 if u2_field else geo["res"]
+        u2 = r * u2 + (1.0 - r) * kk["u2_unresolved_over_u1"] * max(u1, 0.0)
+        args = (np.full(ny, x), y_u, np.full(ny, gnd[i]), geo, geo["xr"], np.full(ny, u1), np.full(ny, u2), kk)
+        sts = dict(lt5=layer_state(*args, res=geo["res"], yc_mode="lt5"),
+                   fb=layer_state(*args, res=geo["res"], yc_mode="fb"),
+                   new=layer_state(*args, res=geo["res"], yc_mode="field", z_half=np.full(ny, fc["z_half"]), q_field=np.full(ny, fc["q"])))
+        cols[i] = (sts, col_ok, x)
+        st = sts["new"]
+        delta_c[i], dU_c[i], u1_c[i], u2_c[i] = st["delta"][0], st["dU"][0], u1, u2
+        yc_c[i] = st["yc"][0]
+        yc_lt5_c[i], yc_fb_c[i] = sts["lt5"]["yc"][0], sts["fb"]["yc"][0]
+        q_c[i], zh_c[i], dufrac_c[i], drop_c[i] = fc["q"], fc["z_half"], fc["dUf_over_u1"], fc["drop"]
+    geo_m = main or info
+    # фон B: σ_w и σ_u наветренных колонок на тех же высотах над землёй
+    agl_grid = np.arange(5.0, 400.0 + 1e-9, 5.0)
+    bg = {}
+    for nm in ("sigma_w", "sigma_u"):
+        acc = []
+        for i in range(ns):
+            xh_i = (s_u[i] - geo_m["d_c"]) / geo_m["H"]
+            if -2.0 <= xh_i <= -0.5:
+                a, v = g["agl"][i], g[nm][i].astype(float)
+                okk = np.isfinite(a) & np.isfinite(v)
+                if okk.sum() >= 2:
+                    o = np.argsort(a[okk])
+                    acc.append(np.interp(agl_grid, a[okk][o], v[okk][o], left=np.nan, right=np.nan))
+        bg[nm] = np.nanmean(np.array(acc), axis=0) if acc else np.full(len(agl_grid), np.nan)
+    sig = {v: np.full((ns, ny), np.nan) for v in VARS}
+    layer_sw = np.full((ns, ny), np.nan)
+    wB_new = np.full((ns, ny), np.nan)
+    for i, (sts, col_ok, x) in cols.items():
         agl = g["agl"][i]
         m = col_ok
         mech = (g["src"][i] == "mech")
-        sw, _ = combine(np.where(m, sig_old_w[i], 0.0), mech, st, np.where(m, agl, 10.0), kk)
-        k2 = dict(kk)
-        st_u = dict(st); st_u["sig_w"] = st["sig_u"]
-        su, _ = combine(np.where(m, sig_old_u[i], 0.0), mech, st_u, np.where(m, agl, 10.0), kk)
-        sig_new["w"][i] = np.where(m, sw, np.nan)
-        sig_new["u"][i] = np.where(m, su, np.nan)
-        layer_sw[i] = np.where(m, st["sig_w"], np.nan)
-        delta_c[i], dU_c[i], u1_c[i], u2_c[i] = st["delta"][0], st["dU"][0], u1, u2
-        yc_c[i] = st["yc"][0]
-    return dict(s=s_u, y=y_u, g=g, gnd=gnd, s_c=s_c, geo=main or info, sig_new=sig_new, layer_sw=layer_sw, delta=delta_c, yc=yc_c,
-                dU=dU_c, u1=u1_c, u2=u2_c, dx=dx, n_queries=nq, head=head)
+        agl_q = np.where(m, agl, 10.0)
+        sw0 = np.where(m, g["sigma_w"][i].astype(float), 0.0)
+        bgw = np.interp(agl_q, agl_grid, np.where(np.isfinite(bg["sigma_w"]), bg["sigma_w"], 0.0))
+        sig["old"][i] = np.where(m, g["sigma_w"][i].astype(float), np.nan)
+        for tag, key, useB in (("lt5", "lt5", False), ("A_fb", "fb", False), ("A_new", "new", False), ("B_fb", "fb", True), ("B_new", "new", True)):
+            st = sts[key]
+            sw_in = sw0
+            if useB:
+                sw_in = np.where(mech, (1.0 - st["wB"]) * sw0 + st["wB"] * bgw, sw0)
+            sw, _ = combine(sw_in, mech, st, agl_q, kk)
+            sig[tag][i] = np.where(m, sw, np.nan)
+        layer_sw[i] = np.where(m, sts["new"]["sig_w"], np.nan)
+        wB_new[i] = np.where(m, sts["new"]["wB"], np.nan)
+    return dict(s=s_u, y=y_u, g=g, gnd=gnd, s_c=s_c, geo=geo_m, sig=sig, layer_sw=layer_sw, wB=wB_new, delta=delta_c, yc=yc_c,
+                yc_lt5=yc_lt5_c, yc_fb=yc_fb_c, q=q_c, z_half=zh_c, dUf_frac=dufrac_c, drop=drop_c,
+                dU=dU_c, u1=u1_c, u2=u2_c, dx=dx, dy=dy, n_queries=nq, n_queries_zhalf=nq_z, head=head)
 
 
 def _u_at_agl(g, j, agl_q):
@@ -251,34 +365,33 @@ def _u_at_agl(g, j, agl_q):
 # ---------------------------------------------------------------- метрики
 def metrics(res, agl_lo=5.0, agl_hi=150.0, xh_max=12.0):
     s, y, g, gnd, geo = res["s"], res["y"], res["g"], res["gnd"], res["geo"]
-    H, d_c, h_c = geo["H"], geo["d_c"], geo["h_c"]
+    H, d_c, h_c, foot = geo["H"], geo["d_c"], geo["h_c"], geo["foot"]
     xh = (s - d_c) / H
     agl = g["agl"]
+    sig = dict(res["sig"])
     out = dict(H=H, xr_over_h=geo["xr"] / H, xr_from_field=bool(geo["res"] > 0.5), bubble_res=geo["res"], s_lee=float(geo["s_lee"]),
-               f_sep=float(smoothstep(K["lee_slope_on"], K["lee_slope_full"], geo["s_lee"])), crest_msl=h_c)
+               f_sep=float(smoothstep(K["lee_slope_on"], K["lee_slope_full"], geo["s_lee"])), crest_msl=h_c, foot_msl=foot)
     band = (agl >= agl_lo) & (agl <= agl_hi) & (xh[:, None] > 0.05) & (xh[:, None] <= xh_max)
-    for tag, arr in (("old", g["sigma_w"].astype(float)), ("new", res["sig_new"]["w"])):
+    out["max"] = {}
+    for tag, arr in sig.items():
         a = np.where(band & np.isfinite(arr), arr, -1)
         i, j = np.unravel_index(int(np.argmax(a)), a.shape)
-        out[tag + "_max"] = dict(sigma_w=float(arr[i, j]), xh=float(xh[i]), zc=float(y[j] - h_c), agl=float(agl[i, j]),
-                                 src=str(g["src"][i, j]) if tag == "old" else None)
-    # σ_w на гребне (x/H 0,5) и у присоединения: максимум по высоте agl 5..150 в колонке
+        out["max"][tag] = dict(sigma_w=float(arr[i, j]), xh=float(xh[i]), zc=float(y[j] - h_c), agl=float(agl[i, j]), zf=float((y[j] - foot) / H),
+                               src=str(g["src"][i, j]) if tag == "old" else None)
     xr_h = geo["xr"] / H
-    for tag, xq in (("crest05", 0.5), ("reatt", xr_h)):
-        i = int(np.argmin(abs(xh - xq)))
-        for nm, arr in (("old", g["sigma_w"].astype(float)), ("new", res["sig_new"]["w"])):
-            col = np.where((agl[i] >= agl_lo) & (agl[i] <= agl_hi), arr[i], np.nan)
-            out[f"{nm}_sw_{tag}"] = float(np.nanmax(col)) if np.isfinite(col).any() else None
-        out[f"xh_{tag}"] = float(xh[i])
-    # σ_w/ΔU в слое: максимум по высоте у x = 0,64 x_r
     i_pk = int(np.argmin(abs(xh - K["decay_x0_over_xr"] * xr_h)))
-    i = i_pk
-    dU = res["dU"][i]
-    for nm, arr in (("old", g["sigma_w"].astype(float)), ("new", res["sig_new"]["w"])):
-        col = np.where((agl[i] >= agl_lo) & (agl[i] <= agl_hi), arr[i], np.nan)
-        out[f"{nm}_sw_over_dU_peak"] = float(np.nanmax(col) / dU) if np.isfinite(col).any() and dU > 0.5 else None
-    # избыток над притоком (σ_w / σ_w притока на той же высоте над землёй) и станции
+    dU = res["dU"][i_pk]
+    out["sw_crest05"], out["sw_reatt"], out["sw_over_dU_peak"] = {}, {}, {}
+    for tag, arr in sig.items():
+        for nm, xq in (("sw_crest05", 0.5), ("sw_reatt", xr_h)):
+            i = int(np.argmin(abs(xh - xq)))
+            col = np.where((agl[i] >= agl_lo) & (agl[i] <= agl_hi), arr[i], np.nan)
+            out[nm][tag] = float(np.nanmax(col)) if np.isfinite(col).any() else None
+        col = np.where((agl[i_pk] >= agl_lo) & (agl[i_pk] <= agl_hi), arr[i_pk], np.nan)
+        out["sw_over_dU_peak"][tag] = float(np.nanmax(col) / dU) if np.isfinite(col).any() and dU > 0.5 else None
+    out["xh_reatt"] = float(xh[int(np.argmin(abs(xh - xr_h)))])
     levels = (20.0, 30.0, 50.0, 75.0, 100.0, 150.0)
+
     def at_levels(arr):
         o = np.full((arr.shape[0], len(levels)), np.nan)
         for i in range(arr.shape[0]):
@@ -288,25 +401,45 @@ def metrics(res, agl_lo=5.0, agl_hi=150.0, xh_max=12.0):
                 if ok.sum() >= 2 and a[ok].min() <= lv <= a[ok].max():
                     oo = np.argsort(a[ok]); o[i, q] = np.interp(lv, a[ok][oo], v[ok][oo])
         return o
-    sw_old, sw_new = at_levels(g["sigma_w"].astype(float)), at_levels(res["sig_new"]["w"])
+    lv = {tag: at_levels(arr) for tag, arr in sig.items()}
     up = (xh >= -2.0) & (xh <= -0.5)
-    ref = np.nanmean(sw_old[up], axis=0)
-    for nm, arr in (("old", sw_old), ("new", sw_new)):
+    ref = np.nanmean(lv["old"][up], axis=0)
+    out["excess"] = {}
+    for tag, arr in lv.items():
         ex = arr / ref
-        ex = np.where((xh[:, None] > 0.05) & (xh[:, None] <= 6.0), ex, -1)   # избыток - до x/H 6: дальше рельеф следующих гребней
+        ex = np.where((xh[:, None] > 0.05) & (xh[:, None] <= 6.0), ex, -1)
         ex = np.where(np.isfinite(ex), ex, -1)
         i, q = np.unravel_index(int(np.argmax(ex)), ex.shape)
-        out[nm + "_excess"] = dict(ratio=float(ex[i, q]), xh=float(xh[i]), agl=levels[q])
+        out["excess"][tag] = dict(ratio=float(ex[i, q]), xh=float(xh[i]), agl=levels[q])
     out["stations"] = []
+    colmax = lambda arr, i: float(np.nanmax(np.where((agl[i] >= agl_lo) & (agl[i] <= agl_hi), arr[i], np.nan)))
     for xq in (0.5, 1, 2, 3, 4, 6):
         i = int(np.argmin(abs(xh - xq)))
-        out["stations"].append(dict(xh=float(xh[i]), sw30_old=float(sw_old[i, 1]), sw30_new=float(sw_new[i, 1]),
-                                    sw_col_old=float(np.nanmax(np.where((agl[i] >= agl_lo) & (agl[i] <= agl_hi), g["sigma_w"][i].astype(float), np.nan))),
-                                    sw_col_new=float(np.nanmax(np.where((agl[i] >= agl_lo) & (agl[i] <= agl_hi), res["sig_new"]["w"][i], np.nan))),
-                                    dU=float(res["dU"][i]), delta=float(res["delta"][i]), yc_rel=float(res["yc"][i] - h_c)))
-    i = i_pk
-    out["dU_at_peak_station"] = float(dU); out["xh_peak_station"] = float(xh[i])
-    out["delta_at_peak_station_m"] = float(res["delta"][i]); out["yc_minus_crest_at_peak_station_m"] = float(res["yc"][i] - h_c)
+        st = dict(xh=float(xh[i]), dU=float(res["dU"][i]), delta=float(res["delta"][i]), yc_rel=float(res["yc"][i] - h_c),
+                  yc_fb_rel=float(res["yc_fb"][i] - h_c), yc_lt5_rel=float(res["yc_lt5"][i] - h_c), q=float(res["q"][i]),
+                  z_half_agl=float(res["z_half"][i] - gnd[i]), z_half_rel=float(res["z_half"][i] - h_c), dUf_frac=float(res["dUf_frac"][i]))
+        for tag in sig:
+            st["sw30_" + tag] = float(lv[tag][i, 1])
+            st["col_" + tag] = colmax(sig[tag], i)
+        out["stations"].append(st)
+    # признак «поле даёт центр слоя»: доля колонок x/H 0,5..6 с q > 0,5 и гладкость по x (только соседние колонки: пропуски без данных не считаются)
+    m = (xh >= 0.5) & (xh <= 6.0) & np.isfinite(res["q"])
+    idx = np.where(m)[0]
+    adj = np.diff(idx) == 1
+    ds = np.diff(s)[idx[:-1]] if len(idx) > 1 else np.array([])
+    jmp = lambda arr: float(np.nanmax(np.abs(np.diff(arr[idx]))[adj])) if adj.any() else None
+    jmp_s = lambda arr: float(np.nanmax((np.abs(np.diff(arr[idx])) / ds)[adj])) if adj.any() else None
+    q = res["q"][m]
+    out["field_center"] = dict(n_cols=int(m.sum()), frac_q_gt_half=float(np.mean(q > 0.5)) if m.any() else None, mean_q=float(np.mean(q)) if m.any() else None,
+                               max_dq=jmp(res["q"]), max_dyc_over_dx=jmp_s(res["yc"]), max_dyc_fb_over_dx=jmp_s(res["yc_fb"]),
+                               yc_minus_fb_m_mean=float(np.mean((res["yc"] - res["yc_fb"])[m])) if m.any() else None,
+                               yc_minus_fb_m_where_q=float(np.mean((res["yc"] - res["yc_fb"])[m][q > 0.5])) if (q > 0.5).any() else None)
+    for tag in ("old", "B_fb", "B_new"):                  # скачок максимума σ_w колонки между соседними колонками (м/с): переход поле/запасная линия не должен его добавлять
+        cm = np.full(len(s), np.nan)
+        cm[idx] = [colmax(sig[tag], i) for i in idx]
+        out["field_center"]["max_dcol_" + tag] = jmp(cm)
+    out["dU_at_peak_station"] = float(dU); out["xh_peak_station"] = float(xh[i_pk])
+    out["delta_at_peak_station_m"] = float(res["delta"][i_pk]); out["yc_minus_crest_at_peak_station_m"] = float(res["yc"][i_pk] - h_c)
     return out
 
 
@@ -329,7 +462,13 @@ def selftest():
         r_du = (L["ds_su_x1"] / (1 + 0.035)) / (L["ds_su_x4"] / (1 + 0.171))
         xi_du = (1 / L["ds_xr"]) / -math.log(1 - r_du)
         assert abs(xi_du - k["ramp_x_over_xr_du"]) < 5e-3, xi_du
-        assert abs(L["ridge_xr_mean"] / 163.95 - k["ridge_xr_over_h"]) < 0.01           # 697 м / <H> моделей NE, SW (model_obs.py)
+        assert abs(L["ridge_xr_mean"] / k["ridge_H_mean_m"] - k["ridge_xr_over_h"]) < 0.01          # 697 м / <H> моделей NE, SW (model_obs.py)
+        D = L["ridge_depth_mean"] / k["ridge_H_mean_m"]                                             # LT-7: глубина зоны Menke в долях H
+        assert abs(D - k["bubble_depth_over_h"]) < 5e-4 and abs(D / (1 - D) - k["yc_shape_exp"]) < 0.1
+        oc = os.path.join(HERE, "out", "obs_compare.json")
+        if os.path.exists(oc):                                                                      # <H> в spec = среднее H_model из сверки LT-6/7
+            gm = json.load(open(oc, encoding="utf-8"))["geometry"]
+            assert abs(0.5 * (gm["perdigao/NE"]["H_model_m"] + gm["perdigao/SW"]["H_model_m"]) - k["ridge_H_mean_m"]) < 0.05
         assert abs(math.sqrt(L["del_uv_peak"]) - k["mix_len_over_delta"]) < 1e-3
         assert abs(L["br74_eddy_spacing"] / 6.87 - k["eddy_scale_over_delta"]) < 5e-3
         xs = np.array([6 - 4, 10 - 4]) / 1.0 / L["ds_xr"]
@@ -366,7 +505,7 @@ def selftest():
     xr_h, r = pick_xr(100.0, b, 50.0)       # L/dx = 4 -> эвристика
     assert r == 0.0 and abs(xr_h - k["ridge_xr_over_h"] * 100.0) < 1e-9
     # 3. слой: x_r = 350 м, U1 = 10, U2 = 0 (λ = 1)
-    geo = dict(H=100.0, h_c=100.0, h_at_xr=0.0, s_lee=100.0 / 350.0)   # h(x_r)=max(100-105,0)=0
+    geo = dict(H=100.0, h_c=100.0, h_at_xr=0.0, foot=0.0, s_lee=100.0 / 350.0)   # h(x_r)=max(100-105,0)=0
     xr = 350.0
     x = np.array([1.0, 50.0, 0.64 * xr, 0.64 * xr, 600.0])
     st = layer_state(x, np.full(5, 80.0), np.zeros(5), geo, xr, 10.0, 0.0)
@@ -432,6 +571,45 @@ def selftest():
     # 8. U1 < 1 м/с: слоя нет
     s_lo = layer_state(np.array([100.0]), np.array([50.0]), np.zeros(1), geo, xr, 0.5, 0.0)
     assert s_lo["sig_w"][0] == 0.0
+    # 9. LT-7: линия слоя. Запасная: у гребня h_c, среднее по 0<x<x_r верха пузыря = D·H (Menke), у присоединения - пол g + 0,3 H
+    xs_ = np.linspace(0.0, xr, 200001)
+    T = 1.0 - (xs_ / xr) ** k["yc_shape_exp"]
+    assert abs(T.mean() - k["bubble_depth_over_h"]) < 2e-3
+    fbl = yc_fallback(np.array([0.0, 0.5 * xr, xr, 2 * xr]), np.zeros(4), geo, xr)
+    assert abs(fbl[0] - 100.0) < 1e-9 and fbl[1] > 99.0 and abs(fbl[2] - 30.0) < 1e-9 and abs(fbl[3] - 30.0) < 1e-9
+    l5 = layer_state(np.array([0.5 * xr]), np.array([50.0]), np.zeros(1), geo, xr, 10.0, 0.0, yc_mode="lt5")["yc"][0]
+    assert abs(l5 - max(100.0 - 100.0 * 0.5, 15.0)) < 1e-9                      # LT-5: линейная
+    # 9а. центр слоя по полю: tanh-профиль, U1 = 10 на гребне, U2 ~ 0 у земли, центр на 50 м над землёй (H = 100, g = 0)
+    prof = lambda zc, w: (lambda yq: 5.0 * (1.0 + math.tanh((yq - zc) / w)))
+    f1 = field_center(prof(50.0, 12.0), geo, 0.0, 10.0)
+    assert f1["q"] > 0.95 and abs(f1["z_half"] - 50.0) < 2.5 and f1["n_q"] == 2 + k["field_bisect_steps"], f1      # точность деления: (100-10)/64 = 1,4 м
+    assert field_center(lambda yq: 10.0 - 0.01 * yq, geo, 0.0, 10.0)["q"] == 0.0                                     # дефицита нет: u(0,1H)/u(H) ~ 0,9
+    f2 = field_center(lambda yq: 10.0 * (1.0 - 0.9 * math.exp(-((yq - 30.0) / 8.0) ** 2)), geo, 0.0, 10.0)          # провал в 30 м: немонотонно
+    assert f2["q"] == 0.0 and f2["drop"] > 0.2, f2
+    f3 = field_center(prof(6.0, 2.0), geo, 0.0, 10.0)                                                                # центр у стенки (< 2 клеток)
+    assert f3["q"] == 0.0, f3
+    lo = field_center(lambda yq: 10.0 * (0.46 + 0.54 * min(yq / 100.0, 1.0)), geo, 0.0, 10.0)["q"]                   # дефицит 0,5 +- : гладко 0..1
+    hi = field_center(lambda yq: 10.0 * (0.30 + 0.70 * min(yq / 100.0, 1.0)), geo, 0.0, 10.0)["q"]
+    assert 0.0 <= lo <= hi <= 1.0
+    qs = [field_center(lambda yq, d=d: 10.0 * (1.0 - d + d * min(yq / 100.0, 1.0)), geo, 0.0, 10.0)["q"] for d in np.linspace(0.3, 0.7, 41)]
+    assert max(abs(np.diff(qs))) < 0.15 and qs[0] < 0.2 and qs[-1] > 0.8                                         # без скачков по ΔU_f
+    # 9б. y_c: q=0 - запасная, q=1 - z½, между - плавно
+    xq3 = np.full(3, 0.6 * xr)
+    zz = layer_state(xq3, np.full(3, 50.0), np.zeros(3), geo, xr, 10.0, 0.0, yc_mode="field", z_half=np.full(3, 44.0), q_field=np.array([0.0, 0.5, 1.0]))["yc"]
+    fb6 = yc_fallback(np.array([0.6 * xr]), np.zeros(1), geo, xr)[0]
+    assert abs(zz[0] - fb6) < 1e-9 and abs(zz[2] - 44.0) < 1e-9 and abs(zz[1] - 0.5 * (fb6 + 44.0)) < 1e-9
+    # 9в. B только под линией: вес 0 выше линии, ~0,5·ramp на линии, 0 после x_r(1+a) и при x<=0
+    ys3 = np.array([400.0, 0.0, -200.0])
+    stB = layer_state(np.full(3, 0.5 * xr), ys3, np.zeros(3), geo, xr, 10.0, 0.0, yc_mode="fb")
+    assert stB["wB"][0] < 1e-6 and stB["wB"][1] > 0.99 * stB["f_sep"] * stB["ramp"][1] * 0.99 and stB["wB"][2] > 0.999 * stB["ramp"][2]
+    at_line = layer_state(np.array([0.5 * xr]), stB["yc"][:1] * 0 + yc_fallback(np.array([0.5 * xr]), np.zeros(1), geo, xr), np.zeros(1), geo, xr, 10.0, 0.0, yc_mode="fb")
+    assert abs(at_line["wB"][0] - 0.5 * at_line["ramp"][0] * at_line["f_sep"]) < 1e-9
+    stE = layer_state(np.array([-5.0, 1.25 * xr, 1.3 * xr]), np.full(3, -200.0), np.zeros(3), geo, xr, 10.0, 0.0, yc_mode="fb")
+    assert stE["wB"][0] == 0.0 and stE["wB"][1] < 1e-9 and stE["wB"][2] == 0.0
+    xs5 = np.linspace(0.0, 1.5 * xr, 301)
+    wBx = layer_state(xs5, np.full(301, -50.0), np.zeros(301), geo, xr, 10.0, 0.0, yc_mode="fb")["wB"]
+    assert np.max(np.abs(np.diff(wBx))) < 0.05                                                               # без скачка B по x
+    assert layer_state(np.array([0.5 * xr]), np.array([-200.0]), np.zeros(1), geo, xr, 10.0, 0.0, res=1.0)["wB"][0] == 0.0       # пузырь разрешён полем: B не нужен
     print("selftest ok")
     return 0
 
@@ -469,9 +647,9 @@ def main():
         m.update(case=case, ridge=rn, zone=R[rn]["zone"], n_queries_height=res["n_queries"])
         allm[b] = m
         rows.append(m)
-        print(b, "H=%.0f xr/H=%.2f s_lee=%.2f f_sep=%.2f | old max %.2f@x/H %.1f agl %.0f | new max %.2f@x/H %.1f agl %.0f zc %.0f" % (
-            m["H"], m["xr_over_h"], m["s_lee"], m["f_sep"], m["old_max"]["sigma_w"], m["old_max"]["xh"], m["old_max"]["agl"],
-            m["new_max"]["sigma_w"], m["new_max"]["xh"], m["new_max"]["agl"], m["new_max"]["zc"]), flush=True)
+        mx = m["max"]
+        print(b, "H=%.0f xr/H=%.2f f_sep=%.2f q>0.5 %.2f | max σ_w (x/H, agl): " % (m["H"], m["xr_over_h"], m["f_sep"], m["field_center"]["frac_q_gt_half"] or 0) +
+              " ".join("%s %.2f(%.1f,%.0f)" % (v, mx[v]["sigma_w"], mx[v]["xh"], mx[v]["agl"]) for v in VARS), flush=True)
     tag = "" if a.xr_over_h is None and a.power is None and not a.u2_field else f"_xr{a.xr_over_h}_p{a.power}" + ("_u2f" if a.u2_field else "")
     json.dump(allm, open(os.path.join(a.out, f"sections{tag}.json"), "w"), indent=1, ensure_ascii=False)
     return 0
