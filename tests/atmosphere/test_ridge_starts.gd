@@ -339,8 +339,11 @@ func test_lee_zone_all_starts() -> void:
 	)
 
 
-## Измерение (PT-12): набор у склона при ветре 20 км/ч в склон на каждом старте; печатает RIDGE20.
+## Измерение (PT-12): набор у склона при ветре 20 км/ч в склон на каждом старте; печатает RIDGE20; только с аргументом --ridge-report после --.
 func test_ridge_gain_20kmh_report() -> void:
+	if not OS.get_cmdline_user_args().has("--ridge-report"):
+		check(true, "пропуск: только с --ridge-report")
+		return
 	await _each_site(
 		func(loc_id: String, terrain: Terrain, site: Dictionary) -> void:
 			var key := "%s/%s" % [loc_id, site.id]
