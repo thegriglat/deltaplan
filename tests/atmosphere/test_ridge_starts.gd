@@ -55,6 +55,17 @@ const LOCATIONS: Array[String] = ["altai", "askarovo", "aushkul", "ongudai"]
 ## секунд на атмосферу (на старт нужно 2–3), все 10 стартов — ~15 мин. Все старты — аргумент
 ## `--ridge-full` после `--` (тестовый раннер пропускает его в OS.get_cmdline_user_args()).
 ## Без поля (склон и подветренная зона в аналитике) — rust/dp-air/tests/gd_atmosphere_ported.rs.
+func _seed() -> int:
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--seed="):
+			return int(a.substr(7))
+	return 4242
+
+
+func _gain_only() -> bool:
+	return OS.get_cmdline_user_args().has("--gain-only")
+
+
 func _full() -> bool:
 	return OS.get_cmdline_user_args().has("--ridge-full")
 
@@ -85,7 +96,7 @@ func _make_atmo(
 	if place == null:
 		atmo.free()
 		return null
-	atmo.configure(4242)
+	atmo.configure(_seed())
 	atmo.set_static_thermals(PackedFloat32Array(), 1)
 	atmo.set_conditions(
 		{
@@ -279,10 +290,14 @@ func _each_site(cb: Callable) -> void:
 
 
 func test_ridge_no_climb_8kmh() -> void:
+	if _gain_only():
+		check(true, "пропуск")
+		return
 	await _each_site(
 		func(loc_id: String, terrain: Terrain, site: Dictionary) -> void:
 			var key := "%s/%s" % [loc_id, site.id]
 			var res: Dictionary = await _fly_ridge(terrain, site, 8.0, FLY_MINUTES)
+			print("RIDGE8 %s gain=%.2f landed=%s" % [key, res.gain_m, res.landed])
 			check(
 				float(res.gain_m) < 50.0,
 				"%s: на 8 км/ч набора быть не должно (набор %.0f м)" % [key, res.gain_m]
@@ -291,6 +306,9 @@ func test_ridge_no_climb_8kmh() -> void:
 
 
 func test_lee_zone_all_starts() -> void:
+	if _gain_only():
+		check(true, "пропуск")
+		return
 	await _each_site(
 		func(loc_id: String, terrain: Terrain, site: Dictionary) -> void:
 			var key := "%s/%s" % [loc_id, site.id]
@@ -318,4 +336,15 @@ func test_lee_zone_all_starts() -> void:
 					% [key, sigma_lee, sigma_wind, lee.depth]
 				)
 			)
+	)
+
+
+## Измерение (PT-12): набор у склона при ветре 20 км/ч в склон на каждом старте; печатает RIDGE20.
+func test_ridge_gain_20kmh_report() -> void:
+	await _each_site(
+		func(loc_id: String, terrain: Terrain, site: Dictionary) -> void:
+			var key := "%s/%s" % [loc_id, site.id]
+			var res: Dictionary = await _fly_ridge(terrain, site, 20.0, FLY_MINUTES)
+			print("RIDGE20 %s gain=%.2f landed=%s" % [key, res.gain_m, res.landed])
+			check(is_finite(float(res.gain_m)), "%s: набор не число" % key)
 	)
