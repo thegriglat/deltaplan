@@ -3,13 +3,15 @@ type: "research"
 status: "active"
 module: "rust-wind"
 area: "air"
-updated: "2026-10-27"
+updated: "2026-11-10"
 summary: "RW-6a: путь поля Пикара в игре от места до опроса точки, что есть в picard_rs, разбиение RW-6 на задачи, окна 100/50 м на CPU"
 conclusion: "В крейте нет сборщика случая, грубого старта, заморозки колонн и фаз; окна 0,56× и 1,0× области, сдвиг 50 м — 2,7–14 с CPU"
 data: "tools/research/rust_wind/window_estimate.json"
 applied_in: ""
 related: ["docs/plan/rust-wind.md", "docs/plan/rust-air-integration.md", "docs/contracts/rust-wind.md", "docs/contracts/rust-wind/fixtures-tolerances.md", "docs/contracts/picard-rs.md", "rust/picard_rs/INTEGRATION.md", "docs/guide/air-model/runtime.md", "docs/guide/air-model/phases.md", "docs/guide/air-model-gpu/clipmap.md", "tools/research/rust_wind/field-path-tables.md"]
 ---
+
+> **Обновление 2026-11 (picard-terrain).** Описание ниже — до встраивания срезанных клеток. Теперь все уровни игры (1200/400/100/50 м) решаются с `cut_cells = true`: доли и `hc_type` из растра места 25 м, прежняя маска «клетка под землёй» убрана, `from_mac`/типы — по долям; см. [guide/air-model/field-cpu.md](../guide/air-model/field-cpu.md#срезанные-клетки-с-pt-9pt-10-ветка-picard-terrain) и [picard_terrain_game.md](picard_terrain_game.md).
 
 # Путь поля Пикара: что переносить в RW-6 и в каком порядке (RW-6a)
 
