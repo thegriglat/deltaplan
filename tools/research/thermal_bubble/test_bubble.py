@@ -200,3 +200,18 @@ def test_kbar_positive_and_scales():
     kb = bm.kbar(1400.0, 690.0, ENV, 3.17)
     assert 100.0 < kb < 1e5
     assert bm.kbar(1400.0, 690.0, bm.Env(wind=(3.0, 1.0), zi=1400.0), 3.17) == kb     # ветер не влияет
+
+
+def test_from_game_strength_is_flux_budget():
+    w0 = bm.K_ALLEN * 2.56
+    s = bm.from_game_strength(0, 0, 0, w0, 1400.0, 690.0, ENV)
+    ref = bm.from_game(0, 0, 0, 2.56, 1400.0, ENV)
+    assert abs(s.F0 / ref.F0 - 1) < 1e-12 and s.tau == 690.0 and abs(s.t_decay / ref.t_decay - 1) < 1e-12
+    assert abs(s.F0 / (bm.PARAMS["core_flux_fraction"]["value"] * 2.56 ** 3 * 1400.0 / 8.5) - 1) < 1e-12
+
+
+def test_between_q_table():
+    q = np.array([bm.between_q(i / 20.0) for i in range(21)])
+    assert abs(np.sum(q[1:] + q[:-1]) * 0.5 / 20.0 - 1.0) < 1e-6 and np.isfinite(q).all() and (q >= 0).all()
+    assert abs(bm.between_q(0.025) - 0.5 * (q[0] + q[1])) < 1e-12      # линейно между узлами
+    assert bm.between_q(-1.0) == q[0] and bm.between_q(2.0) == q[-1]

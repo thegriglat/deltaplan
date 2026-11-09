@@ -382,6 +382,18 @@ def from_game(x: float, y: float, t0: float, wstar: float, zl: float, env: Env) 
                   zh=_ZH_FRAC * zl)
 
 
+K_ALLEN = 1.2436   # сила ядра на пике / w* клетки (Аллен 2006 × e·0,4575, thermal_air/mod.rs); v5
+
+
+def from_game_strength(x: float, y: float, t0: float, strength: float, zl: float, tau: float, env: Env) -> Source:
+    """v5: источник термика игры из бюджета потока (TB-10, round3/life.md), не из пика на оси: w* клетки = strength / K_ALLEN,
+    F0 = core_flux_fraction · w*³ · z_l / 8,5 (то есть from_game(x, y, t0, strength / K_ALLEN, zl, env)) с tau термика.
+    Пик w на оси при этом выше strength (≈ +25 %, 2,5·U Хилла): сила игры — сила клетки, а не ядра пузыря."""
+    import dataclasses
+
+    return dataclasses.replace(from_game(x, y, t0, strength / K_ALLEN, zl, env), tau=tau)
+
+
 def _axis_wmax(src: Source, env: Env, dt: float = 10.0, dz: float = 5.0) -> float:
     """Максимум w на оси за жизнь: моменты шагом dt до конца жизни, ось z = 1…z_i шагом dz (как в контрактном тесте)."""
     tr = _traj(src, env)
@@ -439,7 +451,7 @@ _KBAR_CACHE: dict = {}
 
 
 def mean_up_flux(w0: float, zl: float, tau: float, env: Env) -> float:
-    """Средний по жизни (t0…конец) и по столбу 0…zl поток вверх ∫max(w,0)dA, м³/с, одного пузыря from_strength(w0, zl, tau).
+    """Средний по жизни (t0…конец) и по столбу 0…zl поток вверх ∫max(w,0)dA, м³/с, одного пузыря from_game_strength(w0, zl, tau) (v5).
     Сечения z — середины 28 слоёв, t — шаг 30 с, ρ до 900 м (положительная область головы и шлейфа; дальше w ≤ 0),
     91 узел трапеций, плотнее у оси. Ветер сносит всё целиком — считаем без него."""
     import dataclasses
@@ -449,7 +461,7 @@ def mean_up_flux(w0: float, zl: float, tau: float, env: Env) -> float:
     hit = _KBAR_CACHE.get(key)
     if hit is not None:
         return hit
-    src = from_strength(0.0, 0.0, 0.0, w0, zl, tau, envn)
+    src = from_game_strength(0.0, 0.0, 0.0, w0, zl, tau, envn)
     tr = _traj(src, envn)
     nz = 28
     zs = (np.arange(nz) + 0.5) * zl / nz
@@ -473,9 +485,33 @@ def mean_up_flux(w0: float, zl: float, tau: float, env: Env) -> float:
 
 
 def kbar(zl: float, tau: float, env: Env, w0: float) -> float:
-    """K̄ шаблона, м² (v4): средний по жизни и по столбу 0…zl поток вверх пузыря from_strength(w0, zl, tau), делённый на w0
+    """K̄ шаблона, м² (v5): средний по жизни и по столбу 0…zl поток вверх пузыря from_game_strength(w0, zl, tau), делённый на w0
     (см. mean_up_flux). Поток растёт с силой нелинейно (жизнь и подобие зависят от F0), поэтому w0 — сила типичного случая."""
     return mean_up_flux(w0, zl, tau, env) / w0
+
+
+_BETWEEN_Q: list[float] = [
+    0.0, 0.44752177774714036, 0.6993158433474265,
+    0.8612045799163561, 0.9903752896003891, 1.1005690914326385,
+    1.1955613537459822, 1.2918692699459584, 1.3412936555374746,
+    1.362374318722942, 1.3960947044475158, 1.4115065216280567,
+    1.3845375229406574, 1.3411277867302769, 1.273907268809101,
+    1.1484386629963692, 0.9807275423890559, 0.7836072430932367,
+    0.6236477158461969, 0.365879671545737, 0.0008803591549801406,
+]   # round3/between.py (v5, TB-15): 21 узел ξ = 0…1, среднее по трапециям = 1; --check сверяет
+
+
+def between_q_nodes() -> list[float]:
+    return list(_BETWEEN_Q)
+
+
+def between_q(xi: float) -> float:
+    """v5: профиль «между» q(ξ), ξ = z/z_l ∈ [0, 1], среднее по ξ = 1: средний по жизни поток вверх пузыря
+    from_game_strength (TB-12 на v5, round3/between.py), 21 узел, линейно между узлами; вне [0, 1] — край."""
+    n = len(_BETWEEN_Q) - 1
+    f = min(max(xi, 0.0), 1.0) * n
+    i = min(int(f), n - 1)
+    return float(_BETWEEN_Q[i] + (f - i) * (_BETWEEN_Q[i + 1] - _BETWEEN_Q[i]))
 
 
 # ---------------------------------------------------------------- вклад одного пузыря

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Фикстура встраивания TB-8 (TB4 v2): шаблон v4 — from_strength при разных (w0, zl, tau), State в стадиях жизни,
+"""Фикстура встраивания TB-8 (TB4 v3): шаблон v5 — from_game_strength (F0 из потока) при разных (w0, zl, tau), State в стадиях жизни,
 голова с оболочкой ψ, точки и ожидаемые bubble.velocity.
 
 Пишет out/embed_fixture.json; читает rust/dp-air/tests/thermal_bubble_embed.rs (port_vs_python: velocity — отн. <= 1e-5,
-F0 from_strength — отн. <= 1e-3, state — отн. <= 1e-5). out/bench_fixture.json (v2, для бенча) не трогает.
+F0 from_game_strength — отн. <= 1e-3; между_q — отн. 1e-9; K̄ — отн. 1e-3, state — отн. <= 1e-5). out/bench_fixture.json (v2, для бенча) не трогает.
 Системный python3 + numpy:  python3 tools/research/thermal_bubble/embed_fixture.py
 """
 from __future__ import annotations
@@ -60,7 +60,7 @@ def main() -> int:
     cases, strengths, sources = [], [], []
     for si, (w0, zl, tau, times) in enumerate(SCENES):
         env = bb.Env(zi=zl)
-        src = bb.from_strength(0.0, 0.0, 0.0, w0, zl, tau, env)
+        src = bb.from_game_strength(0.0, 0.0, 0.0, w0, zl, tau, env)
         sources.append({"w0": w0, "zl": zl, "tau": tau, "F0": src.F0, "b0": src.b0, "t_decay": src.t_decay,
                         "zh": src.zh, "t_end": float(bb._traj(src, env).t_end)})
         strengths.append({"w0": w0, "zl": zl, "tau": tau, "F0": src.F0})
@@ -73,13 +73,15 @@ def main() -> int:
     # два пузыря рядом (линейность суммы)
     w0, zl, tau, _ = SCENES[0]
     env = bb.Env(zi=zl)
-    src = bb.from_strength(0.0, 0.0, 0.0, w0, zl, tau, env)
+    src = bb.from_game_strength(0.0, 0.0, 0.0, w0, zl, tau, env)
     a, b = bb.state(src, env, 400.0), bb.state(src, env, 690.0)
     b = dataclasses.replace(b, xs=b.xc + 300.0, xc=b.xc + 300.0, yc=b.yc + 150.0, ys=b.yc + 150.0)
     p = np.concatenate([points_for(a, zl, rng, 40), points_for(b, zl, rng, 40)])
     cases.append({"name": "pair", "scene": 0, "t": 0.0, "zi": zl, "states": [sd(a), sd(b)],
                   "points": p.tolist(), "v": bb.velocity(p, [a, b], env).tolist()})
-    out = {"format": "tb-embed-fixture", "version": 1, "sources": sources, "from_strength": strengths, "cases": cases}
+    kb = [{"zl": zl, "wstar": ws, "tau": 690.0, "kbar": bb.kbar(zl, 690.0, bb.Env(zi=zl), bb.K_ALLEN * ws)}
+          for zl, ws in ((1400.0, 2.5), (1000.0, 1.5), (2000.0, 3.0))]
+    out = {"format": "tb-embed-fixture", "version": 2, "sources": sources, "from_game_strength": strengths, "between_q": bb.between_q_nodes(), "kbar": kb, "cases": cases}
     dest = here / "out" / "embed_fixture.json"
     dest.parent.mkdir(exist_ok=True)
     tmp = dest.with_suffix(".json.tmp")
