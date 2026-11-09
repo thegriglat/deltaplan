@@ -205,6 +205,78 @@
    "variant": "cut"
   },
   {
+   "state": "states/perdigao_ne_d30_cut_adv2_l1.json",
+   "site": "perdigao_ne",
+   "rows": [
+    {
+     "transect": "menke_T1",
+     "present": true,
+     "L_m": 390.0,
+     "depth_m": 15.0,
+     "min_upar_15": -0.7052831246723645,
+     "x_start_s": 2360.0000000000005
+    },
+    {
+     "transect": "menke_T2",
+     "present": true,
+     "L_m": 240.0,
+     "depth_m": 15.0,
+     "min_upar_15": -0.677838111182261,
+     "x_start_s": 2720.0000000000005
+    },
+    {
+     "transect": "menke_T3",
+     "present": false,
+     "L_m": 0.0,
+     "depth_m": 0.0,
+     "min_upar_15": -0.4229633735960484,
+     "x_start_s": null
+    }
+   ],
+   "masts_rmse": 0.12033936848476563,
+   "masts_bias": -0.02731329104423907,
+   "n_masts": 28,
+   "u_scale": 0.9873787412535363,
+   "s_ref_model": 8.903371758682287,
+   "variant": "cut+van Leer"
+  },
+  {
+   "state": "states/perdigao_ne_d30_cut_adv2_l3.json",
+   "site": "perdigao_ne",
+   "rows": [
+    {
+     "transect": "menke_T1",
+     "present": true,
+     "L_m": 450.0,
+     "depth_m": 30.0,
+     "min_upar_15": -0.7687987807593477,
+     "x_start_s": 2360.0000000000005
+    },
+    {
+     "transect": "menke_T2",
+     "present": true,
+     "L_m": 320.0,
+     "depth_m": 30.0,
+     "min_upar_15": -0.7328371890714023,
+     "x_start_s": 2680.0000000000005
+    },
+    {
+     "transect": "menke_T3",
+     "present": false,
+     "L_m": 0.0,
+     "depth_m": 0.0,
+     "min_upar_15": -0.5028754992364711,
+     "x_start_s": null
+    }
+   ],
+   "masts_rmse": 0.11822064513798947,
+   "masts_bias": -0.036564947946653804,
+   "n_masts": 28,
+   "u_scale": 0.9905381609883072,
+   "s_ref_model": 8.874973571163377,
+   "variant": "cut+minmod"
+  },
+  {
    "state": "states/perdigao_sw_d30_adv2_l1.json",
    "site": "perdigao_sw",
    "rows": [
@@ -383,6 +455,78 @@
    "u_scale": 1.0439351946325235,
    "s_ref_model": 8.453015134820017,
    "variant": "cut"
+  },
+  {
+   "state": "states/perdigao_sw_d30_cut_adv2_l1.json",
+   "site": "perdigao_sw",
+   "rows": [
+    {
+     "transect": "menke_T1",
+     "present": false,
+     "L_m": 0.0,
+     "depth_m": 0.0,
+     "min_upar_15": -0.07151377821166816,
+     "x_start_s": null
+    },
+    {
+     "transect": "menke_T2",
+     "present": false,
+     "L_m": 0.0,
+     "depth_m": 0.0,
+     "min_upar_15": -0.2893717882891207,
+     "x_start_s": null
+    },
+    {
+     "transect": "menke_T3",
+     "present": true,
+     "L_m": 240.0,
+     "depth_m": 15.0,
+     "min_upar_15": -0.6666801208752815,
+     "x_start_s": 2410.0
+    }
+   ],
+   "masts_rmse": 0.18294098007496298,
+   "masts_bias": -0.11111908170742715,
+   "n_masts": 25,
+   "u_scale": 0.9941755477396589,
+   "s_ref_model": 8.876098411455613,
+   "variant": "cut+van Leer"
+  },
+  {
+   "state": "states/perdigao_sw_d30_cut_adv2_l3.json",
+   "site": "perdigao_sw",
+   "rows": [
+    {
+     "transect": "menke_T1",
+     "present": false,
+     "L_m": 0.0,
+     "depth_m": 0.0,
+     "min_upar_15": -0.15029749621143076,
+     "x_start_s": null
+    },
+    {
+     "transect": "menke_T2",
+     "present": false,
+     "L_m": 0.0,
+     "depth_m": 0.0,
+     "min_upar_15": -0.3785824038349566,
+     "x_start_s": null
+    },
+    {
+     "transect": "menke_T3",
+     "present": true,
+     "L_m": 200.0,
+     "depth_m": 15.0,
+     "min_upar_15": -0.6395852251467201,
+     "x_start_s": 2410.0
+    }
+   ],
+   "masts_rmse": 0.1889959880859713,
+   "masts_bias": -0.12172574076737376,
+   "n_masts": 25,
+   "u_scale": 0.9991907826994108,
+   "s_ref_model": 8.831546640332318,
+   "variant": "cut+minmod"
   }
  ]
 }

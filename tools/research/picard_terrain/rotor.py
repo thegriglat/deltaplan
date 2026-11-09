@@ -118,7 +118,7 @@ def sample_probes(F):
 def source_rows():
     """state -> строка задачи-источника (PT-1..PT-4)."""
     m = {}
-    for f in sorted(glob.glob(str(HERE / "out/PT-[1-4]/rows.jsonl"))):
+    for f in sorted(glob.glob(str(HERE / "out/PT-[1-4]/rows*.jsonl")) + [str(OUT / "src_pt4_combo.jsonl")]):
         for line in open(f):
             if line.strip():
                 r = json.loads(line)
