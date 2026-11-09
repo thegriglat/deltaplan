@@ -154,8 +154,14 @@ fn cheap_configs() -> Configs {
     Configs::new(files)
 }
 
-#[test]
-fn field_path_gets_relief_and_mixing_layer() {
+struct Rig {
+    pl: dp_air::Place,
+    fs: FieldSet,
+    terms: std::sync::Arc<dp_air::terms::Terms>,
+    cfgs: Configs,
+}
+
+fn rig() -> Rig {
     let cfgs = cheap_configs();
     let pl = read_place(&repo().join("tests/fixtures/wind/places/ongudai.json")).unwrap();
     // сильный ветер с запада: подветренная сторона — к востоку от гребней
@@ -188,14 +194,97 @@ fn field_path_gets_relief_and_mixing_layer() {
     let lim = Limits::default();
     let mut fs = FieldSet::new(lim, 5.0);
     fs.set_levels(FieldSet::prepare(sf.levels, lim, 5.0), 0.0);
-    let terms = m.terms_snapshot();
-    let ft = FieldTurb::new(&cfgs, 1);
+    Rig {
+        pl,
+        fs,
+        terms: m.terms_snapshot(),
+        cfgs,
+    }
+}
+
+impl Rig {
+    fn ctx(&self, p: [f32; 3], g: f32) -> Option<Ctx<'_>> {
+        let v = self.fs.sample(p, g);
+        if v.share < 1.0 {
+            return None; // только путь с полем: a = 1
+        }
+        let agl = f64::from(p[1] - g);
+        Some(Ctx {
+            pos: p,
+            ground: g,
+            agl,
+            t: 0.0,
+            mode: SampleMode::Mean,
+            a: v.share,
+            fw: v.v,
+            u: self.terms.wind.speed_at_pos(agl, f64::from(p[1])),
+            terms: &self.terms,
+            fs: &self.fs,
+            place: &self.pl,
+        })
+    }
+}
+
+/// Замер: слот `Turb` (mean + sigma = два `state`) на точках пути с поля, мкс на точку, медиана
+/// из 7 повторов. `cargo test --release -p dp-air --test lee_turb_ltm timing -- --ignored --nocapture`.
+#[test]
+#[ignore]
+fn timing_turb_slot_per_point() {
+    use dp_air::terms::Turb;
+    use dp_air::terms::Mid;
+    let r = rig();
+    let ft = FieldTurb::new(&r.cfgs, 1);
+    let mut pts = Vec::new();
+    for ix in -40..=40 {
+        for iz in -40..=40 {
+            let (x, z) = (60.0 * ix as f32, 60.0 * iz as f32);
+            let g = ground_height(&r.pl, x, z);
+            for agl in [8.0f32, 25.0, 60.0, 150.0] {
+                pts.push([x, g + agl, z, g]);
+            }
+        }
+    }
+    let run = || {
+        let mut acc = 0.0;
+        let mut n = 0usize;
+        let t0 = Instant::now();
+        for q in &pts {
+            let Some(c) = r.ctx([q[0], q[1], q[2]], q[3]) else {
+                continue;
+            };
+            let tm = ft.mean(&c, None);
+            let mid = Mid {
+                v: c.fw.map(f64::from),
+                analytic: None,
+                turb: tm,
+                thermal: None,
+                extra: None,
+            };
+            if let Some(o) = ft.sigma(&c, &mid) {
+                acc += o.s_w;
+            }
+            n += 1;
+        }
+        std::hint::black_box(acc);
+        (t0.elapsed().as_secs_f64() * 1.0e6 / n as f64, n)
+    };
+    run();
+    let mut v: Vec<f64> = (0..7).map(|_| run().0).collect();
+    v.sort_by(|a, b| a.partial_cmp(b).unwrap());
+    println!("TIMING мкс/точку: медиана {:.2}, min {:.2}, max {:.2}, точек {}", v[3], v[0], v[6], run().1);
+}
+
+#[test]
+fn field_path_gets_relief_and_mixing_layer() {
+    let r = rig();
+    let (pl, fs, terms, cfgs) = (&r.pl, &r.fs, &r.terms, &r.cfgs);
+    let ft = FieldTurb::new(cfgs, 1);
     let (mut n_lee, mut n_r, mut n_du, mut n_wsep) = (0, 0, 0, 0);
     let mut worst = (f64::MAX, 0.0);
     for ix in -40..=40 {
         for iz in -40..=40 {
             let (x, z) = (60.0 * ix as f32, 60.0 * iz as f32);
-            let g = ground_height(&pl, x, z);
+            let g = ground_height(pl, x, z);
             for agl in [8.0f32, 25.0, 60.0] {
                 let p = [x, g + agl, z];
                 let v = fs.sample(p, g);
@@ -211,9 +300,9 @@ fn field_path_gets_relief_and_mixing_layer() {
                     a: v.share,
                     fw: v.v,
                     u: terms.wind.speed_at_pos(f64::from(agl), f64::from(p[1])),
-                    terms: &terms,
-                    fs: &fs,
-                    place: &pl,
+                    terms,
+                    fs,
+                    place: pl,
                 };
                 // аналитика при a ≥ 1 не вызывается: am = None, как на пути с полем
                 let st = ft.state(&ctx, None);

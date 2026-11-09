@@ -3,13 +3,12 @@
 # ветки (LTM v1). Временная отсоединённая копия: ветки и коммиты в чужие ветки не создаются.
 # Последняя строка вывода — «PT lee tests: <N> failed» (N из итога run_tests «M тестов, N упало»).
 # Запуск из копии задачи: sh tools/research/lee_turb/pt_check/run.sh   (HEAD с коммитом изменений)
-# Переменные: PT_BASE (по умолчанию feature/picard-terrain), PT_FILTER (по умолчанию lee),
+# Переменные: PT_BASE (по умолчанию feature/picard-terrain), PT_FILTER (фильтры через запятую),
 # PT_KEEP=1 — не удалять копию (для разбора).
 set -u
 root=$(git rev-parse --show-toplevel)
 cd "$root" || exit 2
 base=${PT_BASE:-feature/picard-terrain}
-filter=${PT_FILTER:-lee}
 name=$(basename "$root")
 tmp=$(mktemp -d "${TMPDIR:-/tmp}/pt-lee-XXXXXX")
 # стабильный путь копии — кеш cargo не пересобирает крейты рабочей области на каждый запуск
@@ -39,10 +38,31 @@ mkdir -p "$wt/addons/dp_air/bin"
 cp "$CARGO_TARGET_DIR/tune/libdp_gd.so" "$wt/addons/dp_air/bin/libdp_air_tune.so" || fail "copy so"
 mkdir -p "$xdg"
 (cd "$wt" && XDG_DATA_HOME="$xdg" godot --headless --path . --import >/dev/null 2>&1)
+# что гоняем: ridge_starts (все старты, --ridge-full), test_atmosphere*, lee (test_lee_rotor) —
+# решения picard-terrain Q2 и PT-14 P2; PT_FILTER (через запятую) заменяет набор фильтров без --ridge-full
+n=0
 out="$tmp/tests.log"
-(cd "$wt" && XDG_DATA_HOME="$(mktemp -d)" godot --headless --path . res://tests/run_tests.tscn -- --filter="$filter") >"$out" 2>&1
+: >"$out"
+run_one() { # фильтр [доп. аргументы]
+	flt=$1
+	shift
+	(cd "$wt" && XDG_DATA_HOME="$(mktemp -d)" godot --headless --path . res://tests/run_tests.tscn -- --filter="$flt" "$@") >"$tmp/one.log" 2>&1
+	cat "$tmp/one.log" >>"$out"
+	k=$(grep -Eo "[0-9]+ тестов, [0-9]+ упало" "$tmp/one.log" | tail -1 | sed -E 's/.*, ([0-9]+) упало/\1/')
+	if [ -z "$k" ]; then
+		echo "PT lee tests: ERROR no summary ($flt)"
+		cleanup
+		exit 1
+	fi
+	n=$((n + k))
+}
+if [ -n "${PT_FILTER:-}" ]; then
+	for f in $(echo "$PT_FILTER" | tr , ' '); do run_one "$f"; done
+else
+	run_one ridge_starts --ridge-full
+	run_one test_atmosphere
+	run_one lee
+fi
 grep -A3 "  FAIL" "$out" | head -60
-n=$(grep -Eo "[0-9]+ тестов, [0-9]+ упало" "$out" | tail -1 | sed -E 's/.*, ([0-9]+) упало/\1/')
 cleanup
-[ -n "$n" ] || { echo "PT lee tests: ERROR no summary"; exit 1; }
 echo "PT lee tests: $n failed"

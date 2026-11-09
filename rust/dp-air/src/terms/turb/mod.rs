@@ -117,7 +117,7 @@ impl FieldTurb {
         // превышение гребня: из аналитики (RW-9), иначе опросом земли против ветра, как у неё
         // (LTM v1 п.1; на пути с полем a ≥ 1 аналитика не считается)
         if relief < 0.0 {
-            relief = crate::terms::analytic::relief_at(c).max(0.0);
+            relief = relief_cached(c);
         }
         let w_sep = sep::wall_shear_off(cfg, lee_f, relief, c.agl, c.fs.sample_dx(c.pos));
         let mut u_h = uf;
@@ -159,6 +159,32 @@ impl FieldTurb {
         }
         0.0
     }
+}
+
+thread_local! {
+    static RELIEF_LAST: Cell<Option<([u32; 4], usize, f64)>> = const { Cell::new(None) };
+}
+
+/// `relief_at` с запоминанием последней точки на поток: `mean` и `sigma` слота зовут `state` в одной
+/// и той же точке подряд, а опрос земли (6 шагов против ветра) дорог. Ключ — точка, время и
+/// слагаемые (ветер); другая точка или публикация слагаемых — пересчёт.
+fn relief_cached(c: &Ctx) -> f64 {
+    let key = [
+        c.pos[0].to_bits(),
+        c.pos[1].to_bits(),
+        c.pos[2].to_bits(),
+        (c.t as f32).to_bits(),
+    ];
+    let id = c.terms as *const _ as usize;
+    if let Some((k, i, r)) = RELIEF_LAST.with(Cell::get)
+        && k == key
+        && i == id
+    {
+        return r;
+    }
+    let r = crate::terms::analytic::relief_at(c).max(0.0);
+    RELIEF_LAST.with(|x| x.set(Some((key, id, r))));
+    r
 }
 
 thread_local! {
