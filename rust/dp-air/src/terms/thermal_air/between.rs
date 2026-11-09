@@ -10,7 +10,9 @@ impl super::AirThermals {
         if share <= 0.0 {
             return r;
         }
-        let between = fw - share * self.expected_net(p);
+        // избыток потока шаблона над w_conv (под крышкой, TB-12) не делает «между» отрицательным: вычитаем не больше
+        // max(w_conv, 0); настоящее опускание поля (w_conv < 0) остаётся как есть
+        let between = fw - (share * self.expected_net(p)).min(fw.max(0.0));
         let m = r[1];
         [r[0] + (1.0 - m) * between, m + (1.0 - m) * share, r[2]]
     }

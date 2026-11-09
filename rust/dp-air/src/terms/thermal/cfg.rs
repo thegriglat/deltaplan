@@ -55,6 +55,9 @@ pub struct ThermalCfg {
     /// `clouds.sun_elevation_deg`, `clouds.sun_azimuth_deg`: солнце «по умолчанию».
     pub sun_elevation_deg: f64,
     pub sun_azimuth_deg: f64,
+    /// `thermal.bubble_radius_m`: таблицы пузырей строятся для динамических термиков, чей круг влияния задевает круг
+    /// этого радиуса вокруг фокуса; дальше — профиль Гедеона (TB4 v3: шаблон в игре всегда, флага нет).
+    pub bubble_radius_m: f64,
 }
 
 impl Default for ThermalCfg {
@@ -103,6 +106,7 @@ impl Default for ThermalCfg {
             edge_width: 0.45,
             sun_elevation_deg: 52.0,
             sun_azimuth_deg: 200.0,
+            bubble_radius_m: 2000.0,
         }
     }
 }
@@ -174,6 +178,7 @@ impl ThermalCfg {
             edge_width: g("/turbulence/edge_width", d.edge_width),
             sun_elevation_deg: g("/clouds/sun_elevation_deg", d.sun_elevation_deg),
             sun_azimuth_deg: g("/clouds/sun_azimuth_deg", d.sun_azimuth_deg),
+            bubble_radius_m: g("/thermal/bubble_radius_m", d.bubble_radius_m),
         }
     }
 

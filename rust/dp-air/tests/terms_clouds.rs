@@ -101,12 +101,17 @@ struct Tol {
     act: f64,
 }
 
-/// Допуск растра против GD: `f32`-шум арифметики; поле построено теми же формулами.
+/// Допуск растра против GD. С TB-15 (шаблон пузыря по умолчанию) источники облаков — `AirThermals` с K̄ и q(ξ)
+/// шаблона, а не профиля Гедеона, как у дампа GD: поток ядер (`carried`) выше в ≈ 1,9–3,7 раза, и облака получаются
+/// другие (в дампе GD источники старой модели). Точное совпадение (прежние 1e-6) невозможно; допуск — «поле того же
+/// порядка и на месте»: покрытие в пределах 0,4 (шкала 0…1), глубина — 1500 м, стадия — 4, активность — 1; плюс
+/// проверка присутствия облаков в `cmp_snap` (покрытие есть там же, где у GD, не меньше чем наполовину). Остальные
+/// проверки — фон, база и время — прежние, точные.
 const TOL: Tol = Tol {
-    cover: 1.0e-6,
-    depth: 1.0e-3,
-    stage: 1.0e-6,
-    act: 1.0e-6,
+    cover: 0.4,
+    depth: 1500.0,
+    stage: 4.0,
+    act: 1.0,
 };
 
 fn cmp_snap(r: &Ref, name: &str, cf: &CloudField, tol: &Tol) -> [f64; 4] {
@@ -128,11 +133,21 @@ fn cmp_snap(r: &Ref, name: &str, cf: &CloudField, tol: &Tol) -> [f64; 4] {
         cf.base_msl - sc[2],
         cf.time - sc[3]
     );
+    // присутствие облаков: суммарное покрытие нового поля не меньше половины и не больше удвоенного покрытия GD
+    let (mine, gd): (f64, f64) = (
+        cf.cover.iter().map(|x| f64::from(*x)).sum(),
+        r.f32s(&format!("{name}.cover")).iter().map(|x| f64::from(*x)).sum(),
+    );
+    if gd > 1.0 {
+        eprintln!("    {name}: сумма покрытия {mine:.1} против GD {gd:.1}");
+        assert!(mine >= 0.5 * gd && mine <= 2.0 * gd, "{name}: покрытие {mine} против GD {gd}");
+    }
     assert!(d[0] <= tol.cover, "{name}: cover {:.3e}", d[0]);
     assert!(d[1] <= tol.depth, "{name}: depth {:.3e}", d[1]);
     assert!(d[2] <= tol.stage, "{name}: stage {:.3e}", d[2]);
     assert!(d[3] <= tol.act, "{name}: activity {:.3e}", d[3]);
-    assert!((cf.bg_cover - sc[0]).abs() < 1.0e-3 && (cf.bg_depth - sc[1]).abs() < 2.0);
+    // фон (средние покрытие и глубина) зависит от потока ядер: TB-15, допуск 0,02 и 250 м (прежние 1e-3 и 2 м)
+    assert!((cf.bg_cover - sc[0]).abs() < 0.02 && (cf.bg_depth - sc[1]).abs() < 250.0);
     assert_eq!(cf.base_msl, sc[2], "{name}: base");
     assert_eq!(cf.time, sc[3], "{name}: time");
     d
@@ -393,9 +408,10 @@ fn ongudai_sample_density_shade_vs_gd() {
     }
     eprintln!("sample {ds:.2e} density {dd:.2e} shade {dh:.2e}, точек в облаке {n_cov}");
     assert!(n_cov > 5, "в выборке есть облако");
-    assert!(ds < 1.0e-3, "sample {ds}");
-    assert!(dd < 1.0e-6, "density {dd}");
-    assert!(dh < 1.0e-6, "shade {dh}");
+    // TB-15: поле другое (источники — шаблон пузыря), поэтому точечные значения не совпадают с GD; проверяем
+    // присутствие и допустимые диапазоны, расхождения — в строке выше
+    assert!(ds.is_finite() && dd.is_finite() && dh.is_finite());
+    assert!(dd <= 1.5 && dh <= 1.0, "density {dd} shade {dh}");
 }
 
 // ================================================================ против GD: синтетика
@@ -602,7 +618,13 @@ fn physics_suck_vs_gd() {
     }
     eprintln!("suck: {worst:.2e}, термиков с подсосом {n_boost}");
     assert!(n_boost >= 2, "в выборке есть подсос и по полю, и по Cb");
-    assert!(worst < 1.0e-4, "suck {worst}");
+    // TB-15: поле облаков другое (источники — шаблон пузыря), подсос по полю GD-дампа не совпадает; присутствие
+    // (n_boost) и допустимые значения: усиление ≥ 0, высота потока в облаке 0…5000 м
+    assert!(worst.is_finite());
+    for th in &all {
+        let s = ph.suck(th, t);
+        assert!(s[0] >= 0.0 && s[0] <= 10.0 && s[1] >= 0.0 && s[1] <= 5000.0, "suck {s:?}");
+    }
 }
 
 #[test]
@@ -624,21 +646,21 @@ fn physics_sample_density_visible_vs_gd() {
     }
     eprintln!("ph sample {ds:.2e} density {dd:.2e}, в облаке {inside}");
     assert!(inside > 20);
-    assert!(ds < 1.0e-5 && dd < 1.0e-5);
+    // TB-15: поле облаков другое — только допустимые значения (плотность ≤ 1,5), расхождения в строке выше
+    assert!(ds.is_finite() && dd <= 1.5);
     let vc = r.f32s("ph_visible");
     let mine = ph.visible_clouds(&all, t, [0.0; 3]);
     assert_eq!(mine.len() * 5, vc.len(), "число облаков поля");
     assert!(!mine.is_empty());
+    // TB-15: облака другого поля (источники — шаблон пузыря): положение и размеры не совпадают с дампом GD; число облаков
+    // то же, значения конечны, радиус и скорости роста/распада положительны, центры — в пределах 3 км от центров GD
     for (i, m) in mine.iter().enumerate() {
         let g = &vc[i * 5..i * 5 + 5];
+        assert!(m.radius.is_finite() && m.radius > 0.0, "radius");
+        assert!(m.growth.is_finite() && m.decay.is_finite());
         assert!(
-            (m.center[0] - f64::from(g[0])).abs() < 1.0e-3
-                && (m.center[1] - f64::from(g[1])).abs() < 1.0e-3
-        );
-        assert!((m.radius - f64::from(g[2])).abs() < 1.0e-2, "radius");
-        assert!(
-            (m.growth - f64::from(g[3])).abs() < 1.0e-5
-                && (m.decay - f64::from(g[4])).abs() < 1.0e-5
+            (m.center[0] - f64::from(g[0])).abs() < 3000.0
+                && (m.center[1] - f64::from(g[1])).abs() < 3000.0
         );
     }
 }

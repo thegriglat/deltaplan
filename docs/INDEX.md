@@ -154,6 +154,11 @@ generated: true
   - [tools/research/sw_charges_3d/refs/summary.md](../tools/research/sw_charges_3d/refs/summary.md) — SWD-1: итог эталонов 3D — Пикар nom/adv1 против мачт Askervein и Perdigão, ротор; границы эталонов.
 - **wind-forecast** — Ветер меню — как в прогнозе (10 м над открытой местностью): убрать подгонку под старт и два прохода k; показ «на старте X м/с». [closed 2026-11-08] — [план](plan/wind-forecast.md) · [контракты](contracts/wind-forecast.md) · [решения](plan/wind-forecast/decisions.md) · [сводка](plan/wind-forecast/summary.md) · полный журнал: `archive/wind-forecast`
   - [tools/research/wind_forecast/README.md](../tools/research/wind_forecast/README.md) — Аудит привязки ветра к старту: места файл:строка, U над стартом start/inflow на 8 стартах, загрузка, кеш, wind_ref.
+- **outflow-bc** — Исследование: мягкий выход против жёсткого (U_b × c) на боковых гранях области — сходимость Пикара в слабый ветер. [closed 2026-11-09] — [план](plan/outflow-bc.md) · [контракты](contracts/outflow-bc.md) · [решения](plan/outflow-bc/decisions.md) · [сводка](plan/outflow-bc/summary.md) · полный журнал: `archive/outflow-bc`
+  - [docs/research/outflow_bc.md](research/outflow_bc.md) — Мягкий выход Пикара на слабом ветре почти не помогает (+5 из 180, p=0,40), поле внутри меняется; граница игры — hard. [closed]
+  - [tools/research/outflow_bc/README.md](../tools/research/outflow_bc/README.md) — Стенд корпуса outflow-bc: пример dp-air outflow_corpus (hard/soft/soft_ns, область 400 м), записи OB2, резы OB3, оценка времени
+  - [tools/research/outflow_bc/stopfit/README.md](../tools/research/outflow_bc/stopfit/README.md) — OBC-5: критерий остановки (г) п. 9 — подгонка асимптоты log r = log(r_inf + A·rho^k) по res_hist 720 записей OBC-3; без новых прогонов
+  - [tools/research/outflow_bc/stopfit/summary.md](../tools/research/outflow_bc/stopfit/summary.md) — OBC-5: краткий вывод по критерию остановки (г) на историях невязок OBC-3
 - **picard-terrain** — Мелкий рельеф в Пикар на той же сетке: срезанные клетки и ограниченный 2-й порядок; разгон Askervein/Каянча, ротор Perdigão. [active 2026-11-09] — [план](plan/picard-terrain.md) · [контракты](contracts/picard-terrain.md)
   - [docs/research/picard_terrain.md](research/picard_terrain.md) — picard-terrain: срезанные клетки и 2-й порядок в Пикаре (сетка 50/100 м) — возврат разгона, цена, ротор Perdigão, варианты. [closed]
   - [docs/research/picard_terrain_game.md](research/picard_terrain_game.md) — picard-terrain, этап 2: карта пути срезанных клеток в поле игры (dp-air) и разбиение встраивания PT-9…PT-12.
@@ -185,6 +190,10 @@ generated: true
   - [tools/research/sw_ground/sheet/summary.md](../tools/research/sw_ground/sheet/summary.md) — SWG-7 вывод: вихревой лист над зоной снижает завышение лее с верным знаком, но мало; не встраивать, дальше — зона и толщина слоя.
   - [tools/research/sw_ground/timing/summary.md](../tools/research/sw_ground/timing/summary.md) — SWG-3: панели 3D на окнах игры 100/50 м медленнее Пикара крейта в 14–40 раз (8 потоков, tol 5); узкое место — опрос поля в FP64.
   - [tools/research/sw_ground/zone/summary.md](../tools/research/sw_ground/zone/summary.md) — SWG-8 вывод: скорость зоны и слой смешения снимают ошибку под оболочкой, но доля лее в ±15 % 0,08–0,17; дальше — высота зоны.
+- **thermal-bubble** — Термик как всплывающий пузырь-вихревое кольцо: шаблон в системе пузыря + снос, масса сохраняется; проверка идеи прототипом. [closed 2026-11-10] — [план](plan/thermal-bubble.md) · [контракты](contracts/thermal-bubble.md) · [решения](plan/thermal-bubble/decisions.md) · [сводка](plan/thermal-bubble/summary.md) · полный журнал: `archive/thermal-bubble`
+  - [docs/research/thermal_bubble.md](research/thermal_bubble.md) — thermal-bubble: шаблон пузыря замкнут по массе, даёт приток; круг 2 — ядро по измерениям, dp-air за флагом (37 мс/с), границы. [closed]
+  - [docs/research/thermal_bubble_round3.md](research/thermal_bubble_round3.md) — thermal-bubble, круг 3: шаблон пузыря v5 по умолчанию, F0 из потока, рельеф, замер в игре flight_r4, границы. [closed]
+  - [tools/research/thermal_bubble/README.md](../tools/research/thermal_bubble/README.md) — thermal-bubble: шаблон термика v3 (Хилл со сглаженным краем, шлейф Тёрнера, ядро по измерениям): формулы, числа, допущения.
 
 ## flight
 

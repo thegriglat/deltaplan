@@ -104,8 +104,15 @@ pub fn sum(
         let bg_sink = terms.weather.f64_or("background_sink_ms", 0.0);
         let w_th = fade * (bg_sink * (1.0 - t.mask) + t.w);
         v[1] += w_th;
+        // горизонталь шаблона пузыря — без `fade` у земли (TB4 v4): приток у земли — сама физика шаблона, земля в нём
+        // отражение; w термика — с `fade`, как прежде (рельеф ≠ плоскость источника)
+        let (hx, hz) = (t.uh[0], t.uh[1]);
+        if hx != 0.0 || hz != 0.0 {
+            v[0] += hx;
+            v[2] += hz;
+        }
         if let Some(r) = rec.as_deref_mut() {
-            r.add(T_THERMAL, [0.0, w_th, 0.0]);
+            r.add(T_THERMAL, [hx, w_th, hz]);
         }
     }
     let ex = s.extra.flow(&c, v);

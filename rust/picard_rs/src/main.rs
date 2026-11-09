@@ -3,7 +3,7 @@
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 use picard_rs::adv2::Limiter;
-use picard_rs::api::{self, SolveOpts};
+use picard_rs::api::{self, Outflow, SolveOpts};
 use picard_rs::blocks::check_case;
 use picard_rs::case::{Case, Consts};
 use picard_rs::report::{
@@ -66,6 +66,9 @@ enum Cmd {
         /// PT2: cut cells (sets `params.cut_cells = true`; the case must carry `vf`, `af_*`).
         #[arg(long)]
         cut_cells: bool,
+        /// Outflow condition on the lateral faces of type 2: `hard` (default) or `soft` (OB1).
+        #[arg(long, value_enum, default_value_t = OutflowArg::Hard)]
+        outflow: OutflowArg,
     },
     /// Print the code branch (multiversion dispatch) selected on this CPU.
     Isa,
@@ -109,6 +112,12 @@ enum Cmd {
     },
 }
 
+#[derive(Clone, Copy, clap::ValueEnum)]
+enum OutflowArg {
+    Hard,
+    Soft,
+}
+
 /// Command line options of `solve` beyond the case, threads and output.
 struct SolveArgs {
     max_iters: usize,
@@ -119,6 +128,7 @@ struct SolveArgs {
     snap_dir: Option<PathBuf>,
     save_state: Option<PathBuf>,
     diag: bool,
+    outflow: Outflow,
 }
 
 /// Solve `c` to its criterion on a pool of `threads`, print one line and write the R2 result.
@@ -136,6 +146,7 @@ fn solve_case(c: &Case, threads: usize, out: Option<PathBuf>, a: &SolveArgs) -> 
             time_budget: a.time_budget.map(Duration::from_secs_f64),
             init: a.init.as_deref().map(State::read).transpose()?,
             snapshot_at: a.snap_at.clone(),
+            outflow: a.outflow,
             ..SolveOpts::default()
         },
     )?;
@@ -164,7 +175,7 @@ fn solve_case(c: &Case, threads: usize, out: Option<PathBuf>, a: &SolveArgs) -> 
         snapshots: snap_paths,
         residuals: *r.history.last().expect("history ends with a check"),
     };
-    let doc = result_json(
+    let mut doc = result_json(
         c,
         threads,
         o.status,
@@ -177,6 +188,12 @@ fn solve_case(c: &Case, threads: usize, out: Option<PathBuf>, a: &SolveArgs) -> 
     let path = out.unwrap_or_else(|| {
         PathBuf::from(format!("out/{}_{}_t{}.json", c.name, profile(), threads))
     });
+    if let Some(d) = &r.outflow {
+        doc["outflow"] = serde_json::json!({
+            "faces_out": d.faces_out, "flux_in": d.flux_in,
+            "flux_net_max_rel": d.flux_net_max_rel, "backflow_faces": d.backflow_faces,
+        });
+    }
     write_atomic(&path, &doc)?;
     print!("{dtab}");
     println!(
@@ -362,6 +379,7 @@ fn main() -> Result<()> {
             save_state,
             adv2,
             cut_cells,
+            outflow,
         } => {
             let mut c = Case::load(&case)?;
             if cut_cells {
@@ -377,6 +395,10 @@ fn main() -> Result<()> {
                 snap_dir,
                 save_state,
                 diag,
+                outflow: match outflow {
+                    OutflowArg::Hard => Outflow::Hard,
+                    OutflowArg::Soft => Outflow::Soft,
+                },
             };
             solve_case(&c, threads, out, &a)?;
         }
@@ -408,6 +430,7 @@ fn main() -> Result<()> {
                         snap_dir: None,
                         save_state: None,
                         diag: false,
+                        outflow: Outflow::Hard,
                     };
                     solve_case(&c, n, Some(path), &a)?;
                     continue;
