@@ -86,6 +86,9 @@ pub struct PhaseCase<'a> {
     /// Скалярный `z_i` (м над морем; `NaN` — нет конвекции).
     pub z_i: f64,
     pub hc: &'a [f64],
+    /// Граница воздуха (PT7 v1, `AirCaseRs::hc_type`; без долей — `hc`). Только плумбинг: логику
+    /// фаз («воздух» = по ней) меняет PT-10.
+    pub hc_type: &'a [f64],
     /// dθ̄/dz в центрах `nz + 2` уровней.
     pub gam: &'a [f64],
     /// Поток тепла эталона, Вт/м² (пусто — нет нагрева).
@@ -106,6 +109,8 @@ pub struct PhaseCase<'a> {
 #[derive(Clone, Debug, Default)]
 pub struct Columns {
     pub hc: Vec<f64>,
+    /// Граница воздуха (PT7 v1) столбцов.
+    pub hc_type: Vec<f64>,
     /// Огибающая срыва `h_eff`.
     pub heff: Vec<f64>,
     /// Эффективный рельеф `T = max(h_eff, H_c)` (при слоях D) для линейной теории.
@@ -418,6 +423,7 @@ pub fn prepare(c: &PhaseCase, cfg: &PhaseCfg) -> Result<Prepared, String> {
     }
     let col_ok = |a: &[f64]| a.len() == n2;
     if !col_ok(c.hc)
+        || !col_ok(c.hc_type)
         || c.gam.len() != c.nz + 2
         || !col_ok(c.heat_used)
         || !col_ok(c.h_bl)
@@ -624,6 +630,7 @@ pub fn prepare(c: &PhaseCase, cfg: &PhaseCfg) -> Result<Prepared, String> {
     };
     let cols = Columns {
         hc: hc.to_vec(),
+        hc_type: c.hc_type.to_vec(),
         heff,
         t,
         s,

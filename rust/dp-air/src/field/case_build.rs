@@ -16,6 +16,8 @@
 //! `sp_u`, `sp_w`, `spc` — губки; `nu_bg` — K_b (Троен–Март / Холтслаг–Бовилль по столбцу); `Q`;
 //! `Kx`, `Ky`, `Kz` — проводимости проекции SIMPLEC; `fixed_u/v` и `b_u/v` — значения и индексы
 //! граней типа 2; `gam`, `cplz` — уровни; `lam` — плоскость λ; `hc` — рельеф без ореола.
+//! С долями (`PreparedPlanes::cut`, PT7 v1) в `Case` идут `vf`, `af_u/v/w` и `params.cut_cells`;
+//! без них — обычная итерация R1 (путь тестов-дампов).
 //! Арифметика — `f32` в порядке GLSL (`powf` вместо GPU-`pow`, без явного fma): на тех же входах
 //! совпадает с буферами эталона до последнего знака там, где нет `pow`/`sqrt`, иначе — единицы ulp
 //! (достигнутое — `tests/case_build.rs`).
@@ -450,6 +452,23 @@ pub fn build_solver_case(
     put("fixed_v", fixed_v);
     put("b_u", b_u);
     put("b_v", b_v);
+    // срезанные клетки PT2: доли уровня (PT-9); без них — обычная итерация R1 (тесты-дампы)
+    let cut_cells = if let Some(cut) = &planes.cut {
+        let f = &cut.0;
+        if [f.vf.len(), f.af_u.len(), f.af_v.len(), f.af_w.len()]
+            .iter()
+            .any(|&l| l != n3)
+        {
+            return Err(bad("cut fractions size"));
+        }
+        put("vf", f.vf.clone());
+        put("af_u", f.af_u.clone());
+        put("af_v", f.af_v.clone());
+        put("af_w", f.af_w.clone());
+        true
+    } else {
+        false
+    };
 
     let params = Params {
         tau_cool: p.tau_cool,
@@ -467,7 +486,7 @@ pub fn build_solver_case(
         cs_h: p.cs_h,
         adv2: false,
         limiter: 0,
-        cut_cells: false,
+        cut_cells,
     };
     Case::from_parts(CaseParts {
         name: "game".to_string(),

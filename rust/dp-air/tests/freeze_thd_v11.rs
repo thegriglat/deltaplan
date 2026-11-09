@@ -106,6 +106,7 @@ impl Case {
             u10: self.s("u10"),
             z_i: self.s("z_i"),
             hc: &self.hc,
+            hc_type: &self.hc,
             gam: &self.gam,
             heat: &self.heat,
             heat_used: &self.heat_used,
