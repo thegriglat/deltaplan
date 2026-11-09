@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-11-09"
 summary: "Стыки thermal-bubble: шаблон пузыря bubble.py (TB1), профиль для сверки (TB2), сводки (TB3), шаблон в dp-air за флагом (TB4)."
 related: ["docs/plan/thermal-bubble.md", "docs/guide/air-model/thermals.md"]
-contracts: [{"id": "TB1", "version": 5}, {"id": "TB2", "version": 1}, {"id": "TB3", "version": 2}, {"id": "TB4", "version": 4}, {"id": "TB5", "version": 3}]
+contracts: [{"id": "TB1", "version": 5}, {"id": "TB2", "version": 1}, {"id": "TB3", "version": 2}, {"id": "TB4", "version": 5}, {"id": "TB5", "version": 3}]
 ---
 # Контракты модуля thermal-bubble
 
@@ -165,7 +165,7 @@ v2: `les.json` (пишет TB-6; читатели — сверка и итог) 
 "reliability": "high"|"medium"|"low"}`; обязательные quantity: `inflow_ground_over_wstar`, `outflow_top_over_wstar`,
 `ring_sink_min_over_wstar`, `rise_speed_over_wstar`. Нет числа — null и причина в note.
 
-## TB4 v4 — шаблон пузыря в `dp-air` (по умолчанию с круга 3)
+## TB4 v5 — шаблон пузыря в `dp-air` (по умолчанию с круга 3)
 Владелец — координатор; пишут TB-7 (инфраструктура, порт TB1 v2), TB-8 (порт TB1 v3, K̄); потребители — сумма ветра
 (`rust/dp-air/src/terms/sum.rs`), «между» (`terms/thermal_air`, TB-8). В игру по умолчанию не включается (Q1 п. 2).
 
@@ -242,6 +242,16 @@ v2: `les.json` (пишет TB-6; читатели — сверка и итог) 
   расхождение с наклонной осью игры у земли = lean·(zc − z), граница модели.
 - Тест `bubble_on_core_axis`: на сцене бюджета для термиков с таблицей на высоте головы максимум |w| в круге 2R вокруг
   `cores`-оси — не дальше 0,25 R от неё (медиана по термикам), печать `core_axis_dx_over_r=`.
+
+**TB4 v5 (рельеф у земли, TB-18, 2026-11-09; пишет TB-20):**
+- Высота опроса таблицы пузыря у земли — над локальной землёй: h_src = y − src[1], agl = высота над рельефом в точке опроса
+  (та же, что для `fade` в `sum.rs`); s = smoothstep((agl − 60)/60) на [0, 1]; `high_eff = (1 − s)·agl + s·h_src` при
+  agl < 120 м, иначе h_src. Ниже плоскости источника (h_src < 0) при agl < 120 м вклад есть (по agl), а не 0.
+  Горизонтальный центр и остальное — как в v4. Бездивергентность в слое 60–120 м и у склонов не точная — граница модели.
+- Тесты: `bubble_terrain_inflow` (синтетический склон 20° и холм; кольца 1–2 R ядра на 10 м над рельефом, как в TB-16/TB-18;
+  печать `terrain_zero_frac=` — доля ядер с |ur| < 0,01 м/с, `terrain_median_ur=`), `bubble_agl_blend_smooth` (вертикали
+  через склон, шаг 1 м, agl 0…200 м: печать `agl_blend_max_dv_per_m=` — max|Δv|/1 м); `thermal_bubble_ground.rs` (TB-18) —
+  без изменений, печатает свои числа.
 
 ## TB5 v3 — полётный замер `tools/research/thermal_bubble/out/flight_<tag>.json`
 Владелец — координатор; пишет TB-14 (теги `r2_old` — флаг выкл, `r2_new` — флаг вкл, код круга 2), TB-16 (`r3_main` — `main`,
