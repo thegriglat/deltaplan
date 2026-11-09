@@ -302,3 +302,4 @@
 {"t": "2026-11-10T02:32:36", "by": "coordinator", "task": "TB-17", "ev": "accepted", "commits": ["c13cd33ed"], "note": "6/6 size=ok:40; round3=ok:exit 0; guide=ok:exit 0; findings=ok:exit 0; config=ok:exit 0; docs_check=ok:exit 1"}
 {"t": "2026-11-10T02:32:36", "by": "coordinator", "task": "TB-17", "ev": "merged"}
 {"t": "2026-11-10T02:32:48", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: report требует checks в r.json — исполнители путались (TB-10 думал, что нужен accept); plan <м> <раздел> не находит составные plan_ref; accept --dry долго молчит под нагрузкой; scope ловит неотслеживаемый r-<ID>.json в копии; docs init --refresh-contracts --dry переписал frontmatter всех контрактов; job wait ≤180 с"}
+{"t": "2026-11-10T02:52:05", "by": "main", "task": null, "ev": "delivered", "commits": ["3b9d24ceb"], "note": "squash в main: 3b9d24ceb"}
