@@ -125,3 +125,9 @@
 {"t": "2026-11-09T10:12:49", "by": "coordinator", "task": "TB-5", "ev": "started"}
 {"t": "2026-11-09T10:12:50", "by": "coordinator", "task": "TB-6", "ev": "started"}
 {"t": "2026-11-09T10:12:50", "by": "coordinator", "task": "TB-7", "ev": "started"}
+{"t": "2026-11-09T10:22:20", "by": "executor", "task": "TB-6", "ev": "reported", "commits": ["a0c2af90d"], "note": "partial: Найден открытый полный текст Schmidt & Schumann 1989 (JFM, DLR elib): условный композит LES даёт приток 0,36 w* (0,33-0…", "dp_feedback": "WebFetch не читает PDF (сырой поток): спасло только pdftotext по сохранённому в tool-results файлу — стоит подсказка в шаблоне задачи. check_contract.py не знает формат tb-les из карточки."}
+{"t": "2026-11-09T10:22:34", "by": "coordinator", "task": "TB-6", "ev": "checked", "note": "2/2 les_rows=ok:2; les_md=ok:exit 1"}
+{"t": "2026-11-09T10:23:48", "by": "reviewer", "task": "TB-6", "ev": "reviewed", "note": "Числа сверены с оригиналом Schmidt & Schumann 1989 (PDF скачан, pdftotext): подпись рис. 18 даёт u −0,36/+0,33 w*, w −0,1/2,0 w*, даундрафт −0,96 w*; текст с. …", "verdict": "accept", "issues": {"minor": 2}, "review": "docs/plan/thermal-bubble/tasks/TB-6.review.json"}
+{"t": "2026-11-09T10:24:27", "by": "executor", "task": "TB-6", "ev": "reported", "commits": ["a0c2af90d"], "note": "partial: Найден открытый полный текст Schmidt & Schumann 1989 (JFM, DLR elib): условный композит LES даёт приток 0,36 w* (0,33-0…", "dp_feedback": "WebFetch не читает PDF (сырой поток): спасло только pdftotext по сохранённому в tool-results файлу — стоит подсказка в шаблоне задачи. check_contract.py не знает формат tb-les из карточки."}
+{"t": "2026-11-09T10:24:39", "by": "coordinator", "task": "TB-6", "ev": "checked", "note": "2/2 les_rows=ok:2; les_md=ok:exit 1"}
+{"t": "2026-11-09T10:24:39", "by": "coordinator", "task": "TB-6", "ev": "accepted", "note": "по ревью (fable, accept; 2 minor исправлены, проверены accept)"}
