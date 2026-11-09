@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-11-09"
 summary: "Стыки picard-terrain: случаи опыта PT1, срезанные клетки PT2, 2-й порядок PT3, строки замеров PT4, выборка в точках PT5."
 related: ["docs/plan/picard-terrain.md", "docs/contracts/picard-rs.md", "docs/contracts/air-cascade.md", "docs/contracts/sw-charges-3d.md", "tools/research/air3d/reference.md"]
-contracts: [{"id": "PT1", "version": 2}, {"id": "PT2", "version": 1}, {"id": "PT3", "version": 1}, {"id": "PT4", "version": 1}, {"id": "PT5", "version": 1}]
+contracts: [{"id": "PT1", "version": 2}, {"id": "PT2", "version": 1}, {"id": "PT3", "version": 2}, {"id": "PT4", "version": 1}, {"id": "PT5", "version": 1}]
 ---
 
 # Контракты модуля picard-terrain
@@ -61,7 +61,9 @@ v2 (2026-11-09, ревью PT-1): Perdigão — `U10` = null (фон из окн
   клетки); `div_rms` R2 и критерий — по ней. Площадь и нормаль стенки в клетке — из долей (замкнутость:
   вектор площади стенки = −Σ af·A·n по граням).
 
-## PT3 v1 — ограниченный 2-й порядок переноса
+## PT3 v2 — ограниченный 2-й порядок переноса
+v2 (2026-11-09, PT-4): `picard bench --solve` принимает те же флаги варианта (`--cut-cells`, `--adv2`) и пишет
+`variant`; `cut_cells` + `adv2` вместе — допустимы (до PT-4 — ошибка «combination is not implemented»).
 Владелец — PT-3; потребители — PT-5, PT-4.
 - Как air3d: `params.adv2` (bool) включает отложенную поправку переноса (`air.py` → `adv2_mom`, `adv2_heat`,
   `reference.md` → «Перенос»), `params.limiter`: 0 — линейная, 1 — ван Лир, 2 — ван Альбада (как air3d),
