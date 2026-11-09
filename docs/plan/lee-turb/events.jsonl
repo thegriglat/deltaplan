@@ -101,3 +101,5 @@
 {"t": "2026-11-09T23:55:25", "by": "coordinator", "task": "LT-8", "ev": "checked", "note": "4/4 lts=ok:exit 0; masts=ok:278; proto=ok:exit 0; docs=ok:exit 0"}
 {"t": "2026-11-09T23:58:26", "by": "reviewer", "task": "LT-8", "ev": "reviewed", "note": "Скоуп чист (15 файлов в границах, dont_touch не тронут), приёмка 4/4 воспроизведена; analyze.py и make_doc.py перезапущены в scratchpad — mast_compare.csv (278…", "verdict": "accept", "issues": {"major": 1, "minor": 1}, "review": "docs/plan/lee-turb/tasks/LT-8.review.json"}
 {"t": "2026-11-09T23:58:49", "by": "coordinator", "task": "LT-8", "ev": "accepted", "note": "по ревью (fable): major — подмена l=0→0,05 в выводе стенда (SW, agl>340 м, на ТКЭ не влияет) — принято с оговоркой, точность печати l в стенде — при следующей правке стенда; minor — число строк в fieldcheck.md"}
+{"t": "2026-11-09T23:58:56", "by": "coordinator", "task": "LT-8", "ev": "accepted", "commits": ["bb669e22c"], "note": "4/4 lts=ok:exit 0; masts=ok:278; proto=ok:exit 0; docs=ok:exit 0"}
+{"t": "2026-11-09T23:58:56", "by": "coordinator", "task": "LT-8", "ev": "merged", "commits": ["bb669e22c"]}
