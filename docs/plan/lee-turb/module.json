@@ -1,0 +1,11 @@
+{
+  "module": "lee-turb",
+  "plan": "docs/plan/lee-turb.md",
+  "contracts": "docs/contracts/lee-turb.md",
+  "branch": "feature/lee-turb",
+  "copy": "~/worktrees/deltaplan/lee-turb",
+  "created": "2026-11-09T20:02:20",
+  "code": "LT",
+  "area": "air",
+  "base": "main"
+}
