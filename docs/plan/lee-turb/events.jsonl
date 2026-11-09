@@ -85,3 +85,5 @@
 {"t": "2026-11-09T22:42:51", "by": "coordinator", "task": "LT-7", "ev": "checked", "note": "4/4 spec=ok:0; proto=ok:exit 0; obs_rows=ok:92; docs=ok:exit 0"}
 {"t": "2026-11-09T22:45:43", "by": "reviewer", "task": "LT-7", "ev": "reviewed", "note": "Скоуп чист (16 файлов в границах, dont_touch не тронут), приёмка 4/4 воспроизведена, obs_compare.csv пересчитан — 92 строки совпадают до 1e-6, оба selftest ок,…", "verdict": "accept", "issues": {"major": 1, "minor": 2}, "review": "docs/plan/lee-turb/tasks/LT-7.review.json"}
 {"t": "2026-11-09T22:45:56", "by": "coordinator", "task": "LT-7", "ev": "accepted", "note": "по ревью (fable): major — m=D/(1−D) из глубины Menke (что усреднено) — в LT-8; 2 minor"}
+{"t": "2026-11-09T22:45:58", "by": "coordinator", "task": "LT-7", "ev": "accepted", "commits": ["a94d7fda0"], "note": "4/4 spec=ok:0; proto=ok:exit 0; obs_rows=ok:92; docs=ok:exit 0"}
+{"t": "2026-11-09T22:45:58", "by": "coordinator", "task": "LT-7", "ev": "merged", "commits": ["a94d7fda0"]}
