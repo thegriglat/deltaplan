@@ -10,6 +10,7 @@ pub mod api;
 pub mod blocks;
 pub mod case;
 pub mod cut;
+pub mod cut_build;
 pub mod kernels;
 pub mod lines;
 pub mod mg;

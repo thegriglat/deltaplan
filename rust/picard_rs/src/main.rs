@@ -69,6 +69,23 @@ enum Cmd {
     },
     /// Print the code branch (multiversion dispatch) selected on this CPU.
     Isa,
+    /// PT6: cut-cell fractions from a terrain raster (check of `cut_build` against `cut.py`).
+    CutBuild {
+        /// `{nx, ny, x0, y0, dx, bin}`; `bin` is raw f32 LE `[j*nx + i]`.
+        #[arg(long)]
+        raster: PathBuf,
+        /// PT1 case json (`dims`, `nx`, `ny`, `nz`, `x0`, `y0`, `dx`, `dz`, `z_bot`).
+        #[arg(long)]
+        grid: PathBuf,
+        /// `<site>_d<dx>_cut` case json: `cell`, `tu`, `tv`, `tw` for `finish`.
+        #[arg(long)]
+        types: PathBuf,
+        /// Output prefix: `<prefix>.bin` and `<prefix>.json`.
+        #[arg(long)]
+        out: PathBuf,
+        #[arg(long, default_value_t = 8)]
+        threads: usize,
+    },
     /// Time K iterations for each thread count; one R2 file per count.
     Bench {
         case: PathBuf,
@@ -195,9 +212,116 @@ fn solve_case(c: &Case, threads: usize, out: Option<PathBuf>, a: &SolveArgs) -> 
     Ok(())
 }
 
+/// Read the f32 LE array `name` of an R1 case (`arrays: {name: [offset, len]}` in elements).
+fn read_r1_array(json: &serde_json::Value, bin: &[u8], name: &str) -> Result<Vec<f32>> {
+    let a = &json["arrays"][name];
+    let (o, n) = (a[0].as_u64(), a[1].as_u64());
+    let (Some(o), Some(n)) = (o, n) else {
+        anyhow::bail!("array {name} missing");
+    };
+    let (o, n) = (o as usize, n as usize);
+    let b = bin
+        .get(o * 4..(o + n) * 4)
+        .ok_or_else(|| anyhow::anyhow!("array {name} outside the .bin"))?;
+    Ok(b.chunks_exact(4)
+        .map(|c| f32::from_le_bytes([c[0], c[1], c[2], c[3]]))
+        .collect())
+}
+
+fn cut_build_cmd(
+    raster: &Path,
+    grid: &Path,
+    types: &Path,
+    out: &Path,
+    threads: usize,
+) -> Result<()> {
+    use anyhow::Context;
+    use picard_rs::cut_build as cb;
+    let jr: serde_json::Value = serde_json::from_slice(&std::fs::read(raster)?)?;
+    let f = |v: &serde_json::Value, k: &str| -> Result<f64> {
+        v[k].as_f64().with_context(|| format!("missing {k}"))
+    };
+    let u = |v: &serde_json::Value, k: &str| -> Result<usize> {
+        v[k].as_u64()
+            .map(|x| x as usize)
+            .with_context(|| format!("missing {k}"))
+    };
+    let rbin = jr["bin"].as_str().context("raster: missing bin")?;
+    let rb = std::fs::read(rbin)?;
+    let h: Vec<f32> = rb
+        .chunks_exact(4)
+        .map(|c| f32::from_le_bytes([c[0], c[1], c[2], c[3]]))
+        .collect();
+    let r = cb::Raster {
+        h: &h,
+        nx: u(&jr, "nx")?,
+        ny: u(&jr, "ny")?,
+        x0: f(&jr, "x0")?,
+        y0: f(&jr, "y0")?,
+        dx: f(&jr, "dx")?,
+    };
+    anyhow::ensure!(h.len() == r.nx * r.ny, "raster size");
+    let jg: serde_json::Value = serde_json::from_slice(&std::fs::read(grid)?)?;
+    let g = cb::CutGrid {
+        nx: u(&jg, "nx")?,
+        ny: u(&jg, "ny")?,
+        nz: u(&jg, "nz")?,
+        x0: f(&jg, "x0")?,
+        y0: f(&jg, "y0")?,
+        dx: f(&jg, "dx")?,
+        dz: f(&jg, "dz")?,
+        z_bot: f(&jg, "z_bot")?,
+    };
+    let jt: serde_json::Value = serde_json::from_slice(&std::fs::read(types)?)?;
+    let tb = std::fs::read(types.with_extension("bin"))?;
+    let ty = |n: &str| -> Result<Vec<u8>> {
+        Ok(read_r1_array(&jt, &tb, n)?
+            .iter()
+            .map(|&x| x as u8)
+            .collect())
+    };
+    let (cell, tu, tv, tw) = (ty("cell")?, ty("tu")?, ty("tv")?, ty("tw")?);
+    let threads = api::resolve_threads(threads);
+    let pl = api::pool(threads)?;
+    let t0 = Instant::now();
+    let mut fr = pl.install(|| cb::fractions(&r, &g, cb::SAMPLES));
+    let t1 = Instant::now();
+    let hc = pl.install(|| cb::type_height(&g, &fr.vf, cb::VF_MIN))?;
+    let t2 = Instant::now();
+    let st = cb::finish(&g, &mut fr, &cell, &tu, &tv, &tw);
+    let t3 = Instant::now();
+    let mut bytes = Vec::new();
+    for a in [&fr.vf, &fr.af_u, &fr.af_v, &fr.af_w] {
+        bytes.extend(a.iter().flat_map(|x| x.to_le_bytes()));
+    }
+    bytes.extend(hc.iter().flat_map(|x| x.to_le_bytes()));
+    std::fs::write(format!("{}.bin", out.display()), bytes)?;
+    let ms = |a: Instant, b: Instant| (b - a).as_secs_f64() * 1e3;
+    let meta = serde_json::json!({
+        "n_snap_full": st.n_snap_full,
+        "n_face_floor": st.n_face_floor,
+        "n_cut_cells": st.n_cut_cells,
+        "time_ms": {"fractions": ms(t0, t1), "type_height": ms(t1, t2), "finish": ms(t2, t3)},
+        "threads": threads,
+    });
+    std::fs::write(
+        format!("{}.json", out.display()),
+        serde_json::to_vec_pretty(&meta)?,
+    )?;
+    println!("cut-build: {meta}");
+    Ok(())
+}
+
 fn main() -> Result<()> {
     match Cli::parse().cmd {
         Cmd::Isa => println!("isa_branch={}", picard_rs::util::isa_branch()),
+        Cmd::CutBuild {
+            raster,
+            grid,
+            types,
+            out,
+            threads,
+        } => cut_build_cmd(&raster, &grid, &types, &out, threads)?,
         Cmd::Blocks { cases, threads } => {
             let pl = api::pool(threads)?;
             let mut worst = 0.0f64;
