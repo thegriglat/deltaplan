@@ -30,9 +30,9 @@ git diff feature/lee-turb...HEAD -- $paths >"$tmp/change.patch" || fail "diff"
 	cat "$tmp/apply.log"
 	fail "apply"
 }
-(cd "$wt" && cargo build -q --release --manifest-path rust/Cargo.toml -p dp-gd) || fail "cargo build"
+(cd "$wt" && cargo build -q --profile tune --manifest-path rust/Cargo.toml -p dp-gd) || fail "cargo build"
 mkdir -p "$wt/addons/dp_air/bin"
-cp "$CARGO_TARGET_DIR/release/libdp_gd.so" "$wt/addons/dp_air/bin/libdp_air_release.so" || fail "copy so"
+cp "$CARGO_TARGET_DIR/tune/libdp_gd.so" "$wt/addons/dp_air/bin/libdp_air_tune.so" || fail "copy so"
 mkdir -p "$xdg"
 (cd "$wt" && XDG_DATA_HOME="$xdg" godot --headless --path . --import >/dev/null 2>&1)
 out="$tmp/tests.log"
