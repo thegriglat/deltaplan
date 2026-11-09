@@ -1,0 +1,78 @@
+{
+  "id": "PT-10",
+  "module": "picard-terrain",
+  "type": "dp-engineer",
+  "title": "Потребители поля у земли: k1 по типам, файл поля, фазы",
+  "goal": "Выборка поля, файл/кеш поля и фазы согласованы с типами клеток по долям (PT7 v2): k1 из типов, k1 в файле поля, «воздух» фаз по hc_type; выборка у земли непрерывна, без NaN.",
+  "plan_ref": "Задачи / Этап 2",
+  "contracts": [
+    {
+      "name": "PT7",
+      "version": "2",
+      "ref": "docs/contracts/picard-terrain.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/picard-terrain-PT-10",
+  "branch": "picard-terrain/PT-10",
+  "base": "feature/picard-terrain",
+  "scope": [
+    "rust/dp-air/src/field/wind_field.rs",
+    "rust/dp-air/src/field/solved.rs",
+    "rust/dp-air/src/field/field_cache.rs",
+    "rust/dp-air/src/field/phase/assembly.rs",
+    "rust/dp-air/src/field/phase/layers.rs",
+    "rust/dp-air/tests/wind_field.rs",
+    "rust/dp-air/tests/field_export.rs",
+    "rust/dp-air/tests/formula_facade.rs",
+    "rust/dp-air/tests/phase_assembly.rs",
+    "rust/dp-air/tests/terms_thermal_air.rs",
+    "rust/dp-air/tests/cut_consumers.rs"
+  ],
+  "dont_touch": [
+    "rust/picard_rs",
+    "rust/dp-air/src/field/place_input.rs",
+    "rust/dp-air/src/field/case_prepare.rs",
+    "rust/dp-air/src/field/case_build.rs",
+    "rust/dp-air/src/field/runtime.rs",
+    "rust/dp-air/src/field/clipmap.rs",
+    "rust/dp-air/src/field/window.rs",
+    "rust/dp-air/src/field/cut_input.rs",
+    "rust/dp-air/src/terms",
+    "rust/dp-stand",
+    "rust/dp-gd",
+    "scripts",
+    "configs",
+    "docs/contracts",
+    "tests/fixtures"
+  ],
+  "accept": [
+    {
+      "name": "check",
+      "cmd": "cd rust && cargo check --offline -p dp-air --all-targets",
+      "expect": "exit=0"
+    },
+    {
+      "name": "regress",
+      "cmd": "cd rust && cargo test --offline --release -p dp-air --lib --test wind_field --test field_export --test formula_facade --test phase_assembly --test terms_thermal_air --test cut_game --test runtime --test clipmap",
+      "expect": "exit=0"
+    },
+    {
+      "name": "consumers",
+      "cmd": "cd rust && cargo test --offline --release -p dp-air --test cut_consumers -- --include-ignored --nocapture",
+      "expect": "exit=0"
+    },
+    {
+      "name": "max-jump",
+      "cmd": "cd rust && cargo test --offline --release -p dp-air --test cut_consumers -- --include-ignored --nocapture 2>&1 | grep -o 'max_jump_mps=[0-9.e+-]*' | tail -1",
+      "expect": "num:max_jump_mps=([0-9.e+-]+) <=1"
+    },
+    {
+      "name": "frozen-zero",
+      "cmd": "cd rust && cargo test --offline --release -p dp-air --test cut_consumers -- --include-ignored --nocapture 2>&1 | grep -o 'frozen_zero_frac=[0-9.e+-]*' | tail -1",
+      "expect": "num:frozen_zero_frac=([0-9.e+-]+) <=0.001"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T19:57:34"
+}
