@@ -1,0 +1,54 @@
+{
+  "schema": "tb5/3",
+  "tag": "r4_old",
+  "commit": "805c24a6f",
+  "location": "ongudai",
+  "weather": "menu default forecast (26 C, 3 m/s from 270, clear), start hour 13, seed 1",
+  "bubble": false,
+  "sim_s": 1200.0,
+  "frames": 72000,
+  "presence": {
+    "cores_near_mean": 5.6842,
+    "cores_lifting_frac": 0.8211,
+    "cores_lifting_frac_mid": 0.7455,
+    "n_observed": 6821,
+    "bubble_cover": 0.0
+  },
+  "inflow": {
+    "ur_in_10m_median_ms": 0.0,
+    "n": 48
+  },
+  "core": {
+    "w_axis_over_strength_median": 1.0014,
+    "axis_dx_over_r_median": 0.0,
+    "n": 48
+  },
+  "continuity": {
+    "dv_frame_p999_ms": 0.1399,
+    "dv_frame_max_ms": 1.0766,
+    "dt_s": 0.0166666666666667
+  },
+  "frame": {
+    "ms_mean": 15.167,
+    "ms_p99": 34.002,
+    "ms_max": 224.502,
+    "hitch_50ms": 12
+  },
+  "notes": {
+    "frame_sim_s": 180.0,
+    "frame_n": 23770,
+    "frame_end": "time",
+    "diag": {
+      "w_peak_near_over_strength_median": 1.0159,
+      "peak_dx_over_R_median": 0.0,
+      "inflow_p75_ms": 0.0,
+      "inflow_p90_ms": 0.0,
+      "inflow_nonzero_frac": 0.0625,
+      "core_w_p25": 0.917,
+      "core_w_p75": 1.0762,
+      "axis_dx_p75": 0.0833
+    },
+    "probe_relaunches": 0,
+    "probe_n_observed_cores": 6821
+  }
+}
