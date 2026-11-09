@@ -1,0 +1,27 @@
+{
+ "case": "askervein_d25",
+ "site": "askervein",
+ "dx": 25.0,
+ "solver": "air3d",
+ "dtype": "f64",
+ "adv2": true,
+ "limiter": 1,
+ "status": "ok",
+ "iters": 81,
+ "max_iters": 4000,
+ "final": {
+  "mom_rms": 1.1556742677636736e-05,
+  "th_rms": 0.0,
+  "div_rms": 8.403054900892202e-09
+ },
+ "t_solve_s": 5.440541038973606,
+ "wall_s": 7.385997580990079,
+ "ms_per_iter": 67.1671733206618,
+ "n": [
+  162,
+  162,
+  84
+ ],
+ "state": "states/askervein_d25_air3d.json",
+ "git": "408ccb5ad8f457edc6f7fb35b6a7cbeb9126ee04"
+}

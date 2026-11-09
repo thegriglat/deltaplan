@@ -1,0 +1,27 @@
+{
+ "case": "perdigao_sw_d30",
+ "site": "perdigao_sw",
+ "dx": 30.0,
+ "solver": "air3d",
+ "dtype": "f64",
+ "adv2": false,
+ "limiter": null,
+ "status": "ok",
+ "iters": 171,
+ "max_iters": 4000,
+ "final": {
+  "mom_rms": 1.716946365866612e-05,
+  "th_rms": 0.0,
+  "div_rms": 1.1381232420961527e-08
+ },
+ "t_solve_s": 22.9660330809711,
+ "wall_s": 25.94686189299682,
+ "ms_per_iter": 134.3042870232228,
+ "n": [
+  202,
+  202,
+  120
+ ],
+ "state": "states/perdigao_sw_d30_air3d.json",
+ "git": "408ccb5ad8f457edc6f7fb35b6a7cbeb9126ee04"
+}
