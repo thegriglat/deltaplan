@@ -1,0 +1,69 @@
+{
+  "id": "TB-3",
+  "module": "thermal-bubble",
+  "type": "dp-engineer",
+  "title": "Цена опроса: бенч Rust — шаблон пузыря против нынешнего contribution/sample",
+  "goal": "Бенч criterion в dp-air: время на точку у порта шаблона пузыря (аналитика и таблица) против нынешнего profile::contribution и State::sample при той же плотности термиков, память таблицы, точность порта против bubble.py; итог — out/bench.json (TB3) и bench.md.",
+  "plan_ref": "Задачи (уточняет координатор) п. 3",
+  "contracts": [
+    {
+      "name": "TB1",
+      "version": "2",
+      "ref": "docs/contracts/thermal-bubble.md"
+    },
+    {
+      "name": "TB3",
+      "version": "1",
+      "ref": "docs/contracts/thermal-bubble.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/thermal-bubble-TB-3",
+  "branch": "thermal-bubble/TB-3",
+  "base": "feature/thermal-bubble",
+  "scope": [
+    "rust/dp-air/benches/thermal_bubble.rs",
+    "rust/dp-air/Cargo.toml",
+    "tools/research/thermal_bubble/bench_fixture.py",
+    "tools/research/thermal_bubble/bench.md",
+    "tools/research/thermal_bubble/out/bench.json",
+    "tools/research/thermal_bubble/out/bench_fixture.json"
+  ],
+  "dont_touch": [
+    "rust/dp-air/src/",
+    "tools/research/thermal_bubble/bubble.py",
+    "tools/research/thermal_bubble/contract/",
+    "scripts/",
+    "docs/contracts/",
+    "rust/Cargo.toml"
+  ],
+  "accept": [
+    {
+      "name": "bench_test",
+      "cmd": "cargo bench --manifest-path rust/Cargo.toml -p dp-air --bench thermal_bubble -- --test",
+      "expect": "exit=0"
+    },
+    {
+      "name": "contract_tb3",
+      "cmd": "python3 tools/research/thermal_bubble/contract/check_contract.py tools/research/thermal_bubble/out/bench.json",
+      "expect": "exit=0"
+    },
+    {
+      "name": "port_err",
+      "cmd": "python3 -c \"import json;print('err='+str(json.load(open('tools/research/thermal_bubble/out/bench.json'))['port_max_rel_err']))\"",
+      "expect": "num:err=([0-9.eE+-]+) <=1e-05"
+    },
+    {
+      "name": "src_same",
+      "cmd": "git diff --quiet feature/thermal-bubble -- rust/dp-air/src",
+      "expect": "exit=0"
+    },
+    {
+      "name": "md_docs",
+      "cmd": "test -s tools/research/thermal_bubble/bench.md && .dpcli/dpcli docs check 2>&1",
+      "expect": "!re:ОШИБКА.*thermal_bubble"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T09:11:12"
+}
