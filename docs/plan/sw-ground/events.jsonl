@@ -195,3 +195,4 @@
 {"t": "2026-11-09T05:43:31", "by": "coordinator", "task": "SWG-13", "ev": "accepted", "commits": ["053981deb"], "note": "4/4 docs=ok:exit 1; doc_exists=ok:ok; table=ok:ok; pytest=ok:passed"}
 {"t": "2026-11-09T05:43:31", "by": "coordinator", "task": "SWG-13", "ev": "merged"}
 {"t": "2026-11-09T05:43:40", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: исполнители завершаются без отчёта, если координатор делает hand-back раньше них (SWG-7, SWG-11) — правило «ждать исполнителей до hand-back»; прежний исполнитель SWG-11 оказался жив и коммитил после смены — нужна блокировка ветки задачи при передаче; docs init не создаёт новый документ (нужен docs new); accept --dry буферизует вывод"}
+{"t": "2026-11-09T07:16:26", "by": "main", "task": null, "ev": "delivered", "commits": ["b73bd5c5d"], "note": "squash в main: b73bd5c5d"}
