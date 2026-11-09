@@ -3,12 +3,12 @@ type: "research"
 status: "closed"
 module: "picard-terrain"
 area: "air"
-updated: "2026-11-09"
+updated: "2026-11-10"
 summary: "picard-terrain: срезанные клетки и 2-й порядок в Пикаре (сетка 50/100 м) — возврат разгона, цена, ротор Perdigão, варианты."
 related: ["docs/plan/picard-terrain.md", "docs/contracts/picard-terrain.md", "tools/research/picard_terrain/README.md", "rust/picard_rs/README.md"]
 conclusion: "Срезанные клетки возвращают 64–87 % пути от базы к эталону Askervein на 30–100 м почти бесплатно (×0,8–1,15 времени); 2-й порядок отдельно — 13–59 %, ×1,3–2,0; вместе 83–104 %, ×1,6–2,0. Ротор NE: только срезанные клетки приближают к Menke (473 против 493 м); SW не воспроизводит ни один вариант. Встраивание — решение пользователя."
 data: "tools/research/picard_terrain/out/PT-1..PT-5/{table.md,rows.jsonl}; крупное — ~/data/picard_terrain (локально, не в репо)"
-applied_in: ""
+applied_in: "rust/dp-air/src/field/cut_input.rs; docs/guide/air-model/field-cpu.md"
 ---
 # picard-terrain: срезанные клетки и 2-й порядок в Пикаре
 
