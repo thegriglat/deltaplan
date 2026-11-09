@@ -1,0 +1,47 @@
+{
+  "id": "PT-9a",
+  "module": "picard-terrain",
+  "type": "dp-mechanic",
+  "title": "Сборка dp-air: поля adv2/limiter/cut_cells в литерале Params",
+  "goal": "dp-air снова собирается: в литерал picard_rs Params (rust/dp-air/src/field/case_build.rs:454) добавить adv2: false, limiter: 0, cut_cells: false — поле игры прежнее.",
+  "plan_ref": "Задачи / Этап 2",
+  "contracts": [
+    {
+      "name": "PT2",
+      "version": "1",
+      "ref": "docs/contracts/picard-terrain.md"
+    },
+    {
+      "name": "PT3",
+      "version": "2",
+      "ref": "docs/contracts/picard-terrain.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/picard-terrain-PT-9a",
+  "branch": "picard-terrain/PT-9a",
+  "base": "feature/picard-terrain",
+  "scope": [
+    "rust/dp-air/src/field/case_build.rs"
+  ],
+  "dont_touch": [
+    "rust/picard_rs",
+    "rust/dp-stand",
+    "rust/dp-gd",
+    "configs"
+  ],
+  "accept": [
+    {
+      "name": "check",
+      "cmd": "cd rust && cargo check --offline -p dp-air --all-targets",
+      "expect": "exit=0"
+    },
+    {
+      "name": "lib",
+      "cmd": "cd rust && cargo test --offline -p dp-air --lib",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T15:57:16"
+}
