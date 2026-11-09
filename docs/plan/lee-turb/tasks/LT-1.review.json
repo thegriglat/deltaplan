@@ -1,0 +1,56 @@
+{
+  "verdict": "accept",
+  "summary": "LTL v1 воспроизводится из открытых данных: fetch_data.sh + extract_exp.py + build_lit.py дают побитово те же derived_exp.json и lit_numbers.csv (72 строки, 6 потоков). Индексы столбцов Delville/Driver–Seegmiller/KBwiki сверены с заголовками файлов; x_r уступа 6,28 и холма 4,02/3,55 пересчитаны. Чисел «по памяти» не осталось (DROP применён), документ честно разделяет данные, расхождения и неизвестное. Замечания — только minor, оформление.",
+  "issues": [
+    {
+      "file": "tools/research/lee_turb/lit/build_lit.py",
+      "line": 24,
+      "severity": "minor",
+      "what": "В поле source остались сокращения вместо «автор, год, журнал» по LTL v1: ml_tripped_vs_untripped — «MW», ml_dtheta_dx_over_lambda — «MW+пересчёт автора», ml_kh_wavelength_delta_omega — «пересчёт автора», четыре аналитические строки — «аналитика, автор» (их исходная A-строка не названа).",
+      "fix": "Подставить константу MW и указать, из каких A-строк пересчёт (например, «MW85 (ml_sigma0_rodi); аналитика erf-профиля»)."
+    },
+    {
+      "file": "tools/research/lee_turb/lit/build_lit.py",
+      "line": 160,
+      "severity": "minor",
+      "what": "Имена величин ds_y_tke_max / ds_x_tke_max / hill_x_tke_max говорят «tke», а считаны из пика u'u' (ds_y) и 0,5(u'u'+v'v') без w (x_tke). Определение это оговаривает, но потребитель LTM читает quantity.",
+      "fix": "Переименовать в y_su_max_over_h / x_k2d_max_over_xr либо добавить в note «без w'w'»."
+    },
+    {
+      "file": "tools/research/lee_turb/lit/lit_numbers.csv",
+      "line": 18,
+      "severity": "minor",
+      "what": "Reliability A присвоена числам, прочитанным во вторичном источнике: step_xr_lmk (аннотация), step_xr_kim (эксперимент по MKM84), hill_sep_zone_kf (Kaimal–Finnigan по Menke), ml_sigma0_rodi (Rodi по MW85). Формально A по определению координатора, но без пометки это неотличимо от прямого чтения.",
+      "fix": "Единая пометка в note «вторичная цитата» — чтобы координатор при сборке LTM учитывал."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "accept --dry contract/rows/flows/docs/scope",
+      "value": "4/4 PASS, scope 8 файлов в границах",
+      "pass": true
+    },
+    {
+      "name": "fetch_data.sh + extract_exp.py → derived_exp.json",
+      "value": "идентичен закоммиченному",
+      "pass": true
+    },
+    {
+      "name": "build_lit.py → lit_numbers.csv",
+      "value": "72 строки, diff пустой",
+      "pass": true
+    },
+    {
+      "name": "x_r уступа по cf.exp.dat (интерполяция 5,882–7,09)",
+      "value": "6.279",
+      "pass": true
+    },
+    {
+      "name": "x_r холма по u в первом узле (Re 10600/37000)",
+      "value": "4.02 / 3.55",
+      "pass": true
+    }
+  ],
+  "t": "2026-11-09T20:30:11",
+  "by": "reviewer"
+}

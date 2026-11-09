@@ -1,55 +1,75 @@
 {
   "status": "partial",
-  "summary": "LTL v1: 48 строк, 7 потоков; docs/research/lee_turb.md с таблицей выводов. A-числа прочитаны из NASA TM-86698/TM-85851, Menke 2019, аннотации LMK97; остальное (σ-пики, L_u/L_w, Uc, заборы, критерии, данные Driver&Seegmiller) по памяти, помечено C.",
+  "summary": "Доработка 1: числа по памяти удалены; LTL v1 - 72 строки, 6 потоков, только A/C (B не нужна, везде таблицы). Источники: данные Delville (слой), Driver-Seegmiller (уступ), Rapp-Manhart (холм); тексты Brown-Roshko 1974, MW85, MKM84, Menke 2019, Mann 2014 (Bolund). Выводы и раздел Что неизвестно - в docs/research/lee_turb.md.",
   "commits": [
-    "01bacdeb2 lee-turb LT-1: литература по слою смешения за гребнем"
+    "lee-turb LT-1: доработка 1 - числа только из открытых данных (72 строки LTL), без по памяти"
   ],
   "checks": [
     {
       "name": "accept --dry",
-      "value": "4/4 PASS",
+      "value": "contract/rows/flows/docs PASS; scope FAIL только из-за r-LT-1.json",
       "pass": true
     },
     {
       "name": "rows",
-      "value": "48",
+      "value": "72",
       "pass": true
     },
     {
       "name": "flows",
-      "value": "7",
+      "value": "6",
       "pass": true
     }
   ],
   "not_done": [
-    "Bell&Mehta 1990, Pope §5.4, Brown&Roshko, Driver&Seegmiller, Castro&Haque, Askervein, Bolund не открыты (нет доступа к тексту): их числа C",
-    "Perdigão σ_w/TKE по высотам не найдены в тексте Menke 2019 - нужно LT-3"
+    "Не получены тексты: Bell&Mehta 1990, Pope 2000, Dimotakis 1991, Castro&Haque 1987, Berg 2011 (Springer закрыт ботозащитой), Rogers&Moser 1994 (NTRS без PDF), Le-Moin-Kim (только аннотация)",
+    "Нет в LTL: скорость переноса вихрей Uc, интегральные Lu/Lw слоя, критерии отрыва (уклон, Simpson, Stratford), длина пузыря забора, sigma по высотам для Bolund/Askervein"
   ],
   "questions": [
-    "Нужна ли оцифровка MW85 рис.6 / Bell&Mehta для σ-пиков (C->B)?"
+    "Нужны ли Lu/Lw и Uc из платных источников (Pope, Dimotakis) - дать тексты, либо брать из поля (LT-2)?"
   ],
   "images": [],
-  "how_to_check": ".dpcli/dpcli accept LT-1",
+  "how_to_check": ".dpcli/dpcli accept LT-1 --dry; sh tools/research/lee_turb/lit/fetch_data.sh && python3 -I tools/research/lee_turb/lit/extract_exp.py",
   "uncertain": [
     {
-      "where": "tools/research/lee_turb/lit/lit_numbers.csv ml_sigma_*_peak, ml_integral_*, step_*, fence_xr, gen_*",
-      "why": "значения по памяти, текст не открывался",
-      "checked": "помечены C с примечанием"
+      "where": "lit_numbers.csv: ds_x_tke_max, hill_x_tke_max",
+      "why": "положение максимума TKE по 4 (уступ) и 10 (холм) станциям; между станциями неизвестно",
+      "checked": "сравнены все станции; уступ x/H=4 (0,64 xr), холм x/h=1-2 (0,25-0,56 xr)"
     },
     {
-      "where": "docs/research/lee_turb.md п.2",
-      "why": "guide ссылается на Menke 2019 как источник σ_w/ΔU=0,14, в тексте статьи σ_w нет; 0,14 совпадает с σ_v/ΔU слоя смешения",
-      "checked": "прочитан разбор статьи, σ_w не найдено"
+      "where": "del_*",
+      "why": "слой Делвиля в канале до 1,05 м, самоподобие не достигнуто (sigma_u +8% от x=200 к 950); lambda=0,30",
+      "checked": "дан разброс по трём сечениям; рост сверен с Brown-Roshko 0,181+-0,015"
+    },
+    {
+      "where": "hill_*",
+      "why": "периодический холм в канале, нормировка на u_b, не на dU; y/h принят от плоскости дна",
+      "checked": "использован как форма профиля и положение максимума"
     }
   ],
-  "dp_feedback": "docs check warns about applied_in for research; template of research frontmatter would help.",
+  "dp_feedback": "Проверка scope считает r-<ID>.json вне scope (accept --dry FAIL) - исключить r-*.json. Ссылки карточки на turbmodels.larc.nasa.gov редиректят на tmbwg.github.io, данные лежат в других путях.",
   "extra": {
-    "dB_dx_over_lambda": 0.165,
-    "uv_peak": 0.011,
-    "perdigao_xr_m": 697,
-    "perdigao_depth_m": 157,
-    "step_xr_over_h": 6.28
+    "del_ddw_dx_over_lambda": 0.168,
+    "br74_ddw_dx_over_lambda": 0.181,
+    "del_sigma_uvw_over_du": [
+      0.166,
+      0.13,
+      0.153
+    ],
+    "del_uv_over_du2": 0.0118,
+    "del_tke_over_du2": 0.034,
+    "step_xr": 6.28,
+    "step_x_tke_max_over_xr": 0.64,
+    "hill_xr": [
+      4.02,
+      3.55
+    ],
+    "hill_x_tke_max_over_xr": [
+      0.25,
+      0.56
+    ],
+    "eddy_spacing_over_delta_omega": 3.3
   },
-  "t": "2026-11-09T20:15:14",
+  "t": "2026-11-09T20:27:08",
   "by": "executor"
 }
