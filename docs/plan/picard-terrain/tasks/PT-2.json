@@ -8,7 +8,7 @@
   "contracts": [
     {
       "name": "PT1",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/picard-terrain.md"
     },
     {
@@ -84,5 +84,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-11-09T08:25:07",
-  "edited": "2026-11-09T09:32:08"
+  "edited": "2026-11-09T09:36:46"
 }
