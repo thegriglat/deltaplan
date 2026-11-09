@@ -1,0 +1,75 @@
+{
+  "id": "TB-17",
+  "module": "thermal-bubble",
+  "type": "dp-writer",
+  "title": "Круг 3: итог — документ круга 3, guide термиков, findings, _doc конфига",
+  "goal": "Записать итог круга 3 (что поменялось в модели и почему, сверка, замер в игре, цена, границы) в docs/research/thermal_bubble_round3.md, обновить guide термиков под шаблон пузыря по умолчанию, строку findings и _doc термиков в configs/atmosphere.json — по фактам из отчётов и файлов, без выдумок.",
+  "plan_ref": "Задачи, круг 3 п. 8; Приёмка",
+  "contracts": [
+    {
+      "name": "TB4",
+      "version": "6",
+      "ref": "docs/contracts/thermal-bubble.md"
+    },
+    {
+      "name": "TB5",
+      "version": "3",
+      "ref": "docs/contracts/thermal-bubble.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/thermal-bubble-TB-17",
+  "branch": "thermal-bubble/TB-17",
+  "base": "feature/thermal-bubble",
+  "scope": [
+    "docs/research/thermal_bubble_round3.md",
+    "docs/research/thermal_bubble.md",
+    "docs/guide/air-model/thermals.md",
+    "docs/registry/findings.md",
+    "configs/atmosphere.json",
+    "docs/INDEX.md"
+  ],
+  "dont_touch": [
+    "rust/",
+    "scripts/",
+    "tools/",
+    "data/",
+    "docs/contracts/",
+    "docs/plan/",
+    "CHANGELOG.md"
+  ],
+  "accept": [
+    {
+      "name": "docs_check",
+      "cmd": ".dpcli/dpcli docs check 2>&1",
+      "expect": "!re:ОШИБКА.*(thermal_bubble|thermals\\.md|findings)"
+    },
+    {
+      "name": "size",
+      "cmd": "python3 -c \"import os;print('kb=%.1f'%(max(os.path.getsize(p) for p in ['docs/research/thermal_bubble_round3.md','docs/research/thermal_bubble.md','docs/guide/air-model/thermals.md'])/1024))\"",
+      "expect": "num:kb=([0-9.]+) <=40"
+    },
+    {
+      "name": "round3",
+      "cmd": "grep -q 'TB-10' docs/research/thermal_bubble_round3.md && grep -q 'TB-18' docs/research/thermal_bubble_round3.md && grep -q 'flight_r4' docs/research/thermal_bubble_round3.md && grep -q 'Чего не умеет' docs/research/thermal_bubble_round3.md && grep -q 'thermal_bubble_round3' docs/research/thermal_bubble.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "guide",
+      "cmd": "grep -qi 'пузыр' docs/guide/air-model/thermals.md && ! grep -q 'bubble_template' docs/guide/air-model/thermals.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "findings",
+      "cmd": "grep -q 'thermal_bubble_round3.md#' docs/registry/findings.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "config",
+      "cmd": "python3 -c \"import json;d=json.load(open('configs/atmosphere.json'));s=d['thermal']['_doc'];assert 'пузыр' in s.lower();print('ok')\" && git diff feature/thermal-bubble -- configs/atmosphere.json | grep '^[-+] ' | grep -v '_doc' | wc -l | grep -qx 0",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-10T02:28:47"
+}
