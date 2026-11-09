@@ -1,0 +1,115 @@
+{
+  "status": "done",
+  "summary": "Подкоманда dp-stand lee (LTS v1) и 18 разрезов Онгудая (3 случая × 6 гребней в окнах 50/100 м и области 400 м), анализ и docs/research/lee_turb/baseline.md. Главное: на пути с полем (доля a = 1) аналитика не считается, relief = 0, ΔU слоя смешения = 0 - ветвь mix, рывки и масштаб 0,5·relief не работают ни в одной из 537 909 точек; болтанку за гребнем даёт механическая ветвь с максимумом на 0,8-1,5 H за гребнем, 25-60 м над землёй, затем спад.",
+  "commits": [
+    "8e2f91c07 lee-turb LT-2: dp-stand lee (LTS v1), разрезы Онгудая за гребнями и baseline.md"
+  ],
+  "checks": [
+    {
+      "name": "contract",
+      "value": "exit 0, 18 файлов, 537909 строк",
+      "pass": true
+    },
+    {
+      "name": "slices",
+      "value": "18",
+      "pass": true
+    },
+    {
+      "name": "stand_tests",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "air_tests",
+      "value": "exit 101: example outflow_corpus не собирается в main (InflowMode, CaseOpts.k) - не от LT-2; cargo test -p dp-air --lib --tests --no-fail-fast: 48 групп, exit 0 (одиночный флак timing_step_and_spinup 0,52 мс > 0,5 мс при load average 43, на повторе прошёл)",
+      "pass": false
+    },
+    {
+      "name": "docs",
+      "value": "exit 0, 40657 байт",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "18 файлов в границах; в dp-air ничего не менялось",
+      "pass": true
+    },
+    {
+      "name": "mix/du в разрезах",
+      "value": "du_max = 0, src=mix: 0 из 537909 (share = 1, relief = 0, lee_a = 0 по --extra)",
+      "pass": true
+    },
+    {
+      "name": "время прогонов",
+      "value": "18 запусков lee 49-152 с (медиана 80 с), всего 1550 с на 20 ядрах; разрез ~1 с, остальное - решение поля",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Perdigao/Askervein стендом не строились (по заданию): в tests/fixtures/wind/places их нет, в т.ч. на feature/picard-terrain; что нужно - baseline.md п. 6.",
+    "Сами разрезы out/*.lts.csv (~60 МБ) не в git (.gitignore); воспроизведение - tools/research/lee_turb/stand/run_baseline.sh (~26 мин под lock cpu)."
+  ],
+  "questions": [
+    "air_tests из карточки не может быть PASS: rust/dp-air/examples/outflow_corpus.rs в main (dade19074) не компилируется с текущим dp-air (InflowMode, CaseOpts.k/inflow_mode) - это работа outflow-bc; предлагаю приёмку air_tests на --lib --tests или чинить в outflow-bc.",
+    "Для LTM: слой смешения на пути с полем не включить без своего источника relief (AnalyticSlot::mean при a >= 1 возвращает None). Источник - GroundField::relief_at напрямую по месту или собственный поиск гребня по u_par/рельефу; решение за координатором."
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept LT-2 --dry (air_tests красный по причине вне задачи); python3 tools/research/lee_turb/stand/analyze.py && python3 tools/research/lee_turb/stand/make_baseline.py",
+  "uncertain": [
+    {
+      "where": "rust/dp-stand/src/lee.rs: LeeCtx::new",
+      "why": "поле собирается из field_export + parse_solved + Limits::default() (равны конфигу), а не берётся из Published.fs напрямую (формально вне скоупа - formula.rs)",
+      "checked": "число уровней сверяется с Formula::level_count; разрез повторён дважды - побайтно идентичен; lee_f/relief согласованы с sum() (те же вызовы analytic.mean, turb.mean, turb.sigma)"
+    },
+    {
+      "where": "tools/research/lee_turb/stand/analyze.py: src, sw/ΔU_п, ψ=0",
+      "why": "src mech/conv - по σ³-разложению (mech = второй вызов sigma без w*); ΔU_п = u_par на высоте гребня минус u_par в точке; ψ - прямоугольная экстраполяция нижней точки; u_par - полная модель (в storm содержит вынос грозы)",
+      "checked": "mix-доля 0 проверена независимо через --extra (relief/share); выводы по слою сделаны по strong, medium/storm - слабый ветер 1-2 м/с на 10 м"
+    },
+    {
+      "where": "tools/research/lee_turb/stand/run_baseline.sh",
+      "why": "окна 50/100 м включены в стенде (фокус старта в случае), эталонные .bin W8 считались без окон; во время прогона шла сборка cargo - часть времён завышена",
+      "checked": "уровни поля печатаются в stderr: dx 50/100/400; границы окон внесены в analyze.py/ridges.py"
+    }
+  ],
+  "dp_feedback": "job start принимает --lock только перед подкомандой (dpcli job --lock cpu start ...); после имени и таймаута флаг молча уходит в команду (timeout: не удалось выполнить команду --lock). accept air_tests запускает cargo test -p dp-air со всеми целями, включая examples чужих модулей, - красная приёмка от чужого сломанного example; полезны цель --lib --tests в карточке или проверка на базе.",
+  "extra": {
+    "n_sections": 18,
+    "n_rows": 537909,
+    "du_gt0_points": 0,
+    "src_mix_points": 0,
+    "strong_max_sigma_w_lt150m": {
+      "a50_focus": "x/H 0.8, agl 26 m, 3.31",
+      "a50_west": "x/H -0.6, agl 53 m, 2.52",
+      "b100_north": "x/H -0.4, agl 58 m, 2.09",
+      "b100_south_in_wake": "x/H 0.8, agl 54 m, 1.52"
+    },
+    "strong_bubble_50m": {
+      "a50_focus": {
+        "sep_xH": 6.33,
+        "reatt_xH": 6.97,
+        "L_over_H": 0.64,
+        "L_over_dx": 3.3,
+        "h_psi0_m": 58
+      },
+      "a50_west": {
+        "sep_xH": 3.64,
+        "reatt_xH": 4.13,
+        "L_over_H": 0.5,
+        "L_over_dx": 3.5,
+        "h_psi0_m": 53
+      }
+    },
+    "bubble_100_400": "нет (u10 > 0)",
+    "dvis_slope_1_4_strong": "0.13-0.24 (R2 0.7-1.0), все клетки",
+    "stand_time_s": {
+      "min": 49,
+      "median": 80,
+      "max": 152,
+      "sum": 1550
+    }
+  },
+  "t": "2026-11-09T21:17:28",
+  "by": "executor"
+}

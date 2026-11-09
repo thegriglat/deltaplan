@@ -47,17 +47,18 @@
       "expect": "exit=0"
     },
     {
-      "name": "air_tests",
-      "cmd": "cargo test -q --release --manifest-path rust/Cargo.toml -p dp-air",
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check docs/research/lee_turb/baseline.md",
       "expect": "exit=0"
     },
     {
-      "name": "docs",
-      "cmd": ".dpcli/dpcli docs check docs/research/lee_turb/baseline.md",
+      "name": "air_tests",
+      "cmd": "cargo test -q --release --manifest-path rust/Cargo.toml -p dp-air --lib --tests",
       "expect": "exit=0"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-11-09T20:08:16"
+  "created": "2026-11-09T20:08:16",
+  "edited": "2026-11-09T21:17:42"
 }

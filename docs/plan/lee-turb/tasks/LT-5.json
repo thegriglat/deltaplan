@@ -1,0 +1,56 @@
+{
+  "id": "LT-5",
+  "module": "lee-turb",
+  "type": "dp-researcher",
+  "title": "Модель слоя смешения за гребнем: формулы, числа, прототип на разрезах",
+  "goal": "Спецификация модели слоя смешения для пути с полем (геометрия от гребня, δ(x), профиль σ, ΔU, масштаб, перенос, ограничение длины перемешивания, рывки) с числами только из LTL/выводов, и Python-прототип на 18 разрезах LT-2: где теперь максимум болтанки против прежней модели.",
+  "plan_ref": "Задачи (уточняет координатор) п.2",
+  "contracts": [
+    {
+      "name": "LTL",
+      "version": "1",
+      "ref": "docs/contracts/lee-turb.md"
+    },
+    {
+      "name": "LTS",
+      "version": "1",
+      "ref": "docs/contracts/lee-turb.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/lee-turb-LT-5",
+  "branch": "lee-turb/LT-5",
+  "base": "feature/lee-turb",
+  "scope": [
+    "tools/research/lee_turb/model/",
+    "docs/research/lee_turb/model.md"
+  ],
+  "dont_touch": [
+    "rust/",
+    "configs/",
+    "docs/guide/",
+    "docs/contracts/",
+    "tools/research/lee_turb/lit/",
+    "tools/research/lee_turb/stand/",
+    "docs/research/lee_turb.md"
+  ],
+  "accept": [
+    {
+      "name": "spec",
+      "cmd": "python3 -c \"import json,csv;ids={r['id'] for r in csv.DictReader(open('tools/research/lee_turb/lit/lit_numbers.csv'))};s=json.load(open('tools/research/lee_turb/model/spec.json'));assert s['format']=='ltm-spec' and s['version']==1;bad=[c['name'] for c in s['constants'] if not (c.get('derived') or (c.get('ltl') and set(c['ltl'])<=ids) or c.get('assumption'))];print('constants',len(s['constants']),'bad',len(bad),bad)\"",
+      "expect": "num:bad (\\d+) <=0"
+    },
+    {
+      "name": "proto",
+      "cmd": "python3 tools/research/lee_turb/model/proto.py --selftest",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check docs/research/lee_turb/model.md",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T21:22:28"
+}

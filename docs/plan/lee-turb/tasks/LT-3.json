@@ -40,17 +40,18 @@
       "expect": "num:sites (\\d+) >=2"
     },
     {
-      "name": "lee_rows",
-      "cmd": "python3 -c \"import csv;print('lee',sum(1 for r in csv.DictReader(open('tools/research/lee_turb/obs/lee_obs.csv')) if float(r['x_m'])>0 and r['sigma_w_ms']))\"",
-      "expect": "num:lee (\\d+) >=20"
-    },
-    {
       "name": "docs",
       "cmd": ".dpcli/dpcli docs check docs/research/lee_turb/obs.md tools/research/lee_turb/obs/README.md",
       "expect": "exit=0"
+    },
+    {
+      "name": "lee_rows",
+      "cmd": "python3 -c \"import csv;print('lee',sum(1 for r in csv.DictReader(open('tools/research/lee_turb/obs/lee_obs.csv')) if float(r['x_m'])>0 and (r['sigma_w_ms'] or r['tke_m2s2'])))\"",
+      "expect": "num:lee (\\d+) >=20"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-11-09T20:08:53"
+  "created": "2026-11-09T20:08:53",
+  "edited": "2026-11-09T21:23:07"
 }

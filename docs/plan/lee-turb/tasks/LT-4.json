@@ -1,0 +1,54 @@
+{
+  "id": "LT-4",
+  "module": "lee-turb",
+  "type": "dp-engineer",
+  "title": "Места Perdigão и Askervein для стенда (W5) и случаи NE/SW",
+  "goal": "Чтобы гнать модель игры (поле + масштаб 3) стендом на Perdigão и Askervein: места W5 (вне git), случаи W8-формата с нейтральным ветром как в измерениях, таблица станций (мачт) в кадре места.",
+  "plan_ref": "Задачи (уточняет координатор) п.4",
+  "contracts": [],
+  "copy": "~/worktrees/deltaplan/lee-turb-LT-4",
+  "branch": "lee-turb/LT-4",
+  "base": "feature/lee-turb",
+  "scope": [
+    "tools/research/lee_turb/places/"
+  ],
+  "dont_touch": [
+    "tests/fixtures/",
+    "tools/wind_fixtures/",
+    "rust/",
+    "scripts/",
+    "configs/",
+    "data/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "perdigao_sw",
+      "cmd": "sh -c 'cargo run -q --release --manifest-path rust/Cargo.toml -p dp-stand -- sample --mode mean --case tools/research/lee_turb/places/cases/perdigao_sw.json --place $HOME/data/lee_turb/places/perdigao.json > /dev/null'",
+      "expect": "exit=0"
+    },
+    {
+      "name": "perdigao_ne",
+      "cmd": "sh -c 'cargo run -q --release --manifest-path rust/Cargo.toml -p dp-stand -- sample --mode mean --case tools/research/lee_turb/places/cases/perdigao_ne.json --place $HOME/data/lee_turb/places/perdigao.json > /dev/null'",
+      "expect": "exit=0"
+    },
+    {
+      "name": "askervein",
+      "cmd": "sh -c 'cargo run -q --release --manifest-path rust/Cargo.toml -p dp-stand -- sample --mode mean --case tools/research/lee_turb/places/cases/askervein_tu03b.json --place $HOME/data/lee_turb/places/askervein.json > /dev/null'",
+      "expect": "exit=0"
+    },
+    {
+      "name": "stations",
+      "cmd": "python3 -c \"import csv;r=list(csv.DictReader(open('tools/research/lee_turb/places/stations.csv')));print('n',len(r))\"",
+      "expect": "num:n (\\d+) >=20"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check tools/research/lee_turb/places/README.md",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T21:23:43"
+}
