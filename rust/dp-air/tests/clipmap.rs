@@ -598,7 +598,8 @@ fn empty_window_levels_means_no_windows_and_the_area_only_path() {
             (h ^ u64::from(b)).wrapping_mul(0x0100_0000_01b3)
         });
     // PT-9 (срезанные клетки в игре, побитность прежнего поля не нужна): было 0xa5ec_66d9_9d17_2394
-    assert_eq!(h, 0x2ab1_352c_e909_2843, "behaviour of RW-6t: {h:016x}");
+    // PT-10 (k1 по типам, воздух фаз по hc_type): было 0x2ab1_352c_e909_2843
+    assert_eq!(h, 0x7c7d_485b_e0a6_1c75, "behaviour of RW-6t: {h:016x}");
 }
 
 // ---------------------------------------------------------------- (7) детерминизм
