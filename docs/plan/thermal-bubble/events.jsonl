@@ -34,3 +34,5 @@
 {"t": "2026-11-09T08:41:25", "by": "coordinator", "task": "TB-1", "ev": "checked", "note": "3/3 contract_tb1=ok:exit 0; unit=ok:exit 0; readme_docs=ok:exit 1; scope=FAIL:вне scope: r-TB-1.json"}
 {"t": "2026-11-09T08:41:51", "by": "coordinator", "task": "TB-1", "ev": "checked", "note": "3/3 contract_tb1=ok:exit 0; unit=ok:exit 0; readme_docs=ok:exit 1"}
 {"t": "2026-11-09T08:42:01", "by": "coordinator", "task": "TB-1", "ev": "note", "note": "ревью fable: B головы ≠ F0·tau (0,134), шлейф у земли 7 м/с"}
+{"t": "2026-11-09T08:45:52", "by": "reviewer", "task": "TB-1", "ev": "reviewed", "note": "Контракт TB1 соблюдён (интерфейс, линейность, образы, div=0 через ψ — формулы Хилла, источника и сшивки проверены вручную), скоуп чист, contract_tb1 и unit вос…", "verdict": "accept", "issues": {"major": 2, "minor": 3}, "review": "docs/plan/thermal-bubble/tasks/TB-1.review.json"}
+{"t": "2026-11-09T08:47:23", "by": "coordinator", "task": "TB-1", "ev": "accepted", "note": "по ревью (fable): 2 major — решения координатора, вынесены в TB-1b"}
