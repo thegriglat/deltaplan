@@ -1,0 +1,76 @@
+{
+  "id": "TB-9",
+  "module": "thermal-bubble",
+  "type": "dp-writer",
+  "title": "Итог круга 2: ядро по измерениям, числа LES, баланс Φ, шаблон в dp-air за флагом — цена, точность, границы, вопросы",
+  "goal": "Дополнить docs/research/thermal_bubble.md итогом круга 2 (ответ на Q1): что дал шаблон v4 против измерений и LES, баланс Φ и K̄, встраивание в dp-air за флагом (точность, цена, память), границы модели и вопросы пользователю; обновить «Рекомендацию» и строку в registry/findings.md.",
+  "plan_ref": "Задачи (уточняет координатор) п. 4; ответ на Q1",
+  "contracts": [
+    {
+      "name": "TB1",
+      "version": "4",
+      "ref": "docs/contracts/thermal-bubble.md"
+    },
+    {
+      "name": "TB3",
+      "version": "2",
+      "ref": "docs/contracts/thermal-bubble.md"
+    },
+    {
+      "name": "TB4",
+      "version": "2",
+      "ref": "docs/contracts/thermal-bubble.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/thermal-bubble-TB-9",
+  "branch": "thermal-bubble/TB-9",
+  "base": "feature/thermal-bubble",
+  "scope": [
+    "docs/research/thermal_bubble.md",
+    "docs/registry/findings.md",
+    "docs/INDEX.md",
+    "tools/research/thermal_bubble/README.md",
+    "tools/research/thermal_bubble/bench.md"
+  ],
+  "dont_touch": [
+    "tools/research/thermal_bubble/out/",
+    "tools/research/thermal_bubble/bubble.py",
+    "tools/research/thermal_bubble/compare.py",
+    "tools/research/thermal_bubble/compare.md",
+    "tools/research/thermal_bubble/literature.md",
+    "rust/",
+    "scripts/",
+    "docs/contracts/",
+    "docs/guide/"
+  ],
+  "accept": [
+    {
+      "name": "md_docs",
+      "cmd": "test -s docs/research/thermal_bubble.md && .dpcli/dpcli docs check 2>&1",
+      "expect": "!re:ОШИБКА.*thermal_bubble"
+    },
+    {
+      "name": "round2",
+      "cmd": "grep -q '^## .*Круг 2' docs/research/thermal_bubble.md && grep -q 'les.json' docs/research/thermal_bubble.md && grep -q 'bubble_template' docs/research/thermal_bubble.md && grep -q 'bubble_radius_m' docs/research/thermal_bubble.md && grep -q 'K̄' docs/research/thermal_bubble.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "questions",
+      "cmd": "python3 -c \"import re;s=open('docs/research/thermal_bubble.md').read();i=s.index('Круг 2');q=re.findall(r'^\\d+\\. ', s[i:], re.M);print('q='+str(len(q)))\"",
+      "expect": "num:q=(\\d+) >=3"
+    },
+    {
+      "name": "findings",
+      "cmd": "grep -q 'research/thermal_bubble.md#' docs/registry/findings.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "size",
+      "cmd": "python3 -c \"import os;print('kb=%.1f'%(os.path.getsize('docs/research/thermal_bubble.md')/1024))\"",
+      "expect": "num:kb=([0-9.]+) <=40"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T13:31:57"
+}
