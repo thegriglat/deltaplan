@@ -1,0 +1,87 @@
+{
+  "status": "done",
+  "summary": "picard_rs::cut_build по PT6 v1 (Raster/CutGrid/fractions/type_height/finish) и CLI picard cut-build; совпадение с cut.py на 5 случаях: max|dvf| 3.0e-8, max|daf| 3.0e-8, hc_type и счётчики точно.",
+  "commits": [
+    "9a4a199cd picard-terrain PT-8: построитель долей срезанных клеток cut_build (PT6) и picard cut-build"
+  ],
+  "checks": [
+    {
+      "name": "unit",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "parity-dvf",
+      "value": "max_dvf=2.980e-08",
+      "pass": true
+    },
+    {
+      "name": "parity-daf",
+      "value": "max_daf=2.980e-08",
+      "pass": true
+    },
+    {
+      "name": "parity-exact",
+      "value": "hc_type_mismatch=0 counts_mismatch=0 cases=5",
+      "pass": true
+    },
+    {
+      "name": "solver-default",
+      "value": "identical=4/4 (решатель не тронут)",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept PT-8",
+  "uncertain": [
+    {
+      "where": "rust/picard_rs/src/cut_build.rs:store_vf",
+      "why": "vf хранится в f32; значение f64 в [1-6e-8, 1) округлилось бы до 1.0 и клетка не посчиталась бы в n_snap_full (на askervein_d100 так было 1 против 2). Сохраняю vf < 1 как 1 - 2^-24 (отклонение 6e-8).",
+      "checked": "после правки counts совпали с pt.cut и cut.py на всех 5 случаях"
+    },
+    {
+      "where": "rust/picard_rs/src/cut_build.rs:type_height",
+      "why": "порог vf >= 0.05 сравнивается по f32-значению vf; клетка с f64-долей ровно на границе 0.05 (плоский рельеф на 5 % слоя) может дать другой тип, чем cut.py (f64). На реальных растрах расхождений нет.",
+      "checked": "hc_type_mismatch=0 на 5 случаях"
+    },
+    {
+      "where": "rust/picard_rs/src/cut_build.rs:fractions",
+      "why": "быстрый путь слоя (весь столбец точек клетки выше/ниже рельефа) только для vf и af_w; грани u, v считаются всегда по 17 точкам. Результат тот же, но выигрыш по времени меньше, чем мог бы быть.",
+      "checked": "юнит-тест halo_copies_... сверяет все слои с прямой суммой по решётке; parity на 5 случаях"
+    }
+  ],
+  "dp_feedback": "lock cpu для одной команды выдал 1 слот при первом запуске (CPUQuota=100%) и 8 при следующих — вес не очевиден; accept --dry в 120 с не укладывается и уходит в фон без явного сообщения о ходе.",
+  "extra": {
+    "timing_ms_8_threads_under_lock": {
+      "askervein_d50 (80x80x42, растр 138x138)": {
+        "fractions": 38.1,
+        "type_height": 0.2,
+        "finish": 12.6
+      },
+      "askervein_d100 (40x40x22, растр 138x138)": {
+        "fractions": 19.9,
+        "type_height": 0.2,
+        "finish": 1.1
+      },
+      "kayancha_d50 (80x80x80, растр 138x138)": {
+        "fractions": 64.2,
+        "type_height": 0.6,
+        "finish": 12.8
+      },
+      "kayancha_d100 (40x40x40, растр 138x138)": {
+        "fractions": 10.8,
+        "type_height": 0.3,
+        "finish": 1.7
+      },
+      "perdigao_ne_d30 (200x200x118, растр 204x204)": {
+        "fractions": 468.5,
+        "type_height": 8.8,
+        "finish": 133.4
+      }
+    },
+    "model_bounds": "доли — выборка 17x17 точек на клетку по билинейной поверхности растра 30 м; рельеф мельче dx/16 не разрешён. finish — последовательный (133 мс на Perdigão), при необходимости параллелится."
+  },
+  "t": "2026-11-09T16:00:28",
+  "by": "executor"
+}

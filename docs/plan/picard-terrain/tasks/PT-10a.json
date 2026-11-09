@@ -1,0 +1,47 @@
+{
+  "id": "PT-10a",
+  "module": "picard-terrain",
+  "type": "dp-engineer",
+  "title": "dp-stand timing: время поля загрузки и пересчёта",
+  "goal": "Подкоманда dp-stand timing печатает json-строки с журналом задачи поля (JobReport) на каждый момент случая — время загрузки и пересчёта поля без Godot, для замеров PT-11 до/после срезанных клеток.",
+  "plan_ref": "Задачи / Этап 2",
+  "contracts": [],
+  "copy": "~/worktrees/deltaplan/picard-terrain-PT-10a",
+  "branch": "picard-terrain/PT-10a",
+  "base": "feature/picard-terrain",
+  "scope": [
+    "rust/dp-stand/src/main.rs",
+    "rust/dp-stand/src/ops.rs",
+    "rust/dp-stand/src/setup.rs",
+    "rust/dp-stand/src/timing.rs",
+    "rust/dp-stand/README.md"
+  ],
+  "dont_touch": [
+    "rust/dp-air",
+    "rust/picard_rs",
+    "rust/dp-gd",
+    "configs",
+    "tests/fixtures"
+  ],
+  "accept": [
+    {
+      "name": "build",
+      "cmd": "cd rust && cargo build --release -p dp-stand",
+      "expect": "exit=0"
+    },
+    {
+      "name": "timing",
+      "cmd": "rust/target/release/dp-stand timing --case tests/fixtures/wind/cases/synthetic_strong.json --model formula --timeout 600",
+      "expect": "re:\"wall_s\": ?[0-9]"
+    },
+    {
+      "name": "passes",
+      "cmd": "rust/target/release/dp-stand timing --case tests/fixtures/wind/cases/synthetic_strong.json --model formula --timeout 600",
+      "expect": "re:\"passes\": ?\\[\\{"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T16:06:05",
+  "edited": "2026-11-09T16:06:25"
+}
