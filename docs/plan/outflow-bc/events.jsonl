@@ -79,3 +79,6 @@
 {"t": "2026-11-09T15:47:56", "by": "reviewer", "task": "OBC-6", "ev": "reviewed", "note": "Стенд по OB4 v1: старты повторяют coarse_start (RtCfg.from_configs: max_iters, tol_scale, без fallback/freeze; level_of+prolong_to), chain/chain_phase и phase …", "verdict": "accept", "issues": {"minor": 3}, "review": "docs/plan/outflow-bc/tasks/OBC-6.review.json"}
 {"t": "2026-11-09T15:47:57", "by": "coordinator", "task": "OBC-5", "ev": "checked", "note": "2/2 repro=ok:SAME; docs=ok:exit 0"}
 {"t": "2026-11-09T15:48:12", "by": "coordinator", "task": "OBC-5", "ev": "accepted", "note": "по отчёту: предварительный вывод по невязкам; поле при остановке — этап 2 (OB4 err_hist)"}
+{"t": "2026-11-09T15:53:23", "by": "coordinator", "task": "OBC-5", "ev": "accepted", "commits": ["559bee346"], "note": "2/2 repro=ok:SAME; docs=ok:exit 0"}
+{"t": "2026-11-09T15:53:23", "by": "coordinator", "task": "OBC-5", "ev": "merged"}
+{"t": "2026-11-09T15:53:48", "by": "coordinator", "task": "OBC-6", "ev": "accepted", "note": "по ревью; замечания: тест coarse3 сверяет стенд с prolong_to той же сборки (не с runtime); est_full_h вероятно занижен; имя late_spread_<h>_p90 закрепить в OB4"}
