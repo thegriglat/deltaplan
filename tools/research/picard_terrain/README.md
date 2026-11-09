@@ -15,6 +15,8 @@ applied_in: ""
 `python3 contract/check_contract.py selftest | cases <case.json>… | rows <rows.jsonl>…`;
 побитно прежний путь `picard_rs` без флагов — `contract/check_default.sh` (`identical=4/4`).
 
+Итог опыта: [docs/research/picard_terrain.md](/docs/research/picard_terrain.md).
+
 | Путь | Что | Задача |
 |---|---|---|
 | `contract/` | контрактный тест, проверка побитности | координатор |

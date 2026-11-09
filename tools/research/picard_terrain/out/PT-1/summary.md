@@ -1,3 +1,13 @@
+---
+type: "research"
+status: "closed"
+module: "picard-terrain"
+updated: "2026-11-09"
+summary: "PT-1: вывод — порт picard_rs совпадает с air3d f64, недобор 1-го порядка на Askervein и Каянче."
+conclusion: "см. текст"
+data: "tools/research/picard_terrain/out/"
+applied_in: ""
+---
 # PT-1: вывод
 
 - Готово 9 случаев PT1 (`$PICARD_TERRAIN_DATA/cases`, контрактный тест OK), растры 30 м, выборка PT5 (`sample.py`), решения air3d

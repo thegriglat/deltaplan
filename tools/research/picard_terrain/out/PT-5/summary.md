@@ -1,3 +1,13 @@
+---
+type: "research"
+status: "closed"
+module: "picard-terrain"
+updated: "2026-11-09"
+summary: "PT-5: итог — ротор Perdigão NE/SW и мачты по вариантам Пикара."
+conclusion: "см. текст"
+data: "tools/research/picard_terrain/out/"
+applied_in: ""
+---
 # PT-5: итог
 
 Ротор есть на всех вариантах NE (3/3 разрезов), на SW — 1–2 из 3. Среднее L по menke_T1..3 против Menke (NE 493 м, SW 617 м):

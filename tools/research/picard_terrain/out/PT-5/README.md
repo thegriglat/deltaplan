@@ -1,3 +1,13 @@
+---
+type: "research"
+status: "closed"
+module: "picard-terrain"
+updated: "2026-11-09"
+summary: "PT-5: воспроизведение замера ротора Perdigão и мачт."
+conclusion: "см. текст"
+data: "tools/research/picard_terrain/out/"
+applied_in: ""
+---
 # PT-5: ротор Perdigão и мачты
 
 Воспроизведение (из корня копии, поля R4 — `~/data/picard_terrain/states`, готовы PT-1..3):
