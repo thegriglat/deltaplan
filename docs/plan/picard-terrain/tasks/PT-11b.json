@@ -1,0 +1,55 @@
+{
+  "id": "PT-11b",
+  "module": "picard-terrain",
+  "type": "dp-researcher",
+  "title": "Разгон на гребне и ротор в окнах 100/50 м до/после срезанных клеток",
+  "goal": "Для шлюза: те же гребни PT-11, но поле в окнах 100/50 м у фокуса (где летает пилот) до (f44c66b4a) и после (HEAD): разгон S(z_agl), ротор за гребнем; ответ — слабее ли разгон и ротор после там, где сетка их разрешает, и было ли «до» на 400 м завышено ступеньками.",
+  "plan_ref": "Задачи / Этап 2",
+  "contracts": [
+    {
+      "name": "PT7",
+      "version": "2",
+      "ref": "docs/contracts/picard-terrain.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/picard-terrain-PT-11b",
+  "branch": "picard-terrain/PT-11b",
+  "base": "feature/picard-terrain",
+  "scope": [
+    "tools/research/picard_terrain/out/PT-11b",
+    "tools/research/picard_terrain/PT-11b"
+  ],
+  "dont_touch": [
+    "rust",
+    "scripts",
+    "configs",
+    "tests",
+    "docs",
+    "tools/research/picard_terrain/out/PT-11"
+  ],
+  "accept": [
+    {
+      "name": "summary",
+      "cmd": "test -s tools/research/picard_terrain/out/PT-11b/summary.json && python3 -c \"import json;json.load(open('tools/research/picard_terrain/out/PT-11b/summary.json'))\"",
+      "expect": "exit=0"
+    },
+    {
+      "name": "speedup-win",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/picard_terrain/out/PT-11b/summary.json'));print('crest_speedup_win_after_over_before_median=%s'%d['crest_speedup_win_after_over_before_median'])\"",
+      "expect": "num:crest_speedup_win_after_over_before_median=([0-9.e+-]+) >=0"
+    },
+    {
+      "name": "rotor-win",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/picard_terrain/out/PT-11b/summary.json'));print('rotor_win_after_count=%s'%d['rotor_win_after_count'])\"",
+      "expect": "num:rotor_win_after_count=([0-9.e+-]+) >=0"
+    },
+    {
+      "name": "nan",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/picard_terrain/out/PT-11b/summary.json'));print('nan_count=%s'%d['nan_count'])\"",
+      "expect": "num:nan_count=([0-9.e+-]+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-10T01:20:45"
+}
