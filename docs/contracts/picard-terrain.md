@@ -4,9 +4,9 @@ status: "active"
 module: "picard-terrain"
 area: "air"
 updated: "2026-11-09"
-summary: "Стыки picard-terrain: случаи опыта PT1, срезанные клетки PT2, 2-й порядок PT3, строки замеров PT4, выборка PT5, построитель долей PT6."
+summary: "Стыки picard-terrain: случаи опыта PT1, срезанные клетки PT2, 2-й порядок PT3, строки замеров PT4, выборка PT5, построитель долей PT6, поле игры PT7."
 related: ["docs/plan/picard-terrain.md", "docs/contracts/picard-rs.md", "docs/contracts/air-cascade.md", "docs/contracts/sw-charges-3d.md", "tools/research/air3d/reference.md"]
-contracts: [{"id": "PT1", "version": 2}, {"id": "PT2", "version": 1}, {"id": "PT3", "version": 2}, {"id": "PT4", "version": 1}, {"id": "PT5", "version": 1}, {"id": "PT6", "version": 1}]
+contracts: [{"id": "PT1", "version": 2}, {"id": "PT2", "version": 1}, {"id": "PT3", "version": 2}, {"id": "PT4", "version": 1}, {"id": "PT5", "version": 1}, {"id": "PT6", "version": 1}, {"id": "PT7", "version": 1}]
 ---
 
 # Контракты модуля picard-terrain
@@ -118,4 +118,24 @@ v2 (2026-11-09, PT-4): `picard bench --solve` принимает те же фл�
 - Инвариант: на тех же входах совпадение с `cut.py` — `|Δvf|, |Δaf| ≤ 1e-6`, `hc_type` и счётчики — точно.
   Проверка — `T/contract/check_cut_build.py` (CLI `picard cut-build`, см. карточку PT-8).
 - Время — без лишних проходов: слой, целиком над/под рельефом столбца, можно не перебирать по точкам (результат тот же).
+
+## PT7 v1 — поле игры со срезанными клетками (dp-air, этап 2)
+Владелец — координатор; производители — PT-9 (случаи), PT-10 (потребители); потребители — PT-11, PT-12, игра.
+Карта мест — `docs/research/picard_terrain_game.md` (PT-7), разделы 2–4.
+- Все уровни Пикара игры — грубый старт 1200 м, область 400 м, окна 100/50 м — решаются с `params.cut_cells = true`;
+  иного пути в игре нет (решение 2026-11-09). Доли — `picard_rs::cut_build` (PT6 v1) по растру места 25 м
+  (`Place::heights`, узлы 25 м, билинейно), на той же `CutGrid`, что сетка уровня (`dz`, `z_bot`, `nz` — как были);
+  константы PT6 (`VF_MIN`, `SAMPLES`, `AF_FLOOR`) — без изменений.
+- Две роли рельефа: `hc` (блочное среднее, как было) — настоящая земля: фон ветра, `nu_bg`, `z_i`, AGL, источники
+  термиков, `ground_height`; `hc_type` (PT6 `type_height`) — граница воздуха: `kf = round((hc_type − z_bot)/dz) + 1`
+  (ореольный индекс), отсюда типы клеток/граней, неизвестные, `cell = 1 ⇔ vf ≥ VF_MIN`.
+- Решения mech и heat одного уровня — одни доли (побитно). `Kx, Ky, Kz` — без умножения на доли (PT2 v1).
+- Путь без долей (`Option::None`) — только в тестах dp-air для сверки с дампами GDScript/GPU (вход `hc_type = hc`);
+  из `build_level`/`window_case`/`runtime` недостижим.
+- Кеш полей: ключ задачи `format: 2` (`runtime.rs`, бывший `format: 1`); запись с другим `format` — промах.
+- Файл поля (`solved.rs`, PT-10): необязательный массив `k1` (u16 или f32 по выбору PT-10, на столбец `[j·nx + i]`,
+  первая клетка `cell = 1`); `VERSION` +1; нет массива — `k1` от `hc` (старый файл читается). `Field::from_mac` —
+  `k1` из типов, `from_arrays` — из файла или от `hc`.
+- Не меняются: замыкание (K Прандтля — Блэкадара, λ/h, пол), калибровка, нагрев `Q` на единицу объёма (решение
+  2026-11-09 — сначала замер PT-11), формат W3/экспорт в Godot, фазы по смыслу (меняется только «воздух» = по `hc_type`).
 
