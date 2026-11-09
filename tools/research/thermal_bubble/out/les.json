@@ -1,0 +1,57 @@
+{
+ "format": "tb-les",
+ "version": 1,
+ "rows": [
+  {
+   "quantity": "inflow_ground_over_wstar",
+   "unit": "w*",
+   "literature": 0.36,
+   "lit_range": [
+    0.33,
+    0.36
+   ],
+   "source": "Schmidt & Schumann 1989, J. Fluid Mech. 200:511-562, doi:10.1017/S0022112089000753, §3.5 and Fig. 18 (p.540, 543); PDF https://elib.dlr.de/53323/1/Schmidt_Schumann.pdf (open access, text layer read)",
+   "note": "Text: updraughts and downdraughts 'correlated with strong horizontal velocities (up to 0.36 w*) in the surface layer'; Fig. 18a(i) caption: extremes of conditionally averaged u for updraughts -0.36 and +0.33 w* (antisymmetric about axis => |u| 0.33-0.36). Height of the peak not stated beyond 'surface layer'; the 0.36 is the extremum over the whole x-z plane (may also be the top outflow, see outflow row). Peak is for the updraught composite whose central w is 2.0 w* (zc=0.5 zi sampling): a strong-event composite, not an average thermal. Coarse grid (50 m) under-resolves the lowest 0.1 zi. LES: 160x160x48, dx=zi/32 (~50 m), zi=1600 m, w*=1.46 m/s, dry, zero mean wind, z0=1e-4 zi; conditional averaging over w-events at reference height zc=0.5 zi (local w maxima > rms w, min separation ~1.0 zi), 6<t*<7, ~16 updraughts/domain.",
+   "reliability": "medium"
+  },
+  {
+   "quantity": "outflow_top_over_wstar",
+   "unit": "w*",
+   "literature": null,
+   "lit_range": null,
+   "source": "Schmidt & Schumann 1989, J. Fluid Mech. 200:511-562, doi:10.1017/S0022112089000753, §3.5 and Fig. 18 (p.540, 543); PDF https://elib.dlr.de/53323/1/Schmidt_Schumann.pdf (open access, text layer read)",
+   "note": "Not separated: text says horizontal motions are strong 'near the surface and near the inversion' and Fig. 18 u extremes are only +/-0.33-0.36 w* over the whole plane, so top outflow <= ~0.36 w* (upper bound, value at z=0.8-1.0 zi not given). Needs reading the contour plot, not done (contour levels in caption increment 0.05 w*). No other source found.",
+   "reliability": "low"
+  },
+  {
+   "quantity": "ring_sink_min_over_wstar",
+   "unit": "w*",
+   "literature": -0.1,
+   "lit_range": [
+    -0.96,
+    -0.1
+   ],
+   "source": "Schmidt & Schumann 1989, J. Fluid Mech. 200:511-562, doi:10.1017/S0022112089000753, §3.5 and Fig. 18 (p.540, 543); PDF https://elib.dlr.de/53323/1/Schmidt_Schumann.pdf (open access, text layer read)",
+   "note": "Fig. 18a(ii) caption: conditionally averaged updraught w field has min -0.1 w* (max 2.0 w*) = surrounding sink in the composite at zc=0.5 zi; composite averaging smears the ring (instantaneous ring is deeper). -0.96 w* is the centre of the downdraught composite (separate events, radius 0.5 zi), the other end of the range, not the ring. Text also: radius of updraught 0.33 zi, ratio updraught/downdraught speed 2.1 (cf. 1.5 Greenhut & Khalsa 1987). Instantaneous section (Fig. 13-14) shows a ring of downward motion at the inversion around penetrating thermals, no number.",
+   "reliability": "medium"
+  },
+  {
+   "quantity": "rise_speed_over_wstar",
+   "unit": "w*",
+   "literature": null,
+   "lit_range": null,
+   "source": "Schmidt & Schumann 1989, J. Fluid Mech. 200:511-562, doi:10.1017/S0022112089000753, §3.5 and Fig. 18 (p.540, 543); PDF https://elib.dlr.de/53323/1/Schmidt_Schumann.pdf (open access, text layer read); Lenschow & Stephens 1980 (via thermals.md)",
+   "note": "No LES/measurement number for the speed of the thermal as an object (Lagrangian tracking in dry CBL) found in open text. Only qualitative: Schmidt & Schumann §3.3 'bubbles are rising more quickly than the average updraught'. Brackets for the AIR speed, not the object: 0.45 w* mean in updraughts (L&S 1980), 2.0 w* peak of composite (S&S 1989). Lecoanet & Jeevanjee 2019 (arXiv:1804.09326, DNS, neutral environment) and Hernandez-Deckers & Sherwood 2016/Romps & Charn 2015 (cloudy) give no CBL w* normalisation.",
+   "reliability": "low"
+  }
+ ],
+ "searched": [
+  "journals.ametsoc.org: not retried (403 in circle 1)",
+  "physics.csuchico.edu Sullivan et al 1998 JAS PDF: opened, text read; entrainment-zone paper, no radial/ring/rise numbers (only Ri, w_e/w*)",
+  "elib.dlr.de/53323 Schmidt & Schumann 1989 PDF: opened, source of the numbers above",
+  "ams.confex.com/80661 Lappen & Randall: opened; mass-flux parameterisation, radial velocity from continuity, Wangara LES arrows ~2 m/s, no w*-normalised numbers",
+  "WebSearch (x7): Couvreux 2010, Schumann & Moeng 1991, Lin 1999, Williams & Hacker, Lareau/Traumner lidar, tracking thermals: abstracts only, no numbers",
+  "cnrm-game-meteo.fr Couvreux 2010 and Hourdin 2002 PDFs: HTTP 404; par.nsf.gov: connection refused; core.ac.uk: 403; osti.gov: connection refused; arXiv API queries: no matching CBL LES thermal paper",
+  "Not tried: Moeng & Sullivan 1994, Young 1988, Kanak, Lin 1999 full text, Hernandez-Deckers & Sherwood 2016"
+ ]
+}
