@@ -1,0 +1,108 @@
+{
+  "status": "done",
+  "summary": "Места Perdigão и Askervein (1601x1601, 25 м) собраны путём игры (Terrain.load_point -> AirPlaceData.from_terrain) в ~/data/lee_turb/places; случаи W8 perdigao_sw/ne, askervein_tu03b (нейтраль: overcast+пелена, без термиков), stations.csv на 98 строк. Рельеф против мачт: Perdigão медиана -1,3 м, макс 9,9 м; Askervein -1,4 / 3,8 м после привязки по рельефу.",
+  "commits": [
+    "110cf9b96 lee-turb LT-4: места Perdigão и Askervein для стенда, случаи W8 SW/NE/TU03B, станции в кадре места"
+  ],
+  "checks": [
+    {
+      "name": "perdigao_sw",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "perdigao_ne",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "askervein",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "stations",
+      "value": "n 98",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "ground_game - ground_asl, Perdigão (29 мачт)",
+      "value": "медиана -1,3 м, макс 9,9 м (rsw08)",
+      "pass": true
+    },
+    {
+      "name": "ground_game - ground_asl, Askervein (41 станция)",
+      "value": "медиана -1,4 м, макс 3,8 м (ANE20) после сдвига E-112/N-197 м",
+      "pass": true
+    },
+    {
+      "name": "формула-модель на опорных точках (MEAN)",
+      "value": "tse13 100 м 8,792 при 8,79; RS 10 м 8,893 при 8,895; tse04 100 м 8,995 при U10 4,447 (на 4,37 около 8,8, не пересчитано) против 8,82",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "loc.climate (W5 v3) в заголовках мест не записан: формат читается и без него, погода берёт запасные значения конфига",
+    "Поворот потока в долине Perdigão не воспроизводится: направление по заданию 225/45, измеренное на опоре 216/61"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept LT-4; пересъёмка и подбор U10 — tools/research/lee_turb/places/README.md",
+  "uncertain": [
+    {
+      "where": "tools/research/lee_turb/places/make_stations_in.py:ASK_DE, ASK_DN",
+      "why": "Станции Askervein из локальной сетки отчёта (принята за OSGB36 без буквы NF) стояли на 226 м от своих высот; сдвиг E-112/N-197 м подобран по рельефу игры (RMS 38 -> 1,5 м, поворот 0). Причина (локальная сетка или привязка DSM) не выяснена; станции подогнаны под модель, а не наоборот",
+      "checked": "поиск сдвига+поворота по 41 станции, шаг 5 м; после сдвига макс. ошибка высоты 3,3 м, у всех |d| <= 3,8 м"
+    },
+    {
+      "where": "tools/research/lee_turb/places/make_cases.py:CASES.u10",
+      "why": "U10 игровой модели подобран (4,37 / 4,37 / 8,04 м/с), а не взят из измерений: профиль игры + поле дают U100=5,7 м/с при U10 3,12 (значение решателя tools/research/cases). Модель по U10 нелинейна (U10 3,12 -> 4,80 даёт 5,74 -> 9,72)",
+      "checked": "calibrate_u10.py, формула-модель MEAN, 2 прогона на случай с секущей; SW после финального округления 4,37 заново не гонялся"
+    },
+    {
+      "where": "tools/research/lee_turb/places/cases/*.json conditions",
+      "why": "Нейтраль в игре ключом не задаётся: overcast + cirrus 1, термики и конвективная болтанка выключены; стратификацию выводит Weather места по часу и дате (NE 19 ч - возможна слабая устойчивость). Фактическую стратификацию поля не измерял",
+      "checked": "случаи читаются стендом (calm и formula), поле считается; decompose не смотрел"
+    }
+  ],
+  "dp_feedback": "job start с таймаутом считает и ожидание очереди замка cpu: 900 с истёк в очереди и процесс убит сигналом 15 (при FIFO-очереди за 8-слотовым TB-19 ждал ~20 мин). Хотелось бы таймаут от старта под замком или предупреждение. Замок cpu 18 слотов для сетевой сборки места (не вычисляет) избыточен.",
+  "extra": {
+    "place_build_s": {
+      "perdigao": 144,
+      "askervein": 123
+    },
+    "ground_check": {
+      "perdigao": {
+        "n": 29,
+        "median_m": -1.3,
+        "max_abs_m": 9.9
+      },
+      "askervein": {
+        "n": 41,
+        "median_m": -1.4,
+        "max_abs_m": 3.8
+      }
+    },
+    "askervein_shift_rms": {
+      "no_shift_m": 38.4,
+      "shifted_m": 1.5
+    },
+    "u10_in": {
+      "perdigao_sw": 4.37,
+      "perdigao_ne": 4.37,
+      "askervein_tu03b": 8.04
+    },
+    "points": {
+      "perdigao_sw": 83,
+      "perdigao_ne": 84,
+      "askervein_tu03b": 69
+    }
+  },
+  "t": "2026-11-09T22:42:07",
+  "by": "executor"
+}
