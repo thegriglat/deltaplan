@@ -1,0 +1,11 @@
+{
+  "module": "picard-terrain",
+  "plan": "docs/plan/picard-terrain.md",
+  "contracts": "docs/contracts/picard-terrain.md",
+  "branch": "feature/picard-terrain",
+  "copy": "~/worktrees/deltaplan/picard-terrain",
+  "created": "2026-11-09T08:12:36",
+  "code": "PT",
+  "area": "air",
+  "base": "main"
+}
