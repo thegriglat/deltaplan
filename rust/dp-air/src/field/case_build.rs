@@ -465,6 +465,9 @@ pub fn build_solver_case(
         local_k: cfg.local_k,
         k_relax: p.k_relax,
         cs_h: p.cs_h,
+        adv2: false,
+        limiter: 0,
+        cut_cells: false,
     };
     Case::from_parts(CaseParts {
         name: "game".to_string(),
