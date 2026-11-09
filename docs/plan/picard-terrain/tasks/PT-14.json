@@ -1,0 +1,50 @@
+{
+  "id": "PT-14",
+  "module": "picard-terrain",
+  "type": "dp-researcher",
+  "title": "Разбор: почему на срезанных клетках слабее болтанка и опускание за гребнем",
+  "goal": "Найти, какой шаг (PT-9 поле со срезанными клетками или PT-10 потребители у земли) и какая величина (средний поток u/w за гребнем, u*, градиенты, вход слагаемого болтанки) ослабили подветренную болтанку и опускание; почему снимок поля крейта расходится на 0,05 м/с. Итог — диагноз с числами и предложение правки (патч-набросок, не в rust/).",
+  "plan_ref": "Задачи / Этап 2",
+  "contracts": [
+    {
+      "name": "PT7",
+      "version": "2",
+      "ref": "docs/contracts/picard-terrain.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/picard-terrain-PT-14",
+  "branch": "picard-terrain/PT-14",
+  "base": "feature/picard-terrain",
+  "scope": [
+    "tools/research/picard_terrain/PT-14",
+    "tools/research/picard_terrain/out/PT-14"
+  ],
+  "dont_touch": [
+    "rust",
+    "scripts",
+    "configs",
+    "tests",
+    "docs",
+    "addons"
+  ],
+  "accept": [
+    {
+      "name": "diagnosis",
+      "cmd": "test -s tools/research/picard_terrain/out/PT-14/diagnosis.json && python3 -c \"import json;json.load(open('tools/research/picard_terrain/out/PT-14/diagnosis.json'))\"",
+      "expect": "exit=0"
+    },
+    {
+      "name": "culprit",
+      "cmd": "python3 -c \"import json;print('culprit=%s'%json.load(open('tools/research/picard_terrain/out/PT-14/diagnosis.json'))['culprit'])\"",
+      "expect": "re:culprit=(PT-9|PT-10|both|other)"
+    },
+    {
+      "name": "cause-kind",
+      "cmd": "python3 -c \"import json;print('cause_kind=%s'%json.load(open('tools/research/picard_terrain/out/PT-14/diagnosis.json'))['cause_kind'])\"",
+      "expect": "re:cause_kind=(field_physics|consumer_rule|closure|snapshot|other)"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T23:04:20"
+}
