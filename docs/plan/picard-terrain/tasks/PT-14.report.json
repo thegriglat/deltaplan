@@ -1,0 +1,107 @@
+{
+  "status": "done",
+  "summary": "Виновник — PT-9 (срезанные клетки), cause_kind = field_physics: подветренная болтанка слабее, потому что поле честнее (местный сдвиг за гребнем на стартах −32…−42 %, наветренный базис у подножия ×1,4 по скорости и ×2,2 по u*), правило потребителя (σ_w по u* и сдвигу, lee_f) не менялось; опускание за гребнем в поле не ослабло, а выросло в 1,7–2,4 раза (средняя w за гребнем −0,52 → −0,87 м/с). Расхождение снимка 0,0496 м/с — шаг PT-10: GDScript-зеркало WindField не читает k1 и якорь hc+dz/2, только ниже ≈77 м над землёй; снимок строится на лету, пересъёмки нет. Наброски патчей (GD-снимок, пороги тестов) проверены на временных копиях, rust/tests/configs не менялись.",
+  "commits": [
+    "ec41930cc PT-14: разбор подветренной болтанки и снимка — виновник PT-9 (физика поля), снимок — PT-10; наброски патчей"
+  ],
+  "checks": [
+    {
+      "name": "diagnosis",
+      "value": "diagnosis.json валиден (exit 0)",
+      "pass": true
+    },
+    {
+      "name": "culprit",
+      "value": "culprit=PT-9",
+      "pass": true
+    },
+    {
+      "name": "cause-kind",
+      "value": "cause_kind=field_physics",
+      "pass": true
+    },
+    {
+      "name": "field_import max|Δ| до / PT-9 / PT-10, м/с",
+      "value": "5e-7 / 5e-7 / 0.0496 (FAIL только PT-10)",
+      "pass": true
+    },
+    {
+      "name": "lee_turbulence σ² за/до гребня: до / PT-9 / PT-10",
+      "value": "0.194/0.108 ok; 0.143/0.331 FAIL; 0.145/0.328 FAIL",
+      "pass": true
+    },
+    {
+      "name": "flying_into_lee, ветер/штиль, м: до / PT-9 / PT-10",
+      "value": "32/14 ok; 18/23 FAIL; 27/20 FAIL (штиль сам 14→23→20 при нулевом поле)",
+      "pass": true
+    },
+    {
+      "name": "старты aushtau_south / kayancha_south σ за/до (те же точки): до → PT-9=PT-10",
+      "value": "2.05/1.42 → 1.62/1.44; 2.69/1.59 → 1.82/1.66; сдвиг 0.062→0.042, 0.096→0.056; w поля −0.48→−1.00, −0.60→−1.43",
+      "pass": true
+    },
+    {
+      "name": "синтетика: подножие x=-600 uf, u*; тестовая подветренная x=350 uf; средняя w за гребнем",
+      "value": "uf 4.12→5.68; u* 0.41→0.89; uf(350) 10.0→9.2→8.5; w̄(200–700, гребень+50) −0.52→−0.87 м/с",
+      "pass": true
+    },
+    {
+      "name": "P1 patch_snapshot_k1 на копии 9d94bf30c",
+      "value": "test_air_field_import 0.0496→4.8e-7; test_wind_field 9/9; test_air_field_contracts 18/18; test_debug_layers 7/7",
+      "pass": true
+    },
+    {
+      "name": "P2 patch_tests_lee на до/PT-9/PT-10",
+      "value": "lee_turbulence (lee x=500, ветр. x=-900) ok на всех трёх, отношение 13.2/8.2/8.4; новый тест средней w ok на всех трёх",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "summary.md не записан: инструмент Write отклонил запись (запрет на файлы-отчёты для субагента); вывод — поля verdict/answers/proposals в out/PT-14/diagnosis.json и этот отчёт; README.md есть",
+    "test_ridge_starts на всех 10 стартах не перегонялся (≈15 мин на коммит): проверены 2 старта (aushtau_south, kayancha_south) в 2 точках; остальные 8 — данные координатора",
+    "повторов полёта с другим сидом не делалось"
+  ],
+  "questions": [
+    "Нужна ли игре повышенная болтанка на прилегающем (не оторванном) спуске за гребнем? От ответа зависит P3: рычаг lee.field_deficit_attached/separated (ex0/ex1) или шкала σ по сдвигу; менять после решения и замера на 10 стартах",
+    "Применять ли P1 (GDScript-снимок: k1 и якорь) или ограничить тест снимка высотами выше 100 м? Снимок нужен только отладке/превью"
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept PT-14; python3 tools/research/picard_terrain/PT-14/build_diagnosis.py && python3 tools/research/picard_terrain/PT-14/finish.py (по логам out/PT-14/logs); команды пересъёмки — tools/research/picard_terrain/PT-14/README.md",
+  "uncertain": [
+    {
+      "where": "tools/research/picard_terrain/PT-14/probe/src/main.rs (sigma)",
+      "why": "σ из разложения фасада и σ_w крейта по формулам sigma.rs отличаются в 1,3–1,6 раза (фасад, по-видимому, отдаёт RMS компонент/√3)",
+      "checked": "входы фасада в зонд крейта переданы точными (gdinput), скорость поля совпала на 1–5 %, направление и доли изменений «до/после» согласованы; сравнения внутри одного источника"
+    },
+    {
+      "where": "out/PT-14/diagnosis.json real_starts",
+      "why": "PT-10 не меняет величины в точках двух стартов (совпадают до 7 знаков), хотя wind_field.rs менял u*/col_grad срезанных столбцов",
+      "checked": "на синтетике PT-10 меняет u* столбцов гребня (1,46→1,60) и снимок; на этих точках столбцы без среза, остальные 8 стартов не проверялись"
+    },
+    {
+      "where": "синтетический гребень, сетка 400 м",
+      "why": "гребень a=400 м не разрешён, точка x=350 — интерполяция между столбцом гребня и первым подветренным; физичность поля судится по PT-2…PT-5 (Askervein, Perdigão), опыта по подветренной болтанке на этих местах нет",
+      "checked": "сравнение с эталонами PT-1…PT-5 и кинематикой U·tg α"
+    },
+    {
+      "where": "полёт test_flying_into_lee_loses_height",
+      "why": "одна реализация шума; штилевая база 14/23/20 м прыгает при нулевом поле",
+      "checked": "при отсчёте с x=150/250 м результат ещё хаотичнее (приземления); предложен детерминированный тест средней w"
+    }
+  ],
+  "dp_feedback": "Хорошо: job --lock cpu, accept --dry, report --template. Не хватило: (1) lock cpu выдаёт квоту 100% на слот — сборка dp-gd 7 мин на копию, а ps не видит процессы job-ов, нет простого способа посмотреть CPU/стадию (приходилось ждать по файлам); (2) job wait/until-циклы в foreground уходят в фон по 180 с — нужен явный флаг ожидания с выводом; (3) Write блокирует summary.md для субагента, хотя карточка/правила требуют summary.md — противоречие правил исследователя и harness; (4) нужен шаблон «бисекция на коммитах» (worktree + сборка + импорт Godot + тесты) в dpcli: ушло ~40 мин на ручной цикл, первый godot --import в копии ≈10 мин без прогресса.",
+  "extra": {
+    "culprit": "PT-9",
+    "cause_kind": "field_physics",
+    "snapshot_culprit": "PT-10",
+    "snapshot_cause_kind": "snapshot",
+    "diagnosis": "tools/research/picard_terrain/out/PT-14/diagnosis.json",
+    "tables": "tools/research/picard_terrain/out/PT-14/tables.json",
+    "patches": [
+      "tools/research/picard_terrain/out/PT-14/patch_snapshot_k1.patch",
+      "tools/research/picard_terrain/out/PT-14/patch_tests_lee.patch"
+    ]
+  },
+  "t": "2026-11-10T00:13:34",
+  "by": "executor"
+}

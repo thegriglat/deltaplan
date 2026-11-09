@@ -1,0 +1,72 @@
+{
+  "id": "PT-11",
+  "module": "picard-terrain",
+  "type": "dp-researcher",
+  "title": "Время и присутствие поля со срезанными клетками на dp-stand",
+  "goal": "Числами до/после: время загрузки и пересчёта поля на 4 местах игры, огибание склона (разгон на гребне, w вдоль склона), ротор за гребнем, термики с k1 по типам; NaN нет. Итог — summary.json и раздел «Замеры» в docs/research/picard_terrain_game.md.",
+  "plan_ref": "Задачи / Этап 2",
+  "contracts": [
+    {
+      "name": "PT7",
+      "version": "2",
+      "ref": "docs/contracts/picard-terrain.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/picard-terrain-PT-11",
+  "branch": "picard-terrain/PT-11",
+  "base": "feature/picard-terrain",
+  "scope": [
+    "tools/research/picard_terrain/out/PT-11",
+    "tools/research/picard_terrain/PT-11",
+    "docs/research/picard_terrain_game.md"
+  ],
+  "dont_touch": [
+    "rust",
+    "scripts",
+    "configs",
+    "tests",
+    "docs/contracts",
+    "docs/guide",
+    "CHANGELOG.md"
+  ],
+  "accept": [
+    {
+      "name": "summary",
+      "cmd": "test -s tools/research/picard_terrain/out/PT-11/summary.json && python3 -c \"import json;json.load(open('tools/research/picard_terrain/out/PT-11/summary.json'))\"",
+      "expect": "exit=0"
+    },
+    {
+      "name": "load-ratio",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/picard_terrain/out/PT-11/summary.json'));print('load_ratio_max=%s'%d['load_ratio_max'])\"",
+      "expect": "num:load_ratio_max=([0-9.e+-]+) <=1.3"
+    },
+    {
+      "name": "nan",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/picard_terrain/out/PT-11/summary.json'));print('nan_count=%s'%d['nan_count'])\"",
+      "expect": "num:nan_count=([0-9.e+-]+) <=0"
+    },
+    {
+      "name": "crest-speedup",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/picard_terrain/out/PT-11/summary.json'));print('crest_speedup_after_over_before_min=%s'%d['crest_speedup_after_over_before_min'])\"",
+      "expect": "num:crest_speedup_after_over_before_min=([0-9.e+-]+) >=0.9"
+    },
+    {
+      "name": "rotor-lost",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/picard_terrain/out/PT-11/summary.json'));print('rotor_lost=%s'%d['rotor_lost'])\"",
+      "expect": "num:rotor_lost=([0-9.e+-]+) <=0"
+    },
+    {
+      "name": "thermals",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/picard_terrain/out/PT-11/summary.json'));print('thermal_cores_after_over_before_min=%s'%d['thermal_cores_after_over_before_min'])\"",
+      "expect": "num:thermal_cores_after_over_before_min=([0-9.e+-]+) >=0.8"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T21:05:22"
+}

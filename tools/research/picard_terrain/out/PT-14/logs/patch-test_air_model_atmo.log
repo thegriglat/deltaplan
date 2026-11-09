@@ -1,0 +1,16 @@
+Initialize godot-rust (API v4.7.stable.official, runtime v4.7.2.stable.official, safeguards balanced)
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Cannot open file 'res://locale/ui.ru.translation'.
+   at: load (core/io/resource_format_binary.cpp:1156)
+ERROR: Failed loading resource: res://locale/ui.ru.translation.
+   at: _load (core/io/resource_loader.cpp:317)
+ERROR: Cannot open file 'res://locale/ui.en.translation'.
+   at: load (core/io/resource_format_binary.cpp:1156)
+ERROR: Failed loading resource: res://locale/ui.en.translation.
+   at: _load (core/io/resource_loader.cpp:317)
+steam: inactive (no_feature)
+  ok   test_air_model_atmo.gd::test_config_documented
+
+1 тестов, 0 упало, 0 пропущено
+exit=0

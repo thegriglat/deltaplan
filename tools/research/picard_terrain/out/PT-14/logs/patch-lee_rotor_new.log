@@ -1,0 +1,74 @@
+Initialize godot-rust (API v4.7.stable.official, runtime v4.7.2.stable.official, safeguards balanced)
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Cannot open file 'res://locale/ui.ru.translation'.
+   at: load (core/io/resource_format_binary.cpp:1156)
+ERROR: Failed loading resource: res://locale/ui.ru.translation.
+   at: _load (core/io/resource_loader.cpp:317)
+ERROR: Cannot open file 'res://locale/ui.en.translation'.
+   at: load (core/io/resource_format_binary.cpp:1156)
+ERROR: Failed loading resource: res://locale/ui.en.translation.
+   at: _load (core/io/resource_loader.cpp:317)
+steam: inactive (no_feature)
+  ok   test_lee_rotor.gd::test_lee_config_from_ap10
+dp_air: расширение загружено, api_version=6
+dp_air: подготовка места начата, место rig
+dp_air: 0.0 с, этап prepare, итераций 0
+dp_air: 0.0 с, этап phases, итераций 0
+dp_air: 0.0 с, этап coarse, итераций 0
+dp_air: 0.2 с, этап solve_mech, итераций 0
+dp_air: 0.5 с, этап solve_heat, итераций 0
+dp_air: 0.8 с, этап windows, итераций 0
+dp_air: READY за 1.0 с, поле подано, last_error=
+dp_air: расширение загружено, api_version=6
+dp_air: подготовка места начата, место rig
+dp_air: 0.0 с, этап prepare, итераций 0
+dp_air: 0.0 с, этап phases, итераций 0
+dp_air: 0.0 с, этап coarse, итераций 0
+dp_air: 0.2 с, этап solve_mech, итераций 0
+dp_air: 0.5 с, этап solve_heat, итераций 0
+dp_air: 0.8 с, этап windows, итераций 0
+dp_air: READY за 1.1 с, поле подано, last_error=
+  ok   test_lee_rotor.gd::test_same_seed_same_air
+dp_air: расширение загружено, api_version=6
+dp_air: подготовка места начата, место rig
+dp_air: 0.0 с, этап prepare, итераций 0
+dp_air: 0.0 с, этап phases, итераций 0
+dp_air: 0.0 с, этап solve_mech, итераций 0
+dp_air: 0.0 с, этап solve_heat, итераций 0
+dp_air: 0.1 с, этап windows, итераций 0
+dp_air: READY за 0.2 с, поле подано, last_error=
+dp_air: расширение загружено, api_version=6
+dp_air: подготовка места начата, место rig
+dp_air: 0.0 с, этап prepare, итераций 0
+dp_air: 0.0 с, этап phases, итераций 0
+dp_air: 0.0 с, этап coarse, итераций 0
+dp_air: 0.2 с, этап solve_mech, итераций 0
+dp_air: 0.5 с, этап solve_heat, итераций 0
+dp_air: 0.8 с, этап windows, итераций 0
+dp_air: READY за 0.9 с, поле подано, last_error=
+  за 30 с после гребня: штиль −20 м, ветер 6 м/с −27 м
+  FAIL test_lee_rotor.gd::test_flying_into_lee_loses_height
+         check failed: за гребнем теряем ≥ 2× штиля: 27 м vs 20 м
+dp_air: расширение загружено, api_version=6
+dp_air: подготовка места начата, место rig
+dp_air: 0.0 с, этап prepare, итераций 0
+dp_air: 0.0 с, этап phases, итераций 0
+dp_air: 0.0 с, этап solve_mech, итераций 0
+dp_air: 0.1 с, этап solve_heat, итераций 0
+dp_air: 0.1 с, этап windows, итераций 0
+dp_air: READY за 0.2 с, поле подано, last_error=
+dp_air: расширение загружено, api_version=6
+dp_air: подготовка места начата, место rig
+dp_air: 0.0 с, этап prepare, итераций 0
+dp_air: 0.0 с, этап phases, итераций 0
+dp_air: 0.0 с, этап coarse, итераций 0
+dp_air: 0.2 с, этап solve_mech, итераций 0
+dp_air: 0.5 с, этап solve_heat, итераций 0
+dp_air: 1.0 с, этап windows, итераций 0
+dp_air: READY за 1.1 с, поле подано, last_error=
+  средняя w за гребнем 200–700 м на высоте гребня+50: штиль 0.05, ветер 6 м/с -0.87
+  ok   test_lee_rotor.gd::test_lee_mean_sink_behind_crest
+
+4 тестов, 1 упало, 0 пропущено
+exit=1
