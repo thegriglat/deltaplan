@@ -209,3 +209,9 @@
 {"t": "2026-11-09T16:07:06", "by": "coordinator", "task": "TB-12", "ev": "merged"}
 {"t": "2026-11-09T16:09:03", "by": "reviewer", "task": "TB-10", "ev": "reviewed", "note": "Скоуп и dont_touch соблюдены (4 файла, bubble.py не тронут). Числа сходятся: F0 204→501 (×2,46), U_start 0,926→1,248 и t_rise 1473→1089 — оба ×1,35 = F0^⅓; 2,5…", "verdict": "accept", "issues": {"major": 2, "minor": 2}, "review": "docs/plan/thermal-bubble/tasks/TB-10.review.json"}
 {"t": "2026-11-09T16:09:21", "by": "coordinator", "task": "TB-10", "ev": "accepted", "note": "по ревью (fable): accept, 2 major — формат variants в json и разбор жизни клеток не дозаказываю: TB-15 жизнь клеток не меняет"}
+{"t": "2026-11-09T16:09:46", "by": "coordinator", "task": "TB-11", "ev": "checked", "note": "6/6 untouched=ok:exit 0; tb1=ok:exit 0; json=ok:exit 0; repro=ok:exit 0; refs=ok:6; md_docs=ok:exit 1"}
+{"t": "2026-11-09T16:11:41", "by": "coordinator", "task": "TB-13", "ev": "checked", "note": "6/6 untouched=ok:exit 0; tb1=ok:exit 0; json=ok:exit 0; repro=ok:seam_dw_max_ms=; refs=ok:5; md_docs=ok:exit 1"}
+{"t": "2026-11-09T16:12:53", "by": "coordinator", "task": "TB-10", "ev": "accepted", "commits": ["ecb601cc1"], "note": "6/6 untouched=ok:exit 0; tb1=ok:exit 0; json=ok:exit 0; repro=ok:exit 0; refs=ok:11; md_docs=ok:exit 1"}
+{"t": "2026-11-09T16:13:01", "by": "coordinator", "task": "TB-10", "ev": "merged"}
+{"t": "2026-11-09T16:13:02", "by": "coordinator", "task": "TB-11", "ev": "accepted", "note": "по отчёту: приток в метрике LES 0,40 w* (×1,12), правки нет"}
+{"t": "2026-11-09T16:13:02", "by": "coordinator", "task": "TB-13", "ev": "accepted", "note": "по отчёту: радиус 2000 м оставить; профиль — лёгким слоем (mask, sigma, подсос, за радиусом, статика, столбы < 100 м); 4 фокуса 223 мс/с — в TB-15"}
