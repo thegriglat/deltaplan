@@ -13,7 +13,7 @@
     },
     {
       "name": "TB4",
-      "version": "3",
+      "version": "4",
       "ref": "docs/contracts/thermal-bubble.md"
     }
   ],
@@ -121,6 +121,11 @@
       "name": "profile_kept",
       "cmd": "git diff --quiet feature/thermal-bubble -- rust/dp-air/src/terms/thermal/profile.rs rust/dp-air/src/terms/thermal/life.rs rust/dp-air/src/terms/thermal/cells.rs scripts data",
       "expect": "exit=0"
+    },
+    {
+      "name": "core_axis",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --release --test thermal_bubble_embed bubble_on_core_axis -- --nocapture",
+      "expect": "num:core_axis_dx_over_r=([0-9.eE+-]+) <=0.25"
     }
   ],
   "report_extra": [
@@ -132,5 +137,6 @@
     "rerecorded_tests"
   ],
   "notes": "",
-  "created": "2026-11-09T16:14:16"
+  "created": "2026-11-09T16:14:16",
+  "edited": "2026-11-09T18:13:59"
 }
