@@ -1,0 +1,49 @@
+{
+  "verdict": "accept",
+  "summary": "Скоуп чист (15 файлов в границах, dont_touch не тронут), приёмка 4/4 воспроизведена; analyze.py и make_doc.py перезапущены в scratchpad — mast_compare.csv (278 строк), fieldcheck.json и fieldcheck.md совпадают с закоммиченными байт в байт. Выводы документа соответствуют числам; подгонки констант нет (yc_shape_exp не менялся, переведён в допущение), major/minor LT-7 закрыты по тексту. Одно замечание к стыку контракта LTS: проверка lts проходит только после правки вывода стенда в run.py.",
+  "issues": [
+    {
+      "file": "tools/research/lee_turb/fieldcheck/run.py",
+      "line": 10,
+      "severity": "major",
+      "what": "fix_l подменяет l_u/l_w = 0.0 на 0.05 в выводе стенда, чтобы прошла проверка контракта LTS v1 (l > 0). Проверено по данным: затронуты 14 файлов (все Perdigão SW), до 54 строк в разрезе, все agl > 340 м, src=mech. На сравнение ТКЭ не влияет (l не используется), исполнитель вопрос поднял честно, но приёмочный тест lts формально пройден постобработкой — стенд (rust/, dont_touch) контракту не соответствует.",
+      "fix": "Решение координатора: либо стенд печатает l с большей точностью / контракт LTS допускает l = 0 при σ ≈ 0 (правка в rust или docs/contracts через координатора), либо явно записать в карточке, что проверка lts принята с этой оговоркой. Код задачи менять не требуется."
+    },
+    {
+      "file": "docs/research/lee_turb/fieldcheck.md",
+      "line": 24,
+      "severity": "minor",
+      "what": "Описание подмены неточно: «32 строки в разрезе … на высоте > 100 м» — по файлам ~/data/lee_turb/lts_fieldcheck: 0 строк у NE и Askervein, у SW до 54 строк (a_perdigao_sw), минимальная agl 340 м.",
+      "fix": "Поправить фразу: «только разрезы SW, до 54 строк из ~14 тыс., agl > 340 м» (и то же в докстринге fix_l)."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "accept LT-8 --dry (lts/masts/proto/docs/scope)",
+      "value": "4/4, 15 файлов в границах",
+      "pass": true
+    },
+    {
+      "name": "analyze.py в scratchpad-копии → mast_compare.csv, fieldcheck.json",
+      "value": "278 строк, diff пуст (csv и json без times)",
+      "pass": true
+    },
+    {
+      "name": "make_doc.py → fieldcheck.md против закоммиченного",
+      "value": "diff пуст",
+      "pass": true
+    },
+    {
+      "name": "fix_l по данным LTS",
+      "value": "474 строк в 14 файлах (SW), agl ≥ 340 м, src mech; NE/Askervein 0",
+      "pass": true
+    },
+    {
+      "name": "stderr стенда: уровни поля",
+      "value": "dx 50/100/400 м — согласуется с zone_dx и fieldcheck.md п.1",
+      "pass": true
+    }
+  ],
+  "t": "2026-11-09T23:58:26",
+  "by": "reviewer"
+}
