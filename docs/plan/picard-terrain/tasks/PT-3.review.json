@@ -1,0 +1,41 @@
+{
+  "verdict": "accept",
+  "summary": "Порт adv2_mom/adv2_heat сверен с air.py построчно: индексация, знаки, границы (pm2/pp1, tt/cell), lim 0/1/2 совпадают; minmod = меньшая по модулю разность при одном знаке = a·max(0,min(1,b/a)). Порядок вызовов (adv2_mom до/в build_all_mom, adv2_heat перед шаблонами тепла, в residuals тоже) — как outer_step/residuals эталона. Все файлы в скоупе, контракт PT3 (CLI, variant, побитный путь без флага) соблюдён, строки PT4 полные, параметров подгонки нет. Перезапуск default-bitwise и blocks-adv2 подтверждён; итерации парности 430 совпадают с fixture solution.iters.",
+  "issues": [
+    {
+      "file": "tools/research/picard_terrain/run_adv2.py",
+      "line": 30,
+      "severity": "major",
+      "what": "BIN = ROOT/'rust/picard_rs/target/release/picard' — такого пути в workspace нет, скрипт работает только через симлинк rust/picard_rs/target -> ../target, который координатор запретил (заметка 08:36) и которого нет в git; в чистой копии прогоны не воспроизводятся",
+      "fix": "BIN = ROOT/'rust/target/release/picard'; симлинк в копии убрать. Результаты (rows/r2) не затронуты — править можно при слиянии или следующей задачей"
+    },
+    {
+      "file": "rust/picard_rs/src/case.rs",
+      "line": 28,
+      "severity": "minor",
+      "what": "Params.cut_cells добавлено здесь только для метки variant; PT-2 добавляет то же поле — конфликт при слиянии в feature/picard-terrain",
+      "fix": "координатору: при слиянии оставить одно объявление (семантика одинаковая: serde default=false)"
+    },
+    {
+      "file": "rust/picard_rs/src/main.rs",
+      "line": 62,
+      "severity": "minor",
+      "what": "--adv2 только у solve; bench --solve флага варианта не принимает (заметка 09:19), по log 10:04 перенесено в задачу комбинации — просто фиксирую, что строки time в rows.jsonl не из bench (locked=false), как и сказано в table.md",
+      "fix": "ничего в этой задаче; учесть в задаче замера времени"
+    }
+  ],
+  "rerun": [
+    {
+      "name": "default-bitwise",
+      "value": "identical=4/4",
+      "pass": true
+    },
+    {
+      "name": "blocks-adv2",
+      "value": "max_block_rel=1.59343e-06 (<=1e-5)",
+      "pass": true
+    }
+  ],
+  "t": "2026-11-09T10:06:21",
+  "by": "reviewer"
+}
