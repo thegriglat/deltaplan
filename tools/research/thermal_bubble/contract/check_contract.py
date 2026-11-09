@@ -1,0 +1,285 @@
+#!/usr/bin/env python3
+"""Контрактный тест thermal-bubble (docs/contracts/thermal-bubble.md): TB1, TB2, TB3.
+
+python3 check_contract.py tb1            — шаблон bubble.py
+python3 check_contract.py tb2            — порт нынешнего профиля current.py
+python3 check_contract.py <файл.json>... — сводки TB3 (по полю format)
+Только numpy + stdlib. Код возврата 0 — всё прошло; иначе 1 и список нарушений.
+"""
+from __future__ import annotations
+
+import dataclasses
+import importlib
+import json
+import math
+import sys
+from pathlib import Path
+
+import numpy as np
+
+HERE = Path(__file__).resolve().parent
+PKG = HERE.parent
+sys.path.insert(0, str(PKG))
+
+FAIL: list[str] = []
+
+
+def check(cond: bool, msg: str) -> None:
+    print(("ok   " if cond else "FAIL ") + msg)
+    if not cond:
+        FAIL.append(msg)
+
+
+# ---------------------------------------------------------------- TB1
+def _box(states, env, pad):
+    xs = [s.xs for s in states] + [s.xc for s in states]
+    ys = [s.ys for s in states] + [s.yc for s in states]
+    R = max(s.R for s in states)
+    return (min(xs) - pad * R, max(xs) + pad * R, min(ys) - pad * R, max(ys) + pad * R, 0.0, env.zi)
+
+
+def _face_flux(b, states, env, n=48):
+    """Поток через 6 граней коробки (Гаусс–Лежандр n×n): (сумма v·n dA, сумма |v·n| dA)."""
+    bm = importlib.import_module("bubble")
+    g, wq = np.polynomial.legendre.leggauss(n)
+    x0, x1, y0, y1, z0, z1 = b
+
+    def nodes(a0, a1):
+        return 0.5 * (a1 - a0) * g + 0.5 * (a1 + a0), 0.5 * (a1 - a0) * wq
+
+    net = 0.0
+    gross = 0.0
+    X, WX = nodes(x0, x1)
+    Y, WY = nodes(y0, y1)
+    Z, WZ = nodes(z0, z1)
+    # грани: (ось нормали, координата, знак)
+    eps = 1e-9 * (z1 - z0)
+    faces = [
+        ("x", x0, -1), ("x", x1, +1),
+        ("y", y0, -1), ("y", y1, +1),
+        ("z", z0 + eps, -1), ("z", z1 - eps, +1),
+    ]
+    for ax, c, sgn in faces:
+        if ax == "x":
+            A, B = np.meshgrid(Y, Z, indexing="ij")
+            W = np.outer(WY, WZ)
+            p = np.stack([np.full_like(A, c), A, B], -1)
+            k = 0
+        elif ax == "y":
+            A, B = np.meshgrid(X, Z, indexing="ij")
+            W = np.outer(WX, WZ)
+            p = np.stack([A, np.full_like(A, c), B], -1)
+            k = 1
+        else:
+            A, B = np.meshgrid(X, Y, indexing="ij")
+            W = np.outer(WX, WY)
+            p = np.stack([A, B, np.full_like(A, c)], -1)
+            k = 2
+        v = bm.velocity(p, states, env)
+        vn = sgn * v[..., k]
+        net += float(np.sum(vn * W))
+        gross += float(np.sum(np.abs(vn) * W))
+    return net, gross
+
+
+def tb1() -> None:
+    try:
+        bm = importlib.import_module("bubble")
+    except Exception as e:  # noqa: BLE001
+        check(False, f"tb1: import bubble: {e!r}")
+        return
+    for name in ("PARAMS", "Env", "Source", "State", "state", "velocity", "from_game"):
+        check(hasattr(bm, name), f"tb1: bubble.{name} есть")
+    if FAIL:
+        return
+    # 1. PARAMS
+    for key in ("alpha_thermal", "C_thermal", "alpha_plume"):
+        check(key in bm.PARAMS, f"tb1: PARAMS[{key!r}] есть")
+    for key, d in bm.PARAMS.items():
+        ok = (
+            isinstance(d, dict)
+            and isinstance(d.get("value"), (int, float))
+            and math.isfinite(float(d["value"]))
+            and isinstance(d.get("unit"), str)
+            and isinstance(d.get("source"), str)
+            and d["source"].strip() != ""
+            and d.get("reliability") in ("high", "medium", "low")
+        )
+        check(ok, f"tb1: PARAMS[{key!r}] — value/unit/source/reliability")
+    # поля State
+    need = ("xs", "ys", "xc", "yc", "zc", "R", "U", "Q", "F0", "zb")
+    names = [f.name for f in dataclasses.fields(bm.State)]
+    check(all(n in names for n in need), f"tb1: поля State {need}")
+    env = bm.Env(wind=(3.0, 0.0), zi=1400.0)
+    src = bm.from_game(0.0, 0.0, 0.0, 2.5, 1400.0, env)
+    check(src.F0 > 0 and src.tau > 0, f"tb1: from_game → F0 {src.F0:.4g} > 0, tau {src.tau:.4g} > 0")
+    # 2. state
+    check(bm.state(src, env, src.t0 - 1.0) is None, "tb1: state(t < t0) is None")
+    ts = [src.t0 + src.tau * f for f in (0.2, 0.5, 1.0)]
+    sts = [bm.state(src, env, t) for t in ts]
+    check(all(s is not None for s in sts), "tb1: state не None на (t0, t0+tau]")
+    if any(s is None for s in sts):
+        return
+    check(all(s.R > 0 and s.U >= 0 for s in sts), "tb1: R > 0, U ≥ 0")
+    check(sts[0].zc < sts[1].zc < sts[2].zc, f"tb1: zc растёт {[round(s.zc, 1) for s in sts]}")
+    drift = max(
+        max(abs(s.xc - (src.x + env.wind[0] * (t - src.t0))), abs(s.yc - (src.y + env.wind[1] * (t - src.t0))))
+        for s, t in zip(sts, ts)
+    )
+    check(drift <= 1e-6, f"tb1: снос головы по ветру, ошибка {drift:.2e} м ≤ 1e-6")
+    check(all(s.xs == src.x and s.ys == src.y for s in sts), "tb1: низ шлейфа — точка источника")
+    a = sts[1]
+    b = dataclasses.replace(sts[1], xs=a.xs + 3 * a.R, xc=a.xc + 3 * a.R, yc=a.yc + a.R, ys=a.ys + a.R)
+    box = _box([a], env, 4.0)
+    rng = np.random.default_rng(1)
+    P = np.stack(
+        [rng.uniform(box[0], box[1], 4000), rng.uniform(box[2], box[3], 4000), rng.uniform(1.0, env.zi - 1.0, 4000)],
+        -1,
+    )
+    va = bm.velocity(P, [a], env)
+    check(va.shape == P.shape and va.dtype == np.float64, f"tb1: velocity форма {va.shape}, {va.dtype}")
+    check(bool(np.all(np.isfinite(va))), "tb1: velocity конечна")
+    # 3. линейность
+    vab = bm.velocity(P, [a, b], env)
+    vb = bm.velocity(P, [b], env)
+    lin = float(np.max(np.abs(vab - va - vb)) / max(np.max(np.abs(vab)), 1e-30))
+    check(lin <= 1e-9, f"tb1: линейность {lin:.2e} ≤ 1e-9")
+    # 4. земля и крышка
+    wmax = float(np.max(np.abs(va[..., 2])))
+    check(wmax > 0, f"tb1: max|w| = {wmax:.3g} > 0")
+    neg = bm.velocity(np.array([[a.xc, a.yc, -10.0]]), [a], env)
+    check(bool(np.all(neg == 0.0)), "tb1: z < 0 → 0")
+    g = np.stack([P[:, 0], P[:, 1], np.zeros(len(P))], -1)
+    wg = float(np.max(np.abs(bm.velocity(g, [a], env, ground=True, lid=True)[..., 2])))
+    check(wg <= 1e-3 * wmax, f"tb1: |w(z=0)| {wg:.2e} ≤ 1e-3·max|w|")
+    l = np.stack([P[:, 0], P[:, 1], np.full(len(P), env.zi)], -1)
+    wl = float(np.max(np.abs(bm.velocity(l, [a], env, ground=True, lid=True)[..., 2])))
+    check(wl <= 1e-3 * wmax, f"tb1: |w(z=zi)| {wl:.2e} ≤ 1e-3·max|w|")
+    # 5. масса через коробку — на трёх стадиях
+    for s, f in zip(sts, (0.2, 0.5, 1.0)):
+        net, gross = _face_flux(_box([s], env, 4.0), [s], env)
+        rel = abs(net) / max(gross, 1e-30)
+        check(rel <= 1e-3, f"tb1: поток через коробку (t0+{f}·tau) {rel:.2e} ≤ 1e-3 (gross {gross:.3g} м³/с)")
+    # 6. дивергенция в точке
+    h = 1e-4 * a.R
+    div = np.zeros(len(P))
+    for k in range(3):
+        e = np.zeros(3)
+        e[k] = h
+        div += (bm.velocity(P + e, [a], env)[..., k] - bm.velocity(P - e, [a], env)[..., k]) / (2 * h)
+    p99 = float(np.percentile(np.abs(div), 99)) * a.R / max(a.U, 1e-30)
+    check(p99 <= 1e-3, f"tb1: p99 |div|·R/U {p99:.2e} ≤ 1e-3")
+    # 7. дальнее поле головы без шлейфа
+    hd = dataclasses.replace(a, Q=0.0, F0=0.0, zb=a.zc)
+    far = np.array([[hd.xc + 20 * hd.R, hd.yc, hd.zc], [hd.xc, hd.yc - 20 * hd.R, hd.zc]])
+    vf = float(np.max(np.linalg.norm(bm.velocity(far, [hd], env), axis=-1)))
+    check(vf <= 1e-2 * max(hd.U, 1e-30), f"tb1: |v| на 20R {vf:.2e} ≤ 1e-2·U ({hd.U:.3g})")
+
+
+# ---------------------------------------------------------------- TB2
+def tb2() -> None:
+    try:
+        cm = importlib.import_module("current")
+    except Exception as e:  # noqa: BLE001
+        check(False, f"tb2: import current: {e!r}")
+        return
+    cfg = {
+        "ring_sink_factor": 1.6,
+        "profile_cutoff_radii": 2.5,
+        "radius_min_factor": 0.45,
+        "ground_ramp_m": 150.0,
+        "top_taper_m": 120.0,
+    }
+    top, R, w0 = 1400.0, 107.0, 3.1
+    p = np.array([[0.0, 0.0, 700.0]])
+    w = float(cm.current_w(p, src=(0.0, 0.0), top=top, R=R, w0=w0, cfg=cfg)[0])
+    check(abs(w - w0) <= 1e-9 * w0, f"tb2: ось, ξ = 0,5: w {w:.6g} = w0 {w0}")
+    xi = 0.5
+    r = R * max(0.45, xi ** (1 / 3) * (1 - 0.25 * xi) / 0.75)
+    p1 = np.array([[r, 0.0, 700.0]])
+    w1 = float(cm.current_w(p1, src=(0.0, 0.0), top=top, R=R, w0=w0, cfg=cfg)[0])
+    check(abs(w1) <= 1e-9, f"tb2: x = 1: w {w1:.2e} = 0")
+    p2 = np.array([[0.0, 0.0, 50.0]])
+    w2 = float(cm.current_w(p2, src=(0.0, 0.0), top=top, R=R, w0=w0, cfg=cfg)[0])
+    check(abs(w2 - w0 * (50 / 150) ** (1 / 3)) <= 1e-9 * w0, f"tb2: разгон у земли dh = 50: {w2:.6g}")
+    p3 = np.array([[0.0, 0.0, -5.0], [0.0, 0.0, 0.0]])
+    w3 = cm.current_w(p3, src=(0.0, 0.0), top=top, R=R, w0=w0, cfg=cfg)
+    check(w3.shape == (2,) and bool(np.all(w3 == 0.0)), "tb2: dh ≤ 0 → 0, форма (...)")
+
+
+# ---------------------------------------------------------------- TB3
+COMPARE_Q = (
+    "w_core_max_over_wstar",
+    "core_radius_over_zi",
+    "rise_speed_over_wstar",
+    "inflow_ground_over_wstar",
+    "outflow_top_over_wstar",
+    "ring_sink_min_over_wstar",
+    "updraft_area_fraction",
+)
+
+
+def _num_or_null(x) -> bool:
+    return x is None or (isinstance(x, (int, float)) and math.isfinite(float(x)))
+
+
+def tb3(path: Path) -> None:
+    try:
+        d = json.loads(path.read_text())
+    except Exception as e:  # noqa: BLE001
+        check(False, f"tb3: {path}: чтение json: {e!r}")
+        return
+    fmt = d.get("format")
+    check(d.get("version") == 1, f"tb3: {path.name}: version 1")
+    if fmt == "tb-compare":
+        check(isinstance(d.get("case"), dict), f"tb3: {path.name}: case")
+        rows = d.get("rows")
+        check(isinstance(rows, list), f"tb3: {path.name}: rows — список")
+        rows = rows or []
+        keys = ("quantity", "unit", "bubble", "current", "literature", "lit_range", "source", "note")
+        for r in rows:
+            ok = all(k in r for k in keys) and all(_num_or_null(r[k]) for k in ("bubble", "current", "literature"))
+            lr = r.get("lit_range")
+            ok = ok and (lr is None or (isinstance(lr, list) and len(lr) == 2 and all(_num_or_null(x) for x in lr)))
+            check(ok, f"tb3: {path.name}: строка {r.get('quantity')!r} — поля и типы")
+        have = {r.get("quantity") for r in rows}
+        for q in COMPARE_Q:
+            check(q in have, f"tb3: {path.name}: quantity {q}")
+        dv = d.get("div") or {}
+        check(all(_num_or_null(dv.get(k)) and dv.get(k) is not None for k in ("p99_rel", "flux_rel")),
+              f"tb3: {path.name}: div.p99_rel, div.flux_rel")
+        figs = d.get("figures")
+        check(isinstance(figs, list) and len(figs) > 0, f"tb3: {path.name}: figures непуст")
+    elif fmt == "tb-bench":
+        check(isinstance((d.get("machine") or {}).get("cpu"), str), f"tb3: {path.name}: machine.cpu")
+        check(d.get("profile") == "release", f"tb3: {path.name}: profile release")
+        ns = d.get("ns_per_point") or {}
+        for k in ("current_contribution", "current_sample", "bubble_analytic"):
+            check(isinstance(ns.get(k), (int, float)) and ns[k] > 0, f"tb3: {path.name}: ns_per_point.{k} > 0")
+        check(_num_or_null(ns.get("bubble_table")), f"tb3: {path.name}: ns_per_point.bubble_table число|null")
+        check(isinstance(d.get("bubbles_per_point"), (int, float)), f"tb3: {path.name}: bubbles_per_point")
+        tb = d.get("table_bytes")
+        check(tb is None or isinstance(tb, int), f"tb3: {path.name}: table_bytes int|null")
+        e = d.get("port_max_rel_err")
+        check(isinstance(e, (int, float)) and math.isfinite(e), f"tb3: {path.name}: port_max_rel_err")
+    else:
+        check(False, f"tb3: {path.name}: неизвестный format {fmt!r}")
+
+
+def main(argv: list[str]) -> int:
+    if not argv:
+        print(__doc__)
+        return 2
+    for a in argv:
+        if a == "tb1":
+            tb1()
+        elif a == "tb2":
+            tb2()
+        else:
+            tb3(Path(a))
+    print(f"\n{'PASS' if not FAIL else 'FAIL'}: нарушений {len(FAIL)}")
+    return 0 if not FAIL else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

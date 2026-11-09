@@ -174,6 +174,7 @@ generated: true
   - [tools/research/sw_ground/sheet/summary.md](../tools/research/sw_ground/sheet/summary.md) — SWG-7 вывод: вихревой лист над зоной снижает завышение лее с верным знаком, но мало; не встраивать, дальше — зона и толщина слоя.
   - [tools/research/sw_ground/timing/summary.md](../tools/research/sw_ground/timing/summary.md) — SWG-3: панели 3D на окнах игры 100/50 м медленнее Пикара крейта в 14–40 раз (8 потоков, tol 5); узкое место — опрос поля в FP64.
   - [tools/research/sw_ground/zone/summary.md](../tools/research/sw_ground/zone/summary.md) — SWG-8 вывод: скорость зоны и слой смешения снимают ошибку под оболочкой, но доля лее в ±15 % 0,08–0,17; дальше — высота зоны.
+- **thermal-bubble** — Термик как всплывающий пузырь-вихревое кольцо: шаблон в системе пузыря + снос, масса сохраняется; проверка идеи прототипом. [active 2026-11-09] — [план](plan/thermal-bubble.md) · [контракты](contracts/thermal-bubble.md)
 
 ## flight
 
