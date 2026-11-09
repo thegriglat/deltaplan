@@ -1,0 +1,143 @@
+{
+  "status": "done",
+  "summary": "Порт шаблона v4 в dp-air (ядро по измерениям, оболочка ψ головы 0,2R, from_strength) совпадает с Python: velocity 3e-13, state 3e-14, F0 from_strength 1,6e-14. Таблицы пузырей — только в bubble_radius_m (ключ /thermal/bubble_radius_m, 2000 м), кеш Arc по id переносится между обновлениями набора, нет таблицы — w = 0 и uh = 0; цена сборки 37 мс на 1 с игры (порог 100), table_max_rel 0,032 с учётом смеси между ключевыми кадрами. K̄ шаблона (bubble_kbar.rs, сетка 28×15 из bubble.kbar) стоит в колонках и источниках «между» при флаге; флаг выкл — побитно прежнее. Доработка 1: вклад пузыря (w, uh) умножен на th.phase(t).env — плавный распад, к t_end термика вклад 0 (раньше скачок с 84 % пика).",
+  "commits": [
+    "c66dab225 thermal-bubble TB-8: порт шаблона v4, from_strength, ключевые кадры таблиц с кешем по id, K̄ шаблона в «между»",
+    "e243e8167 thermal-bubble TB-8 доработка 1: вклад пузыря умножен на огибающую термика игры,"
+  ],
+  "checks": [
+    {
+      "name": "contract_tb4",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "dp_air_tests",
+      "value": "exit 0 (dev, 327 с)",
+      "pass": true
+    },
+    {
+      "name": "table_acc",
+      "value": "table_max_rel=0.03202 (свежая таблица 0.0232; смесь двух кадров на 1/4, 1/2, 3/4 шага 0.0320); порог 0,05",
+      "pass": true
+    },
+    {
+      "name": "budget",
+      "value": "build_ms_per_s=37.1 (таблицы 28.4 + источники from_strength 8.7), tables_alive=64, rebuilds_per_s=3.83, sources_per_s=0.22, прогрев первого обновления 4.5 с; release, один поток; порог 100",
+      "pass": true
+    },
+    {
+      "name": "port_v4",
+      "value": "velocity 3.1e-13 (порог 1e-5), state 3.2e-14 (1e-5), t_end совпал, F0 from_strength 1.6e-14 (порог 1e-3) на 4 сценах (w0 1,6…4, zl 700…2000, tau 400…690)",
+      "pass": true
+    },
+    {
+      "name": "workspace",
+      "value": "cargo check --workspace --all-targets exit 0, clippy dp-air без новых замечаний",
+      "pass": true
+    },
+    {
+      "name": "game_untouched",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "flag_off_bitwise",
+      "value": "фикстура thermal_bubble_off.json не тронута, побитно: State::sample и sum; все тесты thermal_air проходят",
+      "pass": true
+    },
+    {
+      "name": "kbar_table_vs_exact",
+      "value": "таблица K̄ против mean_up_flux на порте Rust: в узлах 3e-6 (независимая сверка Python и Rust), между узлами (билинейно) 5.4e-3",
+      "pass": true
+    },
+    {
+      "name": "axis_wmax_fast",
+      "value": "быстрый максимум оси (грубая сетка + подъём по мелкой) = полный перебор сетки Python, разница 0; 4× быстрее",
+      "pass": true
+    },
+    {
+      "name": "between_kbar_flag",
+      "value": "при флаге carried = w0·kbar(zl, w*) для всех 324 источников синтетического поля; без флага побитно прежнее; K̄ шаблона / K̄ Гедеона = 1,21 на этом поле",
+      "pass": true
+    },
+    {
+      "name": "life_fade",
+      "value": "макс. скачок за 1 с 0,0104 (0,007 пика) и 0,0068 (0,005) в двух точках на шагах 1 с от t_decay_start−10 до t_end; v(t_end)=0 точно; порог 0,05 пика",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Профиль q(ξ) по высоте в «между» оставлен прежним (по заданию): средняя «пузыри + между» совпадает с w_conv по потоку (тот же K̄), но не по вертикальному распределению.",
+    "Фикстуры bench_fixture.json / бенч benches/thermal_bubble.rs (v2) не тронуты — по заданию."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept TB-8 (7/7); цена: cargo test --release -p dp-air --test thermal_bubble_embed bubble_cache_budget -- --nocapture; K̄: python3 tools/research/thermal_bubble/kbar_table.py --part k/n и --assemble",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/src/terms/thermal/bubble.rs: Source::from_strength, tests/thermal_bubble_embed.rs flag_on_sum",
+      "why": "С радиусом ядра по измерениям (v4, α = 0,0256, z_h = 1,81 z_i) голова на столбе 1400 м (w0 2,5, tau 690) подходит к крышке (zc + R ≥ 0,9 z_i) только к ~1480 с от рождения — после конца термика игры (~990 с). В игре растекание под крышкой на высоких столбах поэтому не появится; тест flag_on_sum проверяет его на мелком столбе 450 м.",
+      "checked": "Python: zc(900 с) = 782 м (R 85), zc(1200) = 988 (R 90), zc(1480) = 1169 (R 95); Rust даёт те же состояния."
+    },
+    {
+      "where": "rust/dp-air/src/terms/thermal/bubble.rs: BubbleTable::z_tab, Blend",
+      "why": "Вместо сдвига всей таблицы на U·Δt (минор ревью TB-7) — растяжение между низом шлейфа и центром головы (земля неподвижна) и линейная смесь двух таблиц ключевых кадров. Измерил (устаревшая таблица против аналитики на момент опроса, доля пика): в становлении s0_t120 через 19 с сдвиг всей таблицы 0,21, без сдвига 0,29, растяжение 0,11; после отрыва s0_t800 через 10 с растяжение 0,17 — одной таблицы на сотни секунд не хватает. Смесь двух кадров с шагом 15 с в окнах становления (первые 90 с) и после отрыва (tau − 30 … tau + 240 с) и 30 с в остальное время — 0,032 (через 30 с в тех же окнах — 0,12, поэтому там кадры чаще). Растяжение не сохраняет бездивергентность поля, смесь таблиц сохраняет (линейна); вся ошибка входит в table_max_rel.",
+      "checked": "table_accuracy: 19 стадий жизни на 4 сценах (w0 1,6…4 м/с, zl 700…2000 м), кадр B строится с тем же правилом; по каждой стадии печатается свежая и смешанная ошибка."
+    },
+    {
+      "where": "rust/dp-air/src/terms/thermal/bubble.rs: IMAGES_TABLE, PANEL_TABLE/GL_N_TABLE, plume_stride_z, influence_radius",
+      "why": "Для скорости сборки таблицы считаются облегчённо: образы только (сам, зеркало земли, зеркало крышки) вместо 10; линия стоков Гаусс 4 узла на панель 1,2 b вместо 8 узлов на 0,6 b; шлейф на грубой подсетке по высоте (каждый узел ρ, каждый b0/20 м по z, кубическая интерполяция Лагранжа; голова — в каждом узле); радиус влияния — шаг 100 м по ρ и 7 слоёв по z. Аналитика порта (Bubble::new, velocity) полная, с 10 образами и GL8 — port_vs_python на ней. Подсетка по ρ не годится (шаг 2 узла по ρ утраивал ошибку: резкий край трубы), поэтому она только по z.",
+      "checked": "Каждое упрощение мерил отдельно по table_fresh_rel: GL4/панель 1,2 даёт те же 0,02315 что GL8/0,6; GL3 — 1,7 (ломается); три образа — без изменения; шаг подсетки по z 4 (16 м) 0,0236, 6 — 0,0316, 10 — 0,11."
+    },
+    {
+      "where": "rust/dp-air/src/terms/thermal/bubble.rs: R_GUESS_FRAC; sample.rs: bubble_modes",
+      "why": "Предотбор термиков до расчёта дорогого источника: радиус таблицы ≤ 0,6·z_l. Измерено на стадиях жизни 4 сцен: 0,14…0,43 z_l (шаг оценки 100 м). Если у необычной комбинации радиус больше — термик у края bubble_radius_m окажется на профиле Гедеона, хотя его таблица дотянулась бы. table_accuracy проверяет r_max ≤ 0,6·z_l на каждой стадии и падает, если нарушено.",
+      "checked": "assert в table_accuracy."
+    },
+    {
+      "where": "rust/dp-air/src/terms/thermal/sample.rs: bubble_modes (кеш, первый запуск)",
+      "why": "start_at (force) строит синхронно: источники from_strength и по две таблицы на каждый термик в радиусе — на сцене бюджета 64 таблицы, 4,5 с на одном потоке в release (на нескольких потоках rayon быстрее); дальше в фоне ~12 мс на таблицу. Память: таблицы 70…500 кБ, до трёх кадров на термик — порядка 60 МБ на 64 термика.",
+      "checked": "warm_ms печатает bubble_cache_budget."
+    },
+    {
+      "where": "rust/dp-air/src/terms/thermal_air/{columns,sources}.rs; tools/research/thermal_bubble/kbar_table.py",
+      "why": "K̄ таблицы считается для w0 = K_ALLEN·w* (в игре сила термика w0 = 1,2436 w*), tau = 690 с (середины grow_s + mature_s ThermalCfg::default). Для термиков с другими tau (диапазон grow 120…240, mature 300…720 → tau 420…960) K̄ берётся тот же. Среднее «пузыри + между» = w_conv по потоку поля — тот же K̄ и в столбцах (плотность, потолок «ядра не несут больше Φ»), и в carried источника. Контракт TB4 v2 пишет «w0 = w*» — расхождение с Python-определением kbar (w0 — сила термика игры), взял по Python.",
+      "checked": "kbar_table_vs_exact: в узлах таблица = порт Rust 3e-6; between_kbar_flag: carried = w0·kbar для всех источников."
+    },
+    {
+      "where": "sample.rs: sample_bubble",
+      "why": "env множит вклад и в росте (smoothstep за t_grow) — как решено; пузырь имеет собственное становление (R/U ≈ 20–30 с), поэтому на старте рост вклада чуть медленнее. Множитель env не сохраняет бездивергентность (uh и w масштабируются одинаково, но env меняется во времени — на дивергенцию пространственно не влияет).",
+      "checked": "life_fade, flag_on_sum, флаг выкл побитно (flag_off_bitwise)"
+    }
+  ],
+  "dp_feedback": "lock cpu <имя> -- cargo … на тяжёлых запусках иногда блокирует вызов (ждёт очереди) вместо немедленного выхода в tmux — приходится помнить про run_in_background; job wait по имени с суффиксом приходится искать в списке логов. Вес замка для python — 1 слот, длинный счёт Python (kbar_table) параллелится только вручную несколькими job --lock cpu start: полезен флаг у lock cpu для числа слотов или пакетный запуск «n копий с индексом».",
+  "extra": {
+    "table_fresh_rel": 0.02322,
+    "table_stale_rel": 0.03202,
+    "table_max_rel": 0.03202,
+    "build_ms_per_s_release": 37.1,
+    "build_ms_per_s_tune": 59.0,
+    "tables_ms_per_s": 28.4,
+    "sources_ms_per_s": 8.7,
+    "tables_alive": 64,
+    "rebuilds_per_s": 3.83,
+    "sources_per_s": 0.217,
+    "warm_ms_release": 4501,
+    "build_ms_per_table_1thread_tune": "6…58 по стадиям и zl (21,8 в среднем по 19 стадиям 4 сцен; 262 до оптимизаций)",
+    "bytes_per_bubble": 252243,
+    "port_velocity_max_rel": 3.14e-13,
+    "port_state_max_rel": 3.18e-14,
+    "from_strength_max_rel": 1.6e-14,
+    "from_strength_ms_per_source_release_1thread": "≈ 60 (сцена бюджета)",
+    "kbar_node_max_rel": 3e-06,
+    "kbar_between_rel": 0.0054,
+    "kbar_ratio_bubble_over_gedeon": 1.21,
+    "kbar_range_m2": "168…11160 (zl 300…3000, w* 0,5…4)",
+    "keyframes": "15 с при t < 90 с и tau − 30 < t < tau + 240, иначе 30 с",
+    "influence_frac": 0.01,
+    "r_max_over_zl": "0,14…0,43",
+    "axis_wmax_speedup": 4.6
+  },
+  "t": "2026-11-09T13:15:52",
+  "by": "executor"
+}
