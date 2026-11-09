@@ -158,3 +158,9 @@
 {"t": "2026-11-09T15:56:27", "by": "coordinator", "task": "PT-7", "ev": "accepted", "note": "по отчёту"}
 {"t": "2026-11-09T15:57:16", "by": "coordinator", "task": "PT-9a", "ev": "created", "note": "Сборка dp-air: поля adv2/limiter/cut_cells в литерале Params"}
 {"t": "2026-11-09T15:57:24", "by": "coordinator", "task": "PT-9a", "ev": "note", "note": "Только три поля в литерале Params в case_build.rs (около строки 454, ошибка E0063 от cargo check). Значения ровно: adv2: false, limiter: 0, cut_cells: false (прежний путь, PT3 v2/PT2 v1: false — побитно R1). Ничего больше не менять. Если cargo check --all-targets покажет другие ошибки E0063 по Params вне case_build.rs — не править, ответить 'PT-9a blocked: <файл:строка>'. Сборки — под замком: .dpcli/dpcli lock cpu PT-9a -- <cmd>.", "addendum": true}
+{"t": "2026-11-09T15:57:34", "by": "coordinator", "task": "PT-9a", "ev": "started"}
+{"t": "2026-11-09T15:57:37", "by": "coordinator", "task": "PT-7", "ev": "accepted", "commits": ["6c03ea2d7"], "note": "3/3 sections=ok:6; split=ok:12; docs-check=ok:exit 0"}
+{"t": "2026-11-09T15:57:37", "by": "coordinator", "task": "PT-7", "ev": "merged"}
+{"t": "2026-11-09T15:59:54", "by": "executor", "task": "PT-9a", "ev": "reported", "commits": ["0a7840e69"], "note": "done: В литерал Params в case_build.rs добавлены adv2: false, limiter: 0, cut_cells: false. dp-air снова собирается, поле игр…"}
+{"t": "2026-11-09T16:00:03", "by": "coordinator", "task": "PT-9a", "ev": "checked", "note": "2/2 check=ok:exit 0; lib=ok:exit 0; scope=FAIL:вне scope: r-PT-9a.json"}
+{"t": "2026-11-09T16:00:20", "by": "coordinator", "task": "PT-9a", "ev": "accepted", "note": "2/2 check=ok:exit 0; lib=ok:exit 0"}

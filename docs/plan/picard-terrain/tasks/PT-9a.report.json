@@ -1,0 +1,33 @@
+{
+  "status": "done",
+  "summary": "В литерал Params в case_build.rs добавлены adv2: false, limiter: 0, cut_cells: false. dp-air снова собирается, поле игры прежнее.",
+  "commits": [
+    "0a7840e69 dp-air: case_build — поля adv2/limiter/cut_cells в литерале Params (PT-9a)"
+  ],
+  "checks": [
+    {
+      "name": "check",
+      "value": "cargo check --offline -p dp-air --all-targets: exit=0",
+      "pass": true
+    },
+    {
+      "name": "lib",
+      "value": "3 passed, exit=0",
+      "pass": true
+    },
+    {
+      "name": ".dpcli/dpcli accept PT-9a --dry",
+      "value": "PT-9a: 2/2 в .",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept PT-9a",
+  "uncertain": [],
+  "dp_feedback": "",
+  "extra": {},
+  "t": "2026-11-09T15:59:54",
+  "by": "executor"
+}
