@@ -1,0 +1,83 @@
+{
+  "status": "done",
+  "summary": "Анализ корпуса OB2 (720 записей): на слабом ветре soft даёт +5 из 180 (p=0,40) против порога +9, поле внутри меняется >0,05·U10 у 13-32 из 88 пар и у 20 из 60 на сильном ветре. Правило рекомендации: hard.",
+  "commits": [
+    "43a6a3fcd outflow-bc: OBC-4 анализ этапа 1 (hard против soft), документ вывода"
+  ],
+  "checks": [
+    {
+      "name": "summary",
+      "value": "PASS, побайтно совпадает",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "conv слабый ветер ok/180 hard/soft/soft_ns",
+      "value": "97/102/88",
+      "pass": true
+    },
+    {
+      "name": "парно hard->soft слабый (max->ok / ok->max)",
+      "value": "14/9, знаковый p=0,40",
+      "pass": true
+    },
+    {
+      "name": "сильный ветер ok/60 hard/soft/soft_ns",
+      "value": "60/60/54",
+      "pass": true
+    },
+    {
+      "name": "правило границы этапа 2",
+      "value": "hard: условие 1 не выполнено (+0,028 < +0,05); условия 2 и 3 выполнены (медиана d_int_50_max_rel 0,0067)",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept OBC-4; tools/research/outflow_bc/out/stage1/results.json; docs/research/outflow_bc.md",
+  "uncertain": [
+    {
+      "where": "docs/research/outflow_bc.md, Q3/Q4",
+      "why": "Мера d_int_h_max_rel берёт максимум по клеткам и завышает влияние границы; на сильном ветре 56 из 60 пар >0,05, но rms/U10 >0,05 только у 20 из 60 (горы: ongudai 14 из 16). Какое решение ближе к природе, опыт не определяет.",
+      "checked": "добавлены rms, p99, старты в долях U10 и разбивка по местам (q3_rel_places)"
+    },
+    {
+      "where": "docs/research/outflow_bc.md, Q1",
+      "why": "Выигрыш soft +5 случаев статистически не значим; повтора hard-hard для шума решателя нет.",
+      "checked": "знаковый тест scipy binomtest, разбивка по U10 и Fr"
+    },
+    {
+      "where": "docs/research/outflow_bc.md, Q5",
+      "why": "Вклад отражения оценён по полосе у выхода (back_frac, backflow_faces), без отдельного опыта с вариацией длины губки.",
+      "checked": "парные разности на both_ok и max_to_ok"
+    }
+  ],
+  "dp_feedback": "Усечённый task show для дополнений карточки: полный текст пришлось искать флагом --full. Хотелось бы подсказку об этом флаге в выводе.",
+  "extra": {
+    "q2_iters_med_weak_hard_soft_soft_ns": [
+      20,
+      20,
+      10
+    ],
+    "q2_spread_med_weak_hard_soft_soft_ns_mps": [
+      0.435,
+      0.401,
+      1.379
+    ],
+    "q3_weak_over_0p05_max_rel_soft": "32 из 88; rms 13, p99 26, старты 7",
+    "q4_strong_rms_over_0p05_soft": "20 из 60",
+    "q5_back_frac50_weak": [
+      0.034,
+      0.085,
+      0.202
+    ],
+    "figures": "tools/research/outflow_bc/out/stage1/fig1..fig4 png, slices_sel.h5 (847 КБ)"
+  },
+  "t": "2026-11-09T15:20:01",
+  "by": "executor"
+}

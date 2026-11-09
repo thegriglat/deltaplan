@@ -65,3 +65,8 @@
 {"t": "2026-11-09T15:15:32", "by": "coordinator", "task": "OBC-4", "ev": "started"}
 {"t": "2026-11-09T15:15:33", "by": "coordinator", "task": "OBC-5", "ev": "started"}
 {"t": "2026-11-09T15:15:33", "by": "coordinator", "task": "OBC-6", "ev": "started"}
+{"t": "2026-11-09T15:19:56", "by": "executor", "task": "OBC-4", "ev": "checked", "note": "2/2 summary=ok:variant,u10_bin,fr_bin,heat,n…; docs=ok:exit 0"}
+{"t": "2026-11-09T15:20:01", "by": "executor", "task": "OBC-4", "ev": "reported", "commits": ["43a6a3fcd"], "note": "done: Анализ корпуса OB2 (720 записей): на слабом ветре soft даёт +5 из 180 (p=0,40) против порога +9, поле внутри меняется >…", "dp_feedback": "Усечённый task show для дополнений карточки: полный текст пришлось искать флагом --full. Хотелось бы подсказку об этом флаге в выводе."}
+{"t": "2026-11-09T15:20:13", "by": "coordinator", "task": "OBC-4", "ev": "checked", "note": "2/2 summary=ok:variant,u10_bin,fr_bin,heat,n…; docs=ok:exit 0"}
+{"t": "2026-11-09T15:21:10", "by": "reviewer", "task": "OBC-4", "ev": "reviewed", "note": "Я пересчитал по cases.jsonl.gz сходимость, парное сравнение, медиану d_int_50_max_rel, число пар выше 0,05 по max и rms, и сбои soft_ns на сильном ветре; всё с…", "verdict": "accept", "issues": {"minor": 1}, "review": "docs/plan/outflow-bc/tasks/OBC-4.review.json"}
+{"t": "2026-11-09T15:21:20", "by": "coordinator", "task": "OBC-4", "ev": "accepted", "note": "по ревью; мелкое замечание по формулировке Q3 (острова 25 из 32 по числу) — без доработки"}
