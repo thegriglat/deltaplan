@@ -28,3 +28,5 @@
 {"t": "2026-11-09T08:33:36", "by": "executor", "task": "TB-2a", "ev": "reported", "note": "partial: Доработка 2: из открытых источников получена аннотация Ansmann et al. 2010 (ACP, лидар): доля подъёмов 30-34 %, средний…", "dp_feedback": "WebFetch отдаёт только аннотации Copernicus и сырой PDF; pdftotext на сохранённом PDF помогает."}
 {"t": "2026-11-09T08:33:50", "by": "coordinator", "task": "TB-2a", "ev": "checked", "note": "4/4 contract_tb2=ok:exit 0; unit=ok:exit 0; lit_rows=ok:exit 0; lit_docs=ok:exit 1"}
 {"t": "2026-11-09T08:33:50", "by": "coordinator", "task": "TB-2a", "ev": "accepted", "note": "по отчёту: литературный обзор, пробелы inflow/outflow — null с причиной; 2 доработки исчерпаны"}
+{"t": "2026-11-09T08:33:57", "by": "coordinator", "task": "TB-2a", "ev": "accepted", "commits": ["4e09ffd66"], "note": "4/4 contract_tb2=ok:exit 0; unit=ok:exit 0; lit_rows=ok:exit 0; lit_docs=ok:exit 1"}
+{"t": "2026-11-09T08:33:57", "by": "coordinator", "task": "TB-2a", "ev": "merged"}
