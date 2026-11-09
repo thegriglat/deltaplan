@@ -249,6 +249,7 @@ pub fn check_case(c: &Case) -> Result<Vec<BlockRow>> {
     s.f.thd = a("in_thd")?;
     s.f.nu = a("kloc_nu")?;
     s.f.nuh = a("kloc_nuh")?;
+    s.adv2_heat();
     s.build_heat_d();
     let (cd, bd) = planes(&s.ctd);
     add("heat stencil theta_d C", rel_err(&cd, c.arr("Ch_d")?), true);

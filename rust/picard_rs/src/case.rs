@@ -21,6 +21,12 @@ pub struct Params {
     pub local_k: bool,
     pub k_relax: f64,
     pub cs_h: f64,
+    /// PT3: deferred second-order advection correction (absent = off, the first-order path).
+    #[serde(default)]
+    pub adv2: bool,
+    /// PT3: limiter of the correction: 0 linear, 1 van Leer, 2 van Albada, 3 minmod.
+    #[serde(default)]
+    pub limiter: i64,
     /// PT2: cut cells (fractions `vf`, `af_*` of the case); no key = false.
     #[serde(default)]
     pub cut_cells: bool,
@@ -358,6 +364,8 @@ pub struct Consts {
     pub local_k: bool,
     pub k_relax: f32,
     pub csdx2: f32,
+    /// PT3: limiter of the second-order advection correction, `None` = first order.
+    pub adv2: Option<crate::adv2::Limiter>,
     /// PT2 cut cells (`params.cut_cells`); `None` = the plain R1 iteration.
     pub cut: Option<crate::cut::Cut>,
 }
@@ -408,6 +416,9 @@ impl Consts {
             .as_ref()
             .is_none_or(|n| n.thbd.iter().all(|&x| x == 0.0));
         let p = &c.params;
+        if p.cut_cells && p.adv2 {
+            bail!("params.cut_cells with params.adv2: the combination is not implemented (separate task)");
+        }
         let kx = c.arr("Kx")?.clone();
         let ky = c.arr("Ky")?.clone();
         let kz = c.arr("Kz")?.clone();
@@ -471,6 +482,11 @@ impl Consts {
             vcycles: p.vcycles,
             local_k: p.local_k,
             k_relax: p.k_relax as f32,
+            adv2: if p.adv2 {
+                Some(crate::adv2::Limiter::from_index(p.limiter)?)
+            } else {
+                None
+            },
             csdx2: ((p.cs_h * f64::from(c.dx)) * (p.cs_h * f64::from(c.dx))) as f32,
             cut,
         })
