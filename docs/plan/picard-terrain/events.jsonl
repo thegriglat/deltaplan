@@ -300,3 +300,5 @@
 {"t": "2026-11-10T04:31:48", "by": "coordinator", "task": "PT-15", "ev": "checked", "note": "4/4 wind_field=ok:0; air_field=ok:0; atmosphere=ok:0; cargo=ok:exit 0"}
 {"t": "2026-11-10T04:32:58", "by": "reviewer", "task": "PT-15", "ev": "reviewed", "note": "Правка T4 приводит div_rms теста к мере PT2 v1 (Σ af·u/h на полный объём) — побитно та же формула, что div_rms_f64 решателя; порог 5e-6 не тронут. Пересъём RW-…", "verdict": "accept", "issues": {"minor": 2}, "review": "docs/plan/picard-terrain/tasks/PT-15.review.json"}
 {"t": "2026-11-10T04:33:09", "by": "coordinator", "task": "PT-15", "ev": "accepted", "note": "по ревью"}
+{"t": "2026-11-10T04:48:20", "by": "coordinator", "task": "PT-15", "ev": "accepted", "commits": ["def954bf9"], "note": "4/4 wind_field=ok:0; air_field=ok:0; atmosphere=ok:0; cargo=ok:exit 0"}
+{"t": "2026-11-10T04:48:21", "by": "coordinator", "task": "PT-15", "ev": "merged"}
