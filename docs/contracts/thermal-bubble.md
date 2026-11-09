@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-11-09"
 summary: "Стыки thermal-bubble: шаблон пузыря bubble.py (TB1), профиль для сверки (TB2), сводки (TB3), шаблон в dp-air за флагом (TB4)."
 related: ["docs/plan/thermal-bubble.md", "docs/guide/air-model/thermals.md"]
-contracts: [{"id": "TB1", "version": 4}, {"id": "TB2", "version": 1}, {"id": "TB3", "version": 2}, {"id": "TB4", "version": 2}]
+contracts: [{"id": "TB1", "version": 4}, {"id": "TB2", "version": 1}, {"id": "TB3", "version": 2}, {"id": "TB4", "version": 2}, {"id": "TB5", "version": 1}]
 ---
 # Контракты модуля thermal-bubble
 
