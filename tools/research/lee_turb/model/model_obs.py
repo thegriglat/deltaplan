@@ -189,7 +189,9 @@ def model_station(g_at, x, z, g_st, u1, bg_tke, tke_crest, k_crest, u_meas, k=K)
     mech_att = np.sqrt(2.0 * tke_crest * FRAC)                      # поле не видит отрыва: у стенки в следе то же, что на гребне (ТКЭ гребневой мачты на этой высоте)
     mech_meas = None if u_meas is None else np.sqrt(2.0 * k_crest * u_meas ** 2 * FRAC)   # «идеальное поле»: ТКЭ гребня, пересчитанная по измеренной скорости (∝ U²)
     if cp is None:
-        lay = np.zeros(3)
+        lay = lay_fb = np.zeros(3)
+        fb = dict(wB=np.zeros(1), eta=np.array([float("nan")]), yc=np.array([float("nan")]))
+        st = dict(wB=np.zeros(1), eta=np.array([float("nan")]), yc=np.array([float("nan")]))
         in_sep, f_sep, xr, xh = False, 0.0, float("nan"), float("nan")
     else:
         H = cp["H"]
@@ -198,8 +200,11 @@ def model_station(g_at, x, z, g_st, u1, bg_tke, tke_crest, k_crest, u_meas, k=K)
         cp["h_at_xr"] = g_at(cp["d_c"] + xr)
         xx = x - cp["d_c"]
         u2 = k["u2_unresolved_over_u1"] * u1
-        st = P.layer_state(np.array([xx]), np.array([g_st + z]), np.array([g_st]), cp, xr, u1, u2, k, res=0.0)
+        args = (np.array([xx]), np.array([g_st + z]), np.array([g_st]), cp, xr, u1, u2, k)
+        st = P.layer_state(*args, res=0.0, yc_mode="lt5")                # LT-5/6: линейная линия слоя (варианты A, B, A_meas, B_sum, layer)
         lay = np.array([st["sig_u"][0], st["sig_v"][0], st["sig_w"][0]])
+        fb = P.layer_state(*args, res=0.0, yc_mode="fb")                 # LT-7: запасная линия по глубине пузыря (поля у мачт нет)
+        lay_fb = np.array([fb["sig_u"][0], fb["sig_v"][0], fb["sig_w"][0]])
         f_sep = float(st["f_sep"])
         in_sep = (0.0 < xx < xr) and f_sep > 0.0
         xh = xx / H
@@ -215,12 +220,22 @@ def model_station(g_at, x, z, g_st, u1, bg_tke, tke_crest, k_crest, u_meas, k=K)
     out["B"] = (1 - w) * out["A"] + w * sepB
     out["B_sum"] = (1 - w) * out["A"] + w * sepB2
     out["bg"] = bg_tke
+    # LT-7: «прежняя» = механика гребня без слоя; A2/N - запасная линия по глубине пузыря; N = B только под линией (вес w_B, гладко по η), N5 - то же под линией LT-5
+    out["old"] = tke_parts(mech_att)
+    out["A2"] = tke_parts(np.maximum(mech_att, lay_fb))
+    wb = float(fb["wB"][0])
+    out["N"] = tke_parts(np.maximum((1 - wb) * mech_att + wb * bg_sig, lay_fb))
+    wb5 = float(st["wB"][0])
+    out["N5"] = tke_parts(np.maximum((1 - wb5) * mech_att + wb5 * bg_sig, lay))
+    out["w_below"] = wb
+    out["eta"] = float(fb["eta"][0])
+    out["line_minus_station_m"] = float(fb["yc"][0] - (g_st + z)) if cp is not None else float("nan")
     out["mech_att"] = tke_parts(mech_att)
     return out
 
 
 # ---------------------------------------------------------------- прогон
-VARIANTS = ["A", "B", "A_meas", "B_sum", "layer", "bg"]
+VARIANTS = ["old", "A", "B", "A2", "N", "N5", "A_meas", "B_sum", "layer", "bg"]
 
 
 def run(out_dir):
@@ -269,7 +284,8 @@ def run(out_dir):
             H = m.get("H", float(sub[0]["H_m"]))
             row = dict(site=site, case=case, station=r["station"], x_over_h=x / float(r["H_m"]), z_over_h=z / float(r["H_m"]),
                        tke_obs_over_uref2=float(r["tke_m2s2"]) / uref2, n=r["n"], reliability=r["reliability"],
-                       f_sep=m["f_sep"], in_sep=int(m["in_sep"]), xh_model=m["xh_model"])
+                       f_sep=m["f_sep"], in_sep=int(m["in_sep"]), xh_model=m["xh_model"],
+                       w_below=m["w_below"], eta=m["eta"], line_minus_station_m=m["line_minus_station_m"])
             for v in VARIANTS:
                 row["tke_%s_over_uref2" % v] = m[v] / uref2
             result.append(row)
@@ -277,7 +293,12 @@ def run(out_dir):
 
 
 def stats(result, sel, keys=VARIANTS):
+    """Все варианты - на одном наборе строк (где конечны все варианты и измерение): n общий (замечание ревью LT-6); n_A_meas_only - строки,
+    выброшенные из-за отсутствия измеренной скорости."""
     out = {}
+    full = [r for r in sel if np.isfinite(r["tke_obs_over_uref2"])]
+    sel = [r for r in full if all(np.isfinite(r["tke_%s_over_uref2" % v]) for v in keys)]
+    out["_n"] = dict(n=len(sel), n_before_common=len(full))
     for v in keys:
         e, le = [], []
         for r in sel:
@@ -289,6 +310,25 @@ def stats(result, sel, keys=VARIANTS):
         if e:
             out[v] = dict(n=len(e), rmse=float(np.sqrt(np.mean(np.square(e)))), bias=float(np.mean(e)),
                           rmse_log=float(np.sqrt(np.mean(np.square(le)))), bias_log=float(np.mean(le)))
+    return out
+
+
+def profile_slopes(result, sel, keys=("old", "A", "B", "A2", "N", "bg"), min_pts=4):
+    """Наклон ТКЭ/u_ref² по высоте на мачте (z/H -> МНК, на 0 < x/H <= 6, мачты с >= min_pts высотами): где измеренная ТКЭ растёт с высотой,
+    а где модель; согласие знака - проверка положения центра слоя по высоте (центр выше станций -> рост вверх)."""
+    by = {}
+    for r in sel:
+        by.setdefault(r["station"].rsplit("_", 1)[0], []).append(r)
+    out = []
+    for m, rs in sorted(by.items()):
+        if len(rs) < min_pts:
+            continue
+        z = np.array([r["z_over_h"] for r in rs])
+        row = dict(mast=m, n=len(rs), x_over_h=float(np.mean([r["x_over_h"] for r in rs])), z_over_h_max=float(z.max()))
+        for v in ("obs",) + tuple(keys):
+            y = np.array([r["tke_%s_over_uref2" % v] for r in rs])
+            row["slope_" + v] = float(np.polyfit(z, y, 1)[0]) if np.isfinite(y).all() else None
+        out.append(row)
     return out
 
 
@@ -307,7 +347,8 @@ def maxima(result, sel, keys=VARIANTS + ["obs"]):
 def write(result, geom, out_dir):
     os.makedirs(out_dir, exist_ok=True)
     cols = ["site", "case", "station", "x_over_h", "z_over_h", "tke_obs_over_uref2", "tke_A_over_uref2", "tke_B_over_uref2",
-            "tke_A_meas_over_uref2", "tke_B_sum_over_uref2", "tke_layer_over_uref2", "tke_bg_over_uref2", "f_sep", "in_sep", "xh_model", "note"]
+            "tke_A_meas_over_uref2", "tke_B_sum_over_uref2", "tke_layer_over_uref2", "tke_bg_over_uref2", "f_sep", "in_sep", "xh_model", "note",
+            "tke_old_over_uref2", "tke_A2_over_uref2", "tke_N_over_uref2", "tke_N5_over_uref2", "w_below", "eta", "line_minus_station_m"]
     with open(os.path.join(out_dir, "obs_compare.csv"), "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=cols)
         w.writeheader()
@@ -338,7 +379,8 @@ def write(result, geom, out_dir):
                      n_above30=len(above), stats_above30=stats(result, above), max_above30=maxima(result, above),
                      excess_over_bg=dict(value=ex[0], station=ex[1], x_over_h=ex[2], z_over_h=ex[3], step_layer_peak_tke_over_uref2=step_peak,
                                          implied_amp_over_step=math.sqrt(max(ex[0], 0.0) / step_peak) if exc else None),
-                     max_within6=maxima(result, within), max_near=maxima(result, near))
+                     max_within6=maxima(result, within), max_near=maxima(result, near),
+                     profile_slopes=profile_slopes(result, within))
     json.dump(dict(geometry=geom, summary=S, constants=dict(ridge_xr_over_h=K["ridge_xr_over_h"], FRAC=FRAC.tolist())),
               open(os.path.join(out_dir, "obs_compare.json"), "w"), indent=1, ensure_ascii=False)
     return S
