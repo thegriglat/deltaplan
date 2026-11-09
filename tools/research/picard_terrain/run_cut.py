@@ -27,6 +27,7 @@ D = Path(os.environ.get("PICARD_TERRAIN_DATA", "~/data/picard_terrain")).expandu
 OUT = HERE / "out" / "PT-2"
 BIN = ROOT / "rust/target/release/picard"
 CASES = ["askervein_d50_cut", "askervein_d100_cut", "kayancha_d50_cut", "kayancha_d100_cut"]
+EXTRA = ["perdigao_ne_d30_cut", "perdigao_sw_d30_cut"]   # для PT-4 (поле, сходимость); в таблицу разгона не входят
 THREADS = 8
 MAX_ITERS = 4000
 # reference.md §4 (Askervein, 30 м, сетка 50 м): потенциальное без ступенек 0,34 -> со ступенями 0,28 (-18 %)
@@ -76,13 +77,13 @@ def run_case(name, lock=True):
     res = r2["residuals"]
     note = (f"picard_rs f32, срезанные клетки PT2 (vf_min {meta['pt']['cut']['vf_min']}, "
             f"{meta['pt']['cut']['samples_per_edge']} точек на ребро), 1-й порядок; "
-            f"{'замок cpu' if lock else 'без замка'}, {THREADS} потоков")
+            f"solve {'под замком cpu' if lock else 'без замка'}, {THREADS} потоков; время справочно (замер — отдельная задача bench)")
     return dict(format="pt-row", version=1, task="PT-2", case=name, site=meta["pt"]["site"], dx=float(meta["dx"]),
                 solver="picard_rs", dtype="f32", cut_cells=True, adv2=False, limiter=None, status=status_of(r2),
                 iters=int(r2["iters"]), max_iters=MAX_ITERS,
                 final=dict(mom_rms=res["mom_rms"], th_rms=res["th_rms"], div_rms=res["div_rms"]),
                 time=dict(total_s=r2["time"]["total_s"], ms_per_iter=r2["time"]["ms_per_iter"], threads=THREADS,
-                          locked=bool(lock)),
+                          locked=False),
                 r2=rel(r2p), state=f"states/{name}.json",
                 probes=[dict(name=v["name"], z_agl=v["z_agl"], S=v["S"], dS=dS[v["name"]]) for v in vals],
                 rotor=None, masts_rmse=None, note=note)
@@ -122,7 +123,9 @@ def table(rows):
         return pick(base_rows, b, solver="picard_rs", cut_cells=False, adv2=False)
 
     L += ["## Askervein: ΔS = S_HT / S_RS − 1 на той же высоте", "",
-          "| вариант | 10 м | 30 м | 60 м | 100 м | итераций | мс/итер. | статус |", "|---|---|---|---|---|---|---|---|"]
+          "«10 м» на d50/d100 — значение нижней клетки воздуха над HT (её центр выше 10 м; правило PT5: ниже центра "
+          "нижней клетки — её значение), не 10 м; у срезанных клеток нижняя клетка ниже и ближе к рельефу, чем у ступеней.", "",
+          "| вариант | 10 м* | 30 м | 60 м | 100 м | итераций | мс/итер. | статус |", "|---|---|---|---|---|---|---|---|"]
     refs = [("эталон 25 м, 2-й пор.", pick(base_rows, "askervein_d25", adv2=True)),
             ("эталон 12,5 м, 2-й пор.", pick(base_rows, "askervein_d12p5", adv2=True))]
     for dx in (100, 50):
@@ -158,7 +161,7 @@ def table(rows):
                      f"{f(r['time']['ms_per_iter'] if r else None, '{:.1f}')} | {r['status'] if r else '—'} |")
     L.append(f"| эталон 25 м, 2-й пор. | " + " | ".join(f(pv(kref, f'START_{z}', 'S'), '{:.2f}') for z in (20, 30, 50, 100))
              + f" | {kref['iters'] if kref else '—'} | — | {kref['status'] if kref else '—'} |")
-    L += ["", "## Время: срезанные клетки против базы (замок cpu, 8 потоков)", "",
+    L += ["", "## Время: срезанные клетки против базы (solve, 8 потоков; справочно — замер bench отдельной задачей)", "",
           "| случай | итераций база / срез. | мс/итер. база / срез. | всего, с база / срез. |", "|---|---|---|---|"]
     for nm in CASES:
         b, c = base_of(nm), pick(rows, nm)
@@ -180,7 +183,7 @@ def main():
     rp = OUT / "rows.jsonl"
     if not a.table:
         rows = {r["case"]: r for r in load_rows(rp)}
-        for nm in (a.names or CASES):
+        for nm in (a.names or CASES + EXTRA):
             rows[nm] = run_case(nm, lock=not a.no_lock)
             rp.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows.values()))
     table(load_rows(rp))

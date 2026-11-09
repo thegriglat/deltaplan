@@ -78,6 +78,9 @@ enum Cmd {
         solve: bool,
         #[arg(long, default_value_t = 2000)]
         max_iters: usize,
+        /// PT2: cut cells (sets `params.cut_cells = true`; the case must carry `vf`, `af_*`).
+        #[arg(long)]
+        cut_cells: bool,
     },
 }
 
@@ -250,8 +253,12 @@ fn main() -> Result<()> {
             out_dir,
             solve,
             max_iters,
+            cut_cells,
         } => {
-            let c = Case::load(&case)?;
+            let mut c = Case::load(&case)?;
+            if cut_cells {
+                c.params.cut_cells = true;
+            }
             for &n in &threads {
                 let n = api::resolve_threads(n);
                 if solve {
