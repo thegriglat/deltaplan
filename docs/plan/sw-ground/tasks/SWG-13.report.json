@@ -1,0 +1,86 @@
+{
+  "status": "done",
+  "summary": "Свод всех вариантов SWG-1…12 по мачтам, выбор по правилу карточки, docs/research/sw_ground.md (34 КБ), строка в findings, README. Лучший по правилу sheet_jh_mix 0,169 против базы 0,176 — не отличим от шума; схема на замену Пикару у земли не годится.",
+  "commits": [
+    "1391129a0 sw-ground: итог модуля — свод по мачтам, выбор варианта, docs/research/sw_ground.md (SWG-13)"
+  ],
+  "checks": [
+    {
+      "name": "accept --dry",
+      "value": "4/4 PASS",
+      "pass": true
+    },
+    {
+      "name": "среднее RMSE мачт, база potential_jh",
+      "value": "0,176 (ASK 0,218 / NE 0,184 / SW 0,126)",
+      "pass": true
+    },
+    {
+      "name": "победитель по правилу sheet_jh_mix",
+      "value": "0,169 (0,237 / 0,151 / 0,120), худший минус база +0,018",
+      "pass": true
+    },
+    {
+      "name": "парное сравнение 122 мачт sheet_jh_mix",
+      "value": "лучше 55 / хуже 61 / без изм. 6",
+      "pass": true
+    },
+    {
+      "name": "attached_jh парно",
+      "value": "лучше 56 / хуже 24 / без изм. 42; среднее 0,170",
+      "pass": true
+    },
+    {
+      "name": "лее 10 м в ±15 % Пикара, база -> sheet_jh_mix",
+      "value": "ASK 0,03->0,12; NE 0,15->0,19; SW 0,08->0,14",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0 для docs/research/sw_ground",
+      "pass": true
+    },
+    {
+      "name": "doc_exists",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "table",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "pytest",
+      "value": "2 passed",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Слои задачи 1 на окнах игры не измерялись (время только панелей potential_jh, SWG-3/6)",
+    "Оригиналы литературы не открывались, ссылки из README задач"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SWG-13; tools/research/sw_ground/py -m summary.select",
+  "uncertain": [
+    {
+      "where": "tools/research/sw_ground/summary/select.py",
+      "why": "несошедшиеся vii/vii2 исключены списком NOT_ELIGIBLE по оговоркам ревью, а не по флагу в данных (флага converged в ground.json нет)",
+      "checked": "формулировки README SWG-10/11; строки показаны в таблице с пометкой (vii2 среднее 0,149 было бы лучше базы)"
+    },
+    {
+      "where": "docs/research/sw_ground.md, раздел Ротор",
+      "why": "числа ложных роторов (ASK 1, NE 6, SW 2) взяты из README SWG-2, не пересчитаны",
+      "checked": "сверено с rotor.json по L нити"
+    },
+    {
+      "where": "out/summary/selection.json",
+      "why": "мачт мало (Perdigão в лее 3-6), различия RMSE между верхними вариантами в пределах шума",
+      "checked": "парное сравнение по мачтам"
+    }
+  ],
+  "dp_feedback": "docs init не создаёт файл с frontmatter (только дописывает существующим) - писал frontmatter вручную. Хотелось бы docs new.",
+  "t": "2026-11-09T05:40:16",
+  "by": "executor"
+}

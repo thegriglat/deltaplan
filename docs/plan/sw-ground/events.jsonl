@@ -188,3 +188,7 @@
 {"t": "2026-11-09T05:35:25", "by": "coordinator", "task": "SWG-13", "ev": "started"}
 {"t": "2026-11-09T05:36:03", "by": "coordinator", "task": "SWG-11", "ev": "accepted", "commits": ["1d7f7edd5"], "note": "5/5 contract=ok:exit 0; base=ok:2; vii2_rows=ok:10341; masts=ok:45; pytest=ok:passed"}
 {"t": "2026-11-09T05:36:03", "by": "coordinator", "task": "SWG-11", "ev": "merged"}
+{"t": "2026-11-09T05:40:16", "by": "executor", "task": "SWG-13", "ev": "reported", "commits": ["1391129a0"], "note": "done: Свод всех вариантов SWG-1…12 по мачтам, выбор по правилу карточки, docs/research/sw_ground.md (34 КБ), строка в finding…", "dp_feedback": "docs init не создаёт файл с frontmatter (только дописывает существующим) - писал frontmatter вручную. Хотелось бы docs new."}
+{"t": "2026-11-09T05:40:43", "by": "coordinator", "task": "SWG-13", "ev": "checked", "note": "4/4 docs=ok:exit 1; doc_exists=ok:ok; table=ok:ok; pytest=ok:passed"}
+{"t": "2026-11-09T05:43:07", "by": "reviewer", "task": "SWG-13", "ev": "reviewed", "note": "Свод честный: правило карточки реализовано дословно (среднее RMSE, допуск 0,02, несошедшиеся вне выбора), числа доки сверены с ground.json/rotor.json/timing.js…", "verdict": "accept", "issues": {"minor": 1}, "review": "docs/plan/sw-ground/tasks/SWG-13.review.json"}
+{"t": "2026-11-09T05:43:29", "by": "coordinator", "task": "SWG-13", "ev": "accepted", "note": "по ревью (fable): правило выбора дословно, числа сверены; 1 minor — vii/vii2 исключены списком"}
