@@ -4,7 +4,7 @@
 python3 check_contract.py tb1            — шаблон bubble.py
 python3 check_contract.py tb2            — порт нынешнего профиля current.py
 python3 check_contract.py <файл.json>... — сводки TB3 (по полю format)
-python3 check_contract.py tb4            — имена стыка TB4 в rust/dp-air
+python3 check_contract.py tb4 [v2]       — имена стыка TB4 в rust/dp-air (v2 — с кешем и радиусом пузырей)
 Только numpy + stdlib. Код возврата 0 — всё прошло; иначе 1 и список нарушений.
 """
 from __future__ import annotations
@@ -275,6 +275,9 @@ def tb4() -> None:
     has("src/terms/thermal/bubble.rs", "BubbleTable")
     has("tests/thermal_bubble_embed.rs", "fn flag_off_bitwise", "fn port_vs_python", "fn table_accuracy",
         "fn flag_on_sum", "table_max_rel=")
+    if "v2" in sys.argv[1:]:
+        has("src/terms/thermal/cfg.rs", "bubble_radius_m", "/thermal/bubble_radius_m")
+        has("tests/thermal_bubble_embed.rs", "fn bubble_cache_budget", "build_ms_per_s=", "fn no_table_no_w")
     check((air / "tests" / "data" / "thermal_bubble_off.json").is_file(), "tb4: tests/data/thermal_bubble_off.json есть")
 
 
@@ -393,6 +396,8 @@ def main(argv: list[str]) -> int:
             tb2()
         elif a == "tb4":
             tb4()
+        elif a == "v2":
+            pass
         else:
             tb3(Path(a))
     print(f"\n{'PASS' if not FAIL else 'FAIL'}: нарушений {len(FAIL)}")

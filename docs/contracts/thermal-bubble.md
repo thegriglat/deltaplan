@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-11-09"
 summary: "Стыки thermal-bubble: шаблон пузыря bubble.py (TB1), профиль для сверки (TB2), сводки (TB3), шаблон в dp-air за флагом (TB4)."
 related: ["docs/plan/thermal-bubble.md", "docs/guide/air-model/thermals.md"]
-contracts: [{"id": "TB1", "version": 4}, {"id": "TB2", "version": 1}, {"id": "TB3", "version": 2}, {"id": "TB4", "version": 1}]
+contracts: [{"id": "TB1", "version": 4}, {"id": "TB2", "version": 1}, {"id": "TB3", "version": 2}, {"id": "TB4", "version": 2}]
 ---
 # Контракты модуля thermal-bubble
 
@@ -153,7 +153,7 @@ v2: `les.json` (пишет TB-6; читатели — сверка и итог) 
 "reliability": "high"|"medium"|"low"}`; обязательные quantity: `inflow_ground_over_wstar`, `outflow_top_over_wstar`,
 `ring_sink_min_over_wstar`, `rise_speed_over_wstar`. Нет числа — null и причина в note.
 
-## TB4 v1 — шаблон пузыря в `dp-air` за флагом
+## TB4 v2 — шаблон пузыря в `dp-air` за флагом
 Владелец — координатор; пишут TB-7 (инфраструктура, порт TB1 v2), TB-8 (порт TB1 v3, K̄); потребители — сумма ветра
 (`rust/dp-air/src/terms/sum.rs`), «между» (`terms/thermal_air`, TB-8). В игру по умолчанию не включается (Q1 п. 2).
 
@@ -184,3 +184,20 @@ v2: `les.json` (пишет TB-6; читатели — сверка и итог) 
   `tools/research/thermal_bubble/out/bench_fixture.json`, отн. ≤ 1e-5), `table_accuracy` (печатает строку
   `table_max_rel=<x>` — max|Δv| таблицы против аналитики / пик |v| на сцене и в точках фикстуры), `flag_on_sum`
   (флаг вкл: у термика есть приток к оси у земли и растекание у верха — знаки `uh`, сумма конечна).
+
+**v2 (ревью TB-7, 2026-11-09; пишет TB-8):**
+- Порт — TB1 v4 (`bubble.py` после TB-5: ядро по измерениям, оболочка ψ, `from_strength`); F0 — `from_strength(w0 = strength, zl, tau)`.
+- Радиус пузырей: ключ `/thermal/bubble_radius_m` (`ThermalCfg.bubble_radius_m`, по умолчанию 2000 м) — таблицы строятся
+  только для динамических термиков, чей круг влияния (радиус таблицы + снос·margin) задевает круг `bubble_radius_m`
+  вокруг любого фокуса. Дальше — как без флага (профиль Гедеона): граница модели, пилот её не видит.
+- Динамический термик внутри радиуса пузырей: w и `uh` — только из таблицы; нет состояния, `r_max = 0` или таблица ещё
+  не собрана (родился в интервале обновления) — вклада нет (не профиль Гедеона). `mask`, `sigma` — как без флага.
+- Статичные термики (`is_static`, `statics.rs`: постоянная сила, нет жизни) — при флаге как без флага (профиль Гедеона).
+- Кеш таблиц по `id` между обновлениями (`Arc`); пересборка — когда устарела (правило — в TB-8: по изменению zc/R/стадии),
+  ошибка устаревания входит в `table_max_rel`. Цена: печать `build_ms_per_s=` — среднее время сборки таблиц на 1 с
+  игры на сцене плотности Аллена (n_A = 8,5/z_l², z_l 1400) с фокусом, летящим 15 м/с; порог ≤ 100 мс/с (≤ 10 % ядра).
+- «Между» при флаге: в `terms/thermal_air` K̄ столба — `kbar(zl, tau, env, w0 = w*)` шаблона (таблица по zl, считается
+  один раз), без флага — побитно прежнее.
+- Тесты v2 (в `tests/thermal_bubble_embed.rs`): прежние + `bubble_cache_budget` (печатает `build_ms_per_s=`),
+  `no_table_no_w` (динамический без таблицы внутри радиуса — w = 0, uh = 0; статичный — как без флага),
+  `port_vs_python` — против фикстуры v4 (`tools/research/thermal_bubble/out/bench_fixture.json`, пересобрана `bench_fixture.py`).
