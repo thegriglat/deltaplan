@@ -1,0 +1,110 @@
+{
+  "status": "done",
+  "summary": "Ветка после слияния main: падения cargo (T4 acceptance, step_cost_same) исправлены по физике срезанных клеток и пересъёмом эталона RW-15; atmosphere/wind_field/air_field зелёные кроме известных. Полный cargo test: 573 passed, 1 failed (timing_step_and_spinup — нагрузка, одиночный прогон 250 мкс < 500).",
+  "commits": [
+    "18ebb6aeb dp-air: примеры outflow — поле hc_type в PhaseCase после слияния main",
+    "7622397d0 dp-air: T4 acceptance — div_rms по открытым долям граней (срезанные клетки), как в решателе",
+    "0432b7515 dp-air: эталон RW-15 пересъят на срезанных клетках (решение координатора PT-9, 2026-11-09)",
+    "PT-15: вывод check_default.sh (identical=4/4)"
+  ],
+  "checks": [
+    {
+      "name": "wind_field",
+      "value": "PASS (accept --dry), 9 тестов, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "air_field",
+      "value": "PASS (accept --dry), 19 тестов, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "atmosphere",
+      "value": "PASS (accept --dry) 226 с; 125 тестов, 2 упало (оба известные/исключённые)",
+      "pass": true
+    },
+    {
+      "name": "cargo",
+      "value": "PASS (accept --dry, --skip timing_step_and_spinup) 452 с, exit 0",
+      "pass": true
+    },
+    {
+      "name": "cargo test целиком под замком cpu (PT-15-cargo2)",
+      "value": "573 passed, 1 failed (timing_step_and_spinup)",
+      "pass": false
+    },
+    {
+      "name": "timing_step_and_spinup одиночный прогон",
+      "value": "шаг 20 с: 250.75 мкс < 500, разгон 32 мс",
+      "pass": true
+    },
+    {
+      "name": "check_default.sh последняя строка",
+      "value": "identical=4/4",
+      "pass": true
+    },
+    {
+      "name": "T4 acceptance после правки",
+      "value": "div_rms 4.9e-10 .. 9.8e-10 при пороге 5e-6; утечка через землю 0 на 6216 гранях",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept PT-15",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/tests/data/RW-15/ref.json",
+      "why": "Эталон step_cost_same пересъят (RW15_WRITE=1): изменилось 840 из 931 значения, max |Δ| 3.3e-3, max относительное 9.5% на малых значениях. Опора: решение координатора PT-9 от 2026-11-09 (decisions.jsonl picard-terrain: «эталон RW-15 (step_cost_same) — пересъём RW15_WRITE=1 со срезанными клетками»; в events.jsonl PT-9 addendum 19:40 пункт (2)). Причина: старый путь маски убран, плоское место 500 м режет первый слой (vf 0.238), поэтому поле считается на срезанных клетках; это следствие поля срезанных клеток, не регрессия шага.",
+      "checked": "Тест падал уже до слияния main: бисекция сборками — f14ac9391 (PT-9) падает значением 1.1990125, ee12ec58d/c94b564ec/9c314ec59 — 1.1989827; main 3b9d24ceb зелёный. Пересъём не ослабляет тест; после пересъёма step_cost_same зелёный. Эталон на ветке PT-9 не был пересъят — исправлено здесь."
+    },
+    {
+      "where": "tests/atmosphere/test_cloud_field_runtime.gd:21 (test_field_cloud_seen_by_physics)",
+      "why": "Падает на main (thermal-bubble): cloud_density_at(cb+150) = 0.075 при пороге 0.1, у ветки до слияния 0.126. По решению координатора 2026-11-10 — известное падение, не чинил; проверка atmosphere его исключает.",
+      "checked": "Сборки main (3b9d24ceb) и ветки до слияния (9c314ec59) в отдельных worktree: на main красный, до слияния зелёный. Профиль плотности над базой: до слияния пик 0.126 на cb+150 и 0 к cb+600; после — плато 0.12 от cb+300 до cb+600 (шаблон пузыря)."
+    },
+    {
+      "where": "rust/dp-air/tests/terms_clouds.rs:1327 (timing_step_and_spinup)",
+      "why": "Порог времени 500 мкс под нагрузкой (load average 7-20, замок cpu с CPUQuota=100%): 609 мкс; проверка cargo его пропускает (--skip) по решению координатора.",
+      "checked": "Одиночный прогон: шаг 20 с 250.75 мкс, разгон 2400 с 32.4 мс, set_inputs 2.6 мс — тест зелёный."
+    },
+    {
+      "where": "tools/research/picard_terrain/out/PT-15/check_default.txt",
+      "why": "check_default.sh сравнивает picard_rs базы (merge-base 606ab0c36, т.е. уже после слияния) с рабочим деревом; мои коммиты picard_rs не меняют, поэтому identical=4/4 доказывает только это; различия от слияния main относительно feature до слияния этим скриптом не проверяются.",
+      "checked": "Полный вывод в файле: agnesi 780->780, flat_wind 30->30, heated_slope 60->60, saddle 470->470 итераций, identical=4/4."
+    }
+  ],
+  "dp_feedback": "dpcli job status показывает «идёт» для задачи, процессы которой не видны в ps по имени (видны через pstree/PID из .pid). job --lock cpu ставит CPUQuota=100%, из-за чего полный cargo test занимает порядка часа; в карточке стоит предупредить. Список таблицы падений «до правок» удобнее иметь в шаблоне отчёта.",
+  "extra": {
+    "falls_before_fixes": [
+      {
+        "test": "acceptance t4_divergence_and_ground_impermeability",
+        "reason": "срезанные клетки (phys() без долей граней)",
+        "done": "тест считает div по af_u/v/w как решатель"
+      },
+      {
+        "test": "step_cost_same step_result_same_as_before",
+        "reason": "срезанные клетки, PT-9, эталон не пересъят",
+        "done": "пересъём ref.json"
+      },
+      {
+        "test": "terms_clouds timing_step_and_spinup",
+        "reason": "нагрузка",
+        "done": "ничего; --skip в проверке"
+      },
+      {
+        "test": "Godot test_cloud_field_runtime::test_field_cloud_seen_by_physics",
+        "reason": "слияние main (thermal-bubble)",
+        "done": "ничего; исключён проверкой"
+      },
+      {
+        "test": "Godot test_hazards::test_storm_preset_makes_cb",
+        "reason": "известное",
+        "done": "ничего"
+      }
+    ]
+  },
+  "t": "2026-11-10T04:14:23",
+  "by": "executor"
+}

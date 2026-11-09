@@ -1,0 +1,39 @@
+{
+  "verdict": "accept",
+  "summary": "Правка T4 приводит div_rms теста к мере PT2 v1 (Σ af·u/h на полный объём) — побитно та же формула, что div_rms_f64 решателя; порог 5e-6 не тронут. Пересъём RW-15 опирается на решение координатора PT-9 11-09 19:40. Скоуп соблюдён, project.godot/docs не тронуты.",
+  "issues": [
+    {
+      "file": "rust/dp-air/tests/acceptance.rs",
+      "line": 371,
+      "severity": "minor",
+      "what": "При params.cut_cells=true и отсутствии af_* в case.arrays тест молча берёт долю 1 (map_or(1.0)) и считает старую меру; решатель по PT2 в этом случае даёт ошибку, так что на практике недостижимо, но тест скрыл бы рассинхрон.",
+      "fix": "По желанию: при cut_cells требовать af_* (expect), не подставлять 1."
+    },
+    {
+      "file": "rust/dp-air/tests/data/RW-15/ref.json",
+      "line": 1,
+      "severity": "minor",
+      "what": "После пересъёма step_cost_same сверяет решатель с его же текущим выходом (840/931 значений сменилось, max отн. 9.5%); регрессию шага до PT-15 тест больше не ловит. Принято решением координатора PT-9, замечание для сведения.",
+      "fix": "Нет действий в PT-15."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "cargo acceptance t4_divergence_and_ground_impermeability (lock cpu)",
+      "value": "ok, 1 passed",
+      "pass": true
+    },
+    {
+      "name": "cargo step_cost_same step_result_same_as_before (lock cpu)",
+      "value": "ok, 1 passed",
+      "pass": true
+    },
+    {
+      "name": "сверка формулы теста с picard_rs report.rs div_rms_f64",
+      "value": "совпадает (af по граням u/v/w, /dx,/dx,/dz, только cell==1)",
+      "pass": true
+    }
+  ],
+  "t": "2026-11-10T04:32:58",
+  "by": "reviewer"
+}
