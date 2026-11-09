@@ -364,6 +364,20 @@ def tb3(path: Path) -> None:
         check(tb is None or isinstance(tb, int), f"tb3: {path.name}: table_bytes int|null")
         e = d.get("port_max_rel_err")
         check(isinstance(e, (int, float)) and math.isfinite(e), f"tb3: {path.name}: port_max_rel_err")
+    elif fmt == "tb-les":
+        rows = d.get("rows")
+        check(isinstance(rows, list), f"tb3: {path.name}: rows — список")
+        rows = rows or []
+        for r in rows:
+            ok = all(k in r for k in ("quantity", "unit", "literature", "lit_range", "source", "note", "reliability"))
+            ok = ok and _num_or_null(r.get("literature")) and r.get("reliability") in ("high", "medium", "low")
+            lr = r.get("lit_range")
+            ok = ok and (lr is None or (isinstance(lr, list) and len(lr) == 2 and all(_num_or_null(x) for x in lr)))
+            check(ok, f"tb3: {path.name}: строка {r.get('quantity')!r} — поля и типы")
+        have = {r.get("quantity") for r in rows}
+        for q in ("inflow_ground_over_wstar", "outflow_top_over_wstar", "ring_sink_min_over_wstar", "rise_speed_over_wstar"):
+            check(q in have, f"tb3: {path.name}: quantity {q}")
+        check(isinstance(d.get("searched"), list), f"tb3: {path.name}: searched — список")
     else:
         check(False, f"tb3: {path.name}: неизвестный format {fmt!r}")
 

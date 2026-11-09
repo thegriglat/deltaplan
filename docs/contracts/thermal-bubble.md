@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-11-09"
 summary: "Стыки thermal-bubble: шаблон пузыря bubble.py (TB1), профиль для сверки (TB2), сводки (TB3), шаблон в dp-air за флагом (TB4)."
 related: ["docs/plan/thermal-bubble.md", "docs/guide/air-model/thermals.md"]
-contracts: [{"id": "TB1", "version": 3}, {"id": "TB2", "version": 1}, {"id": "TB3", "version": 1}, {"id": "TB4", "version": 1}]
+contracts: [{"id": "TB1", "version": 3}, {"id": "TB2", "version": 1}, {"id": "TB3", "version": 2}, {"id": "TB4", "version": 1}]
 ---
 # Контракты модуля thermal-bubble
 
@@ -132,7 +132,7 @@ def current_w(p: np.ndarray, *, src=(x, y), top: float, R: float, w0: float, lea
 - Числа cfg — по умолчанию из `rust/dp-air/src/terms/thermal/cfg.rs` (`ThermalCfg::default`), имена ключей те же.
 - Контрактный тест `tb2`: w на оси при ξ = 0,5 равна w0·vert; при x = 1 — 0; dh ≤ 0 → 0.
 
-## TB3 v1 — сводки сверки и цены `tools/research/thermal_bubble/out/*.json`
+## TB3 v2 — сводки сверки, цены и LES `tools/research/thermal_bubble/out/*.json`
 Пишут: TB-2 (`compare.json`), TB-3 (`bench.json`); читатель — TB-4. Запись — временный файл и переименование.
 
 `compare.json` — `{"format": "tb-compare", "version": 1, "case": {...вход: wstar, zi, wind...}, "rows": [...],
@@ -147,6 +147,11 @@ def current_w(p: np.ndarray, *, src=(x, y), top: float, R: float, w0: float, lea
 "bubble_table": float|null}, "bubbles_per_point": float, "table_bytes": int|null, "port_max_rel_err": float}`
 (ns на одну точку; `current_sample` — `State::sample` при той же плотности термиков; `port_max_rel_err` — порт Rust
 против `bubble.velocity` на фикстуре точек).
+
+v2: `les.json` (пишет TB-6; читатели — сверка и итог) — `{"format": "tb-les", "version": 1, "rows": [...], "searched": [str]}`;
+строка rows: `{"quantity": str, "unit": str, "literature": float|null, "lit_range": [lo, hi]|null, "source": str, "note": str,
+"reliability": "high"|"medium"|"low"}`; обязательные quantity: `inflow_ground_over_wstar`, `outflow_top_over_wstar`,
+`ring_sink_min_over_wstar`, `rise_speed_over_wstar`. Нет числа — null и причина в note.
 
 ## TB4 v1 — шаблон пузыря в `dp-air` за флагом
 Владелец — координатор; пишут TB-7 (инфраструктура, порт TB1 v2), TB-8 (порт TB1 v3, K̄); потребители — сумма ветра
