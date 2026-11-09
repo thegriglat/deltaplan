@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-11-08"
+updated: "2026-11-09"
 summary: "Точка входа: модули docs/ по подпроектам, прочие документы по типам."
 related: []
 generated: true
@@ -154,6 +154,26 @@ generated: true
   - [tools/research/sw_charges_3d/refs/summary.md](../tools/research/sw_charges_3d/refs/summary.md) — SWD-1: итог эталонов 3D — Пикар nom/adv1 против мачт Askervein и Perdigão, ротор; границы эталонов.
 - **wind-forecast** — Ветер меню — как в прогнозе (10 м над открытой местностью): убрать подгонку под старт и два прохода k; показ «на старте X м/с». [closed 2026-11-08] — [план](plan/wind-forecast.md) · [контракты](contracts/wind-forecast.md) · [решения](plan/wind-forecast/decisions.md) · [сводка](plan/wind-forecast/summary.md) · полный журнал: `archive/wind-forecast`
   - [tools/research/wind_forecast/README.md](../tools/research/wind_forecast/README.md) — Аудит привязки ветра к старту: места файл:строка, U над стартом start/inflow на 8 стартах, загрузка, кеш, wind_ref.
+- **sw-ground** — Панели 3D у земли: лее и долина (главный блокер), нить ротора по геометрии на реальном рельефе, время на сетках окон игры. [closed 2026-11-09] — [план](plan/sw-ground.md) · [контракты](contracts/sw-ground.md) · [решения](plan/sw-ground/decisions.md) · [сводка](plan/sw-ground/summary.md) · полный журнал: `archive/sw-ground`
+  - [docs/research/sw_ground.md](research/sw_ground.md) — Итог sw-ground: слой у земли панелей 3D не заменяет Пикар в лее и долине; по мачтам лучший вариант не отличим от базы. [closed]
+  - [tools/research/sw_ground/README.md](../tools/research/sw_ground/README.md) — Код и данные sw-ground: слой у земли панелей 3D, нить ротора на рельефе, время поля на окнах игры.
+  - [tools/research/sw_ground/attached/README.md](../tools/research/sw_ground/attached/README.md) — SWG-9: лее вне зоны — у Perdigão дальний след за x_r, не градиент; правило APG Таунсенда даёт верный знак, но ~10 %.
+  - [tools/research/sw_ground/freeline/README.md](../tools/research/sw_ground/freeline/README.md) — SWG-12: свободная линия тока с гребня — зона на глубину долины (h 110–155 м), под ней ошибка снята, но мачты долины NE хуже.
+  - [tools/research/sw_ground/ground/README.md](../tools/research/sw_ground/ground/README.md) — SWG-1: плотные точки SWG1, таблица «до» и разложение завышения panels3d у земли в лее и долине (SWG2).
+  - [tools/research/sw_ground/query/README.md](../tools/research/sw_ground/query/README.md) — Опрос поля панелей 3D на окнах 100/50 м: FP32 даёт 6–25× без потери точности, дальние узлы почти ничего не добавляют; прервано решением.
+  - [tools/research/sw_ground/rotor/README.md](../tools/research/sw_ground/rotor/README.md) — SWG-2: нить rotor3d v2 на Perdigão и Askervein: L как у Menke на NE, но ложные роторы есть.
+  - [tools/research/sw_ground/rotor_ground/README.md](../tools/research/sw_ground/rotor_ground/README.md) — Нить ротора SWG-2 в лее Perdigão срезает завышение у земли (50 м +1,7…1,9 → +0,9…1,25), но доля в ±15 % мала; мачты Askervein хуже.
+  - [tools/research/sw_ground/sheet/README.md](../tools/research/sw_ground/sheet/README.md) — SWG-7: вихревой лист над мёртвой зоной снижает завышение в лее (NE 10 м +1,48 → +1,12), но мало; дальше — толщина слоя и зона.
+  - [tools/research/sw_ground/timing/README.md](../tools/research/sw_ground/timing/README.md) — Панели 3D на окнах игры 100/50 м (Онгудай) медленнее Пикара крейта в 14–40 раз (8 потоков); узкое место — опрос поля FP64.
+  - [tools/research/sw_ground/vii/README.md](../tools/research/sw_ground/vii/README.md) — SWG-10: VII панели + интегральный слой (Карман, Хед, Coles, Carter) — на Perdigão связь не сходится; на Аньези VII ≈ JH, отрыва нет.
+  - [tools/research/sw_ground/vii2/README.md](../tools/research/sw_ground/vii2/README.md) — SWG-11: тонкий слой JH + Ньютон (ISES) — Askervein сходится, Perdigão до ε≈0,8; отрыва нет: стоп в точке dH1/dH = 0.
+  - [tools/research/sw_ground/wake/README.md](../tools/research/sw_ground/wake/README.md) — SWG-4: заряды вытеснения следа (Lighthill) + JH ускоряют лее (NE 10 м +1,48 → +1,91); не встраивать, дальше — вихревой лист.
+  - [tools/research/sw_ground/zone/README.md](../tools/research/sw_ground/zone/README.md) — SWG-8: скорость зоны и слой смешения: под оболочкой лее ошибка +2,3 → +0,1…+0,2, но доля в ±15 % 0,08–0,17; мешает низкая оболочка.
+  - [tools/research/sw_ground/freeline/summary.md](../tools/research/sw_ground/freeline/summary.md) — SWG-12 вывод: зона на глубину долины снимает ошибку под линией, но мачты долины NE против; по мачтам лучший — по-прежнему zone_jh.
+  - [tools/research/sw_ground/ground/summary.md](../tools/research/sw_ground/ground/summary.md) — SWG-1: у земли в лее нет дефицита следа (множитель 0,94–1,05 против 0,52–0,60); z0, σ, фон не причины.
+  - [tools/research/sw_ground/sheet/summary.md](../tools/research/sw_ground/sheet/summary.md) — SWG-7 вывод: вихревой лист над зоной снижает завышение лее с верным знаком, но мало; не встраивать, дальше — зона и толщина слоя.
+  - [tools/research/sw_ground/timing/summary.md](../tools/research/sw_ground/timing/summary.md) — SWG-3: панели 3D на окнах игры 100/50 м медленнее Пикара крейта в 14–40 раз (8 потоков, tol 5); узкое место — опрос поля в FP64.
+  - [tools/research/sw_ground/zone/summary.md](../tools/research/sw_ground/zone/summary.md) — SWG-8 вывод: скорость зоны и слой смешения снимают ошибку под оболочкой, но доля лее в ±15 % 0,08–0,17; дальше — высота зоны.
 
 ## flight
 
