@@ -113,10 +113,10 @@ def test_time_continuity_around_transitions():
 def test_similarity_after_detach():
     src = bm.from_game(0, 0, 0, 2.5, 1400, ENV)
     sts = [bm.state(src, BIG, src.tau * f) for f in (1.5, 3.0, 6.0)]
-    zv = sts[0].zc - sts[0].R / bm.PARAMS["alpha_thermal"]["value"]
-    for s in sts:  # R ∝ (z − zv), U (z − zv) = const
-        assert abs(s.R / (s.zc - zv) - 0.25) < 1e-9
-    k = [s.U * (s.zc - zv) for s in sts]
+    a = bm.PARAMS["alpha_thermal"]["value"]
+    for s in sts:  # R = α(z + z_h) (v3, измеренный рост ядра), U (z + z_h) = const (Скорер)
+        assert abs(s.R - a * (s.zc + src.zh)) < 1e-9
+    k = [s.U * (s.zc + src.zh) for s in sts]
     assert max(k) / min(k) - 1 < 1e-9
 
 
@@ -154,3 +154,49 @@ def test_two_bubbles_divergence_and_ground():
     assert np.percentile(np.abs(div), 99) * a.R / a.U < 1e-3
     g = P.copy(); g[:, 2] = 0.0
     assert np.max(np.abs(bm.velocity(g, [a, b], ENV)[:, 2])) < 1e-3 * np.max(np.abs(bm.velocity(P, [a, b], ENV)[:, 2]))
+
+
+def test_hill_shell_smooth_and_continuous():
+    # v3: ψ-смешение — скорость непрерывна, излом убран (Δ²w/h·R/U ≤ 0,5 на экваторе и оси), ∇·v = 0 в оболочке
+    st = head()
+    h = 0.005 * st.R
+    x = np.arange(-2 * st.R, 2 * st.R + 1e-9, h)
+    for line in (np.stack([x, 0 * x, 0 * x + 700], -1), np.stack([0 * x, 0 * x, 700 + x], -1)):
+        w = bm.velocity(line, [st], BIG, ground=False, lid=False)[:, 2]
+        assert np.max(np.abs(w[2:] - 2 * w[1:-1] + w[:-2])) / h * st.R / st.U <= 0.5
+    rng = np.random.default_rng(5)
+    d = rng.normal(size=(300, 3)); d /= np.linalg.norm(d, axis=1, keepdims=True)
+    P = np.array([0, 0, 700.0]) + d * st.R * rng.uniform(0.7, 1.3, (300, 1))
+    hh = 1e-3 * st.R
+    div = 0
+    for k in range(3):
+        e = np.zeros(3); e[k] = hh
+        div = div + (bm.velocity(P + e, [st], BIG, ground=False, lid=False)[:, k]
+                     - bm.velocity(P - e, [st], BIG, ground=False, lid=False)[:, k]) / (2 * hh)
+    assert np.max(np.abs(div)) * st.R / st.U < 1e-3
+    # вне оболочки — чистый Хилл
+    st2 = head()
+    far = bm.velocity(np.array([[1.4 * st.R, 0, 700.0]]), [st2], BIG, ground=False, lid=False)[0]
+    assert abs(far[2] - (-0.5 * st.U / 1.4 ** 3)) < 1e-12
+
+
+def test_core_radius_matches_lenschow_stephens():
+    # радиус смены знака w при R = α(z + z_h): совпадает с r_LS(ζ) = 0,08 ζ^⅓(1 − 0,25ζ) z_i с точностью подгонки (≤ 8 %, ζ 0,2–0,8; линейная подгонка ζ^⅓)
+    a = bm.PARAMS["alpha_thermal"]["value"]
+    zh = bm._ZH_FRAC * 1400.0
+    for zeta in (0.2, 0.5, 0.8):
+        R = a * (zeta * 1400.0 + zh)
+        r_ref = 0.08 * zeta ** (1 / 3) * (1 - 0.25 * zeta) * 1400.0
+        assert abs(bm._SIGN_OVER_R * R / r_ref - 1) < 0.08, zeta
+
+
+def test_from_strength_hits_w0():
+    for w0 in (1.5, 3.0):
+        src = bm.from_strength(0, 0, 0, w0, 1400.0, 690.0, ENV)
+        assert abs(bm._axis_wmax(src, ENV) / w0 - 1) < 0.02
+
+
+def test_kbar_positive_and_scales():
+    kb = bm.kbar(1400.0, 690.0, ENV)
+    assert 100.0 < kb < 1e5
+    assert bm.kbar(1400.0, 690.0, bm.Env(wind=(3.0, 1.0), zi=1400.0)) == kb     # ветер не влияет
