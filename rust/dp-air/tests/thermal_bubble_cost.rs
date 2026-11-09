@@ -274,7 +274,7 @@ fn sample_same_as_before() {
 }
 
 /// Цена опроса, ns на точку (release, один поток): 20000 случайных точек круга 1500 м, лучший из 21 прогона (машина
-/// общая: помехи только прибавляют время, минимум — оценка без них). `sample_ns_bubble=` — `State::sample_bubble`, `sample_ns_profile=` — `State::sample` (профиль, та же сцена).
+/// общая: помехи только прибавляют время, минимум — оценка без них). `sample_ns_bubble=` — `State::sample_bubble_agl` (путь игры; agl = y), `sample_ns_profile=` — `State::sample` (профиль, та же сцена).
 #[test]
 #[cfg_attr(debug_assertions, ignore = "цена меряется в release")]
 fn bubble_sample_cost() {
@@ -286,7 +286,7 @@ fn bubble_sample_cost() {
             let ts = std::time::Instant::now();
             for p in &pts {
                 acc += if bubble {
-                    st.sample_bubble(&setup, &NoClouds, *p, T0).0[0]
+                    st.sample_bubble_agl(&setup, &NoClouds, *p, T0, f64::from(p[1]).max(0.0)).0[0]
                 } else {
                     st.sample(&setup, &NoClouds, *p, T0)[0]
                 };
