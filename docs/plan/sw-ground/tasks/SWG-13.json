@@ -1,0 +1,52 @@
+{
+  "id": "SWG-13",
+  "module": "sw-ground",
+  "type": "dp-researcher",
+  "title": "Итог модуля: выбор лучшего варианта слоя у земли по измерениям и docs/research/sw_ground.md",
+  "goal": "Свести все варианты задач 1–3 (SWG-1…12) в одну таблицу по измерениям (мачты, Menke 2019; Пикар — справочно с допуском), выбрать лучший вариант слоя у земли по правилу из карточки и написать итог модуля docs/research/sw_ground.md: таблицы до/после, ротор, время, вывод — годится ли схема на замену Пикару у земли и что осталось вне аналогии.",
+  "plan_ref": "Приёмка",
+  "contracts": [],
+  "copy": "~/worktrees/deltaplan/sw-ground-SWG-13",
+  "branch": "sw-ground/SWG-13",
+  "base": "feature/sw-ground",
+  "scope": [
+    "tools/research/sw_ground/summary/",
+    "tools/research/sw_ground/out/summary/",
+    "docs/research/sw_ground.md",
+    "docs/registry/findings.md",
+    "tools/research/sw_ground/README.md"
+  ],
+  "dont_touch": [
+    "tools/research/sw_charges_3d/",
+    "tools/research/sw_ground/out/swg-1/",
+    "tools/research/sw_ground/contract/",
+    "docs/plan/",
+    "docs/contracts/",
+    "rust/"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "!re:ОШИБКА  docs/research/sw_ground"
+    },
+    {
+      "name": "doc_exists",
+      "cmd": "test -s docs/research/sw_ground.md && echo ok",
+      "expect": "re:ok"
+    },
+    {
+      "name": "table",
+      "cmd": "test -s tools/research/sw_ground/out/summary/selection.json && echo ok",
+      "expect": "re:ok"
+    },
+    {
+      "name": "pytest",
+      "cmd": "tools/research/sw_ground/py -m pytest -q tools/research/sw_ground/summary",
+      "expect": "re:passed"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T05:35:07"
+}
