@@ -1,0 +1,42 @@
+{
+  "status": "done",
+  "summary": "dp-stand timing: по json-строке JobReport на каждый момент случая (load/recalc), --threads, кеша на диске нет. synth_strong: load 75 с, recalc 54 и 59 с (20 потоков).",
+  "commits": [
+    "10b3d31a0 dp-stand: подкоманда timing — журнал задачи поля на каждый момент (PT-10a)"
+  ],
+  "checks": [
+    {
+      "name": "build",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "timing",
+      "value": "wall_s",
+      "pass": true
+    },
+    {
+      "name": "passes",
+      "value": "passes:[{",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "4 файла",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept PT-10a",
+  "uncertain": [
+    {
+      "where": "rust/dp-stand/src/timing.rs",
+      "why": "stop/start выводятся через Debug-строки; формат зависит от имён вариантов dp-air",
+      "checked": "вывод синтетики: Converged/Coarse читаются; report() непуст на recalc (3 строки: load, recalc, recalc)"
+    }
+  ],
+  "dp_feedback": "lock cpu — FIFO: задача на 4 слота блокирует все одно-слотовые (ждала >1 ч). Вывод команды под lock в фоне через bash -c с пайпом терялся. В accept было неверное имя фикстуры (synthetic_strong вместо synth_strong).",
+  "t": "2026-11-09T17:48:05",
+  "by": "executor"
+}
