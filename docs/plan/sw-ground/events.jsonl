@@ -170,3 +170,4 @@
 {"t": "2026-11-09T04:02:38", "by": "coordinator", "task": "SWG-12", "ev": "accepted", "note": "по ревью (fable): по мачтам free_jh хуже zone_jh (NE 0,224/0,159, SW 0,139/0,120); 4 minor — линейная теория при уклонах 0,4–0,6, сдвиг нормировки от листа NE 0,874 (выбор — без листа в нормировке), слабый порог теста, mast_line пропущен"}
 {"t": "2026-11-09T04:03:01", "by": "coordinator", "task": "SWG-12", "ev": "accepted", "commits": ["ee1439f1e"], "note": "5/5 contract=ok:exit 0; base=ok:2; free_rows=ok:25727; masts=ok:105; pytest=ok:passed"}
 {"t": "2026-11-09T04:03:02", "by": "coordinator", "task": "SWG-12", "ev": "merged"}
+{"t": "2026-11-09T05:12:39", "by": "coordinator", "task": "SWG-11", "ev": "note", "note": "координатор сдаёт hand-back до отчёта SWG-11: исполнитель ждёт свой фоновый счёт; после отчёта — accept, ревью fable, выбор лучшего варианта по мачтам/Menke (нормировка без листа, ревью SWG-12), итог модуля"}
