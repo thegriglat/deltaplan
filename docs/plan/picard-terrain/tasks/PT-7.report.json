@@ -1,0 +1,84 @@
+{
+  "status": "done",
+  "summary": "Документ-карта docs/research/picard_terrain_game.md (32 КБ, 6 разделов): путь поля и уровни, места построения типов клеток, 10 групп потребителей у земли, тесты и эталоны, разбиение PT-9…PT-12 с scope/dont_touch/порогами. Главные находки: dp-air на ветке не собирается (case_build.rs:454, E0063, подтверждено cargo check); Field::k1 и фазы (assembly.rs) берут hc как границу воздуха и ломаются при срезанных клетках; кеш поля надо версионировать.",
+  "commits": [
+    "d489888d9 picard-terrain PT-7: разведка пути срезанных клеток в поле игры"
+  ],
+  "checks": [
+    {
+      "name": "sections",
+      "value": "6",
+      "pass": true
+    },
+    {
+      "name": "split",
+      "value": "12",
+      "pass": true
+    },
+    {
+      "name": "docs-check",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "cargo check --offline -p dp-air на базе ветки",
+      "value": "E0063: нет adv2, cut_cells, limiter в Params (case_build.rs:454), единственная ошибка",
+      "pass": false
+    },
+    {
+      "name": "kf_new - kf_old, ongudai 400 м (расчёт скриптом)",
+      "value": "-1: 6691 из 9216 (73 %), -2: 131, 0: 2394; hc_type-hc медиана -79 м",
+      "pass": true
+    },
+    {
+      "name": "стоимость долей ongudai 400 м (оценка)",
+      "value": "22481 смешанный слой, 6,5e6 выборок vf; шаг точек 25 м = узлы растра",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Время построения долей не измерено (PT-8 ещё не сдан): только оценка по числу точек",
+    "cargo test и Godot не запускались, как и требовала карточка"
+  ],
+  "questions": [
+    "Фикстуры W8 tests/fixtures/wind/cases/*.bin сняты со старого поля игры: после PT-9 dp-stand compare начнёт падать. Пересъём .bin или снять compare до PT-12?",
+    "Шаг 0 PT-9 (Params без adv2/limiter/cut_cells) сделать отдельным коммитом в feature/picard-terrain уже сейчас, чтобы база собиралась и PT-11 мог снять «до»?"
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept PT-7",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/src/field/case_prepare.rs:698-700; rust/picard_rs/src/kernels.rs:402-404",
+      "why": "Нагрев Q=h0/dz в клетку kf остаётся на единицу объёма; при vf<1 приток тепла в столбец порядка vf*h0. Опыт PT был без нагрева. Вопрос замыкания, не решал.",
+      "checked": "прочитан код prepare и ядра тепла; баланс не считал"
+    },
+    {
+      "where": "rust/dp-air/src/field/case_build.rs:344,356-358",
+      "why": "K_b считается по z=max(zc-hp,0): центр первой клетки ниже настоящего hp (73 % столбцов ongudai) даёт K_b=k_fa. Как в опыте (cut.py:171), но на клетке 400 м не проверено.",
+      "checked": "сравнил с cut.py: nu_bg там тоже из случая PT1"
+    },
+    {
+      "where": "rust/dp-air/src/field/wind_field.rs:646-716",
+      "why": "Какую эффективную землю брать для лог-профиля и сдвига при k1 от типов (hc или низ открытой части клетки по долям) не проверено ни на Askervein, ни на Perdigão.",
+      "checked": "прочитан код выборки; решение отдано PT-10 по числам"
+    },
+    {
+      "where": "rust/picard_rs/src/case.rs:395-428; rust/dp-air/src/field/window.rs:396-513",
+      "why": "cut_cells вместе с Case.nest, заморозкой колонн и rebalance по открытым площадям в опыте не использовался.",
+      "checked": "прочитан код; проверки вынесены в PT-10/PT-11"
+    },
+    {
+      "where": "tools/research/picard_terrain/out/PT-7/types_shift.py",
+      "why": "Сдвиг kf/hc_type посчитан моей репликой правил PT6 на растре места, а не кодом PT-8; блочное среднее по узлам 25 м.",
+      "checked": "сверил форму правил с cut.py и контрактом PT6 v1"
+    }
+  ],
+  "dp_feedback": "Лимит 40 КБ в docs check считается в байтах (русский текст ~2 байта на символ): упёрся с 55 КБ и переписывал; предупреждение при создании файла помогло бы. rtk-хук переписывает grep и режет вывод, номера строк пришлось брать через rtk proxy.",
+  "extra": {
+    "ongudai_400m_grid": "96x96x50, 499408 клеток с ореолом",
+    "ongudai_1200m_grid": "32x32x48, 57800",
+    "columns_relief_gt_dz_ongudai_400": "6970 из 9216"
+  },
+  "t": "2026-11-09T15:55:46",
+  "by": "executor"
+}
