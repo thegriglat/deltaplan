@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-11-09"
 summary: "Стыки picard-terrain: случаи опыта PT1, срезанные клетки PT2, 2-й порядок PT3, строки замеров PT4, выборка в точках PT5."
 related: ["docs/plan/picard-terrain.md", "docs/contracts/picard-rs.md", "docs/contracts/air-cascade.md", "docs/contracts/sw-charges-3d.md", "tools/research/air3d/reference.md"]
-contracts: [{"id": "PT1", "version": 1}, {"id": "PT2", "version": 1}, {"id": "PT3", "version": 1}, {"id": "PT4", "version": 1}, {"id": "PT5", "version": 1}]
+contracts: [{"id": "PT1", "version": 2}, {"id": "PT2", "version": 1}, {"id": "PT3", "version": 1}, {"id": "PT4", "version": 1}, {"id": "PT5", "version": 1}]
 ---
 
 # Контракты модуля picard-terrain
@@ -19,7 +19,10 @@ contracts: [{"id": "PT1", "version": 1}, {"id": "PT2", "version": 1}, {"id": "PT
 Пути: `P = rust/picard_rs`, `T = tools/research/picard_terrain`, `D = $PICARD_TERRAIN_DATA`
 (по умолчанию `~/data/picard_terrain`, вне git, общий для всех копий).
 
-## PT1 v1 — случай опыта (R1 + ключ `pt`)
+## PT1 v2 — случай опыта (R1 + ключ `pt`)
+v2 (2026-11-09, ревью PT-1): Perdigão — `U10` = null (фон из окна данных, U10 3,1–3,3 м/с), ключ `U_ref` = {`mast`, `z_agl`, `S`
+(м/с, окно данных на опорной мачте), `U10_background`} — обязателен у perdigao_*, у прочих необязателен;
+условие «ветер ≥ 5 м/с» для Perdigão — по `U_ref.S`.
 Владелец — PT-1 (производитель `T/make_cases.py`); потребители — PT-2…PT-5, итог.
 - Пара `D/cases/<case>.json` + `.bin` в формате R1 v1 (`docs/contracts/air-cascade.md`) с допущением R6 v3
   (эталона `sol_*`/`solution`/`history` может не быть). `format: "ref-case"`, `version: 1`.

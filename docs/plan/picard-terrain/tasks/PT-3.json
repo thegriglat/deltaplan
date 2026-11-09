@@ -1,0 +1,89 @@
+{
+  "id": "PT-3",
+  "module": "picard-terrain",
+  "type": "dp-engineer",
+  "title": "Ограниченный 2-й порядок переноса в picard_rs (ван Лир, minmod)",
+  "goal": "Порт отложенной поправки 2-го порядка air3d (adv2, limiter 0/1/2) в picard_rs и новый ограничитель minmod (3), CLI --adv2, поле variant в R2 (PT3); сверка с air3d на пологой синтетике; сходимость, итерации и время на Askervein, Каянче 50/100 м и крутом Perdigão 30 м — строки PT4.",
+  "plan_ref": "Задачи 3",
+  "contracts": [
+    {
+      "name": "PT3",
+      "version": "1",
+      "ref": "docs/contracts/picard-terrain.md"
+    },
+    {
+      "name": "PT4",
+      "version": "1",
+      "ref": "docs/contracts/picard-terrain.md"
+    },
+    {
+      "name": "PT5",
+      "version": "1",
+      "ref": "docs/contracts/picard-terrain.md"
+    },
+    {
+      "name": "PT1",
+      "version": "2",
+      "ref": "docs/contracts/picard-terrain.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/picard-terrain-PT-3",
+  "branch": "picard-terrain/PT-3",
+  "base": "feature/picard-terrain",
+  "scope": [
+    "rust/picard_rs/src",
+    "rust/picard_rs/tests/adv2.rs",
+    "rust/picard_rs/README.md",
+    "tools/research/picard_terrain/adv2_fixtures.py",
+    "tools/research/picard_terrain/run_adv2.py",
+    "tools/research/picard_terrain/out/PT-3"
+  ],
+  "dont_touch": [
+    "tools/research/air3d",
+    "tools/research/cases",
+    "rust/dp-air",
+    "scripts",
+    "tools/research/picard_terrain/contract",
+    "docs/contracts",
+    "tools/research/picard_terrain/make_cases.py",
+    "tools/research/picard_terrain/sample.py",
+    "tools/research/picard_terrain/cut.py",
+    "tests/atmosphere/fixtures"
+  ],
+  "accept": [
+    {
+      "name": "default-bitwise",
+      "cmd": "tools/research/picard_terrain/contract/check_default.sh",
+      "expect": "re:identical=4/4"
+    },
+    {
+      "name": "cargo-test",
+      "cmd": "cargo test --release --manifest-path rust/picard_rs/Cargo.toml",
+      "expect": "exit=0"
+    },
+    {
+      "name": "contract-rows",
+      "cmd": "python3 tools/research/picard_terrain/contract/check_contract.py rows tools/research/picard_terrain/out/PT-3/rows.jsonl",
+      "expect": "exit=0"
+    },
+    {
+      "name": "blocks-adv2",
+      "cmd": "cargo build -q --release --manifest-path rust/picard_rs/Cargo.toml && rust/target/release/picard blocks $HOME/data/picard_terrain/fixtures/adv2_l0.json $HOME/data/picard_terrain/fixtures/adv2_l1.json $HOME/data/picard_terrain/fixtures/adv2_l2.json",
+      "expect": "num:max_block_rel=([0-9.e+-]+) <=1e-5"
+    },
+    {
+      "name": "solve-adv2",
+      "cmd": "cargo build -q --release --manifest-path rust/picard_rs/Cargo.toml && mkdir -p tools/research/picard_terrain/out/PT-3/parity && for l in 0 1 2; do rust/target/release/picard solve $HOME/data/picard_terrain/fixtures/adv2_l$l.json --threads 4 --max-iters 4000 --out tools/research/picard_terrain/out/PT-3/parity/adv2_l$l.json >/dev/null || exit 1; done && python3 rust/picard_rs/contract/tolerance.py tools/research/picard_terrain/out/PT-3/parity/adv2_l0.json tools/research/picard_terrain/out/PT-3/parity/adv2_l1.json tools/research/picard_terrain/out/PT-3/parity/adv2_l2.json",
+      "expect": "num:worst=([0-9.e+-]+) <=1"
+    },
+    {
+      "name": "adv2-rows",
+      "cmd": "python3 -c \"import json;r=[json.loads(l) for l in open('tools/research/picard_terrain/out/PT-3/rows.jsonl') if l.strip()];print('adv2_rows=%d'%len({(x['case'],x['limiter']) for x in r if x['adv2'] and not x['cut_cells'] and x['solver']=='picard_rs'}))\"",
+      "expect": "num:adv2_rows=(\\d+) >=12"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T08:25:56",
+  "edited": "2026-11-09T09:36:46"
+}

@@ -1,0 +1,111 @@
+{
+  "status": "done",
+  "summary": "9 случаев PT1, растры 30 м, выборка PT5, решения air3d; база picard_rs 6/6 ok, итерации и поле совпадают с air3d f64 (u_rel 4e-7..5e-6). Время bench вынесено из задачи.",
+  "commits": [
+    "88fdb8221 случаи PT1, выборка PT5, air3d",
+    "b3a408be9 база picard_rs, строки, таблица, вывод"
+  ],
+  "checks": [
+    {
+      "name": "contract-cases",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "contract-rows",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "base-ok",
+      "value": "6",
+      "pass": true
+    },
+    {
+      "name": "refs",
+      "value": "3",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Замер времени под bench (18 слотов) — отдельная задача; ms/iter в строках из solve, locked=false"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept PT-1",
+  "uncertain": [
+    {
+      "where": "make_cases.py (askervein_d12p5)",
+      "why": "float32: float64 не помещается в 12 ГБ GPU",
+      "checked": "OOM на 10 ГБ; reference.md тоже f32"
+    },
+    {
+      "where": "make_cases.py kayancha_setup",
+      "why": "губки 1000 м и Params по умолчанию заданы мной",
+      "checked": "как у Askervein 4 км"
+    },
+    {
+      "where": "make_cases.py perdigao_setup",
+      "why": "pt.U10=null (фон 3,2 м/с < 5), U100 в pt.U_ref; схема 2-го порядка заменена на 1-й",
+      "checked": "контрактный тест OK"
+    },
+    {
+      "where": "out/PT-1/table.md",
+      "why": "Askervein d50 1-й порядок: 30 м 0,26 против 0,19 в primer (область 4 км, потолок 1000 м, другая выборка)",
+      "checked": "reference.md §4: +0,03..0,06 от 4 км"
+    }
+  ],
+  "dp_feedback": "Вес замка менялся по ходу работы; solve с 18 слотами стоял в очереди ~1 ч и блокировал соседей. Нет способа узнать вес заранее.",
+  "extra": {
+    "askervein_dS_HT_10_30_60_100": {
+      "d100_picard": [
+        0.29,
+        0.28,
+        0.22,
+        0.18
+      ],
+      "d50_picard": [
+        0.44,
+        0.26,
+        0.26,
+        0.23
+      ],
+      "d25_air3d_2nd": [
+        0.43,
+        0.46,
+        0.38,
+        0.28
+      ],
+      "d12p5_air3d_2nd_f32": [
+        0.57,
+        0.52,
+        0.38,
+        0.28
+      ]
+    },
+    "kayancha_ratio_to_d25_20_30_50_100": {
+      "d50": [
+        0.87,
+        0.84,
+        0.86,
+        0.91
+      ],
+      "d100": [
+        0.69,
+        0.69,
+        0.76,
+        0.86
+      ]
+    },
+    "iters": {
+      "askervein_d100": 71,
+      "askervein_d50": 71,
+      "kayancha_d100": 91,
+      "kayancha_d50": 101,
+      "perdigao_ne_d30": 161,
+      "perdigao_sw_d30": 171
+    }
+  },
+  "t": "2026-11-09T09:32:33",
+  "by": "executor"
+}
