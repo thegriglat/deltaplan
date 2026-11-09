@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-11-09"
 summary: "Стыки thermal-bubble: шаблон пузыря bubble.py (TB1), профиль для сверки (TB2), сводки (TB3), шаблон в dp-air за флагом (TB4)."
 related: ["docs/plan/thermal-bubble.md", "docs/guide/air-model/thermals.md"]
-contracts: [{"id": "TB1", "version": 5}, {"id": "TB2", "version": 1}, {"id": "TB3", "version": 2}, {"id": "TB4", "version": 5}, {"id": "TB5", "version": 3}]
+contracts: [{"id": "TB1", "version": 5}, {"id": "TB2", "version": 1}, {"id": "TB3", "version": 2}, {"id": "TB4", "version": 6}, {"id": "TB5", "version": 3}]
 ---
 # Контракты модуля thermal-bubble
 
@@ -165,7 +165,7 @@ v2: `les.json` (пишет TB-6; читатели — сверка и итог) 
 "reliability": "high"|"medium"|"low"}`; обязательные quantity: `inflow_ground_over_wstar`, `outflow_top_over_wstar`,
 `ring_sink_min_over_wstar`, `rise_speed_over_wstar`. Нет числа — null и причина в note.
 
-## TB4 v5 — шаблон пузыря в `dp-air` (по умолчанию с круга 3)
+## TB4 v6 — шаблон пузыря в `dp-air` (по умолчанию с круга 3)
 Владелец — координатор; пишут TB-7 (инфраструктура, порт TB1 v2), TB-8 (порт TB1 v3, K̄); потребители — сумма ветра
 (`rust/dp-air/src/terms/sum.rs`), «между» (`terms/thermal_air`, TB-8). В игру по умолчанию не включается (Q1 п. 2).
 
@@ -252,6 +252,19 @@ v2: `les.json` (пишет TB-6; читатели — сверка и итог) 
   печать `terrain_zero_frac=` — доля ядер с |ur| < 0,01 м/с, `terrain_median_ur=`), `bubble_agl_blend_smooth` (вертикали
   через склон, шаг 1 м, agl 0…200 м: печать `agl_blend_max_dv_per_m=` — max|Δv|/1 м); `thermal_bubble_ground.rs` (TB-18) —
   без изменений, печатает свои числа.
+
+**TB4 v6 (ревью TB-20, 2026-11-10; пишет TB-20, доработка):** сшивка v5 на 60–120 м сжимает таблицу по высоте в
+(60 + |d|)/60 раз — на настоящем рельефе max|Δv|/м = 1,34 (ревью). Вместо неё — затухающая с высотой координата, следующая
+рельефу (Gal-Chen & Somerville 1975; SLEVE — Schär et al. 2002):
+- d = ground(x, z) − src[1] (рельеф в точке минус плоскость источника); `high_eff = h_src − d·f(agl)`, где
+  f(a) = 1 − smoothstep(a / L) на [0, L], 0 выше; L = clamp(3·|d|, 120 м, zi). Тогда high_eff(agl = 0) = 0, high_eff → h_src
+  выше L, ∂high_eff/∂y = 1 − d·f′ ∈ [0,5; 1,5] — таблица по высоте сжимается/растягивается не больше чем в 1,5 раза,
+  без отрицательных высот над землёй.
+- Тесты: `bubble_agl_blend_smooth` — **без отбора вертикалей** (весь склон и холм, рельеф до ±300 м от плоскости
+  источника), печать `agl_blend_ratio=` — max|Δv|/1 м на рельефе / то же на плоском рельефе той же сцены (порог ≤ 1,6) и
+  `agl_blend_max_dv_per_m=` (справочно); `bubble_terrain_inflow` — как в v5; новый `sum_uses_agl` — через `State::sum` на
+  рельефе у термика есть приток к оси на 10 м над землёй (связка sum.rs → опрос с agl); цена — `bubble_sample_cost`
+  мерит путь игры (`sample_bubble_agl`).
 
 ## TB5 v3 — полётный замер `tools/research/thermal_bubble/out/flight_<tag>.json`
 Владелец — координатор; пишет TB-14 (теги `r2_old` — флаг выкл, `r2_new` — флаг вкл, код круга 2), TB-16 (`r3_main` — `main`,
