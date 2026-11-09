@@ -8,7 +8,7 @@
   "contracts": [
     {
       "name": "PT1",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/picard-terrain.md"
     },
     {
@@ -71,17 +71,18 @@
       "expect": "exit=0"
     },
     {
-      "name": "cut-ok",
-      "cmd": "python3 -c \"import json;r=[json.loads(l) for l in open('tools/research/picard_terrain/out/PT-2/rows.jsonl') if l.strip()];print('cut_ok=%d'%len({x['case'] for x in r if x['cut_cells'] and not x['adv2'] and x['status']=='ok' and x['time']['locked']}))\"",
-      "expect": "num:cut_ok=(\\d+) >=4"
-    },
-    {
       "name": "mass",
       "cmd": "python3 -c \"import json,os;D=os.path.expanduser(os.environ.get('PICARD_TERRAIN_DATA','~/data/picard_terrain'));r=[json.loads(l) for l in open('tools/research/picard_terrain/out/PT-2/rows.jsonl') if l.strip()];print('div_ratio_max=%.3g'%max(x['final']['div_rms']/json.load(open(D+'/cases/'+x['case']+'.json'))['criterion']['tol_div_rms'] for x in r if x['cut_cells'] and x['status']=='ok'))\"",
       "expect": "num:div_ratio_max=([0-9.e+-]+) <=1"
+    },
+    {
+      "name": "cut-ok",
+      "cmd": "python3 -c \"import json;r=[json.loads(l) for l in open('tools/research/picard_terrain/out/PT-2/rows.jsonl') if l.strip()];print('cut_ok=%d'%len({x['case'] for x in r if x['cut_cells'] and not x['adv2'] and x['status']=='ok'}))\"",
+      "expect": "num:cut_ok=(\\d+) >=4"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-11-09T08:25:07"
+  "created": "2026-11-09T08:25:07",
+  "edited": "2026-11-09T09:36:46"
 }

@@ -55,17 +55,18 @@
       "expect": "exit=0"
     },
     {
-      "name": "base-ok",
-      "cmd": "python3 -c \"import json;r=[json.loads(l) for l in open('tools/research/picard_terrain/out/PT-1/rows.jsonl') if l.strip()];print('base_ok=%d'%len({x['case'] for x in r if x['solver']=='picard_rs' and not x['cut_cells'] and not x['adv2'] and x['status']=='ok' and x['time']['locked']}))\"",
-      "expect": "num:base_ok=(\\d+) >=6"
-    },
-    {
       "name": "refs",
       "cmd": "python3 -c \"import json;r=[json.loads(l) for l in open('tools/research/picard_terrain/out/PT-1/rows.jsonl') if l.strip()];print('refs=%d'%len({x['case'] for x in r if x['solver']=='air3d' and x['adv2'] and x['dx']<=25}))\"",
       "expect": "num:refs=(\\d+) >=3"
+    },
+    {
+      "name": "base-ok",
+      "cmd": "python3 -c \"import json;r=[json.loads(l) for l in open('tools/research/picard_terrain/out/PT-1/rows.jsonl') if l.strip()];print('base_ok=%d'%len({x['case'] for x in r if x['solver']=='picard_rs' and not x['cut_cells'] and not x['adv2'] and x['status']=='ok'}))\"",
+      "expect": "num:base_ok=(\\d+) >=6"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-11-09T08:24:08"
+  "created": "2026-11-09T08:24:08",
+  "edited": "2026-11-09T09:32:07"
 }

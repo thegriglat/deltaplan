@@ -1,0 +1,27 @@
+{
+ "case": "kayancha_d25",
+ "site": "kayancha",
+ "dx": 25.0,
+ "solver": "air3d",
+ "dtype": "f64",
+ "adv2": true,
+ "limiter": 1,
+ "status": "ok",
+ "iters": 151,
+ "max_iters": 4000,
+ "final": {
+  "mom_rms": 1.3514711742871505e-05,
+  "th_rms": 0.0,
+  "div_rms": 1.4469052391327278e-08
+ },
+ "t_solve_s": 19.063200640041032,
+ "wall_s": 22.11719352300861,
+ "ms_per_iter": 126.24636185457638,
+ "n": [
+  162,
+  162,
+  162
+ ],
+ "state": "states/kayancha_d25_air3d.json",
+ "git": "408ccb5ad8f457edc6f7fb35b6a7cbeb9126ee04"
+}

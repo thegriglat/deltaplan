@@ -1,0 +1,36 @@
+{
+  "verdict": "accept",
+  "summary": "Случаи PT1, растр, выборка PT5 и строки PT4 соответствуют контрактам; скоуп чист (23 файла), приёмка 4/4 перезапущена. Выборка sample.py совпадает с конвенцией граней air3d (centers), статус stalled — по определению PT4, u_rel порта 4e-7..5e-6. Замечания — только устаревший текст про время и вопрос координатору по Perdigão (U10 < 5 м/с против PT1).",
+  "issues": [
+    {
+      "file": "tools/research/picard_terrain/out/PT-1/summary.md",
+      "line": 16,
+      "severity": "minor",
+      "what": "Отчёт ≠ факт: «ms_per_iter — только из picard bench под замком (18 слотов)», а в rows.jsonl время из solve, locked=false (решение координатора 09:32). То же в докстринге run_base.py («time.locked = true») и в шапке table.md («под замком cpu»).",
+      "fix": "Поправить три фразы: время из solve, locked=false, замер bench — отдельная задача."
+    },
+    {
+      "file": "tools/research/picard_terrain/make_cases.py",
+      "line": 206,
+      "severity": "minor",
+      "what": "PT1 v1 требует «ветер ≥ 5 м/с»; Perdigão NE/SW задан U100 8,8 м/с при фоновом U10 3,2/3,1 м/с (U10=null, U_ref — ключ вне контракта). Постановка от координатора (C10 v2), исполнитель честно отметил в uncertain — но формально расходится с PT1.",
+      "fix": "Координатору: либо уточнить PT1 (ветер ≥ 5 м/с на опорной высоте, допустимый ключ U_ref), либо принять как исключение в журнале."
+    },
+    {
+      "file": "tools/research/picard_terrain/out/PT-1/table.md",
+      "line": 13,
+      "severity": "minor",
+      "what": "Askervein d50/d100 на «10 м»: нижний центр клетки на 25/50 м над рельефом, np.interp клампится — столбец 10 м для сеток игры фактически значение первой клетки (0,44 против 0,26 на 30 м — немонотонность). В summary объяснено, в таблице не помечено.",
+      "fix": "Пометить в table.md ячейки 10 м для d50/d100 (например, «*» = значение нижней клетки), чтобы итог не сравнивал их с 0,82 напрямую."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "accept PT-1 --dry",
+      "value": "contract-cases ok, contract-rows ok, refs=3, base-ok=6, scope 23 файла в границах",
+      "pass": true
+    }
+  ],
+  "t": "2026-11-09T09:35:14",
+  "by": "reviewer"
+}
