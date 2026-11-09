@@ -163,3 +163,5 @@
 {"t": "2026-11-09T13:22:08", "by": "coordinator", "task": "TB-8", "ev": "checked", "note": "7/7 contract_tb4=ok:exit 0; dp_air_tests=ok:exit 0; table_acc=ok:0.03202; budget=ok:37.1; port_v4=ok:exit 0; workspace=ok:exit 0; game_untouched=ok:exit 0"}
 {"t": "2026-11-09T13:24:13", "by": "reviewer", "task": "TB-8", "ev": "reviewed", "note": "Скоуп соблюдён (12 файлов, dont_touch и project.godot не тронуты), флаг выкл: ветки if/else в columns/sources/sample, прежний путь не изменён. Режимы Profile/N…", "verdict": "accept", "issues": {"major": 2, "minor": 3}, "review": "docs/plan/thermal-bubble/tasks/TB-8.review.json"}
 {"t": "2026-11-09T13:24:37", "by": "coordinator", "task": "TB-8", "ev": "accepted", "note": "по ревью (accept; 2 major — решения координатора, 3 minor — границы в итоге)"}
+{"t": "2026-11-09T13:31:36", "by": "coordinator", "task": "TB-8", "ev": "accepted", "commits": ["9f8a5e87c"], "note": "7/7 contract_tb4=ok:exit 0; dp_air_tests=ok:exit 0; table_acc=ok:0.03202; budget=ok:37; port_v4=ok:exit 0; workspace=ok:exit 0; game_untouched=ok:exit 0"}
+{"t": "2026-11-09T13:31:36", "by": "coordinator", "task": "TB-8", "ev": "merged"}
