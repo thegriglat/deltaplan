@@ -146,7 +146,7 @@ applied_in: []
 
 ## Круг 2: ядро по измерениям и встраивание за флагом
 
-Ответ на Q1 (решение главной сессии по поручению пользователя, 2026-11-09 10:02; [decisions.jsonl](../plan/thermal-bubble/decisions.jsonl)):
+Ответ на Q1 (решение главной сессии по поручению пользователя, 2026-11-09 10:02; [decisions.md](../plan/thermal-bubble/decisions.md)):
 ядро привязать к измерениям, а не к нынешней модели; встроить в `dp-air` за флагом, по умолчанию побитно прежнее; числа LES искать параллельно; память
 не ограничение; гнущийся шлейф не делать; излом Хилла сгладить. Числа ниже: TB-5 ([compare.md](../../tools/research/thermal_bubble/compare.md), `out/compare.json`,
 [README, «v3»](../../tools/research/thermal_bubble/README.md#что-изменилось-в-v3-tb-5-решение-q1-2026-11-09-и-почему)), TB-6 (`out/les.json`, [literature.md](../../tools/research/thermal_bubble/literature.md#les-и-измерения-приток-растекание-кольцо-подъём)),
