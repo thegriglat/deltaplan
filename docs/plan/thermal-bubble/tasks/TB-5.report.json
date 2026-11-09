@@ -1,38 +1,39 @@
 {
   "status": "done",
-  "summary": "bubble.py v3: радиус головы R = alpha(z+z_h) по Lenschow-Stephens (alpha 0,0259), core_flux_fraction 0,371, край Хилла сглажен смешением psi (hill_shell 0,5, не 0,2), from_strength и kbar; compare.py пересчитан (tb5_*.png), добавлен details.balance. accept --dry 7/7.",
+  "summary": "Доработка 1: hill_shell = 0,2 (метрика инв. 10 = 1,02 <= 1,2), kbar(zl,tau,env,w0), source alpha_thermal исправлен, compare и баланс Φ пересчитаны (tb5_*), README: alpha_plume — граница модели. accept --dry 7/7.",
   "commits": [
-    "a48a998f2 thermal-bubble TB-5: шаблон v3"
+    "a48a998f2 TB-5 v3",
+    "TB-5 доработка 1: hill_shell 0,2, kbar с w0"
   ],
   "checks": [
     {
       "name": "contract_tb1",
-      "value": "PASS, нарушений 0 (инв. 10 экватор 0,47, from_strength 2e-4, kbar 1462)",
-      "pass": true
-    },
-    {
-      "name": "div",
-      "value": "3.5e-07",
-      "pass": true
-    },
-    {
-      "name": "core_in_lit",
-      "value": "радиус 0,0597 z_i в [0,036; 0,09]; пик ядра 1,53 w* в [1; 2]",
-      "pass": true
-    },
-    {
-      "name": "balance",
-      "value": "kbar_bubble 1462, kbar_current 7413 (формула columns.rs 6182); core_share_phi 0,10 (по K-bar) / 0,88 (прямой) против 0,51 нынешней; между 0,142/0,018 против 0,077 w*",
-      "pass": true
-    },
-    {
-      "name": "unit",
-      "value": "pytest 18 passed",
+      "value": "PASS (инв. 10 экватор 1,02 <= 1,2; kbar(1400,690,env,2.5) > 0)",
       "pass": true
     },
     {
       "name": "contract_tb3",
       "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "unit",
+      "value": "pytest passed",
+      "pass": true
+    },
+    {
+      "name": "div",
+      "value": "4.07e-07",
+      "pass": true
+    },
+    {
+      "name": "core_in_lit",
+      "value": "радиус 0,0594 z_i в [0,036; 0,09]; пик ядра 1,54 w* в [1; 2]",
+      "pass": true
+    },
+    {
+      "name": "balance",
+      "value": "kbar_bubble 4376 (w0 3,17), kbar_current 7413 (формула 6182); core_share_phi 0,30 (прямой 0,88) против 0,51; между 0,110/0,019 против 0,077 w*",
       "pass": true
     },
     {
@@ -42,12 +43,10 @@
     }
   ],
   "not_done": [
-    "Чувствительность к alpha по Аллену (0,033) прогоном не пересчитана, только по формуле радиуса."
+    "Чувствительность к alpha по Аллену прогоном не пересчитана."
   ],
   "questions": [
-    "hill_shell: при 0,2 метрика инварианта 10 на экваторе = 1,02 (>0,5), порог достигается при >= 0,5; взято 0,5. Оставить 0,5 или ослабить порог инварианта до ~1,1?",
-    "K-bar по контракту (w0 = 1 м/с) не передаёт сильный пузырь: поток пузыря растёт с силой быстрее линейного (K-bar*6,4 = 9,4e3 против прямого 8,2e4 м3/с). Определить K-bar при типичной силе (например w0 = 1,24 w*) или считать поток напрямую (bubble.mean_up_flux)?",
-    "Плюм MTT с лабораторным alpha_plume 0,12 шире измеренного ядра (b 165 м против R головы 84 м): w(rho) за краем головы имеет положительное кольцо до ~180 м (w(150 м) = +0,5 м/с). Менять alpha_plume по измерениям?"
+    "K-bar при w0 = 1,24 w* (3,17 м/с): доля ядра 0,30, прямой счёт при капе 6,4 м/с 0,88 — какой считать итоговой?"
   ],
   "images": [
     "build/screenshots/thermal-bubble/tb5_1_template_xz.png",
@@ -59,62 +58,34 @@
   "how_to_check": ".dpcli/dpcli accept TB-5 --dry",
   "uncertain": [
     {
-      "where": "bubble.py PARAMS core_flux_fraction",
-      "why": "прямого измерения нет: 0,13 (ядра Аллена) / 0,35 (подъём L&S) = 0,371 при равном w*theta ядра и остального подъёма; если ядро вдвое сильнее — 0,70; reliability low",
-      "checked": "совпадает с 37-45 % Φ из AM-07б, но те числа получены из тех же 0,13 и 0,35"
+      "where": "compare.py balance",
+      "why": "w0 для K-bar = 1,24 w* (сила базового ядра игры) — выбор; K-bar зависит от силы (1433/4376/12810 м² при 1/3,17/6,4 м/с); Φ = 0,158 w* — допущение",
+      "checked": "оба счёта и чувствительность к Φ в details.balance"
     },
     {
-      "where": "bubble.py PARAMS hill_shell / _hill",
-      "why": "0,5 вместо решения Q1 0,2: смешение psi добавляет вклад s'D''+2s''D' во вторую производную, у квинтики на оболочке 0,2R метрика 1,02, на 0,3 - 0,67, на 0,4 - 0,54, на 0,5 - 0,47; радиус смены знака w сдвигается к 0,907R",
-      "checked": "скан по hill_shell на экваторе и оси; div и масса держатся (2e-7)"
+      "where": "bubble.py core_flux_fraction",
+      "why": "0,371 = 0,13/0,35 без прямого измерения, low",
+      "checked": "совпадает с 37–45 % из AM-07б"
     },
     {
-      "where": "compare.py balance (Φ типичный)",
-      "why": "Φ = 0,35 x 0,45 w* = 0,158 w* (допущение; поля игры F-bar + W-bar в прототипе нет); на нём держатся все доли ядер и 'между'",
-      "checked": "чувствительность к Φ 0,10/0,158/0,25 w* в compare.json details.balance.sensitivity_phi"
-    },
-    {
-      "where": "bubble.py _raw/_front: R головы по alpha_thermal",
-      "why": "измеренное alpha (0,026) в 10 раз ниже лабораторного, подобие Скорера C_thermal = 3,6 вне проверенного диапазона; динамика опирается на непрерывность U при отрыве, не на C",
-      "checked": "тест подобия U(z+z_h) = const, непрерывность во времени (контракт 8-9)"
-    },
-    {
-      "where": "определение радиуса ядра",
-      "why": "эталон L&S - полуширина d/2 условной выборки, шаблон - первая смена знака w на экваторе головы; в полном поле шлейф сдвигает нуль наружу (83,6 м ~ R вместо 0,907R)",
-      "checked": "формула 0,054 z_i против измеренного по лучу 0,060; оба в диапазоне"
+      "where": "bubble.py шлейф",
+      "why": "alpha_plume 0,12 шире измеренного ядра (b 165 м против R 83 м): кольцо w>0 до ~180 м; не менялось по решению координатора, записано в README",
+      "checked": "профили w(ρ) в compare.md"
     }
   ],
-  "dp_feedback": "accept --dry для TB-5 идёт ~5 мин (contract_tb1 2 мин + pytest); при квоте cpu 1 ядро хотелось бы видеть прогресс по проверкам.",
+  "dp_feedback": "Задача стояла в очереди cpu >1 ч за 18-слотовым заданием; job с таймаутом 1800 с убивается в очереди — хотелось бы, чтобы таймаут шёл от старта, а не от постановки.",
   "extra": {
-    "alpha_thermal": 0.0259,
-    "z_h_over_zi": 1.811,
-    "sign_over_R": 0.9067,
-    "kbar_bubble": 1462.2,
-    "kbar_current_numeric": 7413.4,
-    "kbar_current_formula": 6181.5,
+    "alpha_thermal": 0.0256,
+    "sign_over_R": 0.9165,
+    "kbar_bubble": 4376.1,
+    "kbar_bubble_w0_1": 1433.2,
     "core_share_phi": {
-      "bubble_kbar": 0.101,
-      "bubble_direct": 0.883,
+      "bubble_kbar": 0.301,
+      "bubble_direct": 0.882,
       "current_numeric": 0.51,
-      "current_formula": 0.426,
       "measured": 0.371
-    },
-    "between_over_wstar": {
-      "bubble_kbar": 0.142,
-      "bubble_direct": 0.018,
-      "current": 0.077,
-      "measured": 0.099
-    },
-    "seven": {
-      "w_core_max": 1.534,
-      "core_radius_zi": 0.0597,
-      "rise": 0.485,
-      "inflow": 0.584,
-      "outflow": 0.361,
-      "ring": -0.656,
-      "updraft_area": 0.0896
     }
   },
-  "t": "2026-11-09T10:41:34",
+  "t": "2026-11-09T11:35:31",
   "by": "executor"
 }
