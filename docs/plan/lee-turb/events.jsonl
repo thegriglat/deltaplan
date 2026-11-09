@@ -70,3 +70,5 @@
 {"t": "2026-11-09T22:11:40", "by": "coordinator", "task": "LT-6", "ev": "checked", "note": "4/4 spec=ok:0; proto=ok:exit 0; obs_rows=ok:92; docs=ok:exit 0"}
 {"t": "2026-11-09T22:14:24", "by": "reviewer", "task": "LT-6", "ev": "reviewed", "note": "Сверка воспроизводится (obs_compare.csv пересчитан — совпадает), константы 4,25 и ξ_du=0,120 проверены арифметически, скоуп чист, четыре замечания LT-5 закрыты…", "verdict": "accept", "issues": {"major": 1, "minor": 3}, "review": "docs/plan/lee-turb/tasks/LT-6.review.json"}
 {"t": "2026-11-09T22:14:37", "by": "coordinator", "task": "LT-6", "ev": "accepted", "note": "по ревью (fable): major — B применён ко всему столбцу, а не под линией слоя; 3 minor; в следующую задачу"}
+{"t": "2026-11-09T22:14:49", "by": "coordinator", "task": "LT-6", "ev": "accepted", "commits": ["aba8ac3"], "note": "4/4 spec=ok:0; proto=ok:exit 0; obs_rows=ok:92; docs=ok:exit 0"}
+{"t": "2026-11-09T22:14:49", "by": "coordinator", "task": "LT-6", "ev": "merged", "commits": ["aba8ac3"]}
