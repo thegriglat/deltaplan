@@ -1,0 +1,32 @@
+{
+  "verdict": "accept",
+  "summary": "rotor_scan повторяет compare/core.py rotor_scan один в один; разрезы menke_T1..3 из SWD1 points.json, направление ветра (ex,ey) совпадает с направлением разрезов, опорная мачта pt.U_ref = norm SWD1 (tse13/tse04, 100 м), поэтому s_norm модели и данных сопоставимы. Индексация колонн — как в sample.py (PT5). src_pt4_combo.jsonl побайтно равен rows_combo.jsonl копии PT-4. Все 7 файлов в скоупе, accept --dry 2/2 воспроизведён.",
+  "issues": [
+    {
+      "file": "tools/research/picard_terrain/out/PT-5/README.md",
+      "line": 9,
+      "severity": "minor",
+      "what": "Устарело: сказано, что строки сочетаний появятся в out/PT-4/rows.jsonl; фактически взяты из rows_combo.jsonl и скопированы в out/PT-5/src_pt4_combo.jsonl (source_rows читает и то и другое).",
+      "fix": "Поправить фразу при следующей правке; на вердикт не влияет."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "accept PT-5 --dry (contract-rows, rotor-rows, scope)",
+      "value": "exit 0; rotor=12; 7 файлов в границах",
+      "pass": true
+    },
+    {
+      "name": "src_pt4_combo.jsonl == PT-4/out/PT-4/rows_combo.jsonl",
+      "value": "diff пуст",
+      "pass": true
+    },
+    {
+      "name": "растр PT1 vs terrain SWD1 (NE/SW, 4 точки)",
+      "value": "постоянный сдвиг −99..−101 м по высоте (датум), горизонтально совпадает — система координат одна",
+      "pass": true
+    }
+  ],
+  "t": "2026-11-09T10:55:28",
+  "by": "reviewer"
+}

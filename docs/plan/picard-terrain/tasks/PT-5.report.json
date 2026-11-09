@@ -1,0 +1,79 @@
+{
+  "status": "done",
+  "summary": "Ротор и мачты для 9 вариантов x NE/SW. Срезанные клетки дают NE L=473 м против Menke 493 м (база 320); 2-й порядок укорачивает (260-277), cut+2-й порядок 210-257; SW все варианты 27-187 м против 617 м. Лучшие мачты: NE cut+minmod 0.118, SW cut+vanLeer 0.183.",
+  "commits": [
+    "5ab0a305a PT-5: сочетания cut+adv2"
+  ],
+  "checks": [
+    {
+      "name": "contract-rows",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "rotor-rows",
+      "value": "rotor=12",
+      "pass": true
+    },
+    {
+      "name": "RMSE s_norm NE база/cut/cut+vL/cut+mm",
+      "value": "0.139/0.120/0.120/0.118",
+      "pass": true
+    },
+    {
+      "name": "RMSE s_norm SW база/cut/cut+vL/cut+mm",
+      "value": "0.256/0.234/0.183/0.189",
+      "pass": true
+    },
+    {
+      "name": "координаты PT1 vs SWD1",
+      "value": "рельеф+100 м против ground_at: 0.2-5 м, общая система",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [
+    "Строки PT-4 взяты из rows_combo.jsonl ветки PT-4 (скопированы в out/PT-5/src_pt4_combo.jsonl)"
+  ],
+  "how_to_check": ".dpcli/dpcli accept PT-5",
+  "uncertain": [
+    {
+      "where": "rotor.py (разрезы menke_T1..3)",
+      "why": "положение лидара Menke не задано, нумерация условна; критерий Menke другой; оцифровка ±50 м",
+      "checked": "сравниваю средние по трём"
+    },
+    {
+      "where": "концы разрезов",
+      "why": "заходят в боковую губку (1050 м)",
+      "checked": "нет"
+    },
+    {
+      "where": "air3d == base",
+      "why": "совпадают до трёх знаков",
+      "checked": "поле переведено в R4 в PT-1"
+    }
+  ],
+  "dp_feedback": "",
+  "extra": {
+    "L_mean_NE": {
+      "menke": 493,
+      "base": 320,
+      "cut": 473,
+      "vanleer": 260,
+      "minmod": 277,
+      "cut_vl": 210,
+      "cut_mm": 257
+    },
+    "L_mean_SW": {
+      "menke": 617,
+      "base": 83,
+      "cut": 187,
+      "vanleer": 27,
+      "minmod": 53,
+      "cut_vl": 80,
+      "cut_mm": 67
+    }
+  },
+  "t": "2026-11-09T10:53:33",
+  "by": "executor"
+}
