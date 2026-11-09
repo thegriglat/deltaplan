@@ -62,10 +62,15 @@
       "name": "ridge-gain-median",
       "cmd": "python3 -c \"import json;d=json.load(open('tools/research/picard_terrain/out/PT-12/ridge.json'));print('gain_after_minus_before_median_m=%s'%d['gain_after_minus_before_median_m'])\"",
       "expect": "num:gain_after_minus_before_median_m=([0-9.e+-]+) >=-20"
+    },
+    {
+      "name": "ridge-new-fails-excl-q2",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/picard_terrain/out/PT-12/ridge.json'));print('ridge_new_fails_excl_q2=%s'%d['ridge_new_fails_excl_q2'])\"",
+      "expect": "num:ridge_new_fails_excl_q2=([0-9.e+-]+) <=0"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-11-09T21:05:29",
-  "edited": "2026-11-10T00:15:10"
+  "edited": "2026-11-10T00:37:52"
 }
