@@ -5,7 +5,7 @@ module: "lee-turb"
 area: "air"
 updated: "2026-11-09"
 summary: "Болтанка за гребнем как слой смешения: тонкий у гребня, растёт и опускается к присоединению; ротор ниже гребня, не сразу за ним."
-related: ["docs/guide/air-model/turbulence.md", "docs/research/picard_terrain.md", "docs/plan/picard-terrain.md"]
+related: ["docs/guide/air-model/turbulence.md"]
 ---
 # План lee-turb (код задач LT)
 
