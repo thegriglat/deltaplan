@@ -2,6 +2,10 @@
 import os
 import subprocess
 
+# Под общей нагрузкой многопоточный OpenBLAS тормозит в разы: тесты — в один-два потока.
+for _k in ("OPENBLAS_NUM_THREADS", "OMP_NUM_THREADS", "MKL_NUM_THREADS"):
+    os.environ.setdefault(_k, "2")
+
 
 def _gpu_free_mib():
     try:
