@@ -60,18 +60,21 @@ struct Terrain {
     slope: f64,
     amp: f64,
     lam: f64,
-    /// Сетка высот Алтая (`out/round3_ground_dem.f32`, 401×401, шаг 30 м, строка j — z, столбец i — x).
+    /// Сетка высот Алтая (`~/.cache/thermal_bubble/ground_dem_altai.f32` — строит `ground_inflow.py --dem`; нет файла — случай пропускается; 401×401, шаг 30 м, строка j — z, столбец i — x).
     dem: bool,
 }
 
 const DEM_N: usize = 401;
 const DEM_STEP: f64 = 30.0;
 
+fn dem_path() -> PathBuf {
+    PathBuf::from(std::env::var("HOME").unwrap_or_default()).join(".cache/thermal_bubble/ground_dem_altai.f32")
+}
+
 fn dem() -> &'static Vec<f32> {
     static D: std::sync::OnceLock<Vec<f32>> = std::sync::OnceLock::new();
     D.get_or_init(|| {
-        let b = std::fs::read(repo().join("tools/research/thermal_bubble/out/round3_ground_dem.f32"))
-            .expect("нет сетки высот: tools/research/thermal_bubble/py tools/research/thermal_bubble/round3/ground_dem.py");
+        let b = std::fs::read(dem_path()).expect("нет сетки высот");
         b.chunks_exact(4).map(|c| f32::from_le_bytes([c[0], c[1], c[2], c[3]])).collect()
     })
 }
@@ -378,7 +381,7 @@ fn run_terrain(name: &str, ter: Terrain, times: &[f64]) -> Value {
 #[test]
 fn ground_inflow() {
     let times: Vec<f64> = (0..41).map(|k| 1200.0 + 30.0 * f64::from(k)).collect();
-    let cases = [
+    let mut cases = vec![
         ("flat", Terrain { slope: 0.0, amp: 0.0, lam: 500.0, dem: false }),
         ("slope10", Terrain { slope: 0.18, amp: 0.0, lam: 500.0, dem: false }),
         ("slope20", Terrain { slope: 0.36, amp: 0.0, lam: 500.0, dem: false }),
@@ -387,8 +390,12 @@ fn ground_inflow() {
         ("hills60", Terrain { slope: 0.0, amp: 60.0, lam: 500.0, dem: false }),
         ("hills150", Terrain { slope: 0.0, amp: 150.0, lam: 700.0, dem: false }),
         ("mountain", Terrain { slope: 0.36, amp: 150.0, lam: 600.0, dem: false }),
-        ("altai", Terrain { slope: 0.0, amp: 0.0, lam: 500.0, dem: true }),
     ];
+    if dem_path().exists() {
+        cases.push(("altai", Terrain { slope: 0.0, amp: 0.0, lam: 500.0, dem: true }));
+    } else {
+        println!("ground: нет {} — случай altai пропущен", dem_path().display());
+    }
     let (mut n_tot, mut zero_tot, mut expl_tot) = (0usize, 0usize, 0usize);
     let mut sets = Vec::new();
     for (name, ter) in cases {

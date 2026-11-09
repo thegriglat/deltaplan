@@ -4,7 +4,7 @@
 запускает его, собирает строки `GRJSON`, пишет `out/round3_ground_inflow.json` и `round3/ground_inflow_*.png`.
 Запуск: tools/research/thermal_bubble/py tools/research/thermal_bubble/round3/ground_inflow.py            (≈ 3–5 мин, cargo + сборка)
         tools/research/thermal_bubble/py tools/research/thermal_bubble/round3/ground_inflow.py --log ЛОГ  (из готового лога теста)
-Сетка высот: tools/research/thermal_bubble/py tools/research/thermal_bubble/round3/ground_dem.py (кеш тайлов Terrarium игры).
+Сетка высот Алтая строится сама (--dem): ~/.cache/thermal_bubble/ground_dem_altai.f32 из кеша тайлов Terrarium игры; нет файла — тест пропускает случай altai.
 """
 from __future__ import annotations
 
@@ -20,7 +20,46 @@ TB = HERE.parent
 ROOT = TB.parents[2]
 OUT = TB / "out" / "round3_ground_inflow.json"
 ZERO = 0.01
+DEM_PATH = Path.home() / ".cache" / "thermal_bubble" / "ground_dem_altai.f32"   # читает тест (env HOME)
 GAME = {"zero_frac_cores": 0.77, "median_ur": 0.0008, "source": "TB-16 (flight_probe, ongudai, seed 1, 1200 с)"}
+
+
+def make_dem() -> None:
+    """Сетка высот Алтая 401×401, шаг 30 м → DEM_PATH (тайлы Terrarium кеша игры, центр тайла 12/3028/1376, ~10 км к югу от Онгудая;
+    тайлов Онгудая в кеше нет — он на Copernicus). x на восток, z на юг, [j][i] = (z, x), центр (200, 200). Данные: AWS Terrain Tiles."""
+    import math
+    from PIL import Image
+    LAT, LON, Z = 50.7086, 86.1768, 12  # центр тайла 12/3028/1376: Алтай в ~10 км к югу от Онгудая (тайлов Онгудая в кеше нет — Copernicus)
+    N, STEP = 401, 30.0
+    cache = Path.home() / ".local/share/Deltaplan/terrain_cache/terrarium" / str(Z)
+    n = 2 ** Z
+    mpp = 156543.03392 * math.cos(math.radians(LAT)) / (2 ** Z)  # при тайле 256 px: м/px = C*cos/2^z (C для 256 px на z=0)
+    px0 = (LON + 180) / 360 * n * 256
+    py0 = (1 - math.asinh(math.tan(math.radians(LAT))) / math.pi) / 2 * n * 256
+    tiles = {}
+    def tile(tx, ty):
+        if (tx, ty) not in tiles:
+            p = cache / str(tx) / f"{ty}.png"
+            if not p.exists():
+                sys.exit(f"нет тайла {p}")
+            a = np.asarray(Image.open(p).convert("RGB"), float)
+            tiles[(tx, ty)] = a[..., 0] * 256 + a[..., 1] + a[..., 2] / 256 - 32768
+        return tiles[(tx, ty)]
+    H = np.zeros((N, N), np.float32)
+    for j in range(N):
+        for i in range(N):
+            x, z = (i - 200) * STEP, (j - 200) * STEP
+            px, py = px0 + x / mpp, py0 + z / mpp
+            tx, ty = int(px // 256), int(py // 256)
+            fx, fy = px - tx * 256, py - ty * 256
+            t = tile(tx, ty)
+            ix, iy = min(int(fx), 255), min(int(fy), 255)
+            H[j, i] = t[iy, ix]
+    DEM_PATH.parent.mkdir(parents=True, exist_ok=True)
+    H.tofile(DEM_PATH)
+    dx = np.gradient(H, STEP, axis=1); dz = np.gradient(H, STEP, axis=0)
+    sl = np.degrees(np.arctan(np.hypot(dx, dz)))
+    print("h min/med/max", H.min(), np.median(H), H.max(), "slope pct 25/50/75/90", np.percentile(sl, [25, 50, 75, 90]).round(1), "центр", H[200, 200])
 
 
 def run_test() -> str:
@@ -82,6 +121,10 @@ def figure(terr: dict) -> None:
 
 
 def main() -> None:
+    if not DEM_PATH.exists():
+        make_dem()
+    if "--dem" in sys.argv:
+        return
     if "--log" in sys.argv:
         text = Path(sys.argv[sys.argv.index("--log") + 1]).read_text()
     else:

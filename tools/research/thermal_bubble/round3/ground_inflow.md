@@ -12,7 +12,7 @@ applied_in: []
 ---
 # TB-18: почему в игре нет притока у земли
 
-Числа: `out/round3_ground_inflow.json`; код `round3/ground_inflow.py` (запуск и сводка), счёт — `rust/dp-air/tests/thermal_bubble_ground.rs` (тот же `State::sample_bubble`, что в игре); рельеф Алтая — `round3/ground_dem.py`; график `round3/ground_inflow_summary.png`.
+Числа: `out/round3_ground_inflow.json`; код `round3/ground_inflow.py` (запуск и сводка), счёт — `rust/dp-air/tests/thermal_bubble_ground.rs` (тот же `State::sample_bubble`, что в игре); рельеф Алтая — строит `ground_inflow.py --dem`; график `round3/ground_inflow_summary.png`.
 
 ## Что сделано
 Замер TB-16 (`flight_probe.gd`) повторён в Rust без Godot: сцена игры (погода strong, ветер 18 км/ч, seed 4242), термики набора в 2000 м от фокуса, w·env > 0,5 м/с, 41 момент через 30 с (1200…2400 с); приток `ur = −⟨u_h·e_ρ⟩` на 10 м над рельефом, кольца 1; 1,5; 2 радиуса ядра, 8 азимутов. Нулевое: |ur| < 0,01 м/с (по ядру — среднее знаковое за жизнь, как у игры). Каждому нулевому ядру причина назначается контрфактом на том же состоянии набора:
@@ -52,4 +52,4 @@ applied_in: []
 ## Рекомендация
 Модель, не метрика: правка в `sample_bubble` (запрещено этой задачей, вносится отдельной задачей) — для точек у земли брать высоту таблицы над локальной землёй: `high_eff = agl` при `agl ≲ 60 м` (≈ b0 … 1,5 b0), плавно к `y − y_src` к 120 м; ниже плоскости источника значение `agl` вместо 0. Число после (для agl = 10 м): нулевых ядер на Алтае 20 % → 4 %, медиана ur 0,011 → 0,113 м/с (на плоскости 0,110). Метрику (кольца 1–2 R, 10 м, |ur| < 0,01) менять не нужно: на плоскости она даёт 5 % нулевых. Перед внедрением проверить сшивку (agl 60…120 м) и w у земли в `thermal_bubble_embed`.
 
-Воспроизведение: `tools/research/thermal_bubble/py tools/research/thermal_bubble/round3/ground_dem.py` (сетка высот), затем `tools/research/thermal_bubble/py tools/research/thermal_bubble/round3/ground_inflow.py` (≈ 5 мин с cargo; тест — отдельно командой из шапки теста). Данные рельефа: AWS Terrain Tiles (Terrarium; SRTM, GMTED2010 и др.), условия — https://github.com/tilezen/joerd/blob/master/docs/attribution.md, в репозиторий входит только производная сетка 401×401 (`out/round3_ground_dem.f32`, 0,6 МБ).
+Воспроизведение: `tools/research/thermal_bubble/py tools/research/thermal_bubble/round3/ground_inflow.py` (сама строит сетку высот в `~/.cache/thermal_bubble/ground_dem_altai.f32`, если её нет; тест без неё пропускает случай «Алтай») (≈ 5 мин с cargo; тест — отдельно командой из шапки теста). Данные рельефа: AWS Terrain Tiles (Terrarium; SRTM, GMTED2010 и др.), условия — https://github.com/tilezen/joerd/blob/master/docs/attribution.md, в репозиторий сетка 401×401 (0,6 МБ) не входит — строится локально.
