@@ -457,10 +457,12 @@ impl Field {
                     return;
                 }
                 let hcc = hc[c] as f64;
+                // первая клетка с центром не ниже dz/2 над hc (срезанная k1 может лежать ниже hc
+                // на несколько клеток; от hc — не более одного шага, как раньше)
                 let mut kr = k1;
                 let mut ar = g.z_bot + (k1 as f64 + 0.5) * g.dz - hcc;
-                if ar < 0.5 * g.dz && k1 + 1 < nz {
-                    kr = k1 + 1;
+                while ar < 0.5 * g.dz && kr + 1 < nz {
+                    kr += 1;
                     ar += g.dz;
                 }
                 let i = kr * nxy + c;

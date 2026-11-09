@@ -524,4 +524,8 @@ fn boundary_layer_before_after() {
         );
         assert!(fld.raw_ustar().iter().all(|x| x.is_finite()));
     }
+    let max = |f: &Field| f.raw_ustar().iter().fold(0.0f32, |a, &b| a.max(b)) as f64;
+    let ratio = max(f) / max(&before);
+    eprintln!("ustar_max_ratio={ratio:.4}");
+    assert!(ratio <= 1.5);
 }
