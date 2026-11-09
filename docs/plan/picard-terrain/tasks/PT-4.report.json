@@ -1,0 +1,70 @@
+{
+  "status": "done",
+  "summary": "cut + adv2 работают вместе (поправка с весом A_откр/V_откр / af/vf грани, предвычисленные веса, C_d из cd/cd_col, bench --adv2); 12 solve cut+adv2 и bench 6 вариантов x 6 случаев под замком 18 слотов; out/PT-4/table.md. Лучший по возврату к эталону: срезанные + ван Лир (Askervein d50 30 м: 104 %, Каянча d50: 119-178 % - выше эталона d25).",
+  "commits": [
+    "c3b49d2a1 PT-4: cut+adv2, веса, C_d, bench --adv2, 12 solve",
+    "e24aa4fd5 PT-4: замер bench, rows.jsonl, table.md"
+  ],
+  "checks": [
+    {
+      "name": "default-bitwise",
+      "value": "identical=4/4",
+      "pass": true
+    },
+    {
+      "name": "cargo-test",
+      "value": "exit 0 (tests/combo.rs: итерации равны и поле побитно при долях 1; div_rms <= tol; вес поправки)",
+      "pass": true
+    },
+    {
+      "name": "contract-rows",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "combo-rows",
+      "value": "12",
+      "pass": true
+    },
+    {
+      "name": "bench-rows",
+      "value": "36",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Шаг перфоратора: прогон ротора Perdigao (задача 4) не входит в PT-4."
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept PT-4",
+  "uncertain": [
+    {
+      "where": "rust/picard_rs/src/adv2.rs",
+      "why": "cargo fmt переформатировал весь файл (диф большой, смысл тот же); ограничитель берёт значения поля без учёта долей - у граней с af<1 поправка приближённая",
+      "checked": "тесты combo.rs, check_default 4/4"
+    },
+    {
+      "where": "out/PT-4/table.md (Каянча d50, срезанные + ван Лир)",
+      "why": "возврат 109-178 %: выше эталона d25 (срезанные клетки + 2-й порядок перелетают, в том числе потому что эталон d25 сам не сеточно сходится); не подгонялось",
+      "checked": "числа из bench/solve, пробы по sample.py; iters solve и bench совпадают"
+    },
+    {
+      "where": "время: askervein_d100 ван Лир 11.3 мс/итер.",
+      "why": "выброс (minmod 6.5) на коротком прогоне 0.9 с; времена d100 шумят, надёжны d50/Perdigao/Каянча",
+      "checked": "один запуск, повтор не делался"
+    },
+    {
+      "where": "rows.jsonl",
+      "why": "пробы cut-строк берутся из solve PT-2 (до правки C_d); cd случаев совпадает с выводом из z0 (проверено по cd, dz, z0), состояния не перегонялись; итерации bench cut = PT-2",
+      "checked": "iters совпали с PT-2 (60/60/100/90/180/170)"
+    }
+  ],
+  "dp_feedback": "job stop не убивает цепочку под lock: очередь замка продолжила и запустила bench; job status потом 'нет данных'. Для замка 18 слотов 1 долгий чужой слот (OBC-3, 1 слот >20 ч) блокирует: нужна опция 'до N слотов' или окно.",
+  "extra": {
+    "cost_ratio_total_vs_base": "cut x1.0-1.15; vanleer/minmod x1.15-1.96; cut+vanleer/minmod x1.06-1.97 (Perdigao ~x1.8-1.97, ms/iter x1.3)",
+    "perdigao": "все 4 варианта 2-го порядка сходятся: ne 230 (cut+adv2) против 161 базы, sw 230-250 против 171"
+  },
+  "t": "2026-11-09T11:30:14",
+  "by": "executor"
+}
