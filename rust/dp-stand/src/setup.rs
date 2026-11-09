@@ -88,6 +88,25 @@ fn s<T, E: std::fmt::Display>(r: Result<T, E>) -> Result<T, String> {
 }
 
 pub fn open(a: &OpenArgs) -> Result<Session, String> {
+    let mut model = make_model(a.model)?;
+    let case = prepare(model.as_mut(), a)?;
+    Ok(Session {
+        model,
+        case,
+        case_path: a.case.to_path_buf(),
+        timeout: Duration::from_secs_f64(a.timeout_s.max(0.0)),
+    })
+}
+
+/// Конкретная `Formula` (детерминированная) по случаю: для подкоманд, которым нужен её журнал.
+pub fn open_formula(a: &OpenArgs) -> Result<(Formula, Case), String> {
+    let mut model = Formula::new().with_deterministic(true);
+    let case = prepare(&mut model, a)?;
+    Ok((model, case))
+}
+
+/// configure → load_place → set_conditions → set_static_thermals → set_focuses.
+fn prepare(model: &mut dyn AirModel, a: &OpenArgs) -> Result<Case, String> {
     let case = s(read_case(a.case))?;
     let place_path = a
         .place
@@ -98,39 +117,38 @@ pub fn open(a: &OpenArgs) -> Result<Session, String> {
     for w in config_warnings(&case, &cfg) {
         eprintln!("warning: {w}");
     }
-    let mut model = make_model(a.model)?;
     s(model.configure(&cfg, case.seed))?;
     s(model.load_place(place))?;
     s(model.set_conditions(&case.conditions))?;
     s(model.set_static_thermals(&case.static_thermals, case.static_mode))?;
     s(model.set_focuses(&case.focuses))?;
-    Ok(Session {
-        model,
-        case,
-        case_path: a.case.to_path_buf(),
-        timeout: Duration::from_secs_f64(a.timeout_s.max(0.0)),
-    })
+    Ok(case)
+}
+
+/// `start_at(t)` и ожидание Ready (опрос `status`).
+pub fn go_to_model(model: &mut dyn AirModel, t: f64, timeout: Duration) -> Result<(), String> {
+    s(model.start_at(t))?;
+    let t0 = Instant::now();
+    loop {
+        let st = model.status();
+        match st.state {
+            State::Ready => return Ok(()),
+            State::Failed => return Err(format!("model failed: {}", st.reason)),
+            _ => {}
+        }
+        if t0.elapsed() > timeout {
+            return Err(format!(
+                "timeout waiting for Ready at t={t} (progress {:.2})",
+                st.progress
+            ));
+        }
+        std::thread::sleep(Duration::from_millis(1));
+    }
 }
 
 impl Session {
-    /// `start_at(t)` и ожидание Ready (опрос `status`, таймаут — ключом).
+    /// `start_at(t)` и ожидание Ready (таймаут — ключом).
     pub fn go_to(&mut self, t: f64) -> Result<(), String> {
-        s(self.model.start_at(t))?;
-        let t0 = Instant::now();
-        loop {
-            let st = self.model.status();
-            match st.state {
-                State::Ready => return Ok(()),
-                State::Failed => return Err(format!("model failed: {}", st.reason)),
-                _ => {}
-            }
-            if t0.elapsed() > self.timeout {
-                return Err(format!(
-                    "timeout waiting for Ready at t={t} (progress {:.2})",
-                    st.progress
-                ));
-            }
-            std::thread::sleep(Duration::from_millis(1));
-        }
+        go_to_model(self.model.as_mut(), t, self.timeout)
     }
 }
