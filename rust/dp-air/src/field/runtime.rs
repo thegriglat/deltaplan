@@ -1028,7 +1028,7 @@ fn phases_of(cfg: &PhaseCfg, lc: &LevelCase) -> Result<PhaseResult, String> {
     )
 }
 
-pub(crate) fn level_of(p: &PreparedPlanes, dom: &Domain) -> Level {
+pub fn level_of(p: &PreparedPlanes, dom: &Domain) -> Level {
     Level {
         nx: p.nx_h,
         ny: p.ny_h,
@@ -1064,7 +1064,7 @@ fn blank_state(l: &Level) -> State {
 }
 
 /// Решение грубого уровня на тонкий (`prolong`, 6f).
-fn prolong_to(coarse: &Level, src: &State, fine: &Level) -> Result<State, JobErr> {
+pub fn prolong_to(coarse: &Level, src: &State, fine: &Level) -> Result<State, JobErr> {
     let mut dst = blank_state(fine);
     prolong_state(
         coarse,
