@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-11-09"
 summary: "Стыки thermal-bubble: шаблон пузыря bubble.py (TB1), профиль для сверки (TB2), сводки (TB3), шаблон в dp-air за флагом (TB4)."
 related: ["docs/plan/thermal-bubble.md", "docs/guide/air-model/thermals.md"]
-contracts: [{"id": "TB1", "version": 3}, {"id": "TB2", "version": 1}, {"id": "TB3", "version": 1}, {"id": "TB4", "version": 1}]
+contracts: [{"id": "TB1", "version": 4}, {"id": "TB2", "version": 1}, {"id": "TB3", "version": 2}, {"id": "TB4", "version": 1}]
 ---
 # Контракты модуля thermal-bubble
 
@@ -21,7 +21,7 @@ contracts: [{"id": "TB1", "version": 3}, {"id": "TB2", "version": 1}, {"id": "TB
 (в игре ось y вверх; перевод осей — забота стенда TB-3). Поле термика — Буссинеск,
 несжимаемое: ∇·v = 0 (поле игры — то же приближение у слоя термиков).
 
-## TB1 v3 — шаблон пузыря `tools/research/thermal_bubble/bubble.py`
+## TB1 v4 — шаблон пузыря `tools/research/thermal_bubble/bubble.py`
 Владелец — TB-1; потребители — TB-2 (сверка, разрезы), TB-3 (порт в Rust, цена), TB-4 (вывод). Только numpy.
 
 ```python
@@ -62,7 +62,7 @@ def velocity(p: np.ndarray, states: Sequence[State], env: Env, *,
 def from_game(x: float, y: float, t0: float, wstar: float, zl: float, env: Env) -> Source
 # v3:
 def from_strength(x: float, y: float, t0: float, w0: float, zl: float, tau: float, env: Env) -> Source
-def kbar(zl: float, tau: float, env: Env) -> float
+def kbar(zl: float, tau: float, env: Env, w0: float) -> float   # v4: + w0
 ```
 
 Поведение:
@@ -93,8 +93,8 @@ def kbar(zl: float, tau: float, env: Env) -> float
   толщине столба `zl = top − высота источника` и времени работы источника `tau` (= t_grow + t_mature термика):
   F0 подобран так, что максимум w на оси за жизнь пузыря = w0 (подбор по F0 — шлейф ∝ F0^⅓, голова иначе, точной степени нет; отн. ошибка ≤ 2 %). Остальное — как `from_game`.
 - v3, `kbar`: K̄ шаблона, м² — средний по жизни (t0…конец) и по столбу 0…zl поток вверх (∫ max(w, 0) dA по
-  горизонтальному сечению, только положительная область головы и шлейфа) одного пузыря `from_strength(…, w0 = 1, zl, tau)`,
-  делённый на 1 м/с; то же определение, что K̄ в `rust/dp-air/src/terms/thermal_air/columns.rs`
+  горизонтальному сечению, только положительная область головы и шлейфа) одного пузыря `from_strength(…, w0, zl, tau)`,
+  делённый на w0 (v4: поток растёт с силой нелинейно — жизнь и подобие зависят от F0, ревью TB-5; в игре w0 = w* столба); то же определение, что K̄ в `rust/dp-air/src/terms/thermal_air/columns.rs`
   (CORE_FLUX·π·r²·shape.mean·life_mean — средний поток ядра на 1 м/с пика). > 0, конечно.
 
 Инварианты (контрактный тест `tb1`, Env(wind=(3, 0), zi=1400), Source = from_game(0, 0, 0, 2,5, 1400, env)):
@@ -112,11 +112,11 @@ def kbar(zl: float, tau: float, env: Env) -> float
 9. v2, конец жизни: состояние на последнем шаге 2 с перед `None` — max|v| ≤ 0,05·max_t max|v|; конец наступает
    (state → None) не позже t0 + 4·tau + 3600 с.
 10. v3, гладкость края головы: голова без шлейфа (как в п. 7) на t0 + 0,5·tau, линии через центр — по экватору
-   (z = zc) и по оси, ±2R, шаг h = 0,005R: max|w(x+h) − 2w(x) + w(x−h)|/h · R/U ≤ 0,5 (излом Хилла v2 даёт ≈ 7,5).
+   (z = zc) и по оси, ±2R, шаг h = 0,005R: max|w(x+h) − 2w(x) + w(x−h)|/h · R/U ≤ 1,2 (излом Хилла v2 даёт ≈ 7,5; v4: порог 1,2 — при смешении ψ квинтикой оболочка 0,2R даёт ≈ 1,0, решение Q1 «~0,2R» сохраняется).
 11. v3, PARAMS: есть `core_flux_fraction` (0 < value ≤ 1) и `hill_shell` (0 < value < 1).
 12. v3, `from_strength`: при w0 = 2 и 4 м/с (zl 1400, tau 690) максимум w на оси (z от 1 м до zi, шаг 5 м; моменты
    шагом 10 с до конца жизни) — w0 с отн. ошибкой ≤ 2 %.
-13. v3, `kbar(1400, 690, env)` > 0 и конечно.
+13. v4, `kbar(1400, 690, env, 2.5)` > 0 и конечно.
 
 ## TB2 v1 — нынешний профиль `tools/research/thermal_bubble/current.py`
 Владелец — TB-2; потребители — TB-2, TB-4. Порт `rust/dp-air/src/terms/thermal/profile.rs::contribution`
@@ -132,7 +132,7 @@ def current_w(p: np.ndarray, *, src=(x, y), top: float, R: float, w0: float, lea
 - Числа cfg — по умолчанию из `rust/dp-air/src/terms/thermal/cfg.rs` (`ThermalCfg::default`), имена ключей те же.
 - Контрактный тест `tb2`: w на оси при ξ = 0,5 равна w0·vert; при x = 1 — 0; dh ≤ 0 → 0.
 
-## TB3 v1 — сводки сверки и цены `tools/research/thermal_bubble/out/*.json`
+## TB3 v2 — сводки сверки, цены и LES `tools/research/thermal_bubble/out/*.json`
 Пишут: TB-2 (`compare.json`), TB-3 (`bench.json`); читатель — TB-4. Запись — временный файл и переименование.
 
 `compare.json` — `{"format": "tb-compare", "version": 1, "case": {...вход: wstar, zi, wind...}, "rows": [...],
@@ -147,6 +147,11 @@ def current_w(p: np.ndarray, *, src=(x, y), top: float, R: float, w0: float, lea
 "bubble_table": float|null}, "bubbles_per_point": float, "table_bytes": int|null, "port_max_rel_err": float}`
 (ns на одну точку; `current_sample` — `State::sample` при той же плотности термиков; `port_max_rel_err` — порт Rust
 против `bubble.velocity` на фикстуре точек).
+
+v2: `les.json` (пишет TB-6; читатели — сверка и итог) — `{"format": "tb-les", "version": 1, "rows": [...], "searched": [str]}`;
+строка rows: `{"quantity": str, "unit": str, "literature": float|null, "lit_range": [lo, hi]|null, "source": str, "note": str,
+"reliability": "high"|"medium"|"low"}`; обязательные quantity: `inflow_ground_over_wstar`, `outflow_top_over_wstar`,
+`ring_sink_min_over_wstar`, `rise_speed_over_wstar`. Нет числа — null и причина в note.
 
 ## TB4 v1 — шаблон пузыря в `dp-air` за флагом
 Владелец — координатор; пишут TB-7 (инфраструктура, порт TB1 v2), TB-8 (порт TB1 v3, K̄); потребители — сумма ветра

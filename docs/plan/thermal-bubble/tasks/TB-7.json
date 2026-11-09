@@ -1,0 +1,78 @@
+{
+  "id": "TB-7",
+  "module": "thermal-bubble",
+  "type": "dp-engineer",
+  "title": "dp-air: шаблон пузыря за флагом — порт v2 в src, таблицы (u_ρ, w) шагом ≤ 5 м, горизонталь термика в сумме ветра",
+  "goal": "Встроить шаблон пузыря в dp-air по контракту TB4 v1: флаг thermal.bubble_template (по умолчанию выкл, поведение побитно прежнее), модуль thermal/bubble.rs (порт bubble.py v2 + таблица на пузырь, шаг у оси ≤ 5 м), опрос термиков при флаге даёт w и горизонталь uh, сумма ветра её добавляет; измерена точность таблицы.",
+  "plan_ref": "Задачи (уточняет координатор) п. 3; ответ на Q1 пп. 2, 4",
+  "contracts": [
+    {
+      "name": "TB4",
+      "version": "1",
+      "ref": "docs/contracts/thermal-bubble.md"
+    },
+    {
+      "name": "TB1",
+      "version": "2",
+      "ref": "docs/contracts/thermal-bubble.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/thermal-bubble-TB-7",
+  "branch": "thermal-bubble/TB-7",
+  "base": "feature/thermal-bubble",
+  "scope": [
+    "rust/dp-air/src/terms/thermal/bubble.rs",
+    "rust/dp-air/src/terms/thermal/mod.rs",
+    "rust/dp-air/src/terms/thermal/sample.rs",
+    "rust/dp-air/src/terms/thermal/cfg.rs",
+    "rust/dp-air/src/terms/slots.rs",
+    "rust/dp-air/src/terms/sum.rs",
+    "rust/dp-air/src/terms/mod.rs",
+    "rust/dp-air/tests/thermal_bubble_embed.rs",
+    "rust/dp-air/tests/data/thermal_bubble_off.json",
+    "rust/dp-air/tests/terms_sum.rs"
+  ],
+  "dont_touch": [
+    "rust/dp-air/src/terms/thermal_air/",
+    "rust/dp-air/src/terms/thermal/profile.rs",
+    "rust/dp-air/src/terms/thermal/life.rs",
+    "rust/dp-air/src/terms/thermal/cells.rs",
+    "rust/dp-air/benches/",
+    "rust/Cargo.toml",
+    "tools/research/thermal_bubble/",
+    "scripts/",
+    "configs/",
+    "data/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "contract_tb4",
+      "cmd": "python3 tools/research/thermal_bubble/contract/check_contract.py tb4",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dp_air_tests",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air",
+      "expect": "exit=0"
+    },
+    {
+      "name": "table_acc",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test thermal_bubble_embed table_accuracy -- --nocapture",
+      "expect": "num:table_max_rel=([0-9.eE+-]+) <=0.05"
+    },
+    {
+      "name": "workspace",
+      "cmd": "cargo check --manifest-path rust/Cargo.toml --workspace --all-targets",
+      "expect": "exit=0"
+    },
+    {
+      "name": "game_untouched",
+      "cmd": "git diff --quiet feature/thermal-bubble -- scripts configs data rust/dp-air/src/terms/thermal_air rust/dp-air/src/terms/thermal/profile.rs && ! git grep -q bubble_template -- scripts configs data",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T10:11:41"
+}

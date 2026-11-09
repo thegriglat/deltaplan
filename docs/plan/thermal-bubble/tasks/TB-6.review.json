@@ -1,0 +1,44 @@
+{
+  "verdict": "accept",
+  "summary": "Числа сверены с оригиналом Schmidt & Schumann 1989 (PDF скачан, pdftotext): подпись рис. 18 даёт u −0,36/+0,33 w*, w −0,1/2,0 w*, даундрафт −0,96 w*; текст с. 543 «up to 0.36 w* in the surface layer»; §3.3 «bubbles are rising more quickly». les.json соответствует TB3 v2 (format tb-les, обязательные quantity, reliability); null с причиной там, где числа нет. Скоуп — 2 файла в границах. Два минора — не блокируют.",
+  "issues": [
+    {
+      "file": "tools/research/thermal_bubble/literature.md",
+      "line": 9,
+      "severity": "minor",
+      "what": "Frontmatter устарел: conclusion говорит «приток, растекание, кольцо и скорость подъёма пузыря — нет подтверждённых чисел», а в новом разделе приток 0,36 w* и кольцо −0,10 w* (medium)",
+      "fix": "Обновить conclusion (и при желании summary): приток и минимум кольца — по композиту S&S 1989 (medium), растекание и подъём — нет"
+    },
+    {
+      "file": "tools/research/thermal_bubble/out/les.json",
+      "line": 38,
+      "severity": "minor",
+      "what": "ring_sink_min_over_wstar: lit_range [−0,96, −0,1] — нижний край взят из центра композита даундрафта (другая величина, не кольцо у ядра); сверка, читающая lit_range как допуск, сочтёт любое опускание до −0,96 w* подтверждённым",
+      "fix": "lit_range → null (диапазона для кольца нет) или узкий около −0,1; про −0,96 оставить в note"
+    }
+  ],
+  "rerun": [
+    {
+      "name": "accept TB-6 --dry: les_rows",
+      "value": "found=2",
+      "pass": true
+    },
+    {
+      "name": "accept TB-6 --dry: les_md",
+      "value": "раздел есть, docs check без ошибок по thermal_bubble",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "2 файла в границах, dont_touch не задеты",
+      "pass": true
+    },
+    {
+      "name": "сверка чисел с PDF S&S 1989 (elib.dlr.de)",
+      "value": "рис. 18: u −0,36/0,33; w −0,1/2,0; dd −0,96; текст 0,36 w* surface layer — совпадает",
+      "pass": true
+    }
+  ],
+  "t": "2026-11-09T10:23:48",
+  "by": "reviewer"
+}

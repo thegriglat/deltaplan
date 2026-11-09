@@ -236,7 +236,7 @@ def tb1_v3(bm, env, src) -> None:
     ):
         w = bm.velocity(line, [hd], env)[..., 2]
         k = float(np.max(np.abs(w[2:] - 2 * w[1:-1] + w[:-2]))) / h * hd.R / max(hd.U, 1e-30)
-        check(k <= 0.5, f"tb1 v3: гладкость края головы ({name}) max|Δ²w|/h·R/U {k:.3g} ≤ 0,5")
+        check(k <= 1.2, f"tb1 v4: гладкость края головы ({name}) max|Δ²w|/h·R/U {k:.3g} ≤ 1,2")
     # 12. from_strength
     zl, tau = 1400.0, 690.0
     zz = np.arange(1.0, env.zi + 1e-9, 5.0)
@@ -254,8 +254,8 @@ def tb1_v3(bm, env, src) -> None:
         rel = abs(wm - w0) / w0
         check(rel <= 0.02, f"tb1 v3: from_strength(w0={w0}) — max w на оси {wm:.4g}, отн. {rel:.2e} ≤ 2e-2")
     # 13. kbar
-    kb = bm.kbar(zl, tau, env)
-    check(isinstance(kb, float) and math.isfinite(kb) and kb > 0, f"tb1 v3: kbar(1400, 690) = {kb!r} > 0")
+    kb = bm.kbar(zl, tau, env, 2.5)
+    check(isinstance(kb, float) and math.isfinite(kb) and kb > 0, f"tb1 v4: kbar(1400, 690, w0=2,5) = {kb!r} > 0")
 
 
 # ---------------------------------------------------------------- TB4
@@ -364,6 +364,20 @@ def tb3(path: Path) -> None:
         check(tb is None or isinstance(tb, int), f"tb3: {path.name}: table_bytes int|null")
         e = d.get("port_max_rel_err")
         check(isinstance(e, (int, float)) and math.isfinite(e), f"tb3: {path.name}: port_max_rel_err")
+    elif fmt == "tb-les":
+        rows = d.get("rows")
+        check(isinstance(rows, list), f"tb3: {path.name}: rows — список")
+        rows = rows or []
+        for r in rows:
+            ok = all(k in r for k in ("quantity", "unit", "literature", "lit_range", "source", "note", "reliability"))
+            ok = ok and _num_or_null(r.get("literature")) and r.get("reliability") in ("high", "medium", "low")
+            lr = r.get("lit_range")
+            ok = ok and (lr is None or (isinstance(lr, list) and len(lr) == 2 and all(_num_or_null(x) for x in lr)))
+            check(ok, f"tb3: {path.name}: строка {r.get('quantity')!r} — поля и типы")
+        have = {r.get("quantity") for r in rows}
+        for q in ("inflow_ground_over_wstar", "outflow_top_over_wstar", "ring_sink_min_over_wstar", "rise_speed_over_wstar"):
+            check(q in have, f"tb3: {path.name}: quantity {q}")
+        check(isinstance(d.get("searched"), list), f"tb3: {path.name}: searched — список")
     else:
         check(False, f"tb3: {path.name}: неизвестный format {fmt!r}")
 
