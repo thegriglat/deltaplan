@@ -1,0 +1,11 @@
+{
+  "module": "thermal-bubble",
+  "plan": "docs/plan/thermal-bubble.md",
+  "contracts": "docs/contracts/thermal-bubble.md",
+  "branch": "feature/thermal-bubble",
+  "copy": "~/worktrees/deltaplan/thermal-bubble",
+  "created": "2026-11-09T08:20:01",
+  "code": "TB",
+  "area": "air",
+  "base": "main"
+}
