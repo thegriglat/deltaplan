@@ -4,6 +4,7 @@
 python3 check_contract.py tb1            — шаблон bubble.py
 python3 check_contract.py tb2            — порт нынешнего профиля current.py
 python3 check_contract.py <файл.json>... — сводки TB3 (по полю format)
+python3 check_contract.py tb4            — имена стыка TB4 в rust/dp-air
 Только numpy + stdlib. Код возврата 0 — всё прошло; иначе 1 и список нарушений.
 """
 from __future__ import annotations
@@ -88,12 +89,12 @@ def tb1() -> None:
     except Exception as e:  # noqa: BLE001
         check(False, f"tb1: import bubble: {e!r}")
         return
-    for name in ("PARAMS", "Env", "Source", "State", "state", "velocity", "from_game"):
+    for name in ("PARAMS", "Env", "Source", "State", "state", "velocity", "from_game", "from_strength", "kbar"):
         check(hasattr(bm, name), f"tb1: bubble.{name} есть")
     if FAIL:
         return
     # 1. PARAMS
-    for key in ("alpha_thermal", "C_thermal", "alpha_plume"):
+    for key in ("alpha_thermal", "C_thermal", "alpha_plume", "core_flux_fraction", "hill_shell"):
         check(key in bm.PARAMS, f"tb1: PARAMS[{key!r}] есть")
     for key, d in bm.PARAMS.items():
         ok = (
@@ -106,6 +107,11 @@ def tb1() -> None:
             and d.get("reliability") in ("high", "medium", "low")
         )
         check(ok, f"tb1: PARAMS[{key!r}] — value/unit/source/reliability")
+    # 11. v3: доля ядра и оболочка
+    cf = float(bm.PARAMS["core_flux_fraction"]["value"])
+    hs = float(bm.PARAMS["hill_shell"]["value"])
+    check(0.0 < cf <= 1.0, f"tb1 v3: 0 < core_flux_fraction {cf:.3g} ≤ 1")
+    check(0.0 < hs < 1.0, f"tb1 v3: 0 < hill_shell {hs:.3g} < 1")
     # поля State
     need = ("xs", "ys", "xc", "yc", "zc", "R", "U", "Q", "F0", "zb")
     names = [f.name for f in dataclasses.fields(bm.State)]
@@ -215,6 +221,61 @@ def tb1() -> None:
     check(jump <= 0.25 * vmax,
           f"tb1 v2: скачок за 2 с {jump:.3g} ≤ 0,25·max|v| {0.25 * vmax:.3g} (худший при t0+{(t_jump or 0) - src.t0:.0f} с)")
     check(last <= 0.05 * vmax, f"tb1 v2: перед концом max|v| {last:.3g} ≤ 0,05·max|v| {0.05 * vmax:.3g}")
+    tb1_v3(bm, env, src)
+
+
+def tb1_v3(bm, env, src) -> None:
+    # 10. гладкость края головы
+    st = bm.state(src, env, src.t0 + 0.5 * src.tau)
+    hd = dataclasses.replace(st, Q=0.0, F0=0.0, zb=st.zc)
+    h = 0.005 * hd.R
+    x = np.arange(-2 * hd.R, 2 * hd.R + 1e-9, h)
+    for name, line in (
+        ("экватор", np.stack([hd.xc + x, np.full_like(x, hd.yc), np.full_like(x, hd.zc)], -1)),
+        ("ось", np.stack([np.full_like(x, hd.xc), np.full_like(x, hd.yc), np.clip(hd.zc + x, 0.5, env.zi - 0.5)], -1)),
+    ):
+        w = bm.velocity(line, [hd], env)[..., 2]
+        k = float(np.max(np.abs(w[2:] - 2 * w[1:-1] + w[:-2]))) / h * hd.R / max(hd.U, 1e-30)
+        check(k <= 0.5, f"tb1 v3: гладкость края головы ({name}) max|Δ²w|/h·R/U {k:.3g} ≤ 0,5")
+    # 12. from_strength
+    zl, tau = 1400.0, 690.0
+    zz = np.arange(1.0, env.zi + 1e-9, 5.0)
+    for w0 in (2.0, 4.0):
+        s2 = bm.from_strength(0.0, 0.0, 0.0, w0, zl, tau, env)
+        wm = 0.0
+        t = s2.t0 + 10.0
+        while t <= s2.t0 + 4 * s2.tau + 3600.0:
+            st2 = bm.state(s2, env, t)
+            if st2 is None:
+                break
+            ax = np.stack([np.full_like(zz, st2.xc), np.full_like(zz, st2.yc), zz], -1)
+            wm = max(wm, float(np.max(bm.velocity(ax, [st2], env)[..., 2])))
+            t += 10.0
+        rel = abs(wm - w0) / w0
+        check(rel <= 0.02, f"tb1 v3: from_strength(w0={w0}) — max w на оси {wm:.4g}, отн. {rel:.2e} ≤ 2e-2")
+    # 13. kbar
+    kb = bm.kbar(zl, tau, env)
+    check(isinstance(kb, float) and math.isfinite(kb) and kb > 0, f"tb1 v3: kbar(1400, 690) = {kb!r} > 0")
+
+
+# ---------------------------------------------------------------- TB4
+def tb4() -> None:
+    root = PKG.parents[2]
+    air = root / "rust" / "dp-air"
+
+    def has(rel: str, *needles: str) -> None:
+        f = air / rel
+        txt = f.read_text() if f.is_file() else ""
+        for n in needles:
+            check(n in txt, f"tb4: {rel}: {n!r}")
+
+    has("src/terms/thermal/cfg.rs", "bubble_template", "/thermal/bubble_template")
+    has("src/terms/slots.rs", "pub uh: [f64; 2]")
+    has("src/terms/thermal/mod.rs", "pub mod bubble;")
+    has("src/terms/thermal/bubble.rs", "BubbleTable")
+    has("tests/thermal_bubble_embed.rs", "fn flag_off_bitwise", "fn port_vs_python", "fn table_accuracy",
+        "fn flag_on_sum", "table_max_rel=")
+    check((air / "tests" / "data" / "thermal_bubble_off.json").is_file(), "tb4: tests/data/thermal_bubble_off.json есть")
 
 
 # ---------------------------------------------------------------- TB2
@@ -316,6 +377,8 @@ def main(argv: list[str]) -> int:
             tb1()
         elif a == "tb2":
             tb2()
+        elif a == "tb4":
+            tb4()
         else:
             tb3(Path(a))
     print(f"\n{'PASS' if not FAIL else 'FAIL'}: нарушений {len(FAIL)}")
