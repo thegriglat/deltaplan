@@ -1,0 +1,38 @@
+{
+  "id": "OBC-7",
+  "module": "outflow-bc",
+  "type": "dp-mechanic",
+  "title": "Прогон корпуса этапа 2 (90 случаев × 5 стартов, hard) и упаковка записей",
+  "goal": "Прогнать стенд outflow_stage2 на corpus_stage2.json (90 случаев × bg/coarse3/chain/phase/chain_phase, вариант hard) двумя шардами под замком cpu; сырьё в ~/data/outflow_bc/stage2; объединённые записи OB4 — сжатым файлом tools/research/outflow_bc/out/stage2/stage2.jsonl.gz.",
+  "plan_ref": "Этап 2",
+  "contracts": [
+    {
+      "name": "OB4",
+      "version": "1",
+      "ref": "docs/contracts/outflow-bc.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/outflow-bc-OBC-7",
+  "branch": "outflow-bc/OBC-7",
+  "base": "feature/outflow-bc",
+  "scope": [
+    "tools/research/outflow_bc/out/stage2/stage2.jsonl.gz"
+  ],
+  "dont_touch": [
+    "rust",
+    "tools/research/outflow_bc/corpus_stage2.json",
+    "tools/research/outflow_bc/check_stage2.py",
+    "docs",
+    "tools/research/outflow_bc/out/cases.jsonl.gz"
+  ],
+  "accept": [
+    {
+      "name": "records",
+      "cmd": "mkdir -p build/obc && gzip -dc tools/research/outflow_bc/out/stage2/stage2.jsonl.gz > build/obc/OBC-7_stage2.jsonl && python3 tools/research/outflow_bc/check_stage2.py build/obc/OBC-7_stage2.jsonl --spec tools/research/outflow_bc/corpus_stage2.json --slices /home/greg/data/outflow_bc/stage2/slices",
+      "expect": "re:OB4: records=450 invalid=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-09T15:58:40"
+}
