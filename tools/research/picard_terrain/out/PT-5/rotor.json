@@ -1,0 +1,388 @@
+{
+ "menke": {
+  "SW": {
+   "1": 680.0,
+   "2": 670.0,
+   "3": 500.0
+  },
+  "NE": {
+   "1": 570.0,
+   "2": 490.0,
+   "3": 420.0
+  }
+ },
+ "past_picard": {
+  "perdigao_ne": [
+   430,
+   170,
+   0
+  ],
+  "perdigao_sw": [
+   0,
+   0,
+   0
+  ]
+ },
+ "results": [
+  {
+   "state": "states/perdigao_ne_d30_adv2_l1.json",
+   "site": "perdigao_ne",
+   "rows": [
+    {
+     "transect": "menke_T1",
+     "present": true,
+     "L_m": 120.0,
+     "depth_m": 30.0,
+     "min_upar_15": -0.5857912820817389,
+     "x_start_s": 2420.0000000000005
+    },
+    {
+     "transect": "menke_T2",
+     "present": true,
+     "L_m": 470.0,
+     "depth_m": 45.0,
+     "min_upar_15": -0.8149669116341164,
+     "x_start_s": 2540.0000000000005
+    },
+    {
+     "transect": "menke_T3",
+     "present": true,
+     "L_m": 190.0,
+     "depth_m": 15.0,
+     "min_upar_15": -0.7763143662867779,
+     "x_start_s": 1310.0000000000002
+    }
+   ],
+   "masts_rmse": 0.13079196730511594,
+   "masts_bias": -0.0875745172138115,
+   "n_masts": 28,
+   "u_scale": 1.0024023546331051,
+   "s_ref_model": 8.769931514394381,
+   "variant": "van Leer"
+  },
+  {
+   "state": "states/perdigao_ne_d30_adv2_l3.json",
+   "site": "perdigao_ne",
+   "rows": [
+    {
+     "transect": "menke_T1",
+     "present": true,
+     "L_m": 170.0,
+     "depth_m": 30.0,
+     "min_upar_15": -0.6053888600300015,
+     "x_start_s": 2620.0000000000005
+    },
+    {
+     "transect": "menke_T2",
+     "present": true,
+     "L_m": 460.0,
+     "depth_m": 45.0,
+     "min_upar_15": -0.8245027724362529,
+     "x_start_s": 2550.0000000000005
+    },
+    {
+     "transect": "menke_T3",
+     "present": true,
+     "L_m": 200.0,
+     "depth_m": 15.0,
+     "min_upar_15": -0.8139636532309757,
+     "x_start_s": 1300.0000000000002
+    }
+   ],
+   "masts_rmse": 0.13205346699890386,
+   "masts_bias": -0.09274501778006752,
+   "n_masts": 28,
+   "u_scale": 1.005925924272332,
+   "s_ref_model": 8.739212090949188,
+   "variant": "minmod"
+  },
+  {
+   "state": "states/perdigao_ne_d30_air3d.json",
+   "site": "perdigao_ne",
+   "rows": [
+    {
+     "transect": "menke_T1",
+     "present": true,
+     "L_m": 400.0,
+     "depth_m": 30.0,
+     "min_upar_15": -0.6560554643173341,
+     "x_start_s": 2610.0000000000005
+    },
+    {
+     "transect": "menke_T2",
+     "present": true,
+     "L_m": 350.0,
+     "depth_m": 45.0,
+     "min_upar_15": -0.7936507443859252,
+     "x_start_s": 2660.0000000000005
+    },
+    {
+     "transect": "menke_T3",
+     "present": true,
+     "L_m": 210.0,
+     "depth_m": 30.0,
+     "min_upar_15": -0.8542723843837735,
+     "x_start_s": 1300.0000000000002
+    }
+   ],
+   "masts_rmse": 0.1391557802145259,
+   "masts_bias": -0.10927180279466915,
+   "n_masts": 28,
+   "u_scale": 1.0317171434664012,
+   "s_ref_model": 8.5207462681716,
+   "variant": "air3d (справ.)"
+  },
+  {
+   "state": "states/perdigao_ne_d30_base.json",
+   "site": "perdigao_ne",
+   "rows": [
+    {
+     "transect": "menke_T1",
+     "present": true,
+     "L_m": 400.0,
+     "depth_m": 30.0,
+     "min_upar_15": -0.6560545915249884,
+     "x_start_s": 2610.0000000000005
+    },
+    {
+     "transect": "menke_T2",
+     "present": true,
+     "L_m": 350.0,
+     "depth_m": 45.0,
+     "min_upar_15": -0.7936504422215761,
+     "x_start_s": 2660.0000000000005
+    },
+    {
+     "transect": "menke_T3",
+     "present": true,
+     "L_m": 210.0,
+     "depth_m": 30.0,
+     "min_upar_15": -0.8542725883899873,
+     "x_start_s": 1300.0000000000002
+    }
+   ],
+   "masts_rmse": 0.13915581740037627,
+   "masts_bias": -0.10927190773663956,
+   "n_masts": 28,
+   "u_scale": 1.0317166126651478,
+   "s_ref_model": 8.520750651955618,
+   "variant": "база"
+  },
+  {
+   "state": "states/perdigao_ne_d30_cut.json",
+   "site": "perdigao_ne",
+   "rows": [
+    {
+     "transect": "menke_T1",
+     "present": true,
+     "L_m": 660.0,
+     "depth_m": 30.0,
+     "min_upar_15": -0.8461893427286385,
+     "x_start_s": 2350.0000000000005
+    },
+    {
+     "transect": "menke_T2",
+     "present": true,
+     "L_m": 420.0,
+     "depth_m": 15.0,
+     "min_upar_15": -0.8147558050215613,
+     "x_start_s": 1000.0000000000002
+    },
+    {
+     "transect": "menke_T3",
+     "present": true,
+     "L_m": 340.0,
+     "depth_m": 15.0,
+     "min_upar_15": -0.7763873406355764,
+     "x_start_s": 2610.0000000000005
+    }
+   ],
+   "masts_rmse": 0.1197840354179668,
+   "masts_bias": -0.07241857949745033,
+   "n_masts": 28,
+   "u_scale": 1.0169417084034214,
+   "s_ref_model": 8.644546612019385,
+   "variant": "cut"
+  },
+  {
+   "state": "states/perdigao_sw_d30_adv2_l1.json",
+   "site": "perdigao_sw",
+   "rows": [
+    {
+     "transect": "menke_T1",
+     "present": false,
+     "L_m": 0.0,
+     "depth_m": 0.0,
+     "min_upar_15": -0.4519371976108096,
+     "x_start_s": null
+    },
+    {
+     "transect": "menke_T2",
+     "present": false,
+     "L_m": 0.0,
+     "depth_m": 0.0,
+     "min_upar_15": -0.3334859458976449,
+     "x_start_s": null
+    },
+    {
+     "transect": "menke_T3",
+     "present": true,
+     "L_m": 80.0,
+     "depth_m": 15.0,
+     "min_upar_15": -0.5949624027281972,
+     "x_start_s": 950.0
+    }
+   ],
+   "masts_rmse": 0.22117343892233912,
+   "masts_bias": -0.1704912125213692,
+   "n_masts": 25,
+   "u_scale": 1.0101345314917616,
+   "s_ref_model": 8.735866090003052,
+   "variant": "van Leer"
+  },
+  {
+   "state": "states/perdigao_sw_d30_adv2_l3.json",
+   "site": "perdigao_sw",
+   "rows": [
+    {
+     "transect": "menke_T1",
+     "present": false,
+     "L_m": 0.0,
+     "depth_m": 0.0,
+     "min_upar_15": -0.48280484650929434,
+     "x_start_s": null
+    },
+    {
+     "transect": "menke_T2",
+     "present": false,
+     "L_m": 0.0,
+     "depth_m": 0.0,
+     "min_upar_15": -0.38668894279903815,
+     "x_start_s": null
+    },
+    {
+     "transect": "menke_T3",
+     "present": true,
+     "L_m": 160.0,
+     "depth_m": 15.0,
+     "min_upar_15": -0.6261785964401838,
+     "x_start_s": 940.0
+    }
+   ],
+   "masts_rmse": 0.22928234087512941,
+   "masts_bias": -0.18059471426298554,
+   "n_masts": 25,
+   "u_scale": 1.0158580792709084,
+   "s_ref_model": 8.686646471654152,
+   "variant": "minmod"
+  },
+  {
+   "state": "states/perdigao_sw_d30_air3d.json",
+   "site": "perdigao_sw",
+   "rows": [
+    {
+     "transect": "menke_T1",
+     "present": true,
+     "L_m": 80.0,
+     "depth_m": 15.0,
+     "min_upar_15": -0.597699510314588,
+     "x_start_s": 1230.0
+    },
+    {
+     "transect": "menke_T2",
+     "present": false,
+     "L_m": 0.0,
+     "depth_m": 0.0,
+     "min_upar_15": -0.541772458244077,
+     "x_start_s": null
+    },
+    {
+     "transect": "menke_T3",
+     "present": true,
+     "L_m": 170.0,
+     "depth_m": 15.0,
+     "min_upar_15": -0.6546367234637201,
+     "x_start_s": 930.0
+    }
+   ],
+   "masts_rmse": 0.2562708861539678,
+   "masts_bias": -0.21392590782823273,
+   "n_masts": 25,
+   "u_scale": 1.066167544108408,
+   "s_ref_model": 8.276747917119803,
+   "variant": "air3d (справ.)"
+  },
+  {
+   "state": "states/perdigao_sw_d30_base.json",
+   "site": "perdigao_sw",
+   "rows": [
+    {
+     "transect": "menke_T1",
+     "present": true,
+     "L_m": 80.0,
+     "depth_m": 15.0,
+     "min_upar_15": -0.597699867678427,
+     "x_start_s": 1230.0
+    },
+    {
+     "transect": "menke_T2",
+     "present": false,
+     "L_m": 0.0,
+     "depth_m": 0.0,
+     "min_upar_15": -0.5417730612222783,
+     "x_start_s": null
+    },
+    {
+     "transect": "menke_T3",
+     "present": true,
+     "L_m": 170.0,
+     "depth_m": 15.0,
+     "min_upar_15": -0.6546366784350103,
+     "x_start_s": 930.0
+    }
+   ],
+   "masts_rmse": 0.25627108014900174,
+   "masts_bias": -0.2139260852986293,
+   "n_masts": 25,
+   "u_scale": 1.066166475077878,
+   "s_ref_model": 8.276756216101639,
+   "variant": "база"
+  },
+  {
+   "state": "states/perdigao_sw_d30_cut.json",
+   "site": "perdigao_sw",
+   "rows": [
+    {
+     "transect": "menke_T1",
+     "present": false,
+     "L_m": 0.0,
+     "depth_m": 0.0,
+     "min_upar_15": -0.4010706050509678,
+     "x_start_s": null
+    },
+    {
+     "transect": "menke_T2",
+     "present": true,
+     "L_m": 400.0,
+     "depth_m": 15.0,
+     "min_upar_15": -0.6613411055584486,
+     "x_start_s": 2610.0
+    },
+    {
+     "transect": "menke_T3",
+     "present": true,
+     "L_m": 160.0,
+     "depth_m": 15.0,
+     "min_upar_15": -0.5971128558855262,
+     "x_start_s": 940.0
+    }
+   ],
+   "masts_rmse": 0.2339853226094851,
+   "masts_bias": -0.17692475418153733,
+   "n_masts": 25,
+   "u_scale": 1.0439351946325235,
+   "s_ref_model": 8.453015134820017,
+   "variant": "cut"
+  }
+ ]
+}
