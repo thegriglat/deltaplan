@@ -180,7 +180,7 @@ fn flat_place_with_fractions_equals_the_plain_path() {
         );
     }
     // доли: воздух полон, грани воздуха полны
-    let (nx, ny, nz) = (ca.dims[0], ca.dims[1], ca.dims[2]);
+    let (nx, ny, nz) = (ca.nxh, ca.nyh, ca.nzh);
     let cell = &ca.arrays["cell"];
     let (vf, au, av, aw) = (
         &ca.arrays["vf"],
@@ -218,7 +218,7 @@ fn ongudai_400m_fractions_and_types() {
     let [cm, ch] = level_cases(&job).unwrap();
     eprintln!("ongudai 400 m: two cases in {:.2} s", t0.elapsed().as_secs_f64());
     assert!(cm.params.cut_cells && ch.params.cut_cells);
-    assert_eq!(cm.dims, ch.dims);
+    assert_eq!((cm.nxh, cm.nyh, cm.nzh), (ch.nxh, ch.nyh, ch.nzh));
     for name in ["vf", "af_u", "af_v", "af_w", "cell", "tu", "tv", "tw"] {
         let (a, b) = (&cm.arrays[name], &ch.arrays[name]);
         assert!(
@@ -226,7 +226,7 @@ fn ongudai_400m_fractions_and_types() {
             "{name}: mech != heat"
         );
     }
-    let (nx, ny, nz) = (cm.dims[0], cm.dims[1], cm.dims[2]);
+    let (nx, ny, nz) = (cm.nxh, cm.nyh, cm.nzh);
     let (nyx, n3) = (nx * ny, nx * ny * nz);
     let g = |n: &str| &cm.arrays[n];
     let (cell, vf, au, av, aw) = (g("cell"), g("vf"), g("af_u"), g("af_v"), g("af_w"));
