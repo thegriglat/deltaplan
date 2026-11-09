@@ -176,3 +176,6 @@
 {"t": "2026-11-09T13:35:55", "by": "coordinator", "task": "TB-9", "ev": "accepted", "commits": ["1361a551f"], "note": "5/5 md_docs=ok:exit 1; round2=ok:exit 0; questions=ok:15; findings=ok:exit 0; size=ok:39.6"}
 {"t": "2026-11-09T13:35:55", "by": "coordinator", "task": "TB-9", "ev": "merged"}
 {"t": "2026-11-09T13:35:56", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: круг 2 (Q1) закрыт: TB-5..TB-9 слиты в feature/thermal-bubble; контракты TB1 v4, TB3 v2, TB4 v2; итог — docs/research/thermal_bubble.md «Круг 2», 6 вопросов пользователю. Обратная связь: accept --here перезапускает долгие cargo-проверки (5–10 мин) ради записи слияния; lock cpu с 18-слотовыми задачами держит очередь > 1 ч, job-таймаут считается от постановки; WebFetch не читает PDF (выручает pdftotext); docs check шумит чужими ошибками (findings.md 49 КБ, pilot-voice.md)."}
+{"t": "2026-11-09T15:37:32", "by": "coordinator", "task": null, "ev": "plan", "note": "план Условия: замена «- Прототип — Python (Num…»"}
+{"t": "2026-11-09T15:37:32", "by": "coordinator", "task": null, "ev": "plan", "note": "план Задачи (уточняет координатор): дописано 12 стр."}
+{"t": "2026-11-09T15:37:32", "by": "coordinator", "task": null, "ev": "plan", "note": "план Условия остановки (шлюз): дописано 1 стр."}

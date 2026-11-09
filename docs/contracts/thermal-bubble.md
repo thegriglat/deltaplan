@@ -202,3 +202,28 @@ v2: `les.json` (пишет TB-6; читатели — сверка и итог) 
   `no_table_no_w` (динамический без таблицы внутри радиуса — w = 0, uh = 0; статичный — как без флага),
   `port_vs_python` — против фикстуры v4 `tools/research/thermal_bubble/out/embed_fixture.json` (пишет `embed_fixture.py`; `bench_fixture.json` — v2 для бенча, не менять).
 - K̄ шаблона в Rust — таблица констант по (zl, w*) `rust/dp-air/src/terms/thermal/bubble_kbar.rs`, сгенерирована из `bubble.kbar` скриптом `tools/research/thermal_bubble/kbar_table.py` (tau — среднее grow_s + mature_s `ThermalCfg::default`); билинейно, вне таблицы — край.
+
+## TB5 v1 — полётный замер `tools/research/thermal_bubble/out/flight_<tag>.json`
+Владелец — координатор; пишет TB-14 (теги `r2_old` — флаг выкл, `r2_new` — флаг вкл, код круга 2), TB-16 (`r3_main` — `main`,
+`r3_new` — ветка модуля после встраивания); потребители — координатор (приёмка), итог круга 3. Сводка, json, пишется один раз
+(временный файл + переименование). Источник — игра (Godot, сцена/скрипт инструмента), не стенд `dp-air`.
+
+```json
+{"schema": "tb5/1", "tag": "r2_new", "commit": "<git short>", "location": "<id>", "weather": "<пресет/условия>",
+ "bubble": true, "sim_s": 1200.0, "frames": 72000,
+ "presence":   {"cores_near_mean": 0.0, "cores_lifting_frac": 0.0},
+ "inflow":     {"ur_in_10m_median_ms": 0.0, "n": 0},
+ "core":       {"w_axis_over_strength_median": 0.0, "n": 0},
+ "continuity": {"dv_frame_p999_ms": 0.0, "dv_frame_max_ms": 0.0, "dt_s": 0.0},
+ "frame":      {"ms_mean": 0.0, "ms_p99": 0.0, "ms_max": 0.0, "hitch_50ms": 0}}
+```
+- `presence.cores_near_mean` — среднее по секундам число ядер термиков (API ядер атмосферы) в 2000 м от пилота;
+  `cores_lifting_frac` — доля таких ядер, у которых w на оси на 0,5 z_l > 0,5 м/с (z_l — толщина столба термика).
+- `inflow.ur_in_10m_median_ms` — медиана по ядрам среднего радиального притока к оси (+ к оси), м/с, на 10 м над землёй,
+  на кольце r = 1…2 радиуса ядра, **без фонового ветра** (вычесть фон или брать слагаемое термика); `n` — число ядер.
+- `core.w_axis_over_strength_median` — медиана по ядрам max w на оси (z 0,2…0,8 z_l, без фона) / сила термика.
+- `continuity` — у пилота (автопилот в термиках, как в замерах полёта), |v(t+dt) − v(t)| полного ветра по кадрам физики:
+  p99,9 и максимум, м/с; `dt_s` — шаг.
+- `frame` — время кадра, мс (среднее, p99, максимум, число кадров > 50 мс) на прогоне с дисплеем под замком GPU,
+  пресет medium, та же локация и погода; `null`, если прогон headless.
+- Одинаковые место, погода, сид и маршрут для пар `r2_old`/`r2_new` и `r3_main`/`r3_new`.
