@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Полётный замер термиков TB-14 (контракт TB5 v1). Из корня копии.
+# Полётный замер термиков TB-14 (контракт TB5 v2). Из корня копии.
 #   run_flight.sh probe <tag> <0|1> [доп. аргументы flight_probe]   headless: присутствие, приток, ядро, разрывы
 #   run_flight.sh frame <tag> <0|1> [доп. аргументы flight_frame]   дисплей, ЗАМОК GPU: время кадра, пресет medium
 #   run_flight.sh summary <tag>                                      сводка out/flight_<tag>.json
