@@ -2,6 +2,7 @@
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
+use picard_rs::adv2::Limiter;
 use picard_rs::api::{self, SolveOpts};
 use picard_rs::blocks::check_case;
 use picard_rs::case::{Case, Consts};
@@ -58,6 +59,10 @@ enum Cmd {
         /// Write the delivered field as an R4 snapshot.
         #[arg(long)]
         save_state: Option<PathBuf>,
+        /// Second-order advection correction (PT3): off|linear|vanleer|vanalbada|minmod;
+        /// overrides `params.adv2`/`params.limiter` of the case.
+        #[arg(long)]
+        adv2: Option<String>,
     },
     /// Print the code branch (multiversion dispatch) selected on this CPU.
     Isa,
@@ -222,8 +227,17 @@ fn main() -> Result<()> {
             snap_at,
             snap_dir,
             save_state,
+            adv2,
         } => {
-            let c = Case::load(&case)?;
+            let mut c = Case::load(&case)?;
+            if let Some(name) = adv2 {
+                if name == "off" {
+                    c.params.adv2 = false;
+                } else {
+                    c.params.limiter = Limiter::from_name(&name)? as i64;
+                    c.params.adv2 = true;
+                }
+            }
             let a = SolveArgs {
                 max_iters,
                 tol_scale,

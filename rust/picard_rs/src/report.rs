@@ -310,6 +310,11 @@ pub fn result_json(
             "w_max": num(c[2].0), "w_rms": num(c[2].1), "th_max": num(c[3].0), "th_rms": num(c[3].1),
         })),
         "time": time,
+        "variant": {
+            "cut_cells": c.params.cut_cells,
+            "adv2": c.params.adv2,
+            "limiter": if c.params.adv2 { json!(c.params.limiter) } else { Value::Null },
+        },
         "host": {"cpu": cpu_name(), "rustc": env!("PICARD_RUSTC_VERSION"), "git": git_hash()},
     });
     if let Some(r) = run {

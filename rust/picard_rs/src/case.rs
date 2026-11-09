@@ -21,6 +21,15 @@ pub struct Params {
     pub local_k: bool,
     pub k_relax: f64,
     pub cs_h: f64,
+    /// PT3: deferred second-order advection correction (absent = off, the first-order path).
+    #[serde(default)]
+    pub adv2: bool,
+    /// PT3: limiter of the correction: 0 linear, 1 van Leer, 2 van Albada, 3 minmod.
+    #[serde(default)]
+    pub limiter: i64,
+    /// PT2: cut cells (read only to label the R2 `variant`).
+    #[serde(default)]
+    pub cut_cells: bool,
 }
 
 /// Case conditions needed beyond the arrays.
@@ -355,6 +364,8 @@ pub struct Consts {
     pub local_k: bool,
     pub k_relax: f32,
     pub csdx2: f32,
+    /// PT3: limiter of the second-order advection correction, `None` = first order.
+    pub adv2: Option<crate::adv2::Limiter>,
 }
 
 impl Consts {
@@ -452,6 +463,11 @@ impl Consts {
             vcycles: p.vcycles,
             local_k: p.local_k,
             k_relax: p.k_relax as f32,
+            adv2: if p.adv2 {
+                Some(crate::adv2::Limiter::from_index(p.limiter)?)
+            } else {
+                None
+            },
             csdx2: ((p.cs_h * f64::from(c.dx)) * (p.cs_h * f64::from(c.dx))) as f32,
         })
     }
