@@ -16,7 +16,7 @@ applied_in: []
 или по тексту, найденному поиском). Веб-поиск 2026-11-09 дал лишь библиографию и аннотации
 (Schmidt & Schumann 1989, Young 1988, Lenschow & Stephens 1980 — без таблиц и рисунков), поэтому
 по LES-величинам чисел нет: **не нашлось — так и записано** (`—`), TB-2b ставит `null`.
-Полные тексты (Springer/Cambridge/AMS) за подпиской; снять числа с рисунков — отдельная задача
+Доработка 1: journals.ametsoc.org (Young 1988 JAS 45:719/727, Sullivan 1998 JAS 55:3042; страница и PDF) отвечает WebFetch HTTP 403 — тексты не открылись; eol.ucar.edu — только библиография. Полные тексты недоступны; снять числа с рисунков — отдельная задача
 для человека с доступом.
 
 Уже известное, не переделывалось: [calibration_data/thermals.md](../../../docs/research/calibration_data/thermals.md)
@@ -43,7 +43,6 @@ applied_in: []
 | w по радиусу (нынешняя модель) | Гедеон (1−x²)e^(−x²), x = d/r; кольцо × 1,6 | `rust/dp-air/src/terms/thermal/profile.rs`; Allen 2006 | форма игры, не измерение |
 | Пульсации | σ_w²/w*² = 1,8 (z/zi)^{2/3}(1−0,8 z/zi)², макс. σ_w ≈ 0,6 w* при z ≈ 0,3 zi (±15 %) | Lenschow, Wyngaard, Pennell 1980, JAS 37:1313–1326 | medium |
 | Сила ядра игры | w0 = 1,24 w* (пик Гедеона при том же потоке); пик Аллена ≈ 1,0 w* | [thermals.md](../../../docs/guide/air-model/thermals.md), «Законы» | model |
-| Пузырь, вовлечение | α (радиуса) 0,1–0,25 из лабораторных термиков | Scorer 1957; Turner 1973 (из памяти, не сверено) | low |
 
 ## Что это значит для TB-2b
 
@@ -62,5 +61,5 @@ applied_in: []
 - Schumann U., Moeng C.-H., 1991, J. Atmos. Sci. (классификация апдрафт/даундрафт; https://elib.dlr.de/31447).
 - Moeng C.-H., Sullivan P.P., 1994, J. Atmos. Sci. 51:999–1022; Sullivan P.P. et al., 1998 — не читались.
 - Allen M.J., 2006, AIAA 2006-1510, https://ntrs.nasa.gov/citations/20060004052 (открытый доступ).
-- Stull R.B., 1988, An Introduction to Boundary Layer Meteorology, гл. 4. Scorer R.S., 1957; Turner J.S., 1973 — из памяти.
+- Stull R.B., 1988, An Introduction to Boundary Layer Meteorology, гл. 4.
 - Лицензии данных: чисел из закрытых текстов не копировалось; формулы — факты, цитируются со ссылкой.
