@@ -191,14 +191,14 @@ def mix_len(z, lam_m=None):
     return 1.0 / (1.0 / (KAPPA * z) + 1.0 / lam_m)
 
 
-def combine(sig_old, from_mech, st, agl, k=K):
+def combine(sig_old, from_mech, st, agl, k=K, comp="sig_w"):
     """Новая σ: механика с l_эфф (если σ_old дала механика) и слой; max или корень суммы квадратов."""
     l = mix_len(agl)
     l_eff = l * (1 - st["w"]) + np.minimum(l, k["mix_len_over_delta"] * st["delta"]) * st["w"]
     mech = np.where(from_mech, sig_old * l_eff / l, sig_old)
     if k["combine_rule_power"] == 2:
-        return np.sqrt(mech ** 2 + st["sig_w"] ** 2), l_eff
-    return np.maximum(mech, st["sig_w"]), l_eff
+        return np.sqrt(mech ** 2 + st[comp] ** 2), l_eff
+    return np.maximum(mech, st[comp]), l_eff
 
 
 # ---------------------------------------------------------------- LTS
@@ -245,14 +245,14 @@ def col_interp(y_u, col, yq):
 VARS = ("old", "lt5", "A_fb", "A_new", "B_fb", "B_new")      # σ_w: поле (прежняя) / LT-5 / запасная линия A,B / линия по полю A,B
 
 
-def run_section(path, ridge, k=K, xr_fixed_over_h=None, power=None, u2_field=False):
+def run_section(path, ridge, k=K, xr_fixed_over_h=None, power=None, u2_field=False, dy_field=None):
     """Один разрез -> dict метрик и массивы σ_w по вариантам VARS. ridge: {'name','H','zone'} (zone - клетка поля, м).
     lt5 - слой LT-5 (линия h_гребня -> h(x_r)), A_* - max(механика с l_эфф, слой), B_* - то же, механика под линией слоя заменена фоном
     (фон = σ_w наветренных колонок x/H -2..-0,5 на той же высоте над землёй); *_fb - запасная линия везде, *_new - z½ поля там, где оно слой даёт."""
     head, s_u, y_u, g = load_lts(path)
     gnd = ground_of(g, y_u)
     dx = float(ridge["zone"])
-    dy = float(np.median(np.diff(y_u)))
+    dy = float(np.median(np.diff(y_u))) if dy_field is None else float(dy_field)    # LT-8: вертикальный шаг клетки поля (dx/2), а не шаг разреза
     kk = dict(k)
     if xr_fixed_over_h is not None:
         kk["ridge_xr_over_h"] = xr_fixed_over_h
@@ -317,7 +317,7 @@ def run_section(path, ridge, k=K, xr_fixed_over_h=None, power=None, u2_field=Fal
     # фон B: σ_w и σ_u наветренных колонок на тех же высотах над землёй
     agl_grid = np.arange(5.0, 400.0 + 1e-9, 5.0)
     bg = {}
-    for nm in ("sigma_w", "sigma_u"):
+    for nm in ("sigma_w", "sigma_u", "sigma_v"):
         acc = []
         for i in range(ns):
             xh_i = (s_u[i] - geo_m["d_c"]) / geo_m["H"]
@@ -331,6 +331,7 @@ def run_section(path, ridge, k=K, xr_fixed_over_h=None, power=None, u2_field=Fal
     sig = {v: np.full((ns, ny), np.nan) for v in VARS}
     layer_sw = np.full((ns, ny), np.nan)
     wB_new = np.full((ns, ny), np.nan)
+    sig3 = {c: {v: np.full((ns, ny), np.nan) for v in ("old", "B_new", "A_fb", "B_fb")} for c in ("sigma_u", "sigma_v", "sigma_w")}   # LT-8: все три компоненты
     for i, (sts, col_ok, x) in cols.items():
         agl = g["agl"][i]
         m = col_ok
@@ -346,9 +347,17 @@ def run_section(path, ridge, k=K, xr_fixed_over_h=None, power=None, u2_field=Fal
                 sw_in = np.where(mech, (1.0 - st["wB"]) * sw0 + st["wB"] * bgw, sw0)
             sw, _ = combine(sw_in, mech, st, agl_q, kk)
             sig[tag][i] = np.where(m, sw, np.nan)
+        for cn in ("sigma_u", "sigma_v", "sigma_w"):
+            s0 = np.where(m, g[cn][i].astype(float), 0.0)
+            bgc = np.interp(agl_q, agl_grid, np.where(np.isfinite(bg[cn]), bg[cn], 0.0))
+            sig3[cn]["old"][i] = np.where(m, g[cn][i].astype(float), np.nan)
+            for tag, key in (("B_new", "new"), ("B_fb", "fb"), ("A_fb", "fb")):
+                st = sts[key]
+                sin = np.where(mech, (1.0 - st["wB"]) * s0 + st["wB"] * bgc, s0) if tag.startswith("B") else s0
+                sig3[cn][tag][i] = np.where(m, combine(sin, mech, st, agl_q, kk, comp="sig_" + cn[-1])[0], np.nan)
         layer_sw[i] = np.where(m, sts["new"]["sig_w"], np.nan)
         wB_new[i] = np.where(m, sts["new"]["wB"], np.nan)
-    return dict(s=s_u, y=y_u, g=g, gnd=gnd, s_c=s_c, geo=geo_m, sig=sig, layer_sw=layer_sw, wB=wB_new, delta=delta_c, yc=yc_c,
+    return dict(s=s_u, y=y_u, g=g, gnd=gnd, s_c=s_c, geo=geo_m, sig=sig, sig3=sig3, layer_sw=layer_sw, wB=wB_new, delta=delta_c, yc=yc_c,
                 yc_lt5=yc_lt5_c, yc_fb=yc_fb_c, q=q_c, z_half=zh_c, dUf_frac=dufrac_c, drop=drop_c,
                 dU=dU_c, u1=u1_c, u2=u2_c, dx=dx, dy=dy, n_queries=nq, n_queries_zhalf=nq_z, head=head)
 
