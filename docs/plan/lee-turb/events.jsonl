@@ -162,3 +162,5 @@
 {"t": "2026-11-10T07:21:22", "by": "coordinator", "task": "LT-11", "ev": "checked", "note": "2/2 table=ok:20; docs=ok:exit 0"}
 {"t": "2026-11-10T07:22:38", "by": "reviewer", "task": "LT-11", "ev": "reviewed", "note": "Доработка 1 выполнена: пропущенный член найден и подтверждён кодом (terms/turb/mod.rs: Self::z0(c) = z0 первого уровня передаётся и в sep::lee, и в sigma()); σ…", "verdict": "accept", "issues": {"minor": 1}, "review": "docs/plan/lee-turb/tasks/LT-11.review.json"}
 {"t": "2026-11-10T07:22:48", "by": "coordinator", "task": "LT-11", "ev": "accepted", "note": "по ревью (fable): 1 minor; вывод — lee_f=0 в точках теста, конвективный пол; aushtau_south → WEAK_LEE_SITES (LT-13)"}
+{"t": "2026-11-10T07:22:50", "by": "coordinator", "task": "LT-11", "ev": "accepted", "commits": ["5680b5b21"], "note": "2/2 table=ok:20; docs=ok:exit 0"}
+{"t": "2026-11-10T07:22:50", "by": "coordinator", "task": "LT-11", "ev": "merged", "commits": ["5680b5b21"]}
