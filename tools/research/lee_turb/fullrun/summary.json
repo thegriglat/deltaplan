@@ -1,0 +1,17 @@
+{
+  "task": "LT-16",
+  "base": "main",
+  "branch": "feature/lee-turb",
+  "cargo_workspace": {
+    "command": "cargo test --release --workspace --no-fail-fast",
+    "branch": {"exit": 0, "failed_tests": 0},
+    "main": {"exit": 0, "failed_tests": 0}
+  },
+  "gdscript": {
+    "command": "tools/tests_vs_base.sh --base main",
+    "copy_failures": 247,
+    "base_failures": 250,
+    "fixed": ["tests/terrain/test_built_patches.gd::test_places", "tests/world_objects/test_eggs_no_osm.gd::test_found_table_relief", "tests/game/test_gameplay.gd::test_camera_cycle_and_corner_instrument"]
+  },
+  "new_failures": []
+}
