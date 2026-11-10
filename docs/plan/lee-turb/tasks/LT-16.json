@@ -1,0 +1,33 @@
+{
+  "id": "LT-16",
+  "module": "lee-turb",
+  "type": "dp-mechanic",
+  "title": "Полный прогон тестов ветки модуля против main",
+  "goal": "Прогнать все тесты на feature/lee-turb против main: cargo test всего workspace (обе ветки) и GDScript-тесты tools/tests_vs_base.sh --base main; список новых падений с файлом и тестом.",
+  "plan_ref": "Приёмка",
+  "contracts": [],
+  "copy": "~/worktrees/deltaplan/lee-turb-LT-16",
+  "branch": "lee-turb/LT-16",
+  "base": "feature/lee-turb",
+  "scope": [
+    "tools/research/lee_turb/fullrun/"
+  ],
+  "dont_touch": [
+    "rust/",
+    "configs/",
+    "tests/",
+    "scripts/",
+    "docs/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "summary",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/lee_turb/fullrun/summary.json'));print('new',len(d['new_failures']))\"",
+      "expect": "re:new \\d+"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-10T08:45:30"
+}
