@@ -189,3 +189,4 @@
 {"t": "2026-11-10T08:48:34", "by": "coordinator", "task": "LT-15", "ev": "accepted", "note": "2/2 docs=ok:exit 0; findings=ok:1"}
 {"t": "2026-11-10T08:48:41", "by": "coordinator", "task": "LT-15", "ev": "accepted", "note": "по отчёту: docs 2/2; findings.md уже > 40 КБ до задачи (общая проблема реестра)"}
 {"t": "2026-11-10T08:48:42", "by": "coordinator", "task": "LT-15", "ev": "merged", "commits": ["0f73c1418"]}
+{"t": "2026-11-10T08:55:45", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: accept для задачи-слияния всегда FAIL scope; таймаут проверки 900 с не задаётся в карточке (ridge_starts --ridge-full дольше); checks.tests --filter сверяет путь файла, 0 тестов не считается ошибкой; lock cpu по строке команды — обёртка sh даёт вес 1; docs index переписывает чужие реестры; render создаёт untracked journal.md; git stash в копиях общий — не использовать"}
