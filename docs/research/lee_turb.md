@@ -3,13 +3,40 @@ type: "research"
 status: "active"
 module: "lee-turb"
 area: "air"
-updated: "2026-11-09"
-summary: "Слой смешения за отрывом и болтанка у присоединения: числа LTL из открытых данных, выводы для модели, что неизвестно."
-related: ["docs/plan/lee-turb.md", "docs/contracts/lee-turb.md", "docs/guide/air-model/turbulence.md"]
+updated: "2026-11-10"
+summary: "lee-turb: LTM v1 оживил слой смешения на пути с полем, но на мачтах и в полёте не лучше прежней — мешает поле игры."
+related: ["docs/plan/lee-turb.md", "docs/contracts/lee-turb.md", "docs/guide/air-model/turbulence.md", "docs/research/lee_turb/baseline.md", "docs/research/lee_turb/obs.md", "docs/research/lee_turb/model.md", "docs/research/lee_turb/model_obs.md", "docs/research/lee_turb/fieldcheck.md", "docs/research/lee_turb/leezone.md", "docs/research/lee_turb/verify.md", "docs/research/lee_turb/flight.md"]
 conclusion: "Слой смешения (Delville, данные): dδ_ω/dx ≈ 0,17·λ (Brown–Roshko 0,181±0,015), пики σ_u/σ_v/σ_w = 0,166/0,130/0,153·ΔU, −u'v' = 0,0118·ΔU², профиль ≈ гауссов с σ_y ≈ 0,5·δ_ω; за уступом и холмом максимум болтанки раньше присоединения (0,25–0,64·x_r) на линии слоя, которая опускается к земле; шаг вихрей ≈ 3,3·δ_ω."
 data: "tools/research/lee_turb/lit/lit_numbers.csv (72 строки, LTL v1); build_lit.py, extract_exp.py, fetch_data.sh"
+applied_in: "docs/guide/air-model/turbulence.md"
 ---
-# Слой смешения за гребнем: литература и открытые данные (LT-1)
+# lee-turb: болтанка за гребнем — вход в исследование
+
+## Итог
+- **Что было не так (LT-2).** На пути с полем (доля поля a = 1) аналитика не считалась, превышение гребня r = 0, скачок слоя смешения ΔU = 0: ветвь слоя, рывки и масштаб 0,5·r не включались ни в одной из 537 909 точек 18 разрезов Онгудая. Болтанка за гребнем — механическая ветвь l·|∂U/∂z| (σ_w 2–3 м/с на 0,8–1,5 H, 25–60 м над землёй).
+- **Что известно из измерений (LT-1, LT-3).** Слой смешения: σ_u/σ_v/σ_w = 0,166/0,130/0,153·ΔU (Delville). Мачты: максимум ТКЭ 0,05 U² на 100 м над дном долины Perdigão при x/H 3–5,5; Askervein — 0,06 U² на 10 м при x/H 0,9–1,7.
+- **Что встроено (LTM v1, LT-9).** r на пути с полем из `relief_at`; σ слоя по Delville вместо 0,18/0,14·ΔU (σ_v отдельно); рывки 0,46·ΔU; член l·|∂U/∂z| снят в зоне отрыва ниже уровня гребня, где поле пузырь не разрешает. Новой геометрии слоя (модель LT-5…LT-7) нет — решение пользователя Q2.
+- **Что получилось (LT-12, LT-14).** На мачтах RMSE ТКЭ/u_ref² не лучше прежней: 0,0201 / 0,0268 / 0,0354 (Perdigão NE / SW, Askervein) против 0,0192 / 0,0259 / 0,0349 и постоянного фона 0,0135 / 0,0123 / 0,0346. Максимум σ_w на разрезах Онгудая не сдвинулся. В полёте по ветру через гребень σ_w на крыле 0,3–0,7 м/с у обоих кодов, различия в пределах разброса сидов; кадр 8,7 мс против 8,5–8,9 (шум).
+- **Чего не хватает и почему.** (1) Поле игры в долине Perdigão почти стоит: скорость на мачтах за гребнем 0,27–0,42 от измеренной, пузыря Menke 2019 нет (LT-8) — слою нечем работать. (2) На малых гребнях (20–110 м, шаг поля 50 м) пузырь не разрешён и lee_f = 0 на всех 10 точках теста подветренной зоны (LT-11) — слой не включается. (3) Положение максимума ТКЭ (0,6–0,7 H над дном) не воспроизводит ни прежняя, ни новая модель.
+- **Что дальше (решение 2026-11-10: LTM v1 остаётся, остальное вне модуля).** Поле в долине — модуль поля; признак неразрешённого пузыря при relief < ~1,5 клетки (LTM v2); критерий теста подветренной зоны по высоте и расстоянию; σ по компонентам Perdigão — когда ответит THREDDS U.Porto.
+
+## Документы модуля
+| Документ | О чём |
+|---|---|
+| [docs/plan/lee-turb.md](/docs/plan/lee-turb.md) | План, условия и приёмка модуля |
+| [docs/contracts/lee-turb.md](/docs/contracts/lee-turb.md) | Контракты LTL, LTO, LTS, LTM v1 |
+| [docs/guide/air-model/turbulence.md](/docs/guide/air-model/turbulence.md) | Как болтанка за гребнем устроена в игре и её границы |
+| [baseline.md](/docs/research/lee_turb/baseline.md) | LT-2: что даёт нынешняя модель и поле на разрезах Онгудая, мёртвая ветвь слоя |
+| [obs.md](/docs/research/lee_turb/obs.md) | LT-3: ТКЭ за гребнем по измерениям Perdigão и Askervein |
+| [model.md](/docs/research/lee_turb/model.md) | LT-5…LT-7: модель слоя (не встроена), формулы, константы, 18 разрезов |
+| [model_obs.md](/docs/research/lee_turb/model_obs.md) | LT-6/7: модель слоя против мачт |
+| [fieldcheck.md](/docs/research/lee_turb/fieldcheck.md) | LT-8: поле игры на Perdigão и Askervein против мачт |
+| [leezone.md](/docs/research/lee_turb/leezone.md) | LT-11: ветви σ на стартах, почему lee_f = 0 |
+| [verify.md](/docs/research/lee_turb/verify.md) | LT-12: прежняя модель против LTM v1 на мачтах и разрезах |
+| [flight.md](/docs/research/lee_turb/flight.md) | LT-14: полёт через гребень, прежняя против LTM v1, время кадра |
+| Раздел «Литература» ниже | LT-1: числа слоя смешения, уступа, холма |
+
+## Литература и открытые данные (LT-1)
 
 Числа — `tools/research/lee_turb/lit/lit_numbers.csv` (LTL v1: строка = величина + определение + источник).
 Надёжность: **A** — число прочитано в тексте источника или взято из таблицы данных (максимум, значение в узле);
