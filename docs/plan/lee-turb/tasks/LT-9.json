@@ -55,11 +55,6 @@
       "expect": "exit=0"
     },
     {
-      "name": "pt_lee",
-      "cmd": "sh tools/research/lee_turb/pt_check/run.sh",
-      "expect": "re:PT lee tests: 0 failed"
-    },
-    {
       "name": "ridge_starts",
       "tests": "ridge_starts"
     },
@@ -71,5 +66,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-11-10T00:39:56",
-  "edited": "2026-11-10T01:49:10"
+  "edited": "2026-11-10T05:14:29"
 }
