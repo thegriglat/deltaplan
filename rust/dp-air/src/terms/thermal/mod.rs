@@ -18,6 +18,9 @@
 //! Подключение места: `Terms::set_thermal_ground(Arc<dyn GroundSource>)` (до этого — плоская
 //! земля без источников, термиков нет).
 pub mod air;
+pub mod bubble;
+pub mod bubble_kbar;
+pub mod bubble_q;
 pub mod cells;
 pub mod cfg;
 pub mod cores;
@@ -126,6 +129,8 @@ struct Built {
     air: Option<(AirKey, AirSrc)>,
     /// Доля суши столбцов последней сборки (кеш на сетку места).
     land: LandCache,
+    /// Кеш таблиц шаблона пузыря, общий для пересборок при том же окружении.
+    bubbles: Arc<bubble::BubbleCache>,
 }
 
 /// Результат фоновой пересборки.
@@ -366,7 +371,13 @@ impl ThermalSlot {
                 &mut all,
             );
         }
-        let state = State::build(&setup, all, t, &focuses, p.dt, p.slot);
+        let bubbles = match prev {
+            Some(b) if p.same => b.bubbles.clone(),
+            _ => Arc::new(bubble::BubbleCache::default()),
+        };
+        // `start_at` (force) синхронный: таблиц не строит, профиль до первого фонового обновления
+        let state =
+            State::build_cached(&setup, all, t, &focuses, p.dt, p.slot, &bubbles, !force);
         Some(ThermalSlot {
             ground: self.ground.clone(),
             hooks: self.hooks.clone(),
@@ -383,6 +394,7 @@ impl ThermalSlot {
                 statics_mode: terms.statics_mode,
                 air,
                 land,
+                bubbles,
             }),
         })
     }
@@ -482,6 +494,7 @@ impl ThermalSlot {
                 statics_mode: b.statics_mode,
                 air: b.air.clone(),
                 land: b.land.clone(),
+                bubbles: b.bubbles.clone(),
             }),
         }
     }
@@ -504,6 +517,7 @@ impl ThermalSlot {
                 statics_mode: b.statics_mode,
                 air: b.air.clone(),
                 land: b.land.clone(),
+                bubbles: b.bubbles.clone(),
             }),
         }
     }
@@ -538,9 +552,8 @@ fn focus_points(terms: &Terms) -> Vec<[f64; 2]> {
 impl Thermal for ThermalSlot {
     fn sample(&self, c: &Ctx) -> Option<ThermalOut> {
         let b = self.built.as_ref()?;
-        let mut o = b
-            .state
-            .sample(&b.setup, self.hooks_of(self.cloud.as_ref()), c.pos, c.t);
+        let hooks = self.hooks_of(self.cloud.as_ref());
+        let (mut o, uh) = b.state.sample_bubble_agl(&b.setup, hooks, c.pos, c.t, c.agl);
         if let Some(a) = &b.air {
             o = a.1.src.with_between(c.fs, c.pos, o);
         }
@@ -548,6 +561,7 @@ impl Thermal for ThermalSlot {
             w: o[0],
             mask: o[1],
             sigma: o[2],
+            uh,
         })
     }
 

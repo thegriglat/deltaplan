@@ -1,0 +1,54 @@
+Initialize godot-rust (API v4.7.stable.official, runtime v4.7.2.stable.official, safeguards balanced)
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Cannot open file 'res://locale/ui.ru.translation'.
+   at: load (core/io/resource_format_binary.cpp:1156)
+ERROR: Failed loading resource: res://locale/ui.ru.translation.
+   at: _load (core/io/resource_loader.cpp:317)
+ERROR: Cannot open file 'res://locale/ui.en.translation'.
+   at: load (core/io/resource_format_binary.cpp:1156)
+ERROR: Failed loading resource: res://locale/ui.en.translation.
+   at: _load (core/io/resource_loader.cpp:317)
+steam: inactive (no_feature)
+  ok   test_air_field_contracts.gd::test_c1_ref_fixture_format
+  ok   test_air_field_contracts.gd::test_c1_ref_mask_rule
+  ok   test_air_field_contracts.gd::test_c1_ref_solution_div_free
+  ok   test_air_field_contracts.gd::test_c3_from_arrays_axes_units
+  ok   test_air_field_contracts.gd::test_c3_mask_log_profile
+ERROR: WindField: неверные размеры сетки
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] from_arrays (res://scripts/atmosphere/air_model/wind_field.gd:127)
+       [1] test_c3_sanitize_and_limits (res://tests/contracts/test_air_field_contracts.gd:312)
+       [2] _ready (res://tests/run_tests.gd:80)
+  ok   test_air_field_contracts.gd::test_c3_sanitize_and_limits
+  ok   test_air_field_contracts.gd::test_c3_from_mac_ref
+  ok   test_air_field_contracts.gd::test_c3_game_field_files
+  ok   test_air_field_contracts.gd::test_c4_field_set_vector4
+dp_air: расширение загружено, api_version=6
+dp_air: подготовка места начата, место rig
+dp_air: 0.0 с, этап prepare, итераций 0
+dp_air: 0.0 с, этап phases, итераций 0
+dp_air: 0.0 с, этап coarse, итераций 0
+dp_air: 0.1 с, этап solve_mech, итераций 0
+dp_air: 0.2 с, этап solve_heat, итераций 0
+dp_air: 0.3 с, этап windows, итераций 0
+dp_air: READY за 0.4 с, поле подано, last_error=
+  ok   test_air_field_contracts.gd::test_c4_atmosphere_analytic_direction
+  ok   test_air_field_contracts.gd::test_c4_turb_at
+  ok   test_air_field_contracts.gd::test_c4_sample_dx
+  ok   test_air_field_contracts.gd::test_c4_lee_keys
+  ok   test_air_field_contracts.gd::test_c4_config_keys
+ERROR: WindField: user://c6_version_test — версия формата 2.0, читается 1
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] load_file (res://scripts/atmosphere/air_model/wind_field.gd:228)
+       [1] test_c6_field_version (res://tests/contracts/test_air_field_contracts.gd:567)
+       [2] _ready (res://tests/run_tests.gd:80)
+  ok   test_air_field_contracts.gd::test_c6_field_version
+  ok   test_air_field_contracts.gd::test_c6_start_hours
+  ok   test_air_field_contracts.gd::test_c8_blend
+  ok   test_air_field_contracts.gd::test_c8_blend_during_blend
+
+18 тестов, 0 упало, 0 пропущено
+exit=0

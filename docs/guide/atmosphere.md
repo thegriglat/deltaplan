@@ -3,7 +3,7 @@ type: "guide"
 status: "active"
 module: "atmosphere"
 area: "air"
-updated: "2026-10-15"
+updated: "2026-11-10"
 summary: "Модуль scripts/atmosphere/: API Atmosphere, устройство и части — погода, поле скоростей, облака, калибровка, склон; тесты и конфиги."
 related: ["docs/guide/air-model.md", "docs/guide/atmosphere/weather.md", "docs/guide/atmosphere/wind-field.md", "docs/guide/atmosphere/clouds.md", "docs/guide/atmosphere/calibration.md", "docs/guide/atmosphere/ridge-starts.md"]
 ---
@@ -12,7 +12,7 @@ related: ["docs/guide/air-model.md", "docs/guide/atmosphere/weather.md", "docs/g
 
 Модуль `scripts/atmosphere/`: ветер, термики, фоновое опускание, склоновый подъём,
 подветренные зоны и роторы (FR-8, FR-11…FR-16), кучевые облака, их тени и птицы
-(FR-14, FR-14a, FR-22, VR-1, VR-2). Модели и формулы — [research/thermals.md](../research/thermals.md). Поле воздуха (фазы + Пикар на GPU, термики и возмущения из поля) — [air-model.md](air-model.md).
+(FR-14, FR-14a, FR-22, VR-1, VR-2). Модели и формулы — [research/thermals.md](../research/thermals.md). Поле воздуха (фазы + Пикар, термики и возмущения из поля) — [air-model.md](air-model.md); рельеф в поле — срезанные клетки, [air-model/field-cpu.md](air-model/field-cpu.md#срезанные-клетки-с-pt-9pt-10-ветка-picard-terrain).
 
 ## Подключение (главная сцена)
 

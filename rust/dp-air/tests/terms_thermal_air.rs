@@ -242,8 +242,12 @@ fn sources_match_gd_dump() {
         ("wstar", max_rel(&s.wstar, &r.f32s("wstar"))),
         ("top", max_rel(&s.top, &r.f32s("top"))),
         ("flux", max_rel(&s.flux, &r.f32s("flux"))),
-        ("carried", max_rel(&s.carried, &r.f32s("carried"))),
-        ("net", max_rel(&s.net, &r.f32s("net"))),
+        // TB-15: K̄ — шаблона пузыря (bubble_kbar), а не профиля Гедеона, как в дампе GD: `carried` и `net` другие;
+        // org = net/carried (доля организованного потока, не зависит от K̄) совпадает с дампом
+        ("net/carried", max_rel(
+            &s.net.iter().zip(&s.carried).map(|(n, c)| n / c).collect::<Vec<f32>>(),
+            &r.f32s("net").iter().zip(&r.f32s("carried")).map(|(n, c)| n / c).collect::<Vec<f32>>(),
+        )),
         ("ring", max_rel(&s.ring, &r.f32s("ring"))),
         ("area", max_rel(&s.area, &r.f32s("area"))),
         ("depth", max_rel(&s.depth, &r.f32s("depth"))),
@@ -258,6 +262,12 @@ fn sources_match_gd_dump() {
         ("col_zi", max_rel(&s.col_zi, &r.f32s("col_zi"))),
         ("col_sub", max_rel(&s.col_sub, &r.f32s("col_sub"))),
     ];
+    // K̄ шаблона против K̄ Гедеона: carried_новый / carried_GD по источникам — печать и границы (0,1…10)
+    let (cn, cg) = (&s.carried, r.f32s("carried"));
+    let mut ratio: Vec<f64> = cn.iter().zip(&cg).map(|(a, b)| f64::from(*a) / f64::from(*b)).collect();
+    ratio.sort_by(f64::total_cmp);
+    println!("    carried шаблон/GD: мин {:.2} медиана {:.2} макс {:.2}", ratio[0], ratio[ratio.len() / 2], ratio[ratio.len() - 1]);
+    assert!(ratio[0] > 0.1 && ratio[ratio.len() - 1] < 10.0, "carried шаблона и GD слишком разные");
     let mut worst = ("", 0.0f64);
     for (n, d) in &checks {
         println!("    {n}: max отн. расхождение {d:.3e}");
@@ -272,15 +282,19 @@ fn sources_match_gd_dump() {
         worst.1
     );
     // скаляры
+    // TB-15: shape_area = e⁻¹·π·q_mean, q — таблица шаблона со средним 1 (в дампе GD — профиль Гедеона, 0,805)
+    assert!((s.shape_area - std::f64::consts::PI / std::f64::consts::E).abs() < 1.0e-5, "shape_area {}", s.shape_area);
     let sc = &r.j["scalars"];
+    // поток, который несут ядра, — K̄ шаблона (TB-15): порядок тот же (0,3…3 от GD)
+    let cr = s.carried_flux / sc["carried_flux"].as_f64().unwrap();
+    println!("    carried_flux шаблон/GD: {cr:.2}");
+    assert!(cr > 0.3 && cr < 3.0, "carried_flux {cr}");
     for (n, v) in [
-        ("shape_area", s.shape_area),
         ("life_mean", s.life_mean),
         ("alive_frac", s.alive_frac),
         ("phi_ref", s.phi_ref),
         ("lost_flux", s.lost_flux),
         ("total_flux", s.total_flux),
-        ("carried_flux", s.carried_flux),
     ] {
         let want = sc[n].as_f64().unwrap();
         println!("    {n}: {v} против {want} ({:.3e})", rel(v, want));

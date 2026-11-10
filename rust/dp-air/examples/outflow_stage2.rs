@@ -43,7 +43,7 @@ use dp_air::field::place_input::build_domain_input;
 use dp_air::field::runtime::{RtCfg, coarse_domain, domain_for, level_of, prolong_to};
 use dp_air::field::weather_core::{Domain, field_weather, hour_at};
 use dp_air::fixtures::read_place;
-use dp_air::{Conditions, Configs, InflowMode, Place};
+use dp_air::{Conditions, Configs, Place};
 use metrics::{AGL_M, Geo};
 use picard_rs::api::{Outflow, SolveOpts, Solved, StopReason, solve};
 use picard_rs::case::Case;
@@ -453,6 +453,7 @@ fn phase_case<'a>(ac: &'a AirCaseRs, pl: &'a PreparedPlanes, d: &'a PcData) -> P
         u10: ac.u10,
         z_i: ac.z_i,
         hc: &ac.hc,
+            hc_type: &ac.hc_type,
         gam: &ac.gam,
         heat: &ac.heat,
         heat_used: &pl.heat_used,
@@ -493,8 +494,6 @@ fn build_lvl(
         &inp,
         &fw,
         &CaseOpts {
-            k: env.spec.k,
-            inflow_mode: InflowMode::Start,
             heat: true,
         },
     )

@@ -1,0 +1,16 @@
+[package]
+name = "pt11-probe"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+# @ROOT@ подставляет build_probe.sh (каталог копии: «до» или «после»)
+dp-air = { path = "@ROOT@/rust/dp-air", features = ["fixtures"] }
+dp-stand = { path = "@ROOT@/rust/dp-stand" }
+serde_json = "1"
+
+[workspace]
+
+[profile.release]
+opt-level = 3

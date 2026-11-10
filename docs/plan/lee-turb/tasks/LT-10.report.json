@@ -1,0 +1,57 @@
+{
+  "status": "partial",
+  "summary": "main влит обычным коммитом слияния (37b52f897); конфликт dp-stand main.rs/setup.rs сведён: сохранены Cmd::Lee и generic prepare/go_to_model (lee-turb), mod timing/Cmd::Timing/open_formula (picard-terrain); open_formula через общий prepare. dp_stand, dp_air, main_in зелёные; lee_cmd красный из-за ошибки в команде карточки, не слияния; scope красный от самого слияния (в diff 500 чужих файлов main).",
+  "commits": [
+    "37b52f897 Слияние main в lee-turb/LT-10"
+  ],
+  "checks": [
+    {
+      "name": "dp_stand",
+      "value": "PASS 79 c",
+      "pass": true
+    },
+    {
+      "name": "dp_air",
+      "value": "PASS 557 c",
+      "pass": true
+    },
+    {
+      "name": "main_in",
+      "value": "main-in",
+      "pass": true
+    },
+    {
+      "name": "lee_cmd (как в карточке)",
+      "value": "FAIL: команда без --model formula (по умолчанию calm, lee отвечает ошибкой, и так же было до слияния) и from/to 0..200 вне поля Онгудая (x 5625..8825) - строк данных нет",
+      "pass": false
+    },
+    {
+      "name": "lee с исправленной командой",
+      "value": "dp-stand --model formula lee --case ongudai_strong.json --from 6000,0 --to 8000,0 --ys 1000,2500 --step 250 > x.lts.csv; check_contract.py -> ok (30 строк)",
+      "pass": true
+    },
+    {
+      "name": "accept scope",
+      "value": "FAIL: слияние main по определению меняет файлы вне scope (+496)",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "Команду lee_cmd в карточке не правил (карточка не моя): нужна --model formula перед lee и точки внутри поля; checker принимает только имя *.lts.csv."
+  ],
+  "questions": [
+    "Скорректировать lee_cmd в карточке (--model formula, from/to внутри поля) и считать scope для слияния исключением?"
+  ],
+  "images": [],
+  "how_to_check": "cargo test -q --release --manifest-path rust/Cargo.toml -p dp-stand; команда lee выше",
+  "uncertain": [
+    {
+      "where": "rust/dp-stand/src/setup.rs: open_formula",
+      "why": "версия main (prepare по &mut dyn) заменена обёрткой над generic prepare lee-turb; тот читает место дважды (place2 для Lee)",
+      "checked": "сборка, тесты dp-stand и dp-air зелёные, подкоманда lee выдаёт валидный LTS"
+    }
+  ],
+  "dp_feedback": "accept для задачи-слияния всегда даёт FAIL scope; нужен режим/исключение для merge. Команда lee в карточке не проверена на базе.",
+  "t": "2026-11-10T05:07:50",
+  "by": "executor"
+}

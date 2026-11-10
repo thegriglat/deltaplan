@@ -18,7 +18,8 @@ use std::collections::BTreeMap;
 pub const FORMAT: &str = "dp-air-field";
 /// Прежнее имя формата в файлах уже снятых полей (данные тестов); читается наравне с `FORMAT`.
 pub const LEGACY_FORMAT: &str = "dp-air-baked"; // purity: allow имя формата в старых файлах
-pub const VERSION: i64 = 1;
+/// Версия 2: необязательный массив `k1` (первая воздушная клетка по типам, PT-10); версия 1 читается.
+pub const VERSION: i64 = 2;
 /// Допуск сравнения чисел `key` (JSON хранит не все разряды double).
 pub const KEY_TOL: f64 = 1.0e-6;
 /// Куски распаковки `par_chunks_mut`, элементов.
@@ -81,7 +82,7 @@ fn uint(x: f64, what: &str) -> Result<usize, Error> {
 pub fn parse_solved(header_json: &str, data: &[u8]) -> Result<SolvedField, Error> {
     let h: Hdr = serde_json::from_str(header_json)
         .map_err(|e| bad(format!("заголовок не читается: {e}")))?;
-    if (h.format != FORMAT && h.format != LEGACY_FORMAT) || h.version != VERSION as f64 {
+    if (h.format != FORMAT && h.format != LEGACY_FORMAT) || !(h.version == 1.0 || h.version == VERSION as f64) {
         return Err(bad(format!(
             "чужой формат или версия ({}, {})",
             h.format, h.version
@@ -178,7 +179,18 @@ fn build_level(lv: &LevelHdr, body: &[u8]) -> Result<(Field, Map<String, Value>)
             .unwrap_or(f64::NAN),
         z_i_col: opt("meta.z_i_col", nxy)?,
     };
-    let f = Field::from_arrays(
+    // первая воздушная клетка по типам; файла без массива (версия 1) — от `hc`
+    let k1 = if lv.arrays.contains_key("k1") {
+        Some(
+            arr("k1", nxy)?
+                .into_iter()
+                .map(|x| x as u32)
+                .collect::<Vec<u32>>(),
+        )
+    } else {
+        None
+    };
+    let f = Field::from_arrays_k1(
         &grid,
         u,
         v,
@@ -186,6 +198,7 @@ fn build_level(lv: &LevelHdr, body: &[u8]) -> Result<(Field, Map<String, Value>)
         w_conv,
         theta,
         hc,
+        k1,
         meta,
         Limits::default(),
     )?;
@@ -258,6 +271,8 @@ pub fn encode_solved(
         put("w_conv", f.raw_w_conv());
         put("theta", f.raw_theta());
         put("hc", f.raw_hc());
+        let k1: Vec<f32> = f.raw_k1().iter().map(|&k| k as f32).collect();
+        put("k1", &k1);
         if !f.heat_flux().is_empty() {
             put("heat", f.heat_flux());
         }

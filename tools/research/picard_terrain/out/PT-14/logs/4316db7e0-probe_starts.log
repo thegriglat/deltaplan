@@ -1,0 +1,74 @@
+Initialize godot-rust (API v4.7.stable.official, runtime v4.7.2.stable.official, safeguards balanced)
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+steam: inactive (no_feature)
+Terrain: локация 'altai' загружена за 22.87 с, чанков 160
+Terrain: локация 'askarovo' загружена за 10.18 с, чанков 160
+Terrain: локация 'aushkul' загружена за 10.59 с, чанков 160
+Terrain: поля рельефа за 19.91 с
+dp_air: расширение загружено, api_version=6
+dp_air: подготовка места начата, место aushkul
+dp_air: 0.0 с, этап prepare, итераций 0
+dp_air: 0.5 с, этап phases, итераций 0
+dp_air: 1.0 с, этап coarse, итераций 0
+dp_air: 2.7 с, этап solve_mech, итераций 0
+dp_air: 8.6 с, этап solve_heat, итераций 0
+dp_air: 16.2 с, этап windows, итераций 0
+dp_air: READY за 45.1 с, поле подано, last_error=
+dp_air: расширение загружено, api_version=6
+dp_air: подготовка места начата, место aushkul
+dp_air: 0.0 с, этап prepare, итераций 0
+dp_air: 0.4 с, этап phases, итераций 0
+dp_air: 1.0 с, этап coarse, итераций 0
+dp_air: 2.8 с, этап solve_mech, итераций 0
+dp_air: 8.6 с, этап solve_heat, итераций 0
+dp_air: 16.4 с, этап windows, итераций 0
+dp_air: READY за 46.4 с, поле подано, last_error=
+PROBE {"key":"aushkul/aushtau_south.lee","mean":[1.37414050102234,-1.10417520999908,7.51013135910034],"sigma":{"analytic":0.0,"cloud":0.0,"field":0.0,"gust":0.0,"ridge":0.0,"storm":0.0,"thermal":0.0,"turb":1.47881138324738,"wave":0.0},"tag":"start.dec","total":[2.97480964660645,-1.32202041149139,6.99671792984009,1.47881138324738],"vel":{"analytic":[0.0,0.0,0.0],"cloud":[0.0,0.0,0.0],"field":[1.37414050102234,-1.10417520999908,7.51013135910034],"gust":[0.0,0.0,0.0],"ridge":[0.0,0.0,0.0],"storm":[0.0,0.0,0.0],"thermal":[0.0,0.0,0.0],"turb":[1.60066914558411,-0.217845216393471,-0.513413488864899],"wave":[0.0,0.0,0.0]}}
+dp_air: расширение загружено, api_version=6
+dp_air: подготовка места начата, место aushkul
+dp_air: 0.0 с, этап prepare, итераций 0
+dp_air: 1.1 с, этап phases, итераций 0
+dp_air: 2.1 с, этап coarse, итераций 0
+dp_air: 5.6 с, этап solve_mech, итераций 0
+dp_air: 16.5 с, этап solve_heat, итераций 0
+dp_air: 30.7 с, этап windows, итераций 0
+dp_air: READY за 84.8 с, поле подано, last_error=
+PROBE {"key":"aushkul/aushtau_south.wind","mean":[-1.749591588974,1.83398163318634,-8.90915012359619],"sigma":{"analytic":0.0,"cloud":0.0,"field":0.0,"gust":0.0,"ridge":0.0,"storm":0.0,"thermal":0.0,"turb":1.56803214550018,"wave":0.0},"tag":"start.dec","total":[-3.4170606136322,1.58204400539398,-8.34078598022461,1.56803214550018],"vel":{"analytic":[0.0,0.0,0.0],"cloud":[0.0,0.0,0.0],"field":[-1.749591588974,1.83398163318634,-8.90915012359619],"gust":[0.0,0.0,0.0],"ridge":[0.0,0.0,0.0],"storm":[0.0,0.0,0.0],"thermal":[0.0,0.0,0.0],"turb":[-1.66746890544891,-0.251937657594681,0.568364381790161],"wave":[0.0,0.0,0.0]}}
+PROBE {"depth":1.09995198249817,"key":"aushkul/aushtau_south","p":[-118.289390563965,641.018371582031,-511.023345947266],"sigma_lee":1.47881138324738,"sigma_wind":1.56803214550018,"tag":"start.summary","w_lee":-1.32202041149139,"w_wind":1.58204400539398}
+Terrain: локация 'ongudai' загружена за 18.75 с, чанков 160
+Terrain: поля рельефа за 24.99 с
+dp_air: расширение загружено, api_version=6
+dp_air: подготовка места начата, место ongudai
+dp_air: 0.0 с, этап prepare, итераций 0
+dp_air: 0.8 с, этап phases, итераций 0
+dp_air: 2.2 с, этап coarse, итераций 0
+dp_air: 8.8 с, этап solve_mech, итераций 0
+dp_air: 44.3 с, этап solve_heat, итераций 0
+dp_air: 75.0 с, этап windows, итераций 0
+dp_air: READY за 132.7 с, поле подано, last_error=
+dp_air: расширение загружено, api_version=6
+dp_air: подготовка места начата, место ongudai
+dp_air: 0.0 с, этап prepare, итераций 0
+dp_air: 0.6 с, этап phases, итераций 0
+dp_air: 1.6 с, этап coarse, итераций 0
+dp_air: 6.2 с, этап solve_mech, итераций 0
+dp_air: 28.5 с, этап solve_heat, итераций 0
+dp_air: 60.9 с, этап windows, итераций 0
+dp_air: READY за 119.3 с, поле подано, last_error=
+PROBE {"key":"ongudai/kayancha_south.lee","mean":[4.14456653594971,-1.47815370559692,5.86514616012573],"sigma":{"analytic":0.0,"cloud":0.0,"field":0.0,"gust":0.0,"ridge":0.0,"storm":0.0,"thermal":0.0,"turb":1.78055238723755,"wave":0.0},"tag":"start.dec","total":[3.29140520095825,-0.787522614002228,4.53860902786255,1.78055238723755],"vel":{"analytic":[0.0,0.0,0.0],"cloud":[0.0,0.0,0.0],"field":[4.14456653594971,-1.47815370559692,5.86514616012573],"gust":[0.0,0.0,0.0],"ridge":[0.0,0.0,0.0],"storm":[0.0,0.0,0.0],"thermal":[0.0,0.0,0.0],"turb":[-0.85316127538681,0.690631091594696,-1.32653713226318],"wave":[0.0,0.0,0.0]}}
+dp_air: расширение загружено, api_version=6
+dp_air: подготовка места начата, место ongudai
+dp_air: 0.0 с, этап prepare, итераций 0
+dp_air: 0.8 с, этап phases, итераций 0
+dp_air: 2.1 с, этап coarse, итераций 0
+dp_air: 8.6 с, этап solve_mech, итераций 0
+dp_air: 33.0 с, этап solve_heat, итераций 0
+dp_air: 62.2 с, этап windows, итераций 0
+dp_air: READY за 109.2 с, поле подано, last_error=
+PROBE {"key":"ongudai/kayancha_south.wind","mean":[-4.19441556930542,2.20309352874756,-6.40036773681641],"sigma":{"analytic":0.0,"cloud":0.0,"field":0.0,"gust":0.0,"ridge":0.0,"storm":0.0,"thermal":0.0,"turb":1.73621082305908,"wave":0.0},"tag":"start.dec","total":[-3.41110491752625,2.86136317253113,-5.07960844039917,1.73621082305908],"vel":{"analytic":[0.0,0.0,0.0],"cloud":[0.0,0.0,0.0],"field":[-4.19441556930542,2.20309352874756,-6.40036773681641],"gust":[0.0,0.0,0.0],"ridge":[0.0,0.0,0.0],"storm":[0.0,0.0,0.0],"thermal":[0.0,0.0,0.0],"turb":[0.78331059217453,0.658269762992859,1.32075953483582],"wave":[0.0,0.0,0.0]}}
+PROBE {"depth":1.40520071983337,"key":"ongudai/kayancha_south","p":[7263.5595703125,1870.87414550781,394.659210205078],"sigma_lee":1.78055238723755,"sigma_wind":1.73621082305908,"tag":"start.summary","w_lee":-0.787522614002228,"w_wind":2.86136317253113}
+  FAIL probe_starts.gd::test_lee_zone_all_starts
+         check failed: aushkul/aushtau_south: болтанка подветренной 1.48 м/с > наветренной 1.57 м/с (опускание 1.10 м/с)
+
+1 тестов, 1 упало, 0 пропущено

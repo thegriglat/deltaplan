@@ -73,6 +73,8 @@ var _theta := PackedFloat32Array()
 var _hc := PackedFloat32Array()
 ## Первая воздушная клетка столбца (nz — столбец целиком в земле).
 var _k1 := PackedInt32Array()
+## PT-14: якорь лог-профиля как в крейте (Field::build_columns): земля hg = hc, дробный индекс якоря kfa.
+var _kfa := PackedFloat32Array()
 ## Шероховатость столбца, м (meta.z0: карта ny·nx или число — везде одно).
 var _z0c := PackedFloat64Array()
 ## 1 / ln(a1 / z0), a1 — высота центра первой воздушной клетки над hc столбца.
@@ -283,13 +285,25 @@ func _build_columns() -> void:
 	_inv_dz = 1.0 / dz
 	_z_top = z_bot + nz * dz
 	_k1.resize(_nxy)
+	_kfa.resize(_nxy)
 	_inv_log1.resize(_nxy)
+	# k1 из файла поля (версия 2, PT-10: первая воздушная клетка по типам); нет — от hc
+	var k1_in: Variant = meta.get("k1")
+	var has_k1: bool = (k1_in is PackedFloat32Array or k1_in is Array) and k1_in.size() == _nxy
 	for c in _nxy:
-		# под землёй — центр ниже hc: первая воздушная — наименьшая k с z_bot + (k + ½)dz ≥ hc
-		var k1 := clampi(ceili((_hc[c] - z_bot) * _inv_dz - 0.5), 0, nz)
+		var k1: int
+		if has_k1:
+			k1 = clampi(int(k1_in[c]), 0, nz)
+		else:
+			# под землёй — центр ниже hc: первая воздушная — наименьшая k с z_bot + (k + ½)dz ≥ hc
+			k1 = clampi(ceili((_hc[c] - z_bot) * _inv_dz - 0.5), 0, nz)
 		_k1[c] = k1
 		var zc0 := _z0c[c]
-		var a1 := maxf(z_bot + (k1 + 0.5) * dz - _hc[c], 2.0 * zc0)
+		# срезанная клетка: центр k1 ниже земли hc — якорь на hc + dz/2 (значение интерполируется)
+		var zc := z_bot + (k1 + 0.5) * dz
+		var za := zc if zc >= _hc[c] else _hc[c] + 0.5 * dz
+		_kfa[c] = float(k1) if zc >= _hc[c] else (za - z_bot) * _inv_dz - 0.5
+		var a1 := maxf(za - _hc[c], 2.0 * zc0)
 		_inv_log1[c] = 1.0 / log(a1 / zc0)
 
 
@@ -672,24 +686,35 @@ func _col_vel(c: int, y: float, sh: Vector2) -> Vector3:
 	var hcol := _hc[c]
 	var z := y + (hcol - sh.y) * sh.x
 	var kf := (z - z_bot) * _inv_dz - 0.5
-	if kf >= k1:
-		var k := int(kf)
-		var t := kf - k
-		if k >= nz - 1:
-			k = nz - 2
-			t = 1.0
-		var i := ((k * _nxy) + c) * 3
-		var i2 := i + _nxy * 3
-		var p := Vector3(_vel[i], _vel[i + 1], _vel[i + 2])
-		return p + (Vector3(_vel[i2], _vel[i2 + 1], _vel[i2 + 2]) - p) * t
-	# ниже центра первой воздушной клетки: лог-профиль к нулю на z0 над землёй сетки
+	var kfa := _kfa[c]
+	if kf >= kfa:
+		return _col_between(c, kf)
+	# ниже якоря: лог-профиль к нулю на z0 над землёй сетки
 	var agl := z - hcol
 	var zc0 := _z0c[c]
 	if agl <= zc0:
 		return Vector3.ZERO
-	var i1 := ((k1 * _nxy) + c) * 3
+	var p1: Vector3
+	if kfa == float(k1):
+		var i1 := ((k1 * _nxy) + c) * 3
+		p1 = Vector3(_vel[i1], _vel[i1 + 1], _vel[i1 + 2])
+	else:
+		p1 = _col_between(c, kfa)
 	var f := minf(log(agl / zc0) * _inv_log1[c], 1.0)
-	return Vector3(_vel[i1], _vel[i1 + 1], _vel[i1 + 2]) * f
+	return p1 * f
+
+
+## Скорость столбца c между центрами клеток на дробном индексе kf.
+func _col_between(c: int, kf: float) -> Vector3:
+	var k := int(kf)
+	var t := kf - k
+	if k >= nz - 1:
+		k = nz - 2
+		t = 1.0
+	var i := ((k * _nxy) + c) * 3
+	var i2 := i + _nxy * 3
+	var p := Vector3(_vel[i], _vel[i + 1], _vel[i + 2])
+	return p + (Vector3(_vel[i2], _vel[i2 + 1], _vel[i2 + 2]) - p) * t
 
 
 func _sample_scalar(
@@ -714,6 +739,16 @@ func _sample_scalar(
 	return lerpf(r0, r1, fy)
 
 
+func _col_scalar_between(arr: PackedFloat32Array, c: int, kf: float) -> float:
+	var k := int(kf)
+	var t := kf - k
+	if k >= nz - 1:
+		k = nz - 2
+		t = 1.0
+	var i := k * _nxy + c
+	return lerpf(arr[i], arr[i + _nxy], t)
+
+
 func _col_scalar(arr: PackedFloat32Array, c: int, y: float, sh: Vector2, log_prof: bool) -> float:
 	var k1 := _k1[c]
 	if k1 >= nz:
@@ -721,15 +756,10 @@ func _col_scalar(arr: PackedFloat32Array, c: int, y: float, sh: Vector2, log_pro
 	var hcol := _hc[c]
 	var z := y + (hcol - sh.y) * sh.x
 	var kf := (z - z_bot) * _inv_dz - 0.5
-	if kf >= k1:
-		var k := int(kf)
-		var t := kf - k
-		if k >= nz - 1:
-			k = nz - 2
-			t = 1.0
-		var i := k * _nxy + c
-		return lerpf(arr[i], arr[i + _nxy], t)
-	var v1 := arr[k1 * _nxy + c]
+	var kfa := _kfa[c]
+	if kf >= kfa:
+		return _col_scalar_between(arr, c, kf)
+	var v1 := arr[k1 * _nxy + c] if kfa == float(k1) else _col_scalar_between(arr, c, kfa)
 	if not log_prof:
 		return v1
 	var agl := z - hcol

@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Обёртка Python для thermal_bubble: venv в ${TB_VENV:-$HOME/.cache/thermal_bubble/venv} (numpy, matplotlib, pytest).
+set -euo pipefail
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+venv="${TB_VENV:-$HOME/.cache/thermal_bubble/venv}"
+if [ ! -x "$venv/bin/python" ]; then
+  export PATH="$HOME/.local/bin:$PATH"
+  mkdir -p "$(dirname "$venv")"
+  uv venv "$venv" >&2
+  VIRTUAL_ENV="$venv" uv pip install -r "$here/requirements.txt" >&2
+fi
+export PYTHONPATH="$here${PYTHONPATH:+:$PYTHONPATH}"
+exec "$venv/bin/python" "$@"

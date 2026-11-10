@@ -310,6 +310,7 @@ impl Thermal for Th {
             w: 2.0,
             mask: 0.5,
             sigma: 1.0,
+            uh: [0.0; 2],
         })
     }
 }

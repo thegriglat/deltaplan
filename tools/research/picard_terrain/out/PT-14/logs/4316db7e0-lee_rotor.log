@@ -1,0 +1,47 @@
+Initialize godot-rust (API v4.7.stable.official, runtime v4.7.2.stable.official, safeguards balanced)
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+steam: inactive (no_feature)
+  ok   test_lee_rotor.gd::test_lee_config_from_ap10
+dp_air: расширение загружено, api_version=6
+dp_air: подготовка места начата, место rig
+dp_air: 0.0 с, этап prepare, итераций 0
+dp_air: 0.0 с, этап phases, итераций 0
+dp_air: 0.0 с, этап coarse, итераций 0
+dp_air: 0.2 с, этап solve_mech, итераций 0
+dp_air: 0.4 с, этап solve_heat, итераций 0
+dp_air: 0.8 с, этап windows, итераций 0
+dp_air: READY за 0.9 с, поле подано, last_error=
+dp_air: расширение загружено, api_version=6
+dp_air: подготовка места начата, место rig
+dp_air: 0.0 с, этап prepare, итераций 0
+dp_air: 0.0 с, этап phases, итераций 0
+dp_air: 0.0 с, этап coarse, итераций 0
+dp_air: 0.2 с, этап solve_mech, итераций 0
+dp_air: 0.5 с, этап solve_heat, итераций 0
+dp_air: 0.8 с, этап windows, итераций 0
+dp_air: READY за 1.0 с, поле подано, last_error=
+  ok   test_lee_rotor.gd::test_same_seed_same_air
+dp_air: расширение загружено, api_version=6
+dp_air: подготовка места начата, место rig
+dp_air: 0.0 с, этап prepare, итераций 0
+dp_air: 0.0 с, этап phases, итераций 0
+dp_air: 0.0 с, этап solve_mech, итераций 0
+dp_air: 0.0 с, этап solve_heat, итераций 0
+dp_air: 0.1 с, этап windows, итераций 0
+dp_air: READY за 0.2 с, поле подано, last_error=
+dp_air: расширение загружено, api_version=6
+dp_air: подготовка места начата, место rig
+dp_air: 0.0 с, этап prepare, итераций 0
+dp_air: 0.0 с, этап phases, итераций 0
+dp_air: 0.0 с, этап coarse, итераций 0
+dp_air: 0.2 с, этап solve_mech, итераций 0
+dp_air: 0.5 с, этап solve_heat, итераций 0
+dp_air: 0.8 с, этап windows, итераций 0
+dp_air: READY за 0.9 с, поле подано, last_error=
+  за 30 с после гребня: штиль −23 м, ветер 6 м/с −18 м
+  FAIL test_lee_rotor.gd::test_flying_into_lee_loses_height
+         check failed: за гребнем теряем ≥ 2× штиля: 18 м vs 23 м
+
+3 тестов, 1 упало, 0 пропущено
+exit=1

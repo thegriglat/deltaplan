@@ -1,0 +1,812 @@
+{
+ "nan_count": 0,
+ "n_crests": 6,
+ "crest_speedup_win_after_over_before_median": 0.6034409178012108,
+ "crest_speedup_win_after_over_before_min": 0.41016837004640594,
+ "crest_speedup_win_n": 24,
+ "crest_speedup_win_median_by_z_agl": {
+  "10": 0.602256094912416,
+  "30": 0.5259261231378558,
+  "60": 0.5908696923985436,
+  "100": 0.651102287211458
+ },
+ "S_win_median_before_after_by_z_agl": {
+  "10": [
+   3.720067240922297,
+   2.6851837347634935
+  ],
+  "30": [
+   4.021293400658515,
+   2.4682737295478074
+  ],
+  "60": [
+   3.2262407179298456,
+   2.2481635564869586
+  ],
+  "100": [
+   2.579523457841693,
+   2.0284863066063865
+  ]
+ },
+ "crest_speedup_400_after_over_before_median": 0.4986196697439315,
+ "crest_speedup_400_after_over_before_min": 0.32661970106387406,
+ "crest_speedup_400_n": 24,
+ "crest_speedup_400_median_by_z_agl": {
+  "10": 0.44269752937309836,
+  "30": 0.4617103916829288,
+  "60": 0.4747590981817975,
+  "100": 0.5859570248308263
+ },
+ "S_400_median_before_after_by_z_agl": {
+  "10": [
+   3.74002855447232,
+   2.0019097254435625
+  ],
+  "30": [
+   3.7566007987240013,
+   2.1151781615299536
+  ],
+  "60": [
+   3.194721700581713,
+   2.0400877051831285
+  ],
+  "100": [
+   2.5581173633791856,
+   1.914573376264428
+  ]
+ },
+ "rotor_win_win50": {
+  "cases": 6,
+  "before": 1,
+  "after": 0,
+  "lost": 1,
+  "new": 0,
+  "frac_before_mean": 0.00392156862745098,
+  "frac_after_mean": 0.00130718954248366,
+  "minu_before_median": 0.31688202663948706,
+  "minu_after_median": 1.2986891989813805
+ },
+ "rotor_win_all": {
+  "cases": 6,
+  "before": 1,
+  "after": 0,
+  "lost": 1,
+  "new": 0,
+  "frac_before_mean": 0.003584229390681004,
+  "frac_after_mean": 0.001075268817204301,
+  "minu_before_median": 0.12329478289178336,
+  "minu_after_median": 0.7978413340111166
+ },
+ "rotor_400_win50": {
+  "cases": 6,
+  "before": 0,
+  "after": 0,
+  "lost": 0,
+  "new": 0,
+  "frac_before_mean": 0.0,
+  "frac_after_mean": 0.0,
+  "minu_before_median": 3.007621331843249,
+  "minu_after_median": 4.496760123701739
+ },
+ "rotor_400_all": {
+  "cases": 6,
+  "before": 1,
+  "after": 0,
+  "lost": 1,
+  "new": 0,
+  "frac_before_mean": 0.0025089605734767025,
+  "frac_after_mean": 0.0,
+  "minu_before_median": 0.6695480715698752,
+  "minu_after_median": 3.7954640420244345
+ },
+ "rotor_win_before_count": 1,
+ "rotor_win_after_count": 0,
+ "rotor_win_lost": 1,
+ "per_crest_S": [
+  {
+   "name": "ongudai_strong_massif0",
+   "mode": "focus",
+   "z_agl": 10,
+   "S_before": 4.026,
+   "S_after": 3.649,
+   "slope_w_before": 0.644,
+   "slope_w_after": 1.2,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 0.37,
+   "rot_win50_minu_after": 1.08
+  },
+  {
+   "name": "ongudai_strong_massif0",
+   "mode": "focus",
+   "z_agl": 30,
+   "S_before": 5.431,
+   "S_after": 3.886,
+   "slope_w_before": 0.644,
+   "slope_w_after": 1.2,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 0.37,
+   "rot_win50_minu_after": 1.08
+  },
+  {
+   "name": "ongudai_strong_massif0",
+   "mode": "focus",
+   "z_agl": 60,
+   "S_before": 5.699,
+   "S_after": 3.983,
+   "slope_w_before": 0.644,
+   "slope_w_after": 1.2,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 0.37,
+   "rot_win50_minu_after": 1.08
+  },
+  {
+   "name": "ongudai_strong_massif0",
+   "mode": "focus",
+   "z_agl": 100,
+   "S_before": 5.789,
+   "S_after": 4.021,
+   "slope_w_before": 0.644,
+   "slope_w_after": 1.2,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 0.37,
+   "rot_win50_minu_after": 1.08
+  },
+  {
+   "name": "ongudai_strong_massif0",
+   "mode": "nofocus",
+   "z_agl": 10,
+   "S_before": 4.819,
+   "S_after": 3.354,
+   "slope_w_before": 0.006,
+   "slope_w_after": 0.891,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 3.67,
+   "rot_win50_minu_after": 4.25
+  },
+  {
+   "name": "ongudai_strong_massif0",
+   "mode": "nofocus",
+   "z_agl": 30,
+   "S_before": 5.534,
+   "S_after": 3.891,
+   "slope_w_before": 0.006,
+   "slope_w_after": 0.891,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 3.67,
+   "rot_win50_minu_after": 4.25
+  },
+  {
+   "name": "ongudai_strong_massif0",
+   "mode": "nofocus",
+   "z_agl": 60,
+   "S_before": 5.593,
+   "S_after": 3.97,
+   "slope_w_before": 0.006,
+   "slope_w_after": 0.891,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 3.67,
+   "rot_win50_minu_after": 4.25
+  },
+  {
+   "name": "ongudai_strong_massif0",
+   "mode": "nofocus",
+   "z_agl": 100,
+   "S_before": 5.509,
+   "S_after": 3.904,
+   "slope_w_before": 0.006,
+   "slope_w_after": 0.891,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 3.67,
+   "rot_win50_minu_after": 4.25
+  },
+  {
+   "name": "ongudai_strong_massif1",
+   "mode": "focus",
+   "z_agl": 10,
+   "S_before": 4.212,
+   "S_after": 2.953,
+   "slope_w_before": 0.649,
+   "slope_w_after": 1.149,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 0.27,
+   "rot_win50_minu_after": 1.52
+  },
+  {
+   "name": "ongudai_strong_massif1",
+   "mode": "focus",
+   "z_agl": 30,
+   "S_before": 4.651,
+   "S_after": 2.675,
+   "slope_w_before": 0.649,
+   "slope_w_after": 1.149,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 0.27,
+   "rot_win50_minu_after": 1.52
+  },
+  {
+   "name": "ongudai_strong_massif1",
+   "mode": "focus",
+   "z_agl": 60,
+   "S_before": 3.456,
+   "S_after": 2.332,
+   "slope_w_before": 0.649,
+   "slope_w_after": 1.149,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 0.27,
+   "rot_win50_minu_after": 1.52
+  },
+  {
+   "name": "ongudai_strong_massif1",
+   "mode": "focus",
+   "z_agl": 100,
+   "S_before": 2.575,
+   "S_after": 2.007,
+   "slope_w_before": 0.649,
+   "slope_w_after": 1.149,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 0.27,
+   "rot_win50_minu_after": 1.52
+  },
+  {
+   "name": "ongudai_strong_massif1",
+   "mode": "nofocus",
+   "z_agl": 10,
+   "S_before": 4.133,
+   "S_after": 2.023,
+   "slope_w_before": 0.253,
+   "slope_w_after": 0.801,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 2.35,
+   "rot_win50_minu_after": 4.75
+  },
+  {
+   "name": "ongudai_strong_massif1",
+   "mode": "nofocus",
+   "z_agl": 30,
+   "S_before": 4.155,
+   "S_after": 2.094,
+   "slope_w_before": 0.253,
+   "slope_w_after": 0.801,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 2.35,
+   "rot_win50_minu_after": 4.75
+  },
+  {
+   "name": "ongudai_strong_massif1",
+   "mode": "nofocus",
+   "z_agl": 60,
+   "S_before": 3.241,
+   "S_after": 1.973,
+   "slope_w_before": 0.253,
+   "slope_w_after": 0.801,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 2.35,
+   "rot_win50_minu_after": 4.75
+  },
+  {
+   "name": "ongudai_strong_massif1",
+   "mode": "nofocus",
+   "z_agl": 100,
+   "S_before": 2.524,
+   "S_after": 1.823,
+   "slope_w_before": 0.253,
+   "slope_w_after": 0.801,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 2.35,
+   "rot_win50_minu_after": 4.75
+  },
+  {
+   "name": "ongudai_strong_massif2",
+   "mode": "focus",
+   "z_agl": 10,
+   "S_before": 8.272,
+   "S_after": 4.373,
+   "slope_w_before": 0.528,
+   "slope_w_after": 1.199,
+   "rot_win50_frac_before": 0.0196,
+   "rot_win50_frac_after": 0.0078,
+   "rot_win50_minu_before": -0.48,
+   "rot_win50_minu_after": -0.41
+  },
+  {
+   "name": "ongudai_strong_massif2",
+   "mode": "focus",
+   "z_agl": 30,
+   "S_before": 7.787,
+   "S_after": 3.91,
+   "slope_w_before": 0.528,
+   "slope_w_after": 1.199,
+   "rot_win50_frac_before": 0.0196,
+   "rot_win50_frac_after": 0.0078,
+   "rot_win50_minu_before": -0.48,
+   "rot_win50_minu_after": -0.41
+  },
+  {
+   "name": "ongudai_strong_massif2",
+   "mode": "focus",
+   "z_agl": 60,
+   "S_before": 7.393,
+   "S_after": 3.622,
+   "slope_w_before": 0.528,
+   "slope_w_after": 1.199,
+   "rot_win50_frac_before": 0.0196,
+   "rot_win50_frac_after": 0.0078,
+   "rot_win50_minu_before": -0.48,
+   "rot_win50_minu_after": -0.41
+  },
+  {
+   "name": "ongudai_strong_massif2",
+   "mode": "focus",
+   "z_agl": 100,
+   "S_before": 5.283,
+   "S_after": 3.243,
+   "slope_w_before": 0.528,
+   "slope_w_after": 1.199,
+   "rot_win50_frac_before": 0.0196,
+   "rot_win50_frac_after": 0.0078,
+   "rot_win50_minu_before": -0.48,
+   "rot_win50_minu_after": -0.41
+  },
+  {
+   "name": "ongudai_strong_massif2",
+   "mode": "nofocus",
+   "z_agl": 10,
+   "S_before": 6.887,
+   "S_after": 3.753,
+   "slope_w_before": 0.169,
+   "slope_w_after": 1.136,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 0.94,
+   "rot_win50_minu_after": 2.23
+  },
+  {
+   "name": "ongudai_strong_massif2",
+   "mode": "nofocus",
+   "z_agl": 30,
+   "S_before": 6.906,
+   "S_after": 3.607,
+   "slope_w_before": 0.169,
+   "slope_w_after": 1.136,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 0.94,
+   "rot_win50_minu_after": 2.23
+  },
+  {
+   "name": "ongudai_strong_massif2",
+   "mode": "nofocus",
+   "z_agl": 60,
+   "S_before": 6.892,
+   "S_after": 3.523,
+   "slope_w_before": 0.169,
+   "slope_w_after": 1.136,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 0.94,
+   "rot_win50_minu_after": 2.23
+  },
+  {
+   "name": "ongudai_strong_massif2",
+   "mode": "nofocus",
+   "z_agl": 100,
+   "S_before": 5.205,
+   "S_after": 3.218,
+   "slope_w_before": 0.169,
+   "slope_w_after": 1.136,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 0.94,
+   "rot_win50_minu_after": 2.23
+  },
+  {
+   "name": "ongudai_strong_mod0",
+   "mode": "focus",
+   "z_agl": 10,
+   "S_before": 3.414,
+   "S_after": 2.417,
+   "slope_w_before": 0.485,
+   "slope_w_after": 1.016,
+   "rot_win50_frac_before": 0.0039,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": -0.02,
+   "rot_win50_minu_after": 0.08
+  },
+  {
+   "name": "ongudai_strong_mod0",
+   "mode": "focus",
+   "z_agl": 30,
+   "S_before": 3.392,
+   "S_after": 2.262,
+   "slope_w_before": 0.485,
+   "slope_w_after": 1.016,
+   "rot_win50_frac_before": 0.0039,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": -0.02,
+   "rot_win50_minu_after": 0.08
+  },
+  {
+   "name": "ongudai_strong_mod0",
+   "mode": "focus",
+   "z_agl": 60,
+   "S_before": 2.997,
+   "S_after": 2.164,
+   "slope_w_before": 0.485,
+   "slope_w_after": 1.016,
+   "rot_win50_frac_before": 0.0039,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": -0.02,
+   "rot_win50_minu_after": 0.08
+  },
+  {
+   "name": "ongudai_strong_mod0",
+   "mode": "focus",
+   "z_agl": 100,
+   "S_before": 2.584,
+   "S_after": 2.05,
+   "slope_w_before": 0.485,
+   "slope_w_after": 1.016,
+   "rot_win50_frac_before": 0.0039,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": -0.02,
+   "rot_win50_minu_after": 0.08
+  },
+  {
+   "name": "ongudai_strong_mod0",
+   "mode": "nofocus",
+   "z_agl": 10,
+   "S_before": 3.347,
+   "S_after": 1.981,
+   "slope_w_before": -0.077,
+   "slope_w_after": 0.587,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 0.39,
+   "rot_win50_minu_after": 1.98
+  },
+  {
+   "name": "ongudai_strong_mod0",
+   "mode": "nofocus",
+   "z_agl": 30,
+   "S_before": 3.358,
+   "S_after": 2.137,
+   "slope_w_before": -0.077,
+   "slope_w_after": 0.587,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 0.39,
+   "rot_win50_minu_after": 1.98
+  },
+  {
+   "name": "ongudai_strong_mod0",
+   "mode": "nofocus",
+   "z_agl": 60,
+   "S_before": 3.148,
+   "S_after": 2.107,
+   "slope_w_before": -0.077,
+   "slope_w_after": 0.587,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 0.39,
+   "rot_win50_minu_after": 1.98
+  },
+  {
+   "name": "ongudai_strong_mod0",
+   "mode": "nofocus",
+   "z_agl": 100,
+   "S_before": 2.593,
+   "S_after": 2.006,
+   "slope_w_before": -0.077,
+   "slope_w_after": 0.587,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 0.39,
+   "rot_win50_minu_after": 1.98
+  },
+  {
+   "name": "synth_strong_massif0",
+   "mode": "focus",
+   "z_agl": 10,
+   "S_before": 1.338,
+   "S_after": 1.617,
+   "slope_w_before": 0.715,
+   "slope_w_after": 1.274,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 2.58,
+   "rot_win50_minu_after": 9.42
+  },
+  {
+   "name": "synth_strong_massif0",
+   "mode": "focus",
+   "z_agl": 30,
+   "S_before": 1.348,
+   "S_after": 1.524,
+   "slope_w_before": 0.715,
+   "slope_w_after": 1.274,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 2.58,
+   "rot_win50_minu_after": 9.42
+  },
+  {
+   "name": "synth_strong_massif0",
+   "mode": "focus",
+   "z_agl": 60,
+   "S_before": 1.403,
+   "S_after": 1.471,
+   "slope_w_before": 0.715,
+   "slope_w_after": 1.274,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 2.58,
+   "rot_win50_minu_after": 9.42
+  },
+  {
+   "name": "synth_strong_massif0",
+   "mode": "focus",
+   "z_agl": 100,
+   "S_before": 1.43,
+   "S_after": 1.449,
+   "slope_w_before": 0.715,
+   "slope_w_after": 1.274,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 2.58,
+   "rot_win50_minu_after": 9.42
+  },
+  {
+   "name": "synth_strong_massif0",
+   "mode": "nofocus",
+   "z_agl": 10,
+   "S_before": 1.661,
+   "S_after": 1.524,
+   "slope_w_before": 0.547,
+   "slope_w_after": 0.938,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 4.67,
+   "rot_win50_minu_after": 13.23
+  },
+  {
+   "name": "synth_strong_massif0",
+   "mode": "nofocus",
+   "z_agl": 30,
+   "S_before": 1.654,
+   "S_after": 1.536,
+   "slope_w_before": 0.547,
+   "slope_w_after": 0.938,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 4.67,
+   "rot_win50_minu_after": 13.23
+  },
+  {
+   "name": "synth_strong_massif0",
+   "mode": "nofocus",
+   "z_agl": 60,
+   "S_before": 1.628,
+   "S_after": 1.519,
+   "slope_w_before": 0.547,
+   "slope_w_after": 0.938,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 4.67,
+   "rot_win50_minu_after": 13.23
+  },
+  {
+   "name": "synth_strong_massif0",
+   "mode": "nofocus",
+   "z_agl": 100,
+   "S_before": 1.567,
+   "S_after": 1.486,
+   "slope_w_before": 0.547,
+   "slope_w_after": 0.938,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 4.67,
+   "rot_win50_minu_after": 13.23
+  },
+  {
+   "name": "synth_strong_mod2",
+   "mode": "focus",
+   "z_agl": 10,
+   "S_before": 1.944,
+   "S_after": 1.563,
+   "slope_w_before": 1.155,
+   "slope_w_after": 1.691,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 4.25,
+   "rot_win50_minu_after": 10.25
+  },
+  {
+   "name": "synth_strong_mod2",
+   "mode": "focus",
+   "z_agl": 30,
+   "S_before": 1.851,
+   "S_after": 1.446,
+   "slope_w_before": 1.155,
+   "slope_w_after": 1.691,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 4.25,
+   "rot_win50_minu_after": 10.25
+  },
+  {
+   "name": "synth_strong_mod2",
+   "mode": "focus",
+   "z_agl": 60,
+   "S_before": 1.763,
+   "S_after": 1.457,
+   "slope_w_before": 1.155,
+   "slope_w_after": 1.691,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 4.25,
+   "rot_win50_minu_after": 10.25
+  },
+  {
+   "name": "synth_strong_mod2",
+   "mode": "focus",
+   "z_agl": 100,
+   "S_before": 1.652,
+   "S_after": 1.448,
+   "slope_w_before": 1.155,
+   "slope_w_after": 1.691,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 4.25,
+   "rot_win50_minu_after": 10.25
+  },
+  {
+   "name": "synth_strong_mod2",
+   "mode": "nofocus",
+   "z_agl": 10,
+   "S_before": 2.567,
+   "S_after": 1.651,
+   "slope_w_before": 0.598,
+   "slope_w_after": 1.338,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 5.18,
+   "rot_win50_minu_after": 12.73
+  },
+  {
+   "name": "synth_strong_mod2",
+   "mode": "nofocus",
+   "z_agl": 30,
+   "S_before": 2.546,
+   "S_after": 1.66,
+   "slope_w_before": 0.598,
+   "slope_w_after": 1.338,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 5.18,
+   "rot_win50_minu_after": 12.73
+  },
+  {
+   "name": "synth_strong_mod2",
+   "mode": "nofocus",
+   "z_agl": 60,
+   "S_before": 2.393,
+   "S_after": 1.584,
+   "slope_w_before": 0.598,
+   "slope_w_after": 1.338,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 5.18,
+   "rot_win50_minu_after": 12.73
+  },
+  {
+   "name": "synth_strong_mod2",
+   "mode": "nofocus",
+   "z_agl": 100,
+   "S_before": 2.106,
+   "S_after": 1.451,
+   "slope_w_before": 0.598,
+   "slope_w_after": 1.338,
+   "rot_win50_frac_before": 0.0,
+   "rot_win50_frac_after": 0.0,
+   "rot_win50_minu_before": 5.18,
+   "rot_win50_minu_after": 12.73
+  }
+ ],
+ "slope_w_mean_median_before_after": {
+  "focus": [
+   0.6489293828095238,
+   1.1997204406857145
+  ],
+  "nofocus": [
+   0.25298894142857137,
+   0.9382049137285716
+  ]
+ },
+ "verdict": "Да, разгон после слабее и там, где сетка его разрешает: в окнах 100/50 м (S_после-1)/(S_до-1) медиана 0,60 (мин 0,41) против 0,50 (0,33) на 400 м, то есть окна возвращают лишь часть потери; «до» в окнах (S 3,7-4,0 на z_agl 10-30 м) почти не отличается от «до» на 400 м (3,7-3,8), так что завышения ступеньками на 400 м по этим 6 гребням не видно; ротор слабее (доля u∥<0 в окне 50 м у 1 из 6 гребней: 0,020 → 0,008, ниже порога 0,01, min u∥ −0,48 → −0,41, длина 400 → 300 м), но у ongudai massif2 не исчез.",
+ "scope": "6 гребней (ongudai massif 0/1/2, mod0; synth massif0, mod2), t=0, фокус на гребне z_agl 30 м, dp-stand formula mean",
+ "crest_U_after_over_before_median": 1.1898921477623752,
+ "ref_U_after_over_before_median": 1.6175984505800005,
+ "crest_U_after_over_before_median_400": 1.1063441692828562,
+ "ref_U_after_over_before_median_400": 1.6787712286143797,
+ "U_crest_ref_median_by_z_agl": {
+  "focus": {
+   "10": {
+    "crest_b": 10.499579599692876,
+    "crest_a": 12.883541122655506,
+    "ref_b": 2.3973364475972563,
+    "ref_a": 4.479566592553876
+   },
+   "30": {
+    "crest_b": 12.139819405308707,
+    "crest_a": 14.389242604581646,
+    "ref_b": 2.8946930843163496,
+    "ref_a": 5.606519982345658
+   },
+   "60": {
+    "crest_b": 13.517132815442942,
+    "crest_a": 15.14363160836361,
+    "ref_b": 3.9340464805428055,
+    "ref_a": 6.506039703486428
+   },
+   "100": {
+    "crest_b": 14.510061543348023,
+    "crest_a": 15.774126150901004,
+    "ref_b": 5.290997416695287,
+    "ref_a": 7.553328634944508
+   }
+  },
+  "nofocus": {
+   "10": {
+    "crest_b": 9.61481583306081,
+    "crest_a": 11.540384670909795,
+    "ref_b": 2.582062209959296,
+    "ref_a": 5.528247145841862
+   },
+   "30": {
+    "crest_b": 12.427439014572988,
+    "crest_a": 13.878001853283003,
+    "ref_b": 3.241327534377745,
+    "ref_a": 6.562410519712814
+   },
+   "60": {
+    "crest_b": 13.311015412956893,
+    "crest_a": 14.929749871817755,
+    "ref_b": 4.102956113800662,
+    "ref_a": 7.29099752659185
+   },
+   "100": {
+    "crest_b": 14.223191092159016,
+    "crest_a": 15.560161711766478,
+    "ref_b": 5.463919992570073,
+    "ref_a": 8.05277596792677
+   }
+  }
+ },
+ "far_U_mean_before_after": {
+  "ongudai_strong": [
+   9.175339279686103,
+   10.863250967127396
+  ],
+  "synth_strong": [
+   22.127941568238867,
+   22.324375340153715
+  ]
+ },
+ "verdict_S_split": "Потеря S - от опоры, не от гребня: |U| на гребне после ВЫШЕ (x1,19 в окнах, x1,11 на 400 м), |U| опоры после выше ещё сильнее (x1,62 / x1,68): «до» опора 2,4-5,3 м/с (z_agl 10-100) заблокирована ступеньками, после 4,5-7,6 м/с; свободный поток (far-точки) ongudai 9,2 -> 10,9, synth 22,1 -> 22,3. S «до» завышено знаменателем (малая U опоры), не разгоном на гребне."
+}
