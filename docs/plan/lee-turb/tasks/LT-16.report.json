@@ -1,0 +1,49 @@
+{
+  "status": "done",
+  "summary": "Полный прогон без правок: cargo test --release --workspace на ветке и на main — оба exit 0, падений нет. GDScript tools/tests_vs_base.sh --base main: копия 247 падений, база 250, новых падений 0, исправлено 3. Прогон сделан прежним исполнителем (по указанию координатора не перезапускался), результаты взяты из логов. Файл итогов записан в tools/research/lee_turb/fullrun/summary.json.",
+  "commits": [
+    "fe893e148 итог полного прогона тестов (fullrun/summary.json)"
+  ],
+  "checks": [
+    {
+      "name": "summary",
+      "value": "new 0",
+      "pass": true
+    },
+    {
+      "name": "scope: файлов в границах",
+      "value": "1",
+      "pass": true
+    },
+    {
+      "name": "cargo test branch (release workspace)",
+      "value": "exit 0, 0 FAILED",
+      "pass": true
+    },
+    {
+      "name": "cargo test main (release workspace)",
+      "value": "exit 0, 0 FAILED",
+      "pass": true
+    },
+    {
+      "name": "tests_vs_base GDScript: копия/база/новых/исправлено",
+      "value": "247 / 250 / 0 / 3",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept LT-16 --dry",
+  "uncertain": [],
+  "dp_feedback": "dpcli report --template LT-16 не принимает аргумент шаблона без поля карточки в явном виде; каталог fullrun/ в scope не существовал, пришлось создать. Логи прогонов лежат в ~/.cache/dpcli/deltaplan/jobs и в scratchpad, без ссылки из карточки.",
+  "extra": {
+    "fixed": [
+      "tests/terrain/test_built_patches.gd::test_places",
+      "tests/world_objects/test_eggs_no_osm.gd::test_found_table_relief",
+      "tests/game/test_gameplay.gd::test_camera_cycle_and_corner_instrument"
+    ]
+  },
+  "t": "2026-11-10T11:33:39",
+  "by": "executor"
+}
