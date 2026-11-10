@@ -140,3 +140,4 @@
 {"t": "2026-11-10T06:22:56", "by": "coordinator", "task": "LT-9", "ev": "checked", "note": "4/4 dp_air=ok:exit 0; dp_stand=ok:exit 0; ridge_starts=ok:3/3; air_field_contracts=ok:18/18"}
 {"t": "2026-11-10T06:23:56", "by": "reviewer", "task": "LT-9", "ev": "reviewed", "note": "Доработка 2 закрыла замечания прошлого ревью. Сверка W8 на текущем конфиге (LTM_CURRENT=1) сделана и сходится с отчётом: 70 из 1504 точек вне допуска, все в зо…", "verdict": "accept", "issues": {"minor": 2}, "review": "docs/plan/lee-turb/tasks/LT-9.review.json"}
 {"t": "2026-11-10T06:24:02", "by": "coordinator", "task": "LT-9", "ev": "accepted", "note": "по ревью: 2 minor; падение aushtau_south при --ridge-full — LT-11; W8 — решение 2026-11-10"}
+{"t": "2026-11-10T06:24:09", "by": "coordinator", "task": "LT-9", "ev": "merged", "commits": ["12078ad"]}
