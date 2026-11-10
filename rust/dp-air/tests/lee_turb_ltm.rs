@@ -281,6 +281,8 @@ fn field_path_gets_relief_and_mixing_layer() {
     let ft = FieldTurb::new(cfgs, 1);
     let (mut n_lee, mut n_r, mut n_du, mut n_wsep) = (0, 0, 0, 0);
     let mut worst = (f64::MAX, 0.0);
+    let (mut n_below, mut n_below_du0, mut n_r0, mut n_r0_strong) = (0, 0, 0, 0);
+    let mut r0_lee_max = 0.0f64;
     for ix in -40..=40 {
         for iz in -40..=40 {
             let (x, z) = (60.0 * ix as f32, 60.0 * iz as f32);
@@ -311,6 +313,15 @@ fn field_path_gets_relief_and_mixing_layer() {
                     n_r += usize::from(st.relief > 0.0);
                     n_du += usize::from(st.du > 0.0);
                     n_wsep += usize::from(st.w_sep > 0.0);
+                    if st.relief > f64::from(agl) {
+                        n_below += 1;
+                        n_below_du0 += usize::from(st.du <= 0.0);
+                    }
+                    if st.relief <= 0.0 {
+                        n_r0 += 1;
+                        r0_lee_max = r0_lee_max.max(st.lee_f);
+                        n_r0_strong += usize::from(st.lee_f > 0.3);
+                    }
                     if st.lee_f > 0.5 && st.relief <= 0.0 {
                         worst = (st.lee_f, st.relief);
                     }
@@ -319,8 +330,17 @@ fn field_path_gets_relief_and_mixing_layer() {
         }
     }
     println!("точек lee_f>0 при a=1: {n_lee}; r>0: {n_r}; ΔU>0: {n_du}; w_sep>0: {n_wsep}");
+    println!(
+        "agl<r: {n_below}, из них ΔU=0: {n_below_du0}; r=0: {n_r0} (lee_f>0,3: {n_r0_strong}, max lee_f {r0_lee_max:.3})"
+    );
     assert!(n_lee > 50, "зоны отрыва на пути с полем нет: {n_lee}");
     assert!(worst.0 == f64::MAX, "lee_f>0,5 при r=0: {worst:?}");
-    assert!(n_r * 10 >= n_lee * 8, "r>0 только в {n_r} из {n_lee}");
-    assert!(n_du > 0, "ΔU = 0 всюду в зоне отрыва");
+    // lee_f > 0 ∧ agl < r ⇒ ΔU > 0 во всех таких точках (LTM п.6а)
+    assert!(n_below > 50, "точек ниже гребня мало: {n_below}");
+    assert_eq!(n_below_du0, 0, "ΔU = 0 в зоне отрыва ниже гребня");
+    // r = 0 — только на самом краю признака отрыва (lee_f ~ 0: хвост smoothstep у границы зоны, гребня
+    // против ветра нет); в измеренном срезе таких 3 из 3120 с lee_f < 0,001
+    assert!(r0_lee_max < 0.05, "r = 0 при заметном lee_f: {r0_lee_max}");
+    assert!(n_r + n_r0 == n_lee);
+    let _ = n_du;
 }

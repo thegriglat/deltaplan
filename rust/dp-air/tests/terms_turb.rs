@@ -32,9 +32,20 @@ fn atmosphere() -> Configs {
     Configs::new(vec![("atmosphere".into(), t)])
 }
 
-/// Конфиг слоя смешения до LTM v1 (0,18 / 0,18 / 0,14, рывки 0,42): эталоны GD записаны с ним;
-/// поведение ветви слоя смешения по Delville — в `lee_turb_ltm.rs`.
+/// Конфиг слоя смешения до LTM v1 (0,18 / 0,18 / 0,14, рывки 0,42): эталоны GD (дампы
+/// `rw8_dump`, `dbg_ongudai_*`) записаны моделью до LTM v1, и их допуски W8 нельзя менять, поэтому
+/// сверка с ними идёт на прежних коэффициентах и `w_sep = 0` — это проверка, что остальной код не
+/// сдвинулся. Поведение ветви слоя смешения по Delville — в `lee_turb_ltm.rs`.
+/// `LTM_CURRENT=1` в окружении — те же сверки на текущем конфиге и с `w_sep` по записи (разведка
+/// расхождения с эталонами W8: допуски и эталоны не меняются, тест может падать).
+fn current_cfg() -> bool {
+    std::env::var("LTM_CURRENT").is_ok_and(|v| v == "1")
+}
+
 fn legacy_atmosphere() -> Configs {
+    if current_cfg() {
+        return atmosphere();
+    }
     let mut v: Value = serde_json::from_str(
         &std::fs::read_to_string(repo().join("configs/atmosphere.json")).unwrap(),
     )
@@ -396,15 +407,22 @@ fn replay(ft: &FieldTurb, z0: f64, r: &[f64]) -> (FieldState, dp_air::terms::Tur
     for (q, t) in tb.iter_mut().enumerate() {
         *t = r[rec::TB + q] as f32;
     }
+    let lee_f = sep::lee(ft.cfg(), z0, r[rec::UF], r[rec::AGL], &tb);
+    let relief = r[rec::RELIEF].max(0.0);
+    let w_sep = if current_cfg() {
+        sep::wall_shear_off(ft.cfg(), lee_f, relief, r[rec::AGL], r[rec::DX])
+    } else {
+        0.0
+    };
     let st = FieldState {
         tb,
         uf: r[rec::UF],
-        lee_f: sep::lee(ft.cfg(), z0, r[rec::UF], r[rec::AGL], &tb),
-        relief: r[rec::RELIEF].max(0.0),
+        lee_f,
+        relief,
         danger: r[rec::DANGER],
         u_h: r[rec::U_H],
         du: r[rec::DU],
-        w_sep: 0.0,
+        w_sep,
     };
     let p = PointIn {
         pos: [r[0] as f32, r[1] as f32, r[2] as f32],
@@ -524,7 +542,7 @@ fn ongudai_sigma_turb_within_w8() {
     let cases = cases_with_dump();
     assert!(cases.len() >= 4);
     let sc = atmosphere_sum_cfg();
-    let (mut n, mut n_lee, mut bad) = (0, 0, 0);
+    let (mut n, mut n_lee, mut bad, mut n_bad_lee) = (0, 0, 0, 0);
     for (name, buf) in &cases {
         let path = repo().join(format!("tests/fixtures/wind/cases/{name}.json"));
         let case = read_case(&path).unwrap();
@@ -563,12 +581,20 @@ fn ongudai_sigma_turb_within_w8() {
             n_lee += usize::from(r[rec::LEE_F] > 0.0);
             if (mine - want[i]).abs() > tol {
                 bad += 1;
-                eprintln!("{name} #{i}: σ_u {mine:.4} против {:.4}", want[i]);
+                n_bad_lee += usize::from(r[rec::LEE_F] > 0.0);
+                eprintln!(
+                    "{name} #{i}: σ_u {mine:.4} против {:.4}; lee_f {:.3} r {:.1} agl {:.1} du {:.2}",
+                    want[i],
+                    r[rec::LEE_F],
+                    r[rec::RELIEF],
+                    r[rec::AGL],
+                    r[rec::DU]
+                );
             }
         }
     }
     println!(
-        "sigma[turb] ongudai_*: {n} точек, из них в зоне отрыва {n_lee}, вне допуска W8: {bad}"
+        "sigma[turb] ongudai_*: {n} точек, из них в зоне отрыва {n_lee}, вне допуска W8: {bad} (из них в зоне отрыва {n_bad_lee})"
     );
     assert!(n >= 100);
     assert_eq!(bad, 0);
