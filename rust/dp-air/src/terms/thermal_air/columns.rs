@@ -1,13 +1,13 @@
 //! Столбцы строк `[lo, hi)`: `w*`, `z_i` столбца с опусканием, `F̄`, `Φ`, потолок частицы, `z_l`,
 //! радиус исключения, `n_A`, `K̄`, кандидаты (`_cols_band` GD). Чистая функция столбца.
 use super::{
-    CORE_FLUX, HB_B, RHO_CP, Shape, ZI_MIN, allen_density, allen_r2, gclamp, gmax, gmin, wstar,
+    HB_B, RHO_CP, ZI_MIN, allen_density, allen_r2, gclamp, gmax, gmin, wstar,
 };
 use crate::field::wind_field::Field;
+use crate::terms::thermal::bubble_kbar;
 
 pub(super) struct ColsIn<'a> {
     pub f: &'a Field,
-    pub shape: &'a Shape,
     pub heat: &'a [f32],
     pub k1s: &'a [u32],
     pub hcs: &'a [f32],
@@ -147,12 +147,8 @@ pub(super) fn cols_band(c: &ColsIn, lo: usize, hi: usize) -> ColsOut {
             o.cand_r[l] = (c.cut * rc) as f32;
             if hk > 0.0 && o.phi[l] > 0.0 {
                 o.na[l] = allen_density(zl) as f32;
-                o.k[l] = (CORE_FLUX
-                    * std::f64::consts::PI
-                    * rc
-                    * rc
-                    * c.shape.mean(gmax(d_top, ZI_MIN))
-                    * c.shape.life_mean) as f32;
+                // K̄ шаблона пузыря по z_l и w* столба (TB4 v3)
+                o.k[l] = bubble_kbar::kbar(zl, ws) as f32;
             }
             // Кандидат: греется (H > 0), поток есть, столб частицы ≥ ZI_MIN, внутри поля (вес края ≥ ½)
             if hk <= 0.0 || o.phi[l] <= 0.0 || d_top < ZI_MIN {

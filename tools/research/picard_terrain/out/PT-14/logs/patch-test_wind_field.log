@@ -1,0 +1,26 @@
+Initialize godot-rust (API v4.7.stable.official, runtime v4.7.2.stable.official, safeguards balanced)
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Cannot open file 'res://locale/ui.ru.translation'.
+   at: load (core/io/resource_format_binary.cpp:1156)
+ERROR: Failed loading resource: res://locale/ui.ru.translation.
+   at: _load (core/io/resource_loader.cpp:317)
+ERROR: Cannot open file 'res://locale/ui.en.translation'.
+   at: load (core/io/resource_format_binary.cpp:1156)
+ERROR: Failed loading resource: res://locale/ui.en.translation.
+   at: _load (core/io/resource_loader.cpp:317)
+steam: inactive (no_feature)
+    wind_field: макс. ошибка 0.0
+  ok   test_wind_field.gd::test_constant_field
+    wind_field: макс. ошибка 0.00000048054801
+  ok   test_wind_field.gd::test_linear_field_exact
+  ok   test_wind_field.gd::test_log_profile_near_ground
+  ok   test_wind_field.gd::test_masked_columns_and_slope
+  ok   test_wind_field.gd::test_nan_and_limits
+  ok   test_wind_field.gd::test_contains_and_edge
+  ok   test_wind_field.gd::test_set_combines_levels_and_analytic
+  ok   test_wind_field.gd::test_blend_monotonic
+  ok   test_wind_field.gd::test_from_mac_centers
+
+9 тестов, 0 упало, 0 пропущено
+exit=0

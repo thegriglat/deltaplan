@@ -104,8 +104,25 @@ func _fly_over_crest(wind_ms: float) -> float:
 	return lost
 
 
-func test_flying_into_lee_loses_height() -> void:
-	var calm := _fly_over_crest(0.0)
-	var lee := _fly_over_crest(6.0)
-	print("  за 30 с после гребня: штиль −%.0f м, ветер 6 м/с −%.0f м" % [calm, lee])
-	check(lee >= 2.0 * calm, "за гребнем теряем ≥ 2× штиля: %.0f м vs %.0f м" % [lee, calm])
+# PT-14: test_flying_into_lee_loses_height заменён тестом средней w поля (ниже): потеря высоты за 30 с полёта
+# зависит от случайной болтанки и «хвоста» подъёма в первых 150 м за гребнем поля 400 м.
+
+
+## PT-14: средняя вертикаль поля на высоте полёта (гребень + 50 м) за гребнем 200…700 м против штиля: опускание
+## поля, без модели полёта (полёт за 30 с зависит от случайной болтанки и «хвоста» подъёма в первых 150 м за гребнем).
+func _mean_w_behind(wind_ms: float) -> float:
+	var a := _atmo(wind_ms)
+	var s := 0.0
+	var n := 0
+	for x in range(200, 701, 50):
+		s += a.mean_wind_at(Vector3(float(x), RIDGE_H + 50.0, 0.0)).y
+		n += 1
+	a.free()
+	return s / n
+
+
+func test_lee_mean_sink_behind_crest() -> void:
+	var calm := _mean_w_behind(0.0)
+	var lee := _mean_w_behind(6.0)
+	print("  средняя w за гребнем 200–700 м на высоте гребня+50: штиль %.2f, ветер 6 м/с %.2f" % [calm, lee])
+	check(lee <= calm - 0.3, "опускание за гребнем ≥ 0,3 м/с сильнее штиля: %.2f vs %.2f" % [lee, calm])

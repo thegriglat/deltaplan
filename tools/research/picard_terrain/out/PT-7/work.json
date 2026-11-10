@@ -1,0 +1,70 @@
+{
+ "ongudai": {
+  "n400": 96,
+  "dx400": {
+   "nx": 96,
+   "mixed_layers_total": 22481,
+   "mixed_layers_mean_per_col": 2.44,
+   "pt_evals_vf_M": 6.5,
+   "raster_nodes_M": 2.36
+  },
+  "dx1200": {
+   "nx": 32,
+   "mixed_layers_total": 4601,
+   "mixed_layers_mean_per_col": 4.49,
+   "pt_evals_vf_M": 1.33,
+   "raster_nodes_M": 2.36
+  }
+ },
+ "synthetic": {
+  "n400": 36,
+  "dx400": {
+   "nx": 36,
+   "mixed_layers_total": 2017,
+   "mixed_layers_mean_per_col": 1.56,
+   "pt_evals_vf_M": 0.58,
+   "raster_nodes_M": 0.33
+  },
+  "dx1200": {
+   "nx": 12,
+   "mixed_layers_total": 385,
+   "mixed_layers_mean_per_col": 2.67,
+   "pt_evals_vf_M": 0.11,
+   "raster_nodes_M": 0.33
+  }
+ },
+ "training_island": {
+  "n400": 96,
+  "dx400": {
+   "nx": 96,
+   "mixed_layers_total": 9388,
+   "mixed_layers_mean_per_col": 1.02,
+   "pt_evals_vf_M": 2.71,
+   "raster_nodes_M": 2.36
+  },
+  "dx1200": {
+   "nx": 32,
+   "mixed_layers_total": 1079,
+   "mixed_layers_mean_per_col": 1.05,
+   "pt_evals_vf_M": 0.31,
+   "raster_nodes_M": 2.36
+  }
+ },
+ "volcano_island": {
+  "n400": 96,
+  "dx400": {
+   "nx": 96,
+   "mixed_layers_total": 9655,
+   "mixed_layers_mean_per_col": 1.05,
+   "pt_evals_vf_M": 2.79,
+   "raster_nodes_M": 2.36
+  },
+  "dx1200": {
+   "nx": 32,
+   "mixed_layers_total": 1170,
+   "mixed_layers_mean_per_col": 1.14,
+   "pt_evals_vf_M": 0.34,
+   "raster_nodes_M": 2.36
+  }
+ }
+}

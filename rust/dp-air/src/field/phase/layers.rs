@@ -85,7 +85,7 @@ pub fn laplace(p: &Prepared) -> Laplace {
     if nl > 0 {
         let (ex, ey, om) = (p.prm.ex, p.prm.ey, p.prm.sor_omega);
         let iters = p.cfg.d.sor_iters;
-        let hc = &p.cols.hc;
+        let hc = &p.cols.hc_type;
         data.par_chunks_mut(3 * n2)
             .zip(zl.par_iter())
             .for_each(|(o, &z)| {

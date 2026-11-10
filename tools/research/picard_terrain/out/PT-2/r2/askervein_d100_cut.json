@@ -1,0 +1,114 @@
+{
+  "case": "askervein_d100_cut",
+  "dev": {
+    "div_rms": null,
+    "div_rms_ref": null,
+    "p_rel": null,
+    "th_abs": null,
+    "u0": null,
+    "u_rel": null
+  },
+  "dev_crop": null,
+  "dtype": "f32",
+  "format": "picard-rs-result",
+  "history": [
+    {
+      "div_rms": 2.434122077187885e-6,
+      "it": 10,
+      "mom_max": 0.1346939206123352,
+      "mom_rms": 0.00338541826429712,
+      "t_s": 0.063025645,
+      "th_rms": 0.0,
+      "thd_rms": 0.0
+    },
+    {
+      "div_rms": 3.867144417217206e-7,
+      "it": 20,
+      "mom_max": 0.03954287990927696,
+      "mom_rms": 0.0008634151256439951,
+      "t_s": 0.125640069,
+      "th_rms": 0.0,
+      "thd_rms": 0.0
+    },
+    {
+      "div_rms": 8.062470400488088e-8,
+      "it": 30,
+      "mom_max": 0.01338331401348114,
+      "mom_rms": 0.0002816316983428228,
+      "t_s": 0.191584283,
+      "th_rms": 0.0,
+      "thd_rms": 0.0
+    },
+    {
+      "div_rms": 1.7072144292071818e-8,
+      "it": 40,
+      "mom_max": 0.004680454730987549,
+      "mom_rms": 0.00010060932780228712,
+      "t_s": 0.253081227,
+      "th_rms": 0.0,
+      "thd_rms": 0.0
+    },
+    {
+      "div_rms": 7.522275345275368e-9,
+      "it": 50,
+      "mom_max": 0.0021984875202178955,
+      "mom_rms": 0.00003803540293156256,
+      "t_s": 0.312477829,
+      "th_rms": 0.0,
+      "thd_rms": 0.0
+    },
+    {
+      "div_rms": 5.326999473745484e-9,
+      "it": 60,
+      "mom_max": 0.0008325055241584778,
+      "mom_rms": 0.000014807266460918994,
+      "t_s": 0.372513942,
+      "th_rms": 0.0,
+      "thd_rms": 0.0
+    }
+  ],
+  "history_ref": null,
+  "host": {
+    "cpu": "Intel(R) Xeon(R) CPU E5-2666 v3 @ 2.90GHz",
+    "git": "1e38bb464",
+    "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
+  },
+  "init": null,
+  "input": "/home/greg/data/picard_terrain/cases/askervein_d100_cut.json",
+  "iters": 60,
+  "iters_ref": null,
+  "profile": "release",
+  "residuals": {
+    "div_rms": 5.326999473745484e-9,
+    "it": 60,
+    "mom_max": 0.0008325055241584778,
+    "mom_rms": 0.000014807266460918994,
+    "t_s": 0.372513942,
+    "th_rms": 0.0,
+    "thd_rms": 0.0
+  },
+  "snapshots": [],
+  "status": "ok",
+  "stop": "converged",
+  "threads": 8,
+  "time": {
+    "check_ms": 2.2203141666666664,
+    "ms_per_iter": 5.98622305,
+    "n_cells": 35200,
+    "ns_per_cell_iter": 170.06315482954548,
+    "phase_ms": {
+      "heat": 1.2610519999999998,
+      "kupd": 0.31850273333333334,
+      "mom": 2.4997962333333335,
+      "other": 0.12052191666666694,
+      "proj": 1.7863501666666672
+    },
+    "pool_threads": 8,
+    "process_cpu_s": 3.43,
+    "setup_s": 0.059957534,
+    "total_s": 0.447975764
+  },
+  "time_budget_s": null,
+  "tol_scale": 1.0,
+  "version": 3
+}

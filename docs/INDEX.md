@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-11-09"
+updated: "2026-11-10"
 summary: "Точка входа: модули docs/ по подпроектам, прочие документы по типам."
 related: []
 generated: true
@@ -179,6 +179,21 @@ generated: true
   - [tools/research/sw_ground/sheet/summary.md](../tools/research/sw_ground/sheet/summary.md) — SWG-7 вывод: вихревой лист над зоной снижает завышение лее с верным знаком, но мало; не встраивать, дальше — зона и толщина слоя.
   - [tools/research/sw_ground/timing/summary.md](../tools/research/sw_ground/timing/summary.md) — SWG-3: панели 3D на окнах игры 100/50 м медленнее Пикара крейта в 14–40 раз (8 потоков, tol 5); узкое место — опрос поля в FP64.
   - [tools/research/sw_ground/zone/summary.md](../tools/research/sw_ground/zone/summary.md) — SWG-8 вывод: скорость зоны и слой смешения снимают ошибку под оболочкой, но доля лее в ±15 % 0,08–0,17; дальше — высота зоны.
+- **picard-terrain** — Мелкий рельеф в Пикар на той же сетке: срезанные клетки и ограниченный 2-й порядок; разгон Askervein/Каянча, ротор Perdigão. [closed 2026-11-10] — [план](plan/picard-terrain.md) · [контракты](contracts/picard-terrain.md) · [решения](plan/picard-terrain/decisions.md) · [сводка](plan/picard-terrain/summary.md) · полный журнал: `archive/picard-terrain`
+  - [docs/research/picard_terrain.md](research/picard_terrain.md) — picard-terrain: срезанные клетки и 2-й порядок в Пикаре (сетка 50/100 м) — возврат разгона, цена, ротор Perdigão, варианты. [closed]
+  - [docs/research/picard_terrain_game.md](research/picard_terrain_game.md) — picard-terrain, этап 2: карта пути срезанных клеток в поле игры (dp-air) и разбиение встраивания PT-9…PT-12.
+  - [tools/research/picard_terrain/PT-11b/README.md](../tools/research/picard_terrain/PT-11b/README.md) — PT-11b: разгон на гребне и ротор в окнах 100/50 м до/после срезанных клеток; потеря S — от опоры, |U| гребня ×1,19. [closed]
+  - [tools/research/picard_terrain/PT-14/README.md](../tools/research/picard_terrain/PT-14/README.md) — PT-14: бисекция тестов и разложение поля — подветренная болтанка слабее из-за поля PT-9; снимок расходится из-за PT-10. [closed]
+  - [tools/research/picard_terrain/README.md](../tools/research/picard_terrain/README.md) — picard-terrain: срезанные клетки и ограниченный 2-й порядок в picard_rs на той же сетке — случаи, прогоны, таблицы.
+  - [tools/research/picard_terrain/out/PT-11/README.md](../tools/research/picard_terrain/out/PT-11/README.md) — PT-11: время поля и присутствие рельефа до/после срезанных клеток на dp-stand (формула, 4 места).
+  - [tools/research/picard_terrain/out/PT-5/README.md](../tools/research/picard_terrain/out/PT-5/README.md) — PT-5: воспроизведение замера ротора Perdigão и мачт. [closed]
+  - [tools/research/picard_terrain/out/PT-7/README.md](../tools/research/picard_terrain/out/PT-7/README.md) — PT-7: данные разведки пути срезанных клеток в поле игры (dp-air); вывод — docs/research/picard_terrain_game.md. [closed]
+  - [tools/research/picard_terrain/out/PT-1/summary.md](../tools/research/picard_terrain/out/PT-1/summary.md) — PT-1: вывод — порт picard_rs совпадает с air3d f64, недобор 1-го порядка на Askervein и Каянче. [closed]
+  - [tools/research/picard_terrain/out/PT-5/summary.md](../tools/research/picard_terrain/out/PT-5/summary.md) — PT-5: итог — ротор Perdigão NE/SW и мачты по вариантам Пикара. [closed]
+- **thermal-bubble** — Термик как всплывающий пузырь-вихревое кольцо: шаблон в системе пузыря + снос, масса сохраняется; проверка идеи прототипом. [closed 2026-11-10] — [план](plan/thermal-bubble.md) · [контракты](contracts/thermal-bubble.md) · [решения](plan/thermal-bubble/decisions.md) · [сводка](plan/thermal-bubble/summary.md) · полный журнал: `archive/thermal-bubble`
+  - [docs/research/thermal_bubble.md](research/thermal_bubble.md) — thermal-bubble: шаблон пузыря замкнут по массе, даёт приток; круг 2 — ядро по измерениям, dp-air за флагом (37 мс/с), границы. [closed]
+  - [docs/research/thermal_bubble_round3.md](research/thermal_bubble_round3.md) — thermal-bubble, круг 3: шаблон пузыря v5 по умолчанию, F0 из потока, рельеф, замер в игре flight_r4, границы. [closed]
+  - [tools/research/thermal_bubble/README.md](../tools/research/thermal_bubble/README.md) — thermal-bubble: шаблон термика v3 (Хилл со сглаженным краем, шлейф Тёрнера, ядро по измерениям): формулы, числа, допущения.
 
 ## flight
 

@@ -480,7 +480,6 @@ impl AirThermals {
         // --- столбцы полосами строк: Φ, потолок частицы, z_l, n_A, K̄, кандидаты
         let cin = ColsIn {
             f,
-            shape: &shape,
             heat,
             k1s,
             hcs,
@@ -620,7 +619,6 @@ impl AirThermals {
         // --- параметры источников
         let sin = sources::SrcIn {
             f,
-            shape: &shape,
             chosen: &chosen,
             picked: &picked,
             hcs,

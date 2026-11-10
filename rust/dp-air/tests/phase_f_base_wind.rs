@@ -54,6 +54,7 @@ fn synth() -> Prepared {
         u10: 0.2,
         z_i: 2400.0,
         hc: &hc,
+        hc_type: &hc,
         gam: &gam,
         heat: &heat,
         heat_used: &heat,

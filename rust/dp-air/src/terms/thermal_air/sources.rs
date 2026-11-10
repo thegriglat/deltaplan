@@ -1,13 +1,13 @@
 //! Параметры источников (`_src_band` GD) и `fill`: термик источника — точка, потолок, сила, кольцо,
 //! радиус, редкий «очень сильный».
-use super::{CORE_FLUX, K_ALLEN, Shape, ZI_MIN, allen_r2, gclamp, gmax, gmin, wstar};
+use super::{CORE_FLUX, K_ALLEN, ZI_MIN, allen_r2, gclamp, gmax, gmin, wstar};
 use crate::field::wind_field::Field;
 use crate::rand::Pcg32;
+use crate::terms::thermal::bubble_kbar;
 use std::collections::HashMap;
 
 pub(super) struct SrcIn<'a> {
     pub f: &'a Field,
-    pub shape: &'a Shape,
     pub chosen: &'a [usize],
     pub picked: &'a HashMap<usize, [f32; 2]>,
     pub hcs: &'a [f32],
@@ -85,12 +85,8 @@ pub(super) fn src_band(c: &SrcIn, lo: usize, hi: usize) -> SrcOut {
         let radius = allen_r2(1.0, c.c_zl[col] as f64) as f32;
         o.radius.push(radius);
         // d_top в расчёте kbar — не округлённый (локальная переменная GD)
-        let kbar = CORE_FLUX
-            * std::f64::consts::PI
-            * radius as f64
-            * radius as f64
-            * c.shape.mean(d_top)
-            * c.shape.life_mean;
+        // тот же K̄ шаблона, что и в столбце: среднее «пузыри + между» остаётся w_conv поля
+        let kbar = bubble_kbar::kbar(c.c_zl[col] as f64, ws as f64);
         let w0 = (K_ALLEN * ws as f64) as f32;
         o.w0.push(w0);
         let carried = (w0 as f64 * kbar) as f32;

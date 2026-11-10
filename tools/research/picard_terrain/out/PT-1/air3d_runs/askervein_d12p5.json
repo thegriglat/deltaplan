@@ -1,0 +1,27 @@
+{
+ "case": "askervein_d12p5",
+ "site": "askervein",
+ "dx": 12.5,
+ "solver": "air3d",
+ "dtype": "f32",
+ "adv2": true,
+ "limiter": 1,
+ "status": "ok",
+ "iters": 171,
+ "max_iters": 4000,
+ "final": {
+  "mom_rms": 1.3330074978779915e-05,
+  "th_rms": 0.0,
+  "div_rms": 4.2372889197395125e-08
+ },
+ "t_solve_s": 48.679306118021486,
+ "wall_s": 58.10511408299499,
+ "ms_per_iter": 284.6743047837514,
+ "n": [
+  322,
+  322,
+  164
+ ],
+ "state": "states/askervein_d12p5_air3d.json",
+ "git": "408ccb5ad8f457edc6f7fb35b6a7cbeb9126ee04"
+}

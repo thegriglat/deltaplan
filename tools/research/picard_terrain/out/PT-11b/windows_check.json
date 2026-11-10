@@ -1,0 +1,146 @@
+[
+ {
+  "name": "ongudai_strong_massif0",
+  "windows_after": [
+   {
+    "dx": 100.0,
+    "x0": 9250.0,
+    "y0": -6850.0
+   },
+   {
+    "dx": 50.0,
+    "x0": 10850.0,
+    "y0": -5250.0
+   }
+  ],
+  "win_s": 71.757211336,
+  "windows_error": null,
+  "geo_same": true,
+  "crest_in50": true,
+  "n_in50": 351,
+  "n_in100": 565,
+  "n_pts": 569,
+  "crest_all_in50": true,
+  "plain_in50": false
+ },
+ {
+  "name": "ongudai_strong_massif1",
+  "windows_after": [
+   {
+    "dx": 100.0,
+    "x0": 9375.0,
+    "y0": -3450.0
+   },
+   {
+    "dx": 50.0,
+    "x0": 10975.0,
+    "y0": -1850.0
+   }
+  ],
+  "win_s": 70.704197733,
+  "windows_error": null,
+  "geo_same": true,
+  "crest_in50": true,
+  "n_in50": 351,
+  "n_in100": 565,
+  "n_pts": 569,
+  "crest_all_in50": true,
+  "plain_in50": false
+ },
+ {
+  "name": "ongudai_strong_massif2",
+  "windows_after": [
+   {
+    "dx": 100.0,
+    "x0": 3975.0,
+    "y0": -3500.0
+   },
+   {
+    "dx": 50.0,
+    "x0": 5575.0,
+    "y0": -1900.0
+   }
+  ],
+  "win_s": 90.961219392,
+  "windows_error": null,
+  "geo_same": true,
+  "crest_in50": true,
+  "n_in50": 351,
+  "n_in100": 565,
+  "n_pts": 569,
+  "crest_all_in50": true,
+  "plain_in50": false
+ },
+ {
+  "name": "ongudai_strong_mod0",
+  "windows_after": [
+   {
+    "dx": 100.0,
+    "x0": 3500.0,
+    "y0": -3375.0
+   },
+   {
+    "dx": 50.0,
+    "x0": 5100.0,
+    "y0": -1775.0
+   }
+  ],
+  "win_s": 95.269815795,
+  "windows_error": null,
+  "geo_same": true,
+  "crest_in50": true,
+  "n_in50": 351,
+  "n_in100": 569,
+  "n_pts": 569,
+  "crest_all_in50": true,
+  "plain_in50": false
+ },
+ {
+  "name": "synth_strong_massif0",
+  "windows_after": [
+   {
+    "dx": 100.0,
+    "x0": 0.0,
+    "y0": -4200.0
+   },
+   {
+    "dx": 50.0,
+    "x0": 1600.0,
+    "y0": -2600.0
+   }
+  ],
+  "win_s": 84.109213493,
+  "windows_error": null,
+  "geo_same": true,
+  "crest_in50": true,
+  "n_in50": 335,
+  "n_in100": 565,
+  "n_pts": 569,
+  "crest_all_in50": true,
+  "plain_in50": false
+ },
+ {
+  "name": "synth_strong_mod2",
+  "windows_after": [
+   {
+    "dx": 100.0,
+    "x0": -100.0,
+    "y0": -3475.0
+   },
+   {
+    "dx": 50.0,
+    "x0": 1500.0,
+    "y0": -1875.0
+   }
+  ],
+  "win_s": 72.366267936,
+  "windows_error": null,
+  "geo_same": true,
+  "crest_in50": true,
+  "n_in50": 335,
+  "n_in100": 569,
+  "n_pts": 569,
+  "crest_all_in50": true,
+  "plain_in50": false
+ }
+]
