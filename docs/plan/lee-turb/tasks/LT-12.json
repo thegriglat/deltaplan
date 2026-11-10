@@ -1,0 +1,62 @@
+{
+  "id": "LT-12",
+  "module": "lee-turb",
+  "type": "dp-researcher",
+  "title": "Сверка LTM v1 на поле со срезанными клетками: мачты Perdigão/Askervein и разрезы Онгудая, прежняя против новой",
+  "goal": "Таблица приёмки модуля: болтанка за гребнем прежняя (7665fb7, main со срезанными клетками до LT-9) против LTM v1 (feature/lee-turb) против измерений LTO — ТКЭ/u_ref², положение максимума (x/H, z/H), RMSE против фона; разрезы Онгудая: где максимум σ_w, какая ветвь.",
+  "plan_ref": "Задачи (уточняет координатор) п.4; Приёмка",
+  "contracts": [
+    {
+      "name": "LTM",
+      "version": "1",
+      "ref": "docs/contracts/lee-turb.md"
+    },
+    {
+      "name": "LTS",
+      "version": "1",
+      "ref": "docs/contracts/lee-turb.md"
+    },
+    {
+      "name": "LTO",
+      "version": "1",
+      "ref": "docs/contracts/lee-turb.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/lee-turb-LT-12",
+  "branch": "lee-turb/LT-12",
+  "base": "feature/lee-turb",
+  "scope": [
+    "tools/research/lee_turb/verify/",
+    "docs/research/lee_turb/verify.md"
+  ],
+  "dont_touch": [
+    "rust/",
+    "configs/",
+    "scripts/",
+    "tests/",
+    "docs/guide/",
+    "docs/contracts/",
+    "tools/research/lee_turb/fieldcheck/",
+    "tools/research/lee_turb/model/"
+  ],
+  "accept": [
+    {
+      "name": "lts",
+      "cmd": "sh -c 'python3 tools/research/lee_turb/contract/check_contract.py $HOME/data/lee_turb/lts_verify/*.lts.csv'",
+      "expect": "exit=0"
+    },
+    {
+      "name": "masts",
+      "cmd": "python3 -c \"import csv;print('n',sum(1 for _ in csv.DictReader(open('tools/research/lee_turb/verify/out/mast_compare.csv'))))\"",
+      "expect": "num:n (\\d+) >=80"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check docs/research/lee_turb/verify.md",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-10T06:24:32"
+}
