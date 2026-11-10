@@ -2,7 +2,7 @@
 //! set_focuses → start_at(t) и ожидание Ready.
 use crate::sha1::sha1_hex;
 use dp_air::fixtures::{Case, read_case, read_place};
-use dp_air::{AirModel, Calm, Configs, Formula, State};
+use dp_air::{AirModel, Calm, Configs, Formula, Place, State};
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 
@@ -88,8 +88,7 @@ fn s<T, E: std::fmt::Display>(r: Result<T, E>) -> Result<T, String> {
 }
 
 pub fn open(a: &OpenArgs) -> Result<Session, String> {
-    let mut model = make_model(a.model)?;
-    let case = prepare(model.as_mut(), a)?;
+    let (model, case, _, _) = prepare(a, make_model(a.model)?)?;
     Ok(Session {
         model,
         case,
@@ -100,19 +99,23 @@ pub fn open(a: &OpenArgs) -> Result<Session, String> {
 
 /// Конкретная `Formula` (детерминированная) по случаю: для подкоманд, которым нужен её журнал.
 pub fn open_formula(a: &OpenArgs) -> Result<(Formula, Case), String> {
-    let mut model = Formula::new().with_deterministic(true);
-    let case = prepare(&mut model, a)?;
-    Ok((model, case))
+    let (model, case, _, _) = prepare(a, Box::new(Formula::new().with_deterministic(true)))?;
+    Ok((*model, case))
 }
 
-/// configure → load_place → set_conditions → set_static_thermals → set_focuses.
-fn prepare(model: &mut dyn AirModel, a: &OpenArgs) -> Result<Case, String> {
+/// Подготовка модели `m` по случаю (configure → load_place → … → set_focuses); отдаёт модель, случай,
+/// конфиги и второй экземпляр места (для потребителей, которым нужны рельеф и ctx слагаемых).
+pub fn prepare<M: AirModel + ?Sized>(
+    a: &OpenArgs,
+    mut model: Box<M>,
+) -> Result<(Box<M>, Case, Configs, Place), String> {
     let case = s(read_case(a.case))?;
     let place_path = a
         .place
         .map(Path::to_path_buf)
         .unwrap_or_else(|| case.place_path(a.case));
     let place = s(read_place(&place_path))?;
+    let place2 = s(read_place(&place_path))?;
     let cfg = load_configs(a.configs)?;
     for w in config_warnings(&case, &cfg) {
         eprintln!("warning: {w}");
@@ -122,11 +125,15 @@ fn prepare(model: &mut dyn AirModel, a: &OpenArgs) -> Result<Case, String> {
     s(model.set_conditions(&case.conditions))?;
     s(model.set_static_thermals(&case.static_thermals, case.static_mode))?;
     s(model.set_focuses(&case.focuses))?;
-    Ok(case)
+    Ok((model, case, cfg, place2))
 }
 
 /// `start_at(t)` и ожидание Ready (опрос `status`).
-pub fn go_to_model(model: &mut dyn AirModel, t: f64, timeout: Duration) -> Result<(), String> {
+pub fn go_to_model<M: AirModel + ?Sized>(
+    model: &mut M,
+    t: f64,
+    timeout: Duration,
+) -> Result<(), String> {
     s(model.start_at(t))?;
     let t0 = Instant::now();
     loop {

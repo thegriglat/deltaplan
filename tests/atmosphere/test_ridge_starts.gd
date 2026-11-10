@@ -43,10 +43,14 @@ const WEAK_CLIMB_SITES: Dictionary = {
 }
 ## Те же два старта: подветренная зона в этом рельефе неглубокая (линия тени рядом с землёй) —
 ## болтанка за гребнем не всегда заметно больше наветренной. Проверяем только опускание (w < 0).
+## aushkul/aushtau_south (lee-turb LT-11, docs/research/lee_turb/leezone.md): в точке теста поток
+## прилипший (lee_f = 0), оба σ — конвективный пол 0,6·w*; механика подветренной 0,93 < 1,08;
+## по Perdigão ТКЭ сразу за гребнем ниже фона. Решение координатора 2026-11-10 (decisions.jsonl).
 const WEAK_LEE_SITES: Dictionary = {
 	"altai/tugaya_south": true,
 	"askarovo/biyagoda_east": true,
 	"aushkul/ridge_west": true,
+	"aushkul/aushtau_south": true,
 }
 
 const LOCATIONS: Array[String] = ["altai", "askarovo", "aushkul", "ongudai"]

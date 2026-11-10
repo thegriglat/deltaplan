@@ -523,18 +523,22 @@ func test_c4_sample_dx() -> void:
 	approx(s.sample_dx(Vector3(1.0e5, 300.0, 0.0), 0.0), 0.0, 1.0e-9, "вне поля — 0")
 
 
-## C4 v4: ключи подветренной эвристики поверх поля (у каждого _doc).
+## C4 v5: ключи подветренной эвристики поверх поля (у каждого _doc); LTM v1 — σ_v слоя, снятие стенки.
 func test_c4_lee_keys() -> void:
 	var l: Dictionary = Config.get_config("atmosphere").get("lee", {})
 	for key in [
 		"field_burst_per_du", "field_reverse_per_uh", "field_bubble_length_per_relief",
-		"field_resolved_cells", "field_sigma_u_per_du", "field_sigma_w_per_du"
+		"field_resolved_cells", "field_sigma_u_per_du", "field_sigma_v_per_du",
+		"field_sigma_w_per_du", "field_wall_shear_off_agl_per_relief"
 	]:
 		check(l.has(key), "lee." + key)
 		check(l.has(key + "_doc"), "lee.%s_doc" % key)
 	check(not l.has("field_reverse_per_wind"), "field_reverse_per_wind заменён field_reverse_per_uh")
 	var rc: Variant = l.get("field_resolved_cells", [])
 	check(rc is Array and (rc as Array).size() == 2 and float(rc[0]) < float(rc[1]), "n0 < n1")
+	var wo: Variant = l.get("field_wall_shear_off_agl_per_relief", [])
+	check(wo is Array and (wo as Array).size() == 2 and float(wo[0]) < float(wo[1]), "a0 < a1")
+	approx(float(l.get("field_sigma_v_per_du", 0.0)), 0.130, 1.0e-9, "σ_v/ΔU = 0,130")
 
 
 func test_c4_config_keys() -> void:

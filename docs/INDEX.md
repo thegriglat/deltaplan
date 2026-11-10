@@ -179,6 +179,18 @@ generated: true
   - [tools/research/sw_ground/sheet/summary.md](../tools/research/sw_ground/sheet/summary.md) — SWG-7 вывод: вихревой лист над зоной снижает завышение лее с верным знаком, но мало; не встраивать, дальше — зона и толщина слоя.
   - [tools/research/sw_ground/timing/summary.md](../tools/research/sw_ground/timing/summary.md) — SWG-3: панели 3D на окнах игры 100/50 м медленнее Пикара крейта в 14–40 раз (8 потоков, tol 5); узкое место — опрос поля в FP64.
   - [tools/research/sw_ground/zone/summary.md](../tools/research/sw_ground/zone/summary.md) — SWG-8 вывод: скорость зоны и слой смешения снимают ошибку под оболочкой, но доля лее в ±15 % 0,08–0,17; дальше — высота зоны.
+- **lee-turb** — Болтанка за гребнем как слой смешения: тонкий у гребня, растёт и опускается к присоединению; ротор ниже гребня, не сразу за ним. [closed 2026-11-10] — [план](plan/lee-turb.md) · [контракты](contracts/lee-turb.md) · [решения](plan/lee-turb/decisions.md) · [сводка](plan/lee-turb/summary.md) · полный журнал: `archive/lee-turb`
+  - [docs/research/lee_turb/baseline.md](research/lee_turb/baseline.md) — LT-2: разрезы Онгудая стендом: при доле поля 1 слой смешения не работает (du = 0); максимум болтанки — mech у гребня.
+  - [docs/research/lee_turb/fieldcheck.md](research/lee_turb/fieldcheck.md) — LT-8: поле игры (нынешнее и со срезанными клетками) на Perdigão и Askervein против мачт: пузырь, центр слоя, ТКЭ прежней/новой модели.
+  - [docs/research/lee_turb/flight.md](research/lee_turb/flight.md) — LT-14: полёт автопилота игры по ветру через гребень Онгудая на 3 высотах и 3 удалениях, прежняя болтанка против LTM v1, время кадра.
+  - [docs/research/lee_turb/leezone.md](research/lee_turb/leezone.md) — LT-11: почему σ подветренной ниже наветренной на aushtau_south и упало отношение на стартах (срезанные клетки): ветви σ.
+  - [docs/research/lee_turb/model.md](research/lee_turb/model.md) — Модель слоя за гребнем (LT-5..7): формулы, линия слоя по полю или глубине пузыря, константы, 18 разрезов Онгудая.
+  - [docs/research/lee_turb/model_obs.md](research/lee_turb/model_obs.md) — LT-6/7: слой против мачт Perdigão и Askervein: запасная линия по глубине пузыря, B под линией, H, x_r/H.
+  - [docs/research/lee_turb/obs.md](research/lee_turb/obs.md) — ТКЭ за гребнем: Perdigão (макс. 0.05 U² на 100 м над дном, x/H 3-5.5), Askervein (0.06 U² на 10 м, x/H 0.9-1.7); σ и Bolund не получены
+  - [docs/research/lee_turb/verify.md](research/lee_turb/verify.md) — LT-12: прежняя модель (7665fb7) против LTM v1 на поле со срезанными клетками: мачты Perdigão/Askervein и разрезы Онгудая.
+  - [docs/research/lee_turb.md](research/lee_turb.md) — lee-turb: LTM v1 оживил слой смешения на пути с полем, но на мачтах и в полёте не лучше прежней — мешает поле игры.
+  - [tools/research/lee_turb/obs/README.md](../tools/research/lee_turb/obs/README.md) — lee_obs.csv (LTO v1): ТКЭ за гребнем по x/H, z/H — Perdigão NE/SW (ISFS) и Askervein TU03B; Bolund недоступен; σ Perdigão ждут сервера
+  - [tools/research/lee_turb/places/README.md](../tools/research/lee_turb/places/README.md) — Места Perdigão и Askervein (W5, вне git), случаи W8 для dp-stand, станции в кадре места, пересъёмка, ограничения.
 - **picard-terrain** — Мелкий рельеф в Пикар на той же сетке: срезанные клетки и ограниченный 2-й порядок; разгон Askervein/Каянча, ротор Perdigão. [closed 2026-11-10] — [план](plan/picard-terrain.md) · [контракты](contracts/picard-terrain.md) · [решения](plan/picard-terrain/decisions.md) · [сводка](plan/picard-terrain/summary.md) · полный журнал: `archive/picard-terrain`
   - [docs/research/picard_terrain.md](research/picard_terrain.md) — picard-terrain: срезанные клетки и 2-й порядок в Пикаре (сетка 50/100 м) — возврат разгона, цена, ротор Perdigão, варианты. [closed]
   - [docs/research/picard_terrain_game.md](research/picard_terrain_game.md) — picard-terrain, этап 2: карта пути срезанных клеток в поле игры (dp-air) и разбиение встраивания PT-9…PT-12.
@@ -385,7 +397,7 @@ generated: true
 - [docs/guide/air-model/runtime.md](guide/air-model/runtime.md) — Как поле считается при загрузке и в полёте: конвейер фазы → Пикар → проекция, один проход (k = 1), пересчёт по сроку.
 - [docs/guide/air-model/surface-heat.md](guide/air-model/surface-heat.md) — Поток тепла H по классу покрова: Солнце → Rn → H, вода и лёд, z0 по клетке, замер до и после, чего модель не умеет.
 - [docs/guide/air-model/thermals.md](guide/air-model/thermals.md) — Термики из поля: законы Аллена и Дирдорфа, выбор источников, числа против литературы, сеть, чего модель не умеет.
-- [docs/guide/air-model/turbulence.md](guide/air-model/turbulence.md) — Болтанка, рывки и подветренная зона из поля: законы, числа у старта и за гребнем, чего модель не умеет.
+- [docs/guide/air-model/turbulence.md](guide/air-model/turbulence.md) — Болтанка, рывки и подветренная зона из поля: законы, LTM v1 за гребнем, числа, чего модель не умеет.
 - [docs/guide/air-model-gpu/blocks.md](guide/air-model-gpu/blocks.md) — Блоки решателя на GPU: файлы, раскладка буферов, прогонки, V-цикл, порции и API каркаса, замеры RTX 4070 SUPER, переносимость.
 - [docs/guide/air-model-gpu/clipmap.md](guide/air-model-gpu/clipmap.md) — Окна 100 и 50 м вокруг пилота: граница от родителя, сдвиг, сверка с эталоном, стык уровней, время, AirRuntime.
 - [docs/guide/air-model-gpu/picard.md](guide/air-model-gpu/picard.md) — Итерация Пикара на GPU: вход AirCase и AirPlace, порядок программы, буферы, сверка с эталоном AM-01, замеры.

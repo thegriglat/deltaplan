@@ -1,6 +1,9 @@
 use clap::{Args, Parser, Subcommand};
+use dp_air::{AirModel, Formula};
 use dp_stand::compare::{self, Options};
+use dp_stand::lee::{self, LeeCtx, LeeSpec};
 use dp_stand::ops::{self, Plane, SliceSpec};
+use dp_stand::setup;
 mod timing;
 use dp_stand::setup::{OpenArgs, Session, open};
 use serde_json::json;
@@ -100,6 +103,30 @@ enum Cmd {
         /// x,y,z
         #[arg(long)]
         point: String,
+    },
+    /// Разрез болтанки поля за гребнем (LTS v1): csv в stdout
+    Lee {
+        /// x,z начала линии (игра, горизонталь)
+        #[arg(long)]
+        from: String,
+        /// x,z конца линии
+        #[arg(long)]
+        to: String,
+        /// y0,y1 — высоты MSL
+        #[arg(long)]
+        ys: String,
+        /// Шаг вдоль линии, м
+        #[arg(long)]
+        step: f32,
+        /// Шаг по высоте, м (по умолчанию --step)
+        #[arg(long)]
+        dy: Option<f32>,
+        /// Каталог кеша полей (`set_cache_dir`): повторный прогон того же случая без решателя
+        #[arg(long)]
+        cache: Option<PathBuf>,
+        /// Диагностика вне контракта (relief, lee аналитики, …) в этот csv
+        #[arg(long)]
+        extra: Option<PathBuf>,
     },
     /// Сверка модели с .bin/.desc.json случая по допускам W8; exit 1, если есть точка вне допуска
     Compare {
@@ -252,6 +279,63 @@ fn run(cli: Cli) -> Result<ExitCode, String> {
             });
             println!("{}", serde_json::to_string_pretty(&j).unwrap());
         }
+        Cmd::Lee {
+            from,
+            to,
+            ys,
+            step,
+            dy,
+            cache,
+            extra,
+        } => {
+            let spec = LeeSpec {
+                from: pair(&from)?,
+                to: pair(&to)?,
+                ys: pair(&ys)?,
+                step,
+                dy: dy.unwrap_or(step),
+            };
+            spec.validate()?;
+            let case = c.case.as_deref().ok_or("--case is required")?;
+            let a = OpenArgs {
+                case,
+                place: c.place.as_deref(),
+                model: "formula",
+                configs: &c.configs,
+                timeout_s: c.timeout,
+            };
+            if c.model != "formula" {
+                return Err("lee needs --model formula (field and terms)".into());
+            }
+            let f = Box::new(Formula::new().with_deterministic(true));
+            let mut f = f;
+            if let Some(dir) = &cache {
+                std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
+                let abs = std::fs::canonicalize(dir).map_err(|e| e.to_string())?;
+                f.set_cache_dir(&abs.to_string_lossy())
+                    .map_err(|e| e.to_string())?;
+            }
+            let (mut f, case_d, cfgs, place) = setup::prepare(&a, f)?;
+            let t = c.time.unwrap_or(case_d.times_s[0]);
+            setup::go_to_model(f.as_mut(), t, std::time::Duration::from_secs_f64(c.timeout))?;
+            let lc = LeeCtx::new(&f, &cfgs, case_d.seed, t)?;
+            for (i, d) in lc.level_info().iter().enumerate() {
+                eprintln!("level {i}: {d}");
+            }
+            let rows = lee::run(&f, &lc, &place, &spec);
+            if let Some(p) = &extra {
+                std::fs::write(p, lee::render_extra(&rows)).map_err(|e| e.to_string())?;
+            }
+            let name = case
+                .file_stem()
+                .map_or(String::new(), |s| s.to_string_lossy().into_owned());
+            let header = format!(
+                "# lts v1 case={name} time={t} git={} model={}",
+                git_hash(),
+                c.model
+            );
+            print!("{}", lee::render(&header, &rows));
+        }
         Cmd::Timing { threads } => {
             if c.model != "formula" {
                 return Err("timing needs --model formula".into());
@@ -294,6 +378,18 @@ fn run(cli: Cli) -> Result<ExitCode, String> {
         }
     }
     Ok(ExitCode::SUCCESS)
+}
+
+fn git_hash() -> String {
+    std::process::Command::new("git")
+        .args(["rev-parse", "--short", "HEAD"])
+        .output()
+        .ok()
+        .filter(|o| o.status.success())
+        .map_or_else(
+            || "unknown".into(),
+            |o| String::from_utf8_lossy(&o.stdout).trim().to_string(),
+        )
 }
 
 fn main() -> ExitCode {
