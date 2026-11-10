@@ -44,7 +44,8 @@ func _chan_at(a: Atmosphere, terrain: Terrain, p: Vector3, from_deg: float) -> D
 	var uf := Vector2(s4.x, s4.z).length() / share
 	var tb: PackedFloat32Array = fs.sample_turb(p, ground)
 	var agl := p.y - ground
-	var z0 := lv.z0_at(p)
+	var z0 := lv.z0  # как в Rust: sep::lee и sigma() берут z0 уровня (лог-среднее карты), не столбца
+	var z0_col := lv.z0_at(p)
 	var u_out := tb[3]
 	var a_out := tb[4]
 	var lee := 0.0
@@ -62,7 +63,7 @@ func _chan_at(a: Atmosphere, terrain: Terrain, p: Vector3, from_deg: float) -> D
 	var dx := (fs.levels as Array).map(func(l: WindField) -> float: return l.dx)
 	return {
 		"agl": agl, "ground": ground, "share": s4.w, "uf": uf, "vf": [s4.x / share, s4.y / share, s4.z / share],
-		"tb": Array(tb), "z0": z0, "lee_f": lee, "relief": relief, "u_h": u_h, "dx": dx,
+		"tb": Array(tb), "z0": z0, "z0_col": z0_col, "lee_f": lee, "relief": relief, "u_h": u_h, "dx": dx,
 	}
 
 

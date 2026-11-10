@@ -14,14 +14,16 @@
 
 ## Воспроизведение
 ```bash
-git worktree add --detach ~/worktrees/deltaplan/lee-turb-LT-11-ltm 7aef9034f      # LTM v1 (LT-9)
-ln -s ~/worktrees/deltaplan/lee-turb-LT-9/addons/dp_air/bin/libdp_air_tune.so ~/worktrees/deltaplan/lee-turb-LT-11-ltm/addons/dp_air/bin/   # либо собрать cargo build -p dp-gd --release
-git worktree add --detach ~/worktrees/deltaplan/lee-turb-LT-11-old 470745ac8 && tools/research/lee_turb/leezone/build_old.sh
-.dpcli/dpcli job --lock cpu start LT-11-full 10000 tools/research/lee_turb/leezone/run_probe.sh ~/worktrees/deltaplan/lee-turb-LT-11-ltm $PWD/tools/research/lee_turb/leezone/out/logs/full_ltm.log
-LT11_XDG=lee-turb-LT-11-old .dpcli/dpcli job --lock cpu start LT-11-fullold 10000 tools/research/lee_turb/leezone/run_probe.sh ~/worktrees/deltaplan/lee-turb-LT-11-old $PWD/tools/research/lee_turb/leezone/out/logs/full_old.log
-cd tools/research/lee_turb/leezone && python3 analyze.py out/logs/full_ltm.log --tag ltm && python3 analyze.py out/logs/full_old.log --tag old && python3 cross.py
+git worktree add --detach ~/worktrees/deltaplan/lee-turb-LT-11-ltm aff9d1731      # LTM v1 финальный (LT-9 в feature/lee-turb 12078ad)
+tools/research/lee_turb/leezone/build.sh ~/worktrees/deltaplan/lee-turb-LT-11-ltm LT-11-ltm   # dp-gd -> libdp_air_tune.so
+git worktree add --detach ~/worktrees/deltaplan/lee-turb-LT-11-old 470745ac8 && tools/research/lee_turb/leezone/build_old.sh   # либо build.sh <копия> LT-11-old
+.dpcli/dpcli job --lock cpu start LT-11-full 10000 tools/research/lee_turb/leezone/run_probe.sh ~/worktrees/deltaplan/lee-turb-LT-11-ltm $PWD/tools/research/lee_turb/leezone/out/logs/full_ltm2.log
+LT11_XDG=lee-turb-LT-11-old .dpcli/dpcli job --lock cpu start LT-11-fullold 10000 tools/research/lee_turb/leezone/run_probe.sh ~/worktrees/deltaplan/lee-turb-LT-11-old $PWD/tools/research/lee_turb/leezone/out/logs/full_old2.log
+cd tools/research/lee_turb/leezone && python3 analyze.py out/logs/full_ltm2.log --tag ltm && python3 analyze.py out/logs/full_old2.log --tag old && python3 cross.py
 ```
 Время: ≈ 5 мин на старт на поле (3 атмосферы), 10 стартов ≈ 50 мин на 1 слот cpu. `out/logs/` не в git.
 
 ## Границы
-Один сид (4242), момент 12 ч, июль; ветви пересчитаны (σ_rec против игры 0–5 %), `relief` — прямой опрос земли, не узел аналитики. Подробнее — в отчёте.
+Один сид (4242), момент 12 ч, июль; ветви пересчитаны (σ_rec против игры ≤ 0,11 %), `relief` — прямой опрос земли, не узел аналитики. Подробнее — в отчёте.
+
+После приёмки копии `lee-turb-LT-11-ltm`, `-old` и цель `~/.cache/dp-target/LT-11-*` снимаются (`git worktree remove`); создаются заново командами выше.
