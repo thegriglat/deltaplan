@@ -135,7 +135,7 @@ impl Row {
             Some(f) => {
                 let _ = writeln!(
                     out,
-                    ",{:.4},{:.3},{:.3},{:.4},{:.3},{:.3},{:.3},{:.1},{:.1},{}",
+                    ",{:.4},{:.3},{:.3},{:.4},{:.3},{:.3},{:.3},{:.2},{:.2},{}",
                     f.lee_f,
                     f.du,
                     f.u_h,
@@ -255,7 +255,7 @@ impl LeeCtx {
         let cfg = self.turb.cfg();
         let z0 = self.fs.levels().first().map_or(0.1, |l| l.z0());
         // масштабы: как их получает спектр (mod.rs `turb_out`)
-        let sg = sigma(cfg, z0, agl, &st.tb, [0.0, 0.0], st.uf);
+        let sg = sigma(cfg, z0, agl, &st.tb, [0.0, 0.0], st.uf, st.w_sep);
         let ml = (v[0] * v[0] + v[2] * v[2]).sqrt();
         let stretch = taylor_stretch(terms.wind.speed_at(cfg.advection_height), ml, agl);
         let l_sep = cfg.sep_scale * st.relief.max(0.0) * st.lee_f;
@@ -264,7 +264,7 @@ impl LeeCtx {
         // ветвь σ_w
         let mut tb_m = st.tb;
         tb_m[T_WSTAR] = 0.0;
-        let sw_m = sigma(cfg, z0, agl, &tb_m, [0.0, 0.0], st.uf).s_w;
+        let sw_m = sigma(cfg, z0, agl, &tb_m, [0.0, 0.0], st.uf, st.w_sep).s_w;
         let src = if out.sep[1] > 0.0 && out.s_w <= out.sep[1] {
             "mix"
         } else if out.s_w.powi(3) - sw_m.powi(3) > sw_m.powi(3) {
