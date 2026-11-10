@@ -1,0 +1,57 @@
+{
+  "status": "done",
+  "summary": "Guide turbulence.md обновлён под LTM v1 (r на пути с полем, σ 0,166/0,130/0,153, рывки 0,46, снятие члена стенки, раздел границ); lee_turb.md стал входом модуля (Итог, таблица документов); раздел lee-turb в findings (6 строк); CHANGELOG; правки ревью в leezone.md и verify.md.",
+  "commits": [
+    "4173160b3 LT-15: документы lee-turb"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "exit 0, 10 файлов",
+      "pass": true
+    },
+    {
+      "name": "findings",
+      "value": "n=1",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "7 файлов в границах",
+      "pass": true
+    },
+    {
+      "name": "размер guide",
+      "value": "38,1 КБ (<=40)",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "uncertain": [
+    {
+      "where": "docs/research/lee_turb/verify.md п.1",
+      "why": "в задании 'у ~50 из 132 станций', по mast_compare.csv считается 60 (любое различие), 46 (>0,001 u_ref), максимум 0,11",
+      "checked": "написал 60/46 и 0,11 по данным"
+    },
+    {
+      "where": "docs/research/lee_turb/leezone.md",
+      "why": "в задании механика 1,06-5,28; в тексте было 1,9-5,3; по starts_old.csv (lee, 10 точек) min 1,057 max 5,284, u* 0,107-0,309",
+      "checked": "исправил и frontmatter, и текст"
+    },
+    {
+      "where": "docs/guide/air-model/turbulence.md: чего не умеет",
+      "why": "числа 0,06-0,10 vs 0,42-0,50 u_ref на 20 м взяты из conclusion fieldcheck.md, не пересчитаны",
+      "checked": "сверено с текстом conclusion"
+    },
+    {
+      "where": "docs/registry/findings.md",
+      "why": "файл уже > 40 КБ на HEAD (53,9 КБ), docs check на него даёт ошибку независимо от LT-15",
+      "checked": "в приёмку не входит; нужен вынос разделов отдельной задачей"
+    }
+  ],
+  "how_to_check": ".dpcli/dpcli accept LT-15",
+  "dp_feedback": "docs index переписывает docs/registry/contracts.md и research.md вне скоупа карточки - пришлось откатывать git checkout; findings.md уже > лимита docs check; dpcli render lee-turb создаёт untracked docs/plan/lee-turb/journal.md.",
+  "t": "2026-11-10T08:48:26",
+  "by": "executor"
+}
