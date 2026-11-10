@@ -1,0 +1,45 @@
+{
+  "id": "LT-14",
+  "module": "lee-turb",
+  "type": "dp-engineer",
+  "title": "Полёт за гребнем: бот на нескольких высотах и удалениях, прежняя против LTM v1, время кадра",
+  "goal": "Полёт ботом/автопилотом за гребнем (Онгудай, ветер strong через гребень) на 3 высотах относительно гребня и 3 удалениях: σ ветра на крыле, ускорения, крен/тангаж — прежний код (7665fb7) против LTM v1; время кадра до/после. Числами, без кадров (визуал — сборка у главной сессии).",
+  "plan_ref": "Задачи (уточняет координатор) п.5; Приёмка",
+  "contracts": [
+    {
+      "name": "LTM",
+      "version": "1",
+      "ref": "docs/contracts/lee-turb.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/lee-turb-LT-14",
+  "branch": "lee-turb/LT-14",
+  "base": "feature/lee-turb",
+  "scope": [
+    "tools/research/lee_turb/flight/",
+    "docs/research/lee_turb/flight.md"
+  ],
+  "dont_touch": [
+    "rust/",
+    "configs/",
+    "scripts/",
+    "tests/",
+    "project.godot",
+    "docs/guide/"
+  ],
+  "accept": [
+    {
+      "name": "runs",
+      "cmd": "python3 -c \"import csv;r=list(csv.DictReader(open('tools/research/lee_turb/flight/out/flights.csv')));print('n',len(r))\"",
+      "expect": "num:n (\\d+) >=18"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check docs/research/lee_turb/flight.md",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-10T06:39:33"
+}
