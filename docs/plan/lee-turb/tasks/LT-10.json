@@ -18,10 +18,7 @@
   "scope": [
     "."
   ],
-  "dont_touch": [
-    "docs/plan/",
-    "tests/fixtures/"
-  ],
+  "dont_touch": [],
   "accept": [
     {
       "name": "dp_stand",
@@ -40,11 +37,12 @@
     },
     {
       "name": "lee_cmd",
-      "cmd": "sh -c 'cargo run -q --release --manifest-path rust/Cargo.toml -p dp-stand -- lee --case tests/fixtures/wind/cases/ongudai_strong.json --from 0,0 --to 200,0 --ys 900,1100 --step 50 > /tmp/lt10.lts.csv 2>/dev/null; python3 tools/research/lee_turb/contract/check_contract.py /tmp/lt10.lts.csv'",
+      "cmd": "sh -c 'cargo run -q --release --manifest-path rust/Cargo.toml -p dp-stand -- --model formula lee --case tests/fixtures/wind/cases/ongudai_strong.json --from 6000,0 --to 8000,0 --ys 1000,2500 --step 250 > /tmp/lt10.lts.csv 2>/dev/null; python3 tools/research/lee_turb/contract/check_contract.py /tmp/lt10.lts.csv'",
       "expect": "exit=0"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-11-10T04:50:03"
+  "created": "2026-11-10T04:50:03",
+  "edited": "2026-11-10T05:08:10"
 }
