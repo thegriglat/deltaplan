@@ -1,0 +1,43 @@
+{
+  "id": "LT-15",
+  "module": "lee-turb",
+  "type": "dp-writer",
+  "title": "Документы lee-turb: guide болтанки, сводка исследования, находки, CHANGELOG",
+  "goal": "Обновить docs/guide/air-model/turbulence.md под LTM v1 (что изменилось и чего модель не умеет), собрать docs/research/lee_turb.md как вход в исследование модуля со ссылками на разделы, строки в registry/findings.md (раздел lee-turb), CHANGELOG «В работе»; поправки ревью в leezone.md и verify.md.",
+  "plan_ref": "Условия; Приёмка",
+  "contracts": [],
+  "copy": "~/worktrees/deltaplan/lee-turb-LT-15",
+  "branch": "lee-turb/LT-15",
+  "base": "feature/lee-turb",
+  "scope": [
+    "docs/guide/air-model/turbulence.md",
+    "docs/research/lee_turb.md",
+    "docs/research/lee_turb/",
+    "docs/registry/findings.md",
+    "CHANGELOG.md",
+    "docs/INDEX.md"
+  ],
+  "dont_touch": [
+    "rust/",
+    "configs/",
+    "tools/",
+    "tests/",
+    "docs/contracts/",
+    "docs/plan/"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check docs/guide/air-model/turbulence.md docs/research/lee_turb.md docs/research/lee_turb/",
+      "expect": "exit=0"
+    },
+    {
+      "name": "findings",
+      "cmd": "sh -c 'grep -c \"^## lee-turb\" docs/registry/findings.md | sed s/^/n=/'",
+      "expect": "num:n=(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-10T08:44:54"
+}
