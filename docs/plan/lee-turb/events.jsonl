@@ -188,3 +188,4 @@
 {"t": "2026-11-10T08:48:26", "by": "executor", "task": "LT-15", "ev": "reported", "commits": ["4173160b3"], "note": "done: Guide turbulence.md обновлён под LTM v1 (r на пути с полем, σ 0,166/0,130/0,153, рывки 0,46, снятие члена стенки, разде…", "dp_feedback": "docs index переписывает docs/registry/contracts.md и research.md вне скоупа карточки - пришлось откатывать git checkout; findings.md уже > лимита docs check; dpcli render lee-turb создаёт untracked docs/plan/lee-turb/journal.md."}
 {"t": "2026-11-10T08:48:34", "by": "coordinator", "task": "LT-15", "ev": "accepted", "note": "2/2 docs=ok:exit 0; findings=ok:1"}
 {"t": "2026-11-10T08:48:41", "by": "coordinator", "task": "LT-15", "ev": "accepted", "note": "по отчёту: docs 2/2; findings.md уже > 40 КБ до задачи (общая проблема реестра)"}
+{"t": "2026-11-10T08:48:42", "by": "coordinator", "task": "LT-15", "ev": "merged", "commits": ["0f73c1418"]}
