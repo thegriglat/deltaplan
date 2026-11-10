@@ -1,0 +1,22 @@
+Deltaplan 1.7.5 — wind near slopes and thermals get more physical
+
+An air-model update. The menu wind is now a weather forecast, and the wind at the launch comes out of the wind calculation. Terrain in the wind field has lost its steps, thermals became rising bubbles with inflow near the ground and a sink ring around them.
+
+Wind:
+- Menu wind is a forecast at 10 m over open terrain, not the wind at the launch
+- Wind at the launch is computed: stronger on windward slopes, weaker in the lee; the launch hint shows it
+- Field loading is 1.9-2.4 times faster where a second pass used to run
+- Cut cells: the wind field follows the real terrain instead of steps, valleys next to slopes are no longer blocked
+- Field loading on Ongudai takes about 15 % longer; the old field cache is not used
+
+Thermals:
+- Within 2 km of the pilot a thermal is a rising bubble (Hill's vortex with a plume)
+- Air converges to the core near the ground and spreads out under the cloud, with a sink ring around
+- Peak lift in the core is about 1.35 times stronger than before
+
+Turbulence:
+- The lee mixing layer now works on the wind-field path, coefficients from measurements; in flight it is nearly the same as before
+
+Known issues:
+- Turbulence right behind a ridge is not yet realistic: the valley behind a ridge is too calm, separation over small ridges is not resolved
+- No macOS build: the Rust wind library does not build for macOS yet, Mac stays on 1.6.1
