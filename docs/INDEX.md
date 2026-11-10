@@ -189,8 +189,19 @@ generated: true
   - [docs/research/lee_turb/obs.md](research/lee_turb/obs.md) — ТКЭ за гребнем: Perdigão (макс. 0.05 U² на 100 м над дном, x/H 3-5.5), Askervein (0.06 U² на 10 м, x/H 0.9-1.7); σ и Bolund не получены
   - [docs/research/lee_turb/verify.md](research/lee_turb/verify.md) — LT-12: прежняя модель (7665fb7) против LTM v1 на поле со срезанными клетками: мачты Perdigão/Askervein и разрезы Онгудая.
   - [docs/research/lee_turb.md](research/lee_turb.md) — lee-turb: LTM v1 оживил слой смешения на пути с полем, но на мачтах и в полёте не лучше прежней — мешает поле игры.
+  - [tools/research/lee_turb/fieldcheck/README.md](../tools/research/lee_turb/fieldcheck/README.md) — LT-8: сверка болтанки за гребнем на поле игры (Perdigão, Askervein), прежняя и новая модель [closed]
+  - [tools/research/lee_turb/flight/README.md](../tools/research/lee_turb/flight/README.md) — LT-14: полёт бота за гребнем на нескольких высотах и удалениях, прежняя против LTM v1, время кадра [closed]
+  - [tools/research/lee_turb/leezone/README.md](../tools/research/lee_turb/leezone/README.md) — LT-11: разложение σ в точке test_lee_zone_all_starts по ветвям модели (зонд Godot) [closed]
+  - [tools/research/lee_turb/lit/README.md](../tools/research/lee_turb/lit/README.md) — LT-1: литература и открытые данные о слое смешения за отрывом (уступ, холмы, Perdigão) [closed]
+  - [tools/research/lee_turb/model/README.md](../tools/research/lee_turb/model/README.md) — LT-5…LT-7: прототип модели слоя смешения за гребнем (spec.json, proto.py) [closed]
   - [tools/research/lee_turb/obs/README.md](../tools/research/lee_turb/obs/README.md) — lee_obs.csv (LTO v1): ТКЭ за гребнем по x/H, z/H — Perdigão NE/SW (ISFS) и Askervein TU03B; Bolund недоступен; σ Perdigão ждут сервера
   - [tools/research/lee_turb/places/README.md](../tools/research/lee_turb/places/README.md) — Места Perdigão и Askervein (W5, вне git), случаи W8 для dp-stand, станции в кадре места, пересъёмка, ограничения.
+  - [tools/research/lee_turb/stand/README.md](../tools/research/lee_turb/stand/README.md) — LT-2: разрезы болтанки за гребнем стендом dp-stand lee (LTS v1), база Онгудая [closed]
+  - [tools/research/lee_turb/verify/README.md](../tools/research/lee_turb/verify/README.md) — LT-12: сверка LTM v1 на поле со срезанными клетками — мачты Perdigão/Askervein, разрезы Онгудая [closed]
+  - [tools/research/lee_turb/fieldcheck/summary.md](../tools/research/lee_turb/fieldcheck/summary.md) — LT-8 вывод: поле игры в долине Perdigão почти стоит, модель слоя ТКЭ не улучшает [closed]
+  - [tools/research/lee_turb/flight/out/summary.md](../tools/research/lee_turb/flight/out/summary.md) — LT-14: полёт за гребнем, прежняя и новая модель — средние по сидам и повторам [closed]
+  - [tools/research/lee_turb/leezone/summary.md](../tools/research/lee_turb/leezone/summary.md) — LT-11 вывод: в точке теста у aushtau_south отрыва нет, болтанка — конвективный пол [closed]
+  - [tools/research/lee_turb/model/summary.md](../tools/research/lee_turb/model/summary.md) — LT-5 вывод: модель слоя смешения убирает провал σ_w за гребнем, максимум уходит к x/H 2–2,3 [closed]
 - **picard-terrain** — Мелкий рельеф в Пикар на той же сетке: срезанные клетки и ограниченный 2-й порядок; разгон Askervein/Каянча, ротор Perdigão. [closed 2026-11-10] — [план](plan/picard-terrain.md) · [контракты](contracts/picard-terrain.md) · [решения](plan/picard-terrain/decisions.md) · [сводка](plan/picard-terrain/summary.md) · полный журнал: `archive/picard-terrain`
   - [docs/research/picard_terrain.md](research/picard_terrain.md) — picard-terrain: срезанные клетки и 2-й порядок в Пикаре (сетка 50/100 м) — возврат разгона, цена, ротор Perdigão, варианты. [closed]
   - [docs/research/picard_terrain_game.md](research/picard_terrain_game.md) — picard-terrain, этап 2: карта пути срезанных клеток в поле игры (dp-air) и разбиение встраивания PT-9…PT-12.

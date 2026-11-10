@@ -1,3 +1,16 @@
+---
+type: "research"
+status: "closed"
+module: "lee-turb"
+area: "air"
+updated: "2026-11-10"
+summary: "LT-8 вывод: поле игры в долине Perdigão почти стоит, модель слоя ТКЭ не улучшает"
+related: ["docs/research/lee_turb.md"]
+conclusion: ""
+data: ""
+applied_in: ""
+---
+
 # LT-8: вывод
 
 Поле игры (а — нынешнее, б — срезанные клетки picard-terrain + без outflow-bc) на Perdigão NE/SW и Askervein: 20 разрезов LTS на поле, 278 строк сверки с мачтами.

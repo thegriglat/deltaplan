@@ -1,3 +1,16 @@
+---
+type: "research"
+status: "closed"
+module: "lee-turb"
+area: "air"
+updated: "2026-11-10"
+summary: "LT-5…LT-7: прототип модели слоя смешения за гребнем (spec.json, proto.py)"
+related: ["docs/research/lee_turb.md"]
+conclusion: ""
+data: ""
+applied_in: ""
+---
+
 # LT-5..LT-7: модель слоя смешения за гребнем (прототип)
 
 - `spec.json` — константы и формулы (`ltm-spec` v1); каждая константа: `ltl` (id в `../lit/lit_numbers.csv`), `derived` или `assumption`.

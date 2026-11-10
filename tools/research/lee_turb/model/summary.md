@@ -1,3 +1,16 @@
+---
+type: "research"
+status: "closed"
+module: "lee-turb"
+area: "air"
+updated: "2026-11-10"
+summary: "LT-5 вывод: модель слоя смешения убирает провал σ_w за гребнем, максимум уходит к x/H 2–2,3"
+related: ["docs/research/lee_turb.md"]
+conclusion: ""
+data: ""
+applied_in: ""
+---
+
 # LT-5: вывод
 
 Модель слоя смешения за гребнем (36 констант, все с id LTL, выводом или явным допущением) + прототип на 18 разрезах Онгудая.

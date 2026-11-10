@@ -1,3 +1,16 @@
+---
+type: "research"
+status: "closed"
+module: "lee-turb"
+area: "air"
+updated: "2026-11-10"
+summary: "LT-2: разрезы болтанки за гребнем стендом dp-stand lee (LTS v1), база Онгудая"
+related: ["docs/research/lee_turb.md"]
+conclusion: ""
+data: ""
+applied_in: ""
+---
+
 # lee_turb/stand — разрезы болтанки за гребнем стендом (LT-2, LTS v1)
 
 Разрезы `dp-stand lee` по Онгудаю (случаи W8 `ongudai_medium|strong|storm`, 6 гребней в окнах поля 50 м, 100 м и в области

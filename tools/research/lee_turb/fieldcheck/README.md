@@ -1,3 +1,16 @@
+---
+type: "research"
+status: "closed"
+module: "lee-turb"
+area: "air"
+updated: "2026-11-10"
+summary: "LT-8: сверка болтанки за гребнем на поле игры (Perdigão, Askervein), прежняя и новая модель"
+related: ["docs/research/lee_turb.md"]
+conclusion: ""
+data: ""
+applied_in: ""
+---
+
 # LT-8: сверка на поле игры (Perdigão, Askervein) — прежняя / новая модель, поле (а) и (б)
 
 Стенд `dp-stand lee` (LTS v1) считает разрезы болтанки на поле игры; прототип модели слоя LT-7 (`../model/proto.py`) применяется к этим же разрезам

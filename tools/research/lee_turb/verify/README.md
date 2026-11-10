@@ -1,3 +1,16 @@
+---
+type: "research"
+status: "closed"
+module: "lee-turb"
+area: "air"
+updated: "2026-11-10"
+summary: "LT-12: сверка LTM v1 на поле со срезанными клетками — мачты Perdigão/Askervein, разрезы Онгудая"
+related: ["docs/research/lee_turb.md"]
+conclusion: ""
+data: ""
+applied_in: ""
+---
+
 # LT-12: сверка LTM v1 на поле со срезанными клетками — прежняя против новой
 
 Один набор разрезов LTS v1 (`dp-stand lee --model formula`), два кода на одном поле игры (срезанные клетки PT уже в обоих):

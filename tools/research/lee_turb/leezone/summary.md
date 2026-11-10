@@ -1,3 +1,16 @@
+---
+type: "research"
+status: "closed"
+module: "lee-turb"
+area: "air"
+updated: "2026-11-10"
+summary: "LT-11 вывод: в точке теста у aushtau_south отрыва нет, болтанка — конвективный пол"
+related: ["docs/research/lee_turb.md"]
+conclusion: ""
+data: ""
+applied_in: ""
+---
+
 # LT-11 — вывод
 - `turbulence_intensity_at` = σ_u. В точках теста `lee_f = 0` на всех 10 стартах (оба поля): слой смешения LTM не включается; σ = куб-сумма механики и конвективного пола 0,6·w* ≈ 1,3–1,5 м/с.
 - aushtau_south: σ_lee 1,48 < σ_wind 1,57 — механика с подветренной (0,97) ниже наветренной (1,15), поток прилипший (ex −0,09); обе стороны ≈ пол.

@@ -1,3 +1,16 @@
+---
+type: "research"
+status: "closed"
+module: "lee-turb"
+area: "air"
+updated: "2026-11-10"
+summary: "LT-11: разложение σ в точке test_lee_zone_all_starts по ветвям модели (зонд Godot)"
+related: ["docs/research/lee_turb.md"]
+conclusion: ""
+data: ""
+applied_in: ""
+---
+
 # lee_turb/leezone — LT-11: разложение σ в точке test_lee_zone_all_starts
 
 Отчёт: `docs/research/lee_turb/leezone.md`. Данных извне нет (рельеф мест игры — `ASSETS.md`, Copernicus DEM, `licenses/copernicus-dem.txt`); формулы — `rust/dp-air/src/terms/turb/`.

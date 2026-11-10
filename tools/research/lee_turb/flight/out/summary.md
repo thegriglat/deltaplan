@@ -1,3 +1,16 @@
+---
+type: "research"
+status: "closed"
+module: "lee-turb"
+area: "air"
+updated: "2026-11-10"
+summary: "LT-14: полёт за гребнем, прежняя и новая модель — средние по сидам и повторам"
+related: ["docs/research/lee_turb.md"]
+conclusion: ""
+data: ""
+applied_in: ""
+---
+
 # Полёт за гребнем: старое / новое (среднее по сидам и повторам)
 
 | h над гребнем, м | x/H | код | проходов | n отсч. | AGL, м | ветер, м/с | σu | σv | σw | σ(a_z), м/с² | max\|a_z\| | σ крена, ° | σ тангажа, ° | доля \|Δw\|>2 | σ слоя turb |

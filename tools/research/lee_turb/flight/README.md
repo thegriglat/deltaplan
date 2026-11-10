@@ -1,3 +1,16 @@
+---
+type: "research"
+status: "closed"
+module: "lee-turb"
+area: "air"
+updated: "2026-11-10"
+summary: "LT-14: полёт бота за гребнем на нескольких высотах и удалениях, прежняя против LTM v1, время кадра"
+related: ["docs/research/lee_turb.md"]
+conclusion: ""
+data: ""
+applied_in: ""
+---
+
 # lee_turb/flight — полёт за гребнем (LT-14)
 
 Автопилот игры (`scenes/main.tscn`, «Маятник», воздух dp-air с полем Пикара) летит по ветру через гребень Онгудая
