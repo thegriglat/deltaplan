@@ -1,0 +1,51 @@
+{
+  "id": "LT-11",
+  "module": "lee-turb",
+  "type": "dp-researcher",
+  "title": "Почему на aushtau_south болтанка подветренной ниже наветренной (срезанные клетки): разложение по ветвям",
+  "goal": "Разложить σ в точке test_lee_zone_all_starts на всех стартах (ветер 20 км/ч с подветра и в склон, поле со срезанными клетками, LTM v1) по ветвям масштаба 3 и признакам зоны, объяснить падение aushkul/aushtau_south (1,48 < 1,57) и снижение отношения на всех стартах; по измерениям решить, физично ли ожидание «подветренная > наветренной» для этого места.",
+  "plan_ref": "Задачи (уточняет координатор) п.3, п.4",
+  "contracts": [
+    {
+      "name": "LTM",
+      "version": "1",
+      "ref": "docs/contracts/lee-turb.md"
+    },
+    {
+      "name": "LTO",
+      "version": "1",
+      "ref": "docs/contracts/lee-turb.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/lee-turb-LT-11",
+  "branch": "lee-turb/LT-11",
+  "base": "feature/lee-turb",
+  "scope": [
+    "tools/research/lee_turb/leezone/",
+    "docs/research/lee_turb/leezone.md"
+  ],
+  "dont_touch": [
+    "rust/",
+    "configs/",
+    "scripts/",
+    "tests/",
+    "docs/guide/",
+    "docs/contracts/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "table",
+      "cmd": "python3 -c \"import csv;r=list(csv.DictReader(open('tools/research/lee_turb/leezone/out/starts.csv')));print('n',len(r))\"",
+      "expect": "num:n (\\d+) >=10"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check docs/research/lee_turb/leezone.md",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-10T05:35:19"
+}

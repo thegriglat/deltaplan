@@ -1,0 +1,37 @@
+{
+  "id": "LT-13",
+  "module": "lee-turb",
+  "type": "dp-mechanic",
+  "title": "Тест подветренной зоны: aushtau_south в WEAK_LEE_SITES с обоснованием",
+  "goal": "Добавить aushkul/aushtau_south в WEAK_LEE_SITES (tests/atmosphere/test_ridge_starts.gd) с комментарием-обоснованием и прогнать ridge_starts --ridge-full: 0 упало.",
+  "plan_ref": "Задачи (уточняет координатор) п.3",
+  "contracts": [
+    {
+      "name": "LTM",
+      "version": "1",
+      "ref": "docs/contracts/lee-turb.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/lee-turb-LT-13",
+  "branch": "lee-turb/LT-13",
+  "base": "feature/lee-turb",
+  "scope": [
+    "tests/atmosphere/test_ridge_starts.gd"
+  ],
+  "dont_touch": [
+    "rust/",
+    "configs/",
+    "scripts/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "ridge_full",
+      "cmd": "sh -c 'XDG_DATA_HOME=$HOME/.cache/dp-xdg/lee-turb-LT-13 godot --headless --path . res://tests/run_tests.tscn -- --filter=ridge_starts --ridge-full'",
+      "expect": "tests"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-11-10T06:39:09"
+}

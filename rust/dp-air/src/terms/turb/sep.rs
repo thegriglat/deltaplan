@@ -11,14 +11,25 @@ pub fn lee_danger(cfg: &TurbCfg, u_ref: f64) -> f64 {
     smoothstep(cfg.danger_min, cfg.danger_full, u_ref)
 }
 
-/// σ слоя смешения за гребнем `(σ_u, σ_w)` по скачку скорости ΔU (уже × признак отрыва):
-/// `u′/ΔU ≈ 0,18`, `w′/ΔU ≈ 0,14` (Bell & Mehta 1990; Pope 2000, §5.4).
-pub fn sep_sigma(cfg: &TurbCfg, du: f64) -> [f64; 2] {
-    // `Vector2` эталона — f32
+/// σ слоя смешения за гребнем `[σ_u, σ_v, σ_w]` по скачку скорости ΔU (уже × признак отрыва):
+/// 0,166 / 0,130 / 0,153 · ΔU (Delville, LTL `del_sigma_*_peak`; LTM v1 п.2).
+pub fn sep_sigma(cfg: &TurbCfg, du: f64) -> [f64; 3] {
     [
         f64::from((cfg.sep_su * du) as f32),
+        f64::from((cfg.sep_sv * du) as f32),
         f64::from((cfg.sep_sw * du) as f32),
     ]
+}
+
+/// Вес зоны отрыва без разрешённого пузыря (LTM v1 п.3):
+/// `lee·(1 − res)·(1 − smoothstep(a0, a1, agl/r))`, 0 при r ≤ 0.
+pub fn wall_shear_off(cfg: &TurbCfg, lee_f: f64, relief: f64, agl: f64, dx: f64) -> f64 {
+    if lee_f <= 0.0 || relief <= 0.0 {
+        return 0.0;
+    }
+    lee_f
+        * reverse_unresolved(cfg, relief, dx)
+        * (1.0 - smoothstep(cfg.wall_off.0, cfg.wall_off.1, agl / relief))
 }
 
 /// Доля эвристики обратного потока 0..1: `1 − smoothstep(n0, n1, L/dx)`, `L = bubble_len·r` —

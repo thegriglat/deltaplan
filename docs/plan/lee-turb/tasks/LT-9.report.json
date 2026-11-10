@@ -1,88 +1,97 @@
 {
   "status": "partial",
-  "summary": "LTM v1 встроен: r из relief_at и на пути с полем (a>=1), σ слоя 0,166/0,130/0,153·ΔU (σ_v отдельно), вес w_sep снимает член l·|dU/dz| в зоне отрыва без разрешённого пузыря; ключи конфига, тесты Rust/Godot, стенд l_u/l_w с 0,01 м, pt_check/run.sh. Приёмка 4 из 5: test_c4 даёт 0 тестов из-за фильтра карточки (--filter сверяет путь файла, а test_c4 — имя метода).",
+  "summary": "LTM v1 встроен и сдан (accept --dry 4/4). Доработка 2: сверка W8 на текущем конфиге — 70 из 1504 точек вне допуска, все в зоне отрыва, σ_u ниже эталона; тест (а) строже; ключ кеша relief расширен; время после кеша +0,5 мкс/точку. Открыто: aushtau_south при --ridge-full (передан в LT-11).",
   "commits": [
-    "81d20ccd3 LT-9: LTM v1 — слой смешения и снятие механики стенки на пути с полем",
-    "5f76938f3 LT-9: pt_check — расширение tune",
-    "292e559a7 LT-9: pt_check — без стенда в патче",
-    "pt_check — стабильный путь копии (кеш cargo)"
+    "81d20ccd3 LTM v1: слой смешения и снятие механики стенки",
+    "26ae41b63 relief_at один раз за опрос, замер времени",
+    "942a338a9 доработка 2: сверка W8 (LTM_CURRENT), тест (а) строже, ключ кеша",
+    "82f8b1934/292e559a7/5f76938f3/b8856dca1/c22d34655 pt_check/run.sh (последний вариант: ridge_starts --ridge-full + test_atmosphere + lee, lock cpu вокруг godot, результат из лога job)"
   ],
   "checks": [
     {
-      "name": "lee (3 теста)",
-      "value": "0 упало",
+      "name": "accept --dry",
+      "value": "4/4: dp_air, dp_stand, ridge_starts 3/3 (без --ridge-full), air_field_contracts 18/18; scope ok",
       "pass": true
     },
     {
-      "name": "test_c4",
-      "value": "0 тестов: --filter=test_c4 не сопоставляется ни с одним путём файла; test_c4_lee_keys в tests/contracts/test_air_field_contracts.gd; --filter=air_field_contracts: 18 тестов, 0 упало",
+      "name": "ridge_starts --ridge-full (ветка после слияния main)",
+      "value": "1 упало: test_lee_zone_all_starts aushkul/aushtau_south σ_lee 1,48 < σ_wind 1,57 — те же числа до LTM v1; разбор по ветвям — LT-11",
       "pass": false
     },
     {
-      "name": "dp_air cargo test",
-      "value": "exit 0 (один прогон упал на timing_step_and_spinup в terms_clouds под нагрузкой: 0,84 мс > 0,5 мс, отдельно 0,08 с, повтор accept — PASS)",
+      "name": "W8 ongudai_sigma_turb_within_w8 на ТЕКУЩЕМ конфиге (LTM_CURRENT=1; w_sep по записи)",
+      "value": "1504 точки, в зоне отрыва 399, вне допуска W8 70 (все 70 в зоне отрыва): strong 21, wave 12, day_1 3, day_2 31, day_3 3. Во всех 70 σ_u модели НИЖЕ эталона: отношение мин 0,45 / медиана 0,84 / макс 0,92. Худшие: strong #26 lee_f 0,86 r 235 agl 100: 1,29 против 2,83; day_2 #26: 0,96 против 1,97; wave #33 (agl 0, lee_f 0,48, r 59): 2,10 против 3,66. Причина: снят член l·|dU/dz| (w_sep) и σ_u/ΔU 0,166 вместо 0,18. Вне зоны отрыва расхождений нет.",
+      "pass": false
+    },
+    {
+      "name": "прочие сверки GD на текущем конфиге (LTM_CURRENT=1)",
+      "value": "sigma_lee_sep_scales_match_godot (sep_u 0,0498 против 0,0540 — коэффициент 0,166 вместо 0,18, ожидаемо) и ongudai_replay_matches_air_velocity_field падают; остальные 8 проходят",
+      "pass": false
+    },
+    {
+      "name": "legacy-прогон (по умолчанию)",
+      "value": "terms_turb 11/11 на коэффициентах до LTM v1, w_sep = 0; причина прописана в комментарии legacy_atmosphere()",
       "pass": true
     },
     {
-      "name": "dp_stand",
-      "value": "exit 0",
+      "name": "тест (а) LTM п.6, поле Онгудая a=1",
+      "value": "lee_f>0: 3120 точек; ниже гребня (agl<r): 3091, во всех ΔU>0 (исключений 0); r=0: 3 точки с lee_f<0,001 (хвост smoothstep у края зоны, гребня против ветра нет); порог 80 % убран",
       "pass": true
     },
     {
-      "name": "pt_lee",
-      "value": "PT lee tests: 0 failed (18 тестов на feature/picard-terrain + изменения задачи)",
-      "pass": true
-    },
-    {
-      "name": "lee_turb_ltm.rs (а): путь с полем, Онгудай, ветер 45 км/ч с запада",
-      "value": "точек lee_f>0 при a=1: 4165; r>0: 4078; ΔU>0: 3891; w_sep>0: 3891",
+      "name": "время turb-слота (mean+sigma) на точку, Онгудай a=1, 11236 точек, под lock cpu, 5 пар прогонов (в каждом медиана 7 повторов)",
+      "value": "после кеша relief_at: LT-9 1,74/2,01/1,74/2,20/1,87 -> медиана 1,87 мкс; feature/lee-turb до LT-9: 1,36/1,51/1,40/1,37/1,36 -> медиана 1,37 мкс; разница +0,5 мкс (x1,37)",
       "pass": true
     }
   ],
   "not_done": [
-    "Время sample на точку (прежнее/новое) не измерено. Добавлено 6 опросов земли relief_at на пути с полем на каждый вызов state; state вызывается и в mean, и в sigma, т.е. дважды на опрос.",
-    "Разложение σ за гребнем на ветви (механика/слой/конвекция) на старте aushtau_south не делалось: после LTM v1 pt_lee даёт 0 упало, разбор не понадобился."
+    "Разбор σ по ветвям на aushtau_south — вынесен в LT-11 по решению координатора",
+    "Эталоны W8 в части зоны отрыва не пересняты (tests/fixtures не трогаю): 70 точек выходят из допуска на текущем конфиге — решение координатора"
   ],
   "questions": [
-    "Фильтр карточки test_c4 (checks.tests) для godot --filter сверяется с путём файла — 0 тестов; нужно заменить на air_field_contracts."
+    "70 точек зоны отрыва вне допуска W8 (σ_u ниже эталона, до 0,45x): принять как следствие LTM v1 (эталоны GD записаны без снятия стенки) или пересмотреть w_sep/пороги?"
   ],
   "images": [],
-  "how_to_check": "cargo test --release -p dp-air --test lee_turb_ltm -- --nocapture; sh tools/research/lee_turb/pt_check/run.sh; godot --headless --path . res://tests/run_tests.tscn -- --filter=air_field_contracts",
+  "how_to_check": "cargo test --release -p dp-air --test lee_turb_ltm; LTM_CURRENT=1 cargo test --release -p dp-air --test terms_turb -- --nocapture; cargo test --release -p dp-air --test lee_turb_ltm timing -- --ignored --nocapture; .dpcli/dpcli accept LT-9 --dry; sh tools/research/lee_turb/pt_check/run.sh (без внешнего lock)",
   "uncertain": [
     {
-      "where": "rust/dp-air/src/terms/turb/mod.rs: state (relief_at при a>=1)",
-      "why": "relief_at вызывается дважды на опрос (mean и sigma) и 6 опросов земли каждый: стоимость кадра не измерена; результат не кешируется",
-      "checked": "dp-air тесты и timing-тесты проходят; замера bench нет"
-    },
-    {
-      "where": "rust/dp-air/tests/terms_turb.rs: legacy_atmosphere()",
-      "why": "эталонные сверки с дампом GD (rw8_dump, dbg_ongudai_*) теперь идут на конфиге слоя смешения до LTM v1 (0,18/0,18/0,14, рывки 0,42), т.к. эталоны записаны с ним; w_sep = 0 в реплее. Эталоны и допуски не менялись.",
-      "checked": "все тесты terms_turb проходят; на текущем конфиге точки за гребнем отличались бы по σ ожидаемо"
+      "where": "rust/dp-air/src/terms/turb/mod.rs: relief_cached",
+      "why": "кеш на поток: ключ — точка, время, ветер профиля c.u, адреса terms/fs/place; версии поля в Ctx нет. Переиспользование адреса освобождённого снимка при той же точке/времени/ветре дало бы тот же r (земля против ветра)",
+      "checked": "допущение прописано в комментарии; тесты dp-air проходят; relief вызывается один раз на опрос"
     },
     {
       "where": "configs/atmosphere.json lee.field_wall_shear_off_agl_per_relief",
-      "why": "[0,75; 1,0] — допущение «ниже уровня гребня» (в _doc), не измерено",
-      "checked": "форма веса проверена тестом wall_shear_weight_shape"
+      "why": "[0,75; 1,0] — допущение «ниже уровня гребня», не измерено; оно же определяет, на скольких точках W8 σ_u падает ниже эталона",
+      "checked": "форма веса — тест wall_shear_weight_shape; влияние на W8 — LTM_CURRENT=1"
+    },
+    {
+      "where": "rust/dp-air/tests/terms_turb.rs: legacy_atmosphere / LTM_CURRENT",
+      "why": "эталонные сверки по умолчанию идут на коэффициентах до LTM v1; переменная окружения включает текущий конфиг (тесты при этом падают, как перечислено в checks) — разведочный режим, не часть приёмки",
+      "checked": "оба режима прогнаны"
     },
     {
       "where": "tools/research/lee_turb/pt_check/run.sh",
-      "why": "скрипта в ветке не было — написан заново: временная копия feature/picard-terrain в ~/.cache/dp-pt-lee-wt/<копия>, патч git diff feature/lee-turb...HEAD по turb, atmosphere.json, tests/contracts (стенд не входит — его нет в picard-terrain), сборка tune, тесты --filter=lee",
-      "checked": "прогон: PT lee tests: 0 failed, ~2 мин после первой сборки"
+      "why": "pt_lee из карточки снята; скрипт оставлен как инструмент, на feature/picard-terrain даёт 1 упало (aushtau_south), 1027 с",
+      "checked": "прогон целиком"
     }
   ],
-  "dp_feedback": "Карточка: checks.tests фильтр по имени метода не работает, run_tests --filter сверяет путь файла; accept не предупреждает о 0 тестов как о ошибке настройки. Описание pt_check/run.sh в карточке есть, а файла нет — это стоит отмечать в карточке.",
+  "dp_feedback": "lock cpu запускает команду как job и сразу возвращается; процессы в другом pid-namespace, ps их не видит — для скриптов нужен режим с ожиданием и кодом возврата. run_tests --filter сверяется с путём файла, а не с именем метода.",
   "extra": {
-    "sigma_per_du": [
-      0.166,
-      0.13,
-      0.153
-    ],
-    "burst_per_du": 0.46,
-    "wall_off_agl_per_relief": [
-      0.75,
-      1.0
-    ]
+    "w8_current_cfg": {
+      "points": 1504,
+      "lee_points": 399,
+      "out_of_tol": 70,
+      "ratio_min_median_max": [
+        0.45,
+        0.84,
+        0.92
+      ]
+    },
+    "timing_us_per_point": {
+      "lt9_after_cache": 1.87,
+      "before_lt9": 1.37
+    }
   },
-  "t": "2026-11-10T01:48:55",
+  "t": "2026-11-10T06:13:47",
   "by": "executor"
 }
