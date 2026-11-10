@@ -177,3 +177,4 @@
 {"t": "2026-11-10T08:41:49", "by": "coordinator", "task": "LT-12", "ev": "checked", "note": "3/3 lts=ok:exit 0; masts=ok:264; docs=ok:exit 0"}
 {"t": "2026-11-10T08:44:12", "by": "reviewer", "task": "LT-12", "ev": "reviewed", "note": "Сверка честная: скоуп чист (13 файлов, dont_touch не тронуты), контракты LTS/LTO не менялись, константы не подбирались, выводы осторожные и границы названы (w_…", "verdict": "accept", "issues": {"minor": 2}, "review": "docs/plan/lee-turb/tasks/LT-12.review.json"}
 {"t": "2026-11-10T08:44:20", "by": "coordinator", "task": "LT-12", "ev": "accepted", "note": "по ревью (fable): 2 minor; LTM v1 на мачтах не улучшает (в пределах неопределённости), максимум не сдвигает"}
+{"t": "2026-11-10T08:44:21", "by": "coordinator", "task": "LT-12", "ev": "merged", "commits": ["421b5e2f6"]}
