@@ -154,6 +154,18 @@ generated: true
   - [tools/research/sw_charges_3d/refs/summary.md](../tools/research/sw_charges_3d/refs/summary.md) — SWD-1: итог эталонов 3D — Пикар nom/adv1 против мачт Askervein и Perdigão, ротор; границы эталонов.
 - **wind-forecast** — Ветер меню — как в прогнозе (10 м над открытой местностью): убрать подгонку под старт и два прохода k; показ «на старте X м/с». [closed 2026-11-08] — [план](plan/wind-forecast.md) · [контракты](contracts/wind-forecast.md) · [решения](plan/wind-forecast/decisions.md) · [сводка](plan/wind-forecast/summary.md) · полный журнал: `archive/wind-forecast`
   - [tools/research/wind_forecast/README.md](../tools/research/wind_forecast/README.md) — Аудит привязки ветра к старту: места файл:строка, U над стартом start/inflow на 8 стартах, загрузка, кеш, wind_ref.
+- **lee-turb** — Болтанка за гребнем как слой смешения: тонкий у гребня, растёт и опускается к присоединению; ротор ниже гребня, не сразу за ним. [active 2026-11-09] — [план](plan/lee-turb.md) · [контракты](contracts/lee-turb.md)
+  - [docs/research/lee_turb/baseline.md](research/lee_turb/baseline.md) — LT-2: разрезы Онгудая стендом: при доле поля 1 слой смешения не работает (du = 0); максимум болтанки — mech у гребня.
+  - [docs/research/lee_turb/fieldcheck.md](research/lee_turb/fieldcheck.md) — LT-8: поле игры (нынешнее и со срезанными клетками) на Perdigão и Askervein против мачт: пузырь, центр слоя, ТКЭ прежней/новой модели.
+  - [docs/research/lee_turb/flight.md](research/lee_turb/flight.md) — LT-14: полёт автопилота игры по ветру через гребень Онгудая на 3 высотах и 3 удалениях, прежняя болтанка против LTM v1, время кадра.
+  - [docs/research/lee_turb/leezone.md](research/lee_turb/leezone.md) — LT-11: почему σ подветренной ниже наветренной на aushtau_south и упало отношение на стартах (срезанные клетки): ветви σ.
+  - [docs/research/lee_turb/model.md](research/lee_turb/model.md) — Модель слоя за гребнем (LT-5..7): формулы, линия слоя по полю или глубине пузыря, константы, 18 разрезов Онгудая.
+  - [docs/research/lee_turb/model_obs.md](research/lee_turb/model_obs.md) — LT-6/7: слой против мачт Perdigão и Askervein: запасная линия по глубине пузыря, B под линией, H, x_r/H.
+  - [docs/research/lee_turb/obs.md](research/lee_turb/obs.md) — ТКЭ за гребнем: Perdigão (макс. 0.05 U² на 100 м над дном, x/H 3-5.5), Askervein (0.06 U² на 10 м, x/H 0.9-1.7); σ и Bolund не получены
+  - [docs/research/lee_turb/verify.md](research/lee_turb/verify.md) — LT-12: прежняя модель (7665fb7) против LTM v1 на поле со срезанными клетками: мачты Perdigão/Askervein и разрезы Онгудая.
+  - [docs/research/lee_turb.md](research/lee_turb.md) — lee-turb: LTM v1 оживил слой смешения на пути с полем, но на мачтах и в полёте не лучше прежней — мешает поле игры.
+  - [tools/research/lee_turb/obs/README.md](../tools/research/lee_turb/obs/README.md) — lee_obs.csv (LTO v1): ТКЭ за гребнем по x/H, z/H — Perdigão NE/SW (ISFS) и Askervein TU03B; Bolund недоступен; σ Perdigão ждут сервера
+  - [tools/research/lee_turb/places/README.md](../tools/research/lee_turb/places/README.md) — Места Perdigão и Askervein (W5, вне git), случаи W8 для dp-stand, станции в кадре места, пересъёмка, ограничения.
 - **outflow-bc** — Исследование: мягкий выход против жёсткого (U_b × c) на боковых гранях области — сходимость Пикара в слабый ветер. [closed 2026-11-09] — [план](plan/outflow-bc.md) · [контракты](contracts/outflow-bc.md) · [решения](plan/outflow-bc/decisions.md) · [сводка](plan/outflow-bc/summary.md) · полный журнал: `archive/outflow-bc`
   - [docs/research/outflow_bc.md](research/outflow_bc.md) — Мягкий выход Пикара на слабом ветре почти не помогает (+5 из 180, p=0,40), поле внутри меняется; граница игры — hard. [closed]
   - [tools/research/outflow_bc/README.md](../tools/research/outflow_bc/README.md) — Стенд корпуса outflow-bc: пример dp-air outflow_corpus (hard/soft/soft_ns, область 400 м), записи OB2, резы OB3, оценка времени
@@ -385,7 +397,7 @@ generated: true
 - [docs/guide/air-model/runtime.md](guide/air-model/runtime.md) — Как поле считается при загрузке и в полёте: конвейер фазы → Пикар → проекция, один проход (k = 1), пересчёт по сроку.
 - [docs/guide/air-model/surface-heat.md](guide/air-model/surface-heat.md) — Поток тепла H по классу покрова: Солнце → Rn → H, вода и лёд, z0 по клетке, замер до и после, чего модель не умеет.
 - [docs/guide/air-model/thermals.md](guide/air-model/thermals.md) — Термики из поля: законы Аллена и Дирдорфа, выбор источников, числа против литературы, сеть, чего модель не умеет.
-- [docs/guide/air-model/turbulence.md](guide/air-model/turbulence.md) — Болтанка, рывки и подветренная зона из поля: законы, числа у старта и за гребнем, чего модель не умеет.
+- [docs/guide/air-model/turbulence.md](guide/air-model/turbulence.md) — Болтанка, рывки и подветренная зона из поля: законы, LTM v1 за гребнем, числа, чего модель не умеет.
 - [docs/guide/air-model-gpu/blocks.md](guide/air-model-gpu/blocks.md) — Блоки решателя на GPU: файлы, раскладка буферов, прогонки, V-цикл, порции и API каркаса, замеры RTX 4070 SUPER, переносимость.
 - [docs/guide/air-model-gpu/clipmap.md](guide/air-model-gpu/clipmap.md) — Окна 100 и 50 м вокруг пилота: граница от родителя, сдвиг, сверка с эталоном, стык уровней, время, AirRuntime.
 - [docs/guide/air-model-gpu/picard.md](guide/air-model-gpu/picard.md) — Итерация Пикара на GPU: вход AirCase и AirPlace, порядок программы, буферы, сверка с эталоном AM-01, замеры.
