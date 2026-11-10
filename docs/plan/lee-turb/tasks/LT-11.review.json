@@ -1,46 +1,42 @@
 {
-  "verdict": "rework",
-  "summary": "Главный вывод (lee_f = 0 во всех 20 точках теста, на aushtau_south оба σ — конвективный пол 0,6·w*, механика подветренной 0,93 < 1,08) подтверждён кодом sep.rs/sigma.rs и starts.csv; ссылки на Askervein/Perdigão совпадают с obs.md; accept --dry 2/2, скоуп чист. Но заявление «σ_rec против σ игры 0–5 %» неверно: на наветренной стороне sinyukha_west −28 % (2,01 vs 1,45), sinyukha_east −17 %, kayancha_south −12 % — пересчёт ветвей там упускает член, который игра даёт; на этих рядах построена фраза про «наветренная механика ≈ 1,0».",
+  "verdict": "accept",
+  "summary": "Доработка 1 выполнена: пропущенный член найден и подтверждён кодом (terms/turb/mod.rs: Self::z0(c) = z0 первого уровня передаётся и в sep::lee, и в sigma()); σ_rec против σ игры ≤ 0,11 % во всех 20 рядах обоих полей, lee_f = 0 везде, отношение 1,25 (9/10), aushtau_south 0,94 — числа отчёта совпадают с out/*.csv. Ветка синхронизирована с feature/lee-turb, accept --dry 2/2, 24 файла в скоупе. Выводы по aushtau_south и варианты (а)/(б)/(в) от прежнего расхождения не зависят; копии -ltm/-old оставлены до приёмки, как условлено, с инструкцией в README.",
   "issues": [
     {
       "file": "docs/research/lee_turb/leezone.md",
-      "line": 24,
-      "severity": "major",
-      "what": "Отчёт ≠ факт: «расхождение σ 0–5 %» — в out/starts.csv на wind-рядах sinyukha_west σ=2,007/σ_rec=1,454 (−28 %), sinyukha_east 1,821/1,509 (−17 %), kayancha_south 1,736/1,524 (−12 %) при share=1, lee_f=0, hmix>0. Значит branches.py не воспроизводит какую-то ветвь игры на наветренном склоне (в таблице «механика lee/wind ≈ 1,0» и в п.4 «относительный рост даёт сдвиговая ветвь» наветренные числа ненадёжны). Для aushtau_south (−1/−2 %) и всех lee-рядов (0 %) вывод стоит.",
-      "fix": "Либо найти пропущенный член (сравнить с sigma.rs: u_pt — модуль среднего ветра из `sample`, у стенки `lerp(u_loc, u_wall, sl)`; T_SHEAR/агл земли в игре против terrain.height_at) и перестроить ветви, либо честно записать в doc: пересчёт верен на подветренных и aushtau_south, на 3 наветренных рядах расходится на 12–28 %, причина неизвестна, выводы о ветвях там не делать; исправить «0–5 %» в тексте и в report.checks."
-    },
-    {
-      "file": "docs/research/lee_turb/leezone.md",
-      "line": 20,
+      "line": 9,
       "severity": "minor",
-      "what": "Зонд LTM снят на копии 7aef9034f (слияние feature в LT-9), а не на финальном LT-9 (942a338a9, слит в feature 12078ad); ветка lee-turb/LT-11 не синхронизирована с feature/lee-turb (координатор просил task sync). На выводы не влияет (w_sep и слой зависят от lee_f, а он 0), но в doc стоит указать, что числа — до «доработки 2».",
-      "fix": ".dpcli/dpcli task sync LT-11; одна фраза в «Постановке»: коммит LT-9 7aef9034f, lee_f=0 ⇒ доработка 2 чисел в точках теста не меняет."
-    },
-    {
-      "file": "tools/research/lee_turb/leezone/README.md",
-      "line": 1,
-      "severity": "minor",
-      "what": "Остались рабочие копии ~/worktrees/deltaplan/lee-turb-LT-11-ltm и -old (detached) и цель cargo ~/.cache/dp-target/LT-11-old; build_old.sh/run_probe.sh на них завязаны путями $HOME.",
-      "fix": "После приёмки снять копии (git worktree remove), в README — как их создать заново."
+      "what": "В conclusion frontmatter диапазоны прежнего поля сужены: «u* 0,11–0,19, механика 1,9–5,3» — по starts_old.csv (lee) u* 0,11–0,31, механика 1,06–5,28; в тексте (стр. 78) диапазон u* дан верно (0,11–0,31, в среднем 0,19).",
+      "fix": "Поправить диапазоны в conclusion под starts_old.csv (можно при сдаче, без переоткрытия)."
     }
   ],
   "rerun": [
     {
       "name": "accept --dry (table, docs, scope)",
-      "value": "2/2, 23 файла в скоупе",
+      "value": "2/2, 24 файла в скоупе",
       "pass": true
     },
     {
-      "name": "starts.csv: lee_f во всех 20 рядах",
-      "value": "0.0 везде; aushtau_south σ 1,479/1,568, σ_rec 1,460/1,532",
+      "name": "σ_rec/σ по starts.csv и starts_old.csv",
+      "value": "макс. расхождение 0,11 % / 0,00 %, lee_f>0: 0/20 в обоих",
       "pass": true
     },
     {
-      "name": "σ_rec/σ по рядам",
-      "value": "lee: 0–1 %; wind: sinyukha_west −28 %, sinyukha_east −17 %, kayancha_south −12 %, остальные ≤5 %",
-      "pass": false
+      "name": "отношение σ_lee/σ_wind по 10 стартам",
+      "value": "срезанные 1,246 (>1: 9, aushtau_south 0,94); прежнее 1,578 (>1: 10)",
+      "pass": true
+    },
+    {
+      "name": "z0 уровня в Rust",
+      "value": "terms/turb/mod.rs:98–109, 275: levels().first().z0() → sep::lee и sigma(); probe_tail.gd берёт lv.z0",
+      "pass": true
+    },
+    {
+      "name": "сверка ветки",
+      "value": "feature/lee-turb (6f799d8a9) — предок lee-turb/LT-11",
+      "pass": true
     }
   ],
-  "t": "2026-11-10T06:38:25",
+  "t": "2026-11-10T07:22:38",
   "by": "reviewer"
 }
