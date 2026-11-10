@@ -1,26 +1,17 @@
 {
   "status": "partial",
-  "summary": "LTM v1 встроен: r из relief_at и на пути с полем (a>=1), σ слоя 0,166/0,130/0,153·ΔU (σ_v отдельно), вес w_sep снимает член l·|dU/dz| в зоне отрыва без разрешённого пузыря; ключи конфига, тесты Rust/Godot, стенд l_u/l_w с 0,01 м, pt_check/run.sh. Приёмка 4 из 5: test_c4 даёт 0 тестов из-за фильтра карточки (--filter сверяет путь файла, а test_c4 — имя метода).",
+  "summary": "LTM v1 встроен (r из relief_at при a>=1, σ слоя 0,166/0,130/0,153·ΔU, w_sep снимает l·|dU/dz| в зоне отрыва без разрешённого пузыря); ключи, тесты, стенд l_u/l_w 0,01 м; relief_at кешируется на опрос; main влит (LT-10). Открыто: test_lee_zone_all_starts при --ridge-full падает на aushkul/aushtau_south (1,48 против 1,57) — те же числа до и после LTM v1.",
   "commits": [
     "81d20ccd3 LT-9: LTM v1 — слой смешения и снятие механики стенки на пути с полем",
     "5f76938f3 LT-9: pt_check — расширение tune",
     "292e559a7 LT-9: pt_check — без стенда в патче",
-    "pt_check — стабильный путь копии (кеш cargo)"
+    "pt_check — стабильный путь копии (кеш cargo)",
+    "relief_at один раз за опрос + timing-тест; pt_check: ridge_starts/atmosphere/lee, lock cpu вокруг godot, результат из лога job"
   ],
   "checks": [
     {
-      "name": "lee (3 теста)",
-      "value": "0 упало",
-      "pass": true
-    },
-    {
-      "name": "test_c4",
-      "value": "0 тестов: --filter=test_c4 не сопоставляется ни с одним путём файла; test_c4_lee_keys в tests/contracts/test_air_field_contracts.gd; --filter=air_field_contracts: 18 тестов, 0 упало",
-      "pass": false
-    },
-    {
       "name": "dp_air cargo test",
-      "value": "exit 0 (один прогон упал на timing_step_and_spinup в terms_clouds под нагрузкой: 0,84 мс > 0,5 мс, отдельно 0,08 с, повтор accept — PASS)",
+      "value": "exit 0 (до кеша relief; повтор accept --dry идёт)",
       "pass": true
     },
     {
@@ -29,19 +20,34 @@
       "pass": true
     },
     {
-      "name": "pt_lee",
-      "value": "PT lee tests: 0 failed (18 тестов на feature/picard-terrain + изменения задачи)",
+      "name": "air_field_contracts",
+      "value": "18 тестов, 0 упало",
       "pass": true
     },
     {
-      "name": "lee_turb_ltm.rs (а): путь с полем, Онгудай, ветер 45 км/ч с запада",
-      "value": "точек lee_f>0 при a=1: 4165; r>0: 4078; ΔU>0: 3891; w_sep>0: 3891",
+      "name": "ridge_starts (без --ridge-full, один старт)",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "ridge_starts --ridge-full, ветка после слияния main (срезанные клетки)",
+      "value": "3 теста, 1 упало: test_lee_zone_all_starts aushkul/aushtau_south: σ_lee 1,48 < σ_wind 1,57 м/с (опускание 1,10)",
+      "pass": false
+    },
+    {
+      "name": "pt_check/run.sh (ridge_starts --ridge-full + test_atmosphere + lee на feature/picard-terrain)",
+      "value": "PT lee tests: 1 failed (тот же aushtau_south), 1027 с",
+      "pass": false
+    },
+    {
+      "name": "время turb-слота (mean+sigma) на точку, Онгудай a=1, 11236 точек, медиана 7 повторов x3 запуска",
+      "value": "было 1,51-2,14 мкс, стало 2,00-2,86 мкс (+0,5-0,7 мкс, x1,35) ДО кеша relief; после кеша relief_at (1 раз на опрос) замер не повторён",
       "pass": true
     }
   ],
   "not_done": [
-    "Время sample на точку (прежнее/новое) не измерено. Добавлено 6 опросов земли relief_at на пути с полем на каждый вызов state; state вызывается и в mean, и в sigma, т.е. дважды на опрос.",
-    "Разложение σ за гребнем на ветви (механика/слой/конвекция) на старте aushtau_south не делалось: после LTM v1 pt_lee даёт 0 упало, разбор не понадобился."
+    "aushtau_south: разложение σ за гребнем на ветви (механика/слой/конвекция) стендом не сделано: нужен случай игры (case json) для этого старта; числа 1,48/1,57 не изменились от LTM v1 — вероятно, в этой точке lee_f = 0 или σ определяется другой ветвью; решение — шлюз координатора (WEAK_LEE_SITES в tests/atmosphere не трогаю)",
+    "Замер времени после кеша relief_at не повторён"
   ],
   "questions": [
     "Фильтр карточки test_c4 (checks.tests) для godot --filter сверяется с путём файла — 0 тестов; нужно заменить на air_field_contracts."
@@ -70,7 +76,7 @@
       "checked": "прогон: PT lee tests: 0 failed, ~2 мин после первой сборки"
     }
   ],
-  "dp_feedback": "Карточка: checks.tests фильтр по имени метода не работает, run_tests --filter сверяет путь файла; accept не предупреждает о 0 тестов как о ошибке настройки. Описание pt_check/run.sh в карточке есть, а файла нет — это стоит отмечать в карточке.",
+  "dp_feedback": "lock cpu запускает команду как job и сразу возвращается, процессы в другом pid-namespace (ps их не видит) — для скриптов нужен режим с ожиданием и кодом возврата; вес lock по строке команды неочевиден. --filter у run_tests сверяется с путём файла, не с именем метода.",
   "extra": {
     "sigma_per_du": [
       0.166,
@@ -83,6 +89,6 @@
       1.0
     ]
   },
-  "t": "2026-11-10T01:48:55",
+  "t": "2026-11-10T05:34:25",
   "by": "executor"
 }
