@@ -1,0 +1,52 @@
+{
+  "status": "partial",
+  "summary": "aushkul/aushtau_south добавлен в WEAK_LEE_SITES с обоснованием LT-11 (коммит 67ad053a3, один файл). Прямой прогон ridge_starts --ridge-full: 3 теста, 0 упало. accept --dry не прошёл: ridge_full упирается в таймаут dpcli 900 с (прогон полный, ~15+ мин).",
+  "commits": [
+    "67ad053a3 lee-turb LT-13: aushkul/aushtau_south в WEAK_LEE_SITES с обоснованием (LT-11)"
+  ],
+  "checks": [
+    {
+      "name": "ridge_full (прямой прогон godot, после import и копирования addons/dp_air/bin)",
+      "value": "3 тестов, 0 упало, 0 пропущено",
+      "pass": true
+    },
+    {
+      "name": "accept LT-13 --dry",
+      "value": "FAIL ridge_full 900 с (таймаут dpcli); PASS scope 1 файл; 0/1",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "accept --dry не дал PASS из-за таймаута dpcli 900 с на ridge_full; полный прогон требует больше времени",
+    "первые прогоны без dp_air (нет расширения) и без import дали ложные FAILED-атмосферы; они отброшены, в отчёт не входят"
+  ],
+  "questions": [
+    "Поднять таймаут ridge_full в карточке LT-13 (dpcli accept) или разрешить принять по прямому прогону?"
+  ],
+  "images": [],
+  "how_to_check": "XDG_DATA_HOME=$HOME/.cache/dp-xdg/lee-turb-LT-13 godot --headless --path . res://tests/run_tests.tscn -- --filter=ridge_starts --ridge-full (ожидать «3 тестов, 0 упало»)",
+  "uncertain": [
+    {
+      "where": "tests/atmosphere/test_ridge_starts.gd:44-53",
+      "why": "Прямой прогон шёл без замка cpu (запущен до сообщения координатора о lock cpu); на результат числами не влияет, но замеры времени кадра могли пересечься по времени",
+      "checked": "все три теста ok в одном прогоне"
+    }
+  ],
+  "dp_feedback": "accept --dry для ridge_full режет прогон по 900 с, хотя полный --ridge-full длится дольше; в карточке нет поля таймаута. Копия не содержала addons/dp_air/bin (gitignore), и import не был сделан — dpcli не предупредил, ответ был 0 упало в логе только при чтении лога.",
+  "extra": {
+    "ridge8_gain_m": {
+      "altai/sinyukha_west": -45.33,
+      "altai/sinyukha_east": -90.83,
+      "altai/tugaya_south": -108.12,
+      "askarovo/biyagoda_west": 9.73,
+      "askarovo/biyagoda_east": -60.25,
+      "askarovo/biyagoda_south_west": -60.32,
+      "aushkul/aushtau_east": -55.45,
+      "aushkul/aushtau_south": -106.18,
+      "aushkul/ridge_west": -101.83,
+      "ongudai/kayancha_south": -109.34
+    }
+  },
+  "t": "2026-11-10T08:10:36",
+  "by": "executor"
+}
